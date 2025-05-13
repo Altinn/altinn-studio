@@ -13,7 +13,7 @@ export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
 }
 
-type SelectedItem = {
+export type SelectedItem = {
   type: 'component' | 'page' | 'group';
   id: string;
 };

@@ -60,15 +60,6 @@ describe('PageConfigPanel', () => {
   beforeEach(() => {
     (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue([]);
   });
-  it('render heading with "no selected page" message when selected layout is "default"', async () => {
-    renderPageConfigPanel();
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
-  });
-
-  it('render heading with "no selected page" message when selected layout is undefined', () => {
-    renderPageConfigPanel(undefined);
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
-  });
 
   it('render heading with layout page name when layout is selected', () => {
     const newSelectedPage = 'newSelectedPage';
@@ -130,44 +121,6 @@ describe('PageConfigPanel', () => {
       expect(modal).toBeInTheDocument();
     });
   });
-
-  describe('dispay not selected group message when TaskNavigationPageGroups feature is enabled and groups exist', () => {
-    beforeEach(() => {
-      setupFeatureFlag(true);
-      queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
-        groups: ['group1', 'group2'],
-      });
-    });
-
-    it('renders selectedGroupName as heading when selectedGroupName is defined', () => {
-      const selectedGroupName = 'myGroup';
-      renderPageConfigPanel(layout1NameMock, defaultTexts, { selectedGroupName });
-      screen.getByRole('heading', { name: selectedGroupName });
-    });
-
-    it('renders content_group_empty message as heading when selectedGroupName is undefined', () => {
-      renderPageConfigPanel(layout1NameMock, defaultTexts, { selectedGroupName: undefined });
-      screen.getByRole('heading', { name: textMock('right_menu.content_group_empty') });
-    });
-  });
-
-  it('renders StudioAlert with content_group_message when groups exist', () => {
-    queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
-      groups: ['group1', 'group2'],
-    });
-    renderPageConfigPanel(layout1NameMock, defaultTexts);
-    const alert = screen.getByText(textMock('right_menu.content_group_message'));
-    expect(alert).toBeInTheDocument();
-  });
-
-  it('does not render StudioAlert when no groups exist', () => {
-    queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], {
-      groups: [],
-    });
-    renderPageConfigPanel(layout1NameMock, defaultTexts);
-    const alert = screen.queryByRole('alert');
-    expect(alert).not.toBeInTheDocument();
-  });
 });
 
 const renderPageConfigPanel = (
@@ -189,6 +142,7 @@ const renderPageConfigPanel = (
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: {
       selectedFormLayoutName: selectedLayoutName,
+      selectedItem: { type: 'page', id: selectedLayoutName },
       selectedFormLayoutSetName: layoutSet,
       ...appContextProps,
     },

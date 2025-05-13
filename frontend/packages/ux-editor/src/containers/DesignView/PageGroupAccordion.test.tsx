@@ -12,9 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { useAppContext } from '@altinn/ux-editor/hooks';
-
-jest.mock('../../hooks', () => ({ useAppContext: jest.fn() }));
+import type { AppContextProps } from '../../AppContext';
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -51,11 +49,7 @@ const layouts: IFormLayouts = {
 
 describe('PageGroupAccordion', () => {
   beforeEach(() => {
-    (useAppContext as jest.Mock).mockReturnValue({
-      selectedFormLayoutSetName: layoutSetName,
-      setSelectedGroupName: jest.fn(),
-      selectedGroupName: 'Group 1',
-    });
+    jest.clearAllMocks();
   });
 
   it('should disable move-up for first group, and move-down for last group', async () => {
@@ -96,12 +90,10 @@ describe('PageGroupAccordion', () => {
 
   it('should mark group as selected when selectedGroupName matches fallback name', async () => {
     const fallbackName = `${textMock('general.layout_set')} 1`;
-    (useAppContext as jest.Mock).mockReturnValue({
-      selectedFormLayoutSetName: layoutSetName,
-      setSelectedGroupName: jest.fn(),
-      selectedGroupName: fallbackName,
+    await renderPageGroupAccordion({
+      props: { pages: pagesMockWithUnnamedGroup },
+      appContextProps: { selectedItem: { type: 'group', id: fallbackName } },
     });
-    await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toHaveClass('selected');
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
@@ -122,9 +114,10 @@ const moveGroupDownButton = (nth: number) =>
 type renderParameters = {
   props?: Partial<PageGroupAccordionProps>;
   queries?: Partial<ServicesContextProps>;
+  appContextProps?: Partial<AppContextProps>;
 };
 
-const renderPageGroupAccordion = async ({ props, queries }: renderParameters) => {
+const renderPageGroupAccordion = async ({ props, queries, appContextProps }: renderParameters) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesMock);
   renderWithProviders(
@@ -137,6 +130,6 @@ const renderPageGroupAccordion = async ({ props, queries }: renderParameters) =>
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,
-    { queryClient, queries },
+    { queryClient, queries, appContextProps },
   );
 };

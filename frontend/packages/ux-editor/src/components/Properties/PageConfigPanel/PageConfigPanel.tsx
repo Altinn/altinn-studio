@@ -58,6 +58,7 @@ export const PageConfigPanel = () => {
   return (
     <>
       <StudioSectionHeader
+        data-testid='pageConfigPanel'
         icon={<FileIcon />}
         heading={{
           text: headingTitle,

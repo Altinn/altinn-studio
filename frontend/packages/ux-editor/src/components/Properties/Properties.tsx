@@ -4,6 +4,9 @@ import { PageConfigPanel } from './PageConfigPanel';
 import { useAppContext } from '../../hooks';
 import { GroupConfigPanel } from './GroupConfigPanel/GroupConfigPanel';
 import { ComponentConfigPanel } from './ComponentConfigPanel/ComponentConfigPanel';
+import { StudioSectionHeader } from '@studio/components-legacy';
+import { FileIcon } from '@studio/icons';
+import { useTranslation } from 'react-i18next';
 
 export const Properties = () => {
   return (
@@ -15,6 +18,7 @@ export const Properties = () => {
 
 const PropertiesSelectedConfig = () => {
   const { selectedItem } = useAppContext();
+  const { t } = useTranslation();
 
   switch (selectedItem?.type) {
     case 'component':
@@ -23,5 +27,15 @@ const PropertiesSelectedConfig = () => {
       return <PageConfigPanel />;
     case 'group':
       return <GroupConfigPanel />;
+    default:
+      return (
+        <StudioSectionHeader
+          icon={<FileIcon />}
+          heading={{
+            text: t('right_menu.content_empty'),
+            level: 2,
+          }}
+        />
+      );
   }
 };

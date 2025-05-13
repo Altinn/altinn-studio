@@ -13,6 +13,7 @@ export const GroupConfigPanel = () => {
   return (
     <>
       <StudioSectionHeader
+        data-testid='groupConfigPanel'
         icon={<FileIcon />}
         heading={{
           text: selectedItem?.id,
