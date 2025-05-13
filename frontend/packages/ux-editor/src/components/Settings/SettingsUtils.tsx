@@ -13,9 +13,6 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 export const taskNavigationType = (taskType?: string) => {
   if (!taskType) return 'ux_editor.task_table_type.unknown';
 
-  if (taskType === TaskType.CustomReceipt || taskType === TaskType.Receipt) {
-    return 'ux_editor.task_table_type.receipt';
-  }
   return `ux_editor.task_table_type.${taskType}`;
 };
 
@@ -25,7 +22,6 @@ export enum TaskType {
   Signing = 'signing',
   Payment = 'payment',
   Receipt = 'receipt',
-  CustomReceipt = PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
 }
 
 export const getTaskIcon = (taskType: string) => {
@@ -39,30 +35,10 @@ export const getTaskIcon = (taskType: string) => {
     case TaskType.Payment:
       return CardIcon;
     case TaskType.Receipt:
-    case TaskType.CustomReceipt:
       return ReceiptIcon;
     default:
       return FolderIcon;
   }
-};
-
-export const isTaskReceipt = (taskType: string) => {
-  return taskType === TaskType.Receipt || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
-};
-
-export const getTaskName = (task: TaskNavigationGroup, layoutSetsModel: LayoutSetsModel) => {
-  if (task?.name) {
-    return task.name;
-  }
-
-  if (task.taskType === TaskType.Receipt) {
-    return 'ux_editor.task_table_type.receipt';
-  }
-
-  const matchingTask = layoutSetsModel?.sets.find(
-    (layoutSet) => layoutSet.task?.id === task.taskId,
-  );
-  return matchingTask?.id ?? '-';
 };
 
 type GetHiddenTasksProps = {
@@ -74,20 +50,30 @@ export const getHiddenTasks = ({
   taskNavigationGroups,
   layoutSetsModel,
 }: GetHiddenTasksProps): TaskNavigationGroup[] => {
-  const layoutSets = layoutSetsModel.sets;
-
-  const hiddenTasks = layoutSets.filter((layoutSet) => {
-    return !taskNavigationGroups.some((taskGroup) => taskGroup.taskId === layoutSet.task?.id);
+  const filteredLayoutSets = layoutSetsModel.sets.filter((layoutSet) => {
+    return (
+      layoutSet?.type !== 'subform' && layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT
+    );
   });
 
-  const filteredHiddenTasks = hiddenTasks.filter((taskGroup) => {
-    return taskGroup?.type !== 'subform';
-  });
-
-  return filteredHiddenTasks.map((taskGroup) => ({
-    taskType: Boolean(taskGroup.task?.type) ? taskGroup.task.type : taskGroup.task.id,
-    name: taskGroup.id,
+  const internalTasksFormat: TaskNavigationGroup[] = filteredLayoutSets.map((layoutSet) => ({
+    taskId: layoutSet.task.id,
+    taskType: layoutSet.task.type,
     pageCount: undefined, // This will be added later: https://digdir.slack.com/archives/C07PN8DMJ2E/p1746537888455189
-    taskId: taskGroup?.task.id,
   }));
+
+  const isReceiptInNavigationGroups = taskNavigationGroups.some(
+    (taskGroup) => taskGroup.taskType === TaskType.Receipt,
+  );
+  if (!isReceiptInNavigationGroups) {
+    internalTasksFormat.push({
+      taskType: TaskType.Receipt,
+    });
+  }
+
+  const hiddenTasks = internalTasksFormat.filter((task) => {
+    return !taskNavigationGroups.some((navigationTask) => navigationTask?.taskId === task?.taskId);
+  });
+
+  return hiddenTasks;
 };

@@ -6,7 +6,7 @@ import { MenuElipsisVerticalIcon, EyeClosedIcon } from '@studio/icons';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon, taskNavigationType } from '../Settings/SettingsUtils';
+import { getTaskIcon, taskNavigationType, TaskType } from '../Settings/SettingsUtils';
 import { useTaskNavigationGroupName } from '@altinn/ux-editor/hooks/useTaskNavigationGroupName';
 
 export type TasksTableBodyProps = {
@@ -62,8 +62,11 @@ type TaskRowProps = {
 const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
   const TaskIcon = getTaskIcon(task.taskType);
-  const taskType = taskNavigationType(task.taskType);
+  const taskTypeName = taskNavigationType(task.taskType);
   const { taskNavigationName, taskIdName } = useTaskNavigationGroupName(task);
+
+  const taskTypeCellContent =
+    task.taskType === TaskType.Receipt ? t(taskTypeName) : `${t(taskTypeName)}: ${taskIdName}`;
 
   return (
     <StudioTable.Row
@@ -73,7 +76,7 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
         <div className={classes.taskTypeCellContent}>
           <TaskIcon className={classes.taskIcon} />
           <span className={classes.taskType} title={taskIdName}>
-            {t(taskType)}: {taskIdName}
+            {taskTypeCellContent}
           </span>
         </div>
       </StudioTable.Cell>
