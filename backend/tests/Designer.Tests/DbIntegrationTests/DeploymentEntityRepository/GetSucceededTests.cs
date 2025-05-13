@@ -20,8 +20,8 @@ public class GetSucceededTests : DbIntegrationTestsBase
     [MemberData(nameof(TopAndSortTestData))]
     public async Task GetSucceeded_ShouldReturnCorrectRecordsFromDatabase(string org, string app, string envName, int top, SortDirection sortDirection)
     {
-        const int deployedInEnvCount = 10;
-        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, deployedInEnvCount, envName: envName).ToList();
+        const int DeployedInEnvCount = 10;
+        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, DeployedInEnvCount, envName: envName).ToList();
         await DbFixture.PrepareEntitiesInDatabase(deploymentEntities);
 
         var deploymentEntitiesAnotherEnvs = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, 5).ToList();
@@ -56,8 +56,8 @@ public class GetSucceededTests : DbIntegrationTestsBase
     public async Task GetSucceeded_Without_TopDefined_ShouldReturnAllRecordsForGivenApp(string org, string app, string envName,
         SortDirection sortDirection)
     {
-        const int deployedInEnvCount = 10;
-        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, deployedInEnvCount, envName: envName).ToList();
+        const int DeployedInEnvCount = 10;
+        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, DeployedInEnvCount, envName: envName).ToList();
         await DbFixture.PrepareEntitiesInDatabase(deploymentEntities);
 
         var deploymentEntitiesAnotherEnvs = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, 5).ToList();
@@ -76,7 +76,7 @@ public class GetSucceededTests : DbIntegrationTestsBase
                 : deploymentEntities.OrderByDescending(d => d.Created))
             .ToList();
 
-        Assert.Equal(deployedInEnvCount, result.Count);
+        Assert.Equal(DeployedInEnvCount, result.Count);
 
         var compareList = expectedEntities.Zip(result, (expected, actual) =>
         {

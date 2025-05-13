@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { PageAccordion } from '../PageAccordion';
 import { FormLayout } from '../FormLayout';
 import { useFormLayouts } from '../../../../../hooks';

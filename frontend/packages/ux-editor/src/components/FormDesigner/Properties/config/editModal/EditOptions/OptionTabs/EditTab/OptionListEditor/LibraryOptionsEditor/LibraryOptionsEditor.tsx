@@ -5,16 +5,13 @@ import type { CodeListEditorTexts } from '@studio/components-legacy';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import {
-  useUpdateOptionListMutation,
-  useUpsertTextResourceMutation,
-} from 'app-shared/hooks/mutations';
+import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useHandleBlurTextResource, useTextResourcesForLanguage } from '../hooks';
+import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './LibraryOptionsEditor.module.css';
 
 export type LibraryOptionsEditorProps = {
@@ -31,19 +28,14 @@ export function LibraryOptionsEditor({
   const { data: optionList } = useOptionListQuery(org, app, optionListId);
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
-  const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
   const { doReloadPreview } = usePreviewContext();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
-  const handleBlurTextResource = useHandleBlurTextResource(
-    language,
-    updateTextResource,
-    doReloadPreview,
-  );
+  const handleUpdateTextResource = useHandleUpdateTextResource(language, doReloadPreview);
 
-  const handleOptionsListChange = (newOptionList: OptionList) => {
+  const handleUpdateCodeList = (newOptionList: OptionList) => {
     if (hasOptionListChanged(optionList, newOptionList)) {
       updateOptionList({ optionListId, optionList: newOptionList });
       doReloadPreview();
@@ -56,7 +48,11 @@ export function LibraryOptionsEditor({
 
   return (
     <>
-      <OptionListLabels optionListId={optionListId} optionList={optionList} />
+      <OptionListLabels
+        optionListId={optionListId}
+        optionList={optionList}
+        textResources={textResourcesForLanguage}
+      />
       <OptionListButtons handleClick={handleClick} handleDelete={handleDelete} />
       <StudioModal.Dialog
         ref={modalRef}
@@ -72,9 +68,9 @@ export function LibraryOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={optionList}
-          onAddOrDeleteItem={handleOptionsListChange}
-          onBlurAny={handleOptionsListChange}
-          onBlurTextResource={handleBlurTextResource}
+          onCreateTextResource={handleUpdateTextResource}
+          onUpdateTextResource={handleUpdateTextResource}
+          onUpdateCodeList={handleUpdateCodeList}
           texts={editorTexts}
           textResources={textResourcesForLanguage}
         />

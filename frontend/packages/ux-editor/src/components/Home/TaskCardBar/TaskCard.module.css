@@ -1,21 +1,16 @@
 .content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  flex-grow: 1;
 }
 
 .details {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--fds-spacing-3);
 }
 
-.navigate-button {
-  height: var(--fds-sizing-12);
-}
-
-.editcard {
-  border: var(--fds-border_width-active) solid var(--fds-semantic-border-first-active);
+.details * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

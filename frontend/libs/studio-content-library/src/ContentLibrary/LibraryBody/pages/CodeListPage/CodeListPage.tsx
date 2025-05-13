@@ -16,6 +16,8 @@ import {
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
   title: string;
@@ -25,6 +27,7 @@ export type CodeListData = {
 
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -32,10 +35,13 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
+  externalResources?: ExternalResource[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListPage({
   codeListsData,
+  onCreateCodeList,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -43,10 +49,14 @@ export function CodeListPage({
   onUploadCodeList,
   codeListsUsages,
   textResources,
+  externalResources,
+  onImportCodeListFromOrg,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+
+  const codeListIsEmpty: boolean = codeListsData.length === 0;
 
   const filteredCodeLists: CodeListData[] = useMemo(
     () => filterCodeLists(codeListsData, searchString),
@@ -84,11 +94,13 @@ export function CodeListPage({
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
         onBlurTextResource={handleBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
         onUploadCodeList={handleUploadCodeList}
-        onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}
+        externalResources={externalResources}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
         codeListsData={filteredCodeLists}
@@ -101,6 +113,7 @@ export function CodeListPage({
         codeListsUsages={codeListsUsages}
         textResources={textResourcesForLanguage}
       />
+      {codeListIsEmpty && <InfoBox pageName='codeList' />}
     </div>
   );
 }

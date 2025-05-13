@@ -1,14 +1,20 @@
 import type { CodeList } from 'app-shared/types/CodeList';
 import type { CodeListData } from 'app-shared/types/CodeListData';
+import {
+  label1ResourceNb,
+  label2ResourceNb,
+  label3ResourceNb,
+  label4ResourceNb,
+} from './textResources';
 
 const codeList1: CodeList = [
   {
     value: 'item1',
-    label: 'item1-text-key',
+    label: label1ResourceNb.id,
   },
   {
     value: 'item2',
-    label: 'item2-text-key',
+    label: label2ResourceNb.id,
   },
 ];
 const codeList1Name = 'codeList1';
@@ -20,11 +26,11 @@ export const codeList1Data: CodeListData = {
 const codeList2: CodeList = [
   {
     value: 'itemA',
-    label: 'itemA-text-key',
+    label: label3ResourceNb.id,
   },
   {
     value: 'itemB',
-    label: 'itemB-text-key',
+    label: label4ResourceNb.id,
   },
 ];
 const codeList2Name = 'codeList2';

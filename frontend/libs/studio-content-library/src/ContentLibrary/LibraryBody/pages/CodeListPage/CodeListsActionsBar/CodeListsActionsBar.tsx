@@ -6,23 +6,28 @@ import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import { AddCodeListDropdown } from './AddCodeListDropdown';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
   onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
-  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
   textResources?: TextResource[];
+  externalResources?: ExternalResource[];
+  onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListsActionsBar({
   onBlurTextResource,
+  onCreateCodeList,
   onUploadCodeList,
-  onUpdateCodeList,
   codeListNames,
   onSetSearchString,
   textResources,
+  externalResources,
+  onImportCodeListFromOrg,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
 
@@ -42,9 +47,11 @@ export function CodeListsActionsBar({
       <AddCodeListDropdown
         codeListNames={codeListNames}
         onBlurTextResource={onBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
         onUploadCodeList={onUploadCodeList}
-        onUpdateCodeList={onUpdateCodeList}
         textResources={textResources}
+        externalResources={externalResources}
+        onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
     </div>
   );

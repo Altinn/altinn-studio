@@ -1,5 +1,6 @@
 import {
   StudioButton,
+  StudioCard,
   StudioNativeSelect,
   StudioParagraph,
   StudioSpinner,
@@ -16,6 +17,7 @@ import React, { type ChangeEvent } from 'react';
 import classes from './TaskCardEditing.module.css';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 
 export type TaskCardEditingProps = {
   layoutSetModel: LayoutSetModel;
@@ -46,6 +48,11 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
   const pendingMutation = updateProcessDataTypePending || mutateLayoutSetIdPending;
   const disableSaveButton = !fieldChanged || Boolean(idValidationError) || pendingMutation;
 
+  const taskNameFieldLabel =
+    layoutSetModel.type === 'subform'
+      ? t('ux_editor.task_card.subform_name_label')
+      : t('ux_editor.task_card.task_name_label');
+
   const onSettled = () => {
     if (!pendingMutation) onClose();
   };
@@ -75,10 +82,10 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
   };
 
   return (
-    <>
+    <StudioCard className={classes.editCard}>
       <StudioParagraph size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
-        label={t('ux_editor.component_properties.layoutSet')}
+        label={taskNameFieldLabel}
         value={id}
         error={idValidationError}
         onKeyUp={(event) => {
@@ -93,7 +100,9 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value=''>{t('ux_editor.task_card.no_datamodel')}</option>
+        <option value='' disabled>
+          {t('ux_editor.task_card.choose_datamodel')}
+        </option>
         {layoutSetModel.dataType && (
           <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
         )}
@@ -104,13 +113,23 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         ))}
       </StudioNativeSelect>
       <div className={classes.btnGroup}>
-        <StudioButton disabled={disableSaveButton} onClick={() => saveChanges()} variant='primary'>
+        <StudioButton
+          disabled={disableSaveButton}
+          icon={<CheckmarkIcon />}
+          onClick={() => saveChanges()}
+          variant='primary'
+        >
           {pendingMutation ? <StudioSpinner size='xs' spinnerTitle='' /> : t('general.save')}
         </StudioButton>
-        <StudioButton disabled={pendingMutation} onClick={() => onClose()} variant='secondary'>
-          {t('general.close')}
+        <StudioButton
+          disabled={pendingMutation}
+          icon={<XMarkIcon />}
+          onClick={() => onClose()}
+          variant='secondary'
+        >
+          {t('general.cancel')}
         </StudioButton>
       </div>
-    </>
+    </StudioCard>
   );
 };

@@ -8,8 +8,10 @@ import { HeaderContext, type HeaderContextProps } from '../../../../../context/H
 import { MockServicesContextWrapper } from '../../../../../dashboardTestUtils';
 import { headerContextValueMock } from '../../../../../testing/headerContextMock';
 
+const origin: string = window.location.origin;
 const menuItemName: string = 'testMenuItem';
 const menuItemLink: string = '/test-path';
+const path: string = `${origin}${menuItemLink}`;
 const mockMenuItem: NavigationMenuItem = {
   itemName: menuItemName,
   action: {
@@ -35,19 +37,7 @@ describe('SmallHeaderMenuItem', () => {
       name: textMock(menuItemName),
     });
     expect(linkElement).toBeInTheDocument();
-    expect(linkElement).toHaveAttribute('href', menuItemLink);
-  });
-
-  it('should add "active" class when the current route matches the menuItem href', () => {
-    const initialEntries = `${menuItemLink}/ttd`;
-    renderSmallHeaderMenuItem({
-      routerInitialEntries: [initialEntries],
-    });
-
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
-    expect(linkElement).toHaveClass('active');
+    expect(linkElement).toHaveAttribute('href', path);
   });
 
   it('should call onClick when the NavLink is clicked', async () => {

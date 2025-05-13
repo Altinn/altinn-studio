@@ -25,12 +25,12 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
     public async Task Delete_Returns_200OK_When_Deleting_CodeList()
     {
         // Arrange
-        const string codeListId = "codeListNumber";
+        const string CodeListId = "codeListNumber";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        string apiUrl = ApiUrl(targetOrg, codeListId);
+        string apiUrl = ApiUrl(targetOrg, CodeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -41,19 +41,19 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(5, responseList.Count);
-        Assert.DoesNotContain(responseList, e => e.Title == codeListId);
+        Assert.DoesNotContain(responseList, e => e.Title == CodeListId);
     }
 
     [Fact]
     public async Task Delete_Returns_404NotFound_When_CodeList_Does_Not_Exist()
     {
         // Arrange
-        const string codeListId = "non-existing-code-list";
+        const string CodeListId = "non-existing-code-list";
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        string apiUrl = ApiUrl(targetOrg, codeListId);
+        string apiUrl = ApiUrl(targetOrg, CodeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -63,7 +63,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Equal($"The code list file {codeListId}.json does not exist.", responseDocument.RootElement.ToString());
+        Assert.Equal($"The code list file {CodeListId}.json does not exist.", responseDocument.RootElement.ToString());
     }
 
     private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/{codeListId}";

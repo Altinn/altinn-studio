@@ -28,8 +28,8 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
     {
         // Arrange
-        const string repo = "app-with-options";
-        string apiUrl = $"/designer/api/ttd/{repo}/options";
+        const string Repo = "app-with-options";
+        string apiUrl = $"/designer/api/ttd/{Repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -47,8 +47,8 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetOptionsListIds_Returns200OK_WithEmptyOptionsListIdArray_WhenAppHasNoOptionsList()
     {
         // Arrange
-        const string repo = "empty-app";
-        string apiUrl = $"/designer/api/ttd/{repo}/options";
+        const string Repo = "empty-app";
+        string apiUrl = $"/designer/api/ttd/{Repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -65,9 +65,9 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetOptionLists_Returns200OK_WithOptionListsData()
     {
         // Arrange
-        const string repo = "app-with-options";
+        const string Repo = "app-with-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest("ttd", repo, "testUser", targetRepository);
+        await CopyRepositoryForTest("ttd", Repo, "testUser", targetRepository);
         string apiUrl = $"/designer/api/ttd/{targetRepository}/options/option-lists";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
         string optionListMissingValue = @"[{ ""label"": ""someLabel""}]";
@@ -110,10 +110,10 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetSingleOptionsList_Returns200Ok_WithOptionsList()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "test-options";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "test-options";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/ttd/{Repo}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -136,10 +136,10 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetSingleOptionsList_Returns404NotFound_WhenOptionsListDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app";
-        const string optionsListId = "non-existing-options";
+        const string Repo = "empty-app";
+        const string OptionsListId = "non-existing-options";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/ttd/{Repo}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -153,10 +153,10 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetSingleOptionsList_Returns400BadRequest_WhenOptionsListIsInvalid()
     {
         // Arrange
-        const string repo = "app-with-options";
-        const string optionsListId = "options-with-null-fields";
+        const string Repo = "app-with-options";
+        const string OptionsListId = "options-with-null-fields";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/ttd/{Repo}/options/{OptionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act

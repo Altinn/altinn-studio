@@ -99,7 +99,7 @@ describe('CreateSubformMode', () => {
   });
 });
 
-const subformNameLabel = textMock('ux_editor.task_card.new_subform');
+const subformNameLabel = textMock('ux_editor.task_card.subform_name_label');
 const writeSubformName = async (inputName: string) => {
   const subformNameInput = screen.getByLabelText(subformNameLabel);
   await userEvent.type(subformNameInput, inputName);

@@ -33,7 +33,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_options_exists_for_v4_app_Ok()
         {
-            Instance instance = await createInstance();
+            Instance instance = await CreateInstance();
             string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 

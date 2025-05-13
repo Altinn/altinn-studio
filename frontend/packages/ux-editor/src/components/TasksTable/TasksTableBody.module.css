@@ -1,0 +1,45 @@
+.alertMessage {
+  margin: var(--fds-spacing-2);
+}
+
+.alertTitle {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.taskRow td {
+  border: none;
+}
+
+.taskRow td:nth-child(2) {
+  width: 35%;
+}
+
+.taskRow td:nth-child(4) {
+  width: 1px;
+  white-space: nowrap;
+}
+
+.taskRow td {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.hiddenTaskRow td:nth-child(-n + 3) {
+  opacity: 0.5;
+}
+
+.taskTypeCellContent {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--fds-spacing-1);
+}
+
+.taskTypeCellContent svg {
+  font-size: 1.3rem;
+  border: 2px solid var(--fds-colors-grey-600);
+  border-radius: var(--fds-border_radius-interactive);
+
+  background-color: var(--fds-colors-grey-100);
+  color: var(--fds-colors-grey-800);
+}

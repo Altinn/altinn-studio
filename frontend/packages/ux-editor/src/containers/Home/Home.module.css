@@ -31,13 +31,6 @@
   gap: var(--fds-spacing-10);
 }
 
-.header {
-  color: #022f51;
-  font-family: var(--studio-font-family);
-  font-size: var(--fds-sizing-9);
-  font-weight: 500;
-}
-
 .footer {
   border-top: 2px solid #efefef;
   margin-top: var(--fds-spacing-10);
