@@ -4,15 +4,15 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { type ITextResourcesWithLanguage } from '../../types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
-export const useTextResourcesForOrgQuery = (
+export const useOrgTextResourcesQuery = (
   orgName: string,
   language: string,
 ): UseQueryResult<ITextResourcesWithLanguage> => {
-  const { getTextResourcesForOrg } = useServicesContext();
+  const { getOrgTextResources } = useServicesContext();
   return useQuery<ITextResourcesWithLanguage>({
-    queryKey: [QueryKey.TextResourcesForOrg, orgName, language],
+    queryKey: [QueryKey.OrgTextResources, orgName, language],
     queryFn: (): Promise<ITextResourcesWithLanguage | null> =>
-      getTextResourcesForOrg(orgName, language),
+      getOrgTextResources(orgName, language),
     select,
   });
 };

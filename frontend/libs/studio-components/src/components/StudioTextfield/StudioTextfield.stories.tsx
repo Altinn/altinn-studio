@@ -24,7 +24,7 @@ Preview.args = {
   error: '',
   multiline: false,
   required: false,
-  requiredText: 'Må fylles ut',
+  tagText: 'Må fylles ut',
 };
 
 export default meta;
