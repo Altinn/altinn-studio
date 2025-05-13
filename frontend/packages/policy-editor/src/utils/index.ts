@@ -267,21 +267,3 @@ export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
   }
   return String(largestNumberedRuleId + 1);
 };
-
-export const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
-  const acceptConsentRule = {
-    ...emptyPolicyRule,
-    actions: ['consent'],
-    ruleId: '1',
-    resources: [[`urn:altinn:resource:${resourceId}`]],
-  };
-  const requestConsentRule = {
-    ...emptyPolicyRule,
-    subject: [organizationSubject.subjectId],
-    actions: ['requestconsent'],
-    ruleId: '2',
-    resources: [[`urn:altinn:resource:${resourceId}`]],
-  };
-
-  return [acceptConsentRule, requestConsentRule];
-};

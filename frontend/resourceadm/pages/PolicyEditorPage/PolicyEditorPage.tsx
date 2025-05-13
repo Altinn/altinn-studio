@@ -17,7 +17,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { useGetAllAccessListsQuery } from '../../hooks/queries/useGetAllAccessListsQuery';
-import { getConsentResourcePolicyRules, getResourceSubjects } from '../../utils/resourceUtils';
+import { getResourcePolicyRules, getResourceSubjects } from '../../utils/resourceUtils';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -105,7 +105,7 @@ export const PolicyEditorPage = ({
     const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
     const subjects = getResourceSubjects(accessLists, subjectData, org, isConsentResource);
     const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjects);
-    const policy = getConsentResourcePolicyRules(policyData, resourceId, isConsentResource);
+    const policy = getResourcePolicyRules(policyData, resourceId, isConsentResource);
 
     return (
       <PolicyEditor

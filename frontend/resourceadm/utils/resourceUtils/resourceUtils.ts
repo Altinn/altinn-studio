@@ -14,8 +14,8 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import type { Policy, PolicySubject } from '@altinn/policy-editor/types';
-import { getConsentResourceDefaultRules, organizationSubject } from '@altinn/policy-editor/utils';
+import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 
 /**
  * The map of resource type
@@ -577,6 +577,24 @@ const getUnknownMetadataValues = (
   };
 };
 
+const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [requestConsentRule, acceptConsentRule];
+};
+
 const hasConsentRules = (policyData: Policy): boolean => {
   const hasAcceptConsentAction = policyData.rules.some((rule) =>
     rule.actions.some((action) => action === 'consent'),
@@ -588,7 +606,7 @@ const hasConsentRules = (policyData: Policy): boolean => {
   return hasAcceptConsentAction && hasRequestConsentAction;
 };
 
-export const getConsentResourcePolicyRules = (
+export const getResourcePolicyRules = (
   policyData: Policy,
   resourceId: string,
   isConsentResource: boolean,
