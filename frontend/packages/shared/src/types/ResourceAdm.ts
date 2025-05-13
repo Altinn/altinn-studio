@@ -71,9 +71,7 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged?: Date | null;
-  resourceType?: ResourceTypeOption;
-  status?: ResourceStatusOption;
+  lastChanged?: Date;
   identifier: string;
   environments: string[];
 }
