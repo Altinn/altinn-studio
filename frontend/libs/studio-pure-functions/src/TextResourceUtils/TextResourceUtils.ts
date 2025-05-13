@@ -25,15 +25,16 @@ export class TextResourceUtils {
     return this.textResources.get(id);
   }
 
-  public set(textResource: TextResource): TextResourceMap {
+  public set(textResource: TextResource): TextResourceUtils {
     const newMap = this.cloneMap();
-    return newMap.set(textResource.id, textResource);
+    newMap.set(textResource.id, textResource);
+    return new TextResourceUtils(newMap);
   }
 
-  public delete(id: string): TextResourceMap {
+  public delete(id: string): TextResourceUtils {
     const newMap = this.cloneMap();
     newMap.delete(id);
-    return newMap;
+    return new TextResourceUtils(newMap);
   }
 
   private cloneMap(): TextResourceMap {
