@@ -1,7 +1,7 @@
 import React from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { StudioDragAndDrop } from '@studio/components-legacy';
@@ -181,8 +181,7 @@ describe('DesignView', () => {
   it('renders group accordions when isTaskNavigationPageGroups is true and there are groups', () => {
     setupFeatureFlag(true);
     renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    expect(screen.getByText('Sideoppsett 2')).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument();
   });
 
   it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
@@ -204,17 +203,17 @@ describe('DesignView', () => {
   it('Does not render group accordions when order is empty or undefined', () => {
     setupFeatureFlag(true);
     renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    expect(screen.getByText('Sideoppsett 2')).toBeInTheDocument();
-    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
-    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument(); // First group: "Gruppe 1"
+    const secondGroupHeader = screen.getByTestId('page-group-accordion-ellipsis-menu-1');
+    expect(within(secondGroupHeader).getByText(layout2NameMock)).toBeInTheDocument(); // Second group: "Side2" in header
+    expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument(); // Empty group not rendered
   });
 
   it('calls "handleAddPage" when clicking the add page button within a group', async () => {
     const user = userEvent.setup();
     setupFeatureFlag(true);
     renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument();
     const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
     await user.click(addButton);
     expect(queriesMock.createPage).toHaveBeenCalledTimes(1);
@@ -240,10 +239,13 @@ describe('DesignView', () => {
     setupFeatureFlag(true);
     renderDesignView();
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument();
     const deleteButton = screen.getAllByRole('button', {
-      name: textMock('general.delete_item', { item: 'Sideoppsett 1' }),
+      name: textMock('general.delete_item', {
+        item: `${textMock('ux_editor.page_layout_group')} 1`,
+      }),
     })[0];
+
     await user.click(deleteButton);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     confirmSpy.mockRestore();
@@ -254,7 +256,7 @@ describe('DesignView', () => {
     setupFeatureFlag(true);
     appContextMock.selectedFormLayoutName = layout2NameMock;
     renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument();
     const accordionButton = screen.getByRole('button', { name: layout1NameMock });
     await user.click(accordionButton);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
@@ -266,7 +268,7 @@ describe('DesignView', () => {
     setupFeatureFlag(true);
     appContextMock.selectedFormLayoutName = layout1NameMock;
     renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
+    expect(screen.getByText(`${textMock('ux_editor.page_layout_group')} 1`)).toBeInTheDocument();
     const accordionButton = screen.getByRole('button', { name: layout1NameMock });
     await user.click(accordionButton);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
