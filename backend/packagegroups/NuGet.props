@@ -76,8 +76,8 @@
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.4" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="9.0.4" />
-    <PackageReference Update="WireMock.Net" Version="1.8.1" />
+    <PackageReference Update="WireMock.Net" Version="1.8.4" />
     <PackageReference Update="DistributedLock.FileSystem" Version="1.0.3" />
-    <PackageReference Update="System.Linq.Dynamic.Core" Version="1.6.2" />
+    <PackageReference Update="System.Linq.Dynamic.Core" Version="1.6.3" />
   </ItemGroup>
 </Project>
