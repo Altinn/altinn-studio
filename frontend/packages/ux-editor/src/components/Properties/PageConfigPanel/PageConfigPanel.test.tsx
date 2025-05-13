@@ -25,11 +25,6 @@ jest.mock('app-shared/utils/featureToggleUtils', () => ({
   },
 }));
 
-const setupFeatureFlag = (enabled: boolean) => {
-  const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-  shouldDisplayFeature.mockReturnValue(enabled);
-};
-
 // Test data
 const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
