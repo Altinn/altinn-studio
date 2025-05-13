@@ -24,49 +24,58 @@ const PreviewComponent = (args): React.ReactElement => {
 
   const { getCheckboxProps } = useCheckboxGroup({
     name: 'test',
-    error: hasError ? 'Test Error' : '',
+    error: hasError,
   });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const value: string = event.target.value;
     const checked: boolean = event.target.checked;
 
-    console.log('value, checked', { value, checked });
-
     if (value !== 'all' && checked) {
-      setHasError(false);
-      const newRowElements = rowElements.map((element) =>
-        element.value === value ? { ...element, checked } : element,
-      );
-      setRowElements(newRowElements);
+      handleCheckSingleCheckbox(value);
     }
-
     if (value !== 'all' && !checked) {
-      const newRowElements = rowElements.map((element) =>
-        element.value === value ? { ...element, checked: false } : element,
-      );
-
-      const allAreUnchecked = newRowElements.every((element) => !element.checked);
-
-      if (allAreUnchecked) {
-        setHasError(true);
-      }
-
-      setRowElements(newRowElements);
+      handleUnCheckSingleCheckbox(value);
     }
-
     if (value === 'all' && checked) {
-      setHasError(false);
-      setRowElements((prevRowElements) =>
-        prevRowElements.map((element) => ({ ...element, checked })),
-      );
+      handleChangeAllCheckboxes(true);
     }
     if (value === 'all' && !checked) {
-      setHasError(true);
-      setRowElements((prevRowElements) =>
-        prevRowElements.map((element) => ({ ...element, checked: false })),
-      );
+      handleChangeAllCheckboxes(false);
     }
+  };
+
+  const handleCheckSingleCheckbox = (value: string): void => {
+    setHasError(false);
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
+      rowElements,
+      value,
+      true,
+    );
+    setRowElements(newRowElements);
+  };
+
+  const handleUnCheckSingleCheckbox = (value: string): void => {
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
+      rowElements,
+      value,
+      false,
+    );
+    const allAreUnchecked: boolean = getAllUnchecked(newRowElements);
+
+    if (allAreUnchecked) {
+      setHasError(true);
+    }
+    setRowElements(newRowElements);
+  };
+
+  const handleChangeAllCheckboxes = (checked: boolean): void => {
+    setHasError(!checked);
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnAllCheckboxes(
+      rowElements,
+      checked,
+    );
+    setRowElements(newRowElements);
   };
 
   return (
@@ -81,7 +90,6 @@ const PreviewComponent = (args): React.ReactElement => {
                 {...getCheckboxProps({
                   allowIndeterminate: true,
                   value: 'all',
-                  // checked: rowElements.every((element) => element.checked),
                   onChange: handleChange,
                 })}
               />
@@ -117,6 +125,27 @@ const PreviewComponent = (args): React.ReactElement => {
     </>
   );
 };
+
+function changeCheckedOnCheckboxClicked(
+  rowElements: StudioCheckboxTableRowElement[],
+  valueClicked: string,
+  isChecked: boolean,
+): StudioCheckboxTableRowElement[] {
+  return rowElements.map((element: StudioCheckboxTableRowElement) =>
+    element.value === valueClicked ? { ...element, checked: isChecked } : element,
+  );
+}
+
+function getAllUnchecked(rowElements: StudioCheckboxTableRowElement[]): boolean {
+  return rowElements.every((element: StudioCheckboxTableRowElement) => !element.checked);
+}
+
+function changeCheckedOnAllCheckboxes(
+  rowElements: StudioCheckboxTableRowElement[],
+  checked: boolean,
+): StudioCheckboxTableRowElement[] {
+  return rowElements.map((element: StudioCheckboxTableRowElement) => ({ ...element, checked }));
+}
 
 type Story = StoryFn<typeof StudioCheckboxTable>;
 
