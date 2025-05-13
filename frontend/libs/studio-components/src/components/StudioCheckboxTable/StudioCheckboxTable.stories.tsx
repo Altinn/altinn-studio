@@ -80,23 +80,17 @@ const PreviewComponent = (args): React.ReactElement => {
 
   return (
     <>
-      <StudioCheckboxTable {...args}>
-        <StudioTable.Head>
-          <StudioTable.Row>
-            <StudioTable.HeaderCell>
-              <StudioCheckbox
-                aria-label='My story'
-                aria-invalid={hasError}
-                {...getCheckboxProps({
-                  allowIndeterminate: true,
-                  value: 'all',
-                  onChange: handleChange,
-                })}
-              />
-            </StudioTable.HeaderCell>
-            <StudioTable.HeaderCell aria-hidden>My Story</StudioTable.HeaderCell>
-          </StudioTable.Row>
-        </StudioTable.Head>
+      <StudioCheckboxTable {...args} hasError={hasError}>
+        <StudioCheckboxTable.Head
+          title='My story'
+          getCheckboxProps={{
+            ...getCheckboxProps({
+              allowIndeterminate: true,
+              value: 'all',
+              onChange: handleChange,
+            }),
+          }}
+        />
         <StudioCheckboxTable.Body>
           {rowElements.map((rowElement: StudioCheckboxTableRowElement) => (
             <StudioTable.Row key={rowElement.value}>
