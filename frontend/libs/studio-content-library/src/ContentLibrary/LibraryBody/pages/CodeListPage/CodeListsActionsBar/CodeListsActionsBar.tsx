@@ -9,7 +9,7 @@ import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onSetTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   codeListNames: string[];
@@ -20,7 +20,7 @@ export type CodeListsActionsBarProps = {
 };
 
 export function CodeListsActionsBar({
-  onBlurTextResource,
+  onSetTextResource,
   onCreateCodeList,
   onUploadCodeList,
   codeListNames,
@@ -46,7 +46,7 @@ export function CodeListsActionsBar({
       />
       <AddCodeListDropdown
         codeListNames={codeListNames}
-        onBlurTextResource={onBlurTextResource}
+        onSetTextResource={onSetTextResource}
         onCreateCodeList={onCreateCodeList}
         onUploadCodeList={onUploadCodeList}
         textResources={textResources}

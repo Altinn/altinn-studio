@@ -161,12 +161,12 @@ describe('CodeLists', () => {
     });
   });
 
-  it('Calls onUpdateCodeList and onBlurTextResource when creating a new text resource', async () => {
+  it('Calls onUpdateCodeList and onSetTextResource when creating a new text resource', async () => {
     const user = userEvent.setup();
     const codeListValueText = 'codeListValueText';
-    const onBlurTextResource = jest.fn();
+    const onSetTextResource = jest.fn();
     const textResources = [{ id: 'test', value: 'some value' }];
-    renderCodeLists({ onBlurTextResource, textResources });
+    renderCodeLists({ onSetTextResource, textResources });
 
     const codeListFirstItemLabel = screen.getByRole('textbox', {
       name: textMock('code_list_editor.text_resource.label.value', { number: 1 }),
@@ -179,8 +179,8 @@ describe('CodeLists', () => {
       codeList: expect.any(Array),
       title: codeListName,
     });
-    expect(onBlurTextResource).toHaveBeenCalledTimes(1);
-    expect(onBlurTextResource).toHaveBeenLastCalledWith({
+    expect(onSetTextResource).toHaveBeenCalledTimes(1);
+    expect(onSetTextResource).toHaveBeenLastCalledWith({
       id: expect.any(String),
       value: codeListValueText,
     });

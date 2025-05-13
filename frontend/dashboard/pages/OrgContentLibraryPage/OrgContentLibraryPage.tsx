@@ -142,7 +142,7 @@ function OrgContentLibraryWithContextAndData({
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
+          onSetTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           textResources,
         },

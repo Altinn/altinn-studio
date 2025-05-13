@@ -12,7 +12,7 @@ import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeLis
 import { StudioDialog, StudioHeading } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onSetTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
   textResources: TextResource[];
@@ -20,7 +20,7 @@ export type CreateNewCodeListDialogProps = {
 
 function CreateNewCodeListDialog(
   {
-    onBlurTextResource,
+    onSetTextResource,
     onCreateCodeList,
     codeListNames,
     textResources,
@@ -50,7 +50,7 @@ function CreateNewCodeListDialog(
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
-          onBlurTextResource={onBlurTextResource}
+          onSetTextResource={onSetTextResource}
           onCreateCodeList={onCreateCodeList}
           onCloseModal={handleCloseDialog}
           textResources={textResources}
@@ -67,7 +67,7 @@ export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onSetTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCloseModal: () => void;
   textResources: TextResource[];
@@ -76,7 +76,7 @@ type CreateNewCodeListProps = {
 function CreateNewCodeList({
   codeList,
   codeListNames,
-  onBlurTextResource,
+  onSetTextResource,
   onCreateCodeList,
   onCloseModal,
   textResources,
@@ -139,10 +139,10 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onCreateTextResource={onBlurTextResource}
+          onCreateTextResource={onSetTextResource}
           onInvalid={handleInvalidCodeList}
           onUpdateCodeList={handleUpdateCodeList}
-          onUpdateTextResource={onBlurTextResource}
+          onUpdateTextResource={onSetTextResource}
           texts={editorTexts}
           textResources={textResources}
         />

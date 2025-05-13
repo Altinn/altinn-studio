@@ -12,7 +12,7 @@ import type { TextResource } from '@studio/components-legacy';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onSetTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;

@@ -178,7 +178,7 @@ describe('AppContentLibrary', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderAppContentLibraryWithData();
 
-    retrieveConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
+    retrieveConfig().codeList.props.onSetTextResource(textResourceWithLanguage);
     await waitFor(expect(queriesMock.upsertTextResources).toHaveBeenCalled);
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
