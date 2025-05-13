@@ -4,6 +4,9 @@ import { StudioCheckboxGroup } from './StudioCheckboxGroup';
 
 type StudioCheckboxComponent = typeof Checkbox;
 
+/**
+ * @deprecated use `StudioCheckbox` from `@studio/components` instead
+ */
 export const StudioCheckbox: StudioCheckboxComponent =
   StudioCheckboxRoot as StudioCheckboxComponent;
 
