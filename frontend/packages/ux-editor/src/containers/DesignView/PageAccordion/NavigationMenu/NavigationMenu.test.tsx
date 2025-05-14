@@ -138,7 +138,7 @@ describe('NavigationMenu', () => {
         {
           name: pagelayout1NameMock,
           type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
+          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
         },
         {
           name: pagelayout2NameMock,
@@ -166,7 +166,7 @@ describe('NavigationMenu', () => {
         {
           name: pagelayout1NameMock,
           type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
+          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
         },
         {
           name: pagelayout2NameMock,

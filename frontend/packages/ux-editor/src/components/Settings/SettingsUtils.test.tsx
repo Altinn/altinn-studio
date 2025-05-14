@@ -1,10 +1,4 @@
-import {
-  isTaskReceipt,
-  getTaskIcon,
-  taskNavigationType,
-  TaskType,
-  getTaskName,
-} from './SettingsUtils';
+import { getHiddenTasks, getTaskIcon, taskNavigationType, TaskType } from './SettingsUtils';
 import {
   CardIcon,
   FolderIcon,
@@ -26,7 +20,7 @@ describe('taskNavigationType', () => {
   });
 });
 
-describe('taskNavigationIcon', () => {
+describe('getTaskIcon', () => {
   it('should return the correct icon', () => {
     expect(getTaskIcon(TaskType.Data)).toBe(TasklistIcon);
     expect(getTaskIcon(TaskType.Confirmation)).toBe(SealCheckmarkIcon);
@@ -37,41 +31,25 @@ describe('taskNavigationIcon', () => {
   });
 });
 
-describe('isTaskReceipt', () => {
-  it('should return true if taskType is receipt', () => {
-    expect(isTaskReceipt('receipt')).toBe(true);
-  });
-
-  it('should return false if taskType is not receipt', () => {
-    expect(isTaskReceipt('data')).toBe(false);
-  });
-});
-
-describe('getTaskName', () => {
+describe('getHiddenTasks', () => {
   const layoutSetsModel = {
     sets: [
-      { id: 'laaang', dataType: '', type: null, task: { id: 'task1', type: '' } },
-      { id: 'tang', dataType: '', type: null, task: { id: 'task2', type: '' } },
+      { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },
+      { id: 'layout3', dataType: null, type: '', task: { id: 'task3', type: 'subform' } },
+      { id: 'layout4', dataType: null, type: '', task: { id: 'task4', type: 'signing' } },
     ],
   };
 
-  it('should return the task name if it exists', () => {
-    const task = { name: 'Task Name', taskType: 'data', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('Task Name');
-  });
+  const taskNavigationGroups = [
+    { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data },
+    { taskId: 'task3', name: 'Task 3', taskType: TaskType.Signing },
+  ];
 
-  it('should return the layout set id if name does not exist', () => {
-    const task = { taskType: 'data', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('laaang');
-  });
-
-  it('should return receipt text key if taskType is receipt', () => {
-    const task = { taskType: 'receipt', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('ux_editor.task_table_type.receipt');
-  });
-
-  it('should return the default value if no matching task is found', () => {
-    const task = { name: '', taskType: 'unknown', taskId: 'unknown' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('-');
+  it('should return the correct hidden tasks', () => {
+    const result = getHiddenTasks({ taskNavigationGroups, layoutSetsModel });
+    expect(result).toEqual([
+      { taskId: 'task4', taskType: TaskType.Signing, pageCount: undefined },
+      { taskType: TaskType.Receipt },
+    ]);
   });
 });

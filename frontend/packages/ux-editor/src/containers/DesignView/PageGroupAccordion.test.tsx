@@ -60,6 +60,54 @@ describe('PageGroupAccordion', () => {
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
+
+  it('should display the page ID as displayName when group has exactly one page', async () => {
+    const singlePageGroupMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: 'Group 1',
+          order: [{ id: 'Side 1' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side 1');
+  });
+
+  it('should display group name when group has multiple pages', async () => {
+    const multiPageGroupMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: 'Group 1',
+          order: [{ id: 'Side 1' }, { id: 'Side 2' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: multiPageGroupMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Group 1');
+  });
+
+  it('should display page ID as displayName when group has one page', async () => {
+    const singlePageGroupWithEmptyNameMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: '',
+          order: [{ id: 'Side 1' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupWithEmptyNameMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side 1');
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));

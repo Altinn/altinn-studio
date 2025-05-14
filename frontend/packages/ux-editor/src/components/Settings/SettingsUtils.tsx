@@ -12,6 +12,7 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 
 export const taskNavigationType = (taskType?: string) => {
   if (!taskType) return 'ux_editor.task_table_type.unknown';
+
   return `ux_editor.task_table_type.${taskType}`;
 };
 
@@ -40,21 +41,39 @@ export const getTaskIcon = (taskType: string) => {
   }
 };
 
-export const isTaskReceipt = (taskType: string) => {
-  return taskType === TaskType.Receipt || taskType === PROTECTED_TASK_NAME_CUSTOM_RECEIPT;
+type GetHiddenTasksProps = {
+  taskNavigationGroups: TaskNavigationGroup[];
+  layoutSetsModel: LayoutSetsModel;
 };
 
-export const getTaskName = (task: TaskNavigationGroup, layoutSetsModel: LayoutSetsModel) => {
-  if (task?.name) {
-    return task.name;
-  }
+export const getHiddenTasks = ({
+  taskNavigationGroups,
+  layoutSetsModel,
+}: GetHiddenTasksProps): TaskNavigationGroup[] => {
+  const filteredLayoutSets = layoutSetsModel.sets.filter((layoutSet) => {
+    return (
+      layoutSet?.type !== 'subform' && layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT
+    );
+  });
 
-  if (task.taskType === TaskType.Receipt) {
-    return 'ux_editor.task_table_type.receipt';
-  }
+  const internalTasksFormat: TaskNavigationGroup[] = filteredLayoutSets.map((layoutSet) => ({
+    taskId: layoutSet.task.id,
+    taskType: layoutSet.task.type,
+    pageCount: undefined, // This will be added later: https://digdir.slack.com/archives/C07PN8DMJ2E/p1746537888455189
+  }));
 
-  const matchingTask = layoutSetsModel?.sets.find(
-    (layoutSet) => layoutSet.task?.id === task.taskId,
+  const isReceiptInNavigationGroups = taskNavigationGroups.some(
+    (taskGroup) => taskGroup.taskType === TaskType.Receipt,
   );
-  return matchingTask?.id ?? '-';
+  if (!isReceiptInNavigationGroups) {
+    internalTasksFormat.push({
+      taskType: TaskType.Receipt,
+    });
+  }
+
+  const hiddenTasks = internalTasksFormat.filter((task) => {
+    return !taskNavigationGroups.some((navigationTask) => navigationTask?.taskId === task?.taskId);
+  });
+
+  return hiddenTasks;
 };
