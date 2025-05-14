@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models;
 public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
 {
     /// <summary>
-    /// The backing field for the parsed guid that identifies a <see cref="DataElement"/>
+    /// The parsed guid that identifies a <see cref="DataElement"/>
     /// </summary>
     public Guid Guid { get; }
 
@@ -16,6 +16,11 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// The backing field for the string containing a guid that identifies a <see cref="DataElement"/>
     /// </summary>
     public string Id { get; }
+
+    /// <summary>
+    /// The backing field for the data type of the <see cref="DataElement"/>
+    /// </summary>
+    public string? DataTypeId { get; }
 
     /// <summary>
     /// Constructor that takes a string representation of a guid
@@ -38,16 +43,26 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     }
 
     /// <summary>
+    /// Constructor that initializes from a <see cref="DataElement"/>
+    /// </summary>
+    public DataElementIdentifier(DataElement dataElement)
+    {
+        Guid = Guid.Parse(dataElement.Id);
+        Id = dataElement.Id;
+        DataTypeId = dataElement.DataType;
+    }
+
+    /// <summary>
     /// Implicit conversion to allow DataElements to be used as DataElementIds
     /// </summary>
-    public static implicit operator DataElementIdentifier(DataElement dataElement) => new(dataElement.Id);
+    public static implicit operator DataElementIdentifier(DataElement dataElement) => new(dataElement);
 
     /// <summary>
     /// Implicit conversion to allow DataElements to be used as DataElementIds,
     /// but accept and return null values
     /// </summary>
     public static implicit operator DataElementIdentifier?(DataElement? dataElement) =>
-        dataElement is null ? default : new(dataElement.Id);
+        dataElement is null ? default : new(dataElement);
 
     /// <summary>
     /// Make the ToString method return the ID

@@ -93,7 +93,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             {
                 Id = SubformDataType,
                 TaskId = TaskId,
-                AppLogic = new ApplicationLogic() { ClassRef = _classRefSub, AllowInSubform = true },
+                AppLogic = new ApplicationLogic() { ClassRef = _classRefSub },
             },
         ],
     };
@@ -163,7 +163,10 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                       "id": "Name",
                       "type": "Input",
                       "dataModelBindings": {
-                        "simpleBinding": "Name"
+                        "simpleBinding": {
+                          "field": "Name",
+                          "dataType": "subform"
+                        }
                       },
                       "required": true
                     },

@@ -91,10 +91,6 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
             throw new InvalidOperationException("Application metadata not set for InstanceDataAccessorFake");
         }
         var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
-        if (dataType is null)
-        {
-            throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata");
-        }
 
         return dataType;
     }
