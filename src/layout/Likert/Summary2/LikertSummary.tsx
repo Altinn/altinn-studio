@@ -8,23 +8,21 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export type LikertSummaryProps = {
-  componentNode: LayoutNode<'Likert'>;
-  isCompact?: boolean;
-  emptyFieldText?: string;
-};
+export function LikertSummary({ target }: Summary2Props<'Likert'>) {
+  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
+  const likertNodeItem = useNodeItem(target);
+  const readOnly = useNodeItem(target, (item) => item.readOnly);
 
-export function LikertSummary({ componentNode, emptyFieldText, isCompact }: LikertSummaryProps) {
-  const likertNodeItem = useNodeItem(componentNode);
-  const readOnly = useNodeItem(componentNode, (item) => item.readOnly);
-
-  const validations = useUnifiedValidationsForNode(componentNode);
+  const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
 
   const rows = likertNodeItem.rows;
 
@@ -34,10 +32,10 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
         title={
           <Lang
             id={title}
-            node={componentNode}
+            node={target}
           />
         }
-        componentNode={componentNode}
+        componentNode={target}
         errors={errors}
         hideEditButton={readOnly}
         isCompact={isCompact}
@@ -55,7 +53,7 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
         >
           <Lang
             id={title}
-            node={componentNode}
+            node={target}
           />
         </Heading>
       </div>
@@ -73,7 +71,7 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
           <Lang
             id={message.key}
             params={message.params}
-            node={componentNode}
+            node={target}
           />
         </ErrorMessage>
       ))}

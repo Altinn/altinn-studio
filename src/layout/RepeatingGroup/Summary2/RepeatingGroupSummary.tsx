@@ -13,21 +13,17 @@ import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.mo
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export const RepeatingGroupSummary = ({
-  componentNode,
-  isCompact,
-  display,
-  emptyFieldText,
-}: {
-  componentNode: LayoutNode<'RepeatingGroup'>;
-  isCompact?: boolean;
-  display?: 'table' | 'full';
-  emptyFieldText?: string;
-}) => {
+export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'>) => {
+  const componentNode = target;
+  const overrides = useSummaryOverrides(componentNode);
+  const display = overrides?.display ?? 'list';
+  const isCompact = useSummaryProp('isCompact');
   const { visibleRows } = useRepeatingGroupRowState();
   const rowsToDisplaySet = new Set(visibleRows.map((row) => row.uuid));
   const rows = useNodeItem(componentNode, (i) => i.rows).filter((row) => row && rowsToDisplaySet.has(row.uuid));
@@ -49,7 +45,7 @@ export const RepeatingGroupSummary = ({
         componentNode={componentNode}
         errors={errors}
         isCompact={isCompact}
-        emptyFieldText={emptyFieldText}
+        emptyFieldText={overrides?.emptyFieldText}
       />
     );
   }

@@ -2,13 +2,6 @@ import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
-export const DATE_SUMMARY_OVERRIDE_PROPS = new CG.obj()
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('DateSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Presentation,
   capabilities: {
@@ -24,6 +17,8 @@ export const Config = new CG.component({
     customExpressions: true,
   },
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(new CG.prop('format', new CG.str().optional().addExample('dd.MM.yyyy')))
   .addProperty(new CG.prop('value', new CG.expr(ExprVal.String)))

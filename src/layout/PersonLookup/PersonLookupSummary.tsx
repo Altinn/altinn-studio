@@ -8,6 +8,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/PersonLookup/PersonLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -22,7 +23,8 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
   }));
   const { formData } = useDataModelBindings(dataModelBindings);
   const { person_lookup_name, person_lookup_ssn } = formData;
-
+  const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
   const bindingValidations = useBindingValidationsForNode(componentNode);
 
   return (
@@ -48,6 +50,8 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
             displayData={person_lookup_ssn ? obfuscateSsn(person_lookup_ssn) : ''}
             componentNode={componentNode}
             hideEditButton={true}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.person_lookup_ssn}
@@ -66,6 +70,8 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
             displayData={person_lookup_name}
             componentNode={componentNode}
             hideEditButton={false}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.person_lookup_name}

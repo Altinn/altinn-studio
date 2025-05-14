@@ -3,21 +3,15 @@ import React from 'react';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { MultipleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { CheckboxSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export function CheckboxesSummary({
-  componentNode,
-  summaryOverride,
-  isCompact,
-  emptyFieldText,
-}: {
-  componentNode: LayoutNode<'Checkboxes'>;
-  summaryOverride?: CheckboxSummaryOverrideProps;
-  isCompact?: boolean;
-  emptyFieldText?: string;
-}) {
+export function CheckboxesSummary({ target }: Summary2Props<'Checkboxes'>) {
+  const componentNode = target;
+  const summaryOverride = useSummaryOverrides(componentNode);
+  const emptyFieldText = summaryOverride?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(componentNode);
   const maxStringLength = 75;
   const showAsList =

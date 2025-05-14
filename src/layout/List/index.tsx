@@ -86,13 +86,7 @@ export class List extends ListDef {
   }
 
   renderSummary2(props: Summary2Props<'List'>): JSX.Element | null {
-    return (
-      <ListSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <ListSummary {...props} />;
   }
 
   useEmptyFieldValidation(node: LayoutNode<'List'>): ComponentValidation[] {

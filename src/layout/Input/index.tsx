@@ -48,13 +48,7 @@ export class Input extends InputDef {
   }
 
   renderSummary2(props: Summary2Props<'Input'>): JSX.Element | null {
-    return (
-      <InputSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <InputSummary {...props} />;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Input'>): string[] {

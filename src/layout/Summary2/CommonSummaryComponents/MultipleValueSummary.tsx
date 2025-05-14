@@ -24,8 +24,8 @@ interface MultipleValueSummaryProps {
   title: React.ReactNode;
   componentNode: ValidNodes;
   showAsList?: boolean;
-  isCompact?: boolean;
-  emptyFieldText?: string;
+  isCompact: boolean | undefined;
+  emptyFieldText: string | undefined;
 }
 
 function getDisplayType(

@@ -28,13 +28,7 @@ export class Likert extends LikertDef {
   }
 
   renderSummary2(props: Summary2Props<'Likert'>): JSX.Element | null {
-    return (
-      <LikertSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <LikertSummary {...props} />;
   }
 
   // This component does not have empty field validation, so has to override its inherited method

@@ -30,13 +30,7 @@ export class TextArea extends TextAreaDef {
   }
 
   renderSummary2(props: Summary2Props<'TextArea'>): JSX.Element | null {
-    return (
-      <TextAreaSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <TextAreaSummary {...props} />;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'TextArea'>): string[] {

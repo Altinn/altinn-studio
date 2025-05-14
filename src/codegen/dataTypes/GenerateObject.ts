@@ -297,8 +297,8 @@ export class GenerateObject<P extends Props>
       const propertyListObj: JSONSchema7 | undefined =
         this._extendedBy.length === 0
           ? {
-              // This trick makes it possible to extend multiple other object, but still
-              // preserve the behaviour of additionalProperties = false. If it was set on each of the objects we
+              // This trick makes it possible to extend multiple objects but still
+              // preserve the behavior of additionalProperties = false. If it was set on each of the objects we
               // extended, the objects would mutually exclude each other's properties. For that reason, we'll only
               // set it on the last object in the chain.
               type: 'object',

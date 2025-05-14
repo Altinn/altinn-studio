@@ -30,13 +30,7 @@ export class Map extends MapDef {
   }
 
   renderSummary2(props: Summary2Props<'Map'>): JSX.Element | null {
-    return (
-      <MapSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <MapSummary {...props} />;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Map'>): string[] {

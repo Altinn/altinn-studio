@@ -2,21 +2,6 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 import { NonRepeatingChildrenPlugin } from 'src/utils/layout/plugins/NonRepeatingChildrenPlugin';
 
-export const GROUP_SUMMARY_PROPS = new CG.obj(
-  new CG.prop(
-    'isCompact',
-    new CG.bool()
-      .optional()
-      .setTitle('Compact summary')
-      .setDescription('Boolean value indicating if the summary should be compact'),
-  ),
-)
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('GroupSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Container,
   directRendering: true,
@@ -69,4 +54,5 @@ export const Config = new CG.component({
         .setTitle('Heading level')
         .setDescription('The heading level of the group title.'),
     ),
-  );
+  )
+  .addSummaryOverrides();

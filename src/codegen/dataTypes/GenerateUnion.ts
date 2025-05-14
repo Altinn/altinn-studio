@@ -1,3 +1,4 @@
+import deepEqual from 'fast-deep-equal';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -29,15 +30,24 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
-    const out = this.types.map((type) => type.toTypeScript()).join(' | ');
+    const list = this.types.map((type) => type.toTypeScript());
+    const uniqueList = [...new Set(list)];
+    const out = uniqueList.join(' | ');
     return symbol ? `type ${symbol} = ${out};` : out;
   }
 
   toJsonSchemaDefinition(): JSONSchema7 {
     const schemaKey = this.unionType === 'discriminated' ? 'oneOf' : 'anyOf';
+    const list = this.types.map((type) => type.toJsonSchema());
+    const uniqueList: JSONSchema7[] = [];
+    for (const curr of list) {
+      if (!uniqueList.some((x) => deepEqual(x, curr))) {
+        uniqueList.push(curr);
+      }
+    }
     return {
       ...this.getInternalJsonSchema(),
-      [schemaKey]: this.types.map((type) => type.toJsonSchema()),
+      [schemaKey]: uniqueList,
     };
   }
 

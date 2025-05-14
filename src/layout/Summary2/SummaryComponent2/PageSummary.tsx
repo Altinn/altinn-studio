@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { Hidden, NodesInternal, useGetPage, useNode } from 'src/utils/layout/NodesContext';
+import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { Hidden, NodesInternal, useGetPage } from 'src/utils/layout/NodesContext';
 
 interface PageSummaryProps {
   pageId: string;
@@ -25,18 +25,9 @@ export function PageSummary({ pageId }: PageSummaryProps) {
   }
 
   return children?.map((nodeId) => (
-    <NodeSummary
-      nodeId={nodeId}
+    <ComponentSummaryById
       key={nodeId}
+      componentId={nodeId}
     />
   ));
-}
-
-function NodeSummary({ nodeId }: { nodeId: string }) {
-  const node = useNode(nodeId);
-  if (!node) {
-    return null;
-  }
-
-  return <ComponentSummary componentNode={node} />;
 }

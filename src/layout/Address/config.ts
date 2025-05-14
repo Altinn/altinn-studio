@@ -16,6 +16,7 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
+  .addSummaryOverrides()
   .addTextResource(
     new CG.trb({
       name: 'title',

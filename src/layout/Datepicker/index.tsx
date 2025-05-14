@@ -56,13 +56,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   renderSummary2(props: Summary2Props<'Datepicker'>): JSX.Element | null {
-    return (
-      <DatepickerSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <DatepickerSummary {...props} />;
   }
 
   useComponentValidation(node: LayoutNode<'Datepicker'>): ComponentValidation[] {

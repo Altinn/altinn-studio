@@ -12,26 +12,23 @@ import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { RawGeometry } from 'src/layout/Map/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export type MapSummaryProps = {
-  componentNode: LayoutNode<'Map'>;
-  isCompact?: boolean;
-  emptyFieldText?: string;
-};
-
-export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSummaryProps) {
-  const markerBinding = useNodeItem(componentNode, (item) => item.dataModelBindings.simpleBinding);
-  const readOnly = useNodeItem(componentNode, (item) => item.readOnly);
-  const formData = useNodeFormData(componentNode);
+export function MapSummary({ target }: Summary2Props<'Map'>) {
+  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
+  const markerBinding = useNodeItem(target, (item) => item.dataModelBindings.simpleBinding);
+  const readOnly = useNodeItem(target, (item) => item.readOnly);
+  const formData = useNodeFormData(target);
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const geometries = formData.geometries as RawGeometry[] | undefined;
-  const validations = useUnifiedValidationsForNode(componentNode);
+  const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
 
   if (markerBinding && !markerLocationIsValid) {
     return (
@@ -39,10 +36,10 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
         title={
           <Lang
             id={title}
-            node={componentNode}
+            node={target}
           />
         }
-        componentNode={componentNode}
+        componentNode={target}
         errors={errors}
         hideEditButton={readOnly}
         isCompact={isCompact}
@@ -55,20 +52,20 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
     <div className={classes.summaryItemWrapper}>
       <div className={classes.summaryItem}>
         <Label
-          node={componentNode}
+          node={target}
           renderLabelAs='span'
           textResourceBindings={{ title }}
         />
         {!readOnly && (
           <EditButton
             className={classes.editButton}
-            componentNode={componentNode}
-            summaryComponentId={componentNode.id}
+            componentNode={target}
+            summaryComponentId={target.id}
           />
         )}
       </div>
       <Map
-        mapNode={componentNode}
+        mapNode={target}
         markerLocation={markerLocation}
         geometries={geometries}
         isSummary={true}
@@ -86,7 +83,7 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
           <Lang
             id={message.key}
             params={message.params}
-            node={componentNode}
+            node={target}
           />
         </ErrorMessage>
       ))}

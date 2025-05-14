@@ -2,13 +2,6 @@ import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
-export const NUMBER_SUMMARY_OVERRIDE_PROPS = new CG.obj()
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('NumberSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Presentation,
   capabilities: {
@@ -24,8 +17,10 @@ export const Config = new CG.component({
     customExpressions: true,
   },
 })
+  .makeSummarizable()
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(new CG.prop('formatting', CG.common('IFormatting').optional()))
   .addProperty(new CG.prop('value', new CG.expr(ExprVal.Number)))
   .addProperty(new CG.prop('direction', new CG.enum('horizontal', 'vertical').optional({ default: 'horizontal' })))
-  .addProperty(new CG.prop('icon', new CG.str().optional().addExample('https://example.com/icon.svg')));
+  .addProperty(new CG.prop('icon', new CG.str().optional().addExample('https://example.com/icon.svg')))
+  .addSummaryOverrides();

@@ -19,9 +19,11 @@ import {
 } from 'src/layout/Subform/utils';
 import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
+import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -130,29 +132,22 @@ const DoSummaryWrapper = ({
   );
 };
 
-export function SubformSummaryComponent2({
-  displayType,
-  subformId,
-  componentNode,
-}: {
-  displayType?: string;
-  subformId?: string;
-  componentNode?: LayoutNode<'Subform'>;
-}) {
+export function SubformSummaryComponent2({ target }: Partial<Summary2Props<'Subform'>>) {
+  const displayType = useSummaryOverrides(target)?.display;
   const allOrOneSubformId = NodesInternal.useShallowSelector((state) =>
     Object.values(state.nodeData)
       .filter((data) => data.layout.type === 'Subform')
       .filter((data) => {
-        if (!subformId) {
+        if (!target?.id) {
           return data;
         }
-        return data.layout.id === subformId;
+        return data.layout.id === target.id;
       })
       .map((data) => data.layout.id),
   );
 
-  if (displayType === 'table' && componentNode) {
-    return <SubformSummaryTable targetNode={componentNode} />;
+  if (displayType === 'table' && target) {
+    return <SubformSummaryTable targetNode={target} />;
   }
 
   return (

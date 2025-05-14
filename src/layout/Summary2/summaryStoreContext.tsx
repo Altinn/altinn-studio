@@ -1,41 +1,64 @@
-import React, { createContext, useContext, useRef } from 'react';
+import React, { createContext, useContext } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { create } from 'zustand';
-
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { ISummaryOverridesCommon } from 'src/layout/common.generated';
+import type { CompSummaryOverrides, CompTypes } from 'src/layout/layout';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface SummaryTaskState {
-  summaryNode: LayoutNode<'Summary2'>;
-  summaryItem: CompSummary2External;
+type Summary2State = Pick<CompSummary2External, 'hideEmptyFields' | 'showPageInAccordion' | 'overrides' | 'isCompact'>;
+const StoreContext = createContext<Summary2State | null>(null);
+
+export function Summary2StoreProvider({ children, node }: PropsWithChildren<{ node: LayoutNode<'Summary2'> }>) {
+  const hideEmptyFields = useNodeItem(node, (i) => i.hideEmptyFields);
+  const showPageInAccordion = useNodeItem(node, (i) => i.showPageInAccordion);
+  const overrides = useNodeItem(node, (i) => i.overrides);
+  const isCompact = useNodeItem(node, (i) => i.isCompact);
+
+  return (
+    <StoreContext.Provider value={{ hideEmptyFields, showPageInAccordion, overrides, isCompact }}>
+      {children}
+    </StoreContext.Provider>
+  );
 }
 
-type Summary2StoreProviderProps = React.PropsWithChildren & SummaryTaskState;
-
-const createSummary2Store = (summaryNode: LayoutNode<'Summary2'>, summaryItem: CompSummary2External) =>
-  create<SummaryTaskState>((set) => ({
-    summaryNode,
-    summaryItem,
-    setSummaryNode: (summaryNode: LayoutNode<'Summary2'>) => set((state) => ({ ...state, summaryNode })),
-    setSummaryItem: (summaryItem: CompSummary2External) => set((state) => ({ ...state, summaryItem })),
-  }));
-
-const StoreContext = createContext<ReturnType<typeof createSummary2Store> | null>(null);
-
-export function Summary2StoreProvider({ children, summaryNode, summaryItem }: Summary2StoreProviderProps) {
-  const storeRef = useRef<ReturnType<typeof createSummary2Store>>();
-
-  if (!storeRef.current) {
-    storeRef.current = createSummary2Store(summaryNode, summaryItem);
+export function useSummaryProp<K extends keyof Summary2State>(prop: K): Summary2State[K] | undefined {
+  const state = useContext(StoreContext);
+  if (!state) {
+    // This may happen in, for example, subform summaries (where we don't always have the Summary2 component)
+    return undefined;
   }
 
-  return <StoreContext.Provider value={storeRef.current}>{children}</StoreContext.Provider>;
+  return state[prop];
 }
 
-export const useSummary2Store = <T,>(selector: (state: SummaryTaskState) => T): T => {
-  const store = useContext(StoreContext);
-  if (!store) {
-    return {} as T;
+/**
+ * Finds summary overrides for the given node. It will read component type level overrides first, then more specific
+ * component-level overrides, and merge them into one object.
+ */
+export function useSummaryOverrides<Type extends CompTypes>(node: LayoutNode<Type> | undefined) {
+  const overrides = useSummaryProp('overrides');
+  if (!node || !overrides) {
+    return undefined;
   }
-  return store(selector);
-};
+  const specificOverrides = overrides.find((o) => 'componentId' in o && o.componentId === node.baseId);
+  const typeOverrides = overrides.find((o) => 'componentType' in o && o.componentType === node.type);
+
+  if (!typeOverrides && !specificOverrides) {
+    return undefined;
+  }
+
+  const output = {} as CompSummaryOverrides<Type>;
+  for (const override of [typeOverrides, specificOverrides]) {
+    if (!override) {
+      continue;
+    }
+    for (const key in override) {
+      if (key !== 'componentId' && key !== 'componentType') {
+        (output as ISummaryOverridesCommon)[key] = override[key];
+      }
+    }
+  }
+  return output;
+}

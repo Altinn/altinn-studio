@@ -2,13 +2,6 @@ import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/app-components/Inp
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
-export const INPUT_SUMMARY_OVERRIDE_PROPS = new CG.obj()
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('InputSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Form,
   capabilities: {
@@ -73,5 +66,6 @@ export const Config = new CG.component({
         ),
     ),
   )
+  .addSummaryOverrides()
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

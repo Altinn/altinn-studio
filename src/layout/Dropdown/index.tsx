@@ -43,13 +43,7 @@ export class Dropdown extends DropdownDef {
   }
 
   renderSummary2(props: Summary2Props<'Dropdown'>): JSX.Element | null {
-    return (
-      <DropdownSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <DropdownSummary {...props} />;
   }
 
   useEmptyFieldValidation(node: LayoutNode<'Dropdown'>): ComponentValidation[] {

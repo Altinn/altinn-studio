@@ -10,13 +10,11 @@ import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { GroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type GroupComponentSummaryProps = {
   componentNode: LayoutNode<'Group'>;
   hierarchyLevel?: number;
-  summaryOverride?: GroupSummaryOverrideProps;
 };
 
 type HeadingLevel = HeadingProps['level'];
@@ -33,11 +31,11 @@ function getHeadingLevel(hierarchyLevel: number): HeadingLevel {
   }
 }
 
-function ChildComponent({
-  id,
-  hierarchyLevel,
-  summaryOverride,
-}: { id: string } & Pick<GroupComponentSummaryProps, 'hierarchyLevel' | 'summaryOverride'>) {
+interface ChildComponentProps extends Pick<GroupComponentSummaryProps, 'hierarchyLevel'> {
+  id: string;
+}
+
+function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
   const child = useNode(id);
   if (!child) {
     return null;
@@ -49,23 +47,15 @@ function ChildComponent({
         <GroupSummary
           componentNode={child}
           hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
-          summaryOverride={summaryOverride}
         />
       </Flex>
     );
   }
 
-  const isCompact = summaryOverride?.isCompact;
-
-  return (
-    <ComponentSummary
-      componentNode={child}
-      isCompact={isCompact}
-    />
-  );
+  return <ComponentSummary componentNode={child} />;
 }
 
-export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverride }: GroupComponentSummaryProps) => {
+export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
   const summaryTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.summaryTitle);
   const headingLevel = getHeadingLevel(hierarchyLevel);
@@ -100,7 +90,6 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
             key={childId}
             id={childId}
             hierarchyLevel={hierarchyLevel}
-            summaryOverride={summaryOverride}
           />
         ))}
       </Flex>

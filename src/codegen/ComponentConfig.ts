@@ -2,14 +2,15 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
+import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
 import { CompCategory } from 'src/layout/common';
 import { isNodeDefChildrenPlugin, NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
+import type { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
-import type { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import type { GenerateTextResourceBinding } from 'src/codegen/dataTypes/GenerateTextResourceBinding';
 import type { CompTypes } from 'src/layout/layout';
@@ -41,7 +42,7 @@ const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any>
 };
 
 export class ComponentConfig {
-  public type: string;
+  public type: string | undefined;
   public typeSymbol: string;
   readonly inner = new CG.obj();
   public behaviors: CompBehaviors = {
@@ -52,6 +53,9 @@ export class ComponentConfig {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected plugins: NodeDefPlugin<any>[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected createSummaryOverrides: (() => MaybeOptionalCodeGenerator<any>) | undefined;
+  protected hasSummaryOverridesExtender = false;
 
   constructor(public readonly config: RequiredComponentConfig) {
     this.inner.extends(CG.common('ComponentBase'));
@@ -176,6 +180,104 @@ export class ComponentConfig {
     return this;
   }
 
+  makeSummarizable(): this {
+    if (this.isFormLike()) {
+      throw new Error(`Component is a form or container component, it is always summarizable`);
+    }
+
+    this.extendTextResources(CG.common('TRBSummarizable'));
+    this.extends(CG.common('SummarizableComponentProps'));
+    this.behaviors.isSummarizable = true;
+    return this;
+  }
+
+  /**
+   * @see generateSummaryOverrides
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public addSummaryOverrides(extender?: (arg: GenerateObject<any>) => void): this {
+    if (this.createSummaryOverrides) {
+      throw new Error(`Component already has Summary2 overrides! Do not call this twice.`);
+    }
+
+    this.hasSummaryOverridesExtender = !!extender;
+    this.createSummaryOverrides = () => {
+      if (!this.type) {
+        throw new Error('Type not specified yet');
+      }
+      if (!this.behaviors.isSummarizable) {
+        throw new Error(
+          `Component '${this.type}' is not summarizable, so it cannot have Summary2 overrides. ` +
+            `If you want to add Summary2 overrides, make sure the component is summarizable ` +
+            `(call makeSummarizable() on the component config).`,
+        );
+      }
+
+      const overrides = extender
+        ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
+        : CG.common('ISummaryOverridesCommon');
+
+      if (extender && overrides instanceof GenerateObject) {
+        extender(overrides);
+      }
+
+      return this.makeSummaryOverridesUnion(overrides).exportAs(`${this.type}SummaryOverridesWithRef`);
+    };
+
+    return this;
+  }
+
+  protected makeSummaryOverridesUnion(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    overrides: GenerateObject<any> | GenerateCommonImport<'ISummaryOverridesCommon'>,
+  ) {
+    if (!this.type) {
+      throw new Error('Type not specified yet');
+    }
+
+    const oneComponent = new CG.obj(new CG.prop('componentId', new CG.str()))
+      .extends(overrides)
+      .setTitle(`Summary overrides for ${this.type}`)
+      .setDescription(`Properties for how to display the summary of this ${this.type} component`);
+
+    const allComponents = new CG.obj(new CG.prop('componentType', new CG.const(this.type)))
+      .extends(overrides)
+      .setTitle(`Summary overrides for all ${this.type}`)
+      .setDescription(`Properties for how to display the summary of all ${this.type} components`);
+
+    return new CG.union(oneComponent, allComponents);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public getSummaryOverridesImport(variant: 'plain' | 'withRef'): MaybeOptionalCodeGenerator<any> | undefined {
+    if (!this.createSummaryOverrides) {
+      return undefined;
+    }
+
+    if (variant === 'plain' && !this.hasSummaryOverridesExtender) {
+      return CG.common('ISummaryOverridesCommon');
+    }
+    if (variant === 'plain') {
+      return new CG.raw({
+        typeScript: `${this.type}SummaryOverrides`,
+      });
+    }
+
+    if (!this.hasSummaryOverridesExtender) {
+      return this.makeSummaryOverridesUnion(CG.common('ISummaryOverridesCommon'));
+    }
+
+    return new CG.import({
+      import: `${this.type}SummaryOverridesWithRef`,
+      from: `src/layout/${this.type}/config.generated.ts`,
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public getSummaryOverrides(): MaybeOptionalCodeGenerator<any> | undefined {
+    return this.createSummaryOverrides?.();
+  }
+
   private beforeFinalizing(): void {
     // We have to add these to our typescript types in order for ITextResourceBindings<T>, and similar to work.
     // Components that doesn't have them, will always have the 'undefined' value.
@@ -202,11 +304,6 @@ export class ComponentConfig {
       from: `./index`,
     });
 
-    const LayoutNode = new GenerateImportedSymbol({
-      import: 'LayoutNode',
-      from: 'src/utils/layout/LayoutNode',
-    });
-
     const CompCategory = new CG.import({
       import: 'CompCategory',
       from: `src/layout/common`,
@@ -227,7 +324,6 @@ export class ComponentConfig {
       `export function getConfig() {
          return {
            def: new ${impl.toTypeScript()}(),
-           nodeConstructor: ${LayoutNode},
            capabilities: ${JSON.stringify(this.config.capabilities, null, 2)} as const,
            behaviors: ${JSON.stringify(this.behaviors, null, 2)} as const,
          };
@@ -235,8 +331,9 @@ export class ComponentConfig {
       `export type TypeConfig = {
          category: ${CompCategory}.${this.config.category},
          layout: ${this.inner};
-         nodeObj: ${LayoutNode}<'${this.type}'>;
          plugins: ${pluginUnion};
+         summaryOverrides: ${this.getSummaryOverridesImport('plain')?.toTypeScript() ?? 'undefined'};
+         summaryOverridesWithRef: ${this.getSummaryOverrides()?.toTypeScript() ?? 'undefined'};
        }`,
     ];
 

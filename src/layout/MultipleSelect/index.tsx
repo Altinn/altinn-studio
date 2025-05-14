@@ -72,14 +72,7 @@ export class MultipleSelect extends MultipleSelectDef {
   }
 
   renderSummary2(props: Summary2Props<'MultipleSelect'>): JSX.Element | null {
-    return (
-      <MultipleSelectSummary
-        componentNode={props.target}
-        summaryOverride={props.override}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <MultipleSelectSummary {...props} />;
   }
 
   useEmptyFieldValidation(node: LayoutNode<'MultipleSelect'>): ComponentValidation[] {

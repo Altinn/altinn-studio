@@ -2,21 +2,6 @@ import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
-export const SUBFORM_SUMMARY_OVERRIDE_PROPS = new CG.obj(
-  new CG.prop(
-    'display',
-    new CG.enum('table', 'full')
-      .optional({ default: 'table' })
-      .setTitle('Display type')
-      .setDescription('Show the summary as a table or as full summary components'),
-  ),
-)
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('SubformSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Form,
   capabilities: {
@@ -127,4 +112,15 @@ export const Config = new CG.component({
       title: 'Add button (suffix)',
       description: 'The text for the "Add" button (used as a suffix after the default button text)',
     }),
-  );
+  )
+  .addSummaryOverrides((obj) => {
+    obj.addProperty(
+      new CG.prop(
+        'display',
+        new CG.enum('table', 'full')
+          .optional({ default: 'table' })
+          .setTitle('Display type')
+          .setDescription('Show the summary as a table or as full summary components'),
+      ),
+    );
+  });

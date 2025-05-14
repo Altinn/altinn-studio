@@ -8,6 +8,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -22,7 +23,8 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
   }));
   const { formData } = useDataModelBindings(dataModelBindings);
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
-
+  const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
   const bindingValidations = useBindingValidationsForNode(componentNode);
 
   return (
@@ -48,6 +50,8 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
             displayData={organisation_lookup_orgnr}
             componentNode={componentNode}
             hideEditButton={organisation_lookup_name ? true : false}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.organisation_lookup_orgnr}
@@ -66,6 +70,8 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
               displayData={organisation_lookup_name}
               componentNode={componentNode}
               hideEditButton={false}
+              isCompact={isCompact}
+              emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.organisation_lookup_name}

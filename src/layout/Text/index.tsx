@@ -26,13 +26,7 @@ export class Text extends TextDef implements DisplayData {
   );
 
   renderSummary2(props: Summary2Props<'Text'>): JSX.Element | null {
-    return (
-      <TextSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <TextSummary {...props} />;
   }
 
   evalExpressions(props: ExprResolver<'Text'>) {

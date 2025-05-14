@@ -1,7 +1,10 @@
+import type { JSONSchema7 } from 'json-schema';
+
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
-import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 
 const common = {
   IButtonProps: () =>
@@ -39,13 +42,7 @@ const common = {
       ),
     ),
   ISummaryOverridesCommon: () =>
-    new CG.obj(
-      new CG.prop('componentId', new CG.str()),
-      new CG.prop('hidden', new CG.bool().optional()),
-      new CG.prop('forceShow', new CG.bool().optional()),
-      new CG.prop('emptyFieldText', new CG.str().optional()),
-    ),
-
+    new CG.obj(new CG.prop('hidden', new CG.bool().optional()), new CG.prop('emptyFieldText', new CG.str().optional())),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
@@ -945,6 +942,13 @@ const common = {
           suffix: ' kr',
         },
       }),
+  AnySummaryOverride: () =>
+    // This is calculated as a union of all possible component-level overrides. Because it needs the full list of
+    // components to generate, it is instead implemented in generateSummaryOverrides() below.
+    new CG.raw({
+      typeScript: 'BROKEN! Check that AnySummaryOverride is generated correctly',
+      jsonSchema: 'BROKEN! Check that AnySummaryOverride is generated correctly' as JSONSchema7,
+    }),
 };
 
 export type ValidCommonKeys = keyof typeof common;
@@ -969,21 +973,41 @@ function makeTRB(keys: { [key: string]: TRB }) {
   return obj;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const implementationsCache: { [key: string]: MaybeSymbolizedCodeGenerator<any> } = {};
-export function getSourceForCommon(key: ValidCommonKeys) {
-  if (implementationsCache[key]) {
-    return implementationsCache[key];
+const implementationsCache: { [key: string]: MaybeSymbolizedCodeGenerator<unknown> } = {};
+export function getSourceForCommon(
+  key: ValidCommonKeys,
+  from: 'TypeScript' | 'JsonSchema' = 'TypeScript',
+  map?: { [key: string]: ComponentConfig },
+) {
+  const cacheKey = key === 'AnySummaryOverride' ? key + from : key;
+  if (implementationsCache[cacheKey]) {
+    return implementationsCache[cacheKey];
+  }
+
+  if (key === 'AnySummaryOverride') {
+    if (map === undefined) {
+      throw new Error('Full component map needed when generating AnySummaryOverride');
+    }
+    const impl = generateSummaryOverrides(from, map);
+    impl.exportAs(key);
+    implementationsCache[cacheKey] = impl;
+    return impl;
   }
 
   const impl = common[key]();
   impl.exportAs(key);
-  implementationsCache[key] = impl;
+  implementationsCache[cacheKey] = impl;
   return impl;
 }
 
-export function generateAllCommonTypes() {
+export function generateAllCommonTypes(map: { [key: string]: ComponentConfig }) {
   for (const key in common) {
+    if (key === 'AnySummaryOverride') {
+      getSourceForCommon(key, 'TypeScript', map);
+      getSourceForCommon(key, 'JsonSchema', map);
+      continue;
+    }
+
     getSourceForCommon(key as ValidCommonKeys);
   }
 }
@@ -1000,7 +1024,22 @@ export function generateCommonTypeScript() {
 
 export function generateCommonSchema() {
   for (const key in common) {
-    const val = getSourceForCommon(key as ValidCommonKeys);
+    const val = getSourceForCommon(key as ValidCommonKeys, 'JsonSchema');
     val.toJsonSchema();
   }
+}
+
+function generateSummaryOverrides(from: 'TypeScript' | 'JsonSchema', map: { [key: string]: ComponentConfig }) {
+  const objects: MaybeOptionalCodeGenerator<unknown>[] = [];
+  for (const componentKey in map) {
+    const component = map[componentKey];
+    const componentLevelOverrides =
+      from === 'TypeScript' ? component.getSummaryOverridesImport('withRef') : component.getSummaryOverrides();
+
+    if (componentLevelOverrides) {
+      objects.push(componentLevelOverrides);
+    }
+  }
+
+  return new CG.union(...objects);
 }

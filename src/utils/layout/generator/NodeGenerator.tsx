@@ -8,7 +8,7 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { getComponentCapabilities, getComponentDef, getNodeConstructor } from 'src/layout';
+import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
@@ -347,13 +347,12 @@ function useNewNode<T extends CompTypes>(id: string, baseId: string, type: T): L
   const parent = GeneratorInternal.useParent()!;
   const rowIndex = GeneratorInternal.useRowIndex();
   const multiPageIndex = GeneratorInternal.useMultiPageIndex(baseId);
-  const LNode = useNodeConstructor(type);
 
   return useMemo(() => {
     const newNodeProps: LayoutNodeProps<T> = { id, baseId, type, parent, rowIndex, multiPageIndex };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new LNode(newNodeProps as any) as LayoutNode<T>;
-  }, [LNode, baseId, id, multiPageIndex, parent, rowIndex, type]);
+    return new LayoutNode(newNodeProps as any) as LayoutNode<T>;
+  }, [baseId, id, multiPageIndex, parent, rowIndex, type]);
 }
 
 function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComponentProps {
@@ -371,13 +370,4 @@ export function useDef<T extends CompTypes>(type: T) {
   }
 
   return def;
-}
-
-function useNodeConstructor<T extends CompTypes>(type: T) {
-  const LNode = getNodeConstructor(type);
-  if (!LNode) {
-    throw new Error(`Component type "${type}" not found`);
-  }
-
-  return LNode;
 }

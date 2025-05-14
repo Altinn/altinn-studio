@@ -3,13 +3,6 @@ import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 import { LikertRowsPlugin } from 'src/layout/Likert/Generator/LikertRowsPlugin';
 
-export const LIKERT_SUMMARY_OVERRIDE_PROPS = new CG.obj()
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('LikertSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Form,
   directRendering: true,
@@ -89,5 +82,6 @@ export const Config = new CG.component({
         .exportAs('ILikertFilter'),
     ),
   )
+  .addSummaryOverrides()
   .extends(CG.common('ILikertColumnProperties'))
   .addPlugin(new OptionsPlugin({ supportsPreselection: false, type: 'single' }));

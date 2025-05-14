@@ -41,13 +41,7 @@ export class Number extends NumberDef implements DisplayData {
   );
 
   renderSummary2(props: Summary2Props<'Number'>): JSX.Element | null {
-    return (
-      <NumberSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <NumberSummary {...props} />;
   }
 
   evalExpressions(props: ExprResolver<'Number'>) {

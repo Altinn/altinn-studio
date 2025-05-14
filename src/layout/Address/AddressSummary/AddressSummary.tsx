@@ -6,6 +6,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/Address/AddressSummary/AddressSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -22,6 +23,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
   const { title, careOfTitle, zipCodeTitle, postPlaceTitle, houseNumberTitle } = textResourceBindings ?? {};
   const { formData } = useDataModelBindings(dataModelBindings);
   const { address, postPlace, zipCode, careOf, houseNumber } = formData;
+  const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
 
   const bindingValidations = useBindingValidationsForNode(componentNode);
 
@@ -37,6 +40,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
           }
           displayData={address}
           componentNode={componentNode}
+          isCompact={isCompact}
+          emptyFieldText={emptyFieldText}
         />
         <ComponentValidations
           validations={bindingValidations?.address}
@@ -56,6 +61,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             displayData={careOf}
             componentNode={componentNode}
             hideEditButton={true}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.careOf}
@@ -76,6 +83,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             displayData={zipCode}
             componentNode={componentNode}
             hideEditButton={true}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.zipCode}
@@ -94,6 +103,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             displayData={postPlace}
             componentNode={componentNode}
             hideEditButton={true}
+            isCompact={isCompact}
+            emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.postPlace}
@@ -112,6 +123,8 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
               displayData={houseNumber}
               componentNode={componentNode}
               hideEditButton={true}
+              isCompact={isCompact}
+              emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.houseNumber}

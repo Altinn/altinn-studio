@@ -478,10 +478,7 @@ describe('SummaryComponent', () => {
       id: 'mySummary2',
       hideEmptyFields: summary2Config.hideEmptyFields,
       isCompact: summary2Config.isCompact,
-      target: {
-        id: summary2Config.target?.id || '',
-        type: summary2Config.target?.type,
-      },
+      target: summary2Config.target,
       overrides: summary2Config?.overrides ?? [],
     });
 

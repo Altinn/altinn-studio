@@ -4,21 +4,6 @@ import { CompCategory } from 'src/layout/common';
 import { GridRowsPlugin } from 'src/layout/Grid/GridRowsPlugin';
 import { RepeatingChildrenPlugin } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
-export const REPEATING_GROUP_SUMMARY_OVERRIDE_PROPS = new CG.obj(
-  new CG.prop(
-    'display',
-    new CG.enum('table', 'full')
-      .optional({ default: 'full' })
-      .setTitle('Display type')
-      .setDescription('Show the summary as a table or as full summary components'),
-  ),
-)
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('RepeatingGroupSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Container,
   directRendering: true,
@@ -344,5 +329,15 @@ export const Config = new CG.component({
     ),
   )
   .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()))
-
-  .addProperty(new CG.prop('addButton', new CG.obj().extends(CG.common('IButtonProps')).optional()));
+  .addProperty(new CG.prop('addButton', new CG.obj().extends(CG.common('IButtonProps')).optional()))
+  .addSummaryOverrides((obj) => {
+    obj.addProperty(
+      new CG.prop(
+        'display',
+        new CG.enum('table', 'full')
+          .optional({ default: 'full' })
+          .setTitle('Display type')
+          .setDescription('Show the summary as a table or as full summary components'),
+      ),
+    );
+  });

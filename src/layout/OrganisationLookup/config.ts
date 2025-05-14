@@ -16,6 +16,7 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
+  .addSummaryOverrides()
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

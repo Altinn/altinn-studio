@@ -26,13 +26,7 @@ export class Option extends OptionDef implements DisplayData {
   });
 
   renderSummary2(props: Summary2Props<'Option'>): JSX.Element | null {
-    return (
-      <OptionSummary
-        componentNode={props.target}
-        isCompact={props.isCompact}
-        emptyFieldText={props.override?.emptyFieldText}
-      />
-    );
+    return <OptionSummary {...props} />;
   }
 
   evalExpressions(props: ExprResolver<'Option'>) {

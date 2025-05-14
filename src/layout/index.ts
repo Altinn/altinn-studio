@@ -48,16 +48,6 @@ export function getComponentDef<T extends keyof CompClassMap>(type: T): CompClas
   return undefined as any;
 }
 
-export function getNodeConstructor<T extends CompTypes>(type: T): ComponentConfigs[T]['nodeConstructor'] {
-  const configs = getComponentConfigs();
-  if (type && type in configs) {
-    return configs[type].nodeConstructor;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return undefined as any;
-}
-
 export function getComponentCapabilities<T extends CompTypes>(type: T): ComponentConfigs[T]['capabilities'] {
   const configs = getComponentConfigs();
   if (type && type in configs) {

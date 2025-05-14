@@ -1,13 +1,6 @@
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
-export const PARAGRAPH_SUMMARY_OVERRIDE_PROPS = new CG.obj()
-  .extends(CG.common('ISummaryOverridesCommon'))
-  .optional()
-  .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component')
-  .exportAs('ParagraphSummaryOverrideProps');
-
 export const Config = new CG.component({
   category: CompCategory.Presentation,
   capabilities: {
@@ -23,6 +16,7 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
+  .makeSummarizable()
   .addTextResource(
     new CG.trb({
       name: 'title',
@@ -36,4 +30,5 @@ export const Config = new CG.component({
       title: 'Help text',
       description: 'Help text, optionally shown in a tooltip',
     }),
-  );
+  )
+  .addSummaryOverrides();

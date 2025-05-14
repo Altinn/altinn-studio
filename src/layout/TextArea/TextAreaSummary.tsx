@@ -5,20 +5,17 @@ import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-type TextAreaComponentSummaryProps = {
-  componentNode: LayoutNode<'TextArea'>;
-  isCompact?: boolean;
-  emptyFieldText?: string;
-};
-
-export const TextAreaSummary = ({ componentNode, isCompact, emptyFieldText }: TextAreaComponentSummaryProps) => {
-  const displayData = useDisplayData(componentNode);
-  const validations = useUnifiedValidationsForNode(componentNode);
+export const TextAreaSummary = ({ target }: Summary2Props<'TextArea'>) => {
+  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+  const isCompact = useSummaryProp('isCompact');
+  const displayData = useDisplayData(target);
+  const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
 
   return (
     <SingleValueSummary
@@ -26,13 +23,13 @@ export const TextAreaSummary = ({ componentNode, isCompact, emptyFieldText }: Te
         title && (
           <Lang
             id={title}
-            node={componentNode}
+            node={target}
           />
         )
       }
       displayData={displayData}
       errors={errors}
-      componentNode={componentNode}
+      componentNode={target}
       isCompact={isCompact}
       multiline
       emptyFieldText={emptyFieldText}

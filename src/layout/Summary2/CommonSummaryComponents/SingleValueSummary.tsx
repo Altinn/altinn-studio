@@ -16,8 +16,8 @@ type SingleValueSummaryProps = {
   displayData?: string;
   hideEditButton?: boolean;
   multiline?: boolean;
-  isCompact?: boolean;
-  emptyFieldText?: string;
+  isCompact: boolean | undefined;
+  emptyFieldText: string | undefined;
 };
 
 export const SingleValueSummary = ({

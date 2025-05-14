@@ -39,13 +39,7 @@ export class RadioButtons extends RadioButtonsDef {
   }
 
   renderSummary2(props: Summary2Props<'RadioButtons'>): JSX.Element | null {
-    return (
-      <RadioButtonsSummary
-        componentNode={props.target}
-        emptyFieldText={props.override?.emptyFieldText}
-        isCompact={props.isCompact}
-      />
-    );
+    return <RadioButtonsSummary {...props} />;
   }
 
   useEmptyFieldValidation(node: LayoutNode<'RadioButtons'>): ComponentValidation[] {
