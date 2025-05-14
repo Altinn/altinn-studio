@@ -3,7 +3,7 @@ import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
-import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
@@ -20,14 +20,14 @@ import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 
 export const PageConfigPanel = () => {
-  const { selectedFormLayoutName } = useAppContext();
+  const { selectedItem } = useAppContext();
+
   const t = useText();
   const modalRef = useRef<HTMLDialogElement>(null);
-  const layoutIsSelected =
-    selectedFormLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedFormLayoutName !== undefined;
+  const layoutIsSelected = selectedItem?.type === 'page';
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
-    selectedFormLayoutName,
+    selectedItem?.id,
   );
   const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
     layoutNameTextResourceSelector,
@@ -35,10 +35,10 @@ export const PageConfigPanel = () => {
   const layoutNameText = layoutNameTextResource?.value;
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : (layoutNameText ?? selectedFormLayoutName);
+    : (layoutNameText ?? selectedItem?.id);
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
-  const layout = layouts[selectedFormLayoutName];
+  const layout = layouts[selectedItem?.id];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
   const duplicateLayouts: string[] =
@@ -52,12 +52,13 @@ export const PageConfigPanel = () => {
   }, [hasDuplicatedIdsInAllLayouts]);
 
   if (layoutIsSelected && hasDuplicatedIds) {
-    return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
+    return <PageConfigWarning selectedFormLayoutName={selectedItem?.id} layout={layout} />;
   }
 
   return (
     <>
       <StudioSectionHeader
+        data-testid='pageConfigPanel'
         icon={<FileIcon />}
         heading={{
           text: headingTitle,
@@ -65,8 +66,8 @@ export const PageConfigPanel = () => {
         }}
       />
       {layoutIsSelected && (
-        <Fragment key={selectedFormLayoutName}>
-          <EditPageId layoutName={selectedFormLayoutName} />
+        <Fragment key={selectedItem?.id}>
+          <EditPageId layoutName={selectedItem?.id} />
           <Accordion color='subtle'>
             <Accordion.Item>
               <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
@@ -74,7 +75,7 @@ export const PageConfigPanel = () => {
                 <TextResource
                   handleIdChange={() => {}}
                   label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                  textResourceId={selectedFormLayoutName}
+                  textResourceId={selectedItem?.id}
                 />
               </Accordion.Content>
             </Accordion.Item>

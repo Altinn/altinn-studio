@@ -41,7 +41,7 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: changePageGroupOrder } = useChangePageGroupOrder(
     org,
@@ -79,22 +79,30 @@ export const PageGroupAccordion = ({
         });
       }
     };
-
+    const displayName = group.name || `${t('general.layout_set')} ${groupIndex + 1}`;
+    const selectedGroup = pages.groups.findIndex(
+      (groupp, index) =>
+        selectedItem?.type === 'group' &&
+        (groupp.name || `${t('general.layout_set')} ${index + 1}`) === selectedItem?.id,
+    );
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
-          className={classes.groupHeaderWrapper}
+          className={`${classes.groupHeaderWrapper} ${
+            selectedGroup === groupIndex ? classes.selected : ''
+          }`}
           data-testid={pageGroupAccordionHeader(groupIndex)}
+          onClick={() => setSelectedItem({ type: 'group', id: displayName })}
         >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
             <StudioHeading level={3} size='2xs'>
-              {group.name}
+              {displayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioButton
-              title={t('general.delete_item', { item: group.name })}
+              title={t('general.delete_item', { item: displayName })}
               color='danger'
               icon={<TrashIcon />}
               onClick={handleConfirmDelete}

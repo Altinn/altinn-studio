@@ -18,6 +18,13 @@ jest.mock('../../../utils/formLayoutUtils', () => ({
   findLayoutsContainingDuplicateComponents: jest.fn(),
 }));
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn(),
+  FeatureFlag: {
+    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
+  },
+}));
+
 // Test data
 const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
@@ -47,15 +54,6 @@ const layouts: IFormLayouts = {
 describe('PageConfigPanel', () => {
   beforeEach(() => {
     (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue([]);
-  });
-  it('render heading with "no selected page" message when selected layout is "default"', async () => {
-    renderPageConfigPanel();
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
-  });
-
-  it('render heading with "no selected page" message when selected layout is undefined', () => {
-    renderPageConfigPanel(undefined);
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
   });
 
   it('render heading with layout page name when layout is selected', () => {
@@ -123,6 +121,7 @@ describe('PageConfigPanel', () => {
 const renderPageConfigPanel = (
   selectedLayoutName: string = DEFAULT_SELECTED_LAYOUT_NAME,
   textResources = defaultTexts,
+  appContextProps = { selectedGroupName: undefined },
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
@@ -136,6 +135,11 @@ const renderPageConfigPanel = (
   );
 
   return renderWithProviders(<PageConfigPanel />, {
-    appContextProps: { selectedFormLayoutName: selectedLayoutName },
+    appContextProps: {
+      selectedFormLayoutName: selectedLayoutName,
+      selectedItem: { type: 'page', id: selectedLayoutName },
+      selectedFormLayoutSetName: layoutSet,
+      ...appContextProps,
+    },
   });
 };

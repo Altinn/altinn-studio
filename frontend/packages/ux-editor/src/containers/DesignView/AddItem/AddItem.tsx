@@ -32,7 +32,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
   const { handleEdit } = useFormItemContext();
 
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { setSelectedItem, selectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation(['translation', 'addComponentModal']);
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
@@ -58,6 +58,10 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
       },
     );
     handleEdit(getItem(updatedLayout, newId));
+    setSelectedItem({
+      type: 'component',
+      id: newId,
+    });
   };
 
   const onAddComponent = (addedItem: AddedItem) => {

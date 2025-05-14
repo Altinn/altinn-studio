@@ -35,8 +35,12 @@ import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggl
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user } = useUserQuery();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
+  const {
+    selectedFormLayoutSetName,
+    selectedFormLayoutName,
+    updateLayoutsForPreview,
+    setSelectedItem,
+  } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -119,6 +123,7 @@ export const FormDesigner = (): JSX.Element => {
         },
       );
       handleEdit(getItem(updatedLayout, newId));
+      setSelectedItem({ type: 'component', id: newId });
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const type = getItem(layout, id).type;

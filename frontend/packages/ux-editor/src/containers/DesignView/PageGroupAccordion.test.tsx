@@ -12,6 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { AppContextProps } from '../../AppContext';
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -27,12 +28,30 @@ const pagesMock: PagesModel = {
   ],
 };
 
+const pagesMockWithUnnamedGroup: PagesModel = {
+  pages: null,
+  groups: [
+    {
+      name: '',
+      order: [{ id: 'Side 1' }],
+    },
+    {
+      name: 'Group 2',
+      order: [{ id: 'Side 2' }],
+    },
+  ],
+};
+
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
 describe('PageGroupAccordion', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should disable move-up for first group, and move-down for last group', async () => {
     await renderPageGroupAccordion({});
     expect(moveGroupUpButton(0)).toBeDisabled();
@@ -60,6 +79,26 @@ describe('PageGroupAccordion', () => {
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
+
+  it('should display fallback name if group name is empty', async () => {
+    await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toBeInTheDocument();
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent(`${textMock('general.layout_set')} 1`);
+  });
+
+  it('should mark group as selected when selectedGroupName matches fallback name', async () => {
+    const fallbackName = `${textMock('general.layout_set')} 1`;
+    await renderPageGroupAccordion({
+      props: { pages: pagesMockWithUnnamedGroup },
+      appContextProps: { selectedItem: { type: 'group', id: fallbackName } },
+    });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toHaveClass('selected');
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent(fallbackName);
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
@@ -75,9 +114,10 @@ const moveGroupDownButton = (nth: number) =>
 type renderParameters = {
   props?: Partial<PageGroupAccordionProps>;
   queries?: Partial<ServicesContextProps>;
+  appContextProps?: Partial<AppContextProps>;
 };
 
-const renderPageGroupAccordion = async ({ props, queries }: renderParameters) => {
+const renderPageGroupAccordion = async ({ props, queries, appContextProps }: renderParameters) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesMock);
   renderWithProviders(
@@ -90,6 +130,6 @@ const renderPageGroupAccordion = async ({ props, queries }: renderParameters) =>
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,
-    { queryClient, queries },
+    { queryClient, queries, appContextProps },
   );
 };
