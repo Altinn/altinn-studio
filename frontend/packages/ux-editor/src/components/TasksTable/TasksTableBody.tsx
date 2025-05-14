@@ -5,22 +5,18 @@ import { StudioAlert } from '@studio/components-legacy';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon, getTaskName, taskNavigationType } from '../Settings/SettingsUtils';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
+import { getTaskIcon, taskNavigationType, TaskType } from '../Settings/SettingsUtils';
+import { useTaskNavigationGroupName } from '../../hooks/useTaskNavigationGroupName';
 import { TaskAction } from './TaskAction';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
   isNavigationMode: boolean;
-  onSelectTask: (index: number) => void;
 };
 
 export const TasksTableBody = ({
   tasks,
   isNavigationMode,
-  onSelectTask,
 }: TasksTableBodyProps): ReactElement | ReactElement[] => {
   const { t } = useTranslation();
   const displayInfoMessage = isNavigationMode && tasks.length === 0;
@@ -46,9 +42,9 @@ export const TasksTableBody = ({
       <TaskRow
         key={uniqueKey}
         task={task}
+        tasks={tasks}
         index={index}
         isNavigationMode={isNavigationMode}
-        onSelectTask={onSelectTask}
       />
     );
   });
@@ -56,33 +52,40 @@ export const TasksTableBody = ({
 
 type TaskRowProps = {
   task: TaskNavigationGroup;
+  tasks: TaskNavigationGroup[];
   index: number;
   isNavigationMode: boolean;
-  onSelectTask: (index: number) => void;
 };
 
-const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
+const TaskRow = ({ task, tasks, index, isNavigationMode }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
   const TaskIcon = getTaskIcon(task.taskType);
-  const taskType = taskNavigationType(task.taskType);
-  const taskName = useTextResourceValue(task?.name) ?? getTaskName(task, layoutSetsModel);
+  const taskTypeName = taskNavigationType(task.taskType);
+  const { taskNavigationName, taskIdName } = useTaskNavigationGroupName(task);
+
+  const taskTypeCellContent =
+    task.taskType === TaskType.Receipt ? t(taskTypeName) : `${t(taskTypeName)}: ${taskIdName}`;
 
   return (
     <StudioTable.Row
       className={cn(classes.taskRow, { [classes.hiddenTaskRow]: !isNavigationMode })}
     >
-      <StudioTable.Cell>
+      <StudioTable.Cell className={classes.taskTypeCell}>
         <div className={classes.taskTypeCellContent}>
-          <TaskIcon />
-          {t(taskType)}
+          <TaskIcon className={classes.taskIcon} />
+          <span className={classes.taskType} title={taskIdName}>
+            {taskTypeCellContent}
+          </span>
         </div>
       </StudioTable.Cell>
-      <StudioTable.Cell>{t(taskName)}</StudioTable.Cell>
+      {isNavigationMode && (
+        <StudioTable.Cell title={t(taskNavigationName)} className={classes.taskNameCell}>
+          {t(taskNavigationName)}
+        </StudioTable.Cell>
+      )}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
-        <TaskAction isNavigationMode={isNavigationMode} onSelectTask={onSelectTask} index={index} />
+        <TaskAction isNavigationMode={isNavigationMode} task={task} tasks={tasks} index={index} />
       </StudioTable.Cell>
     </StudioTable.Row>
   );
