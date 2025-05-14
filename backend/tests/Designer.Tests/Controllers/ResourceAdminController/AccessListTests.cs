@@ -222,7 +222,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
 
-        
         [Fact]
         public async Task GetAllAccessLists_Ok()
         {
