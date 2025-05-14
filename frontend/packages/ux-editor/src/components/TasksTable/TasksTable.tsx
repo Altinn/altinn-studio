@@ -10,14 +10,12 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 export type TasksTableProps = {
   tasks?: TaskNavigationGroup[];
   isNavigationMode?: boolean;
-  onSelectTask: (index: number) => void;
   onSelectAllTasks: () => void;
 };
 
 export const TasksTable = ({
   tasks = [],
   isNavigationMode = true,
-  onSelectTask,
   onSelectAllTasks,
 }: TasksTableProps): ReactElement => {
   const { t } = useTranslation();
@@ -38,11 +36,7 @@ export const TasksTable = ({
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
-        <TasksTableBody
-          tasks={tasks}
-          isNavigationMode={isNavigationMode}
-          onSelectTask={onSelectTask}
-        />
+        <TasksTableBody tasks={tasks} isNavigationMode={isNavigationMode} />
       </StudioTable.Body>
       <StudioTable.Foot>
         <StudioTable.Row>

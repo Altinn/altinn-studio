@@ -30,11 +30,7 @@ export const SettingsNavigation = (): ReactElement => {
         </StudioParagraph>
       </div>
       {/*TODO: OnSelectTask and OnSelectAllTasks - Hide tasks #15239 and #15250 */}
-      <TasksTable
-        onSelectTask={() => {}}
-        onSelectAllTasks={() => {}}
-        tasks={taskNavigationGroups}
-      />
+      <TasksTable onSelectAllTasks={() => {}} tasks={taskNavigationGroups} />
     </div>
   );
 };
