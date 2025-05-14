@@ -174,7 +174,11 @@ describe('CodeListPage', () => {
     const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, codeListsData: codeListDataList, onUpdateTextResource });
+    renderCodeListPage({
+      textResources,
+      codeListsData: codeListDataList,
+      onSetTextResource: onUpdateTextResource,
+    });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     await user.type(labelField, newLabel);
     await user.tab();
@@ -205,7 +209,7 @@ describe('CodeListPage', () => {
     const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, onUpdateTextResource });
+    renderCodeListPage({ textResources, onSetTextResource: onUpdateTextResource });
     const dialog = await openCreateDialog(user);
     await addCodeListItem(user, dialog);
     await openSearchModeForFirstLabel(user, dialog);

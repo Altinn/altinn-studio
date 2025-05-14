@@ -31,7 +31,7 @@ export type CodeListPageProps = {
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  onUpdateTextResource?: (textResource: TextResourceWithLanguage) => void;
+  onSetTextResource?: (textResource: TextResourceWithLanguage) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
@@ -45,7 +45,7 @@ export function CodeListPage({
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
-  onUpdateTextResource,
+  onSetTextResource,
   onUploadCodeList,
   codeListsUsages,
   textResources,
@@ -68,12 +68,12 @@ export function CodeListPage({
     [textResources],
   );
 
-  const handleBlurTextResource = useCallback(
+  const handleSetTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
-      onUpdateTextResource?.(updatedTextResource);
+      onSetTextResource?.(updatedTextResource);
     },
-    [onUpdateTextResource],
+    [onSetTextResource],
   );
 
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
@@ -93,7 +93,7 @@ export function CodeListPage({
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
-        onBlurTextResource={handleBlurTextResource}
+        onSetTextResource={handleSetTextResource}
         onCreateCodeList={onCreateCodeList}
         onUploadCodeList={handleUploadCodeList}
         codeListNames={codeListTitles}
@@ -104,7 +104,7 @@ export function CodeListPage({
       />
       <CodeLists
         codeListsData={filteredCodeLists}
-        onBlurTextResource={handleBlurTextResource}
+        onSetTextResource={handleSetTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}

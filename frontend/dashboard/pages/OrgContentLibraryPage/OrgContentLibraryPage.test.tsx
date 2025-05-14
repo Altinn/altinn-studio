@@ -188,7 +188,7 @@ describe('OrgContentLibraryPage', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderOrgContentLibraryWithData();
 
-    retrieveConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
+    retrieveConfig().codeList.props.onSetTextResource(textResourceWithLanguage);
     await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
 
     expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
