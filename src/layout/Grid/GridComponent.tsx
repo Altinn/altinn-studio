@@ -4,10 +4,10 @@ import type { PropsWithChildren } from 'react';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
+import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { Caption } from 'src/components/form/caption/Caption';
-import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';

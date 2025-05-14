@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {

@@ -7,7 +7,7 @@ import type { AxiosRequestConfig } from 'axios';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
@@ -55,12 +55,12 @@ export async function invalidateFormDataQueries(queryClient: QueryClient) {
 }
 
 export function useFormDataQueryOptions() {
-  const currentPartyId = useCurrentParty()?.partyId;
+  const selectedPartyId = useSelectedParty()?.partyId;
   const isStateless = useApplicationMetadata().isStatelessApp;
   const options: AxiosRequestConfig = {};
-  if (isStateless && currentPartyId !== undefined) {
+  if (isStateless && selectedPartyId !== undefined) {
     options.headers = {
-      party: `partyid:${currentPartyId}`,
+      party: `partyid:${selectedPartyId}`,
     };
   }
   return options;

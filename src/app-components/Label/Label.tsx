@@ -19,6 +19,7 @@ type LabelProps = {
   description?: ReactElement;
   className?: string;
   grid?: IGridStyling;
+  size?: DesignsystemetLabelProps['size'];
   style?: DesignsystemetLabelProps['style'];
 };
 
@@ -33,6 +34,7 @@ export const Label = forwardRef<HTMLLabelElement, PropsWithChildren<LabelProps>>
     description,
     className,
     grid,
+    size = 'md',
     style,
     children,
   },
@@ -57,7 +59,7 @@ export const Label = forwardRef<HTMLLabelElement, PropsWithChildren<LabelProps>>
             <DesignsystemetLabel
               ref={ref}
               weight='medium'
-              size='md'
+              size={size}
               htmlFor={htmlFor}
               className={cn(className, {
                 [classes.labelPadding]: !children,

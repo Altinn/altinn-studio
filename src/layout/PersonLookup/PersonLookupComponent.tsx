@@ -19,7 +19,7 @@ import { useBindingValidationsForNode } from 'src/features/validation/selectors/
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
-import { validateName, validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
+import { validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { httpPost } from 'src/utils/network/networking';
@@ -37,7 +37,9 @@ const personLookupQueries = {
 };
 
 export type Person = {
-  name: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
   ssn: string;
 };
 export type PersonLookupResponse = { success: false; personDetails: null } | { success: true; personDetails: Person };
@@ -83,7 +85,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
   const [ssnErrors, setSsnErrors] = useState<string[]>();
-  const [nameErrors, setNameErrors] = useState<string[]>();
+  const [nameError, setNameError] = useState<string>();
 
   const bindingValidations = useBindingValidationsForNode(node);
   const { langAsString } = useLanguage();
@@ -95,16 +97,11 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
   const { data, refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
 
   function handleValidateName(name: string) {
-    if (!validateName({ name })) {
-      const nameErrors = validateName.errors
-        ?.filter((error) => error.instancePath === '/name')
-        .map((error) => error.message)
-        .filter((it) => it != null);
-
-      setNameErrors(nameErrors);
+    if (name.length < 1) {
+      setNameError('person_lookup.validation_error_name_too_short');
       return false;
     }
-    setNameErrors(undefined);
+    setNameError(undefined);
     return true;
   }
 
@@ -132,9 +129,13 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
 
     const { data } = await performLookup();
     if (data?.person) {
-      setValue('person_lookup_name', data.person.name);
+      setValue('person_lookup_name', getFullName(data.person));
       setValue('person_lookup_ssn', data.person.ssn);
     }
+  }
+
+  function getFullName({ firstName, middleName, lastName }) {
+    return middleName ? `${firstName} ${middleName} ${lastName}` : `${firstName} ${lastName}`;
   }
 
   function handleClear() {
@@ -217,7 +218,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
             required={required}
             readOnly={hasSuccessfullyFetched}
             error={
-              (nameErrors?.length && <Lang id={nameErrors.join(' ')} />) ||
+              (nameError && <Lang id={nameError} />) ||
               (hasValidationErrors(bindingValidations?.person_lookup_name) && (
                 <ComponentValidations validations={bindingValidations?.person_lookup_name} />
               ))

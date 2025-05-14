@@ -47,6 +47,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     expect(screen.getByText('Name')).toBeInTheDocument();
@@ -60,6 +61,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     const rows = screen.getAllByRole('row');
@@ -73,6 +75,7 @@ describe('AppTable Component', () => {
         columns={columns}
         actionButtons={actionButtons}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     expect(screen.getAllByText('Edit').length).toBe(data.length);
@@ -85,6 +88,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     expect(screen.getByText('05.10.2023')).toBeInTheDocument();
@@ -105,6 +109,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columnsWithRenderCell}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     expect(screen.getByText('Name: Alice, Amount: 100')).toBeInTheDocument();
@@ -127,6 +132,7 @@ describe('AppTable Component', () => {
         columns={columns}
         actionButtons={actionButtonsMock}
         schema={schema}
+        emptyText={undefined}
       />,
     );
 
@@ -146,6 +152,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     const headerCells = screen.getAllByRole('columnheader');
@@ -159,6 +166,7 @@ describe('AppTable Component', () => {
         columns={columns}
         actionButtons={actionButtons}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     const headerCells = screen.getAllByRole('columnheader');
@@ -175,6 +183,7 @@ describe('AppTable Component', () => {
         data={dataWithNonDate}
         columns={columns}
         schema={schema}
+        emptyText={undefined}
       />,
     );
     expect(screen.getByText('Not a date')).toBeInTheDocument();

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppMutations, useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
@@ -9,11 +10,11 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { instanceQueryKeys } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
-import type { IParty } from 'src/types/shared';
+import type { IInstance, IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const partyQueryKeys = {
@@ -47,17 +48,17 @@ const usePartiesAllowedToInstantiateQuery = () => {
 };
 
 // Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
-export function useCurrentPartyQueryDef(enabled: boolean) {
-  const { fetchCurrentParty } = useAppQueries();
+export function useSelectedPartyQueryDef(enabled: boolean) {
+  const { fetchSelectedParty } = useAppQueries();
   return {
-    queryKey: ['fetchUseCurrentParty', enabled],
-    queryFn: fetchCurrentParty,
+    queryKey: ['fetchUseSelectedParty', enabled],
+    queryFn: fetchSelectedParty,
     enabled,
   };
 }
 
-const useCurrentPartyQuery = (enabled: boolean) => {
-  const query = useQuery(useCurrentPartyQueryDef(enabled));
+const useSelectedPartyQuery = (enabled: boolean) => {
+  const query = useQuery(useSelectedPartyQueryDef(enabled));
 
   useEffect(() => {
     query.error && window.logError('Fetching current party failed:\n', query.error);
@@ -66,11 +67,11 @@ const useCurrentPartyQuery = (enabled: boolean) => {
   return query;
 };
 
-const useSetCurrentPartyMutation = () => {
-  const { doSetCurrentParty } = useAppMutations();
+const useSetSelectedPartyMutation = () => {
+  const { doSetSelectedParty } = useAppMutations();
   return useMutation({
-    mutationKey: ['doSetCurrentParty'],
-    mutationFn: (party: IParty) => doSetCurrentParty(party.partyId),
+    mutationKey: ['doSetSelectedParty'],
+    mutationFn: (party: IParty) => doSetSelectedParty(party.partyId),
     onError: (error: HttpClientError) => {
       window.logError('Setting current party failed:\n', error);
     },
@@ -86,26 +87,26 @@ const { Provider: PartiesProvider, useCtx: usePartiesAllowedToInstantiateCtx } =
   }),
 );
 
-interface CurrentParty {
+interface SelectedParty {
   party: IParty | undefined;
-  currentIsValid: boolean | undefined;
+  selectedIsValid: boolean | undefined;
   userHasSelectedParty: boolean | undefined;
   setUserHasSelectedParty: (hasSelected: boolean) => void;
   setParty: (party: IParty) => Promise<IParty | undefined>;
 }
 
-const { Provider: RealCurrentPartyProvider, useCtx: useCurrentPartyCtx } = createContext<CurrentParty>({
-  name: 'CurrentParty',
+const { Provider: RealSelectedPartyProvider, useCtx: useSelectedPartyCtx } = createContext<SelectedParty>({
+  name: 'SelectedParty',
   required: false,
   default: {
     party: undefined,
-    currentIsValid: undefined,
+    selectedIsValid: undefined,
     userHasSelectedParty: undefined,
     setUserHasSelectedParty: () => {
-      throw new Error('CurrentPartyProvider not initialized');
+      throw new Error('SelectedPartyProvider not initialized');
     },
     setParty: () => {
-      throw new Error('CurrentPartyProvider not initialized');
+      throw new Error('SelectedPartyProvider not initialized');
     },
   },
 });
@@ -115,11 +116,11 @@ const { Provider: RealCurrentPartyProvider, useCtx: useCurrentPartyCtx } = creat
  * That is, the selected party should only be used to determine the party that is used to instantiate an app or to select from previously instantiated apps.
  * When the user is filling out an app, the current party is always the user's party, found in the profile, filling out the form on behalf of the instance owner.
  */
-const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
+const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
   const validParties = useValidParties();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
-  const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetCurrentPartyMutation();
-  const { data: partyFromQuery, isLoading, error: errorFromQuery } = useCurrentPartyQuery(true);
+  const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetSelectedPartyMutation();
+  const { data: partyFromQuery, isLoading, error: errorFromQuery } = useSelectedPartyQuery(true);
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
 
   if (isLoading) {
@@ -136,14 +137,14 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
   }
 
   const partyFromMutation = dataFromMutation === 'Party successfully updated' ? sentToMutation : undefined;
-  const currentParty = partyFromMutation ?? partyFromQuery;
-  const currentIsValid = currentParty && validParties?.some((party) => party.partyId === currentParty.partyId);
+  const selectedParty = partyFromMutation ?? partyFromQuery;
+  const selectedIsValid = selectedParty && validParties?.some((party) => party.partyId === selectedParty.partyId);
 
   return (
-    <RealCurrentPartyProvider
+    <RealSelectedPartyProvider
       value={{
-        party: currentParty,
-        currentIsValid,
+        party: selectedParty,
+        selectedIsValid,
         userHasSelectedParty,
         setUserHasSelectedParty: (hasSelected: boolean) => setUserHasSelectedParty(hasSelected),
         setParty: async (party) => {
@@ -161,7 +162,7 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
       }}
     >
       {children}
-    </RealCurrentPartyProvider>
+    </RealSelectedPartyProvider>
   );
 };
 
@@ -174,7 +175,7 @@ export function PartyProvider({ children }: PropsWithChildren) {
 
   return (
     <PartiesProvider>
-      <CurrentPartyProvider>{children}</CurrentPartyProvider>
+      <SelectedPartyProvider>{children}</SelectedPartyProvider>
     </PartiesProvider>
   );
 }
@@ -186,19 +187,23 @@ export const usePartiesAllowedToInstantiate = () => usePartiesAllowedToInstantia
  * Please note that the current party might not be allowed to instantiate, so you should
  * check the `canInstantiate` property as well.
  */
-export const useCurrentParty = () => useCurrentPartyCtx().party;
-export const useCurrentPartyIsValid = () => useCurrentPartyCtx().currentIsValid;
-export const useSetCurrentParty = () => useCurrentPartyCtx().setParty;
+export const useSelectedParty = () => useSelectedPartyCtx().party;
+export const useSelectedPartyIsValid = () => useSelectedPartyCtx().selectedIsValid;
+export const useSetSelectedParty = () => useSelectedPartyCtx().setParty;
 
 export const useValidParties = () => flattenParties(usePartiesAllowedToInstantiateCtx() ?? []);
 
-export const useHasSelectedParty = () => useCurrentPartyCtx().userHasSelectedParty;
+export const useHasSelectedParty = () => useSelectedPartyCtx().userHasSelectedParty;
 
-export const useSetHasSelectedParty = () => useCurrentPartyCtx().setUserHasSelectedParty;
+export const useSetHasSelectedParty = () => useSelectedPartyCtx().setUserHasSelectedParty;
 
 export function useInstanceOwnerParty(): IParty | null {
   const parties = usePartiesAllowedToInstantiate() ?? [];
-  const instanceOwner = useLaxInstanceData((i) => i.instanceOwner);
+  const queryClient = useQueryClient();
+  const { instanceOwnerPartyId, instanceGuid } = useParams();
+  const instanceOwner = queryClient.getQueryData<IInstance>(
+    instanceQueryKeys.instanceData(instanceOwnerPartyId, instanceGuid),
+  )?.instanceOwner;
 
   if (!instanceOwner) {
     return null;

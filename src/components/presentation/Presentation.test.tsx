@@ -8,7 +8,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
-import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
+import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
 import type { AppQueries } from 'src/queries/types';
 
@@ -45,7 +45,7 @@ describe('Presentation', () => {
     const returnUrl = 'https://altinn.cloud.no';
     const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, host };
     jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
-    const messageBoxUrl = returnUrlToMessagebox(host, getPartyMock().partyId);
+    const messageBoxUrl = getMessageBoxUrl(getPartyMock().partyId);
 
     await render({ type: ProcessTaskType.Data });
 
@@ -59,10 +59,9 @@ describe('Presentation', () => {
   it('should link to default messagebox url if query parameter returnUrl is not found', async () => {
     const host = 'ttd.apps.tt02.altinn.no';
     const partyId = getPartyMock().partyId;
-    const messageBoxUrl = returnUrlToMessagebox(host, partyId);
     const mockedLocation = { ...realLocation, host, search: '' };
-
     jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+    const messageBoxUrl = getMessageBoxUrl(partyId);
 
     await render({ type: ProcessTaskType.Data });
 

@@ -86,3 +86,8 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.emptyCell {
+  align-items: 'left';
+  color: var(--semantic-text-neutral-subtle);
+}

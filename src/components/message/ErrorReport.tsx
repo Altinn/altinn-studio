@@ -5,11 +5,10 @@ import type { PropsWithChildren } from 'react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
-import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -39,31 +38,27 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
 
   return (
     <ErrorReportContext.Provider value={true}>
-      <div
-        data-testid='ErrorReport'
-        className={classes.errorReport}
-      >
-        <FullWidthWrapper isOnBottom={true}>
-          <Panel
-            title={<Lang id='form_filler.error_report_header' />}
-            variant={PANEL_VARIANT.Error}
+      <div data-testid='ErrorReport'>
+        <Panel
+          title={<Lang id='form_filler.error_report_header' />}
+          variant={PANEL_VARIANT.Error}
+          isOnBottom
+        >
+          <Flex
+            container
+            item
+            spacing={6}
+            alignItems='flex-start'
           >
             <Flex
-              container
               item
-              spacing={6}
-              alignItems='flex-start'
+              size={{ xs: 12 }}
             >
-              <Flex
-                item
-                size={{ xs: 12 }}
-              >
-                <ul className={classes.errorList}>{errors}</ul>
-              </Flex>
-              {children}
+              <ul className={classes.errorList}>{errors}</ul>
             </Flex>
-          </Panel>
-        </FullWidthWrapper>
+            {children}
+          </Flex>
+        </Panel>
       </div>
     </ErrorReportContext.Provider>
   );
@@ -105,7 +100,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
  * @see InstantiateContainer Contains somewhat similar logic, but for a full-screen error page.
  */
 export function ErrorListFromInstantiation({ error }: { error: unknown }) {
-  const selectedParty = useCurrentParty();
+  const selectedParty = useSelectedParty();
 
   if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

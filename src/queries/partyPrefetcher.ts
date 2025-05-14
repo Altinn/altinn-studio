@@ -1,5 +1,5 @@
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
-import { useCurrentPartyQueryDef, usePartiesQueryDef } from 'src/features/party/PartiesProvider';
+import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
 
 /**
@@ -9,7 +9,7 @@ export function PartyPrefetcher() {
   const enabled = useShouldFetchProfile();
 
   usePrefetchQuery(usePartiesQueryDef(true), enabled);
-  usePrefetchQuery(useCurrentPartyQueryDef(true), enabled);
+  usePrefetchQuery(useSelectedPartyQueryDef(true), enabled);
 
   return null;
 }

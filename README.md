@@ -22,7 +22,7 @@ There are a few ways to set up this project locally:
 
 <details>
 <summary>Docker (recommended for beginners)</summary>
-You can start a local app-frontend in Docker using these commands:
+You can start a local app-frontend in Docker using the following commands:
 
 ```bash
 git clone https://github.com/Altinn/app-frontend-react

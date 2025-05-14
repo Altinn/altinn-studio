@@ -11,7 +11,7 @@ import { CodeListPending } from 'src/features/options/CodeListsProvider';
 import { SearchParams } from 'src/features/routing/AppRoutingContext';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { formatDateLocale } from 'src/utils/formatDateLocale';
+import { formatDateLocale } from 'src/utils/dateUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
   AnyExprArg,
@@ -390,6 +390,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       appId: true,
       instanceOwnerPartyId: true,
       instanceOwnerPartyType: true,
+      instanceOwnerName: true,
     };
 
     if (key === null || instanceDataSourcesKeys[key] !== true) {
@@ -413,6 +414,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       confirm: true,
       sign: true,
       reject: true,
+      complete: true,
     };
 
     if (key === null || authContextKeys[key] !== true) {

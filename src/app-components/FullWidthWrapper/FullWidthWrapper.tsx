@@ -3,7 +3,7 @@ import type { HTMLProps } from 'react';
 
 import cn from 'classnames';
 
-import classes from 'src/components/form/FullWidthWrapper.module.css';
+import classes from 'src/app-components/FullWidthWrapper/FullWidthWrapper.module.css';
 
 export interface IFullWidthWrapperProps extends HTMLProps<HTMLDivElement> {
   children?: React.ReactNode;

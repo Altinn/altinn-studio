@@ -73,6 +73,15 @@ export const useHasProcessProvider = () => useContext(ProcessContext) !== undefi
 export const useLaxProcessData = () => useContext(ProcessContext)?.data;
 export const useReFetchProcessData = () => useContext(ProcessContext)?.refetch;
 
+export const useIsAuthorized = () => {
+  const processData = useLaxProcessData();
+
+  return (action: string): boolean => {
+    const userAction = processData?.currentTask?.userActions?.find((a) => a.id === action);
+    return !!userAction?.authorized;
+  };
+};
+
 /**
  * This returns the task type of the current process task, as we got it from the backend
  */

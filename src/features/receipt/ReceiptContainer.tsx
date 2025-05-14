@@ -28,9 +28,10 @@ import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import {
-  filterDisplayAttachments,
-  filterDisplayPdfAttachments,
   getAttachmentGroupings,
+  getFilteredDisplayAttachments,
+  getRefAsPdfAttachments,
+  toDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -167,24 +168,18 @@ export const ReceiptContainer = () => {
     return undefined;
   }, [lastChanged]);
 
-  const attachments = useMemo(() => {
-    if (dataElements.length) {
-      const defaultElementIds = applicationMetadata.dataTypes
-        .filter((dataType) => !!dataType.appLogic)
-        .map((type) => type.id);
+  const attachments = useMemo(
+    () =>
+      dataElements.length
+        ? getFilteredDisplayAttachments({ data: dataElements, appMetadataDataTypes: applicationMetadata.dataTypes })
+        : undefined,
+    [applicationMetadata, dataElements],
+  );
 
-      const attachmentsResult = filterDisplayAttachments(dataElements, defaultElementIds);
-      return attachmentsResult || [];
-    }
-    return undefined;
-  }, [applicationMetadata, dataElements]);
-
-  const pdf = useMemo(() => {
-    if (dataElements.length) {
-      return filterDisplayPdfAttachments(dataElements);
-    }
-    return undefined;
-  }, [dataElements]);
+  const pdf = useMemo(
+    () => (dataElements.length ? toDisplayAttachments(getRefAsPdfAttachments(dataElements)) : undefined),
+    [dataElements],
+  );
 
   const instanceMetaObject = useMemo(() => {
     if (instanceOrg && instanceOwner && instanceGuid && lastChangedDateTime) {

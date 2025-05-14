@@ -28,7 +28,7 @@ interface CardDetails {
   expiryDate?: string;
 }
 
-interface Reciever {
+interface Receiver {
   organisationNumber: string;
   name: string;
   email: string;
@@ -79,7 +79,7 @@ export interface OrderDetails {
   totalPriceExVat: number;
   totalVat: number;
   totalPriceIncVat: number;
-  receiver?: Reciever;
+  receiver?: Receiver;
 }
 
 export interface OrderLine {

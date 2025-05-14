@@ -3,8 +3,8 @@ import React from 'react';
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { Lang } from 'src/features/language/Lang';

@@ -10,7 +10,7 @@ import { usePaymentInformation } from 'src/features/payment/PaymentInformationPr
 import { getInstanceReferenceNumber } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import classes from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
-import { formatDateLocale } from 'src/utils/formatDateLocale';
+import { formatDateLocale } from 'src/utils/dateUtils';
 import { typedBoolean } from 'src/utils/typing';
 
 type PaymentInfoTableRowProps = {

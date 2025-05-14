@@ -14,6 +14,7 @@ import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.c
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
+import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -25,15 +26,11 @@ class IFileUploadTableRowProps {
   isSummary?: boolean;
 }
 
-export const bytesInOneMB = 1048576;
-
 export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary }: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
   const hasTag = node.isType('FileUploadWithTag');
   const pdfModeActive = usePdfModeActive();
-  const readableSize = `${(attachment.data.size / bytesInOneMB).toFixed(2)} ${langAsString(
-    'form_filler.file_uploader_mb',
-  )}`;
+  const readableSize = getSizeWithUnit(attachment.data.size, 2);
 
   const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
 

@@ -4,11 +4,11 @@ import type { PropsFromGenericComponent } from '..';
 
 import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { useIsAuthorized } from 'src/features/instance/ProcessContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useActionAuthorization } from 'src/layout/CustomButton/CustomButtonComponent';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated';
 
@@ -22,7 +22,7 @@ export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
 export function ActionButtonComponent({ node }: IActionButton) {
   const processNext = useProcessNext();
   const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
-  const { isAuthorized } = useActionAuthorization();
+  const isAuthorized = useIsAuthorized();
 
   const { action, buttonStyle, id, textResourceBindings } = useNodeItem(node);
   const disabled = !isAuthorized(action) || isAnyProcessing;

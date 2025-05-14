@@ -8,31 +8,45 @@ export enum DataTypeReference {
   FromTask = 'from-task',
 }
 
-export const filterDisplayAttachments = (
-  data: IData[],
-  excludeDataTypes: string[],
-  excludePdfs = true,
-): IDisplayAttachment[] =>
-  getDisplayAttachments(
-    data.filter((el) => {
-      if (excludePdfs && el.dataType === DataTypeReference.RefDataAsPdf) {
-        return false;
-      }
+type AttachmentFilterArgs = {
+  data: IData[];
+  appMetadataDataTypes: IDataType[];
+};
 
-      return !excludeDataTypes.includes(el.dataType);
-    }),
+export function getFilteredDisplayAttachments({
+  data,
+  appMetadataDataTypes,
+}: AttachmentFilterArgs): IDisplayAttachment[] {
+  const filteredData = filterAttachments({ data, appMetadataDataTypes });
+  return toDisplayAttachments(filteredData);
+}
+
+export const filterAttachments = ({ data, appMetadataDataTypes }: AttachmentFilterArgs): IData[] => {
+  const appLogicDataTypes = appMetadataDataTypes.filter((dataType) => !!dataType.appLogic);
+  const appOwnedDataTypes = appMetadataDataTypes.filter(
+    (dataType) => !!dataType.allowedContributers?.some((it) => it === 'app:owned'),
   );
+  const excludeDataTypes = [...appLogicDataTypes, ...appOwnedDataTypes].map((dataType) => dataType.id);
 
-export const filterDisplayPdfAttachments = (data: IData[]) =>
-  getDisplayAttachments(data.filter((el) => el.dataType === DataTypeReference.RefDataAsPdf));
+  return data.filter((el) => el.dataType !== DataTypeReference.RefDataAsPdf && !excludeDataTypes.includes(el.dataType));
+};
 
-export const getDisplayAttachments = (data: IData[]): IDisplayAttachment[] =>
-  data.map((dataElement: IData) => ({
+export function getRefAsPdfDisplayAttachments(data: IData[]) {
+  return toDisplayAttachments(getRefAsPdfAttachments(data));
+}
+
+export function getRefAsPdfAttachments(data: IData[]) {
+  return data.filter((el) => el.dataType === DataTypeReference.RefDataAsPdf);
+}
+
+export function toDisplayAttachments(data: IData[]): IDisplayAttachment[] {
+  return data.map((dataElement: IData) => ({
     name: dataElement.filename,
     url: dataElement.selfLinks?.apps,
     iconClass: 'reg reg-attachment',
     dataType: dataElement.dataType,
   }));
+}
 
 /**
  * Gets the attachment groupings from a list of attachments.
@@ -91,4 +105,16 @@ export function getFileContentType(file: File): string {
     return 'text/csv';
   }
   return file.type;
+}
+
+export function getSizeWithUnit(bytes: number, numberOfDecimals: number = 0): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(numberOfDecimals)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(numberOfDecimals)} MB`;
 }

@@ -17,10 +17,10 @@ import classes from 'src/features/instantiate/containers/PartySelection.module.c
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import {
-  useCurrentParty,
   usePartiesAllowedToInstantiate,
-  useSetCurrentParty,
+  useSelectedParty,
   useSetHasSelectedParty,
+  useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
 import { useNavigate } from 'src/features/routing/AppRoutingContext';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
@@ -36,8 +36,8 @@ export const PartySelection = () => {
   const match = useMatch(`/party-selection/:errorCode`);
   const errorCode = match?.params.errorCode;
 
-  const selectParty = useSetCurrentParty();
-  const selectedParty = useCurrentParty();
+  const selectParty = useSetSelectedParty();
+  const selectedParty = useSelectedParty();
   const setUserHasSelectedParty = useSetHasSelectedParty();
 
   const partiesAllowedToInstantiate = usePartiesAllowedToInstantiate() ?? [];

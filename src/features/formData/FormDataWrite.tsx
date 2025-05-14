@@ -21,7 +21,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxChangeInstance, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -96,7 +96,7 @@ function useFormDataSaveMutation() {
   const cancelSave = useSelector((s) => s.cancelSave);
   const isStateless = useApplicationMetadata().isStatelessApp;
   const debounce = useSelector((s) => s.debounce);
-  const currentPartyId = useCurrentParty()?.partyId;
+  const selectedPartyId = useSelectedParty()?.partyId;
   const waitFor = useWaitForState<
     { prev: { [dataType: string]: object }; next: { [dataType: string]: object } },
     FormDataContext
@@ -203,9 +203,9 @@ function useFormDataSaveMutation() {
 
       if (isStateless) {
         const options: AxiosRequestConfig = {};
-        if (currentPartyId !== undefined) {
+        if (selectedPartyId !== undefined) {
           options.headers = {
-            party: `partyid:${currentPartyId}`,
+            party: `partyid:${selectedPartyId}`,
           };
         }
 

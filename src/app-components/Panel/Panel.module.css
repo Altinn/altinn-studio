@@ -48,7 +48,7 @@
 }
 
 .panelContentWrapper_error {
-  background-color: var(--fds-semantic-surface-danger-no_fill-active);
+  background-color: var(--fds-semantic-surface-danger-subtle);
 }
 
 .panelIconWrapper {

@@ -7,16 +7,16 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
-import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 const useActiveInstancesQuery = () => {
   const { fetchActiveInstances } = useAppQueries();
-  const currentParty = useCurrentParty();
+  const selectedParty = useSelectedParty();
 
   const utils = useQuery({
-    queryKey: ['getActiveInstances', currentParty?.partyId],
+    queryKey: ['getActiveInstances', selectedParty?.partyId],
     queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(currentParty?.partyId ?? -1);
+      const simpleInstances = await fetchActiveInstances(selectedParty?.partyId ?? -1);
 
       // Sort array by last changed date
       simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());

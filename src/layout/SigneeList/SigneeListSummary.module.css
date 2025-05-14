@@ -1,0 +1,25 @@
+.signeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+  width: 90%;
+}
+
+.signeeListItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.divider {
+  width: 100%;
+  border-top: 1px dashed var(--fds-semantic-border-divider-default);
+  margin-top: 0;
+  margin-bottom: var(--fds-spacing-1);
+}
+
+.signeeDescription {
+  color: var(--fds-colors-grey-600);
+  font-style: italic;
+}

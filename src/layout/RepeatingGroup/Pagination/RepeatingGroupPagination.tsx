@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react';
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';

@@ -183,6 +183,7 @@ export default tseslint.config(
     rules: {
       'testing-library/await-async-queries': ['warn'],
       'jsx-a11y/label-has-associated-control': ['off'],
+      '@typescript-eslint/consistent-type-imports': ['off'],
     },
   },
   {

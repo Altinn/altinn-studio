@@ -8,7 +8,7 @@ import { CircleIcon } from 'src/components/CircleIcon';
 import classes from 'src/components/presentation/AppHeader/AppHeaderMenu.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useCurrentParty, useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
+import { useInstanceOwnerParty, useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { logoutUrlAltinn } from 'src/utils/urls/urlHelper';
@@ -85,7 +85,7 @@ export function AppHeaderMenu({ logoColor }: AppHeaderMenuProps) {
  */
 function useGetOnBehalfOf() {
   const instanceOwnerParty = useInstanceOwnerParty();
-  const selectedParty = useCurrentParty();
+  const selectedParty = useSelectedParty();
   const userParty = useProfile()?.party;
 
   const onBehalfOfParty = instanceOwnerParty ?? selectedParty;

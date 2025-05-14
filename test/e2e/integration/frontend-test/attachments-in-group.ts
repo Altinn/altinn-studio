@@ -320,7 +320,7 @@ describe('Repeating group attachments', () => {
 
     // Now that all attachments described above have been uploaded and verified, start deleting the middle attachment
     // of the first-row multi-uploader to verify that the next attachment is shifted upwards.
-    cy.findByRole('row', { name: 'multiInFirstRow2 .pdf 0.00 MB. Ferdig lastet Slett vedlegg' }).within(() => {
+    cy.findByRole('row', { name: 'multiInFirstRow2 .pdf 11 B Ferdig lastet Slett vedlegg' }).within(() => {
       cy.findByRole('button', { name: /slett/i }).click();
     });
 

@@ -16,7 +16,9 @@ export const returnBaseUrlToAltinn = (host: string): string | undefined => {
   }
 };
 
-export const returnUrlToMessagebox = (host: string, partyId?: number | undefined): string | undefined => {
+export const getMessageBoxUrl = (partyId?: number | undefined): string | undefined => {
+  const host = window.location.host;
+
   if (host.match(localRegex)) {
     return `http://${host}/`;
   }

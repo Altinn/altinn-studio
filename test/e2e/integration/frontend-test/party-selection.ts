@@ -33,7 +33,7 @@ describe('Party selection', () => {
   it('Should skip party selection if you can only represent one person', () => {
     cyMockResponses({
       preSelectedParty: CyPartyMocks.ExamplePerson1.partyId,
-      currentParty: CyPartyMocks.ExamplePerson1,
+      selectedParty: CyPartyMocks.ExamplePerson1,
       allowedToInstantiate: [CyPartyMocks.ExamplePerson1],
     });
     cy.intercept(

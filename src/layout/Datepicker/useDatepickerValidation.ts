@@ -4,7 +4,7 @@ import { getDateConstraint, getDateFormat, strictParseISO } from 'src/app-compon
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { getDatepickerFormat } from 'src/utils/formatDateLocale';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

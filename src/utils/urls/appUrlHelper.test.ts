@@ -12,7 +12,7 @@ import {
   getProcessStateUrl,
   getRedirectUrl,
   getRulehandlerUrl,
-  getSetCurrentPartyUrl,
+  getSetSelectedPartyUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
   redirectToUpgrade,
@@ -27,8 +27,8 @@ describe('Frontend urlHelper.ts', () => {
         'https://local.altinn.cloud/ttd/test/api/v1/parties?allowedtoinstantiatefilter=true',
       );
     });
-    it('should return the expected url for getSetCurrentPartyUrl', () => {
-      expect(getSetCurrentPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
+    it('should return the expected url for getSetSelectedPartyUrl', () => {
+      expect(getSetSelectedPartyUrl(12345)).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
     });
     it('should return the expected url for textResourcesUrl', () => {
       expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');

@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
-import { useCurrentParty, useCurrentPartyIsValid } from 'src/features/party/PartiesProvider';
+import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/PartiesProvider';
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
 
 const deletedParty = getPartyMock({
@@ -32,13 +32,13 @@ const parties = [
 ];
 
 function TestWrapper(props: PropsWithChildren) {
-  const currentParty = useCurrentParty();
-  const partyIsValid = useCurrentPartyIsValid();
+  const selectedParty = useSelectedParty();
+  const partyIsValid = useSelectedPartyIsValid();
   return (
     <>
       {props.children}
       <div data-testid='valid-party'>{JSON.stringify(partyIsValid)}</div>
-      <div data-testid='current-party'>{JSON.stringify(currentParty?.partyId ?? false)}</div>
+      <div data-testid='current-party'>{JSON.stringify(selectedParty?.partyId ?? false)}</div>
     </>
   );
 }
@@ -150,9 +150,9 @@ describe('PartySelection', () => {
         }
 
         await user.click(screen.getByRole('button', { name: partyName }));
-        await waitFor(() => expect(mutations.doSetCurrentParty.mock).toHaveBeenCalled());
-        expect(mutations.doSetCurrentParty.mock).toHaveBeenCalledWith(expectedPartyId);
-        mutations.doSetCurrentParty.resolve('Party successfully updated');
+        await waitFor(() => expect(mutations.doSetSelectedParty.mock).toHaveBeenCalled());
+        expect(mutations.doSetSelectedParty.mock).toHaveBeenCalledWith(expectedPartyId);
+        mutations.doSetSelectedParty.resolve('Party successfully updated');
         await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent(`${expectedPartyId}`));
         await waitFor(() => expect(screen.getByTestId('valid-party')).toHaveTextContent('true'));
       },

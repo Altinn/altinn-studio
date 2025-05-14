@@ -65,6 +65,7 @@ export function ApiTable({ node, externalApi }: ApiTableProps) {
       }
       data={dataToDisplay}
       stickyHeader={true}
+      emptyText={<Lang id='general.empty_table' />}
       columns={item.columns.map((config) => {
         const { component } = config;
         const header = <Lang id={config.header} />;

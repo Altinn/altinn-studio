@@ -126,11 +126,8 @@ function backendValidationsForDataElementQueryFunc({
 }
 
 // By default we only fetch with incremental validations
-export function useBackendValidationQuery(
-  options: Omit<
-    UseQueryOptions<BackendValidationIssue[], Error, BackendValidationIssue[]>,
-    'queryKey' | 'queryFn'
-  > = {},
+export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
+  options: Omit<UseQueryOptions<BackendValidationIssue[], Error, TResult>, 'queryKey' | 'queryFn'> = {},
   onlyIncrementalValidators = true,
 ) {
   const queryKey = useBackendValidationQueryKey();

@@ -10,7 +10,7 @@ import {
   strictParseFormat,
   strictParseISO,
 } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { getFormatPattern } from 'src/utils/formatDateLocale';
+import { getFormatPattern } from 'src/utils/dateUtils';
 
 export interface DatePickerInputProps {
   id: string;

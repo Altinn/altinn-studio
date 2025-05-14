@@ -1,14 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useIsAuthorized } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -23,7 +23,7 @@ import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type * as CBTypes from 'src/layout/CustomButton/config.generated';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
-import type { IInstance, IUserAction } from 'src/types/shared';
+import type { IInstance } from 'src/types/shared';
 
 type Props = PropsFromGenericComponent<'CustomButton'>;
 
@@ -159,13 +159,21 @@ function useHandleServerActionMutation(acquireLock: FormDataLocking): UsePerform
   const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
   const markNotReady = NodesInternal.useMarkNotReady();
   const selectedLanguage = useCurrentLanguage();
+  const queryClient = useQueryClient();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async ({ action, buttonId }: PerformActionMutationProps) => {
       if (!instanceGuid || !instanceOwnerPartyId) {
         throw Error('Cannot perform action without partyId and instanceGuid');
       }
-      return doPerformAction(instanceOwnerPartyId, instanceGuid, { action: action.id, buttonId }, selectedLanguage);
+
+      return doPerformAction(
+        instanceOwnerPartyId,
+        instanceGuid,
+        { action: action.id, buttonId },
+        selectedLanguage,
+        queryClient,
+      );
     },
   });
 
@@ -200,20 +208,6 @@ function useHandleServerActionMutation(acquireLock: FormDataLocking): UsePerform
   return { handleServerAction, isPending };
 }
 
-export function useActionAuthorization() {
-  const currentTask = useLaxProcessData()?.currentTask;
-  const userActions = currentTask?.userActions;
-  const actionPermissions = currentTask?.actions;
-
-  const isAuthorized = useCallback(
-    (action: IUserAction['id']) =>
-      (!!actionPermissions?.[action] || userActions?.find((a) => a.id === action)?.authorized) ?? false,
-    [actionPermissions, userActions],
-  );
-
-  return { isAuthorized };
-}
-
 export const buttonStyles: { [style in CBTypes.ButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
   primary: { variant: 'primary', color: 'success' },
   secondary: { variant: 'secondary', color: 'first' },
@@ -239,7 +233,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useNodeItem(node);
 
   const acquireLock = FD.useLocking(id);
-  const { isAuthorized } = useActionAuthorization();
+  const isAuthorized = useIsAuthorized();
   const { handleClientActions } = useHandleClientActions();
   const { handleServerAction } = useHandleServerActionMutation(acquireLock);
   const onPageNavigationValidation = useOnPageNavigationValidation();

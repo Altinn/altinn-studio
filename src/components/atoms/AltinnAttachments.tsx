@@ -3,8 +3,8 @@ import React from 'react';
 import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';

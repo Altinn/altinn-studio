@@ -1,9 +1,11 @@
 import axios from 'axios';
+import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
+import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
@@ -12,7 +14,6 @@ import {
   applicationMetadataApiUrl,
   applicationSettingsApiUrl,
   appPath,
-  currentPartyUrl,
   getActionsUrl,
   getActiveInstancesUrl,
   getCreateInstancesUrl,
@@ -38,11 +39,12 @@ import {
   getProcessStateUrl,
   getRedirectUrl,
   getRulehandlerUrl,
-  getSetCurrentPartyUrl,
+  getSetSelectedPartyUrl,
   getValidationUrl,
   instancesControllerUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
+  selectedPartyUrl,
   textResourcesUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
@@ -79,8 +81,8 @@ import type {
   IProfile,
 } from 'src/types/shared';
 
-export const doSetCurrentParty = (partyId: number | string) =>
-  putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
+export const doSetSelectedParty = (partyId: number | string) =>
+  putWithoutConfig<'Party successfully updated' | string | null>(getSetSelectedPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getInstantiateUrl(language), undefined, data)).data);
@@ -144,15 +146,28 @@ export const doAttachmentAddTag = async (instanceId: string, dataGuid: string, t
   return response.data;
 };
 
+type UserActionRequest = {
+  action?: string;
+  buttonId?: string;
+  metadata?: Record<string, string>;
+  ignoredValidators?: string[];
+  onBehalfOf?: string;
+};
+
 export const doPerformAction = async (
   partyId: string,
-  dataGuid: string,
-  data: unknown,
+  instanceGuid: string,
+  actionRequest: UserActionRequest,
   language: string,
+  queryClient: QueryClient,
 ): Promise<ActionResult> => {
-  const response = await httpPost(getActionsUrl(partyId, dataGuid, language), undefined, data);
+  const response = await httpPost(getActionsUrl(partyId, instanceGuid, language), undefined, actionRequest);
   if (response.status !== 200) {
     throw new Error('Failed to perform action');
+  }
+
+  if (actionRequest.action === 'sign') {
+    queryClient.invalidateQueries({ queryKey: signingQueries.all });
   }
   return response.data;
 };
@@ -216,7 +231,7 @@ export const fetchApplicationMetadata = () => httpGet<IncomingApplicationMetadat
 
 export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
 
-export const fetchCurrentParty = (): Promise<IParty | undefined> => httpGet(currentPartyUrl);
+export const fetchSelectedParty = (): Promise<IParty | undefined> => httpGet(selectedPartyUrl);
 
 export const fetchFooterLayout = (): Promise<IFooterLayout | null> => httpGet(getFooterLayoutUrl());
 

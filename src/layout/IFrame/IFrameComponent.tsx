@@ -27,6 +27,7 @@ export const IFrameComponent = ({ node }: IFrameComponentProps): JSX.Element => 
         variant={PANEL_VARIANT.Error}
         showIcon={true}
         title={<Lang id='iframe_component.unsupported_browser_title' />}
+        fullWidth={false}
       >
         <p>
           <Lang id='iframe_component.unsupported_browser' />

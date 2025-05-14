@@ -12,7 +12,7 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
     mutationKey: ['performPayAction', partyId, instanceGuid],
     mutationFn: async () => {
       if (partyId && instanceGuid) {
-        return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage);
+        return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage, queryClient);
       }
     },
     onError: (error: AxiosError) => {

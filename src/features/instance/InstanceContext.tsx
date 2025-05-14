@@ -14,6 +14,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
+import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -22,7 +23,6 @@ import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 export interface InstanceContext {
   // Data
   data: IInstance | undefined;
-  dataSources: IInstanceDataSources | null;
 
   // Methods/utilities
   appendDataElements: (element: IData[]) => void;
@@ -50,14 +50,13 @@ const {
   initialCreateStore: () =>
     createStore<InstanceContext>((set) => ({
       data: undefined,
-      dataSources: null,
       appendDataElements: (elements) =>
         set((state) => {
           if (!state.data) {
             throw new Error('Cannot append data element when instance data is not set');
           }
           const next = { ...state.data, data: [...state.data.data, ...elements] };
-          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+          return { ...state, data: next };
         }),
       mutateDataElement: (elementId, mutator) =>
         set((state) => {
@@ -68,7 +67,7 @@ const {
             ...state.data,
             data: state.data.data.map((element) => (element.id === elementId ? mutator(element) : element)),
           };
-          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+          return { ...state, data: next };
         }),
       removeDataElement: (elementId) =>
         set((state) => {
@@ -76,14 +75,14 @@ const {
             throw new Error('Cannot remove data element when instance data is not set');
           }
           const next = { ...state.data, data: state.data.data.filter((element) => element.id !== elementId) };
-          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+          return { ...state, data: next };
         }),
       changeData: (callback) =>
         set((state) => {
           const next = callback(state.data);
           const clean = cleanUpInstanceData(next);
           if (clean && !deepEqual(state.data, clean)) {
-            return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+            return { ...state, data: next };
           }
           return {};
         }),
@@ -94,12 +93,20 @@ const {
         set({
           reFetch: async () => {
             const result = await reFetch();
-            set((state) => ({ ...state, data: result.data, dataSources: buildInstanceDataSources(result.data) }));
+            set((state) => ({ ...state, data: result.data }));
             return result;
           },
         }),
     })),
 });
+
+export const instanceQueryKeys = {
+  instanceData: (instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined) => [
+    'instanceData',
+    instanceOwnerPartyId,
+    instanceGuid,
+  ],
+};
 
 // Also used for prefetching @see appPrefetcher.ts
 export function useInstanceDataQueryDef(
@@ -109,7 +116,7 @@ export function useInstanceDataQueryDef(
 ): QueryDefinition<IInstance> {
   const { fetchInstanceData } = useAppQueries();
   return {
-    queryKey: ['fetchInstanceData', partyId, instanceGuid],
+    queryKey: instanceQueryKeys.instanceData(partyId, instanceGuid),
     queryFn: partyId && instanceGuid ? () => fetchInstanceData(partyId, instanceGuid) : skipToken,
     enabled: !!partyId && !!instanceGuid && !hasResultFromInstantiation,
   };
@@ -205,9 +212,13 @@ export const useLaxInstanceStatus = () => useLaxInstance((state) => state.data?.
 export const useLaxAppendDataElements = () => useLaxInstance((state) => state.appendDataElements);
 export const useLaxMutateDataElement = () => useLaxInstance((state) => state.mutateDataElement);
 export const useLaxRemoveDataElement = () => useLaxInstance((state) => state.removeDataElement);
-export const useLaxInstanceDataSources = () => useLaxInstance((state) => state.dataSources) ?? null;
 export const useLaxChangeInstance = (): ChangeInstanceData | undefined => useLaxInstance((state) => state.changeData);
 export const useHasInstance = () => useHasProvider();
+
+export function useLaxInstanceDataSources(): IInstanceDataSources | null {
+  const instanceOwnerParty = useInstanceOwnerParty();
+  return useLaxInstanceData((data) => buildInstanceDataSources(data, instanceOwnerParty)) ?? null;
+}
 
 /** Beware that in later versions, this will re-render your component after every save, as
  * the backend sends us updated instance data */

@@ -10,7 +10,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
-import { getDatepickerFormat } from 'src/utils/formatDateLocale';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';

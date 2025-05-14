@@ -6,9 +6,9 @@ import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import {
-  useCurrentParty,
-  useCurrentPartyIsValid,
   useHasSelectedParty,
+  useSelectedParty,
+  useSelectedPartyIsValid,
   useValidParties,
 } from 'src/features/party/PartiesProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
@@ -45,10 +45,10 @@ export const Entrypoint = () => {
   } = useApplicationMetadata();
   const profile = useProfile();
   const validParties = useValidParties();
-  const partyIsValid = useCurrentPartyIsValid();
+  const partyIsValid = useSelectedPartyIsValid();
   const userHasSelectedParty = useHasSelectedParty();
   const allowAnonymous = useAllowAnonymousIs(true);
-  const party = useCurrentParty();
+  const party = useSelectedParty();
 
   if (isStateless && allowAnonymous && !party) {
     // Anonymous stateless app. No need to log in and select party, but cannot create a new instance.

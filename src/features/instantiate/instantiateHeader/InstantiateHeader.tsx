@@ -7,7 +7,7 @@ import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
 import classes from 'src/features/instantiate/instantiateHeader/InstantiateHeader.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { returnUrlToAllForms, returnUrlToMessagebox, returnUrlToProfile } from 'src/utils/urls/urlHelper';
+import { getMessageBoxUrl, returnUrlToAllForms, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { IProfile } from 'src/types/shared';
 
 export interface InstantiateHeaderProps {
@@ -40,7 +40,7 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
             <li className={classes.headerLink}>
               <a
                 className='altinnLink'
-                href={returnUrlToMessagebox(window.location.host, party?.partyId)}
+                href={getMessageBoxUrl(party?.partyId)}
               >
                 <Lang id='instantiate.inbox' />
               </a>

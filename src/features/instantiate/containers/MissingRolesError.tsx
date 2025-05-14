@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
-  const selectedParty = useCurrentParty();
+  const selectedParty = useSelectedParty();
 
   return (
     <InstantiationErrorPage

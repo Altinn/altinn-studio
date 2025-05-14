@@ -1,12 +1,12 @@
 import {
   customEncodeURI,
+  getMessageBoxUrl,
   getUrlWithLanguage,
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
   returnBaseUrlToAltinn,
   returnUrlToAllForms,
   returnUrlToArchive,
-  returnUrlToMessagebox,
   returnUrlToProfile,
 } from 'src/utils/urls/urlHelper';
 
@@ -21,16 +21,25 @@ const hostStudioDev = 'dev.altinn.studio';
 const hostUnknown = 'www.vg.no';
 
 describe('Shared urlHelper.ts', () => {
-  test('returnUrlToMessagebox() returning correct environemnts', () => {
-    expect(returnUrlToMessagebox(hostTT)).toBe('https://tt02.altinn.no/ui/messagebox');
-    expect(returnUrlToMessagebox(hostAT)).toBe('https://at21.altinn.cloud/ui/messagebox');
-    expect(returnUrlToMessagebox(hostYT)).toBe('https://yt01.altinn.cloud/ui/messagebox');
-    expect(returnUrlToMessagebox(hostProd)).toBe('https://altinn.no/ui/messagebox');
-    expect(returnUrlToMessagebox(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToMessagebox(hostPodman)).toBe('http://local.altinn.cloud:8000/');
-    expect(returnUrlToMessagebox(hostStudio)).toBe(undefined);
-    expect(returnUrlToMessagebox(hostStudioDev)).toBe(undefined);
-    expect(returnUrlToMessagebox(hostUnknown)).toBe(undefined);
+  test('returnUrlToMessageBox() returning correct environemnts', () => {
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
+    expect(getMessageBoxUrl()).toBe('https://tt02.altinn.no/ui/messagebox');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostAT } as Location);
+    expect(getMessageBoxUrl()).toBe('https://at21.altinn.cloud/ui/messagebox');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostYT } as Location);
+    expect(getMessageBoxUrl()).toBe('https://yt01.altinn.cloud/ui/messagebox');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostProd } as Location);
+    expect(getMessageBoxUrl()).toBe('https://altinn.no/ui/messagebox');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
+    expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud/');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
+    expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud:8000/');
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
+    expect(getMessageBoxUrl()).toBe(undefined);
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
+    expect(getMessageBoxUrl()).toBe(undefined);
+    jest.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostUnknown } as Location);
+    expect(getMessageBoxUrl()).toBe(undefined);
   });
 
   test('returnBaseUrlToAltinn() returning correct environemnts', () => {

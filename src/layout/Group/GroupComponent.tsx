@@ -4,10 +4,9 @@ import type { JSX } from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Panel } from 'src/app-components/Panel/Panel';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -62,11 +61,7 @@ export function GroupComponent({
     <div className={cn(classes.groupWrapper, { [classes.panelWrapper]: isPanel, [classes.summary]: isSummary })}>
       <ConditionalWrapper
         condition={isPanel && !isSummary}
-        wrapper={(child) => (
-          <FullWidthWrapper>
-            <Panel variant='info'>{child}</Panel>
-          </FullWidthWrapper>
-        )}
+        wrapper={(child) => <Panel variant='info'>{child}</Panel>}
       >
         <Fieldset
           legend={

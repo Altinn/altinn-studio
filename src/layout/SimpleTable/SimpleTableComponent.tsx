@@ -144,6 +144,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
         mobile={isMobile}
         actionButtons={actionButtons}
         actionButtonHeader={<Lang id='general.action' />}
+        emptyText={<Lang id='general.empty_table' />}
         caption={
           title && (
             <Caption

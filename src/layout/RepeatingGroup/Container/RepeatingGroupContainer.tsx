@@ -4,10 +4,10 @@ import type { JSX } from 'react';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';

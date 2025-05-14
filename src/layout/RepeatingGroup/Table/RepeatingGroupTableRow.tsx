@@ -6,8 +6,8 @@ import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';

@@ -1,5 +1,5 @@
-import { formatDateLocale } from 'src/utils/formatDateLocale';
-import type { Token } from 'src/utils/formatDateLocale';
+import { formatDateLocale } from 'src/utils/dateUtils';
+import type { Token } from 'src/utils/dateUtils';
 
 const zip = <T, U>(a: T[], b: U[]): [T, U][] => a.map((k, i) => [k, b[i]]);
 const nArray = (n: number, start = 0) => Array.from({ length: n }, (_, i) => i + start);

@@ -3,7 +3,7 @@ import React from 'react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { isAttachmentUploaded } from 'src/features/attachments';

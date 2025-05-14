@@ -12,9 +12,9 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
 import {
-  filterDisplayAttachments,
-  filterDisplayPdfAttachments,
   getAttachmentGroupings,
+  getFilteredDisplayAttachments,
+  getRefAsPdfDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -44,12 +44,10 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
 
   const getAttachments = () => {
     if (instance?.data && applicationMetadata) {
-      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
-
-      return filterDisplayAttachments(
-        instance.data,
-        appLogicDataTypes.map((type) => type.id),
-      );
+      return getFilteredDisplayAttachments({
+        data: instance.data,
+        appMetadataDataTypes: applicationMetadata.dataTypes,
+      });
     }
   };
 
@@ -73,7 +71,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
         instanceMetaDataObject={getInstanceMetaObject()}
         title={<Lang id='confirm.title' />}
         titleSubmitted={<Lang id='confirm.answers' />}
-        pdf={filterDisplayPdfAttachments(instance?.data ?? [])}
+        pdf={getRefAsPdfDisplayAttachments(instance?.data ?? [])}
       />
       <ConfirmButton />
       <ReadyForPrint type='load' />

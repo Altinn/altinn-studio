@@ -30,7 +30,7 @@ export function InvalidSubformLayoutError({ error }: { error: InvalidSubformLayo
           <br />
           <br />
           <Lang
-            id='config_error.layoutset_subform_config_error_customer_support'
+            id='general.customer_service_error_message'
             params={[
               <Lang
                 key={0}
