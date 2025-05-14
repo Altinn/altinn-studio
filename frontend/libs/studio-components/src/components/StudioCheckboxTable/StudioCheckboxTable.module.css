@@ -1,0 +1,8 @@
+.errorMessage {
+  padding-left: var(--ds-size-11);
+  padding-top: var(--ds-size-2);
+}
+
+.errorText {
+  padding-left: var(--ds-size-4);
+}

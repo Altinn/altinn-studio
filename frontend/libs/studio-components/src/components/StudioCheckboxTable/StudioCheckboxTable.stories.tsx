@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCheckboxTable } from './';
 import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
-import { useCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
+import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
 
 const options: StudioCheckboxTableRowElement[] = [
   {
@@ -17,10 +17,8 @@ const options: StudioCheckboxTableRowElement[] = [
 
 const PreviewComponent = (args): ReactElement => {
   const checkBoxTitle: string = 'My checkbox';
-  const { rowElements, hasError, getCheckboxProps, handleCheckboxChange } = useCheckboxTableLogic(
-    options,
-    checkBoxTitle,
-  );
+  const { rowElements, hasError, getCheckboxProps, handleCheckboxChange } =
+    useStudioCheckboxTableLogic(options, checkBoxTitle);
 
   return (
     <StudioCheckboxTable {...args} hasError={hasError} errorMessage='Error message'>
@@ -38,7 +36,7 @@ const PreviewComponent = (args): ReactElement => {
         {rowElements.map((rowElement: StudioCheckboxTableRowElement) => (
           <StudioCheckboxTable.Row
             key={rowElement.value}
-            rowElement={rowElement}
+            label={rowElement.label}
             getCheckboxProps={{
               ...getCheckboxProps({
                 value: rowElement.value.toString(),

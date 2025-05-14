@@ -1,0 +1,20 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph/';
+import * as StudioCheckboxTableStories from './StudioCheckboxTable.stories';
+
+<Meta of={StudioCheckboxTableStories} />
+
+<StudioHeading level={1}>StudioCheckboxTable</StudioHeading>
+<StudioParagraph>
+  The `StudioCheckboxTable` component is an extension of @digdir-designsystemet `Checkbox` component
+  with table formatting. It also extends the error handling of the component to make it work for
+  cases where error handling is needed.
+</StudioParagraph>
+<StudioParagraph>
+  The `StudioCheckboxTable` package also exports a hook, `useStudioCheckboxTableLogic`, that handles
+  the logic of the state and error for the `StudioCheckboxTable` component. Use this hook if you
+  want the logic for error handling.
+</StudioParagraph>
+
+<Canvas of={StudioCheckboxTableStories.Preview} />

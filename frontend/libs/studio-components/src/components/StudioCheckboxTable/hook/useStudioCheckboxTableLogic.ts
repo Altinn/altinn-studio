@@ -4,17 +4,30 @@ import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 import type { StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 
-type UseCheckboxTableLogicResult = {
+type UseStudioCheckboxTableLogicResult = {
   rowElements: StudioCheckboxTableRowElement[];
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
   handleCheckboxChange: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
-export function useCheckboxTableLogic(
+/**
+ * Hook that performs the logic for the checkbox table component.
+ * It handles the state of the checkboxes and the error state.
+ * It also provides the props for the checkboxes and the change handler.
+ * The hook sets `hasError` to true if all checkboxes are unchecked, e.g.,
+ * minimum 1 checkbox must be checked. This can be extended for more cases later.
+ *
+ * @param initialOptions the initial options for the checkboxes
+ * @param checkBoxTitle the title of the checkbox group
+ *
+ * @returns an object containing the state of the checkboxes, the error state,
+ * the props for the checkboxes, and the change handler
+ */
+export function useStudioCheckboxTableLogic(
   initialOptions: StudioCheckboxTableRowElement[],
   checkBoxTitle: string,
-): UseCheckboxTableLogicResult {
+): UseStudioCheckboxTableLogicResult {
   const [rowElements, setRowElements] = useState<StudioCheckboxTableRowElement[]>(initialOptions);
   const [hasError, setHasError] = useState<boolean>(
     initialOptions.every((element) => !element.checked),
@@ -66,8 +79,6 @@ export function useCheckboxTableLogic(
     handleCheckboxChange,
   };
 }
-
-// --- Helpers ---
 
 function changeCheckedOnCheckboxClicked(
   rowElements: StudioCheckboxTableRowElement[],
