@@ -25,7 +25,7 @@ export type TaskActionProps = {
 export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate } = useTaskNavigationGroupMutation(org, app);
+  const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
 
   if (!isNavigationMode) {
     return (
@@ -39,7 +39,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
     const updatedNavigationTasks = tasks.filter(
       (navigationTask) => navigationTask.taskId !== task.taskId,
     );
-    mutate(updatedNavigationTasks);
+    updateTaskNavigationGroup(updatedNavigationTasks);
   };
 
   return (
