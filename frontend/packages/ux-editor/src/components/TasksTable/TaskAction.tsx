@@ -15,7 +15,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
-type TaskActionProps = {
+export type TaskActionProps = {
   task: TaskNavigationGroup;
   tasks: TaskNavigationGroup[];
   index: number;
@@ -35,7 +35,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
     );
   }
 
-  const handleHideNavigationTask = () => {
+  const removeNavigationTask = () => {
     const updatedNavigationTasks = tasks.filter(
       (navigationTask) => navigationTask.taskId !== task.taskId,
     );
@@ -49,18 +49,26 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
       </StudioPopover.Trigger>
       <StudioPopover placement='right'>
         <div className={classes.ellipsisMenuContent}>
-          <StudioButton variant='tertiary' onClick={() => {}} icon={<ArrowUpIcon />}>
+          <StudioButton
+            variant='tertiary'
+            onClick={() => {
+              console.log(index); // will be used in #15238
+            }}
+            icon={<ArrowUpIcon />}
+          >
             {t('ux_editor.task_table.menu_task_up')}
           </StudioButton>
-          <StudioButton variant='tertiary' onClick={() => {}} icon={<ArrowDownIcon />}>
+          <StudioButton
+            variant='tertiary'
+            onClick={() => {
+              console.log(index); // will be used in #15238
+            }}
+            icon={<ArrowDownIcon />}
+          >
             {t('ux_editor.task_table.menu_task_down')}
           </StudioButton>
           <StudioDivider className={classes.divider} />
-          <StudioButton
-            variant='tertiary'
-            onClick={handleHideNavigationTask}
-            icon={<EyeClosedIcon />}
-          >
+          <StudioButton variant='tertiary' onClick={removeNavigationTask} icon={<EyeClosedIcon />}>
             {t('ux_editor.task_table.menu_task_hide')}
           </StudioButton>
           <StudioButton variant='tertiary' onClick={() => {}} icon={<ArrowRightIcon />}>
