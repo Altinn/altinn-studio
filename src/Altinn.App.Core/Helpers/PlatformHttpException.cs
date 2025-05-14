@@ -1,9 +1,11 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>
 /// Exception class to hold exceptions when talking to the platform REST services
 /// </summary>
-public class PlatformHttpException : Exception
+public class PlatformHttpException : AltinnException
 {
     /// <summary>
     /// Responsible for holding an http request exception towards platform (storage).

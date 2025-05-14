@@ -65,5 +65,10 @@ public static class ValidationIssueCodes
         /// Gets a value that represents a validation issue where the data element is missing a file name.
         /// </summary>
         public static string MissingFileName => nameof(MissingFileName);
+
+        /// <summary>
+        /// Gets a value that represents a validation issue where the data element does not contain all required signatures.
+        /// </summary>
+        public static string MissingSignatures => nameof(MissingSignatures);
     }
 }

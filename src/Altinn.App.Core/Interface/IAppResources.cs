@@ -140,7 +140,7 @@ public interface IAppResources
     LayoutSets? GetLayoutSet();
 
     /// <summary>
-    ///
+    /// Get the layout set definition for a given task. Return null if no layoutsets exists
     /// </summary>
     LayoutSet? GetLayoutSetForTask(string taskId);
 

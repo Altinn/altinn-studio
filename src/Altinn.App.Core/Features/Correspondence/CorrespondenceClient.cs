@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -17,7 +16,6 @@ using CorrespondenceResult = Altinn.App.Core.Features.Telemetry.Correspondence.C
 namespace Altinn.App.Core.Features.Correspondence;
 
 /// <inheritdoc />
-[Experimental("ALTINNAPP0200")]
 internal sealed class CorrespondenceClient : ICorrespondenceClient
 {
     private readonly ILogger<CorrespondenceClient> _logger;
@@ -43,7 +41,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     }
 
     /// <inheritdoc />
-    [Experimental(diagnosticId: "ALTINNAPP0200")]
     public async Task<SendCorrespondenceResponse> Send(
         SendCorrespondencePayload payload,
         CancellationToken cancellationToken = default
@@ -93,7 +90,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     }
 
     /// <inheritdoc/>
-    [Experimental(diagnosticId: "ALTINNAPP0200")]
     public async Task<GetCorrespondenceStatusResponse> GetStatus(
         GetCorrespondenceStatusPayload payload,
         CancellationToken cancellationToken = default
@@ -154,7 +150,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         return request;
     }
 
-    private ProblemDetails? GetProblemDetails(string responseBody)
+    private ValidationProblemDetails? GetProblemDetails(string responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))
         {
@@ -163,7 +159,18 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
 
         try
         {
-            return JsonSerializer.Deserialize<ProblemDetails>(responseBody);
+            var problemDetails = JsonSerializer.Deserialize<ValidationProblemDetails>(responseBody);
+            if (problemDetails is null)
+            {
+                return null;
+            }
+
+            problemDetails.Detail ??=
+                problemDetails.Errors.Count > 0
+                    ? JsonSerializer.Serialize(problemDetails.Errors)
+                    : $"Unknown error. Full server response: {responseBody}";
+
+            return problemDetails;
         }
         catch (Exception e)
         {

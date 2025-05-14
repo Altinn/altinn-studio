@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
@@ -427,7 +426,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_returns_unsuccessful_unauthorized_when_action_handler_returns_errortype_Unauthorized()
+    public async Task HandleUserAction_returns_successful_when_handler_succeeds()
     {
         var expectedInstance = new Instance()
         {
@@ -445,7 +444,67 @@ public sealed class ProcessEngineTest
         Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
         userActionMock.Setup(u => u.Id).Returns("sign");
         userActionMock
-            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(UserActionResult.SuccessResult());
+        using var fixture = Fixture.Create(updatedInstance: expectedInstance, userActions: [userActionMock.Object]);
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("org/app"));
+        ProcessEngine processEngine = fixture.ProcessEngine;
+        Instance instance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = "signing",
+                    Flow = 3,
+                    Validated = new() { CanCompleteTask = true },
+                },
+            },
+        };
+        ClaimsPrincipal user = new(
+            new ClaimsIdentity(new List<Claim>() { new(AltinnCoreClaimTypes.AuthenticationLevel, "2") })
+        );
+        ProcessNextRequest processNextRequest = new ProcessNextRequest()
+        {
+            Instance = instance,
+            User = user,
+            Action = "sign",
+            Language = null,
+        };
+        UserActionResult result = await processEngine.HandleUserAction(processNextRequest, CancellationToken.None);
+        result.Success.Should().BeTrue();
+        result.ErrorType.Should().Be(null);
+    }
+
+    [Fact]
+    public async Task HandleUserAction_returns_unsuccessful_unauthorized_when_action_handler_returns_errortype_Unauthorized()
+    {
+        var expectedInstance = new Instance()
+        {
+            Id = _instanceId,
+            AppId = "org/app",
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
+            Data = [],
+            Process = new ProcessState()
+            {
+                CurrentTask = null,
+                StartEvent = "StartEvent_1",
+                EndEvent = "EndEvent_1",
+            },
+        };
+        Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
+        userActionMock.Setup(u => u.Id).Returns("sign");
+        userActionMock
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 UserActionResult.FailureResult(
                     error: new ActionError() { Code = "NoUserId", Message = "User id is missing in token" },
@@ -486,9 +545,8 @@ public sealed class ProcessEngineTest
             Action = "sign",
             Language = null,
         };
-        ProcessChangeResult result = await processEngine.Next(processNextRequest);
+        UserActionResult result = await processEngine.HandleUserAction(processNextRequest, CancellationToken.None);
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Be($"Action handler for action sign failed!");
         result.ErrorType.Should().Be(ProcessErrorType.Unauthorized);
     }
 
@@ -561,12 +619,6 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_2"), Times.Once);
         fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
         fixture.Mock<IProcessNavigator>().Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", null), Times.Once);
-        fixture
-            .Mock<IProcessTaskCleaner>()
-            .Verify(
-                x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()),
-                Times.Once
-            );
 
         var expectedInstanceEvents = new List<InstanceEvent>()
         {
@@ -1150,7 +1202,6 @@ public sealed class ProcessEngineTest
             Mock<IProcessNavigator> processNavigatorMock = new(MockBehavior.Strict);
             Mock<IProcessEventHandlerDelegator> processEventHandlingDelegatorMock = new();
             Mock<IProcessEventDispatcher> processEventDispatcherMock = new();
-            Mock<IProcessTaskCleaner> processTaskCleanerMock = new();
             Mock<IDataClient> dataClientMock = new(MockBehavior.Strict);
             Mock<IInstanceClient> instanceClientMock = new(MockBehavior.Strict);
             Mock<IAppModel> appModelMock = new(MockBehavior.Strict);
@@ -1214,7 +1265,6 @@ public sealed class ProcessEngineTest
             services.TryAddTransient<IProcessNavigator>(_ => processNavigatorMock.Object);
             services.TryAddTransient<IProcessEventHandlerDelegator>(_ => processEventHandlingDelegatorMock.Object);
             services.TryAddTransient<IProcessEventDispatcher>(_ => processEventDispatcherMock.Object);
-            services.TryAddTransient<IProcessTaskCleaner>(_ => processTaskCleanerMock.Object);
             services.TryAddTransient<IDataClient>(_ => dataClientMock.Object);
             services.TryAddTransient<IInstanceClient>(_ => instanceClientMock.Object);
             services.TryAddTransient<IAppModel>(_ => appModelMock.Object);

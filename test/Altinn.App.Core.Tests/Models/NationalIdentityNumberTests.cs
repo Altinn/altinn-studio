@@ -6,56 +6,18 @@ namespace Altinn.App.Core.Tests.Models;
 
 public class NationalIdentityNumberTests
 {
-    internal static readonly string[] ValidNationalIdentityNumbers =
-    [
-        "13896396174",
-        "29896695590",
-        "21882448425",
-        "03917396654",
-        "61875300317",
-        "60896400498",
-        "65918300265",
-        "22869798367",
-        "02912447718",
-        "22909397689",
-        "26267892619",
-        "12318496828",
-        "20270310266",
-        "10084808933",
-        "09113920472",
-        "28044017069",
-        "18055606346",
-        "24063324295",
-        "16084521195",
-    ];
+    private static readonly string[] _validNationalIdentityNumbers = IdentificationNumberProvider
+        .NationalIdentityNumbers
+        .ValidNationalIdentityNumbers;
 
-    internal static readonly string[] InvalidNationalIdentityNumbers =
-    [
-        "13816396174",
-        "29896795590",
-        "21883418425",
-        "03917506654",
-        "61175310317",
-        "60996410498",
-        "65918310265",
-        "22869898467",
-        "02912447719",
-        "22909397680",
-        "26270892619",
-        "12318696828",
-        "20289310266",
-        "11084808933",
-        "08113921472",
-        "28044417069",
-        "180556f6346",
-        "240633242951",
-        "1234",
-    ];
+    private static readonly string[] _invalidNationalIdentityNumbers = IdentificationNumberProvider
+        .NationalIdentityNumbers
+        .InvalidNationalIdentityNumbers;
 
     [Fact]
     public void Parse_ValidNumber_ShouldReturnOrganisationNumber()
     {
-        foreach (var validNumber in ValidNationalIdentityNumbers)
+        foreach (var validNumber in _validNationalIdentityNumbers)
         {
             var number = NationalIdentityNumber.Parse(validNumber);
             number.Value.Should().Be(validNumber);
@@ -65,7 +27,7 @@ public class NationalIdentityNumberTests
     [Fact]
     public void Parse_InvalidNumber_ShouldThrowFormatException()
     {
-        foreach (var invalidNumber in InvalidNationalIdentityNumbers)
+        foreach (var invalidNumber in _invalidNationalIdentityNumbers)
         {
             Action act = () => NationalIdentityNumber.Parse(invalidNumber);
             act.Should().Throw<FormatException>();
@@ -76,7 +38,7 @@ public class NationalIdentityNumberTests
     public void Equals_SameNumber_ShouldReturnTrue()
     {
         // Arrange
-        var stringValue = ValidNationalIdentityNumbers[0];
+        var stringValue = _validNationalIdentityNumbers[0];
         var number1 = NationalIdentityNumber.Parse(stringValue);
         var number2 = NationalIdentityNumber.Parse(stringValue);
 
@@ -105,8 +67,8 @@ public class NationalIdentityNumberTests
     public void Equals_DifferentNumber_ShouldReturnFalse()
     {
         // Arrange
-        var stringValue1 = ValidNationalIdentityNumbers[0];
-        var stringValue2 = ValidNationalIdentityNumbers[1];
+        var stringValue1 = _validNationalIdentityNumbers[0];
+        var stringValue2 = _validNationalIdentityNumbers[1];
         var number1 = NationalIdentityNumber.Parse(stringValue1);
         var number2 = NationalIdentityNumber.Parse(stringValue2);
 
@@ -131,7 +93,7 @@ public class NationalIdentityNumberTests
     public void ToString_ShouldReturnCorrectValue()
     {
         // Arrange
-        var stringValue = ValidNationalIdentityNumbers[0];
+        var stringValue = _validNationalIdentityNumbers[0];
         var number = NationalIdentityNumber.Parse(stringValue);
 
         // Act

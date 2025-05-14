@@ -35,6 +35,13 @@ public sealed class AppIdentifier : IEquatable<AppIdentifier>
             throw new ArgumentNullException(nameof(app));
         }
 
+        if (app.Contains('/'))
+        {
+            throw new ArgumentException(
+                $"The '{nameof(app)}' parameter should not contain any forward slashes. You likely passed the full AppId instead of just the app name."
+            );
+        }
+
         Org = org;
         App = app;
     }

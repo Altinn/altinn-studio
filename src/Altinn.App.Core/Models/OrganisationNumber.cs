@@ -167,4 +167,13 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     /// Determines whether the specified <see cref="string"/> is not equal to the specified <see cref="OrganisationNumber"/>.
     /// </summary>
     public static bool operator !=(string left, OrganisationNumber right) => !right.Equals(left);
+
+    /// <summary>
+    /// Implicit conversion from <see cref="OrganisationNumber"/> to string.
+    /// </summary>
+    /// <param name="organisationNumber">The organisation number instance</param>
+    public static implicit operator string(OrganisationNumber organisationNumber)
+    {
+        return organisationNumber._local;
+    }
 }

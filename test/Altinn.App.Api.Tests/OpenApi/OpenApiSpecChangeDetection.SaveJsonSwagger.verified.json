@@ -4881,6 +4881,390 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/signing": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Get updated signing state for the current signing task.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organization responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that this the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningStateResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningStateResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningStateResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningStateResponse"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningStateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/signing/organizations": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Get the organizations that the user can sign on behalf of, if any. Determined by the user having a key role at the organization.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organization responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that this the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningAuthorizedOrganizationsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningAuthorizedOrganizationsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningAuthorizedOrganizationsResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningAuthorizedOrganizationsResponse"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningAuthorizedOrganizationsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/signing/data-elements": {
+      "get": {
+        "tags": [
+          "Signing"
+        ],
+        "summary": "Get the data elements being signed in the current signature task.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organization responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that this the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningDataElementsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningDataElementsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningDataElementsResponse"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningDataElementsResponse"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningDataElementsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{org}/{app}/v1/data": {
       "get": {
         "tags": [
@@ -6022,6 +6406,11 @@
           "autoDeleteOnProcessEnd": {
             "type": "boolean"
           },
+          "preventInstanceDeletionForDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "presentationFields": {
             "type": "array",
             "items": {
@@ -6083,6 +6472,33 @@
           }
         },
         "additionalProperties": {}
+      },
+      "AuthorizedOrganizationDetails": {
+        "required": [
+          "orgName",
+          "orgNumber",
+          "partyId"
+        ],
+        "type": "object",
+        "properties": {
+          "orgNumber": {
+            "type": "string",
+            "description": "The organization number.",
+            "nullable": true
+          },
+          "orgName": {
+            "type": "string",
+            "description": "The name of the organization.",
+            "nullable": true
+          },
+          "partyId": {
+            "type": "integer",
+            "description": "Gets or inits the ID of the party",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the details of an authorized organization."
       },
       "CalculationResult": {
         "type": "object",
@@ -6698,6 +7114,14 @@
             "nullable": true
           },
           "allowedContributers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "deprecated": true
+          },
+          "allowedContributors": {
             "type": "array",
             "items": {
               "type": "string"
@@ -7376,9 +7800,21 @@
         "properties": {
           "hideSettings": {
             "$ref": "#/components/schemas/HideSettings"
+          },
+          "syncAdapterSettings": {
+            "$ref": "#/components/schemas/SyncAdapterSettings"
           }
         },
         "additionalProperties": false
+      },
+      "NotificationStatus": {
+        "enum": [
+          "NotSent",
+          "Sent",
+          "Failed"
+        ],
+        "type": "string",
+        "description": "Represents the state of a notification."
       },
       "OnEntry": {
         "type": "object",
@@ -8001,6 +8437,11 @@
             "type": "string",
             "description": "Action performed",
             "nullable": true
+          },
+          "actionOnBehalfOf": {
+            "type": "string",
+            "description": "The organisation number of the party the user is acting on behalf of",
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -8099,6 +8540,98 @@
         },
         "additionalProperties": false
       },
+      "SigneeState": {
+        "required": [
+          "partyId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the signee.",
+            "nullable": true
+          },
+          "organization": {
+            "type": "string",
+            "description": "The organization of the signee.",
+            "nullable": true
+          },
+          "delegationSuccessful": {
+            "type": "boolean",
+            "description": "Whether delegation of signing rights has been successful."
+          },
+          "notificationStatus": {
+            "$ref": "#/components/schemas/NotificationStatus"
+          },
+          "partyId": {
+            "type": "integer",
+            "description": "The party id of the signee.",
+            "format": "int32"
+          },
+          "signedTime": {
+            "type": "string",
+            "description": "The time the signee signed.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Contains information about a signee and the current signing status."
+      },
+      "SigningAuthorizedOrganizationsResponse": {
+        "required": [
+          "organizations"
+        ],
+        "type": "object",
+        "properties": {
+          "organizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorizedOrganizationDetails"
+            },
+            "description": "The list of authorized organizations.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the response from the API when fetching organizations the user is authorized to sign on behalf of."
+      },
+      "SigningDataElementsResponse": {
+        "required": [
+          "dataElements"
+        ],
+        "type": "object",
+        "properties": {
+          "dataElements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataElement"
+            },
+            "description": "The data elements that should be signed.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Response that contains the data elements that should be signed."
+      },
+      "SigningStateResponse": {
+        "required": [
+          "signeeStates"
+        ],
+        "type": "object",
+        "properties": {
+          "signeeStates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SigneeState"
+            },
+            "description": "The signees for the current task.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Contains the result of a get signees request."
+      },
       "SimpleInstance": {
         "type": "object",
         "properties": {
@@ -8146,6 +8679,60 @@
           "description": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SyncAdapterSettings": {
+        "type": "object",
+        "properties": {
+          "disableSync": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableCreate": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableDelete": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableAddActivities": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableAddTransmissions": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncDueAt": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncStatus": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentTitle": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentSummary": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncAttachments": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncApiActions": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncGuiActions": {
+            "type": "boolean",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -8275,6 +8862,11 @@
               "type": "string"
             },
             "description": "Ignored validators that should not be evauated as part of this action",
+            "nullable": true
+          },
+          "onBehalfOf": {
+            "type": "string",
+            "description": "The organisation number of the party the user is acting on behalf of",
             "nullable": true
           }
         },

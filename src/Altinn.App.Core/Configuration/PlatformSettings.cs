@@ -37,7 +37,7 @@ public class PlatformSettings
     public string ApiEventsEndpoint { get; set; } = "http://localhost:5101/events/api/v1/";
 
     /// <summary>
-    /// Gets or sets tue url for the new browser based PDF API endpoint.
+    /// Gets or sets the url for the new browser based PDF API endpoint.
     /// </summary>
     public string ApiPdf2Endpoint { get; set; } = "http://localhost:5300/pdf";
 
@@ -50,6 +50,11 @@ public class PlatformSettings
     /// Gets or sets the url for the Correspondence API endpoint.
     /// </summary>
     public string ApiCorrespondenceEndpoint { get; set; } = "http://localhost:5101/correspondence/api/v1/"; // TODO: which port for localtest?
+
+    /// <summary>
+    /// Gets or sets the url for the Access Management (Delegation) API endpoint.
+    /// </summary>
+    public string ApiAccessManagementEndpoint { get; set; } = "http://localhost:5101/accessmanagement/api/v1/";
 
     /// <summary>
     /// Gets or sets the subscription key value to use in requests against the platform.

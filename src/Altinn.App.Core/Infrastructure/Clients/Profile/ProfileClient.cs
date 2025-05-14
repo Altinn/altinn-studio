@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -110,6 +112,43 @@ public class ProfileClient : IProfileClient
                 userId,
                 response.StatusCode
             );
+        }
+
+        return userProfile;
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfile?> GetUserProfile(string ssn)
+    {
+        using var activity = _telemetry?.StartGetUserProfileActivity();
+
+        if (string.IsNullOrEmpty(ssn))
+        {
+            _logger.LogError("Tried to get user profile with empty SSN");
+            return null;
+        }
+
+        string endpointUrl = "users";
+        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        StringContent content = new(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await _client.PostAsync(
+            token,
+            endpointUrl,
+            content,
+            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
+        );
+
+        UserProfile? userProfile = null;
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
+        }
+        else
+        {
+            _logger.LogError("Getting user profile with SSN failed with statuscode {StatusCode}", response.StatusCode);
         }
 
         return userProfile;

@@ -420,4 +420,31 @@ public class ProcessReaderTests
                 }
             );
     }
+
+    [Fact]
+    public void SignatureConfiguration_WorksAsExpected()
+    {
+        var bpmnfile = "simple-gateway-signature-config.bpmn";
+        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
+
+        var task1 = (ProcessTask)pr.GetFlowElement("Task1")!;
+        task1
+            .ExtensionElements!.TaskExtension!.SignatureConfiguration.Should()
+            .BeEquivalentTo(
+                new AltinnSignatureConfiguration
+                {
+                    DataTypesToSign = ["signatureDataType1", "signatureDataType2"],
+                    SignatureDataType = "signature",
+                    UniqueFromSignaturesInDataTypes = ["signature1"],
+                    SigneeProviderId = "signeeProviderId",
+                    SigneeStatesDataTypeId = "signeeStatesDataTypeId",
+                    CorrespondenceResources =
+                    [
+                        new AltinnEnvironmentConfig { Environment = null, Value = "correspondenceResource" },
+                        new AltinnEnvironmentConfig { Environment = "tt02", Value = "correspondenceResourceTt02" },
+                        new AltinnEnvironmentConfig { Environment = "prod", Value = "correspondenceResourceProd" },
+                    ],
+                }
+            );
+    }
 }

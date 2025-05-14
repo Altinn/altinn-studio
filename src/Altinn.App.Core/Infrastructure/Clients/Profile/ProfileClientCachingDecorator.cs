@@ -53,4 +53,24 @@ public class ProfileClientCachingDecorator : IProfileClient
 
         return user;
     }
+
+    /// <inheritdoc/>
+    public async Task<UserProfile?> GetUserProfile(string ssn)
+    {
+        string uniqueCacheKey = "User_SSN_" + ssn;
+
+        if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile? user))
+        {
+            return user;
+        }
+
+        user = await _decoratedService.GetUserProfile(ssn);
+
+        if (user != null)
+        {
+            _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
+        }
+
+        return user;
+    }
 }

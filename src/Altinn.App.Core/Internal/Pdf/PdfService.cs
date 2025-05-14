@@ -23,7 +23,6 @@ public class PdfService : IPdfService
     private readonly IAppResources _resourceService;
     private readonly IDataClient _dataClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly ILogger<PdfService> _logger;

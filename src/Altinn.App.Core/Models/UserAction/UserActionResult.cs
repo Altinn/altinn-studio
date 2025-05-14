@@ -59,7 +59,7 @@ public sealed class UserActionResult
     /// <summary>
     /// Error type to return when the user action was not successful
     /// </summary>
-    public ProcessErrorType ErrorType { get; set; }
+    public ProcessErrorType? ErrorType { get; set; }
 
     /// <summary>
     /// If this is set, the client should redirect to this url

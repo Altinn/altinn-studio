@@ -14,5 +14,5 @@ public interface ISmsNotificationClient
     /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="SmsNotificationException"></exception>
-    Task<SmsNotificationOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct);
+    Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct);
 }

@@ -1,9 +1,11 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.Features.Correspondence.Exceptions;
 
 /// <summary>
 /// Generic Correspondence related exception. Something went wrong, and it was related to Correspondence.
 /// </summary>
-public abstract class CorrespondenceException : Exception
+public abstract class CorrespondenceException : AltinnException
 {
     /// <inheritdoc/>
     protected CorrespondenceException() { }

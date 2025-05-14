@@ -37,7 +37,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         _telemetry = telemetry;
     }
 
-    public async Task<SmsNotificationOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct)
+    public async Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct)
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(_orderType);
 
@@ -65,9 +65,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {
-                SmsNotificationOrderResponse? orderResponse = JsonSerializer.Deserialize<SmsNotificationOrderResponse>(
-                    httpContent
-                );
+                SmsOrderResponse? orderResponse = JsonSerializer.Deserialize<SmsOrderResponse>(httpContent);
                 if (orderResponse is null)
                     throw new JsonException("Couldn't deserialize SMS notification order response");
 

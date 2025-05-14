@@ -85,6 +85,11 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// </summary>
     public DateTimeOffset? RequestedSendTime { get; init; }
 
+    /// <summary>
+    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// </summary>
+    public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
+
     internal void Serialise(MultipartFormDataContent content)
     {
         ValidateAllProperties(nameof(CorrespondenceNotification));
@@ -100,6 +105,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
         AddIfNotNull(content, NotificationChannel.ToString(), "Correspondence.Notification.NotificationChannel");
         AddIfNotNull(content, SendersReference, "Correspondence.Notification.SendersReference");
         AddIfNotNull(content, RequestedSendTime, "Correspondence.Notification.RequestedSendTime");
+        SerializeListItems(content, CustomNotificationRecipients);
         AddIfNotNull(
             content,
             ReminderNotificationChannel.ToString(),

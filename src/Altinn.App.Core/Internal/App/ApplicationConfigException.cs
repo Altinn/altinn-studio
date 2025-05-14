@@ -1,9 +1,11 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.Internal.App;
 
 /// <summary>
 /// Configuration is not valid for application
 /// </summary>
-public class ApplicationConfigException : Exception
+public class ApplicationConfigException : ConfigurationException
 {
     /// <summary>
     /// Create ApplicationConfigException

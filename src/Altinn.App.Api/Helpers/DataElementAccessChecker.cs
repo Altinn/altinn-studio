@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,52 +13,6 @@ namespace Altinn.App.Api.Helpers;
 /// </remarks>
 internal static class DataElementAccessChecker
 {
-    internal static bool IsValidContributor(DataType dataType, Authenticated auth)
-    {
-        if (dataType.AllowedContributers is null || dataType.AllowedContributers.Count == 0)
-        {
-            return true;
-        }
-
-        var (org, orgNr) = auth switch
-        {
-            // System users also have 'orgno',  but this feature was originally intended
-            // to let a service owner "own" a specific data type, so we haven't extended this
-            Authenticated.ServiceOwner a => (a.Name, a.OrgNo),
-            _ => (null, null),
-        };
-
-        foreach (string item in dataType.AllowedContributers)
-        {
-            var splitIndex = item.IndexOf(':');
-            ReadOnlySpan<char> key = item.AsSpan(0, splitIndex);
-            ReadOnlySpan<char> value = item.AsSpan(splitIndex + 1);
-
-            if (key.Equals("org", StringComparison.OrdinalIgnoreCase))
-            {
-                if (org is null)
-                    continue;
-
-                if (value.Equals(org, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            else if (key.Equals("orgno", StringComparison.OrdinalIgnoreCase))
-            {
-                if (orgNr is null)
-                    continue;
-
-                if (value.Equals(orgNr, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     /// <summary>
     /// Checks if the user has access to read a data element of a given data type on an instance.
     /// </summary>
@@ -85,7 +40,8 @@ internal static class DataElementAccessChecker
                 Status = StatusCodes.Status409Conflict,
             };
         }
-        if (!IsValidContributor(dataType, auth))
+
+        if (!AllowedContributorsHelper.IsValidContributor(dataType, auth))
         {
             return new ProblemDetails
             {

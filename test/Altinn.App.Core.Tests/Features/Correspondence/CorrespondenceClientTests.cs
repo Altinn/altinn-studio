@@ -70,7 +70,6 @@ public class CorrespondenceClientTests
                 .WithSender(OrganisationNumber.Parse("991825827"))
                 .WithSendersReference("senders-ref")
                 .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
-                .WithAllowSystemDeleteAfter(DateTime.Now.AddYears(1))
                 .WithContent(
                     CorrespondenceContentBuilder
                         .Create()
@@ -168,10 +167,10 @@ public class CorrespondenceClientTests
                             "statusText": "Published"
                         }
                     ],
-                    "recipient": "0192:213872702",
+                    "recipient": "urn:altinn:organization:identifier-no:213872702",
                     "correspondenceId": "94fa9dd9-734e-4712-9d49-4018aeb1a5dc",
                     "resourceId": "test-resource-id",
-                    "sender": "0192:991825827",
+                    "sender": "urn:altinn:organization:identifier-no:991825827",
                     "sendersReference": "1234",
                     "isConfirmationNeeded": true
                 }
@@ -191,7 +190,7 @@ public class CorrespondenceClientTests
         Assert.NotNull(result);
         result.StatusHistory.Should().HaveCount(1);
         result.StatusHistory.First().Status.Should().Be(CorrespondenceStatus.Published);
-        result.Recipient.Should().Be("0192:213872702");
+        result.Recipient.Should().Be("urn:altinn:organization:identifier-no:213872702");
         result.CorrespondenceId.Should().Be(Guid.Parse("94fa9dd9-734e-4712-9d49-4018aeb1a5dc"));
         result.ResourceId.Should().Be("test-resource-id");
         result.Sender.Should().Be(OrganisationNumber.Parse("991825827"));

@@ -74,7 +74,7 @@ public abstract class Authenticated
     }
 
     /// <summary>
-    /// Type to indicate that the current request is not uathenticated.
+    /// Type to indicate that the current request is not authenticated.
     /// </summary>
     public sealed class None : Authenticated
     {

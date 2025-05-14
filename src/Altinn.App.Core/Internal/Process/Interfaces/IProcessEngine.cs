@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -17,6 +18,11 @@ public interface IProcessEngine
     /// Method to move process to next task/event
     /// </summary>
     Task<ProcessChangeResult> Next(ProcessNextRequest request);
+
+    /// <summary>
+    /// Method to handle user action
+    /// </summary>
+    Task<UserActionResult> HandleUserAction(ProcessNextRequest request, CancellationToken ct);
 
     /// <summary>
     /// Handle process events and update storage

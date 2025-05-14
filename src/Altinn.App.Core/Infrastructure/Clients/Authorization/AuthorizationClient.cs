@@ -89,7 +89,7 @@ public class AuthorizationClient : IAuthorizationClient
         }
         catch (Exception e)
         {
-            _logger.LogError($"Unable to retrieve party list. An error occured {e.Message}");
+            _logger.LogError("Unable to retrieve party list. An error occurred {ErrorMessage}", e.Message);
         }
 
         return partyList;
@@ -113,7 +113,10 @@ public class AuthorizationClient : IAuthorizationClient
         else
         {
             _logger.LogError(
-                $"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}"
+                "Validating selected party {PartyId} for user {UserId} failed with statuscode {StatusCode}",
+                partyId,
+                userId,
+                response.StatusCode
             );
             result = null;
         }
@@ -178,5 +181,122 @@ public class AuthorizationClient : IAuthorizationClient
             actionsResult.Add(action, false);
         }
         return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers)
+    {
+        XacmlJsonRequestRoot request = CreateXacmlJsonRequest(userId, orgNumbers);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+        if (response?.Response == null)
+        {
+            return [];
+        }
+
+        List<string> organisations =
+        [
+            .. response
+                .Response.Where(result => result.Decision == "Permit")
+                .SelectMany(result => result.Category)
+                .SelectMany(category => category.Attribute)
+                .Where(attribute => orgNumbers.Contains(attribute.Value))
+                .Select(attribute => attribute.Value),
+        ];
+
+        return organisations;
+    }
+
+    private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)
+    {
+        string accessSubjectId = "s1";
+        string actionId = "a1";
+
+        List<XacmlJsonCategory> orgCategories = [];
+        List<XacmlJsonRequestReference> requestReferences = [];
+
+        foreach (var orgNumber in orgNumbers)
+        {
+            orgCategories.Add(CreateXacmlCategoryForOrg(orgNumbers, orgNumber));
+            requestReferences.Add(CreateRequestReference(orgNumbers, accessSubjectId, actionId, orgNumber));
+        }
+        return new()
+        {
+            Request = new XacmlJsonRequest()
+            {
+                ReturnPolicyIdList = true,
+                AccessSubject =
+                [
+                    new XacmlJsonCategory()
+                    {
+                        Id = accessSubjectId,
+                        Attribute =
+                        [
+                            new XacmlJsonAttribute()
+                            {
+                                AttributeId = "urn:altinn:userid",
+                                Value = userId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            },
+                        ],
+                    },
+                ],
+                Action =
+                [
+                    new XacmlJsonCategory()
+                    {
+                        Id = actionId,
+                        Attribute =
+                        [
+                            new XacmlJsonAttribute()
+                            {
+                                AttributeId = "urn:oasis:names:tc:xacml:1.0:action:action-id",
+                                Value = "access",
+                                DataType = "http://www.w3.org/2001/XMLSchema#string",
+                                IncludeInResult = false,
+                            },
+                        ],
+                    },
+                ],
+                Resource = orgCategories,
+                MultiRequests = new XacmlJsonMultiRequests() { RequestReference = requestReferences },
+            },
+        };
+    }
+
+    private static XacmlJsonRequestReference CreateRequestReference(
+        List<string> orgNumbers,
+        string accessSubjectId,
+        string actionId,
+        string orgNumber
+    )
+    {
+        return new XacmlJsonRequestReference()
+        {
+            ReferenceId = [accessSubjectId, actionId, "r" + orgNumbers.IndexOf(orgNumber)],
+        };
+    }
+
+    private static XacmlJsonCategory CreateXacmlCategoryForOrg(List<string> orgNumbers, string orgNumber)
+    {
+        return new XacmlJsonCategory()
+        {
+            Id = "r" + orgNumbers.IndexOf(orgNumber),
+            Attribute =
+            [
+                new XacmlJsonAttribute()
+                {
+                    AttributeId = "urn:altinn:resource",
+                    Value = "altinn_keyrole_access",
+                    DataType = "http://www.w3.org/2001/XMLSchema#string",
+                },
+                new XacmlJsonAttribute()
+                {
+                    AttributeId = "urn:altinn:organization:identifier-no",
+                    Value = orgNumber,
+                    DataType = "http://www.w3.org/2001/XMLSchema#string",
+                    IncludeInResult = true,
+                },
+            ],
+        };
     }
 }

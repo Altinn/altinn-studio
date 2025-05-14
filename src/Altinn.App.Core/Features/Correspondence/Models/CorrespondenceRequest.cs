@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
-using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Correspondence.Models;
@@ -85,6 +85,21 @@ public abstract record MultipartCorrespondenceItem
         for (int i = 0; i < items.Count; i++)
         {
             items[i].Serialise(content, i);
+        }
+    }
+
+    internal static void SerializeOverrideNotificationRecipients(
+        MultipartFormDataContent content,
+        IReadOnlyList<CorrespondenceNotificationRecipient>? notificationRecipients,
+        int parentIndex
+    )
+    {
+        if (IsEmptyCollection(notificationRecipients))
+            return;
+
+        for (int i = 0; i < notificationRecipients.Count; i++)
+        {
+            notificationRecipients[i].Serialise(content, i, parentIndex);
         }
     }
 
@@ -224,7 +239,7 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
     /// <summary>
     /// When can Altinn remove the correspondence from its database?
     /// </summary>
-    public required DateTimeOffset AllowSystemDeleteAfter { get; init; }
+    public required DateTimeOffset? AllowSystemDeleteAfter { get; init; }
 
     /// <summary>
     /// When must the recipient respond by?
@@ -287,7 +302,7 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         AddRequired(content, ResourceId, "Correspondence.ResourceId");
         AddRequired(content, Sender.ToUrnFormattedString(), "Correspondence.Sender");
         AddRequired(content, SendersReference, "Correspondence.SendersReference");
-        AddRequired(content, AllowSystemDeleteAfter, "Correspondence.AllowSystemDeleteAfter");
+        AddIfNotNull(content, AllowSystemDeleteAfter, "Correspondence.AllowSystemDeleteAfter");
         AddIfNotNull(content, MessageSender, "Correspondence.MessageSender");
         AddIfNotNull(content, RequestedPublishTime, "Correspondence.RequestedPublishTime");
         AddIfNotNull(content, DueDateTime, "Correspondence.DueDateTime");
@@ -324,11 +339,17 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         if (IsConfirmationNeeded is true && DueDateTime is null)
             ValidationError($"When {nameof(IsConfirmationNeeded)} is set, {nameof(DueDateTime)} is also required");
 
-        var normalisedAllowSystemDeleteAfter = NormaliseDateTime(AllowSystemDeleteAfter);
-        if (normalisedAllowSystemDeleteAfter < DateTimeOffset.UtcNow)
-            ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be a time in the past");
-        if (normalisedAllowSystemDeleteAfter < RequestedPublishTime)
-            ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be prior to {nameof(RequestedPublishTime)}");
+        DateTimeOffset? normalisedAllowSystemDeleteAfter = AllowSystemDeleteAfter is not null
+            ? NormaliseDateTime(AllowSystemDeleteAfter.Value)
+            : null;
+
+        if (normalisedAllowSystemDeleteAfter is not null)
+        {
+            if (normalisedAllowSystemDeleteAfter.Value < DateTimeOffset.UtcNow)
+                ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be a time in the past");
+            if (normalisedAllowSystemDeleteAfter.Value < RequestedPublishTime)
+                ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be prior to {nameof(RequestedPublishTime)}");
+        }
 
         if (DueDateTime is not null)
         {
@@ -337,7 +358,10 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
                 ValidationError($"{nameof(DueDateTime)} cannot be a time in the past");
             if (normalisedDueDate < RequestedPublishTime)
                 ValidationError($"{nameof(DueDateTime)} cannot be prior to {nameof(RequestedPublishTime)}");
-            if (normalisedAllowSystemDeleteAfter < normalisedDueDate)
+            if (
+                normalisedAllowSystemDeleteAfter is not null
+                && normalisedAllowSystemDeleteAfter.Value < normalisedDueDate
+            )
                 ValidationError($"{nameof(AllowSystemDeleteAfter)} cannot be prior to {nameof(DueDateTime)}");
         }
     }

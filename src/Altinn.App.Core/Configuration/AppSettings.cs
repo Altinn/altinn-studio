@@ -176,12 +176,12 @@ public class AppSettings
     /// <summary>
     /// Gets or sets a value indicating whether the app should send events to the Events component.
     /// </summary>
-    public bool RegisterEventsWithEventsComponent { get; set; } = false;
+    public bool RegisterEventsWithEventsComponent { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the eFormidlingIntegration should be enabled.
     /// </summary>
-    public bool EnableEFormidling { get; set; } = false;
+    public bool EnableEFormidling { get; set; }
 
     /// <summary>
     /// Gets or sets the sender of the eFormidling shipment.
@@ -203,17 +203,17 @@ public class AppSettings
     /// <summary>
     /// Enable the functionality to load layout in backend and remove data from hidden components before task completion
     /// </summary>
-    public bool RemoveHiddenData { get; set; } = false;
+    public bool RemoveHiddenData { get; set; }
 
     /// <summary>
     /// Enable the functionality to load layout in backend and validate required fields as defined in the layout
     /// </summary>
-    public bool RequiredValidation { get; set; } = false;
+    public bool RequiredValidation { get; set; }
 
     /// <summary>
     /// Enable the functionality to run expression validation in backend
     /// </summary>
-    public bool ExpressionValidation { get; set; } = false;
+    public bool ExpressionValidation { get; set; }
 
     /// <summary>
     /// Enables OpenTelemetry as a substitute for Application Insights SDK

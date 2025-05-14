@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Features.Correspondence.Models;
 
 namespace Altinn.App.Core.Features.Correspondence;
@@ -7,7 +6,6 @@ namespace Altinn.App.Core.Features.Correspondence;
 /// <p>Contains logic for interacting with the correspondence message service.</p>
 /// <p>The use of this client requires Maskinporten scopes <c>altinn:correspondence.write</c> and <c>altinn:serviceowner</c>.</p>
 /// </summary>
-[Experimental(diagnosticId: "ALTINNAPP0200")]
 public interface ICorrespondenceClient
 {
     /// <summary>

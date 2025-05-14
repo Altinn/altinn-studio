@@ -15,7 +15,7 @@ public class ExclusiveGateway : ProcessElement
     public string? Default { get; set; }
 
     /// <summary>
-    ///
+    /// Gets or sets the extension elements of the exclusive gateway.
     /// </summary>
     [XmlElement("extensionElements")]
     public ExtensionElements? ExtensionElements { get; set; }

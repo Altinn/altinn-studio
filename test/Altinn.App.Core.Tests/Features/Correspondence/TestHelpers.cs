@@ -1,24 +1,16 @@
 using System.Net;
 using System.Text.Json;
-using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Tests.Models;
 
 namespace Altinn.App.Core.Tests.Features.Correspondence;
 
 public static class TestHelpers
 {
-    public static OrganisationNumber GetOrganisationNumber(int index)
-    {
-        var i = index % OrganisationNumberTests.ValidOrganisationNumbers.Length;
-        return OrganisationNumber.Parse(OrganisationNumberTests.ValidOrganisationNumbers[i]);
-    }
+    public static OrganisationNumber GetOrganisationNumber(int index) =>
+        IdentificationNumberProvider.OrganisationNumbers.GetValidNumber(index);
 
-    public static NationalIdentityNumber GetNationalIdentityNumber(int index)
-    {
-        var i = index % NationalIdentityNumberTests.ValidNationalIdentityNumbers.Length;
-        return NationalIdentityNumber.Parse(NationalIdentityNumberTests.ValidNationalIdentityNumbers[i]);
-    }
+    public static NationalIdentityNumber GetNationalIdentityNumber(int index) =>
+        IdentificationNumberProvider.NationalIdentityNumbers.GetValidNumber(index);
 
     public static HttpContent? GetItem(this MultipartFormDataContent content, string name)
     {

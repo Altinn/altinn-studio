@@ -19,4 +19,9 @@ public class ProfileClientMock : IProfileClient
         var file = Path.Join(folder, $"{userId}.json");
         return await JsonSerializer.DeserializeAsync<UserProfile>(File.OpenRead(file), _jsonSerializerOptions);
     }
+
+    public Task<UserProfile?> GetUserProfile(string ssn)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -1,10 +1,12 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
 /// Exception thrown when Eformidling is unable to process the message delivered to
 /// the integration point.
 /// </summary>
-public class EformidlingDeliveryException : Exception
+public class EformidlingDeliveryException : AltinnException
 {
     ///<inheritDoc/>
     public EformidlingDeliveryException() { }

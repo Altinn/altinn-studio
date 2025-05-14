@@ -17,6 +17,7 @@ public interface IUserAction
     /// Method for handling the user action
     /// </summary>
     /// <param name="context">The user action context</param>
+    /// <param name="ct">Cancellation token. Optional</param>
     /// <returns>If the handling of the action was a success</returns>
-    Task<UserActionResult> HandleAction(UserActionContext context);
+    Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct = default);
 }

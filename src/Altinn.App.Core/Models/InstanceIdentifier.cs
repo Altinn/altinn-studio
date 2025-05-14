@@ -11,7 +11,7 @@ public class InstanceIdentifier
     /// <summary>
     /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class.
     /// </summary>
-    /// /// <param name="instanceOwnerPartyId">The id of the party owning this instance.</param>
+    /// <param name="instanceOwnerPartyId">The id of the party owning this instance.</param>
     /// <param name="instanceGuid">A <see cref="Guid"/> identifying the instance.</param>
     public InstanceIdentifier(int instanceOwnerPartyId, Guid instanceGuid)
     {

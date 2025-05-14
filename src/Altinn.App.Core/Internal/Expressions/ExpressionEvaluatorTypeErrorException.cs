@@ -1,3 +1,4 @@
+using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Internal.Expressions;
@@ -5,7 +6,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// <summary>
 /// Custom exception for <see cref="ExpressionEvaluator" /> to thow when expressions contains type errors.
 /// </summary>
-public class ExpressionEvaluatorTypeErrorException : Exception
+public class ExpressionEvaluatorTypeErrorException : AltinnException
 {
     /// <inheritdoc />
     public ExpressionEvaluatorTypeErrorException(string msg)

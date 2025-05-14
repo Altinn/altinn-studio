@@ -1,9 +1,11 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.Models.Validation;
 
 /// <summary>
 /// Represents errors that occur while handling a validation request.
 /// </summary>
-public class ValidationException : Exception
+public class ValidationException : AltinnException
 {
     /// <summary>
     /// Initialises a new instance of the <see cref="ValidationException"/> class.

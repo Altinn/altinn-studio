@@ -2184,6 +2184,10 @@
           "action": {
             "type": "string",
             "nullable": true
+          },
+          "actionOnBehalfOf": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2297,6 +2301,14 @@
             "nullable": true
           },
           "allowedContributers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "deprecated": true
+          },
+          "allowedContributors": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2475,11 +2487,68 @@
         },
         "additionalProperties": false
       },
+      "SyncAdapterSettings": {
+        "type": "object",
+        "properties": {
+          "disableSync": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableCreate": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableDelete": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableAddActivities": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableAddTransmissions": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncDueAt": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncStatus": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentTitle": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncContentSummary": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncAttachments": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncApiActions": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableSyncGuiActions": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
       "MessageBoxConfig": {
         "type": "object",
         "properties": {
           "hideSettings": {
             "$ref": "#/components/schemas/HideSettings"
+          },
+          "syncAdapterSettings": {
+            "$ref": "#/components/schemas/SyncAdapterSettings"
           }
         },
         "additionalProperties": false
@@ -2630,6 +2699,11 @@
           },
           "autoDeleteOnProcessEnd": {
             "type": "boolean"
+          },
+          "preventInstanceDeletionForDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "presentationFields": {
             "type": "array",

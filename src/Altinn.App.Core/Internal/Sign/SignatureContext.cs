@@ -12,20 +12,20 @@ public class SignatureContext
     /// </summary>
     /// <param name="instanceIdentifier">Identifier for the instance containing the data elements to sign</param>
     /// <param name="generatedFromTask">The id of the task connected to this signature</param>
-    /// <param name="signatureDataTypeId">The id of the DataType where the signature should be stored</param>
+    /// <param name="signeeStatesDataTypeId">The id of the DataType where the signature should be stored</param>
     /// <param name="signee">The signee</param>
     /// <param name="dataElementSignature">The data element to sign <see cref="DataElementSignature"/></param>
     public SignatureContext(
         InstanceIdentifier instanceIdentifier,
         string generatedFromTask,
-        string signatureDataTypeId,
+        string signeeStatesDataTypeId,
         Signee signee,
         params DataElementSignature[] dataElementSignature
     )
     {
         InstanceIdentifier = instanceIdentifier;
         GeneratedFromTask = generatedFromTask;
-        SignatureDataTypeId = signatureDataTypeId;
+        SigneeStatesDataTypeId = signeeStatesDataTypeId;
         DataElementSignatures.AddRange(dataElementSignature);
         Signee = signee;
     }
@@ -35,20 +35,20 @@ public class SignatureContext
     /// </summary>
     /// <param name="instanceIdentifier">Identifier for the instance containing the data elements to sign</param>
     /// <param name="generatedFromTask">The id of the task connected to this signature</param>
-    /// <param name="signatureDataTypeId">The id of the DataType where the signature should be stored</param>
+    /// <param name="signeeStatesDataTypeId">The id of the DataType where the signature should be stored</param>
     /// <param name="signee">The signee</param>
     /// <param name="dataElementSignatures">The data elements to sign <see cref="DataElementSignature"/></param>
     public SignatureContext(
         InstanceIdentifier instanceIdentifier,
         string generatedFromTask,
-        string signatureDataTypeId,
+        string signeeStatesDataTypeId,
         Signee signee,
         List<DataElementSignature> dataElementSignatures
     )
     {
         InstanceIdentifier = instanceIdentifier;
         GeneratedFromTask = generatedFromTask;
-        SignatureDataTypeId = signatureDataTypeId;
+        SigneeStatesDataTypeId = signeeStatesDataTypeId;
         DataElementSignatures = dataElementSignatures;
         Signee = signee;
     }
@@ -56,7 +56,7 @@ public class SignatureContext
     /// <summary>
     /// The id of the DataType where the signature should be stored
     /// </summary>
-    public string SignatureDataTypeId { get; }
+    public string SigneeStatesDataTypeId { get; }
 
     /// <summary>
     /// Identifier for the instance containing the data elements to sign

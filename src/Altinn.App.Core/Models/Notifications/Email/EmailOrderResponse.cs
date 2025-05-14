@@ -5,20 +5,5 @@ namespace Altinn.App.Core.Models.Notifications.Email;
 /// <summary>
 /// The response from the email notification API.
 /// </summary>
-public sealed record EmailOrderResponse
-{
-    /// <summary>
-    /// The id of the email order.
-    /// </summary>
-    [JsonPropertyName("orderId")]
-    public string OrderId { get; init; }
-
-    /// <summary>
-    /// Initializes the EmailOrderResponse class.
-    /// </summary>
-    /// <param name="orderId"><inheritdoc cref="OrderId"/>></param>
-    public EmailOrderResponse(string orderId)
-    {
-        OrderId = orderId;
-    }
-}
+/// <param name="OrderId">ID of the order, can be used to lookup status of the notification order.</param>
+public sealed record EmailOrderResponse([property: JsonPropertyName("orderId")] string OrderId);

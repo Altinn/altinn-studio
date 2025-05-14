@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
             options.Filters.Add<TelemetryEnrichingResultFilter>();
             options.Conventions.Add(new AltinnControllerConventions());
         });
+
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)
             .AddXmlSerializerFormatters()

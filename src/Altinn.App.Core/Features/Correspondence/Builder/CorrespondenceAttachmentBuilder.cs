@@ -8,9 +8,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder;
 public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
 {
     private string? _filename;
-    private string? _name;
     private string? _sendersReference;
-    private string? _dataType;
     private ReadOnlyMemory<byte>? _data;
     private bool? _isEncrypted;
     private CorrespondenceDataLocationType _dataLocationType =
@@ -24,7 +22,7 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     public static ICorrespondenceAttachmentBuilderFilename Create() => new CorrespondenceAttachmentBuilder();
 
     /// <inheritdoc/>
-    public ICorrespondenceAttachmentBuilderName WithFilename(string filename)
+    public ICorrespondenceAttachmentBuilderSendersReference WithFilename(string filename)
     {
         BuilderUtils.NotNullOrEmpty(filename, "Filename cannot be empty");
         _filename = filename;
@@ -32,26 +30,10 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceAttachmentBuilderSendersReference WithName(string name)
-    {
-        BuilderUtils.NotNullOrEmpty(name, "Name cannot be empty");
-        _name = name;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ICorrespondenceAttachmentBuilderDataType WithSendersReference(string sendersReference)
+    public ICorrespondenceAttachmentBuilderData WithSendersReference(string sendersReference)
     {
         BuilderUtils.NotNullOrEmpty(sendersReference, "Senders reference cannot be empty");
         _sendersReference = sendersReference;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ICorrespondenceAttachmentBuilderData WithDataType(string dataType)
-    {
-        BuilderUtils.NotNullOrEmpty(dataType, "Data type cannot be empty");
-        _dataType = dataType;
         return this;
     }
 
@@ -81,17 +63,13 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     public CorrespondenceAttachment Build()
     {
         BuilderUtils.NotNullOrEmpty(_filename);
-        BuilderUtils.NotNullOrEmpty(_name);
         BuilderUtils.NotNullOrEmpty(_sendersReference);
-        BuilderUtils.NotNullOrEmpty(_dataType);
         BuilderUtils.NotNullOrEmpty(_data);
 
         return new CorrespondenceAttachment
         {
             Filename = _filename,
-            Name = _name,
             SendersReference = _sendersReference,
-            DataType = _dataType,
             Data = _data.Value,
             IsEncrypted = _isEncrypted,
             DataLocationType = _dataLocationType,

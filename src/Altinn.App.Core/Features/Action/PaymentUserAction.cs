@@ -37,7 +37,7 @@ internal class PaymentUserAction : IUserAction
     public string Id => "pay";
 
     /// <inheritdoc />
-    public async Task<UserActionResult> HandleAction(UserActionContext context)
+    public async Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct)
     {
         if (
             _processReader.GetFlowElement(context.Instance.Process.CurrentTask.ElementId) is not ProcessTask currentTask

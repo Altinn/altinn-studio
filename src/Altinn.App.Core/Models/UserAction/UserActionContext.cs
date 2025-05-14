@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models.UserAction;
@@ -18,19 +19,22 @@ public class UserActionContext
     /// <param name="actionMetadata"></param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="authentication">Information about the authenticated party</param>
+    /// <param name="onBehalfOf">The organisation number of the party the user is acting on behalf of</param>
     public UserActionContext(
         IInstanceDataMutator dataMutator,
         int? userId,
         string? buttonId = null,
         Dictionary<string, string>? actionMetadata = null,
         string? language = null,
-        Authenticated? authentication = null
+        Authenticated? authentication = null,
+        string? onBehalfOf = null
     )
     {
         Instance = dataMutator.Instance;
         DataMutator = dataMutator;
         _userId = userId;
         Authentication = authentication;
+        OnBehalfOf = onBehalfOf;
         ButtonId = buttonId;
         ActionMetadata = actionMetadata ?? [];
         Language = language;
@@ -89,6 +93,11 @@ public class UserActionContext
         };
 
     /// <summary>
+    /// The organisation number of the party the user is acting on behalf of
+    /// </summary>
+    public string? OnBehalfOf { get; }
+
+    /// <summary>
     /// Information about the authenticated party
     /// </summary>
     public Authenticated? Authentication { get; }
@@ -107,4 +116,6 @@ public class UserActionContext
     /// The language that will be used for the action
     /// </summary>
     public string? Language { get; }
+
+    internal IAltinnCdnClient? AltinnCdnClient { get; set; }
 }

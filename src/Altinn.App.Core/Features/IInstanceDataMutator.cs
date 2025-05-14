@@ -34,7 +34,7 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Add a new data element without app logic to the instance.
     /// </summary>
     /// <remarks>
-    /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sendt to storage.
+    /// Saving to storage is not done until the instance is saved, so mutations to data might or might not be sent to storage.
     /// </remarks>
     BinaryDataChange AddBinaryDataElement(
         string dataTypeId,

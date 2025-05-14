@@ -55,42 +55,42 @@ public interface ICorrespondenceRequestBuilderRecipients
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipient">A recipient</param>
-    ICorrespondenceRequestBuilderAllowSystemDeleteAfter WithRecipient(OrganisationOrPersonIdentifier recipient);
+    ICorrespondenceRequestBuilderContent WithRecipient(OrganisationOrPersonIdentifier recipient);
+
+    /// <summary>
+    /// <p>Adds a recipient to the correspondence.</p>
+    /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
+    /// </summary>
+    /// <param name="organisation">A recipient</param>
+    ICorrespondenceRequestBuilderContent WithRecipient(OrganisationNumber organisation);
+
+    /// <summary>
+    /// <p>Adds a recipient to the correspondence.</p>
+    /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
+    /// </summary>
+    /// <param name="person">A recipient</param>
+    ICorrespondenceRequestBuilderContent WithRecipient(NationalIdentityNumber person);
 
     /// <summary>
     /// <p>Adds a recipient to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipient">A recipient: Either a Norwegian organisation number or national identity number</param>
-    ICorrespondenceRequestBuilderAllowSystemDeleteAfter WithRecipient(string recipient);
+    ICorrespondenceRequestBuilderContent WithRecipient(string recipient);
 
     /// <summary>
     /// <p>Adds recipients to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipients">A list of recipients</param>
-    ICorrespondenceRequestBuilderAllowSystemDeleteAfter WithRecipients(
-        IEnumerable<OrganisationOrPersonIdentifier> recipients
-    );
+    ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganisationOrPersonIdentifier> recipients);
 
     /// <summary>
     /// <p>Adds recipients to the correspondence.</p>
     /// <p>This method respects any existing options already stored in <see cref="CorrespondenceRequest.Recipients"/>.</p>
     /// </summary>
     /// <param name="recipients">A list of recipients: Either Norwegian organisation numbers or national identity numbers</param>
-    ICorrespondenceRequestBuilderAllowSystemDeleteAfter WithRecipients(IEnumerable<string> recipients);
-}
-
-/// <summary>
-/// Indicates that the <see cref="CorrespondenceRequestBuilder"/> instance is on the <see cref="CorrespondenceRequest.AllowSystemDeleteAfter"/> step.
-/// </summary>
-public interface ICorrespondenceRequestBuilderAllowSystemDeleteAfter
-{
-    /// <summary>
-    /// Sets the date and time when the correspondence can be deleted from the system.
-    /// </summary>
-    /// <param name="allowSystemDeleteAfter">The point in time when the correspondence may be safely deleted</param>
-    ICorrespondenceRequestBuilderContent WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter);
+    ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<string> recipients);
 }
 
 /// <summary>
@@ -143,9 +143,14 @@ public interface ICorrespondenceRequestBuilder
         ICorrespondenceRequestBuilderSender,
         ICorrespondenceRequestBuilderSendersReference,
         ICorrespondenceRequestBuilderRecipients,
-        ICorrespondenceRequestBuilderAllowSystemDeleteAfter,
         ICorrespondenceRequestBuilderContent
 {
+    /// <summary>
+    /// Sets the date and time when the correspondence can be deleted from the system.
+    /// </summary>
+    /// <param name="allowSystemDeleteAfter">The point in time when the correspondence may be safely deleted</param>
+    ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter);
+
     /// <summary>
     /// Sets due date and time for the correspondence.
     /// </summary>
@@ -222,6 +227,12 @@ public interface ICorrespondenceRequestBuilder
     /// </summary>
     /// <param name="notification">The notification details to be associated with the correspondence</param>
     ICorrespondenceRequestBuilder WithNotification(CorrespondenceNotification notification);
+
+    /// <summary>
+    /// Sets the notification for the correspondence if configured. Skips if <c>null</c>.
+    /// </summary>
+    /// <param name="notification">The notification details to be associated with the correspondence</param>
+    ICorrespondenceRequestBuilder WithNotificationIfConfigured(CorrespondenceNotification? notification);
 
     /// <summary>
     /// Sets the notification for the correspondence.

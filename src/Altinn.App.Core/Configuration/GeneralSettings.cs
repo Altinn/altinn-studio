@@ -84,3 +84,17 @@ public class GeneralSettings
         }
     }
 }
+
+internal static class GeneralSettingsExtensions
+{
+    /// <summary>
+    /// Convenience method to get <see cref="GeneralSettings.ExternalAppBaseUrl" /> with segments replaced and trailing # and / as this is how the url is used in the app.
+    /// </summary>
+    /// <param name="settings">The general settings</param>
+    /// <param name="app">The app identifier</param>
+    /// <returns>The formatted url</returns>
+    public static string FormattedExternalAppBaseUrlWithTrailingPound(this GeneralSettings settings, AppIdentifier app)
+    {
+        return settings.FormattedExternalAppBaseUrl(app).TrimEnd('/') + "/#";
+    }
+}

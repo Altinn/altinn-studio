@@ -1,9 +1,11 @@
+using Altinn.App.Core.Exceptions;
+
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
 /// Class representing an exception throw when a PDF could not be created.
 /// </summary>
-public class PdfGenerationException : Exception
+public class PdfGenerationException : AltinnException
 {
     /// <summary>
     /// Creates a new Exception of <see cref="PdfGenerationException"/>

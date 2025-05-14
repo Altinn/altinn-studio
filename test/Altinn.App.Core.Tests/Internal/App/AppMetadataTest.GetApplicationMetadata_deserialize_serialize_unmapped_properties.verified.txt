@@ -30,6 +30,7 @@
         "image/jpeg"
       ],
       "AllowedContributers": null,
+      "AllowedContributors": null,
       "AppLogic": null,
       "TaskId": "Task_1",
       "MaxSize": null,
@@ -50,6 +51,7 @@
         "application/pdf"
       ],
       "AllowedContributers": null,
+      "AllowedContributors": null,
       "AppLogic": null,
       "TaskId": "Task_1",
       "MaxSize": null,
@@ -71,6 +73,7 @@
     "SubUnit": true
   },
   "AutoDeleteOnProcessEnd": false,
+  "PreventInstanceDeletionForDays": null,
   "PresentationFields": null,
   "DataFields": null,
   "EFormidling": null,

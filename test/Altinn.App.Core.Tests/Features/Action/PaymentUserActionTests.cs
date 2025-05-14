@@ -50,7 +50,7 @@ public class PaymentUserActionTests
 
         // Act
         PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
+        UserActionResult result = await userAction.HandleAction(userActionContext, CancellationToken.None);
 
         // Assert
         result
@@ -88,7 +88,7 @@ public class PaymentUserActionTests
 
         // Act
         PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
+        UserActionResult result = await userAction.HandleAction(userActionContext, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
@@ -124,7 +124,7 @@ public class PaymentUserActionTests
 
         // Act
         PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
+        UserActionResult result = await userAction.HandleAction(userActionContext, CancellationToken.None);
 
         // Assert
         result

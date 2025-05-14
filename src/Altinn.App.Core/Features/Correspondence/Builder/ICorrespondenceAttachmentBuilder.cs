@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Altinn.App.Core.Features.Correspondence.Models;
 
 namespace Altinn.App.Core.Features.Correspondence.Builder;
@@ -12,19 +11,7 @@ public interface ICorrespondenceAttachmentBuilderFilename
     /// Sets the filename of the attachment.
     /// </summary>
     /// <param name="filename">The attachment filename</param>
-    ICorrespondenceAttachmentBuilderName WithFilename(string filename);
-}
-
-/// <summary>
-/// Indicates that the <see cref="CorrespondenceAttachmentBuilder"/> instance is on the <see cref="CorrespondenceAttachment.Name"/> step.
-/// </summary>
-public interface ICorrespondenceAttachmentBuilderName
-{
-    /// <summary>
-    /// Sets the display name of the attachment.
-    /// </summary>
-    /// <param name="name">The display name</param>
-    ICorrespondenceAttachmentBuilderSendersReference WithName(string name);
+    ICorrespondenceAttachmentBuilderSendersReference WithFilename(string filename);
 }
 
 /// <summary>
@@ -36,20 +23,7 @@ public interface ICorrespondenceAttachmentBuilderSendersReference
     /// Sets the senders reference for the attachment.
     /// </summary>
     /// <param name="sendersReference">The reference value</param>
-    ICorrespondenceAttachmentBuilderDataType WithSendersReference(string sendersReference);
-}
-
-/// <summary>
-/// Indicates that the <see cref="CorrespondenceAttachmentBuilder"/> instance is on the <see cref="CorrespondenceAttachment.DataType"/> step.
-/// </summary>
-public interface ICorrespondenceAttachmentBuilderDataType
-{
-    /// <summary>
-    /// Sets the data type of the attachment in MIME format.
-    /// </summary>
-    /// <remarks>See <see cref="MediaTypeNames"/></remarks>
-    /// <param name="dataType">The MIME type of the attachment</param>
-    ICorrespondenceAttachmentBuilderData WithDataType(string dataType);
+    ICorrespondenceAttachmentBuilderData WithSendersReference(string sendersReference);
 }
 
 /// <summary>
@@ -69,9 +43,7 @@ public interface ICorrespondenceAttachmentBuilderData
 /// </summary>
 public interface ICorrespondenceAttachmentBuilder
     : ICorrespondenceAttachmentBuilderFilename,
-        ICorrespondenceAttachmentBuilderName,
         ICorrespondenceAttachmentBuilderSendersReference,
-        ICorrespondenceAttachmentBuilderDataType,
         ICorrespondenceAttachmentBuilderData
 {
     /// <summary>

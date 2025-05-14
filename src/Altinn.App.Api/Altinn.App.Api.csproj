@@ -11,6 +11,7 @@
 
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{E8F29FE8-6B62-41F1-A08C-2A318DD08BB4}</ProjectGuid>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>

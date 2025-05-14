@@ -5,7 +5,7 @@
     <Description>
       This class library holds all the core features used by a standard Altinn 3 App.
     </Description>
-    <NoWarn>ALTINNAPP0200</NoWarn>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

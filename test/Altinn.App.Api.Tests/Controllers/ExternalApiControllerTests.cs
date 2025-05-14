@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Features.ExternalApi;
+namespace Altinn.App.Api.Tests.Controllers;
 
 public class ExternalApiControllerTests
 {

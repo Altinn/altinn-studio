@@ -1,4 +1,5 @@
 using System.Net;
+using Altinn.App.Core.Exceptions;
 
 namespace Altinn.App.PlatformServices.Tests.Mocks;
 
@@ -42,7 +43,7 @@ public class RequestInterceptor : DelegatingHandler
         return await _request.Content!.ReadAsStringAsync();
     }
 
-    internal class RequestInterceptorException : Exception
+    internal class RequestInterceptorException : AltinnException
     {
         internal RequestInterceptorException(string? message)
             : base(message) { }

@@ -39,6 +39,10 @@
               <altinn:dataType>Model</altinn:dataType>
             </altinn:dataTypesToSign>
             <altinn:signatureDataType>signature</altinn:signatureDataType>
+            <altinn:correspondenceResource>correspondenceResourceGlobal</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="local">correspondenceResourceLocal</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="tt02">correspondenceResourceTt02</altinn:correspondenceResource>
+            <altinn:correspondenceResource env="prod">correspondenceResourceProd</altinn:correspondenceResource>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

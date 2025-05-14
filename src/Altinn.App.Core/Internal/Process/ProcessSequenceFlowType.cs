@@ -13,6 +13,7 @@ public enum ProcessSequenceFlowType
     /// <summary>
     /// Abandon the current task and return to next process element.
     /// </summary>
+    [Obsolete("Never used in our process engine code.")]
     AbandonCurrentReturnToNext = 1,
 
     /// <summary>
