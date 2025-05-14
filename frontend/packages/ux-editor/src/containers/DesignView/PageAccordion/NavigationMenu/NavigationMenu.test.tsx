@@ -146,10 +146,6 @@ describe('NavigationMenu', () => {
           markWhenCompleted: true,
           order: [{ id: layout2NameMock }],
         },
-        {
-          name: 'EmptyGroup',
-          order: [],
-        },
       ],
     });
     expect(menuItemDown).not.toBeInTheDocument();
@@ -173,10 +169,6 @@ describe('NavigationMenu', () => {
           type: pagelayout2NameMock,
           markWhenCompleted: true,
           order: [{ id: layout2NameMock }],
-        },
-        {
-          name: 'EmptyGroup',
-          order: [],
         },
       ],
     });

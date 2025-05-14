@@ -195,10 +195,6 @@ export const groupsPagesModelMock: PagesModel = {
       markWhenCompleted: true,
       order: [{ id: layout2NameMock }],
     },
-    {
-      name: 'EmptyGroup',
-      order: [],
-    },
   ],
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
