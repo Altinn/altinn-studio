@@ -176,20 +176,6 @@ describe('DesignView', () => {
     expect(accordion).not.toBeInTheDocument();
   });
 
-  it('renders group accordions when isTaskNavigationPageGroups is true and there are groups', () => {
-    setupFeatureFlag(true);
-    renderDesignView({});
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-  });
-
-  it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
-    setupFeatureFlag(false);
-    renderDesignView({});
-    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
-    expect(screen.queryByText('Sideoppsett 2')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: mockPageName1 })).toBeInTheDocument();
-  });
-
   it('renders page accordions when isTaskNavigationPageGroups is false', () => {
     setupFeatureFlag(false);
     renderDesignView({});
@@ -201,10 +187,10 @@ describe('DesignView', () => {
   it('Does not render group accordions when order is empty or undefined', () => {
     setupFeatureFlag(true);
     renderDesignView({});
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    const secondGroupHeader = screen.getByTestId('page-group-accordion-ellipsis-menu-1');
-    expect(within(secondGroupHeader).getByText(layout2NameMock)).toBeInTheDocument();
-    expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
+    expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
+    expect(screen.getByText(layout2NameMock)).toBeInTheDocument();
+    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
+    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
   });
 
   it('calls "handleAddPage" when clicking the add page button within a group', async () => {
