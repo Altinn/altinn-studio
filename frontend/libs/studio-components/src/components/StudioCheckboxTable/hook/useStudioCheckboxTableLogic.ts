@@ -4,7 +4,7 @@ import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 import type { StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 
-type UseStudioCheckboxTableLogicResult = {
+export type UseStudioCheckboxTableLogicResult = {
   rowElements: StudioCheckboxTableRowElement[];
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;

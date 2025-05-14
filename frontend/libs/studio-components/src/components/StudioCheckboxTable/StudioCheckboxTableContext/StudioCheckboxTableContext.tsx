@@ -28,7 +28,7 @@ export function useCheckboxTableContext(): StudioCheckboxTableContextProps {
   const context = useContext(StudioCheckboxTableContext);
   if (!context) {
     throw new Error(
-      'StudioCheckboxTable compound components must be used within <StudioCheckboxTable>',
+      'useCheckboxTableContext must be used within a StudioCheckboxTableContextProvider',
     );
   }
   return context;

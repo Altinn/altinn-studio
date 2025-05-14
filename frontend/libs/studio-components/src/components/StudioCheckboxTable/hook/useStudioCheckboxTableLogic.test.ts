@@ -1,115 +1,92 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+import type { RenderHookResult } from '@testing-library/react';
 import { useStudioCheckboxTableLogic } from './useStudioCheckboxTableLogic';
+import type { UseStudioCheckboxTableLogicResult } from './useStudioCheckboxTableLogic';
 import type { StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 import type { ChangeEvent } from 'react';
+import { checkedOption, mockCheckboxTitle, option1, option2 } from '../mocks';
 
-// Mock the useCheckboxGroup hook
-jest.mock('@digdir/designsystemet-react', () => ({
-  useCheckboxGroup: jest.fn(() => ({
-    getCheckboxProps: jest.fn((props) => props || {}),
-  })),
-}));
+type Resullt = {
+  current: UseStudioCheckboxTableLogicResult;
+};
+
+function clickAndSimulateCheckboxClick(
+  result: Resullt,
+  value: string,
+  oldCheckedValue: boolean,
+): void {
+  const mockEvent = {
+    target: { value, checked: !oldCheckedValue },
+  } as ChangeEvent<HTMLInputElement>;
+
+  act(() => {
+    result.current.handleCheckboxChange(mockEvent);
+  });
+}
 
 describe('useStudioCheckboxTableLogic', () => {
-  const checkboxTitle = 'Test group';
-  const option1 = { value: 'option1', label: 'Option 1', checked: false };
-  const option2 = { value: 'option2', label: 'Option 2', checked: false };
-  const checkedOption = { value: 'checked', label: 'Checked Option', checked: true };
+  beforeEach(jest.clearAllMocks);
 
   it('should initialize with given rowElements', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([option1, option2], checkboxTitle),
-    );
-
+    const { result } = renderUseStudioCheckboxTableLogic([option1, option2]);
     expect(result.current.rowElements).toEqual([option1, option2]);
   });
-  /*
-  it('should set hasError to true if all are unchecked initially', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([option1, option2], checkboxTitle),
-    );
 
+  it('should set hasError to true if all options are unchecked initially', () => {
+    const { result } = renderUseStudioCheckboxTableLogic([option1, option2]);
     expect(result.current.hasError).toBe(true);
   });
 
-  it('should set hasError to false if at least one is checked initially', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([checkedOption, option1], checkboxTitle),
-    );
-
+  it('should set hasError to false if at least one option is checked initially', () => {
+    const { result } = renderUseStudioCheckboxTableLogic([option1, checkedOption]);
     expect(result.current.hasError).toBe(false);
   });
 
   it('should check single checkbox and update hasError', () => {
-    const { result } = renderHook(() => useStudioCheckboxTableLogic([option1], checkboxTitle));
-
-    const mockEvent = {
-      target: { value: 'option1', checked: true },
-    } as ChangeEvent<HTMLInputElement>;
-
-    act(() => {
-      result.current.handleCheckboxChange(mockEvent);
-    });
-
+    const { result } = renderUseStudioCheckboxTableLogic([option1]);
+    clickAndSimulateCheckboxClick(result, option1.value, option1.checked);
     expect(result.current.rowElements[0].checked).toBe(true);
     expect(result.current.hasError).toBe(false);
   });
 
   it('should uncheck single checkbox and update hasError if all are unchecked', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([checkedOption], checkboxTitle),
-    );
-
-    const mockEvent = {
-      target: { value: 'checked', checked: false },
-    } as ChangeEvent<HTMLInputElement>;
-
-    act(() => {
-      result.current.handleCheckboxChange(mockEvent);
-    });
-
+    const { result } = renderUseStudioCheckboxTableLogic([checkedOption]);
+    clickAndSimulateCheckboxClick(result, checkedOption.value, checkedOption.checked);
     expect(result.current.rowElements[0].checked).toBe(false);
     expect(result.current.hasError).toBe(true);
   });
 
   it('should check all checkboxes when value is "all" and checked is true', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([option1, option2], checkboxTitle),
-    );
-
-    const mockEvent = {
-      target: { value: 'all', checked: true },
-    } as ChangeEvent<HTMLInputElement>;
-
-    act(() => {
-      result.current.handleCheckboxChange(mockEvent);
-    });
-
+    const { result } = renderUseStudioCheckboxTableLogic([option1, option2]);
+    clickAndSimulateCheckboxClick(result, 'all', false);
     expect(result.current.rowElements.every((el) => el.checked)).toBe(true);
     expect(result.current.hasError).toBe(false);
   });
 
   it('should uncheck all checkboxes when value is "all" and checked is false', () => {
-    const { result } = renderHook(() =>
-      useStudioCheckboxTableLogic([checkedOption], checkboxTitle),
-    );
-
-    const mockEvent = {
-      target: { value: 'all', checked: false },
-    } as ChangeEvent<HTMLInputElement>;
-
-    act(() => {
-      result.current.handleCheckboxChange(mockEvent);
-    });
-
+    const { result } = renderUseStudioCheckboxTableLogic([checkedOption]);
+    clickAndSimulateCheckboxClick(result, 'all', true);
     expect(result.current.rowElements.every((el) => !el.checked)).toBe(true);
     expect(result.current.hasError).toBe(true);
   });
 
   it('should return getCheckboxProps from useCheckboxGroup', () => {
-    const { result } = renderHook(() => useStudioCheckboxTableLogic([option1], checkboxTitle));
-
-    expect(typeof result.current.getCheckboxProps).toBe('function');
-    expect(result.current.getCheckboxProps({ value: 'option1' })).toEqual({ value: 'option1' });
-  });*/
+    const { result } = renderUseStudioCheckboxTableLogic([option1]);
+    expect(result.current.getCheckboxProps({ value: option1.value })).toEqual(
+      expect.objectContaining({
+        'aria-invalid': !option1.checked,
+        checked: option1.checked,
+        value: 'option1',
+        name: mockCheckboxTitle,
+        onChange: expect.any(Function),
+      }),
+    );
+  });
 });
+
+const renderUseStudioCheckboxTableLogic = (
+  initialOptions: StudioCheckboxTableRowElement[],
+  checkboxTitle: string = mockCheckboxTitle,
+): RenderHookResult<UseStudioCheckboxTableLogicResult, unknown> => {
+  return renderHook(() => useStudioCheckboxTableLogic(initialOptions, checkboxTitle));
+};
