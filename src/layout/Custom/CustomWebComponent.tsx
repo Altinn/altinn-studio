@@ -133,5 +133,5 @@ function getTextsForComponent(textResourceBindings: ITextResourceBindings<'Custo
 
 export function useLegacyNestedTexts() {
   const { language } = useLanguage();
-  return useMemo(() => dot.object(language), [language]);
+  return useMemo(() => dot.object(structuredClone(language)), [language]);
 }
