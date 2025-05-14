@@ -8,32 +8,30 @@ import {
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
-import { emptyPolicyRule } from '../../utils';
+import { emptyPolicyRule, organizationSubject } from '../../utils';
 
 const resourceId = 'consent-resource';
-const defaultRules = [
-  {
-    ...emptyPolicyRule,
-    actions: ['consent'],
-    ruleId: '1',
-    resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
-  },
-  {
-    ...emptyPolicyRule,
-    subject: ['organization'],
-    actions: ['requestconsent'],
-    ruleId: '2',
-    resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
-  },
-];
-const accessListSubjects = [
-  {
-    subjectId: 'test-liste',
-    subjectSource: 'altinn:accesslist:ttd',
-    subjectTitle: 'Testliste',
-    subjectDescription: 'Dette er en testliste',
-  },
-];
+const requestConsentRule = {
+  ...emptyPolicyRule,
+  subject: [],
+  actions: ['requestconsent'],
+  ruleId: '1',
+  resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
+};
+const acceptConsentRule = {
+  ...emptyPolicyRule,
+  subject: [],
+  actions: ['consent'],
+  ruleId: '2',
+  resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
+};
+
+const accessListSubject = {
+  subjectId: 'test-liste',
+  subjectSource: 'altinn:accesslist:ttd',
+  subjectTitle: 'Testliste',
+  subjectDescription: 'Dette er en testliste',
+};
 
 describe('ConsentResourcePolicyRulesEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -52,7 +50,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     expect(
       screen.getByText(
         textMock('policy_editor.policy_rule_missing_1', {
-          ruleId: '1',
+          ruleId: '2',
           missing: textMock('policy_editor.policy_rule_missing_subjects'),
         }),
       ),
@@ -67,60 +65,51 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should set all organizations subject in rule for request consent after all organizations radio is clicked', async () => {
+  it('should set all organizations subject in rule for request consent after all organizations checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const rules = [defaultRules[0], { ...defaultRules[1], subject: [] }];
     const onSaveFn = jest.fn();
-    renderConsentResourcePolicyRulesEditor({ policyRules: rules, savePolicy: onSaveFn });
+    renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
-    const allOrganizationsRadio = screen.getByRole('radio', {
+    const allOrganizationsRadio = screen.getByRole('checkbox', {
       name: textMock('policy_editor.consent_resource_all_organizations'),
     });
     await user.click(allOrganizationsRadio);
 
     expect(onSaveFn).toHaveBeenCalledWith([
-      defaultRules[0],
-      { ...defaultRules[1], subject: ['organization'] },
+      { ...requestConsentRule, subject: ['organization'] },
+      acceptConsentRule,
     ]);
-  });
-
-  it('should set all subjects in rule for request consent to empty array after chosen organizations radio is clicked', async () => {
-    const user = userEvent.setup();
-    const rules = [defaultRules[0], { ...defaultRules[1], subject: ['organization'] }];
-    const onSaveFn = jest.fn();
-    renderConsentResourcePolicyRulesEditor({ policyRules: rules, savePolicy: onSaveFn });
-
-    const chosenOrganizationsRadio = screen.getByRole('radio', {
-      name: textMock('policy_editor.consent_resource_access_list_organizations'),
-    });
-    await user.click(chosenOrganizationsRadio);
-
-    expect(onSaveFn).toHaveBeenCalledWith([defaultRules[0], { ...defaultRules[1], subject: [] }]);
   });
 
   it('should set access list subject in rule for request consent after access list checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const rules = [defaultRules[0], { ...defaultRules[1], subject: [] }];
     const onSaveFn = jest.fn();
-    renderConsentResourcePolicyRulesEditor({ policyRules: rules, savePolicy: onSaveFn });
+    renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const accessListCheckbox = screen.getByRole('checkbox', {
-      name: accessListSubjects[0].subjectTitle,
+      name: accessListSubject.subjectTitle,
     });
     await user.click(accessListCheckbox);
 
     expect(onSaveFn).toHaveBeenCalledWith([
-      defaultRules[0],
-      { ...defaultRules[1], subject: [accessListSubjects[0].subjectId] },
+      { ...requestConsentRule, subject: [accessListSubject.subjectId] },
+      acceptConsentRule,
     ]);
   });
 
   it('should display alert if no access lists available', () => {
-    const rules = [defaultRules[0], { ...defaultRules[1], subject: [] }];
-    renderConsentResourcePolicyRulesEditor({ policyRules: rules, subjects: [] });
+    renderConsentResourcePolicyRulesEditor({ subjects: [] });
 
     expect(
       screen.getByText(textMock('policy_editor.consent_resource_no_access_lists')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display error if no subject is chosen for request consent rule', () => {
+    renderConsentResourcePolicyRulesEditor({ subjects: [], showAllErrors: true });
+
+    expect(
+      screen.getByText(textMock('policy_editor.consent_resource_request_consent_error')),
     ).toBeInTheDocument();
   });
 });
@@ -132,8 +121,8 @@ const renderConsentResourcePolicyRulesEditor = (
     <PolicyEditorContext.Provider
       value={{
         ...mockPolicyEditorContextValue,
-        subjects: accessListSubjects,
-        policyRules: defaultRules,
+        subjects: [accessListSubject, organizationSubject],
+        policyRules: [requestConsentRule, acceptConsentRule],
         ...policyEditorContextProps,
       }}
     >

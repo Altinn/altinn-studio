@@ -6,7 +6,7 @@ import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccess
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { organizationSubject } from '../../utils';
-import { StudioCheckbox, StudioHeading, StudioRadio } from '@studio/components-legacy';
+import { StudioCheckbox, StudioErrorMessage, StudioHeading } from '@studio/components-legacy';
 import { StudioAlert } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
@@ -18,8 +18,8 @@ export const ConsentResourcePolicyRulesEditor = () => {
   // consent resources can only have two rules. One for consenting, and one for request consent
   return (
     <>
-      <AcceptConsentPolicyRule policyRule={policyRules[0]} showErrors={showAllErrors} />
-      <RequestConsentPolicyRule policyRule={policyRules[1]} />
+      <RequestConsentPolicyRule policyRule={policyRules[0]} />
+      <AcceptConsentPolicyRule policyRule={policyRules[1]} showErrors={showAllErrors} />
     </>
   );
 };
@@ -51,7 +51,7 @@ const AcceptConsentPolicyRule = ({
       setPolicyError={setPolicyError}
     >
       <div className={classes.consentRuleCard}>
-        <StudioHeading size='xs'>
+        <StudioHeading size='xs' level={2}>
           {t('policy_editor.consent_resource_consent_header')}
         </StudioHeading>
         <PolicySubjects />
@@ -62,16 +62,16 @@ const AcceptConsentPolicyRule = ({
   );
 };
 
-const ALL_ORGANIZATIONS = 'ALL_ORGANIZATIONS';
-const CHOSEN_ORGANIZATIONS = 'CHOSEN_ORGANIZATIONS';
 type RequestConsentPolicyRuleProps = {
   policyRule: PolicyRuleCard;
 };
 const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps) => {
   const { t } = useTranslation();
-  const { policyRules, subjects, setPolicyRules, savePolicy } = usePolicyEditorContext();
+  const { policyRules, subjects, setPolicyRules, savePolicy, showAllErrors } =
+    usePolicyEditorContext();
 
   const handleAccessListsChange = (newSubjects: string[]): void => {
+    // TODO: kan man velge både tilgangsliste og "alle organisasjoner"?
     const updatedRules = getUpdatedRules(
       {
         ...policyRule,
@@ -84,55 +84,50 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
     savePolicy(updatedRules);
   };
 
-  const handleRequestConsentRadioChange = (newValue: string): void => {
-    const newSubjectValue = newValue === ALL_ORGANIZATIONS ? [organizationSubject.subjectId] : [];
-    handleAccessListsChange(newSubjectValue);
-  };
-
-  const isAllOrganizationsChecked = policyRule.subject.indexOf(organizationSubject.subjectId) > -1;
   const accessListSubjects = subjects.filter((subject) =>
     subject.subjectSource.startsWith('altinn:accesslist'),
   );
 
   return (
     <div className={classes.consentRuleCard}>
-      <StudioRadio.Group
-        onChange={handleRequestConsentRadioChange}
-        value={isAllOrganizationsChecked ? ALL_ORGANIZATIONS : CHOSEN_ORGANIZATIONS}
-        legend={t('policy_editor.consent_resource_request_consent_header')}
+      <StudioCheckbox.Group
+        legend={
+          <StudioHeading size='xs' level={1}>
+            {t('policy_editor.consent_resource_request_consent_header')}
+          </StudioHeading>
+        }
+        onChange={handleAccessListsChange}
+        value={policyRule.subject}
+        error={
+          showAllErrors &&
+          policyRule.subject.length === 0 && (
+            <StudioErrorMessage size='small'>
+              {t('policy_editor.consent_resource_request_consent_error')}
+            </StudioErrorMessage>
+          )
+        }
       >
-        <StudioRadio value={ALL_ORGANIZATIONS}>
+        <StudioCheckbox
+          value={organizationSubject.subjectId}
+          description={t('policy_editor.consent_resource_all_organizations_description')}
+          className={classes.accessListItem}
+        >
           {t('policy_editor.consent_resource_all_organizations')}
-        </StudioRadio>
-        <StudioRadio value={CHOSEN_ORGANIZATIONS}>
-          {t('policy_editor.consent_resource_access_list_organizations')}
-        </StudioRadio>
-      </StudioRadio.Group>
-      {!isAllOrganizationsChecked && (
-        <>
-          {accessListSubjects.length === 0 ? (
-            <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
-          ) : (
-            <StudioCheckbox.Group
-              legend={t('policy_editor.consent_resource_access_list_header')}
-              onChange={handleAccessListsChange}
-              value={policyRule.subject}
-              className={classes.accessLists}
-            >
-              {accessListSubjects.map((subject) => (
-                <StudioCheckbox
-                  key={subject.subjectId}
-                  value={subject.subjectId}
-                  description={subject.subjectDescription}
-                  className={classes.accessListItem}
-                >
-                  {subject.subjectTitle}
-                </StudioCheckbox>
-              ))}
-            </StudioCheckbox.Group>
-          )}
-        </>
-      )}
+        </StudioCheckbox>
+        {accessListSubjects.length === 0 && (
+          <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
+        )}
+        {accessListSubjects.map((subject) => (
+          <StudioCheckbox
+            key={subject.subjectId}
+            value={subject.subjectId}
+            description={subject.subjectDescription}
+            className={classes.accessListItem}
+          >
+            {subject.subjectTitle}
+          </StudioCheckbox>
+        ))}
+      </StudioCheckbox.Group>
     </div>
   );
 };
