@@ -180,7 +180,6 @@ const layout2Mock: ExternalFormLayout = {
 };
 export const pagesModelMock: PagesModel = {
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
-  groups: [],
 };
 
 export const groupsPagesModelMock: PagesModel = {
