@@ -196,7 +196,6 @@ export const groupsPagesModelMock: PagesModel = {
       order: [{ id: layout2NameMock }],
     },
   ],
-  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,

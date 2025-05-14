@@ -10,8 +10,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components-legacy';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
-import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
-import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
+import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 
 export type PageAccordionProps = {
   pageName: string;
