@@ -19,7 +19,7 @@ export function StudioCheckboxTableRow({
 
   return (
     <StudioTable.Row>
-      <StudioTable.Cell /* classname?? */>
+      <StudioTable.Cell>
         <StudioCheckbox
           aria-label={label}
           aria-describedby={CHECKBOX_TABLE_ERROR_ID}

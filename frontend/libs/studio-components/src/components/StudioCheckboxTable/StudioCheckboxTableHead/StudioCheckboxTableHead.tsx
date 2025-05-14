@@ -18,7 +18,7 @@ export function StudioCheckboxTableHead({
   return (
     <StudioTable.Head>
       <StudioTable.Row>
-        <StudioTable.HeaderCell /*Classname?? */>
+        <StudioTable.HeaderCell>
           <StudioCheckbox
             aria-label={title}
             aria-invalid={hasError}

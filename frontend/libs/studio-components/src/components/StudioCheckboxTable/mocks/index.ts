@@ -1,4 +1,6 @@
 import type { StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
+import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
+import type { StudioCheckboxTableContextProps } from '../StudioCheckboxTableContext';
 
 export const mockCheckboxTitle: string = 'Test group';
 export const option1: StudioCheckboxTableRowElement = {
@@ -15,4 +17,10 @@ export const checkedOption: StudioCheckboxTableRowElement = {
   value: 'checked',
   label: 'Checked Option',
   checked: true,
+};
+export const mockGetCheckboxProps: StudioGetCheckboxProps = {
+  onChange: () => {},
+};
+export const defaultStudioCheckboxContextProps: StudioCheckboxTableContextProps = {
+  hasError: false,
 };

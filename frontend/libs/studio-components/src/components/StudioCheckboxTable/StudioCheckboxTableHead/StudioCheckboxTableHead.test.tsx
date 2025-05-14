@@ -1,0 +1,51 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { type RenderResult } from '@testing-library/react';
+import { StudioCheckboxTableHead } from './StudioCheckboxTableHead';
+import type { StudioCheckboxTableHeadProps } from './StudioCheckboxTableHead';
+import {
+  defaultStudioCheckboxContextProps,
+  mockCheckboxTitle,
+  mockGetCheckboxProps,
+} from '../mocks';
+import { StudioCheckboxTableContextProvider } from '../StudioCheckboxTableContext';
+import type { StudioCheckboxTableContextProps } from '../StudioCheckboxTableContext';
+
+describe('StudioCheckboxTableHead', () => {
+  it('renders a checkbox with the correct aria-label and value', () => {
+    renderStudioCheckboxTableHead();
+    const checkbox = screen.getByRole('checkbox', { name: mockCheckboxTitle });
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).toHaveAttribute('value', 'all');
+    expect(checkbox).toHaveAttribute('aria-invalid', 'false');
+    expect(checkbox).toHaveAttribute('aria-label', mockCheckboxTitle);
+  });
+
+  it('sets aria-invalid to true when context hasError is true', () => {
+    renderStudioCheckboxTableHead({ providerProps: { hasError: true } });
+
+    const checkbox = screen.getByRole('checkbox', { name: mockCheckboxTitle });
+    expect(checkbox).toHaveAttribute('aria-invalid', 'true');
+  });
+});
+
+const defaultProps: StudioCheckboxTableHeadProps = {
+  title: mockCheckboxTitle,
+  getCheckboxProps: mockGetCheckboxProps,
+};
+
+type Props = {
+  componentProps?: Partial<StudioCheckboxTableHeadProps>;
+  providerProps?: Partial<StudioCheckboxTableContextProps>;
+};
+
+function renderStudioCheckboxTableHead(props: Partial<Props> = {}): RenderResult {
+  const { componentProps, providerProps } = props;
+  return render(
+    <StudioCheckboxTableContextProvider {...defaultStudioCheckboxContextProps} {...providerProps}>
+      <table>
+        <StudioCheckboxTableHead {...defaultProps} {...componentProps} />
+      </table>
+    </StudioCheckboxTableContextProvider>,
+  );
+}
