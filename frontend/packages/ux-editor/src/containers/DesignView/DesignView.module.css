@@ -17,7 +17,6 @@
 .buttonContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   padding-top: var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-subtle);
   padding-bottom: var(--fds-spacing-4);
