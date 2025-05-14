@@ -38,7 +38,7 @@ jobs:
           branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
           version=$(git describe --abbrev=0 --tags 2>/dev/null)
           version=$(echo $version | cut -d '-' -f 1)
-          version="$version-pr.${{ github.run_number }}.$branch.$sha"
+          version="v4.19.0-pr.1090.deleted-parties.bbe09450"
           versionWithoutPrefix=$(echo $version | sed 's/^v//')
           git tag -a $version -m "PR release $version"
           echo "PR_RELEASE_VERSION=$version" >> $GITHUB_ENV
