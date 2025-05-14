@@ -39,7 +39,6 @@ export const SettingsNavigation = (): ReactElement => {
       </div>
       {/*TODO: OnSelectTask and OnSelectAllTasks - Hide tasks #15239 and #15250 */}
       <TasksTable onSelectAllTasks={() => {}} tasks={taskNavigationGroups} />
-      <TasksTable onSelectAllTasks={() => {}} tasks={taskNavigationGroups} />
       <StudioDivider className={classes.divider} />
       <StudioHeading level={4} data-size='2xs'>
         {t('ux_editor.task_table_hidden_tasks')}
