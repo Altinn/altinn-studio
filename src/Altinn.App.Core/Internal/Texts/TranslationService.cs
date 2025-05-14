@@ -28,7 +28,7 @@ internal class TranslationService : ITranslationService
     /// <param name="key">Id of the text resource</param>
     /// <param name="language">Language for the text. If omitted, 'nb' will be used</param>
     /// <returns>The value of the text resource in the specified language</returns>
-    public async Task<string> TranslateTextKey(string key, string? language)
+    public async Task<string?> TranslateTextKey(string key, string? language)
     {
         language = language ?? LanguageConst.Nb;
         TextResource? textResource = await _appResources.GetTexts(_org, _app, language);
@@ -40,14 +40,14 @@ internal class TranslationService : ITranslationService
 
         if (textResource == null)
         {
-            throw new ArgumentException($"Could not locate text resource file with language = \"{language}\"");
+            return null;
         }
 
         var value = textResource.Resources.Find(resource => resource.Id == key)?.Value;
 
         if (value == null)
         {
-            throw new ArgumentException($"Text resource with id = {key} does not exist");
+            return null;
         }
 
         return value;
