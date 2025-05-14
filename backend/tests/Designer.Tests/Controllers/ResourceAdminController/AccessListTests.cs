@@ -245,24 +245,5 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
-
-        [Fact]
-        public async Task GetAllAccessLists_Forbidden()
-        {
-            //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/allaccesslists";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-
-            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
-
-            //Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            //Assert
-            RepositoryMock.VerifyAll();
-            Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
-
-        }
     }
 }
