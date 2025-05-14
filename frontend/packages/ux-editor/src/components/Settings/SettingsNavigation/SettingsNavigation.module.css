@@ -10,6 +10,7 @@
 }
 
 .navigationTabContent {
+  max-width: 744px;
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-5);
@@ -22,4 +23,11 @@
 
 .warningMessage {
   display: inline-flex;
+}
+
+.divider {
+  border-top: 1px solid;
+  border-color: var(--fds-semantic-border-divider-subtle);
+  width: 90%;
+  margin-left: 0;
 }
