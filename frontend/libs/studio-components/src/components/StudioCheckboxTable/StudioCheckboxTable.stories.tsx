@@ -5,6 +5,7 @@ import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableR
 import { useCheckboxGroup, ValidationMessage } from '@digdir/designsystemet-react';
 import { StudioTable } from '../StudioTable';
 import { StudioCheckbox } from '../StudioCheckbox/StudioCheckbox';
+import { useCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
 
 const options: StudioCheckboxTableRowElement[] = [
   {
@@ -17,66 +18,8 @@ const options: StudioCheckboxTableRowElement[] = [
 ];
 
 const PreviewComponent = (args): React.ReactElement => {
-  const [rowElements, setRowElements] = useState<StudioCheckboxTableRowElement[]>(options);
-  const [hasError, setHasError] = useState<boolean>(
-    rowElements.every((element) => !element.checked),
-  );
-
-  const { getCheckboxProps } = useCheckboxGroup({
-    name: 'test',
-    error: hasError,
-  });
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const value: string = event.target.value;
-    const checked: boolean = event.target.checked;
-
-    if (value !== 'all' && checked) {
-      handleCheckSingleCheckbox(value);
-    }
-    if (value !== 'all' && !checked) {
-      handleUnCheckSingleCheckbox(value);
-    }
-    if (value === 'all' && checked) {
-      handleChangeAllCheckboxes(true);
-    }
-    if (value === 'all' && !checked) {
-      handleChangeAllCheckboxes(false);
-    }
-  };
-
-  const handleCheckSingleCheckbox = (value: string): void => {
-    setHasError(false);
-    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
-      rowElements,
-      value,
-      true,
-    );
-    setRowElements(newRowElements);
-  };
-
-  const handleUnCheckSingleCheckbox = (value: string): void => {
-    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
-      rowElements,
-      value,
-      false,
-    );
-    const allAreUnchecked: boolean = getAllUnchecked(newRowElements);
-
-    if (allAreUnchecked) {
-      setHasError(true);
-    }
-    setRowElements(newRowElements);
-  };
-
-  const handleChangeAllCheckboxes = (checked: boolean): void => {
-    setHasError(!checked);
-    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnAllCheckboxes(
-      rowElements,
-      checked,
-    );
-    setRowElements(newRowElements);
-  };
+  const { rowElements, hasError, getCheckboxProps, handleCheckboxChange } =
+    useCheckboxTableLogic(options);
 
   return (
     <>
@@ -87,7 +30,7 @@ const PreviewComponent = (args): React.ReactElement => {
             ...getCheckboxProps({
               allowIndeterminate: true,
               value: 'all',
-              onChange: handleChange,
+              onChange: handleCheckboxChange,
             }),
           }}
         />
@@ -102,7 +45,7 @@ const PreviewComponent = (args): React.ReactElement => {
                   {...getCheckboxProps({
                     value: rowElement.value.toString(),
                     checked: rowElement.checked,
-                    onChange: handleChange,
+                    onChange: handleCheckboxChange,
                   })}
                 />
               </StudioTable.Cell>
@@ -119,27 +62,6 @@ const PreviewComponent = (args): React.ReactElement => {
     </>
   );
 };
-
-function changeCheckedOnCheckboxClicked(
-  rowElements: StudioCheckboxTableRowElement[],
-  valueClicked: string,
-  isChecked: boolean,
-): StudioCheckboxTableRowElement[] {
-  return rowElements.map((element: StudioCheckboxTableRowElement) =>
-    element.value === valueClicked ? { ...element, checked: isChecked } : element,
-  );
-}
-
-function getAllUnchecked(rowElements: StudioCheckboxTableRowElement[]): boolean {
-  return rowElements.every((element: StudioCheckboxTableRowElement) => !element.checked);
-}
-
-function changeCheckedOnAllCheckboxes(
-  rowElements: StudioCheckboxTableRowElement[],
-  checked: boolean,
-): StudioCheckboxTableRowElement[] {
-  return rowElements.map((element: StudioCheckboxTableRowElement) => ({ ...element, checked }));
-}
 
 type Story = StoryFn<typeof StudioCheckboxTable>;
 

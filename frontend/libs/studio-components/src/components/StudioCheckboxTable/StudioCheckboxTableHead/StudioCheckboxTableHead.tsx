@@ -2,12 +2,12 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioCheckbox } from '../../StudioCheckbox/StudioCheckbox';
 import { StudioTable } from '../../StudioTable';
-import type { GetCheckboxProps } from '@digdir/designsystemet-react/dist/types/utilities/hooks/useCheckboxGroup/useCheckboxGroup';
+import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxTableContext } from '../StudioCheckboxTableContext';
 
 export type StudioCheckboxTableHeadProps = {
   title: string;
-  getCheckboxProps: GetCheckboxProps;
+  getCheckboxProps: StudioGetCheckboxProps;
 };
 
 export function StudioCheckboxTableHead({

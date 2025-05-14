@@ -5,16 +5,15 @@ import { StudioCheckbox } from '../../StudioCheckbox';
 import { type StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 import type { GetCheckboxProps } from '@digdir/designsystemet-react/dist/types/utilities/hooks/useCheckboxGroup/useCheckboxGroup';
+import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 
 export type StudioCheckboxTableRowProps = {
   rowElement: StudioCheckboxTableRowElement;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  // getCheckboxProps?: GetCheckboxProps;
+  getCheckboxProps: StudioGetCheckboxProps;
 };
 
 export function StudioCheckboxTableRow({
   rowElement,
-  onChange,
   // getCheckboxProps,
 }: StudioCheckboxTableRowProps): ReactElement {
   const { value, label, checked, disabled, error } = rowElement;
@@ -24,7 +23,6 @@ export function StudioCheckboxTableRow({
       <StudioTable.Cell /* classname?? */>
         <StudioCheckbox
           aria-label={label}
-          onChange={onChange}
           value={value}
           checked={checked}
           disabled={disabled}

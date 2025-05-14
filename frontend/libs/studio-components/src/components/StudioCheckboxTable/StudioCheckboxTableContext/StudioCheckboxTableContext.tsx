@@ -2,7 +2,7 @@ import React, { createContext, useContext } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 
 type StudioCheckboxTableContextProps = {
-  hasError: boolean;
+  hasError?: boolean;
 };
 
 const StudioCheckboxTableContext = createContext<StudioCheckboxTableContextProps | undefined>(
@@ -15,7 +15,7 @@ export type StudioCheckboxTableContextProviderProps = {
 
 export function StudioCheckboxTableContextProvider({
   children,
-  hasError,
+  hasError = false,
 }: Partial<StudioCheckboxTableContextProviderProps>): ReactElement {
   return (
     <StudioCheckboxTableContext.Provider value={{ hasError }}>
