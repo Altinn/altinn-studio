@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/allaccesslists")]
-        public async Task<ActionResult> GetAccessListIdentifiers(string org)
+        public async Task<ActionResult> GetAllAccessLists(string org)
         {
             // sjekk at man er medlem av minst et Resources-Publish-XXXX team for å kunne kalle dette endepunktet
             bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
@@ -151,20 +151,18 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             List<string> envs = GetEnvironmentsForOrg(org);
-            List<AccessList> accessLists = [];
+            List<AccessList> allAccessLists = [];
             foreach (string environment in envs)
             {
                 List<AccessList> envAccessLists = await GetAllAccessListsForEnv(environment, org);
-                foreach (AccessList accessList in envAccessLists)
+                allAccessLists.AddRange(envAccessLists.Where(envAccessList =>
                 {
-                    if (!accessLists.Any(x => x.Identifier == accessList.Identifier))
-                    {
-                        accessLists.Add(accessList);
-                    }
-                }
+                    bool isAlreadyInList = allAccessLists.Any(accessList => accessList.Identifier == envAccessList.Identifier);
+                    return !isAlreadyInList;
+                }));
             }
 
-            return Ok(accessLists);
+            return Ok(allAccessLists);
         }
 
         private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
@@ -187,7 +185,7 @@ namespace Altinn.Studio.Designer.Controllers
                 PagedAccessListResponse pagedListResponse = await _resourceRegistry.GetAccessLists(org, env, "");
                 accessLists.AddRange(pagedListResponse.Data);
                 string nextPage = pagedListResponse.NextPage;
-            
+
                 // load rest of pages
                 while (!string.IsNullOrWhiteSpace(nextPage))
                 {
@@ -200,7 +198,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 Console.WriteLine($"Error fetching access lists for org {org} in env {env}: {ex.Message}");
             }
-            
+
             return accessLists;
         }
 
