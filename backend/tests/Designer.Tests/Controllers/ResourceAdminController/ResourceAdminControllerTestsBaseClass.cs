@@ -16,7 +16,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         protected readonly Mock<IRepository> RepositoryMock;
         protected readonly Mock<IResourceRegistry> ResourceRegistryMock;
         protected readonly Mock<IAltinn2MetadataClient> Altinn2MetadataClientMock;
-        protected readonly Mock<IGitea> GiteaMock;
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
@@ -24,7 +23,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             services.AddTransient(_ => RepositoryMock.Object);
             services.AddTransient(_ => ResourceRegistryMock.Object);
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);
-            services.AddTransient(_ => GiteaMock.Object);
         }
 
         protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory) : base(factory)
@@ -32,7 +30,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock = new Mock<IRepository>();
             ResourceRegistryMock = new Mock<IResourceRegistry>();
             Altinn2MetadataClientMock = new Mock<IAltinn2MetadataClient>();
-            GiteaMock = new Mock<IGitea>();
         }
 
         protected static List<ResourceReference> GetTestResourceReferences()

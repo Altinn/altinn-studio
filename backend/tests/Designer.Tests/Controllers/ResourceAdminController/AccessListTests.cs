@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
@@ -15,48 +16,22 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 {
     public class AccessListTests : ResourceAdminControllerTestsBaseClass<AccessListTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly List <Team> _teams = [
-            new() {
-                Name = "Resources-Publish-TT02",
-                CanCreateOrgRepo = true,
-                Organization = new Organization() {
-                    AvatarUrl = "https://example.com/avatar.png",
-                    Description = "Test organization",
-                    FullName = "Test Organization",
-                    Id = 1,
-                    Location = "Norway",
-                    Username = "ttd",
-                    Website = "https://example.com"
-                }
-            },
-            new() {
-                Name = "Accesslists-TT02",
-                CanCreateOrgRepo = true,
-                Organization = new Organization() {
-                    AvatarUrl = "https://example.com/avatar.png",
-                    Description = "Test organization",
-                    FullName = "Test Organization",
-                    Id = 1,
-                    Location = "Norway",
-                    Username = "ttd",
-                    Website = "https://example.com"
-                }
-            }
-        ];
+        private readonly Mock<IGitea> _giteaApi;
+       
         public AccessListTests(WebApplicationFactory<Program> factory) : base(factory)
         {
+            _giteaApi = new Mock<IGitea>();
         }
 
         [Fact]
         public async Task GetAccessLists_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
             ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -70,7 +45,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/test-list";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-list";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             AccessList list = new AccessList()
@@ -81,7 +56,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             };
 
             ResourceRegistryMock.Setup(r => r.GetAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(list);
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -95,12 +69,11 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetResourceAccessLists_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/ttd_resource/accesslists/";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
             ResourceRegistryMock.Setup(r => r.GetResourceAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -114,7 +87,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task CreateAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             AccessList list = new AccessList()
@@ -125,7 +98,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             };
 
             ResourceRegistryMock.Setup(r => r.CreateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(list), Encoding.UTF8, "application/json");
 
             //Act
@@ -140,11 +112,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task DeleteAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/test-liste";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -158,7 +129,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task UpdateAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/test-liste/";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             AccessList list = new AccessList()
@@ -169,7 +140,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             };
 
             ResourceRegistryMock.Setup(r => r.UpdateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(list), Encoding.UTF8, "application/json");
 
             //Act
@@ -184,11 +154,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/test-liste/members/";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste/members/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
             AccessListOrganizationNumbers payload = new()
             {
                 Data = ["991825827"]
@@ -207,11 +176,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task RemoveAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/accesslist/test-liste/members/";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste/members/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
             AccessListOrganizationNumbers payload = new()
             {
                 Data = ["991825827"]
@@ -230,11 +198,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddResourceAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/ttd_resource/accesslists/test-liste";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ResourceRegistryMock.Setup(r => r.AddResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.OK);
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -248,11 +215,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task RemoveResourceAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/tt02/ttd/resources/ttd_resource/accesslists/test-liste";
+            string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.RemoveResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -271,7 +237,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync(_teams);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -290,7 +255,6 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 
 
             ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
-            GiteaMock.Setup(g => g.GetTeams()).ReturnsAsync([]);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
