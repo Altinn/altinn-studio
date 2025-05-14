@@ -20,7 +20,7 @@ import type {
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
-import { Policy, PolicyRule } from '@altinn/policy-editor/types';
+import type { Policy, PolicyRule } from '@altinn/policy-editor/types';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
