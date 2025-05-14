@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
@@ -16,11 +13,8 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 {
     public class AccessListTests : ResourceAdminControllerTestsBaseClass<AccessListTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly Mock<IGitea> _giteaApi;
-       
         public AccessListTests(WebApplicationFactory<Program> factory) : base(factory)
         {
-            _giteaApi = new Mock<IGitea>();
         }
 
         [Fact]
