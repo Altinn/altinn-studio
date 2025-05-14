@@ -116,7 +116,7 @@ else
     set +x
     echo "-------------------------------------"
   else
-    AZCOPY_INCLUDE_REGEX="^$APP_FULL/*"
+    AZCOPY_INCLUDE_REGEX="^$APP_FULL/.*"
     if [[ "$PRE_RELEASE" == "no" ]]; then
       AZCOPY_INCLUDE_REGEX+="|^$APP_MAJOR/.*|^$APP_MAJOR_MINOR/.*"
     fi
