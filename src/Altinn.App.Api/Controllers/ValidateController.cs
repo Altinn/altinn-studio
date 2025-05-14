@@ -129,7 +129,9 @@ public class ValidateController : ControllerBase
             return NotFound();
         }
 
-        if (instance.Process?.CurrentTask?.ElementId == null)
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+
+        if (taskId is null)
         {
             throw new ValidationException("Unable to validate instance without a started process.");
         }
@@ -152,10 +154,9 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        string taskId = instance.Process.CurrentTask.ElementId;
-
         // Should this be a BadRequest instead?
-        if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
+        // The element will likely not be validated at all if the taskId is not the same as the one in the dataType
+        if (!taskId.Equals(dataType.TaskId, StringComparison.OrdinalIgnoreCase))
         {
             ValidationIssueWithSource message = new()
             {

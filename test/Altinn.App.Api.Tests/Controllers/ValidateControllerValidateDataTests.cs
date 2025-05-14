@@ -45,7 +45,7 @@ public class TestScenariosData : IEnumerable<object[]>
         {
             ReceivedInstance = new Instance
             {
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
                 Data = new List<DataElement>(),
             },
             ExpectedExceptionMessage = "Unable to validate data element.",
@@ -55,8 +55,11 @@ public class TestScenariosData : IEnumerable<object[]>
             DataGuid = _dataGuid,
             ReceivedInstance = new Instance
             {
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
-                Data = new List<DataElement> { new DataElement { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" } },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+                Data = new List<DataElement>
+                {
+                    new DataElement { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", DataType = "dataType" },
+                },
             },
             ReceivedApplication = new ApplicationMetadata("ttd/test") { DataTypes = new List<DataType>() },
             ExpectedExceptionMessage = "Unknown element type.",
@@ -71,7 +74,7 @@ public class TestScenariosData : IEnumerable<object[]>
                 Org = ValidationControllerValidateDataTests.Org,
                 Id = $"{ValidationControllerValidateDataTests.InstanceOwnerId}/{_instanceId}",
                 InstanceOwner = new() { PartyId = ValidationControllerValidateDataTests.InstanceOwnerId.ToString() },
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
                 Data = new List<DataElement>
                 {
                     new DataElement
@@ -118,10 +121,7 @@ public class TestScenariosData : IEnumerable<object[]>
                 Org = ValidationControllerValidateDataTests.Org,
                 Id = $"{ValidationControllerValidateDataTests.InstanceOwnerId}/{_instanceId}",
                 InstanceOwner = new() { PartyId = ValidationControllerValidateDataTests.InstanceOwnerId.ToString() },
-                Process = new ProcessState
-                {
-                    CurrentTask = new ProcessElementInfo { ElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" },
-                },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
                 Data = new List<DataElement>
                 {
                     new DataElement
