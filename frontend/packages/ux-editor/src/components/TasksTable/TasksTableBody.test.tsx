@@ -46,16 +46,6 @@ describe('TasksTableBody', () => {
     expect(displayButtons.length).toBe(3);
   });
 
-  it('should call onSelectTask when a task is clicked', async () => {
-    const user = userEvent.setup();
-    const onSelectTask = jest.fn();
-    renderTasksTableBody({ onSelectTask, isNavigationMode: false });
-
-    const task1Button = screen.getAllByRole('button')[0];
-    await user.click(task1Button);
-    expect(onSelectTask).toHaveBeenCalledWith(0);
-  });
-
   it('should render task name for receipt but not taskId', () => {
     renderTasksTableBody({ tasks: [tasksMock[2]] });
 
@@ -80,7 +70,6 @@ const renderTasksTableBody = (props: Partial<TasksTableBodyProps> = {}) => {
   const defaultProps: TasksTableBodyProps = {
     tasks: tasksMock,
     isNavigationMode: true,
-    onSelectTask: jest.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
