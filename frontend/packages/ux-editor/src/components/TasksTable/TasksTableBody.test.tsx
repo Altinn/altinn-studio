@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
 import { StudioTable } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
