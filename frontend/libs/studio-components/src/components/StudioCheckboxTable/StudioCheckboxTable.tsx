@@ -3,21 +3,28 @@ import type { ReactElement } from 'react';
 import { StudioTable } from '../StudioTable';
 import type { StudioTableProps } from '../StudioTable/StudioTable';
 import { StudioCheckboxTableContextProvider } from './StudioCheckboxTableContext';
+import { StudioValidationMessage } from '../StudioValidationMessage';
+import { CHECKBOX_TABLE_ERROR_ID } from './constants';
 
 export type StudioCheckboxTableProps = StudioTableProps & {
   hasError?: boolean;
+  errorMessage?: string;
 };
 
 export function StudioCheckboxTable({
   className,
   children,
   hasError,
+  errorMessage,
 }: StudioCheckboxTableProps): ReactElement {
   return (
-    <StudioTable className={className}>
-      <StudioCheckboxTableContextProvider hasError={hasError}>
-        {children}
-      </StudioCheckboxTableContextProvider>
-    </StudioTable>
+    <StudioCheckboxTableContextProvider hasError={hasError}>
+      <StudioTable className={className}>{children}</StudioTable>
+      {hasError && errorMessage && (
+        <StudioValidationMessage id={CHECKBOX_TABLE_ERROR_ID}>
+          {errorMessage}
+        </StudioValidationMessage>
+      )}
+    </StudioCheckboxTableContextProvider>
   );
 }

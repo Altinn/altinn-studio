@@ -2,22 +2,18 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
+import type { StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 
-export interface StudioCheckboxTableRowElement {
-  label: string;
-  value: string;
-  checked: boolean;
-}
-
-interface UseCheckboxTableLogicResult {
+type UseCheckboxTableLogicResult = {
   rowElements: StudioCheckboxTableRowElement[];
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
   handleCheckboxChange: (event: ChangeEvent<HTMLInputElement>) => void;
-}
+};
 
 export function useCheckboxTableLogic(
   initialOptions: StudioCheckboxTableRowElement[],
+  checkBoxTitle: string,
 ): UseCheckboxTableLogicResult {
   const [rowElements, setRowElements] = useState<StudioCheckboxTableRowElement[]>(initialOptions);
   const [hasError, setHasError] = useState<boolean>(
@@ -25,7 +21,7 @@ export function useCheckboxTableLogic(
   );
 
   const { getCheckboxProps } = useCheckboxGroup({
-    name: 'test',
+    name: checkBoxTitle,
     error: hasError,
   });
 
