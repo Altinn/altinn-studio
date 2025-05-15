@@ -25,6 +25,12 @@ export const useAddGroupMutation = (org: string, app: string) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.Pages, org, app, selectedFormLayoutSetName],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayouts, org, app, selectedFormLayoutSetName],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, selectedFormLayoutSetName],
+      });
     },
   });
 };
@@ -44,7 +50,7 @@ const createNewGroup = (
   nextPageNumber: number,
   t: (key: string) => string,
 ): GroupModel => ({
-  name: `${t('general.layout_set')} ${(groups?.length || 0) + 1}`,
+  name: `${t('ux_editor.page_layout_group')} ${(groups?.length || 0) + 1}`,
   order: [{ id: `${t('general.page')}${nextPageNumber}` }],
 });
 

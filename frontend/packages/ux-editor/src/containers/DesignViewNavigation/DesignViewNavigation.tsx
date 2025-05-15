@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
-import { MenuElipsisVerticalIcon } from '@studio/icons';
+import {
+  ArrowsSquarepathIcon,
+  MenuElipsisVerticalIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
+} from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
@@ -53,14 +58,17 @@ export const DesignViewNavigation = () => {
                 <DropdownMenu.Group>
                   {/*Functionality and the number of items will be implemented based on the upcoming requirements.*/}
                   <DropdownMenu.Item onClick={undefined}>
+                    <ArrowsSquarepathIcon className={classes.changeTaskIcon} />
                     {t('ux_editor.page_layout_perform_another_task')}
                   </DropdownMenu.Item>
                   {isUsingPageGroups ? (
                     <DropdownMenu.Item onClick={() => convertToPageOrder()}>
+                      <MinusCircleIcon className={classes.deleteGroupIcon} />
                       {t('ux_editor.page_layout_remove_group_division')}
                     </DropdownMenu.Item>
                   ) : (
                     <DropdownMenu.Item onClick={() => convertToPageGroups()}>
+                      <PlusCircleIcon className={classes.groupPagesIcon} />
                       {t('ux_editor.page_layout_add_group_division')}
                     </DropdownMenu.Item>
                   )}
