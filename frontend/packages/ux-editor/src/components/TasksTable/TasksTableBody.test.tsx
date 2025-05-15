@@ -12,8 +12,8 @@ import { layoutSetsExtendedMock } from '../../testing/layoutSetsMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'data', name: 'Task 1', pageCount: 5 },
-  { taskType: 'data', name: 'Task 2', pageCount: 10, taskId: 'Task_2' },
+  { taskType: 'data', name: 'Task 1' },
+  { taskType: 'data', name: 'Task 2', taskId: 'Task_2' },
   { taskType: 'receipt', taskId: 'fake' },
 ];
 

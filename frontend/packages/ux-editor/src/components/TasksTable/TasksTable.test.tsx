@@ -7,8 +7,8 @@ import { renderWithProviders } from '../../testing/mocks';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'type1', name: 'Task 1', pageCount: 5 },
-  { taskType: 'type2', name: 'Task 2', pageCount: 10 },
+  { taskType: 'type1', name: 'Task 1' },
+  { taskType: 'type2', name: 'Task 2' },
 ];
 
 describe('TasksTable', () => {

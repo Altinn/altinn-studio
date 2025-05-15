@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { getTaskIcon, taskNavigationType, TaskType } from '../Settings/SettingsUtils';
 import { useTaskNavigationGroupName } from '../../hooks/useTaskNavigationGroupName';
 import { TaskAction } from './TaskAction';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
@@ -61,12 +63,16 @@ type TaskRowProps = {
 
 const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const TaskIcon = getTaskIcon(task.taskType);
   const taskTypeName = taskNavigationType(task.taskType);
   const { taskNavigationName, taskIdName } = useTaskNavigationGroupName(task);
 
   const taskTypeCellContent =
     task.taskType === TaskType.Receipt ? t(taskTypeName) : `${t(taskTypeName)}: ${taskIdName}`;
+  const pageCount =
+    layoutSets?.find((layoutSet) => layoutSet.task?.id === task.taskId)?.pageCount ?? 0;
 
   return (
     <StudioTable.Row
@@ -85,7 +91,7 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
           {t(taskNavigationName)}
         </StudioTable.Cell>
       )}
-      <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
+      <StudioTable.Cell>{pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
         <TaskAction isNavigationMode={isNavigationMode} onSelectTask={onSelectTask} index={index} />
       </StudioTable.Cell>

@@ -32,13 +32,11 @@ describe('getTaskIcon', () => {
 });
 
 describe('getHiddenTasks', () => {
-  const layoutSetsModel = {
-    sets: [
-      { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },
-      { id: 'layout3', dataType: null, type: '', task: { id: 'task3', type: 'subform' } },
-      { id: 'layout4', dataType: null, type: '', task: { id: 'task4', type: 'signing' } },
-    ],
-  };
+  const layoutSets = [
+    { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },
+    { id: 'layout3', dataType: null, type: '', task: { id: 'task3', type: 'subform' } },
+    { id: 'layout4', dataType: null, type: '', task: { id: 'task4', type: 'signing' } },
+  ];
 
   const taskNavigationGroups = [
     { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data },
@@ -46,7 +44,7 @@ describe('getHiddenTasks', () => {
   ];
 
   it('should return the correct hidden tasks', () => {
-    const result = getHiddenTasks({ taskNavigationGroups, layoutSetsModel });
+    const result = getHiddenTasks({ taskNavigationGroups, layoutSets });
     expect(result).toEqual([
       { taskId: 'task4', taskType: TaskType.Signing, pageCount: undefined },
       { taskType: TaskType.Receipt },
