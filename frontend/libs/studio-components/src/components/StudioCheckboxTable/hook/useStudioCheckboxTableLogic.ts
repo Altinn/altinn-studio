@@ -36,6 +36,7 @@ export function useStudioCheckboxTableLogic(
   const { getCheckboxProps } = useCheckboxGroup({
     name: checkBoxTitle,
     error: hasError,
+    value: rowElements.filter((element) => element.checked).map((element) => element.value),
   });
 
   const handleCheckSingleCheckbox = (value: string): void => {

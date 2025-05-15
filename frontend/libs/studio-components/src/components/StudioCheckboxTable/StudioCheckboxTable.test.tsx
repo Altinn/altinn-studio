@@ -9,7 +9,20 @@ import type { StudioCheckboxTableRowElement } from './types/StudioCheckboxTableR
 import { checkedOption, mockCheckboxTitle, option1, option2 } from './mocks';
 import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
 
-const options: StudioCheckboxTableRowElement[] = [option1, option2, checkedOption];
+const mockOptions: StudioCheckboxTableRowElement[] = [option1, option2, checkedOption];
+const mockOptionsAllChecked: StudioCheckboxTableRowElement[] = mockOptions.map(
+  (option: StudioCheckboxTableRowElement) => ({
+    ...option,
+    checked: true,
+  }),
+);
+const mockOptionsAllUnChecked: StudioCheckboxTableRowElement[] = mockOptions.map(
+  (option: StudioCheckboxTableRowElement) => ({
+    ...option,
+    checked: false,
+  }),
+);
+const mockErrorMessage: string = 'Validation error';
 
 describe('StudioCheckboxTable', () => {
   it('renders table with checkboxes and labels', () => {
@@ -21,44 +34,85 @@ describe('StudioCheckboxTable', () => {
     expect(getCheckbox(checkedOption.label)).toBeInTheDocument();
   });
 
-  it('renders the correct "checked" state for the checkboxes', () => {
+  it('renders the correct "checked" state for the checkboxes', async () => {
     renderCheckboxTable();
-
-    screen.debug();
-
-    // expect(getCheckbox(mockCheckboxTitle)).toBeChecked();
-    expect(getCheckbox(option1.label)).toBeChecked();
-    expect(getCheckbox(option2.label)).toBeChecked();
-    expect(getCheckbox(checkedOption.label)).not.toBeChecked();
+    expect(getCheckbox(mockCheckboxTitle)).not.toBeChecked();
+    expect(getCheckbox(option1.label)).not.toBeChecked();
+    expect(getCheckbox(option2.label)).not.toBeChecked();
+    expect(getCheckbox(checkedOption.label)).toBeChecked();
   });
 
-  /*
+  it('should not have aria-invalid when hasError is false and all elements are checked', () => {
+    renderCheckboxTable({ options: mockOptionsAllChecked });
+    expect(getCheckbox(mockCheckboxTitle)).not.toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(option1.label)).not.toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(option2.label)).not.toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(checkedOption.label)).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('should have aria-invalid when hasError is trye and all elements are unchecked', () => {
+    renderCheckboxTable({ componentProps: { hasError: true }, options: mockOptionsAllUnChecked });
+    expect(getCheckbox(mockCheckboxTitle)).toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(option1.label)).toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(option2.label)).toHaveAttribute('aria-invalid', 'true');
+    expect(getCheckbox(checkedOption.label)).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('shows error message if hasError is true', () => {
-    renderCheckboxTable();
-    expect(screen.getByText('Validation error')).toBeInTheDocument();
+    renderCheckboxTable({ componentProps: { hasError: true, errorMessage: mockErrorMessage } });
+    expect(screen.getByText(mockErrorMessage)).toBeInTheDocument();
   });
 
   it('toggles checkboxes on user interaction', async () => {
-    renderCheckboxTable();
     const user = userEvent.setup();
+    renderCheckboxTable();
+    const checkbox1 = getCheckbox(option1.label);
+    expect(checkbox1).not.toBeChecked();
+    await user.click(checkbox1);
+    expect(checkbox1).toBeChecked();
+  });
 
-    const option1 = screen.getByLabelText('Option 1') as HTMLInputElement;
-    expect(option1.checked).toBe(false);
+  it('checks all checkboxes when the "all" checkbox is checked', async () => {
+    const user = userEvent.setup();
+    renderCheckboxTable();
+    const allCheckbox = getCheckbox(mockCheckboxTitle);
+    expect(allCheckbox).not.toBeChecked();
+    await user.click(allCheckbox);
+    expect(allCheckbox).toBeChecked();
+    expect(getCheckbox(option1.label)).toBeChecked();
+    expect(getCheckbox(option2.label)).toBeChecked();
+    expect(getCheckbox(checkedOption.label)).toBeChecked();
+  });
 
-    await user.click(option1);
-    // Note: logic updates won't reflect in original component due to separate logic per render,
-    // so this test focuses only on interaction, not state update validation.
-    expect(option1.checked).toBe(true);
-  });*/
+  it('unchecks all checkboxes when the "all" checkbox is unchecked', async () => {
+    const user = userEvent.setup();
+    renderCheckboxTable({ componentProps: { errorMessage: mockErrorMessage } });
+    expect(screen.queryByText(mockErrorMessage)).not.toBeInTheDocument();
+    const allCheckbox = getCheckbox(mockCheckboxTitle);
+    await user.click(allCheckbox);
+    await user.click(allCheckbox);
+    expect(allCheckbox).not.toBeChecked();
+    expect(getCheckbox(option1.label)).not.toBeChecked();
+    expect(getCheckbox(option2.label)).not.toBeChecked();
+    expect(getCheckbox(checkedOption.label)).not.toBeChecked();
+    expect(screen.getByText(mockErrorMessage)).toBeInTheDocument();
+  });
 });
 
-function renderCheckboxTable(props?: Partial<StudioCheckboxTableProps>): RenderResult {
+type Props = {
+  componentProps?: Partial<StudioCheckboxTableProps>;
+  options: StudioCheckboxTableRowElement[];
+};
+
+function renderCheckboxTable(props?: Partial<Props>): RenderResult {
+  const { componentProps, options } = props || {};
+
   const Component = (): ReactElement => {
     const { hasError, rowElements, getCheckboxProps, handleCheckboxChange } =
-      useStudioCheckboxTableLogic(options, mockCheckboxTitle);
+      useStudioCheckboxTableLogic(options ?? mockOptions, mockCheckboxTitle);
 
     return (
-      <StudioCheckboxTable hasError={hasError} errorMessage='Validation error' {...props}>
+      <StudioCheckboxTable hasError={hasError} {...componentProps}>
         <StudioCheckboxTable.Head
           title={mockCheckboxTitle}
           getCheckboxProps={{
@@ -78,6 +132,7 @@ function renderCheckboxTable(props?: Partial<StudioCheckboxTableProps>): RenderR
                 ...getCheckboxProps({
                   value: row.value,
                   checked: row.checked,
+                  name: row.label,
                   onChange: handleCheckboxChange,
                 }),
               }}

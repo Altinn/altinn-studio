@@ -6,7 +6,6 @@ import type { StudioTableProps } from '../StudioTable/StudioTable';
 import { StudioCheckboxTableContextProvider } from './StudioCheckboxTableContext';
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import { CHECKBOX_TABLE_ERROR_ID } from './constants';
-import { StudioParagraph } from '../StudioParagraph';
 
 export type StudioCheckboxTableProps = StudioTableProps & {
   hasError?: boolean;
@@ -27,7 +26,7 @@ export function StudioCheckboxTable({
       <StudioTable className={className}>{children}</StudioTable>
       {hasError && errorMessage && (
         <StudioValidationMessage id={CHECKBOX_TABLE_ERROR_ID} className={classes.errorMessage}>
-          <StudioParagraph className={classes.errorText}>{errorMessage}</StudioParagraph>
+          {errorMessage}
         </StudioValidationMessage>
       )}
     </StudioCheckboxTableContextProvider>
