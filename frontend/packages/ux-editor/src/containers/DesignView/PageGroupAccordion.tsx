@@ -71,11 +71,6 @@ export const PageGroupAccordion = ({
   return pages?.groups.map((group, groupIndex) => {
     if (!group.order || group.order.length === 0) return null;
 
-    const displayName =
-      group.order.length === 1
-        ? group.order[0].id
-        : `${t('ux_editor.page_layout_group')} ${groupIndex + 1}`;
-
     const handleConfirmDelete = () => {
       if (confirm(t('ux_editor.component_group_navigation_deletion_text'))) {
         const updatedGroups = pages.groups.filter((_, i) => i !== groupIndex);
@@ -84,6 +79,8 @@ export const PageGroupAccordion = ({
         });
       }
     };
+
+    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
@@ -94,12 +91,12 @@ export const PageGroupAccordion = ({
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
             <StudioHeading level={3} size='2xs'>
-              {displayName}
+              {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioButton
-              title={t('general.delete_item', { item: displayName })}
+              title={t('general.delete_item', { item: groupDisplayName })}
               color='danger'
               icon={<TrashIcon />}
               onClick={handleConfirmDelete}

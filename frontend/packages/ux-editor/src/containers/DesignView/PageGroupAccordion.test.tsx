@@ -90,7 +90,23 @@ describe('PageGroupAccordion', () => {
     await renderPageGroupAccordion({ props: { pages: multiPageGroupMock } });
     const groupHeader = groupAccordionHeader(0);
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
-    expect(heading).toHaveTextContent(`${textMock('ux_editor.page_layout_group')} 1`);
+    expect(heading).toHaveTextContent('Group 1');
+  });
+
+  it('should display page ID as displayName when group has one page', async () => {
+    const singlePageGroupWithEmptyNameMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: '',
+          order: [{ id: 'Side 1' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupWithEmptyNameMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side 1');
   });
 });
 
