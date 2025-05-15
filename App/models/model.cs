@@ -166,12 +166,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("CheckboxesGroupExample", Order = 30)]
     [JsonProperty("CheckboxesGroupExample")]
     [JsonPropertyName("CheckboxesGroupExample")]
-    public CheckboxesGroupExample CheckboxesGroupExample { get; set; }
+    public List<CheckboxesGroupExample> CheckboxesGroupExample { get; set; }
 
     [XmlElement("MultiselectGroupExample", Order = 31)]
     [JsonProperty("MultiselectGroupExample")]
     [JsonPropertyName("MultiselectGroupExample")]
-    public MultiselectGroupExample MultiselectGroupExample { get; set; }
+    public List<MultiselectGroupExample> MultiselectGroupExample { get; set; }
 
   }
 
@@ -476,9 +476,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-    public DateTime? String { get; set; }
-
-    public bool ShouldSerializeString() => String.HasValue;
+    public string String { get; set; }
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -487,11 +485,10 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
-    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
-    public string DateOnly { get; set; }
+    public DateOnly? DateOnly { get; set; }
 
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]
@@ -512,6 +509,14 @@ namespace Altinn.App.Models.Model
 
   public class CheckboxesGroupExample
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("age", Order = 1)]
     [JsonProperty("age")]
@@ -530,20 +535,28 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("surname")]
     public string surname { get; set; }
 
-    [XmlElement("Name", Order = 4)]
-    [JsonProperty("Name")]
-    [JsonPropertyName("Name")]
-    public Name Name { get; set; }
-
-    [XmlElement("Internal", Order = 5)]
+    [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
     public Internal Internal { get; set; }
+
+    [XmlElement("Name", Order = 5)]
+    [JsonProperty("Name")]
+    [JsonPropertyName("Name")]
+    public Name Name { get; set; }
 
   }
 
   public class MultiselectGroupExample
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("age", Order = 1)]
     [JsonProperty("age")]
@@ -562,15 +575,15 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("surname")]
     public string surname { get; set; }
 
-    [XmlElement("Name", Order = 4)]
-    [JsonProperty("Name")]
-    [JsonPropertyName("Name")]
-    public Name Name { get; set; }
-
-    [XmlElement("Internal", Order = 5)]
+    [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
     public Internal Internal { get; set; }
+
+    [XmlElement("Name", Order = 5)]
+    [JsonProperty("Name")]
+    [JsonPropertyName("Name")]
+    public Name Name { get; set; }
 
   }
 }

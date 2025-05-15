@@ -89,11 +89,11 @@
           "id": "ListPage-ListWithCheckboxesComponent",
           "type": "List",
           "dataModelBindings": {
-            "group": "ListCheckboxExample",
-            "name": "ListCheckboxExample.Name.firstname",
-            "age": "ListCheckboxExample.age",
-            "profession": "ListCheckboxExample.profession",
-            "checked": "ListCheckboxExample.Internal.isChecked"
+            "group": "ListGroupExample",
+            "name": "ListGroupExample.Name.firstname",
+            "age": "ListGroupExample.age",
+            "profession": "ListGroupExample.profession",
+            "checked": "ListGroupExample.Internal.isChecked"
           },
           "deletionStrategy": "soft",
           "textResourceBindings": {
@@ -120,9 +120,9 @@
             "title": "Repeterende Gruppe"
           },
           "dataModelBindings": {
-            "group": "ListCheckboxExample"
+            "group": "ListGroupExample"
           },
-          "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.Internal.isChecked"], false],
+          "hiddenRow": ["equals",["dataModel", "ListGroupExample.Internal.isChecked"], false],
           "hidden": false,
           "children": [
             "RepeatingGroupListWithCheckboxesAge",
@@ -137,7 +137,7 @@
           "textResourceBindings": {
             "title":"Age"
           },
-          "value": ["dataModel","ListCheckboxExample.age"]
+          "value": ["dataModel","ListGroupExample.age"]
         },
         {
           "id": "RepeatingGroupListWithCheckboxesName",
@@ -145,7 +145,7 @@
           "textResourceBindings": {
             "title":"Name"
           },
-          "value": ["dataModel","ListCheckboxExample.Name.firstname"]
+          "value": ["dataModel","ListGroupExample.Name.firstname"]
         },
         {
           "id": "RepeatingGroupListWithCheckboxesProfession",
@@ -153,7 +153,7 @@
           "textResourceBindings": {
             "title":"Profession"
           },
-          "value": ["dataModel","ListCheckboxExample.profession"]
+          "value": ["dataModel","ListGroupExample.profession"]
         },
         {
           "id": "RepeatingGroupListWithCheckboxesSurname",
@@ -162,7 +162,7 @@
             "title": "Surname"
           },
           "dataModelBindings": {
-            "simpleBinding": "ListCheckboxExample.surname"
+            "simpleBinding": "ListGroupExample.surname"
           }
         },
         {

@@ -50,7 +50,7 @@
             "value": "langeStrekningerPaStorreVeierINorge"
           }
         ],
-        "required": false
+        "required": true
       },
       {
         "size": "h3",
@@ -147,18 +147,17 @@
       },
       {
         "dataModelBindings": {
-          "group": "ListCheckboxExample",
-          "simpleBinding": "ListCheckboxExample.Name.id",
-          "checked": "ListCheckboxExample.Internal.isChecked"
+          "group": "CheckboxesGroupExample",
+          "simpleBinding": "CheckboxesGroupExample.Name.id"
         },
-        "deletionStrategy":"soft",
+        "deletionStrategy":"hard",
         "id": "CheckboxesPage-Checkboxes2",
         "type": "Checkboxes",
         "textResourceBindings": {
           "title": "CheckboxesPage.Checkboxes.title"
         },
         "optionsId": "persons",
-        "required": false
+        "required": true
       },
       {
         "id": "CheckboxesPage-RepeatingGroup",
@@ -167,10 +166,10 @@
           "title": "Repeterende Gruppe"
         },
         "dataModelBindings": {
-          "group": "ListCheckboxExample"
+          "group": "CheckboxesGroupExample"
         },
         "hidden": false,
-        "hiddenRow": ["equals",["dataModel", "ListCheckboxExample.Internal.isChecked"], false],
+        "hiddenRow": ["equals",["dataModel", "CheckboxesGroupExample.Internal.isChecked"], false],
         "children": [
           "CheckboxesPage-RepeatingGroupName",
           "CheckboxesPage-RepeatingGroupAge"
@@ -182,7 +181,7 @@
         "textResourceBindings": {
           "title":"Name"
         },
-        "value": ["dataModel","ListCheckboxExample.Name.firstname"]
+        "value": ["dataModel","CheckboxesGroupExample.Name.id"]
       },
       {
         "id": "CheckboxesPage-RepeatingGroupAge",
@@ -191,7 +190,7 @@
           "title":"Age"
         },
         "dataModelBindings": {
-          "simpleBinding":"ListCheckboxExample.age"
+          "simpleBinding":"CheckboxesGroupExample.age"
         }
       },
       {
