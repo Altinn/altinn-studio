@@ -525,7 +525,7 @@ describe('getResourceSubjects', () => {
         subjectDescription: '',
       },
     ];
-    const result = getResourceSubjects([], subjectData, 'ttd', false);
+    const result = getResourceSubjects(undefined, subjectData, 'ttd', false);
     expect(result).toEqual(subjectData);
   });
 
