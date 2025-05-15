@@ -2,6 +2,7 @@ import type { TextResource } from '../../types/TextResource';
 import type { CodeList } from './types/CodeList';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import { updateCodeList } from './utils';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export type ReducerState = {
   codeList: CodeList;
@@ -73,54 +74,29 @@ function setTextResources(state: ReducerState, action: SetTextResourcesAction): 
 
 function addTextResource(state: ReducerState, action: AddTextResourceAction): ReducerState {
   const updatedCodeList: CodeList = addTextResourceToCodeList(state.codeList, action);
-  const updatedTextResources: TextResource[] = addTextResourceToList(
-    state.textResources,
-    action.textResource,
-  );
-  return {
-    textResources: updatedTextResources,
-    codeList: updatedCodeList,
-  };
+  const updatedTextResources: TextResource[] = TextResourceUtils.fromArray(state.textResources)
+    .set(action.textResource)
+    .asArray();
+  return { textResources: updatedTextResources, codeList: updatedCodeList };
 }
 
 function updateTextResourceValue(
   state: ReducerState,
   action: UpdateTextResourceValueAction,
 ): ReducerState {
-  const updatedTextResources: TextResource[] = updateTextResourceValueInList(
-    state.textResources,
-    action,
-  );
-  return {
-    ...state,
-    textResources: updatedTextResources,
-  };
+  const updatedTextResource = textResourceFromUpdateAction(action);
+  const updatedList = TextResourceUtils.fromArray(state.textResources)
+    .set(updatedTextResource)
+    .asArray();
+  return { ...state, textResources: updatedList };
 }
+
+const textResourceFromUpdateAction = (action: UpdateTextResourceValueAction): TextResource => ({
+  id: action.textResourceId,
+  value: action.newValue,
+});
 
 function addTextResourceToCodeList(codeList: CodeList, action: AddTextResourceAction): CodeList {
   const { textResource, property, codeItemIndex } = action;
   return updateCodeList(codeList, { newValue: textResource.id, codeItemIndex, property });
-}
-
-function addTextResourceToList(
-  textResources: TextResource[],
-  textResource: TextResource,
-): TextResource[] {
-  return [...textResources, textResource];
-}
-
-function updateTextResourceValueInList(
-  textResources: TextResource[],
-  action: UpdateTextResourceValueAction,
-): TextResource[] {
-  const { textResourceId, newValue } = action;
-  const newTextResources = [...textResources];
-
-  const indexOfTextResource: number = newTextResources.findIndex(
-    (item: TextResource): boolean => item.id === textResourceId,
-  );
-  const oldItem = newTextResources[indexOfTextResource];
-  newTextResources[indexOfTextResource] = { ...oldItem, value: newValue };
-
-  return newTextResources;
 }
