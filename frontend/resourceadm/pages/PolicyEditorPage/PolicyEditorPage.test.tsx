@@ -116,10 +116,6 @@ describe('PolicyEditorPage', () => {
   });
 
   it('displays the page spinner when access lists for consent resource', async () => {
-    renderPolicyEditorPage();
-
-    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
-
     getResource.mockImplementation(() =>
       Promise.resolve<Resource>({
         identifier: 'test-resource',
@@ -131,6 +127,10 @@ describe('PolicyEditorPage', () => {
         resourceType: 'Consentresource',
       }),
     );
+
+    renderPolicyEditorPage();
+
+    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
