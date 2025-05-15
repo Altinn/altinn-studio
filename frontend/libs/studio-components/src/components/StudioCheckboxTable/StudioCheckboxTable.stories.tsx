@@ -12,7 +12,7 @@ const options: StudioCheckboxTableRowElement[] = [
     checked: false,
   },
   { value: 'Value2', label: 'Label2', checked: false },
-  { value: 'Value3', label: 'Label3', checked: false },
+  { value: 'Value3', label: 'Label3', checked: true },
 ];
 
 const PreviewComponent = (args): ReactElement => {
