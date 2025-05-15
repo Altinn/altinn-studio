@@ -32,7 +32,9 @@ export const TasksTable = ({
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.HeaderCell>{t('ux_editor.task_table_type')}</StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>{t('ux_editor.task_table_name')}</StudioTable.HeaderCell>
+          {isNavigationMode && (
+            <StudioTable.HeaderCell>{t('ux_editor.task_table_name')}</StudioTable.HeaderCell>
+          )}
           <StudioTable.HeaderCell>{t('ux_editor.task_table_pages')}</StudioTable.HeaderCell>
           <StudioTable.HeaderCell />
         </StudioTable.Row>

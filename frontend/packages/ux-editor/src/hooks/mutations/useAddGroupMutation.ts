@@ -25,6 +25,12 @@ export const useAddGroupMutation = (org: string, app: string) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.Pages, org, app, selectedFormLayoutSetName],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayouts, org, app, selectedFormLayoutSetName],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, selectedFormLayoutSetName],
+      });
     },
   });
 };
