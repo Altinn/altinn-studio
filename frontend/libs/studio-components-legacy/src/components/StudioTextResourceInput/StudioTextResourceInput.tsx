@@ -23,7 +23,6 @@ type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
   inputClass?: string;
-  onBlurTextResource?: (textResource: TextResource) => void;
   onChangeCurrentId: (id: string | null) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
   onCreateTextResource?: (newTextResource: TextResource) => void;
@@ -41,7 +40,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       currentId: givenCurrentId,
       currentIdClass,
       inputClass,
-      onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onCreateTextResource,
@@ -82,9 +80,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeTextResource?.(newTextResource);
     };
 
-    const handleBlurTextResource = (textResource: TextResource): void =>
-      onBlurTextResource?.(textResource);
-
     const rootClass = cn(givenClass, classes.container);
 
     return (
@@ -93,7 +88,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
           currentId={currentId}
           inputClass={inputClass}
           mode={mode}
-          onBlurTextResource={handleBlurTextResource}
           onChangeCurrentId={handleChangeCurrentId}
           onChangeTextResource={handleChangeTextResource}
           onCreateTextResource={handleCreateTextResource}
@@ -115,7 +109,7 @@ StudioTextResourceInput.displayName = 'StudioTextResourceInput';
 
 type InputBoxProps = RequiredSelection<
   StudioTextResourceInputProps,
-  'onBlurTextResource' | 'onChangeTextResource' | 'onCreateTextResource' | 'onUpdateTextResource'
+  'onChangeTextResource' | 'onCreateTextResource' | 'onUpdateTextResource'
 > & {
   mode: Mode;
 };
@@ -126,7 +120,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
       currentId,
       inputClass,
       mode,
-      onBlurTextResource,
       onChangeCurrentId,
       onChangeTextResource,
       onCreateTextResource,
@@ -148,7 +141,6 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
             className={className}
             currentId={currentId}
             label={texts.valueLabel}
-            onBlurTextResource={onBlurTextResource}
             onChangeTextResource={onChangeTextResource}
             onCreateTextResource={onCreateTextResource}
             onKeyDown={onKeyDown}
@@ -183,7 +175,6 @@ type ValueFieldProps = StudioTextfieldProps &
   Pick<
     InputBoxProps,
     | 'currentId'
-    | 'onBlurTextResource'
     | 'onChangeTextResource'
     | 'onCreateTextResource'
     | 'onUpdateTextResource'
@@ -195,7 +186,6 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     {
       currentId,
       onBlur,
-      onBlurTextResource,
       onChange,
       onChangeTextResource,
       onCreateTextResource,
@@ -243,10 +233,9 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
         const { value } = event.target;
         const newTextResource = editOrCreateTextResource(value);
         updateTextResource(newTextResource);
-        onBlurTextResource(newTextResource);
         onBlur?.(event);
       },
-      [onBlur, onBlurTextResource, editOrCreateTextResource, updateTextResource],
+      [onBlur, editOrCreateTextResource, updateTextResource],
     );
 
     const changeTextResourceIfExists = useCallback(
