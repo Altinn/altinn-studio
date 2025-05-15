@@ -556,4 +556,9 @@ describe('getResourceSubjects', () => {
       organizationSubject,
     ]);
   });
+
+  it('should return subjectData with organization subject if resource is consent resource', () => {
+    const result = getResourceSubjects(undefined, [], 'ttd', true);
+    expect(result).toEqual([organizationSubject]);
+  });
 });
