@@ -133,18 +133,6 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-        public static void AssertValidXmlContent(string xmlContent)
-        {
-            try
-            {
-                _ = XDocument.Parse(xmlContent);
-            }
-            catch (XmlException)
-            {
-                throw new ArgumentException("Invalid xml content.");
-            }
-        }
-
         public static async Task AssertValidXmlStreamAndRewindAsync(Stream xmlStream)
         {
             XmlReaderSettings settings = new XmlReaderSettings
