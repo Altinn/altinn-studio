@@ -10,5 +10,4 @@ export type {
 export {
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
-  organizationSubject,
 } from './utils';
