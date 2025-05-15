@@ -13,10 +13,7 @@ export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
 
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(
-    org,
-    app,
-  );
+  const { data: layoutSets, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(org, app);
   const { data: taskNavigationGroups, isPending: tasksIsPending } = useTaskNavigationGroupQuery(
     org,
     app,
@@ -25,7 +22,7 @@ export const SettingsNavigation = (): ReactElement => {
   if (tasksIsPending || layoutSetsPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
 
-  const hiddenTasks = getHiddenTasks({ taskNavigationGroups, layoutSetsModel });
+  const hiddenTasks = getHiddenTasks({ taskNavigationGroups, layoutSets });
 
   return (
     <div className={classes.navigationTabContent}>

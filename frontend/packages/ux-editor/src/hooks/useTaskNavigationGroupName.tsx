@@ -23,9 +23,7 @@ export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTas
     };
   }
 
-  const matchingTask = layoutSetsModel?.sets.find(
-    (layoutSet) => layoutSet.task?.id === task.taskId,
-  );
+  const matchingTask = layoutSetsModel?.find((layoutSet) => layoutSet.task?.id === task.taskId);
 
   const taskNavigationName = task?.name
     ? (textResourceName ?? task.name)
