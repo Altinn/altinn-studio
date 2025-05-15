@@ -86,7 +86,7 @@ const renderPageGroupAccordion = async ({ props, queries }: renderParameters) =>
       pages={pagesMock}
       layouts={layouts}
       onAccordionClick={jest.fn()}
-      onAddPage={jest.fn()}
+      addPageInGroup={jest.fn()}
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,

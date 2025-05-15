@@ -23,6 +23,7 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
+import { useUpdateGroupsMutation } from '../../hooks/mutations/useUpdateGroupsMutation';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -98,6 +99,44 @@ export const DesignView = (): ReactNode => {
     });
   };
 
+  const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
+
+  const handleAddPageInsideGroup = (groupIndex: number) => {
+    const allPageNames = [
+      ...(pagesModel?.pages?.map((page) => page.id) || []),
+      ...(pagesModel?.groups?.flatMap((group) => group.order.map((page) => page.id)) || []),
+    ];
+
+    let nextNum = allPageNames.length + 1;
+    let newLayoutName = `${t('ux_editor.page')}${nextNum}`;
+
+    while (allPageNames.includes(newLayoutName)) {
+      nextNum += 1;
+      newLayoutName = `${t('ux_editor.page')}${nextNum}`;
+    }
+
+    const page: PageModel = { id: newLayoutName };
+
+    const updatedPages = {
+      ...pagesModel,
+      groups: pagesModel.groups.map((group, index) => {
+        if (index === groupIndex) {
+          return {
+            ...group,
+            order: [...(group.order || []), page],
+          };
+        }
+        return group;
+      }),
+    };
+    updateGroupsMutation.mutate(updatedPages, {
+      onSuccess: async () => {
+        setSelectedFormLayoutName(page.id);
+        await updateLayoutsForPreview(selectedFormLayoutSetName);
+      },
+    });
+  };
+
   const layoutsWithDuplicateComponents = useMemo(
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
@@ -151,7 +190,7 @@ export const DesignView = (): ReactNode => {
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}
-              onAddPage={handleAddPage}
+              addPageInGroup={handleAddPageInsideGroup}
               isAddPagePending={isAddPageMutationPending}
             />
           ) : (

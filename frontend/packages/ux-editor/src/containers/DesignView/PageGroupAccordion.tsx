@@ -24,7 +24,7 @@ export interface PageGroupAccordionProps {
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
   onAccordionClick: (pageName: string) => void;
-  onAddPage: () => void;
+  addPageInGroup: (groupIndex: number) => void;
   isAddPagePending: boolean;
 }
 
@@ -33,7 +33,7 @@ export const PageGroupAccordion = ({
   layouts,
   selectedFormLayoutName,
   onAccordionClick,
-  onAddPage,
+  addPageInGroup,
   isAddPagePending,
 }: PageGroupAccordionProps): ReactNode => {
   const { t } = useTranslation();
@@ -139,7 +139,7 @@ export const PageGroupAccordion = ({
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
               >
-                {page.id === selectedFormLayoutName && (
+                {page.id === selectedFormLayoutName && layout && (
                   <FormLayout
                     layout={layout}
                     isInvalid={isInvalidLayout}
@@ -153,7 +153,7 @@ export const PageGroupAccordion = ({
         <div className={classes.buttonContainer}>
           <StudioButton
             icon={<PlusIcon aria-hidden />}
-            onClick={onAddPage}
+            onClick={() => addPageInGroup(groupIndex)}
             className={classes.button}
             disabled={isAddPagePending}
           >
