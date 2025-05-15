@@ -649,7 +649,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
         {
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/consent-templates/content/authorization/architecture/resourceregistry/consent_templates.json";
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/consent_templates.json";
 
             try
             {
