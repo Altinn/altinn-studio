@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 const mockResourceId: string = 'r1';
 const mockOrg: string = 'test';
@@ -50,6 +51,7 @@ const mockSubjects: PolicySubject[] = [
 const getPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve([]));
 const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve([]));
+const getResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -112,6 +114,30 @@ describe('PolicyEditorPage', () => {
 
     expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();
   });
+
+  it('displays the page spinner when access lists for consent resource', async () => {
+    renderPolicyEditorPage();
+
+    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
+
+    getResource.mockImplementation(() =>
+      Promise.resolve<Resource>({
+        identifier: 'test-resource',
+        title: {
+          nb: 'test',
+          nn: '',
+          en: '',
+        },
+        resourceType: 'Consentresource',
+      }),
+    );
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
+    );
+
+    expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();
+  });
 });
 
 const renderPolicyEditorPage = (
@@ -123,6 +149,7 @@ const renderPolicyEditorPage = (
     getPolicy,
     getPolicyActions,
     getPolicySubjects,
+    getResource,
     ...queries,
   };
   return render(
