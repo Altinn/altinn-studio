@@ -80,6 +80,8 @@ export const PageGroupAccordion = ({
       }
     };
 
+    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
@@ -89,12 +91,12 @@ export const PageGroupAccordion = ({
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
             <StudioHeading level={3} size='2xs'>
-              {group.name}
+              {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioButton
-              title={t('general.delete_item', { item: group.name })}
+              title={t('general.delete_item', { item: groupDisplayName })}
               color='danger'
               icon={<TrashIcon />}
               onClick={handleConfirmDelete}
