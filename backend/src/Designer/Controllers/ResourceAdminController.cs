@@ -697,7 +697,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/consenttemplates")]
         public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
         {
-            string cacheKey = "consentTemplates";
+            string cacheKey = $"consentTemplates${org}";
             if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate> consentTemplates))
             {
                 consentTemplates = await _resourceRegistry.GetConsentTemplates(org);
