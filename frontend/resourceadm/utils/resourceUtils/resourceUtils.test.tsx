@@ -487,10 +487,17 @@ describe('getResourcePolicyRules', () => {
   });
 
   it('should remove consent rules if resource is not a consent resource but has consent rules', () => {
-    const policyData = createPolicy(expectedConsentRules);
+    const normalRule = {
+      ...emptyPolicyRule,
+      subject: [],
+      actions: [],
+      ruleId: '3',
+      resources: [[`urn:altinn:resource:${resourceId}`]],
+    };
+    const policyData = createPolicy([...expectedConsentRules, normalRule]);
     const result = getResourcePolicyRules(policyData, resourceId, false);
 
-    expect(result.rules).toEqual([]);
+    expect(result.rules).toEqual([normalRule]);
   });
 
   it('should return the same policy if resource is a consent resource and consent rules already exist', () => {

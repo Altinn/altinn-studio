@@ -595,12 +595,13 @@ const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
   return [requestConsentRule, acceptConsentRule];
 };
 
+const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
+  return rule.actions.some((action) => action === targetAction);
+};
 const hasConsentRules = (policyData: Policy): boolean => {
-  const hasAcceptConsentAction = policyData.rules.some((rule) =>
-    rule.actions.some((action) => action === 'consent'),
-  );
+  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
   const hasRequestConsentAction = policyData.rules.some((rule) =>
-    rule.actions.some((action) => action === 'requestconsent'),
+    hasPolicyAction(rule, 'requestconsent'),
   );
 
   return hasAcceptConsentAction && hasRequestConsentAction;
@@ -617,10 +618,12 @@ export const getResourcePolicyRules = (
       rules: getConsentResourceDefaultRules(resourceId),
     };
   } else if (!isConsentResource && hasConsentRules(policyData)) {
-    // remove consent rules if resource has consent rules but is not a consent resource
+    // remove consent only-rules if resource has consent rules but is not a consent resource
     return {
       ...policyData,
-      rules: [],
+      rules: policyData.rules.filter(
+        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+      ),
     };
   }
   return policyData;
