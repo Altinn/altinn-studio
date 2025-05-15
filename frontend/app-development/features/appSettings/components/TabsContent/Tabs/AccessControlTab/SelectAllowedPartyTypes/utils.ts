@@ -8,10 +8,10 @@ export const initialPartyTypes: PartyTypesAllowed = {
 };
 
 export const partyTypesAllowedMap: Record<AllowedPartyTypes, string> = {
-  person: 'settings_modal.access_control_tab_option_person',
-  organisation: 'settings_modal.access_control_tab_option_organisation',
-  subUnit: 'settings_modal.access_control_tab_option_sub_unit',
-  bankruptcyEstate: 'settings_modal.access_control_tab_option_bankruptcy_estate',
+  person: 'app_settings.access_control_tab_option_person',
+  organisation: 'app_settings.access_control_tab_option_organisation',
+  subUnit: 'app_settings.access_control_tab_option_sub_unit',
+  bankruptcyEstate: 'app_settings.access_control_tab_option_bankruptcy_estate',
 };
 
 export function getPartyTypesAllowedOptions() {
@@ -25,4 +25,13 @@ export function getSelectedPartyTypes(partyTypesAllowed: PartyTypesAllowed): All
   return Object.keys(partyTypesAllowed).filter(
     (key) => partyTypesAllowed[key as AllowedPartyTypes],
   ) as AllowedPartyTypes[];
+}
+
+export function mapSelectedValuesToPartyTypesAllowed(selectedValues: string[]): PartyTypesAllowed {
+  return Object.fromEntries(
+    Object.keys(partyTypesAllowedMap).map((key) => [
+      key,
+      selectedValues.includes(key as AllowedPartyTypes),
+    ]),
+  ) as PartyTypesAllowed;
 }

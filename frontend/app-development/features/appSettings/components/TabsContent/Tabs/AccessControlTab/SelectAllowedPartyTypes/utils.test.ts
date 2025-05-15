@@ -3,6 +3,7 @@ import {
   partyTypesAllowedMap,
   getPartyTypesAllowedOptions,
   getSelectedPartyTypes,
+  mapSelectedValuesToPartyTypesAllowed,
 } from './utils';
 
 describe('accessControlTabUtils', () => {
@@ -18,15 +19,13 @@ describe('accessControlTabUtils', () => {
   describe('partyTypesAllowedMap', () => {
     it('should map keys to text strings', () => {
       expect(partyTypesAllowedMap.bankruptcyEstate).toBe(
-        'settings_modal.access_control_tab_option_bankruptcy_estate',
+        'app_settings.access_control_tab_option_bankruptcy_estate',
       );
       expect(partyTypesAllowedMap.organisation).toBe(
-        'settings_modal.access_control_tab_option_organisation',
+        'app_settings.access_control_tab_option_organisation',
       );
-      expect(partyTypesAllowedMap.person).toBe('settings_modal.access_control_tab_option_person');
-      expect(partyTypesAllowedMap.subUnit).toBe(
-        'settings_modal.access_control_tab_option_sub_unit',
-      );
+      expect(partyTypesAllowedMap.person).toBe('app_settings.access_control_tab_option_person');
+      expect(partyTypesAllowedMap.subUnit).toBe('app_settings.access_control_tab_option_sub_unit');
     });
   });
 
@@ -86,6 +85,63 @@ describe('accessControlTabUtils', () => {
       const partyTypesAllowed = {} as any;
       const result = getSelectedPartyTypes(partyTypesAllowed);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('mapSelectedValuesToPartyTypesAllowed', () => {
+    it('should return all values set to false when no values are selected', () => {
+      const selectedValues: string[] = [];
+      const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      expect(result).toEqual({
+        person: false,
+        organisation: false,
+        subUnit: false,
+        bankruptcyEstate: false,
+      });
+    });
+
+    it('should return correct values when some values are selected', () => {
+      const selectedValues: string[] = ['person', 'subUnit'];
+      const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      expect(result).toEqual({
+        person: true,
+        organisation: false,
+        subUnit: true,
+        bankruptcyEstate: false,
+      });
+    });
+
+    it('should return all values set to true when all values are selected', () => {
+      const selectedValues: string[] = ['person', 'organisation', 'subUnit', 'bankruptcyEstate'];
+      const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      expect(result).toEqual({
+        person: true,
+        organisation: true,
+        subUnit: true,
+        bankruptcyEstate: true,
+      });
+    });
+
+    it('should return all values set to false when selectedValues contains invalid keys', () => {
+      const selectedValues: string[] = ['invalidKey1', 'invalidKey2'];
+      const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      expect(result).toEqual({
+        person: false,
+        organisation: false,
+        subUnit: false,
+        bankruptcyEstate: false,
+      });
+    });
+
+    it('should ignore invalid keys and map only valid keys', () => {
+      const selectedValues: string[] = ['person', 'invalidKey', 'subUnit'];
+      const result = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      expect(result).toEqual({
+        person: true,
+        organisation: false,
+        subUnit: true,
+        bankruptcyEstate: false,
+      });
     });
   });
 });
