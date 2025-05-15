@@ -12,16 +12,18 @@ import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeLis
 import { StudioDialog, StudioHeading } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
   textResources: TextResource[];
 };
 
 function CreateNewCodeListDialog(
   {
-    onBlurTextResource,
     onCreateCodeList,
+    onCreateTextResource,
+    onUpdateTextResource,
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
@@ -50,9 +52,10 @@ function CreateNewCodeListDialog(
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
-          onBlurTextResource={onBlurTextResource}
           onCreateCodeList={onCreateCodeList}
+          onCreateTextResource={onCreateTextResource}
           onCloseModal={handleCloseDialog}
+          onUpdateTextResource={onUpdateTextResource}
           textResources={textResources}
         />
       </StudioDialog.Block>
@@ -67,8 +70,9 @@ export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   onCloseModal: () => void;
   textResources: TextResource[];
 };
@@ -76,8 +80,9 @@ type CreateNewCodeListProps = {
 function CreateNewCodeList({
   codeList,
   codeListNames,
-  onBlurTextResource,
   onCreateCodeList,
+  onCreateTextResource,
+  onUpdateTextResource,
   onCloseModal,
   textResources,
 }: CreateNewCodeListProps) {
@@ -139,10 +144,10 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onCreateTextResource={onBlurTextResource}
+          onCreateTextResource={onCreateTextResource}
           onInvalid={handleInvalidCodeList}
           onUpdateCodeList={handleUpdateCodeList}
-          onUpdateTextResource={onBlurTextResource}
+          onUpdateTextResource={onUpdateTextResource}
           texts={editorTexts}
           textResources={textResources}
         />
