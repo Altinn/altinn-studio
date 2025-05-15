@@ -1,9 +1,6 @@
 import {
-  groupsPagesModelMock,
   layout1NameMock,
   layout2NameMock,
-  pagelayout1NameMock,
-  pagelayout2NameMock,
   pagesModelMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
@@ -134,19 +131,6 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
-      groups: [
-        {
-          name: pagelayout1NameMock,
-          type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
-        },
-        {
-          name: pagelayout2NameMock,
-          type: pagelayout2NameMock,
-          markWhenCompleted: true,
-          order: [{ id: layout2NameMock }],
-        },
-      ],
     });
     expect(menuItemDown).not.toBeInTheDocument();
 
@@ -158,19 +142,6 @@ describe('NavigationMenu', () => {
     expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
     expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
       pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
-      groups: [
-        {
-          name: pagelayout1NameMock,
-          type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
-        },
-        {
-          name: pagelayout2NameMock,
-          type: pagelayout2NameMock,
-          markWhenCompleted: true,
-          order: [{ id: layout2NameMock }],
-        },
-      ],
     });
   });
 });
@@ -191,7 +162,6 @@ const render = async (props: Partial<NavigationMenuProps> = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
   queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
   await waitForData();
   return renderWithProviders(
     <>
