@@ -71,7 +71,6 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
     usePolicyEditorContext();
 
   const handleAccessListsChange = (newSubjects: string[]): void => {
-    // TODO: kan man velge både tilgangsliste og "alle organisasjoner"?
     const updatedRules = getUpdatedRules(
       {
         ...policyRule,
