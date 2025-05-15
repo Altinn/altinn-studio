@@ -10,6 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockResourceId: string = 'r1';
 const mockOrg: string = 'test';
@@ -146,6 +147,7 @@ const renderPolicyEditorPage = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
+    ...queriesMock,
     getPolicy,
     getPolicyActions,
     getPolicySubjects,
