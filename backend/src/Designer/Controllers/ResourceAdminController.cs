@@ -697,7 +697,19 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/consenttemplates")]
         public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
         {
-            return await _resourceRegistry.GetConsentTemplates(org);
+            string cacheKey = "consentTemplates";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate> consentTemplates))
+            {
+                consentTemplates = await _resourceRegistry.GetConsentTemplates(org);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, consentTemplates, cacheEntryOptions);
+            }
+
+            return consentTemplates;
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
