@@ -37,3 +37,13 @@ export async function del<T = void>(url: string, config?: AxiosRequestConfig): P
   const response = await axios.delete<T>(url, config || undefined);
   return response.data;
 }
+
+// we are unable to intercept redirect responses,
+// so this workaround is needed to redirect the browser to the login page
+axios.interceptors.response.use(function (response) {
+  if (response.request.responseURL.match('/repos/user/login$')) {
+    // redirect to '/login' to avoid gitea using the `redirect_to` cookie to the api call path
+    window.location.href = '/login';
+  }
+  return response;
+});
