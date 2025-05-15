@@ -2,39 +2,39 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCheckboxTable } from './';
-import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
 import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
 
-const options: StudioCheckboxTableRowElement[] = [
-  {
-    value: 'Value1',
-    label: 'Label1',
-    checked: false,
-  },
-  { value: 'Value2', label: 'Label2', checked: false },
-  { value: 'Value3', label: 'Label3', checked: true },
+const options = [
+  { label: 'Label1', value: 'Value1' },
+  { label: 'Label2', value: 'Value2' },
+  { label: 'Label3', value: 'Value3' },
 ];
+const initialValues: string[] = ['Value1', 'Value2'];
 
 const PreviewComponent = (args): ReactElement => {
   const checkBoxTitle: string = 'My checkbox';
-  const { rowElements, hasError, getCheckboxProps, handleCheckboxChange } =
-    useStudioCheckboxTableLogic(options, checkBoxTitle);
+  const errorMessage: string = 'Du må velge minst én';
+  const requiredNumberOfChecked: number = 1;
+
+  const { hasError, getCheckboxProps } = useStudioCheckboxTableLogic(
+    initialValues,
+    checkBoxTitle,
+    requiredNumberOfChecked,
+  );
 
   return (
-    <StudioCheckboxTable {...args} hasError={hasError} errorMessage='Error message'>
+    <StudioCheckboxTable {...args} hasError={hasError} errorMessage={errorMessage}>
       <StudioCheckboxTable.Head
         title={checkBoxTitle}
         getCheckboxProps={{
           ...getCheckboxProps({
             allowIndeterminate: true,
             value: 'all',
-            onChange: handleCheckboxChange,
           }),
         }}
       />
       <StudioCheckboxTable.Body>
-        {rowElements.map((rowElement: StudioCheckboxTableRowElement) => {
-          console.log('rowElement', rowElement);
+        {options.map((rowElement) => {
           return (
             <StudioCheckboxTable.Row
               key={rowElement.value}
@@ -43,8 +43,6 @@ const PreviewComponent = (args): ReactElement => {
                 ...getCheckboxProps({
                   value: rowElement.value.toString(),
                   name: rowElement.label,
-                  checked: rowElement.checked,
-                  onChange: handleCheckboxChange,
                 }),
               }}
             />

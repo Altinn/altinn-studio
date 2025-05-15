@@ -3,31 +3,39 @@ import { render, screen } from '@testing-library/react';
 import { type RenderResult } from '@testing-library/react';
 import { StudioCheckboxTableRow } from './StudioCheckboxTableRow';
 import type { StudioCheckboxTableRowProps } from './StudioCheckboxTableRow';
-import { defaultStudioCheckboxContextProps, mockGetCheckboxProps, option1 } from '../mocks';
 import { StudioCheckboxTableContextProvider } from '../StudioCheckboxTableContext';
 import type { StudioCheckboxTableContextProps } from '../StudioCheckboxTableContext';
+import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
+
+const option1: string = 'Option 1';
+const mockGetCheckboxProps: StudioGetCheckboxProps = {
+  name: option1,
+};
+const defaultStudioCheckboxContextProps: StudioCheckboxTableContextProps = {
+  hasError: false,
+};
 
 describe('StudioCheckboxTableRow', () => {
   it('renders a checkbox with the correct aria-label and value', () => {
     renderStudioCheckboxTableRow();
-    const checkbox = screen.getByRole('checkbox', { name: option1.label });
+    const checkbox = screen.getByRole('checkbox', { name: option1 });
     expect(checkbox).toBeInTheDocument();
-    expect(checkbox).toHaveAttribute('value', option1.value);
+    expect(checkbox).toHaveAttribute('value', option1);
     expect(checkbox).toHaveAttribute('aria-invalid', 'false');
-    expect(checkbox).toHaveAttribute('aria-label', option1.label);
+    expect(checkbox).toHaveAttribute('aria-label', option1);
   });
 
   it('sets aria-invalid to true when context hasError is true', () => {
     renderStudioCheckboxTableRow({ providerProps: { hasError: true } });
 
-    const checkbox = screen.getByRole('checkbox', { name: option1.label });
+    const checkbox = screen.getByRole('checkbox', { name: option1 });
     expect(checkbox).toHaveAttribute('aria-invalid', 'true');
   });
 });
 
 const defaultProps: StudioCheckboxTableRowProps = {
-  label: option1.label,
-  getCheckboxProps: { ...mockGetCheckboxProps, checked: option1.checked, value: option1.value },
+  label: option1,
+  getCheckboxProps: { ...mockGetCheckboxProps, value: option1 },
 };
 
 type Props = {

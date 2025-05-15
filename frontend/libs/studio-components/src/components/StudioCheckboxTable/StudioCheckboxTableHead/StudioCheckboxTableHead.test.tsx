@@ -3,13 +3,17 @@ import { render, screen } from '@testing-library/react';
 import { type RenderResult } from '@testing-library/react';
 import { StudioCheckboxTableHead } from './StudioCheckboxTableHead';
 import type { StudioCheckboxTableHeadProps } from './StudioCheckboxTableHead';
-import {
-  defaultStudioCheckboxContextProps,
-  mockCheckboxTitle,
-  mockGetCheckboxProps,
-} from '../mocks';
 import { StudioCheckboxTableContextProvider } from '../StudioCheckboxTableContext';
 import type { StudioCheckboxTableContextProps } from '../StudioCheckboxTableContext';
+import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
+
+const mockCheckboxTitle: string = 'Select all';
+const mockGetCheckboxProps: StudioGetCheckboxProps = {
+  value: 'all',
+};
+const defaultStudioCheckboxContextProps: StudioCheckboxTableContextProps = {
+  hasError: false,
+};
 
 describe('StudioCheckboxTableHead', () => {
   it('renders a checkbox with the correct aria-label and value', () => {
