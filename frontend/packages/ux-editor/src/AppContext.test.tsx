@@ -67,6 +67,9 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
       order: [mockSelectedFormLayoutName],
     },
   });
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedFormLayoutSetName], {
+    pages: [{ id: mockSelectedFormLayoutName }],
+  });
 
   return {
     ...render(
