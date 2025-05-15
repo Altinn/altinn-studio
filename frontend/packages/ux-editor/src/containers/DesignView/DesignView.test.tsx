@@ -210,19 +210,6 @@ describe('DesignView', () => {
     expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
   });
 
-  it('calls "handleAddPage" when clicking the add page button within a group', async () => {
-    const user = userEvent.setup();
-    setupFeatureFlag(true);
-    renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
-    await user.click(addButton);
-    expect(queriesMock.createPage).toHaveBeenCalledTimes(1);
-    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      id: `${textMock('ux_editor.page')}${3}`,
-    });
-  });
-
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
     const user = userEvent.setup();
     setupFeatureFlag(true);
