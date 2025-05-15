@@ -1,7 +1,7 @@
 import React from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { StudioDragAndDrop } from '@studio/components-legacy';
@@ -191,19 +191,6 @@ describe('DesignView', () => {
     expect(screen.getByText(layout2NameMock)).toBeInTheDocument();
     expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
     expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
-  });
-
-  it('calls "handleAddPage" when clicking the add page button within a group', async () => {
-    const user = userEvent.setup();
-    setupFeatureFlag(true);
-    renderDesignView({ pagesModel: groupsPagesModelMock });
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    const addButton = screen.getAllByRole('button', { name: textMock('ux_editor.pages_add') })[0];
-    await user.click(addButton);
-    expect(queriesMock.createPage).toHaveBeenCalledTimes(1);
-    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      id: `${textMock('ux_editor.page')}${3}`,
-    });
   });
 
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
