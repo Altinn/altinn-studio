@@ -23,10 +23,15 @@ export function getFilteredDisplayAttachments({
 
 export const filterAttachments = ({ data, appMetadataDataTypes }: AttachmentFilterArgs): IData[] => {
   const appLogicDataTypes = appMetadataDataTypes.filter((dataType) => !!dataType.appLogic);
-  const appOwnedDataTypes = appMetadataDataTypes.filter(
+  const appOwnedDataTypes_Deprecate = appMetadataDataTypes.filter(
     (dataType) => !!dataType.allowedContributers?.some((it) => it === 'app:owned'),
   );
-  const excludeDataTypes = [...appLogicDataTypes, ...appOwnedDataTypes].map((dataType) => dataType.id);
+  const appOwnedDataTypes = appMetadataDataTypes.filter(
+    (dataType) => !!dataType.allowedContributors?.some((it) => it === 'app:owned'),
+  );
+  const excludeDataTypes = [...appLogicDataTypes, ...appOwnedDataTypes_Deprecate, ...appOwnedDataTypes].map(
+    (dataType) => dataType.id,
+  );
 
   return data.filter((el) => el.dataType !== DataTypeReference.RefDataAsPdf && !excludeDataTypes.includes(el.dataType));
 };

@@ -68,6 +68,39 @@ describe(filterAttachments.name, () => {
     expect(result).toEqual(expectedResult);
   });
 
+  it('filters out data types that have allowedContributors app:owned', () => {
+    const data: IData[] = [
+      {
+        id: '1',
+        dataType: 'does not have app:owned',
+      },
+      {
+        id: '2',
+        dataType: 'has app:owned',
+      },
+    ] as unknown as IData[];
+
+    const appMetadataDataTypes = [
+      {
+        id: 'does not have app:owned',
+        allowedContributors: ['something-else'],
+      },
+      {
+        id: 'has app:owned',
+        allowedContributors: ['app:owned'],
+      },
+    ] as unknown as IDataType[];
+
+    const expectedResult = [{ id: '1', dataType: 'does not have app:owned' }];
+
+    const result = filterAttachments({
+      data,
+      appMetadataDataTypes,
+    });
+
+    expect(result).toEqual(expectedResult);
+  });
+
   it('filters out data types that are ref-data-as-pdf', () => {
     const data = [
       {
