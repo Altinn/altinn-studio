@@ -30,24 +30,58 @@ export function useStudioCheckboxTableLogic(
 ): UseStudioCheckboxTableLogicResult {
   const [rowElements, setRowElements] = useState<StudioCheckboxTableRowElement[]>(initialOptions);
   const [hasError, setHasError] = useState<boolean>(
-    initialOptions.every((element) => !element.checked),
+    initialOptions.every((element) => !element.checked), // TODO FUNCTION
   );
 
   const { getCheckboxProps } = useCheckboxGroup({
     name: checkBoxTitle,
     error: hasError,
-    value: rowElements.filter((element) => element.checked).map((element) => element.value),
+    value: rowElements.filter((element) => element.checked).map((element) => element.value), // TODO FUNCTION
   });
+
+  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const value: string = event.target.value;
+    const checked: boolean = event.target.checked;
+
+    // IF 1
+    if (value !== 'all' && checked) {
+      handleCheckSingleCheckbox(value);
+    }
+
+    // IF 2
+    if (value !== 'all' && !checked) {
+      // THE ISSUE IS THAT THIS IS CALLED AFTER IF 4 IS CALLED AND THEREFORE THE CHECKBOX STATE IS NOT UPDATED
+      handleUnCheckSingleCheckbox(value);
+    }
+
+    // IF 3
+    if (value === 'all' && checked) {
+      handleChangeAllCheckboxes(true);
+    }
+
+    // IF 4
+    if (value === 'all' && !checked) {
+      handleChangeAllCheckboxes(false);
+    }
+  };
 
   const handleCheckSingleCheckbox = (value: string): void => {
     setHasError(false);
-    const newRowElements = changeCheckedOnCheckboxClicked(rowElements, value, true);
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
+      rowElements,
+      value,
+      true,
+    );
     setRowElements(newRowElements);
   };
 
   const handleUnCheckSingleCheckbox = (value: string): void => {
-    const newRowElements = changeCheckedOnCheckboxClicked(rowElements, value, false);
-    const allAreUnchecked = getAllUnchecked(newRowElements);
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnCheckboxClicked(
+      rowElements,
+      value,
+      false,
+    );
+    const allAreUnchecked: boolean = getAllUnchecked(newRowElements);
 
     if (allAreUnchecked) {
       setHasError(true);
@@ -57,20 +91,11 @@ export function useStudioCheckboxTableLogic(
 
   const handleChangeAllCheckboxes = (checked: boolean): void => {
     setHasError(!checked);
-    const newRowElements = changeCheckedOnAllCheckboxes(rowElements, checked);
+    const newRowElements: StudioCheckboxTableRowElement[] = changeCheckedOnAllCheckboxes(
+      rowElements,
+      checked,
+    );
     setRowElements(newRowElements);
-  };
-
-  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const { value, checked } = event.target;
-
-    if (value === 'all') {
-      handleChangeAllCheckboxes(checked);
-    } else if (checked) {
-      handleCheckSingleCheckbox(value);
-    } else {
-      handleUnCheckSingleCheckbox(value);
-    }
   };
 
   return {

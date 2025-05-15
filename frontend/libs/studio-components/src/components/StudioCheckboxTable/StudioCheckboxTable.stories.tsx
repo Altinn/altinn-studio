@@ -4,9 +4,6 @@ import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCheckboxTable } from './';
 import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
 import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
-import { StudioTable } from '../StudioTable';
-import { StudioCheckbox } from '../StudioCheckbox/StudioCheckbox';
-import { CHECKBOX_TABLE_ERROR_ID } from './constants';
 
 const options: StudioCheckboxTableRowElement[] = [
   {
@@ -39,22 +36,18 @@ const PreviewComponent = (args): ReactElement => {
         {rowElements.map((rowElement: StudioCheckboxTableRowElement) => {
           console.log('rowElement', rowElement);
           return (
-            <StudioTable.Row key={rowElement.value}>
-              <StudioTable.Cell>
-                <StudioCheckbox
-                  aria-label={rowElement.label}
-                  aria-describedby={CHECKBOX_TABLE_ERROR_ID}
-                  aria-invalid={hasError}
-                  {...getCheckboxProps({
-                    value: rowElement.value.toString(),
-                    checked: rowElement.checked,
-                    onChange: handleCheckboxChange,
-                    name: rowElement.label,
-                  })}
-                />
-              </StudioTable.Cell>
-              <StudioTable.Cell>{rowElement.label}</StudioTable.Cell>
-            </StudioTable.Row>
+            <StudioCheckboxTable.Row
+              key={rowElement.value}
+              label={rowElement.label}
+              getCheckboxProps={{
+                ...getCheckboxProps({
+                  value: rowElement.value.toString(),
+                  name: rowElement.label,
+                  checked: rowElement.checked,
+                  onChange: handleCheckboxChange,
+                }),
+              }}
+            />
           );
         })}
       </StudioCheckboxTable.Body>
