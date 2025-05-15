@@ -12,9 +12,6 @@ export type StudioCheckboxTableProps = StudioTableProps & {
   errorMessage?: string;
 };
 
-/**
- * If you want to use the error logic, import and use the `useCheckboxTableLogic` hook.
- */
 export function StudioCheckboxTable({
   className,
   children,
