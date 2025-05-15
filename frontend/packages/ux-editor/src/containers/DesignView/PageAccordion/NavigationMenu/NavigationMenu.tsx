@@ -88,7 +88,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
         <DropdownMenu.Trigger asChild>
           <StudioButton
             icon={<MenuElipsisVerticalIcon />}
-            onClick={() => setDropdownOpen((v) => !v)}
+            onClick={() => console.log(pageIndex)}
             aria-haspopup='menu'
             variant='tertiary'
             title={t('general.options')}

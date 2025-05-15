@@ -197,6 +197,15 @@ export const groupsPagesModelMock: PagesModel = {
     },
   ],
 };
+export const pageGroupsMultiplePagesMock: PagesModel = {
+  groups: [
+    {
+      name: pagelayout1NameMock,
+      type: pagelayout1NameMock,
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
+    },
+  ],
+};
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
