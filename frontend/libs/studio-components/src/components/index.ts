@@ -25,4 +25,6 @@ export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioFormGroup } from './StudioFormGroup';
 export { StudioCheckbox } from './StudioCheckbox';
+export { StudioCheckboxTable, useStudioCheckboxTableLogic } from './StudioCheckboxTable';
+export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
