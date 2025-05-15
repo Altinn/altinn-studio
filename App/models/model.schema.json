@@ -244,7 +244,7 @@
     "Numbers": {
       "$ref": "#/$defs/Numbers"
     },
-    "ListCheckboxExample": {
+    "ListGroupExample": {
       "type": "array",
       "items": {
         "type": "object",
@@ -309,6 +309,72 @@
         },
         "FormatDateOnlyBackend": {
           "type": "string"
+        }
+      }
+    },
+    "CheckboxesGroupExample": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "profession": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "object",
+          "properties": {
+            "firstname": {
+              "type": "string"
+            },
+            "id": {
+              "type": "number"
+            }
+          }
+        },
+        "Internal": {
+          "type": "object",
+          "properties": {
+            "isChecked": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "MultiselectGroupExample": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "profession": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "object",
+          "properties": {
+            "firstname": {
+              "type": "string"
+            },
+            "id": {
+              "type": "number"
+            }
+          }
+        },
+        "Internal": {
+          "type": "object",
+          "properties": {
+            "isChecked": {
+              "type": "boolean"
+            }
+          }
         }
       }
     }

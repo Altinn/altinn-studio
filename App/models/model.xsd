@@ -92,7 +92,7 @@
         <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
         <xs:element minOccurs="0" name="checkboxForCard" type="xs:string" />
         <xs:element minOccurs="0" name="Numbers" type="Numbers" />
-        <xs:element minOccurs="0" maxOccurs="unbounded" name="ListCheckboxExample">
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="ListGroupExample">
           <xs:complexType>
             <xs:sequence>
               <xs:element minOccurs="0" name="age" type="xs:long" />
@@ -127,6 +127,54 @@
               <xs:element minOccurs="0" name="FormatStringBackend" type="xs:string" />
               <xs:element minOccurs="0" name="FormatDateTimeBackend" type="xs:string" />
               <xs:element minOccurs="0" name="FormatDateOnlyBackend" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="CheckboxesGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="firstname" type="xs:string" />
+                    <xs:element minOccurs="0" name="id" type="xs:double" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="MultiselectGroupExample">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="age" type="xs:long" />
+              <xs:element minOccurs="0" name="profession" type="xs:string" />
+              <xs:element minOccurs="0" name="surname" type="xs:string" />
+              <xs:element minOccurs="0" name="Name">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="firstname" type="xs:string" />
+                    <xs:element minOccurs="0" name="id" type="xs:double" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="Internal">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="isChecked" type="xs:boolean" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
