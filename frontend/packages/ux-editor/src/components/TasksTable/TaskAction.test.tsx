@@ -21,6 +21,8 @@ const mockTask = [
 ];
 
 describe('TaskAction', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   it('should render display button when not in navigation mode', () => {
     renderTaskAction({ isNavigationMode: false });
 
@@ -33,9 +35,7 @@ describe('TaskAction', () => {
   it('should call removeNavigationTask when hide button is clicked', async () => {
     const user = userEvent.setup();
 
-    renderTaskAction({
-      isNavigationMode: true,
-    });
+    renderTaskAction();
 
     const hideButton = screen.getByRole('button', {
       name: textMock('ux_editor.task_table.menu_task_hide'),
@@ -43,6 +43,53 @@ describe('TaskAction', () => {
     await user.click(hideButton);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [mockTask[1]]);
+  });
+
+  it('should call moveNavigationTask when down button is clicked', async () => {
+    const user = userEvent.setup();
+    renderTaskAction();
+
+    const downButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table.menu_task_down'),
+    });
+    await user.click(downButton);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+      mockTask[1],
+      mockTask[0],
+    ]);
+  });
+
+  it('should call moveNavigationTask when up button is clicked', async () => {
+    const user = userEvent.setup();
+    renderTaskAction({ task: mockTask[1], index: 1 });
+
+    const upButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table.menu_task_up'),
+    });
+    await user.click(upButton);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+      mockTask[1],
+      mockTask[0],
+    ]);
+  });
+
+  it('should disable move up button when task is first in the list', () => {
+    renderTaskAction();
+
+    const upButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table.menu_task_up'),
+    });
+    expect(upButton).toBeDisabled();
+  });
+  it('should disable move down button when task is last in the list', () => {
+    renderTaskAction({ task: mockTask[1], index: 1 });
+
+    const downButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table.menu_task_down'),
+    });
+    expect(downButton).toBeDisabled();
   });
 });
 
