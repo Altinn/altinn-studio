@@ -186,6 +186,7 @@ export const queriesMock: ServicesContextProps = {
   getAccessLists: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
+  getAllAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
   getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
   getResourceAccessLists: jest
     .fn()
@@ -210,6 +211,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+  getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest

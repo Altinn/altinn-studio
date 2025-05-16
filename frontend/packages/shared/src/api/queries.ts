@@ -67,6 +67,8 @@ import {
   layoutPagesPath,
   taskNavigationGroupPath,
   availableResourcesInOrgLibraryPath,
+  consentTemplatesPath,
+  allAccessListsPath,
   orgTextLanguagesPath,
 } from './paths';
 
@@ -89,7 +91,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
-import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview } from 'app-shared/types/ResourceAdm';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -179,12 +181,14 @@ export const getResourcePublishStatus = (org: string, repo: string, id: string) 
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getAccessLists = (org: string, environment: string, page?: string) => get<AccessListsResponse>(accessListsPath(org, environment, page));
+export const getAllAccessLists = (org: string) => get<AccessList[]>(allAccessListsPath(org));
 export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
 export const getAccessListMembers = (org: string, listId: string, environment: string, page?: string) => get<AccessListMembersResponse>(accessListMemberPath(org, listId, environment, page));
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
+export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));

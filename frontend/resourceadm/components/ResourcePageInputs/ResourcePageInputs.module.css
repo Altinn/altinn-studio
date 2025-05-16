@@ -29,10 +29,6 @@
   color: var(--fds-semantic-text-neutral-subtle);
 }
 
-.checkboxParagraph {
-  margin-left: var(--fds-spacing-2);
-}
-
 .description {
   color: var(--fds-semantic-text-neutral-subtle);
 }

@@ -169,6 +169,7 @@ export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/r
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
 export const accessListsPath = (org, env, page) => `${basePath}/${env}/${org}/resources/accesslist/${page ? `?page=${page}` : ''}`; // Get
+export const allAccessListsPath = (org) => `${basePath}/${org}/resources/allaccesslists/`; // Get
 export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
 export const createAccessListsPath = (org, env) => `${basePath}/${env}/${org}/resources/accesslist/`; //  Post
 export const accessListPath = (org, listId, env, etag = '') => `${basePath}/${env}/${org}/resources/accesslist/${listId}${etag ? `?etag=${etag}` : ''}`; // Get, Patch, Delete
@@ -177,6 +178,7 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
 export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
+export const consentTemplatesPath = (org) => `${basePath}/${org}/resources/consenttemplates/`; // Get
 
 // Preview
 export const instancesPath = (org, app) => `/${org}/${app}/instances`;

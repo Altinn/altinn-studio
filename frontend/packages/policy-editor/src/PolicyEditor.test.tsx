@@ -48,6 +48,13 @@ describe('PolicyEditor', () => {
     expect(screen.getByText(textMock('policy_editor.card_button_text'))).toBeInTheDocument();
   });
 
+  it('renders consent rules view when resource is consent resource', () => {
+    renderPolicyEditor({ usageType: 'resource', isConsentResource: true });
+    expect(
+      screen.getByText(textMock('policy_editor.consent_resource_consent_header')),
+    ).toBeInTheDocument();
+  });
+
   it('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
     renderPolicyEditor();

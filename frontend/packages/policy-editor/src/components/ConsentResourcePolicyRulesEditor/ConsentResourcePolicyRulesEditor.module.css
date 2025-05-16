@@ -1,0 +1,17 @@
+.consentRuleCard {
+  border: solid 1px var(--fds-semantic-border-divider-default);
+  padding: var(--fds-spacing-5);
+  margin-bottom: var(--fds-spacing-5);
+  border-radius: var(--fds-sizing-3);
+}
+
+.accessListItem {
+  padding: 0 var(--fds-sizing-2);
+  border-bottom: solid 1px var(--fds-semantic-border-divider-default);
+}
+
+.allOrganizationsItem {
+  padding: 0 var(--fds-sizing-2);
+  background-color: var(--ds-color-neutral-background-tinted);
+  min-height: var(--fds-spacing-12);
+}

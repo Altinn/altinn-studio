@@ -3,7 +3,7 @@ import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-lib
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -254,6 +254,17 @@ describe('ResourcePage', () => {
     await waitFor(() => deployResourceVersionField.blur());
 
     await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
+  });
+
+  it('fetches consent templates when resource is consentresource', async () => {
+    const resource = { ...mockResource1, resourceType: 'Consentresource' as ResourceTypeOption };
+    const getResource = jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource));
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+    expect(queriesMock.getConsentTemplates).toHaveBeenCalledTimes(1);
   });
 });
 

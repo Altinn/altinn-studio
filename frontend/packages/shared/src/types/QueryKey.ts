@@ -71,6 +71,7 @@ export enum QueryKey {
   PublishResource = 'PublishResource',
   Altinn2Services = 'Altinn2Services',
   ImportAltinn2Resource = 'ImportAltinn2Resource',
+  AllAccessLists = 'AllAccessLists',
   AccessLists = 'AccessLists',
   AccessList = 'AccessList',
   AccessListMembers = 'AccessListMembers',
@@ -79,4 +80,5 @@ export enum QueryKey {
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
+  ConsentResourceTemplates = 'ConsentResourceTemplates',
 }

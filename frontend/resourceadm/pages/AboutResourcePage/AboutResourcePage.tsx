@@ -12,6 +12,7 @@ import type {
   SupportedLanguage,
   ResourceReference,
   ResourceFormError,
+  ConsentTemplate,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -19,6 +20,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
+  convertMetadataStringToConsentMetadata,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -31,10 +33,12 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
   validationErrors: ResourceFormError[];
+  consentTemplates?: ConsentTemplate[];
   onSaveResource: (r: Resource) => void;
   id: string;
 };
@@ -52,6 +56,7 @@ export type AboutResourcePageProps = {
 export const AboutResourcePage = ({
   resourceData,
   validationErrors,
+  consentTemplates,
   onSaveResource,
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
@@ -60,10 +65,14 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
-    value: key,
-    label: t(value),
-  }));
+  const resourceTypeOptions = Object.entries(resourceTypeMap)
+    .filter(([key]) =>
+      key === 'Consentresource' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
+    )
+    .map(([key, value]) => ({
+      value: key,
+      label: t(value),
+    }));
 
   /**
    * Status options
@@ -79,6 +88,11 @@ export const AboutResourcePage = ({
   const availableForOptions = Object.keys(availableForTypeMap).map((key) => ({
     value: key,
     label: t(availableForTypeMap[key]),
+  }));
+
+  const consentTemplateOptions = (consentTemplates ?? []).map((template) => ({
+    value: template.id,
+    label: template.title,
   }));
 
   // To handle which translation value is shown in the right menu
@@ -170,6 +184,51 @@ export const AboutResourcePage = ({
           required
           errors={validationErrors.filter((error) => error.field === 'description')}
         />
+        {resourceData.resourceType === 'Consentresource' && (
+          <>
+            <ResourceRadioGroup
+              id='consentTemplate'
+              label={t('resourceadm.about_resource_consent_template_label')}
+              description={t('resourceadm.about_resource_consent_template_text')}
+              value={resourceData.consentTemplate}
+              options={consentTemplateOptions}
+              onFocus={() => setTranslationType('none')}
+              onChange={(selected: string) =>
+                handleSave({ ...resourceData, consentTemplate: selected })
+              }
+              required
+              errors={validationErrors.filter((error) => error.field === 'consentTemplate')}
+            />
+            <ResourceTextField
+              id='consentMetadata'
+              label={t('resourceadm.about_resource_consent_metadata')}
+              description={t('resourceadm.about_resource_consent_metadata_description')}
+              value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
+              onFocus={() => setTranslationType('none')}
+              onBlur={(val: string) =>
+                handleSave({
+                  ...resourceData,
+                  consentMetadata: convertMetadataStringToConsentMetadata(val),
+                })
+              }
+            />
+            <ResourceLanguageTextField
+              id='consentText'
+              label={t('resourceadm.about_resource_consent_text_label')}
+              description={t('resourceadm.about_resource_consent_text_text')}
+              translationDescription='Samtykketekst'
+              isTranslationPanelOpen={translationType === 'consentText'}
+              useTextArea
+              value={resourceData.consentText}
+              onFocus={() => setTranslationType('consentText')}
+              onBlur={(consentTexts: SupportedLanguage) =>
+                handleSave({ ...resourceData, consentText: consentTexts })
+              }
+              required
+              errors={validationErrors.filter((error) => error.field === 'consentText')}
+            />
+          </>
+        )}
         <ResourceTextField
           id='homepage'
           label={t('resourceadm.about_resource_homepage_label')}
@@ -295,17 +354,19 @@ export const AboutResourcePage = ({
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        <ResourceSwitchInput
-          id='accessListMode'
-          label={t('resourceadm.about_resource_limited_by_rrr_label')}
-          description={t('resourceadm.about_resource_limited_by_rrr_description')}
-          value={resourceData.accessListMode === 'Enabled'}
-          onFocus={() => setTranslationType('none')}
-          onChange={(isChecked: boolean) =>
-            handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
-          }
-          toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
-        />
+        {resourceData.resourceType !== 'Consentresource' && (
+          <ResourceSwitchInput
+            id='accessListMode'
+            label={t('resourceadm.about_resource_limited_by_rrr_label')}
+            description={t('resourceadm.about_resource_limited_by_rrr_description')}
+            value={resourceData.accessListMode === 'Enabled'}
+            onFocus={() => setTranslationType('none')}
+            onChange={(isChecked: boolean) =>
+              handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
+            }
+            toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+          />
+        )}
         {resourceData.accessListMode === 'Enabled' && (
           <div data-testid='rrr-buttons'>
             <AccessListEnvLinks />
