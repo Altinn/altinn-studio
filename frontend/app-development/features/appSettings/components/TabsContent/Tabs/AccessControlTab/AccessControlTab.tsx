@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
+import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { TabPageHeader } from '../../TabPageHeader';
@@ -45,4 +46,20 @@ function AccessControlTabContent(): ReactElement {
       return <SelectAllowedPartyTypes appMetadata={appMetadata} />;
     }
   }
+}
+
+function AccessControlDocumentation(): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <span className={classes.docsLinkText}>
+        {t('settings_modal.access_control_tab_option_access_control_docs_link_text')}
+      </span>
+      <StudioLink
+        href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' })}
+      >
+        {t('settings_modal.access_control_tab_option_access_control_docs_link')}
+      </StudioLink>
+    </div>
+  );
 }

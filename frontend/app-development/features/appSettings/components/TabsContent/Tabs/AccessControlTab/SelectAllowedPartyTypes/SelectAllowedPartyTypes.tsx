@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -95,6 +95,19 @@ function SaveButton({ appMetadata, selectedValues, hasError }: SaveButtonProps):
       partyTypesAllowed: updatedPartyTypesAllowed,
     });
   };
+
+  /*
+  useEffect(() => {
+    if (!hasError) {
+      console.log('saved', selectedValues);
+      const updatedPartyTypesAllowed = mapSelectedValuesToPartyTypesAllowed(selectedValues);
+      updateAppMetadataMutation({
+        ...appMetadata,
+        partyTypesAllowed: updatedPartyTypesAllowed,
+      });
+    }
+  }, [hasError, updateAppMetadataMutation, appMetadata, selectedValues]);
+  */
 
   return (
     <StudioButton onClick={savePartyTypesAllowed} disabled={hasError}>

@@ -1,0 +1,6 @@
+.docsLinkText {
+  margin-top: var(--fds-spacing-10);
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--fds-spacing-3);
+}
