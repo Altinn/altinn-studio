@@ -23,5 +23,6 @@ export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioTextfield } from './StudioTextfield';
 export { StudioSpinner } from './StudioSpinner';
 export { StudioFieldset } from './StudioFieldset';
+export { StudioFormGroup } from './StudioFormGroup';
 export { StudioCheckbox } from './StudioCheckbox';
 export { StudioSwitch } from './StudioSwitch';
