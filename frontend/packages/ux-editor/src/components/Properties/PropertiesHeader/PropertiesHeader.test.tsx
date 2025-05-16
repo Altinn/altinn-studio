@@ -60,11 +60,13 @@ describe('PropertiesHeader', () => {
       name: textMock('ux_editor.component_help_text_general_title'),
     });
 
-    expect(
-      screen.queryByText(textMock(`ux_editor.component_help_text.${component1Mock.type}`)),
-    ).not.toBeInTheDocument();
-
     await user.click(helpTextButton);
+
+    expect(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_help_text_general_title'),
+      }),
+    ).toBeInTheDocument();
 
     expect(
       screen.getByText(textMock(`ux_editor.component_help_text.${component1Mock.type}`)),

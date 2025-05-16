@@ -4,7 +4,7 @@
 }
 
 .helpText {
-  height: fit-content;
+  margin-bottom: var(--fds-spacing-6);
 }
 
 .docsLinkText {
