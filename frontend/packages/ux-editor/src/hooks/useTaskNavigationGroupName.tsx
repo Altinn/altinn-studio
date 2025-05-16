@@ -13,7 +13,7 @@ type ReturnTaskNamesProps = {
 export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTaskNamesProps => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const textResourceName = useTextResourceValue(task?.name);
 
   if (task.taskType === TaskType.Receipt) {
@@ -23,7 +23,7 @@ export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTas
     };
   }
 
-  const matchingTask = layoutSetsModel?.find((layoutSet) => layoutSet.task?.id === task.taskId);
+  const matchingTask = layoutSets?.find((layoutSet) => layoutSet.task?.id === task.taskId);
 
   const taskNavigationName = task?.name
     ? (textResourceName ?? task.name)

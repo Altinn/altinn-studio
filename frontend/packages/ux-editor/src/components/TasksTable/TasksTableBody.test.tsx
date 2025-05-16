@@ -12,7 +12,7 @@ import { layoutSetsExtendedMock } from '../../testing/layoutSetsMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'data', name: 'Task 1' },
+  { taskType: 'data', name: 'Task 1', taskId: 'Task_1' },
   { taskType: 'data', name: 'Task 2', taskId: 'Task_2' },
   { taskType: 'receipt', taskId: 'fake' },
 ];
@@ -23,6 +23,20 @@ describe('TasksTableBody', () => {
 
     const alertTitle = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(alertTitle).toBeInTheDocument();
+  });
+
+  it('should render task name and page count', () => {
+    renderTasksTableBody();
+
+    const taskMock = tasksMock[0];
+    const layoutSetMock = layoutSetsExtendedMock[0];
+
+    expect(
+      screen.getByText(
+        `${textMock('ux_editor.task_table_type.' + taskMock.taskType)}: ${layoutSetMock.id}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(layoutSetMock.pageCount)).toBeInTheDocument();
   });
 
   it('should render the tasks with their names, but not display buttons when in navigation mode', () => {

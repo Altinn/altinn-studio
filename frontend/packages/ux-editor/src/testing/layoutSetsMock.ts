@@ -32,12 +32,14 @@ export const layoutSetsExtendedMock: LayoutSetModel[] = [
     dataType: 'data-model',
     type: null,
     task: { id: 'Task_1', type: 'data' },
+    pageCount: 1,
   },
   {
     id: layoutSet2NameMock,
     dataType: 'data-model-2',
     type: null,
     task: { id: 'Task_2', type: 'data' },
+    pageCount: 2,
   },
   {
     id: layoutSet3SubformNameMock,
