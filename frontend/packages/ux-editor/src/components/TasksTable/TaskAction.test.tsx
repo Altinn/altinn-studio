@@ -6,6 +6,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockTask = [
   {
@@ -43,6 +45,19 @@ describe('TaskAction', () => {
     await user.click(hideButton);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [mockTask[1]]);
+  });
+
+  it('should call addTaskToNavigationGroup when display button is clicked', async () => {
+    const user = userEvent.setup();
+    renderTaskAction({
+      isNavigationMode: false,
+    });
+    const displayButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table_display'),
+    });
+    await user.click(displayButton);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [mockTask[0]]);
   });
 
   it('should call moveNavigationTask when down button is clicked', async () => {
@@ -100,7 +115,8 @@ const renderTaskAction = (props: Partial<TaskActionProps> = {}) => {
     index: 0,
     isNavigationMode: true,
   };
-
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TaskNavigationGroup, org, app], mockTask[1]);
   const mergedProps = { ...mockProps, ...props };
   renderWithProviders(<TaskAction {...mergedProps} />);
 };
