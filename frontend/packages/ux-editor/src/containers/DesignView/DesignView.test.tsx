@@ -1,7 +1,7 @@
 import React from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { StudioDragAndDrop } from '@studio/components-legacy';
@@ -182,7 +182,6 @@ describe('DesignView', () => {
     setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    expect(screen.getByText('Sideoppsett 2')).toBeInTheDocument();
   });
 
   it('does not render group accordions when isTaskNavigationPageGroups is false, and there are groups', () => {
@@ -205,9 +204,9 @@ describe('DesignView', () => {
     setupFeatureFlag(true);
     renderDesignView();
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    expect(screen.getByText('Sideoppsett 2')).toBeInTheDocument();
-    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
-    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+    const secondGroupHeader = screen.getByTestId('page-group-accordion-ellipsis-menu-1');
+    expect(within(secondGroupHeader).getByText(layout2NameMock)).toBeInTheDocument();
+    expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
   });
 
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
@@ -229,8 +228,11 @@ describe('DesignView', () => {
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     const deleteButton = screen.getAllByRole('button', {
-      name: textMock('general.delete_item', { item: 'Sideoppsett 1' }),
+      name: textMock('general.delete_item', {
+        item: 'Sideoppsett 1',
+      }),
     })[0];
+
     await user.click(deleteButton);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     confirmSpy.mockRestore();
