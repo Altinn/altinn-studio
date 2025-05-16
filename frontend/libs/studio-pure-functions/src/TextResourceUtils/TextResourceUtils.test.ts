@@ -32,6 +32,23 @@ describe('TextResourceUtils', () => {
     it('Is pure', verifyInitialMapIsUnchanged);
   });
 
+  describe('getValueIfExists', () => {
+    it('Returns the value of the text resource when it exists', () => {
+      const result = textResourceUtils.getValueIfExists(text1Id);
+      expect(result).toEqual(text1);
+    });
+
+    it('Returns null when the text resource does not exist', () => {
+      const result = textResourceUtils.getValueIfExists('nonexistentId');
+      expect(result).toBeNull();
+    });
+
+    it('Is pure', () => {
+      textResourceUtils.getValueIfExists(text1Id);
+      verifyInitialMapIsUnchanged();
+    });
+  });
+
   describe('set', () => {
     describe('When the given ID does not exist', () => {
       const newTextResource: TextResource = { id: '4', value: 'New Text' };
