@@ -1,1 +1,7 @@
-export type BpmnTaskType = 'data' | 'confirmation' | 'feedback' | 'signing' | 'payment';
+export type BpmnTaskType =
+  | 'data'
+  | 'confirmation'
+  | 'feedback'
+  | 'signing'
+  | 'payment'
+  | 'userControlledSigning';
