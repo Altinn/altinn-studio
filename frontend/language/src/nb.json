@@ -173,6 +173,8 @@
   "app_settings.about_tab_repo_description": "Dette er en unik ID for appen både i URL-er og i API-er.",
   "app_settings.about_tab_repo_label": "Navn på repositoriet",
   "app_settings.heading": "Innstillinger",
+  "app_settings.loading_content": "Laster inn data",
+  "app_settings.policy_tab_heading": "Tilganger",
   "code_list_editor.add_button_disabled": "Du kan ikke ha flere enn to alternativer i en boolsk kodeliste",
   "code_list_editor.add_option": "Legg til alternativ",
   "code_list_editor.column_title_delete": "Slett",
