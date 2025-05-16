@@ -15,7 +15,7 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
   const addPageToGroup = (groupIndex: number) => {
     const allPageNames = [
       ...(pagesModel?.pages?.map((page) => page.id) || []),
-      ...(pagesModel?.groups?.flatMap((group) => group.order.map((page) => page.id)) || []),
+      ...(pagesModel?.groups?.flatMap((group) => group?.order?.map((page) => page.id) || []) || []),
     ];
 
     let nextNum = allPageNames.length + 1;
@@ -27,13 +27,14 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
     }
 
     const page: PageModel = { id: newLayoutName };
+    const currentGroups = pagesModel?.groups || [];
     const updatedPages = {
       ...pagesModel,
-      groups: pagesModel.groups.map((group, index) => {
+      groups: currentGroups.map((group, index) => {
         if (index === groupIndex) {
           return {
             ...group,
-            order: [...(group.order || []), page],
+            order: [...(group?.order || []), page],
           };
         }
         return group;

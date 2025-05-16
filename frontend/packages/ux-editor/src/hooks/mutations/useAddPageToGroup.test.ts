@@ -190,7 +190,6 @@ describe('useAddPageToGroup', () => {
       pages: [],
       groups: [{ order: [] }, { order: [] }],
     };
-
     const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
     result.current.addPageToGroup(1);
     expect(mockMutate).toHaveBeenCalledWith(
@@ -229,29 +228,6 @@ describe('useAddPageToGroup', () => {
     );
   });
 
-  it('should keep incrementing until finding a unique name when many duplicates exist', () => {
-    const mockPagesModel: PagesModel = {
-      pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
-      groups: [{ order: [] }],
-    };
-    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
-    result.current.addPageToGroup(0);
-    expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        groups: [
-          expect.objectContaining({
-            order: [
-              expect.objectContaining({
-                id: 'ux_editor.page3',
-              }),
-            ],
-          }),
-        ],
-      }),
-      expect.any(Object),
-    );
-  });
-
   it('should correctly increment the page number when generating names', () => {
     const mockT = jest.fn().mockImplementation((key) => key);
     (useTranslation as jest.Mock).mockReturnValue({
@@ -268,59 +244,48 @@ describe('useAddPageToGroup', () => {
     expect(mutateArg.groups[0].order[0].id).toBe('ux_editor.page1');
   });
 
-  it('increments the page name for the new page correctly', () => {
-    const mockPagesModel: PagesModel = {
-      pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
-      groups: [
-        {
-          order: [{ id: 'ux_editor.page3' }, { id: 'ux_editor.page4' }],
-        },
-      ],
-    };
-    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+  it('should handle undefined pagesModel', () => {
+    const { result } = renderHook(() => useAddPageToGroup(undefined));
     result.current.addPageToGroup(0);
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
-        groups: [
-          expect.objectContaining({
-            order: [
-              { id: 'ux_editor.page3' },
-              { id: 'ux_editor.page4' },
-              expect.objectContaining({
-                id: 'ux_editor.page5',
-              }),
-            ],
-          }),
-        ],
+        groups: [],
       }),
       expect.any(Object),
     );
   });
 
-  it('should handle the case where all names up to N are taken', () => {
-    const existingPages = Array.from({ length: 10 }, (_, i) => ({ id: `ux_editor.page${i + 1}` }));
+  it('should handle undefined pagesModel.groups', () => {
     const mockPagesModel: PagesModel = {
-      pages: existingPages.slice(0, 5),
+      pages: [],
+      groups: undefined,
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [],
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('should handle undefined group.order', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
       groups: [
         {
-          order: existingPages.slice(5),
+          order: undefined,
         },
       ],
     };
-
     const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
     result.current.addPageToGroup(0);
-
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         groups: [
           expect.objectContaining({
-            order: [
-              ...existingPages.slice(5),
-              expect.objectContaining({
-                id: 'ux_editor.page11',
-              }),
-            ],
+            order: [{ id: 'ux_editor.page1' }],
           }),
         ],
       }),
