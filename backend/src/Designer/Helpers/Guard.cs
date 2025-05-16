@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -130,18 +129,6 @@ namespace Altinn.Studio.Designer.Helpers
             if (string.IsNullOrEmpty(repoName) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(repoName))
             {
                 throw new ArgumentException($"The repository name {repoName} is invalid.");
-            }
-        }
-
-        public static void AssertValidXmlContent(string xmlContent)
-        {
-            try
-            {
-                _ = XDocument.Parse(xmlContent);
-            }
-            catch (XmlException)
-            {
-                throw new ArgumentException("Invalid xml content.");
             }
         }
 
