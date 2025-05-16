@@ -23,11 +23,17 @@ export type TaskActionProps = {
   isNavigationMode: boolean;
 };
 
+enum Direction {
+  Up = 'up',
+  Down = 'down',
+}
+
 export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const addTaskToNavigationGroup = () => {
     const updatedNavigationTasks = [...taskNavigationGroups, task];
@@ -42,35 +48,48 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
     );
   }
 
+  const disableMoveUpButton = index === 0;
+  const disableMoveDownButton = index === tasks.length - 1;
+
+  const handleUpdateTaskNavigationGroup = (updatedNavigationTasks: TaskNavigationGroup[]) => {
+    updateTaskNavigationGroup(updatedNavigationTasks);
+    setIsOpen(false);
+  };
+
+  const moveNavigationTask = (direction: Direction) => {
+    const updatedTasks = [...tasks];
+    const swapIndex = direction === Direction.Up ? index - 1 : index + 1;
+    [updatedTasks[index], updatedTasks[swapIndex]] = [updatedTasks[swapIndex], updatedTasks[index]];
+    handleUpdateTaskNavigationGroup(updatedTasks);
+  };
+
   const removeNavigationTask = () => {
     const updatedNavigationTasks = tasks.filter(
       (navigationTask) => navigationTask.taskId !== task.taskId,
     );
-    updateTaskNavigationGroup(updatedNavigationTasks);
+    handleUpdateTaskNavigationGroup(updatedNavigationTasks);
   };
 
   return (
     <StudioPopover.TriggerContext>
-      <StudioPopover.Trigger variant='tertiary'>
+      <StudioPopover.Trigger variant='tertiary' onClick={() => setIsOpen(!isOpen)}>
         <MenuElipsisVerticalIcon />
       </StudioPopover.Trigger>
-      <StudioPopover placement='right'>
+      <StudioPopover placement='right' open={isOpen} onClose={() => setIsOpen(false)}>
         <div className={classes.ellipsisMenuContent}>
           <StudioButton
             variant='tertiary'
-            onClick={() => {
-              console.log(index); // will be used in #15238
-            }}
+            onClick={() => moveNavigationTask(Direction.Up)}
             icon={<ArrowUpIcon />}
+            disabled={disableMoveUpButton}
           >
             {t('ux_editor.task_table.menu_task_up')}
           </StudioButton>
           <StudioButton
             variant='tertiary'
-            onClick={() => {
-              console.log(index); // will be used in #15238
-            }}
+            onClick={() => moveNavigationTask(Direction.Down)}
             icon={<ArrowDownIcon />}
+            disabled={disableMoveDownButton}
           >
             {t('ux_editor.task_table.menu_task_down')}
           </StudioButton>
