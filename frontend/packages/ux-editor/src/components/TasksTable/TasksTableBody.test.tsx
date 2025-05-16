@@ -28,15 +28,32 @@ describe('TasksTableBody', () => {
   it('should render task name and page count', () => {
     renderTasksTableBody();
 
-    const taskMock = tasksMock[0];
-    const layoutSetMock = layoutSetsExtendedMock[0];
+    const taskMock1 = tasksMock[0];
+    const layoutSetMock1 = layoutSetsExtendedMock[0];
 
     expect(
       screen.getByText(
-        `${textMock('ux_editor.task_table_type.' + taskMock.taskType)}: ${layoutSetMock.id}`,
+        `${textMock('ux_editor.task_table_type.' + taskMock1.taskType)}: ${layoutSetMock1.id}`,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText(layoutSetMock.pageCount)).toBeInTheDocument();
+    expect(screen.getByText(layoutSetMock1.pageCount)).toBeInTheDocument();
+
+    const taskMock2 = tasksMock[1];
+    const layoutSetMock2 = layoutSetsExtendedMock[1];
+
+    expect(
+      screen.getByText(
+        `${textMock('ux_editor.task_table_type.' + taskMock2.taskType)}: ${layoutSetMock2.id}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(layoutSetMock2.pageCount)).toBeInTheDocument();
+
+    const taskMockReceipt = tasksMock[2];
+
+    expect(
+      screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(0)).toBeInTheDocument();
   });
 
   it('should render the tasks with their names, but not display buttons when in navigation mode', () => {
