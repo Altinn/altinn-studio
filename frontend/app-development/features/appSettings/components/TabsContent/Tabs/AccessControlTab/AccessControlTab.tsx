@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { StudioLink, StudioValidationMessage } from '@studio/components';
+import { StudioLink, StudioParagraph, StudioValidationMessage } from '@studio/components';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
@@ -58,9 +58,9 @@ function AccessControlDocumentation(): ReactElement {
   const { t } = useTranslation();
   return (
     <div>
-      <span className={classes.docsLinkText}>
+      <StudioParagraph className={classes.docsLinkText}>
         {t('app_settings.access_control_tab_option_access_control_docs_link_text')}
-      </span>
+      </StudioParagraph>
       <StudioLink
         href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' })}
       >
