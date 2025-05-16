@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,16 +22,16 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 
 public class SigningProcessTaskTests
 {
-    private readonly Mock<IProcessReader> _processReaderMock = new();
-    private readonly Mock<IInstanceClient> _instanceClientMock = new();
-    private readonly Mock<ISigningService> _signingServiceMock = new();
-    private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new();
-    private readonly Mock<IAppMetadata> _appMetadataMock = new();
-    private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new();
-    private readonly Mock<IAppModel> _appModelMock = new();
-    private readonly Mock<IDataClient> _dataClientMock = new();
-    private readonly Mock<IPdfService> _pdfServiceMock = new();
-    private readonly Mock<IAppResources> _appResourcesMock = new();
+    private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
 
     public SigningProcessTaskTests()
@@ -49,6 +50,30 @@ public class SigningProcessTaskTests
         _serviceCollection.AddSingleton(_dataClientMock.Object);
         _serviceCollection.AddSingleton(_pdfServiceMock.Object);
         _serviceCollection.AddSingleton(_appResourcesMock.Object);
+
+        _appMetadataMock
+            .Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(
+                new ApplicationMetadata("ttd/app")
+                {
+                    DataTypes =
+                    [
+                        new DataType()
+                        {
+                            Id = "SignatureDataType",
+                            TaskId = "Task_1",
+                            AllowedContributors = ["app:owned"],
+                        },
+                        new DataType()
+                        {
+                            Id = "SigneeStatesDataTypeId",
+                            TaskId = "Task_1",
+                            AllowedContributors = ["app:owned"],
+                        },
+                    ],
+                }
+            );
+        _hostEnvironmentMock.SetupGet(e => e.EnvironmentName).Returns("Development");
     }
 
     [Fact]
@@ -71,34 +96,27 @@ public class SigningProcessTaskTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([]);
+            .ReturnsAsync([])
+            .Verifiable(Times.Once);
 
-        // Act
-        await signingProcessTask.Start(taskId, instance);
-
-        // Assert
-        _signeeContextsManagerMock.Verify(
-            x =>
-                x.GenerateSigneeContexts(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<AltinnSignatureConfiguration>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-
-        _signingServiceMock.Verify(
-            x =>
+        _signingServiceMock
+            .Setup(x =>
                 x.InitializeSignees(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<List<SigneeContext>>(),
                     It.IsAny<AltinnSignatureConfiguration>(),
                     It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+                )
+            )
+            .ReturnsAsync([])
+            .Verifiable(Times.Once);
 
-        _signingServiceMock.VerifyNoOtherCalls();
+        // Act
+        await signingProcessTask.Start(taskId, instance);
+
+        // Assert
+        _signeeContextsManagerMock.VerifyAll();
+        _signingServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -113,18 +131,22 @@ public class SigningProcessTaskTests
         var signingProcessTask = sp.GetRequiredService<SigningProcessTask>();
 
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+        _signingServiceMock
+            .Setup(x =>
+                x.AbortRuntimeDelegatedSigning(
+                    It.IsAny<IInstanceDataMutator>(),
+                    altinnTaskExtension.SignatureConfiguration,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
 
         // Act
         await signingProcessTask.Abandon(taskId, instance);
 
         // Assert
-        _signingServiceMock.Verify(x =>
-            x.AbortRuntimeDelegatedSigning(
-                It.IsAny<IInstanceDataMutator>(),
-                altinnTaskExtension.SignatureConfiguration,
-                It.IsAny<CancellationToken>()
-            )
-        );
+        _signingServiceMock.VerifyAll();
     }
 
     private static Instance CreateInstance()

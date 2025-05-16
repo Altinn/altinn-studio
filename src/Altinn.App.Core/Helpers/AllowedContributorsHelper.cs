@@ -69,14 +69,16 @@ internal static class AllowedContributorsHelper
             return;
         }
 
-        DataType? dataType = metadata.DataTypes.Find(x => x.Id == dataTypeId);
+        DataType dataType =
+            metadata.DataTypes.Find(x => x.Id == dataTypeId)
+            ?? throw new ApplicationConfigException($"Data type {dataTypeId} not found in applicationmetadata.json");
 #pragma warning disable CS0618 // Type or member is obsolete
-        List<string>? allowedContributors = dataType?.AllowedContributers;
+        List<string>? allowedContributors = dataType.AllowedContributers;
 #pragma warning restore CS0618 // Type or member is obsolete
 
         if (allowedContributors is null || allowedContributors.Count == 0)
         {
-            allowedContributors = dataType?.AllowedContributors;
+            allowedContributors = dataType.AllowedContributors;
         }
 
         if (
@@ -85,7 +87,7 @@ internal static class AllowedContributorsHelper
         )
         {
             throw new ApplicationConfigException(
-                $"AllowedContributors (or AllowedContributers) must be set to ['app:owned'] on the data type ${dataType?.Id}. This is to prevent editing of the data type through the API."
+                $"AllowedContributors (or AllowedContributers) must be set to ['app:owned'] on the data type ${dataType.Id}. This is to prevent editing of the data type through the API."
             );
         }
     }

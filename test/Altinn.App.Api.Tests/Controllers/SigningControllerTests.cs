@@ -12,14 +12,15 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Xunit.Abstractions;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
 using SigneeContextState = Altinn.App.Core.Features.Signing.Models.SigneeContextState;
 
@@ -27,16 +28,15 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class SigningControllerTests
 {
-    private readonly Mock<IInstanceClient> _instanceClientMock = new();
-    private readonly Mock<IProcessReader> _processReaderMock = new();
-    private readonly Mock<ILogger<SigningController>> _loggerMock = new();
-    private readonly Mock<ISigningService> _signingServiceMock = new();
-    private readonly Mock<IDataClient> _dataClientMock = new();
-    private readonly Mock<IAppMetadata> _applicationMetadataMock = new();
-    private readonly Mock<IAppModel> _appModelMock = new();
-    private readonly Mock<IAppResources> _appResourcesMock = new();
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
+    private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppMetadata> _applicationMetadataMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Strict);
 
     private readonly AltinnTaskExtension _altinnTaskExtension = new()
     {
@@ -52,7 +52,7 @@ public class SigningControllerTests
         },
     };
 
-    public SigningControllerTests()
+    public SigningControllerTests(ITestOutputHelper output)
     {
         _serviceCollection.AddTransient<ModelSerializationService>();
         _serviceCollection.AddTransient<InstanceDataUnitOfWorkInitializer>();
@@ -66,7 +66,7 @@ public class SigningControllerTests
         _serviceCollection.AddSingleton(_appResourcesMock.Object);
         _serviceCollection.AddSingleton(_processReaderMock.Object);
         _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
-        _serviceCollection.AddSingleton(_loggerMock.Object);
+        _serviceCollection.AddFakeLoggingWithXunit(output);
 
         _instanceClientMock
             .Setup(x => x.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
@@ -82,6 +82,18 @@ public class SigningControllerTests
             );
 
         _processReaderMock.Setup(s => s.GetAltinnTaskExtension(It.IsAny<string>())).Returns(_altinnTaskExtension);
+
+        _applicationMetadataMock
+            .Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(
+                new ApplicationMetadata("ttd/app")
+                {
+                    DataTypes =
+                    [
+                        // this test does not verify the data types
+                    ],
+                }
+            );
     }
 
     [Fact]
