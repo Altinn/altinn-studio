@@ -6,19 +6,28 @@ import { TasksTableBody } from './TasksTableBody';
 import { useTranslation } from 'react-i18next';
 import { EyeClosedIcon, EyeIcon } from '@studio/icons';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 
 export type TasksTableProps = {
   tasks?: TaskNavigationGroup[];
   isNavigationMode?: boolean;
-  onSelectAllTasks: () => void;
+  allTasks?: TaskNavigationGroup[];
 };
 
 export const TasksTable = ({
   tasks = [],
   isNavigationMode = true,
-  onSelectAllTasks,
+  allTasks = [],
 }: TasksTableProps): ReactElement => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
+
+  const handleMoveAllTasks = () => {
+    const tasksForNavigationTable = isNavigationMode ? [] : allTasks;
+    updateTaskNavigationGroup(tasksForNavigationTable);
+  };
 
   return (
     <StudioTable
@@ -45,8 +54,9 @@ export const TasksTable = ({
           <StudioTable.Cell colSpan={4} className={classes.taskFooterContent}>
             <StudioButton
               variant='secondary'
-              onClick={() => onSelectAllTasks()}
+              onClick={handleMoveAllTasks}
               icon={isNavigationMode ? <EyeIcon /> : <EyeClosedIcon />}
+              disabled={tasks.length === 0}
             >
               {isNavigationMode
                 ? t('ux_editor.task_table_hide_all')
