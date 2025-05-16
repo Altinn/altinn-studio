@@ -296,6 +296,37 @@ describe('useAddPageToGroup', () => {
       expect.any(Object),
     );
   });
+
+  it('should handle the case where all names up to N are taken', () => {
+    const existingPages = Array.from({ length: 10 }, (_, i) => ({ id: `ux_editor.page${i + 1}` }));
+    const mockPagesModel: PagesModel = {
+      pages: existingPages.slice(0, 5),
+      groups: [
+        {
+          order: existingPages.slice(5),
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({
+            order: [
+              ...existingPages.slice(5),
+              expect.objectContaining({
+                id: 'ux_editor.page11',
+              }),
+            ],
+          }),
+        ],
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
