@@ -228,6 +228,45 @@ describe('useAddPageToGroup', () => {
       expect.any(Object),
     );
   });
+
+  it('should keep incrementing until finding a unique name when many duplicates exist', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
+      groups: [{ order: [] }],
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({
+            order: [
+              expect.objectContaining({
+                id: 'ux_editor.page3',
+              }),
+            ],
+          }),
+        ],
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('should correctly increment the page number when generating names', () => {
+    const mockT = jest.fn().mockImplementation((key) => key);
+    (useTranslation as jest.Mock).mockReturnValue({
+      t: mockT,
+    });
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: [{ order: [] }],
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockT).toHaveBeenCalledWith('ux_editor.page');
+    const [mutateArg] = mockMutate.mock.calls[0];
+    expect(mutateArg.groups[0].order[0].id).toBe('ux_editor.page1');
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
