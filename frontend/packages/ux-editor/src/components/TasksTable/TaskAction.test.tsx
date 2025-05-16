@@ -6,6 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { iterate } from 'glob';
 
 const mockTask = [
   {
@@ -47,13 +48,27 @@ describe('TaskAction', () => {
 
   it('should call moveNavigationTask when down button is clicked', async () => {
     const user = userEvent.setup();
-
     renderTaskAction();
 
     const downButton = screen.getByRole('button', {
       name: textMock('ux_editor.task_table.menu_task_down'),
     });
     await user.click(downButton);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+      mockTask[1],
+      mockTask[0],
+    ]);
+  });
+
+  it('should call moveNavigationTask when up button is clicked', async () => {
+    const user = userEvent.setup();
+    renderTaskAction({ task: mockTask[1], index: 1 });
+
+    const upButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table.menu_task_up'),
+    });
+    await user.click(upButton);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
       mockTask[1],
