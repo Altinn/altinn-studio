@@ -23,7 +23,7 @@ describe('TabsContent', () => {
 
   it('should render Setup tab content when currentTab is "setup"', () => {
     renderTabsContent({ currentTab: 'setup' });
-    expect(screen.getByText('Setup tab')).toBeInTheDocument();
+    expect(getHeading('setup')).toBeInTheDocument();
   });
 
   it('should render Policy tab content when currentTab is "policy"', () => {
