@@ -8,10 +8,7 @@ import { AddSubformCard } from '@altinn/ux-editor/components/TaskNavigation/AddS
 
 export const TaskCardBar = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(
-    org,
-    app,
-  );
+  const { data: layoutSets, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(org, app);
   const [isCreateSubformMode, setIsCreateSubformMode] = React.useState(false);
 
   if (layoutSetsPending) return null;
@@ -19,7 +16,7 @@ export const TaskCardBar = () => {
   return (
     <div className={classes.container}>
       <div className={classes.wrapper}>
-        {layoutSetsModel.sets.map((layoutSetModel) => (
+        {layoutSets.map((layoutSetModel) => (
           <TaskCard key={layoutSetModel.id} layoutSetModel={layoutSetModel} />
         ))}
         <div className={classes.addCardsContainer}>

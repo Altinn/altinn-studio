@@ -3,7 +3,6 @@ import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
-import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 
 const excludedComponents = [
@@ -38,7 +37,7 @@ export type TargetComponentProps = TargetPageProps & {
 
 type getTargetLayoutSetNameProps = {
   target: Summary2TargetConfig;
-  layoutSets: LayoutSetsModel;
+  layoutSets: LayoutSetModel[];
   selectedFormLayoutSetName: string;
 };
 
@@ -48,7 +47,7 @@ export const getTargetLayoutSetName = ({
   selectedFormLayoutSetName,
 }: getTargetLayoutSetNameProps): string => {
   const layoutSetName = target?.taskId
-    ? layoutSets.sets.find((layoutSet) => layoutSet.task?.id === target.taskId).id
+    ? layoutSets.find((layoutSet) => layoutSet.task?.id === target.taskId).id
     : selectedFormLayoutSetName;
   return layoutSetName;
 };
@@ -84,6 +83,6 @@ export const getPageOptions = (formLayoutsData: IFormLayouts): TargetPageProps[]
     : [];
 };
 
-export const getLayoutSetOptions = (layoutSets: LayoutSetsModel): LayoutSetModel[] => {
-  return layoutSets?.sets.filter((set) => set.task);
+export const getLayoutSetOptions = (layoutSets: LayoutSetModel[]): LayoutSetModel[] => {
+  return layoutSets?.filter((set) => set.task);
 };

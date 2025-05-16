@@ -11,8 +11,8 @@ import { layoutSetsExtendedMock } from '../../testing/layoutSetsMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'data', name: 'Task 1', pageCount: 5 },
-  { taskType: 'data', name: 'Task 2', pageCount: 10, taskId: 'Task_2' },
+  { taskType: 'data', name: 'Task 1', taskId: 'Task_1' },
+  { taskType: 'data', name: 'Task 2', taskId: 'Task_2' },
   { taskType: 'receipt', taskId: 'fake' },
 ];
 
@@ -22,6 +22,37 @@ describe('TasksTableBody', () => {
 
     const alertTitle = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(alertTitle).toBeInTheDocument();
+  });
+
+  it('should render task name and page count', () => {
+    renderTasksTableBody();
+
+    const taskMock1 = tasksMock[0];
+    const layoutSetMock1 = layoutSetsExtendedMock[0];
+
+    expect(
+      screen.getByText(
+        `${textMock('ux_editor.task_table_type.' + taskMock1.taskType)}: ${layoutSetMock1.id}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(layoutSetMock1.pageCount)).toBeInTheDocument();
+
+    const taskMock2 = tasksMock[1];
+    const layoutSetMock2 = layoutSetsExtendedMock[1];
+
+    expect(
+      screen.getByText(
+        `${textMock('ux_editor.task_table_type.' + taskMock2.taskType)}: ${layoutSetMock2.id}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(layoutSetMock2.pageCount)).toBeInTheDocument();
+
+    const taskMockReceipt = tasksMock[2];
+
+    expect(
+      screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(0)).toBeInTheDocument();
   });
 
   it('should render the tasks with their names, but not display buttons when in navigation mode', () => {

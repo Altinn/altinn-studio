@@ -7,7 +7,7 @@ import {
   FolderIcon,
 } from '@studio/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
+import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 export const taskNavigationType = (taskType?: string) => {
@@ -43,14 +43,14 @@ export const getTaskIcon = (taskType: string) => {
 
 type GetHiddenTasksProps = {
   taskNavigationGroups: TaskNavigationGroup[];
-  layoutSetsModel: LayoutSetsModel;
+  layoutSets: LayoutSetModel[];
 };
 
 export const getHiddenTasks = ({
   taskNavigationGroups,
-  layoutSetsModel,
+  layoutSets,
 }: GetHiddenTasksProps): TaskNavigationGroup[] => {
-  const filteredLayoutSets = layoutSetsModel.sets.filter((layoutSet) => {
+  const filteredLayoutSets = layoutSets.filter((layoutSet) => {
     return (
       layoutSet?.type !== 'subform' && layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT
     );
