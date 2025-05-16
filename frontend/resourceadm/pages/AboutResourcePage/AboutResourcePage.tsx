@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components-legacy';
+import { StudioAlert } from '@studio/components';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -199,6 +200,11 @@ export const AboutResourcePage = ({
               required
               errors={validationErrors.filter((error) => error.field === 'consentTemplate')}
             />
+            {!consentTemplateOptions.length && (
+              <StudioAlert data-color='danger'>
+                {t('resourceadm.about_resource_consent_templates_error')}
+              </StudioAlert>
+            )}
             <ResourceTextField
               id='consentMetadata'
               label={t('resourceadm.about_resource_consent_metadata')}

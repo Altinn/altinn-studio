@@ -86,6 +86,7 @@
   "resourceadm.about_resource_self_identified_text": "Brukeren som opptrer på vegne av en part kan være en selvidentifisert bruker.",
   "resourceadm.about_resource_consent_template_label": "Samtykkemal",
   "resourceadm.about_resource_consent_template_text": "Samtykkemalen bestemmer hvordan samtykket skal se ut.",
+  "resourceadm.about_resource_consent_templates_error": "Kunne ikke laste samtykkemaler",
   "resourceadm.about_resource_consent_text_label": "Samtykketekst (bokmål)",
   "resourceadm.about_resource_consent_text_text": "Beskriv hva samtykket gjelder. Metadata kan brukes",
   "resourceadm.about_resource_consent_metadata": "Metadata for samtykketekst",

@@ -366,6 +366,20 @@ describe('AboutResourcePage', () => {
     expect(consentTemplateRadio).toBeChecked();
   });
 
+  it('displays error if consent templates cannot be loaded', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        consentTemplates={undefined}
+        resourceData={{ ...mockConsentResource }}
+      />,
+    );
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_templates_error')),
+    ).toBeInTheDocument();
+  });
+
   it('handles consentMetadata changes', async () => {
     const user = userEvent.setup();
     render(
