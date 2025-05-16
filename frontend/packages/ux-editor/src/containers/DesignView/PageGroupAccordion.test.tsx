@@ -60,6 +60,25 @@ describe('PageGroupAccordion', () => {
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
+
+  it('should call addPageInGroup when add button is clicked', async () => {
+    const addPageInGroupMock = jest.fn();
+    const user = userEvent.setup();
+    await renderPageGroupAccordion({
+      props: { addPageInGroup: addPageInGroupMock },
+    });
+    const addButtons = screen.getAllByRole('button', {
+      name: textMock('ux_editor.pages_add'),
+    });
+
+    await user.click(addButtons[0]);
+    expect(addPageInGroupMock).toHaveBeenCalledTimes(1);
+    expect(addPageInGroupMock).toHaveBeenCalledWith(0);
+
+    await user.click(addButtons[1]);
+    expect(addPageInGroupMock).toHaveBeenCalledTimes(2);
+    expect(addPageInGroupMock).toHaveBeenCalledWith(1);
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));

@@ -134,6 +134,28 @@ describe('useAddPageToGroup', () => {
       expect.any(Object),
     );
   });
+
+  it('should increment page number until finding a unique name when multiple duplicates exist', async () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: [
+        {
+          order: [
+            { id: 'ux_editor.page1' },
+            { id: 'ux_editor.page2' },
+            { id: 'ux_editor.page3' },
+            { id: 'ux_editor.page4' },
+          ],
+        },
+      ],
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    const [mutateArg] = mockMutate.mock.calls[0];
+    expect(mutateArg.groups[0].order[4].id).toBe('ux_editor.page5');
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
