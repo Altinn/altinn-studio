@@ -2014,6 +2014,7 @@
   "ux_editor.task_table.menu_task_hide": "Skjul oppgaven",
   "ux_editor.task_table.menu_task_redirect": "Gå til utforming",
   "ux_editor.task_table.menu_task_up": "Flytt opp",
+  "ux_editor.task_table.remove_tasks": "Er du sikker på at du vil fjerne alle oppgavene fra navigasjonen?",
   "ux_editor.task_table_alert_message": "For å se oppgavene her, må du velge dem fra tabellen under.",
   "ux_editor.task_table_alert_title": "Du viser ingen oppgaver i navigasjonen",
   "ux_editor.task_table_display": "Vis oppgaven",

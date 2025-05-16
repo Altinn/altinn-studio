@@ -47,7 +47,8 @@ describe('TasksTable', () => {
     expect(getShowAllButton()).toBeInTheDocument();
   });
 
-  it('should remove all tasks from navigation table when hide all button is clicked', async () => {
+  it('should remove all tasks from navigation table when hide all button is clicked and confirmed', async () => {
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     const user = userEvent.setup();
     renderTasksTable();
 

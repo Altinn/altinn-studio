@@ -25,8 +25,9 @@ export const TasksTable = ({
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
 
   const handleMoveAllTasks = () => {
-    const tasksForNavigationTable = isNavigationMode ? [] : allTasks;
-    updateTaskNavigationGroup(tasksForNavigationTable);
+    if (!isNavigationMode || confirm(t('ux_editor.task_table.remove_tasks'))) {
+      updateTaskNavigationGroup(isNavigationMode ? [] : allTasks);
+    }
   };
 
   return (
