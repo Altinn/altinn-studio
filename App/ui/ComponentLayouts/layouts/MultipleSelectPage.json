@@ -149,10 +149,9 @@
       {
         "dataModelBindings": {
           "group": "MultiselectGroupExample",
-          "simpleBinding": "MultiselectGroupExample.Name.firstname",
-          "checked": "MultiselectGroupExample.Internal.isChecked"
+          "simpleBinding": "MultiselectGroupExample.Name.firstname"
         },
-        "deletionStrategy":"soft",
+        "deletionStrategy":"hard",
         "id": "MultipleSelectPage-Checkboxes2",
         "type": "MultipleSelect",
         "textResourceBindings": {

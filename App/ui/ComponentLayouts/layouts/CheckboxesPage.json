@@ -148,15 +148,16 @@
       {
         "dataModelBindings": {
           "group": "CheckboxesGroupExample",
-          "simpleBinding": "CheckboxesGroupExample.Name.id"
+          "simpleBinding": "CheckboxesGroupExample.Name.id",
+          "checked": "CheckboxesGroupExample.Internal.isChecked"
         },
-        "deletionStrategy":"hard",
+        "deletionStrategy":"soft",
         "id": "CheckboxesPage-Checkboxes2",
         "type": "Checkboxes",
         "textResourceBindings": {
           "title": "CheckboxesPage.Checkboxes.title"
         },
-        "optionsId": "persons",
+        "optionsId": "personsNumber",
         "required": true
       },
       {
