@@ -9,8 +9,8 @@ export const useTaskNavigationGroupMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: (payload: TaskNavigationGroup[]) => updateTaskNavigationGroup(org, app, payload),
-    onSuccess: (data) => {
-      queryClient.setQueryData([QueryKey.TaskNavigationGroup, org, app], data);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.TaskNavigationGroup, org, app] });
     },
   });
 };

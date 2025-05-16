@@ -12,13 +12,11 @@ import { TaskAction } from './TaskAction';
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];
   isNavigationMode: boolean;
-  onSelectTask: (index: number) => void;
 };
 
 export const TasksTableBody = ({
   tasks,
   isNavigationMode,
-  onSelectTask,
 }: TasksTableBodyProps): ReactElement | ReactElement[] => {
   const { t } = useTranslation();
   const displayInfoMessage = isNavigationMode && tasks.length === 0;
@@ -44,9 +42,9 @@ export const TasksTableBody = ({
       <TaskRow
         key={uniqueKey}
         task={task}
+        tasks={tasks}
         index={index}
         isNavigationMode={isNavigationMode}
-        onSelectTask={onSelectTask}
       />
     );
   });
@@ -54,12 +52,12 @@ export const TasksTableBody = ({
 
 type TaskRowProps = {
   task: TaskNavigationGroup;
+  tasks: TaskNavigationGroup[];
   index: number;
   isNavigationMode: boolean;
-  onSelectTask: (index: number) => void;
 };
 
-const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps): ReactElement => {
+const TaskRow = ({ task, tasks, index, isNavigationMode }: TaskRowProps): ReactElement => {
   const { t } = useTranslation();
   const TaskIcon = getTaskIcon(task.taskType);
   const taskTypeName = taskNavigationType(task.taskType);
@@ -87,7 +85,7 @@ const TaskRow = ({ task, index, isNavigationMode, onSelectTask }: TaskRowProps):
       )}
       <StudioTable.Cell>{task?.pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
-        <TaskAction isNavigationMode={isNavigationMode} onSelectTask={onSelectTask} index={index} />
+        <TaskAction isNavigationMode={isNavigationMode} task={task} tasks={tasks} index={index} />
       </StudioTable.Cell>
     </StudioTable.Row>
   );
