@@ -156,7 +156,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                 "SubPage",
                 """
                 {
-                "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+                "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
                 "data": {
                   "layout": [
                     {
