@@ -23,6 +23,7 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
+import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -98,6 +99,8 @@ export const DesignView = (): ReactNode => {
     });
   };
 
+  const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(pagesModel);
+
   const layoutsWithDuplicateComponents = useMemo(
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
@@ -151,7 +154,7 @@ export const DesignView = (): ReactNode => {
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}
-              onAddPage={handleAddPage}
+              addPageInGroup={handleAddPageInsideGroup}
               isAddPagePending={isAddPageMutationPending}
             />
           ) : (
