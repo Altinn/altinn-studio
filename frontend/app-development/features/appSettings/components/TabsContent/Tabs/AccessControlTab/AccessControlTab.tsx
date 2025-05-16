@@ -8,8 +8,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioLink, StudioValidationMessage } from '@studio/components';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export function AccessControlTab(): ReactElement {
   const { t } = useTranslation();
@@ -43,7 +44,12 @@ function AccessControlTabContent(): ReactElement {
       );
     }
     case 'success': {
-      return <SelectAllowedPartyTypes appMetadata={appMetadata} />;
+      return (
+        <>
+          <SelectAllowedPartyTypes appMetadata={appMetadata} />
+          <AccessControlDocumentation />
+        </>
+      );
     }
   }
 }
@@ -53,12 +59,12 @@ function AccessControlDocumentation(): ReactElement {
   return (
     <div>
       <span className={classes.docsLinkText}>
-        {t('settings_modal.access_control_tab_option_access_control_docs_link_text')}
+        {t('app_settings.access_control_tab_option_access_control_docs_link_text')}
       </span>
       <StudioLink
         href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' })}
       >
-        {t('settings_modal.access_control_tab_option_access_control_docs_link')}
+        {t('app_settings.access_control_tab_option_access_control_docs_link')}
       </StudioLink>
     </div>
   );

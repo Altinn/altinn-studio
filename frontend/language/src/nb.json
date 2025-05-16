@@ -175,6 +175,8 @@
   "app_settings.access_control_tab_checkbox_description": "Her velger du hvem som eier og kan starte appen. “Alle” er valgt som standard. Du må minst velge én.",
   "app_settings.access_control_tab_checkbox_legend_label": "Velg hvem som kan starte appen",
   "app_settings.access_control_tab_heading": "Oppstartskontroll for appen",
+  "app_settings.access_control_tab_option_access_control_docs_link": "I dokumentasjonen kan du lære hvordan du setter andre kontroller for oppstart.",
+  "app_settings.access_control_tab_option_access_control_docs_link_text": "Velg eller lag andre tilleggskontroller:",
   "app_settings.access_control_tab_option_all_types": "Alle typer",
   "app_settings.access_control_tab_option_bankruptcy_estate": "Konkursbo",
   "app_settings.access_control_tab_option_choose_type_modal_message": "Du må velge minst ett alternativ.",
