@@ -336,43 +336,43 @@ describe('useAddPageToGroup', () => {
     );
   });
 
-  // it('should handle undefined pagesModel.groups', () => {
-  //   const mockPagesModel: PagesModel = {
-  //     pages: [],
-  //     groups: undefined,
-  //   };
-  //   const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
-  //   result.current.addPageToGroup(0);
-  //   expect(mockMutate).toHaveBeenCalledWith(
-  //     expect.objectContaining({
-  //       groups: [],
-  //     }),
-  //     expect.any(Object),
-  //   );
-  // });
+  it('should handle undefined pagesModel.groups', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: undefined,
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [],
+      }),
+      expect.any(Object),
+    );
+  });
 
-  // it('should handle undefined group.order', () => {
-  //   const mockPagesModel: PagesModel = {
-  //     pages: [],
-  //     groups: [
-  //       {
-  //         order: undefined,
-  //       },
-  //     ],
-  //   };
-  //   const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
-  //   result.current.addPageToGroup(0);
-  //   expect(mockMutate).toHaveBeenCalledWith(
-  //     expect.objectContaining({
-  //       groups: [
-  //         expect.objectContaining({
-  //           order: [{ id: 'ux_editor.page1' }],
-  //         }),
-  //       ],
-  //     }),
-  //     expect.any(Object),
-  //   );
-  // });
+  it('should handle undefined group.order', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: [
+        {
+          order: undefined,
+        },
+      ],
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({
+            order: [{ id: 'ux_editor.page1' }],
+          }),
+        ],
+      }),
+      expect.any(Object),
+    );
+  });
 
   describe('useAddPageToGroup loop coverage', () => {
     it('should increment multiple times when many duplicates exist', () => {
