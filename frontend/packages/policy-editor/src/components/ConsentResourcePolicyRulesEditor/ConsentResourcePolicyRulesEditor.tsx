@@ -106,13 +106,6 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
           )
         }
       >
-        <StudioCheckbox
-          value={organizationSubject.subjectId}
-          description={t('policy_editor.consent_resource_all_organizations_description')}
-          className={classes.accessListItem}
-        >
-          {t('policy_editor.consent_resource_all_organizations')}
-        </StudioCheckbox>
         {accessListSubjects.length === 0 && (
           <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
         )}
@@ -126,6 +119,12 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
             {subject.subjectTitle}
           </StudioCheckbox>
         ))}
+        <StudioCheckbox
+          value={organizationSubject.subjectId}
+          className={classes.allOrganizationsItem}
+        >
+          {t('policy_editor.consent_resource_all_organizations')}
+        </StudioCheckbox>
       </StudioCheckbox.Group>
     </div>
   );
