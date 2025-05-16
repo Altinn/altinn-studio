@@ -13,5 +13,5 @@
 .allOrganizationsItem {
   padding: 0 var(--fds-sizing-2);
   background-color: var(--ds-color-neutral-background-tinted);
-  min-height: 3rem;
+  min-height: var(--fds-spacing-12);
 }
