@@ -200,6 +200,34 @@ describe('useAddPageToGroup', () => {
       expect.any(Object),
     );
   });
+
+  it('should increment multiple times when many duplicates exist', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
+      groups: [
+        {
+          order: [{ id: 'ux_editor.page3' }, { id: 'ux_editor.page4' }],
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({
+            order: [
+              { id: 'ux_editor.page3' },
+              { id: 'ux_editor.page4' },
+              { id: 'ux_editor.page5' },
+            ],
+          }),
+        ],
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
