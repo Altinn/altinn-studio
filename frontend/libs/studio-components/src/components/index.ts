@@ -25,3 +25,4 @@ export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioCheckbox } from './StudioCheckbox';
 export { StudioSwitch } from './StudioSwitch';
+export { StudioLink } from './StudioLink';
