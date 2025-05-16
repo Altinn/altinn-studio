@@ -23,6 +23,7 @@ export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
 export { StudioTextfield } from './StudioTextfield';
 export { StudioSpinner } from './StudioSpinner';
 export { StudioFieldset } from './StudioFieldset';
+export { StudioFormGroup } from './StudioFormGroup';
 export { StudioCheckbox } from './StudioCheckbox';
 export { StudioCheckboxTable, useStudioCheckboxTableLogic } from './StudioCheckboxTable';
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
