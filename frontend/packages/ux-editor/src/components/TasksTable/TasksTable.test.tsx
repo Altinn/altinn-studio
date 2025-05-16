@@ -14,8 +14,7 @@ const tasksMock: TaskNavigationGroup[] = [
 ];
 
 const allTasksMock: TaskNavigationGroup[] = [
-  { taskType: 'type1', name: 'Task 1', pageCount: 5 },
-  { taskType: 'type2', name: 'Task 2', pageCount: 10 },
+  ...tasksMock,
   { taskType: 'type3', name: 'Task 3', pageCount: 15 },
 ];
 
