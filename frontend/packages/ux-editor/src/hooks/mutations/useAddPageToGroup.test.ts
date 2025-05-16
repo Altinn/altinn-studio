@@ -156,6 +156,50 @@ describe('useAddPageToGroup', () => {
     const [mutateArg] = mockMutate.mock.calls[0];
     expect(mutateArg.groups[0].order[4].id).toBe('ux_editor.page5');
   });
+
+  it('should keep incrementing page number until finding a unique name', async () => {
+    const mockT = jest.fn().mockImplementation((key) => key);
+    (useTranslation as jest.Mock).mockReturnValue({
+      t: mockT,
+    });
+    const mockPagesModel: PagesModel = {
+      pages: [{ id: 'ux_editor.page1' }],
+      groups: [
+        {
+          order: [{ id: 'ux_editor.page2' }],
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: expect.arrayContaining([
+          expect.objectContaining({
+            order: expect.arrayContaining([{ id: 'ux_editor.page2' }, { id: 'ux_editor.page3' }]),
+          }),
+        ]),
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('updates the selected group', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: [{ order: [] }, { order: [] }],
+    };
+
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(1);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [{ order: [] }, { order: [{ id: 'ux_editor.page1' }] }],
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
