@@ -1,1 +1,0 @@
-export { ManualTab } from './ManualTab';
