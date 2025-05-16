@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -15,6 +15,8 @@ import {
   mapSelectedValuesToPartyTypesAllowed,
 } from './utils';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
+import { CheckmarkIcon } from '@studio/icons';
+import { toast } from 'react-toastify';
 
 export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;
@@ -26,6 +28,7 @@ export function SelectAllowedPartyTypes({
   const { t } = useTranslation();
 
   const partyTypesAllowed = appMetadata.partyTypesAllowed;
+
   const initialValues: AllowedPartyTypes[] = getSelectedPartyTypes(partyTypesAllowed);
   const title: string = t('app_settings.access_control_tab_option_all_types');
   const minimimumRequiredCheckboxes: number = 1;
@@ -90,27 +93,24 @@ function SaveButton({ appMetadata, selectedValues, hasError }: SaveButtonProps):
       return;
     }
     const updatedPartyTypesAllowed = mapSelectedValuesToPartyTypesAllowed(selectedValues);
-    updateAppMetadataMutation({
-      ...appMetadata,
-      partyTypesAllowed: updatedPartyTypesAllowed,
-    });
-  };
-
-  /*
-  useEffect(() => {
-    if (!hasError) {
-      console.log('saved', selectedValues);
-      const updatedPartyTypesAllowed = mapSelectedValuesToPartyTypesAllowed(selectedValues);
-      updateAppMetadataMutation({
+    updateAppMetadataMutation(
+      {
         ...appMetadata,
         partyTypesAllowed: updatedPartyTypesAllowed,
-      });
-    }
-  }, [hasError, updateAppMetadataMutation, appMetadata, selectedValues]);
-  */
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('app_settings.access_control_tab_save_options_success_message'));
+        },
+        onError: () => {
+          toast.error(t('app_settings.access_control_tab_save_options_error_message'));
+        },
+      },
+    );
+  };
 
   return (
-    <StudioButton onClick={savePartyTypesAllowed} disabled={hasError}>
+    <StudioButton onClick={savePartyTypesAllowed} disabled={hasError} icon={<CheckmarkIcon />}>
       {t('app_settings.access_control_tab_save_options')}
     </StudioButton>
   );

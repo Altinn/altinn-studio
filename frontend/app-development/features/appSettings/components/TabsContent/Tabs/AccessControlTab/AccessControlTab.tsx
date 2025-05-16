@@ -56,6 +56,7 @@ function AccessControlTabContent(): ReactElement {
 
 function AccessControlDocumentation(): ReactElement {
   const { t } = useTranslation();
+
   return (
     <div>
       <StudioParagraph className={classes.docsLinkText}>
@@ -63,6 +64,8 @@ function AccessControlDocumentation(): ReactElement {
       </StudioParagraph>
       <StudioLink
         href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation' })}
+        target='_blank'
+        rel='noopener noreferrer'
       >
         {t('app_settings.access_control_tab_option_access_control_docs_link')}
       </StudioLink>

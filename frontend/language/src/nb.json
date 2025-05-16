@@ -184,6 +184,8 @@
   "app_settings.access_control_tab_option_person": "Privatperson",
   "app_settings.access_control_tab_option_sub_unit": "Underenhet (bedrift)",
   "app_settings.access_control_tab_save_options": "Lagre",
+  "app_settings.access_control_tab_save_options_error_message": "Det oppsto en feil under lagring av innstillingene. Prøv igjen senere.",
+  "app_settings.access_control_tab_save_options_success_message": "Innstillingene ble lagret.",
   "app_settings.heading": "Innstillinger",
   "code_list_editor.add_button_disabled": "Du kan ikke ha flere enn to alternativer i en boolsk kodeliste",
   "code_list_editor.add_option": "Legg til alternativ",
