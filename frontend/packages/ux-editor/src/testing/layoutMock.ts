@@ -188,7 +188,7 @@ export const groupsPagesModelMock: PagesModel = {
     {
       name: pagelayout1NameMock,
       type: pagelayout1NameMock,
-      order: [{ id: layout1NameMock }],
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
     {
       name: pagelayout2NameMock,

@@ -11,7 +11,7 @@ export type TabsContentProps = {
 export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
   switch (currentTab) {
     case 'about': {
-      return <AccessControlTab />; // <div>About tab</div>;
+      return <AccessControlTab />; // <AboutTab />;
     }
     case 'setup': {
       return <div>Setup tab</div>;
