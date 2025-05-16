@@ -71,7 +71,7 @@ describe('TasksTable', () => {
   });
 
   it('should disable show all button when there are no tasks to show', () => {
-    renderTasksTable({ tasks: [], isNavigationMode: false });
+    renderTasksTable({ tasks: [], allTasks: [], isNavigationMode: false });
     expect(getShowAllButton()).toBeDisabled();
   });
 });
