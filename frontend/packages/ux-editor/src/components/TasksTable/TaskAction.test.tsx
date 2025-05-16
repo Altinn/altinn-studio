@@ -6,7 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
-import { iterate } from 'glob';
 
 const mockTask = [
   {
