@@ -380,6 +380,35 @@ public class SigningUserActionTests
     }
 
     [Fact]
+    public async Task HandleAction_returns_ok_if_no_correspondence_resource()
+    {
+        var fixture = Fixture.Create(testBpmnFilename: "signing-task-missing-correspondence.bpmn");
+
+        var instance = fixture.Instance;
+        var signClientMock = fixture.SignClient;
+        var userActionContext = new UserActionContext(
+            fixture.InstanceDataMutatorMock.Object,
+            1337,
+            authentication: TestAuthentication.GetUserAuthentication(1337)
+        );
+        // Act
+        var result = await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None);
+        // Assert
+        SignatureContext expected = new(
+            new InstanceIdentifier(instance),
+            instance.Process.CurrentTask.ElementId,
+            "signature",
+            new Signee() { UserId = "1337", PersonNumber = "12345678901" },
+            new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
+        );
+        signClientMock.Verify(
+            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            Times.Once
+        );
+        result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
+    }
+
+    [Fact]
     public async Task HandleAction_throws_ApplicationConfigException_when_no_dataElementSignature_and_mandatory_datatypes()
     {
         // Arrange

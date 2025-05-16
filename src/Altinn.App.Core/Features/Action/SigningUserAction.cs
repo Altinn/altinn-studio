@@ -153,6 +153,14 @@ internal class SigningUserAction : IUserAction
             );
         }
 
+        int correspondenceResourcesCount = signatureConfiguration.CorrespondenceResources?.Count ?? 0;
+
+        if (correspondenceResourcesCount == 0)
+        {
+            _logger.LogWarning("No correspondence resources found. Skipping sending correspondence.");
+            return UserActionResult.SuccessResult();
+        }
+
         ServiceResult<SendCorrespondenceResponse?, Exception> res = await CatchError(() =>
             _signingReceiptService.SendSignatureReceipt(
                 signatureContext.InstanceIdentifier,
