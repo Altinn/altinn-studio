@@ -267,6 +267,35 @@ describe('useAddPageToGroup', () => {
     const [mutateArg] = mockMutate.mock.calls[0];
     expect(mutateArg.groups[0].order[0].id).toBe('ux_editor.page1');
   });
+
+  it('increments the page name for the new page correctly', () => {
+    const mockPagesModel: PagesModel = {
+      pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
+      groups: [
+        {
+          order: [{ id: 'ux_editor.page3' }, { id: 'ux_editor.page4' }],
+        },
+      ],
+    };
+    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    result.current.addPageToGroup(0);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({
+            order: [
+              { id: 'ux_editor.page3' },
+              { id: 'ux_editor.page4' },
+              expect.objectContaining({
+                id: 'ux_editor.page5',
+              }),
+            ],
+          }),
+        ],
+      }),
+      expect.any(Object),
+    );
+  });
 });
 
 const render = (pagesModel: PagesModel) => {
