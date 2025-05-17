@@ -137,7 +137,7 @@ function AppContentLibraryWithData({
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
-          onUpdateTextResource: handleUpdateTextResource,
+          onSetTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           codeListsUsages,
           textResources,

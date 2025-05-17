@@ -1,5 +1,4 @@
 import type { TextResource } from '../../types/TextResource';
-import { ArrayUtils } from '@studio/pure-functions';
 
 export function getTextResourceById(
   textResources: TextResource[],
@@ -13,17 +12,6 @@ export function editTextResourceValue(textResource: TextResource, newValue: stri
     ...textResource,
     value: newValue,
   };
-}
-
-export function changeTextResourceInList(
-  textResources: TextResource[],
-  newTextResource: TextResource,
-): TextResource[] {
-  return ArrayUtils.replaceByPredicate(
-    textResources,
-    (textResource) => textResource.id === newTextResource.id,
-    newTextResource,
-  );
 }
 
 export function createNewTextResource(value: string): TextResource {
