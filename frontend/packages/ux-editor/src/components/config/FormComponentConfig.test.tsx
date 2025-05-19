@@ -46,6 +46,23 @@ describe('FormComponentConfig', () => {
     }
   });
 
+  it('should render nothing when schema has no properties', () => {
+    render({
+      props: {
+        schema: {
+          properties: {},
+        },
+      },
+    });
+    expect(screen.queryByText('ux_editor.component_properties.readOnly')).not.toBeInTheDocument();
+    expect(screen.queryByText('ux_editor.component_properties.required')).not.toBeInTheDocument();
+    expect(screen.queryByText('ux_editor.component_properties.hidden')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('ux_editor.component_propertiesDescription.somePropertyName'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Some description')).not.toBeInTheDocument();
+  });
+
   it('should render the hide-button after clikcing on show-button', async () => {
     const user = userEvent.setup();
     render({});
