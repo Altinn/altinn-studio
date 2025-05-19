@@ -632,7 +632,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            if (resource.ResourceType == ResourceType.Consentresource)
+            if (resource.ResourceType == ResourceType.ConsentResource)
             {
                 if (string.IsNullOrWhiteSpace(resource.ConsentTemplate))
                 {

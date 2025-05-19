@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components-legacy';
+import { StudioAlert } from '@studio/components';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -67,7 +68,7 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) =>
-      key === 'Consentresource' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
+      key === 'ConsentResource' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
     )
     .map(([key, value]) => ({
       value: key,
@@ -184,7 +185,7 @@ export const AboutResourcePage = ({
           required
           errors={validationErrors.filter((error) => error.field === 'description')}
         />
-        {resourceData.resourceType === 'Consentresource' && (
+        {resourceData.resourceType === 'ConsentResource' && (
           <>
             <ResourceRadioGroup
               id='consentTemplate'
@@ -199,6 +200,11 @@ export const AboutResourcePage = ({
               required
               errors={validationErrors.filter((error) => error.field === 'consentTemplate')}
             />
+            {!consentTemplateOptions.length && (
+              <StudioAlert data-color='danger'>
+                {t('resourceadm.about_resource_consent_templates_error')}
+              </StudioAlert>
+            )}
             <ResourceTextField
               id='consentMetadata'
               label={t('resourceadm.about_resource_consent_metadata')}
@@ -354,7 +360,7 @@ export const AboutResourcePage = ({
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        {resourceData.resourceType !== 'Consentresource' && (
+        {resourceData.resourceType !== 'ConsentResource' && (
           <ResourceSwitchInput
             id='accessListMode'
             label={t('resourceadm.about_resource_limited_by_rrr_label')}

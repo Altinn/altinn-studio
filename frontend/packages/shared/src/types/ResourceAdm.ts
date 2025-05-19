@@ -47,7 +47,7 @@ export type ResourceTypeOption =
   | 'MaskinportenSchema'
   | 'BrokerService'
   | 'CorrespondenceService'
-  | 'Consentresource';
+  | 'ConsentResource';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
@@ -207,6 +207,10 @@ export interface MigrateDelegationsRequest {
   resourceId: string;
 }
 
+interface ConsentTemplateTypeText {
+  person: SupportedLanguage;
+  org: SupportedLanguage;
+}
 export interface ConsentTemplate {
   id: string;
   title: string;
@@ -214,25 +218,13 @@ export interface ConsentTemplate {
   restrictedToServiceOwners: string[];
   isMessageSetInRequest: boolean;
   texts: {
-    title: {
-      person: SupportedLanguage;
-      org: SupportedLanguage;
-    };
-    heading: {
-      person: SupportedLanguage;
-      org: SupportedLanguage;
-    };
-    serviceIntro: {
-      person: SupportedLanguage;
-      org: SupportedLanguage;
-    };
+    title: ConsentTemplateTypeText;
+    heading: ConsentTemplateTypeText;
+    serviceIntro: ConsentTemplateTypeText;
     overriddenDelegationContext: SupportedLanguage | null;
     expiration: SupportedLanguage;
     expirationOneTime: SupportedLanguage;
-    serviceIntroAccepted: {
-      person: SupportedLanguage;
-      org: SupportedLanguage;
-    };
+    serviceIntroAccepted: ConsentTemplateTypeText;
     handledBy: SupportedLanguage;
     historyUsedBody: SupportedLanguage;
     historyUsedByHandledByBody: SupportedLanguage;
