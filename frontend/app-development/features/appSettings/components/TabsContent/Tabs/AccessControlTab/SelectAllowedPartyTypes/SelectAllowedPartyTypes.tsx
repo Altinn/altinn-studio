@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import {
   StudioFormGroup,
   StudioCheckboxTable,
-  useStudioCheckboxTableLogic,
+  useStudioCheckboxTable,
   StudioButton,
 } from '@studio/components';
 import type {
@@ -39,8 +39,11 @@ export function SelectAllowedPartyTypes({
   const title: string = t('app_settings.access_control_tab_option_all_types');
   const minimimumRequiredCheckboxes: number = 1;
 
-  const { hasError, getCheckboxProps, selectedValues, setSelectedValue } =
-    useStudioCheckboxTableLogic(initialValues, title, minimimumRequiredCheckboxes);
+  const { hasError, getCheckboxProps, selectedValues, setSelectedValues } = useStudioCheckboxTable(
+    initialValues,
+    title,
+    minimimumRequiredCheckboxes,
+  );
 
   return (
     <StudioFormGroup
@@ -80,7 +83,7 @@ export function SelectAllowedPartyTypes({
         selectedValues={selectedValues}
         hasError={hasError}
         initialValues={initialValues}
-        setSelectedValue={setSelectedValue}
+        setSelectedValues={setSelectedValues}
       />
     </StudioFormGroup>
   );
@@ -91,14 +94,14 @@ type ActionsButtonsProps = {
   selectedValues: string[];
   hasError: boolean;
   initialValues: AllowedPartyTypes[];
-  setSelectedValue: Dispatch<SetStateAction<string[]>>;
+  setSelectedValues: Dispatch<SetStateAction<string[]>>;
 };
 function ActionsButtons({
   appMetadata,
   selectedValues,
   initialValues,
   hasError,
-  setSelectedValue,
+  setSelectedValues,
 }: ActionsButtonsProps): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -133,7 +136,7 @@ function ActionsButtons({
   };
 
   const resetPartyTypesAllowed = (): void => {
-    setSelectedValue(initialValues);
+    setSelectedValues(initialValues);
   };
 
   return (

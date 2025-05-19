@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCheckboxTable } from './';
-import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
+import { useStudioCheckboxTable } from './hook/useStudioCheckboxTable';
 
 const options = [
   { label: 'Label1', value: 'Value1' },
@@ -16,7 +16,7 @@ const PreviewComponent = (args): ReactElement => {
   const errorMessage: string = 'Du må velge minst én';
   const requiredNumberOfChecked: number = 1;
 
-  const { hasError, getCheckboxProps } = useStudioCheckboxTableLogic(
+  const { hasError, getCheckboxProps } = useStudioCheckboxTable(
     initialValues,
     checkBoxTitle,
     requiredNumberOfChecked,
