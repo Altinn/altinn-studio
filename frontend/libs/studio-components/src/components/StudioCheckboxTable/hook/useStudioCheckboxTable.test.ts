@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import type { RenderHookResult } from '@testing-library/react';
-import { useStudioCheckboxTableLogic } from './useStudioCheckboxTableLogic';
-import type { UseStudioCheckboxTableLogicResult } from './useStudioCheckboxTableLogic';
+import { useStudioCheckboxTable } from './useStudioCheckboxTable';
+import type { UseStudioCheckboxTableResult } from './useStudioCheckboxTable';
 
 const mockCheckboxTitle: string = 'Test group';
 const option1: string = 'Option 1';
@@ -27,9 +27,9 @@ describe('useStudioCheckboxTableLogic', () => {
 
 const renderUseStudioCheckboxTableLogic = (
   initialOptions: string[],
-  requiredNumberOfCheckedOptions: number,
-): RenderHookResult<UseStudioCheckboxTableLogicResult, unknown> => {
+  minCountCheckedOptions: number,
+): RenderHookResult<UseStudioCheckboxTableResult, unknown> => {
   return renderHook(() =>
-    useStudioCheckboxTableLogic(initialOptions, mockCheckboxTitle, requiredNumberOfCheckedOptions),
+    useStudioCheckboxTable(initialOptions, mockCheckboxTitle, minCountCheckedOptions),
   );
 };

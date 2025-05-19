@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { StudioCheckboxTable, useStudioCheckboxTableLogic } from './';
+import { StudioCheckboxTable, useStudioCheckboxTable } from './';
 import type { StudioCheckboxTableProps } from './StudioCheckboxTable';
 
 const mockCheckboxTitle: string = 'Checkbox title';
@@ -106,7 +106,7 @@ function renderCheckboxTable(props?: Partial<Props>): RenderResult {
   const { componentProps, initialValues, requiredNumberOfCheckedOptions } = props || {};
 
   const Component = (): ReactElement => {
-    const { hasError, getCheckboxProps } = useStudioCheckboxTableLogic(
+    const { hasError, getCheckboxProps } = useStudioCheckboxTable(
       initialValues ?? initialSelectedValues,
       mockCheckboxTitle,
       requiredNumberOfCheckedOptions ?? 1,

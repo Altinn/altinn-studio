@@ -3,7 +3,7 @@ import type { StudioCheckboxTableProps } from './StudioCheckboxTable';
 import { StudioCheckboxTableBody } from './StudioCheckboxTableBody';
 import { StudioCheckboxTableHead } from './StudioCheckboxTableHead';
 import { StudioCheckboxTableRow } from './StudioCheckboxTableRow';
-import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
+import { useStudioCheckboxTable } from './hook/useStudioCheckboxTable';
 import type { StudioGetCheckboxProps } from './types/StudioGetCheckboxProps';
 
 type StudioCheckboxTableComponent = typeof StudioCheckboxTableParent & {
@@ -13,7 +13,7 @@ type StudioCheckboxTableComponent = typeof StudioCheckboxTableParent & {
 };
 
 /**
- * If you want to use the error logic, import and use the `useStudioCheckboxTableLogic` hook.
+ * If you want to use the error logic, import and use the `useStudioCheckboxTable` hook.
  */
 const StudioCheckboxTable = StudioCheckboxTableParent as StudioCheckboxTableComponent;
 
@@ -23,5 +23,5 @@ StudioCheckboxTable.Row = StudioCheckboxTableRow;
 
 export { StudioCheckboxTable };
 export type { StudioCheckboxTableProps };
-export { useStudioCheckboxTableLogic };
+export { useStudioCheckboxTable };
 export type { StudioGetCheckboxProps };

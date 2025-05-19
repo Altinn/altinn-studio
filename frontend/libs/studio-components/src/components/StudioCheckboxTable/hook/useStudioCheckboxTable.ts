@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 
-export type UseStudioCheckboxTableLogicResult = {
+export type UseStudioCheckboxTableResult = {
   selectedValues: string[];
   setSelectedValues: (value: string[]) => void;
   hasError: boolean;
@@ -16,16 +16,16 @@ export type UseStudioCheckboxTableLogicResult = {
  *
  * @param initialOptions the initial options for the checkboxes
  * @param checkBoxTitle the title of the checkbox group
- * @param requiredNumberOfCheckedOptions the minimum number of checkboxes that must be checked
+ * @param minCountCheckedOptions the minimum number of checkboxes that must be checked
  *
  * @returns an object containing selected values, error state, and a function to get checkbox props
  */
-export function useStudioCheckboxTableLogic(
+export function useStudioCheckboxTable(
   initialOptions: string[] = [],
   checkBoxTitle: string,
-  requiredNumberOfCheckedOptions: number = 1,
-): UseStudioCheckboxTableLogicResult {
-  const actualRequiredNumber = Math.max(0, requiredNumberOfCheckedOptions);
+  minCountCheckedOptions: number = 1,
+): UseStudioCheckboxTableResult {
+  const actualRequiredNumber = Math.max(0, minCountCheckedOptions);
 
   const [hasError, setHasError] = useState<boolean>(initialOptions.length < actualRequiredNumber);
 
