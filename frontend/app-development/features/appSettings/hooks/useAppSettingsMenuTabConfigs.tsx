@@ -23,27 +23,27 @@ export const useAppSettingsMenuTabConfigs =
     return [
       {
         tabId: aboutTabId,
-        tabName: t(`settings_modal.left_nav_tab_${aboutTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${aboutTabId}`),
         icon: <InformationSquareIcon />,
       },
       {
         tabId: setupTabId,
-        tabName: t(`settings_modal.left_nav_tab_${setupTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${setupTabId}`),
         icon: <SidebarBothIcon />,
       },
       {
         tabId: policyTabId,
-        tabName: t(`settings_modal.left_nav_tab_${policyTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${policyTabId}`),
         icon: <ShieldLockIcon />,
       },
       {
         tabId: accessControlTabId,
-        tabName: t(`settings_modal.left_nav_tab_${accessControlTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${accessControlTabId}`),
         icon: <TimerStartIcon />,
       },
       {
         tabId: maskinportenTabId,
-        tabName: t(`settings_modal.left_nav_tab_${maskinportenTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${maskinportenTabId}`),
         icon: <MaskinportenIcon />,
       },
     ];

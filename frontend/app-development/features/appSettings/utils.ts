@@ -1,5 +1,13 @@
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
-import { settingsPageQueryParamKey } from '../AppSettings';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
+
+export const settingsPageQueryParamKey: string = 'currentTab';
+
+export function getAllSettingsPageTabIds(
+  tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[],
+) {
+  return tabs.map(({ tabId }) => tabId);
+}
 
 export function getCurrentSettingsTab(): SettingsPageTabId {
   const searchParams = new URLSearchParams(window.location.search);

@@ -1,9 +1,12 @@
+import React from 'react';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import {
   getCurrentSettingsTab,
   navigateToSettingsTab,
   isValidSettingsTab,
-} from './navigationUtils';
-import { settingsPageQueryParamKey } from '../AppSettings';
+  settingsPageQueryParamKey,
+  getAllSettingsPageTabIds,
+} from './utils';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 
 describe('settingsTabUtils', () => {
@@ -18,6 +21,24 @@ describe('settingsTabUtils', () => {
   });
 
   afterEach(jest.clearAllMocks);
+
+  describe('getAllSettingsPageTabIds', () => {
+    it('should extract tabIds from tab array', () => {
+      const mockTabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[] = [
+        { tabId: 'about', tabName: 'About', icon: <svg /> },
+        { tabId: 'setup', tabName: 'Setup', icon: <svg /> },
+        { tabId: 'policy', tabName: 'Policy', icon: <svg /> },
+      ];
+
+      const result = getAllSettingsPageTabIds(mockTabs);
+      expect(result).toEqual(['about', 'setup', 'policy']);
+    });
+
+    it('should return an empty array if given an empty array', () => {
+      const result = getAllSettingsPageTabIds([]);
+      expect(result).toEqual([]);
+    });
+  });
 
   describe('getCurrentSettingsTab', () => {
     it('returns the tab from the query param', () => {

@@ -8,17 +8,16 @@ import { TabsContent } from './components/TabsContent';
 import { ContentMenu } from './components/ContentMenu';
 import { useAppSettingsMenuTabConfigs } from './hooks/useAppSettingsMenuTabConfigs';
 import {
+  getAllSettingsPageTabIds,
   getCurrentSettingsTab,
   isValidSettingsTab,
   navigateToSettingsTab,
-} from './utils/navigationUtils';
-
-export const settingsPageQueryParamKey: string = 'currentTab';
+} from './utils';
 
 export function AppSettings(): ReactElement {
   const { t } = useTranslation();
   const settingsPageTabs = useAppSettingsMenuTabConfigs();
-  const tabIds: SettingsPageTabId[] = settingsPageTabs.map(({ tabId }) => tabId);
+  const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(settingsPageTabs);
 
   const currentTabFromQueryParam: SettingsPageTabId = getCurrentSettingsTab();
   const [currentTab, setCurrentTab] = useState<SettingsPageTabId>(currentTabFromQueryParam);
