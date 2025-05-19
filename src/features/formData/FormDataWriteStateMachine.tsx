@@ -412,13 +412,27 @@ function makeActions(
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
+        if (typeof newValue === 'object') {
+          const model = state.dataModels[reference.dataType].currentData;
+          const existingValue = dot.pick(reference.field, model);
+          const nextIndex = Array.isArray(existingValue) ? existingValue.length : 0;
+          const flatObject = dot.dot(newValue);
+          for (const path of Object.keys(flatObject)) {
+            const fullPath = `${reference.field}[${nextIndex}].${path}`;
+            const value = flatObject[path];
+            setValue({ reference: { ...reference, field: fullPath }, newValue: value, state });
+          }
+          debounce(state);
+          return;
+        }
+
         const models = [
           state.dataModels[reference.dataType].currentData,
           state.dataModels[reference.dataType].debouncedCurrentData,
         ];
+
         for (const model of models) {
           const existingValue = dot.pick(reference.field, model);
-
           if (Array.isArray(existingValue)) {
             existingValue.push(newValue);
           } else {

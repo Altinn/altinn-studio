@@ -19,7 +19,7 @@ describe('Multiple select component', () => {
       .find('span.fds-paragraph') // Targets the span with the summary text
       .should('have.text', checkboxText);
   });
-  it('Adds and removes data properly when using group and soft deletion', () => {
+  it('Adds and removes data properly when using group and hard deletion', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Flervalg');
 
@@ -90,13 +90,13 @@ describe('Multiple select component', () => {
     cy.get(repGroup).click({ force: true }); //closing the multiselect popover
     cy.get(repGroup).findAllByRole('row').should('have.length', 2);
 
-    // Checking 'Kåre' again should bring back the surname
+    // Checking 'Kåre' again should not bring back the age
     cy.get(multiselect).click();
     cy.get(multiselectList).contains('span', checkboxText2).click();
     cy.get(repGroup).click({ force: true }); //closing the multiselect popover
     cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 1 row
     cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
-    cy.get(repGroup).findAllByRole('cell', { name: '20' }).should('exist');
+    cy.get(repGroup).findAllByRole('cell', { name: '20' }).should('not.exist');
   });
   it('Renders the summary2 component with correct text for MultipleSelext with group and soft deletion', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });

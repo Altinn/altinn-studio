@@ -8,7 +8,7 @@ import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSep
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { validateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
-import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
@@ -76,7 +76,7 @@ export class Checkboxes extends CheckboxesDef {
   }
 
   useEmptyFieldValidation(node: LayoutNode<'Checkboxes'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlySimpleBinding(node);
+    return useValidateGroupIsEmpty(node);
   }
 
   renderLayoutValidators(props: NodeValidationProps<'Checkboxes'>): JSX.Element | null {

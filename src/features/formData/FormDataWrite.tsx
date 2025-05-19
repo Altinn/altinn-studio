@@ -657,6 +657,8 @@ function getFreshNumRows(state: FormDataContext, reference: IDataModelReference 
 const emptyObject = {};
 const emptyArray = [];
 
+const currentSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
+  dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
 const debouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
   dot.pick(reference.field, state.dataModels[reference.dataType].debouncedCurrentData);
 const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
@@ -672,6 +674,17 @@ const debouncedRowSelector = (reference: IDataModelReference) => (state: FormDat
 };
 
 export const FD = {
+  /**
+   * Gives you a selector function that can be used to look up paths in the current datamodel (not the slower debounced
+   * model).
+   */
+  useCurrentSelector(): FormDataSelector {
+    return useDelayedSelector({
+      mode: 'simple',
+      selector: currentSelector,
+    });
+  },
+
   /**
    * Gives you a selector function that can be used to look up paths in the data model. This is similar to
    * useDebounced(), but it will only re-render the component if the value at the path(s) you selected actually

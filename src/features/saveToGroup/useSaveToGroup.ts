@@ -26,7 +26,8 @@ function toRelativePath(group: IDataModelReference | undefined, binding: IDataMo
 function isEqual({ group, values }: Bindings, source: Row, formDataRow: Row) {
   for (const key in values) {
     const path = toRelativePath(group, values[key]);
-    if (path && source[key] !== dot.pick(path, formDataRow)) {
+
+    if (path && source[key] != dot.pick(path, formDataRow)) {
       return false;
     }
   }
@@ -50,10 +51,10 @@ function findRowInFormData(
 
 function useSaveToGroup(bindings: Bindings) {
   const { group, checked, values } = bindings;
-  const formData = FD.useFreshBindings(group ? { group } : {}, 'raw').group as Row[] | undefined;
+  const formDataSelector = FD.useCurrentSelector();
   const setLeafValue = FD.useSetLeafValue();
   const appendToList = FD.useAppendToList();
-  const removeFromList = FD.useRemoveIndexFromList();
+  const removeFromList = FD.useRemoveFromListCallback();
   const checkedPath = toRelativePath(group, checked);
 
   function toggle(row: Row): void {
@@ -61,14 +62,20 @@ function useSaveToGroup(bindings: Bindings) {
       return;
     }
 
+    const formData = formDataSelector(group) as Row[] | undefined;
     const [index, formDataRow] = findRowInFormData(bindings, row, formData);
-    const isChecked = !!(checkedPath ? dot.pick(checkedPath, formDataRow) : true);
+    const isChecked = !!(checkedPath ? dot.pick(checkedPath, formDataRow) : index !== undefined && index !== -1);
+
     if (isChecked) {
       if (checked && checkedPath) {
         const field = `${group.field}[${index}].${checkedPath}`;
         setLeafValue({ reference: { ...checked, field }, newValue: false });
       } else if (index !== undefined) {
-        removeFromList({ reference: group, index });
+        removeFromList({
+          reference: group,
+          startAtIndex: index,
+          callback: (compare) => compare[ALTINN_ROW_ID] === formDataRow?.[ALTINN_ROW_ID],
+        });
       }
     } else {
       if (checked && checkedPath && index !== undefined) {
@@ -91,7 +98,7 @@ function useSaveToGroup(bindings: Bindings) {
     }
   }
 
-  return { toggle, formData, checkedPath, enabled: !!group };
+  return { toggle, checkedPath, enabled: !!group };
 }
 
 /**
@@ -107,9 +114,15 @@ export function useSaveObjectToGroup(listBindings: IDataModelBindingsForList) {
     }
   }
   const bindings: Bindings = { group: listBindings.group, checked: listBindings.checked, values };
-  const { formData, enabled, toggle, checkedPath } = useSaveToGroup(bindings);
+  const formDataSelector = FD.useCurrentSelector();
+  const { enabled, toggle, checkedPath } = useSaveToGroup(bindings);
 
   function isChecked(row: Row) {
+    if (!enabled || !bindings.group) {
+      return false;
+    }
+
+    const formData = formDataSelector(bindings.group) as Row[] | undefined;
     const [, formDataObject] = findRowInFormData(bindings, row, formData);
     if (checkedPath && formDataObject) {
       return !!dot.pick(checkedPath, formDataObject);
@@ -126,12 +139,16 @@ export function useSaveObjectToGroup(listBindings: IDataModelBindingsForList) {
 export function useSaveValueToGroup(
   bindings: IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect,
 ) {
-  const { formData, enabled, toggle, checkedPath } = useSaveToGroup({
+  const { enabled, toggle, checkedPath } = useSaveToGroup({
     group: bindings.group,
     checked: bindings.checked,
     values: bindings.simpleBinding ? { value: bindings.simpleBinding } : {},
   });
   const valuePath = toRelativePath(bindings.group, bindings.simpleBinding);
+
+  const formData = FD.useFreshBindings(bindings.group ? { group: bindings.group } : {}, 'raw').group as
+    | Row[]
+    | undefined;
 
   const selectedValues =
     valuePath && enabled && formData
