@@ -11,12 +11,13 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock, pagesModelMock } from '@altinn/ux-editor/testing/layoutMock';
+import { groupsPagesModelMock, layout1NameMock, pagesModelMock } from '../../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -89,6 +90,26 @@ describe('PageAccordion', () => {
     );
   });
 
+  it('calls page group mutation when deleting a page in a group', async () => {
+    const user = userEvent.setup();
+    await render({ pagesModel: groupsPagesModelMock });
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: layout1NameMock }),
+    });
+    await user.click(deleteButton);
+    const expectedPagesModel = {
+      ...groupsPagesModelMock,
+    };
+    expectedPagesModel.groups[0].order.splice(0, 1);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
+      org,
+      app,
+      mockSelectedLayoutSet,
+      expectedPagesModel,
+    );
+  });
+
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
@@ -119,21 +140,21 @@ describe('PageAccordion', () => {
   });
 
   it('render warning class to header when isInvalid is true', async () => {
-    await render({ isInvalid: true });
+    await render({ props: { isInvalid: true } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
     expect(headerContainer).toHaveClass('accordionHeaderWarning');
     expect(headerContainer).not.toHaveClass('accordionHeader');
   });
 
   it('render warning class to header when hasDuplicatedIds is true', async () => {
-    await render({ hasDuplicatedIds: true });
+    await render({ props: { hasDuplicatedIds: true } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
     expect(headerContainer).toHaveClass('accordionHeaderWarning');
     expect(headerContainer).not.toHaveClass('accordionHeader');
   });
 
   it('Applies normal header class when neither isInvalid nor hasDuplicatedIds is true', async () => {
-    await render({ isInvalid: false, hasDuplicatedIds: false });
+    await render({ props: { isInvalid: false, hasDuplicatedIds: false } });
     const headerContainer = screen.getByTestId(`accordion-header-${mockPageName1}`);
     expect(headerContainer).toHaveClass('accordionHeader');
     expect(headerContainer).not.toHaveClass('accordionHeaderWarning');
@@ -152,10 +173,18 @@ const waitForData = async () => {
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<PageAccordionProps> = {}) => {
+type renderParams = {
+  props?: Partial<PageAccordionProps>;
+  pagesModel?: PagesModel;
+};
+
+const render = async (opts: renderParams = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
+  queryClient.setQueryData(
+    [QueryKey.Pages, org, app, mockSelectedLayoutSet],
+    opts.pagesModel ?? pagesModelMock,
+  );
   await waitForData();
-  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />, { queryClient });
+  return renderWithProviders(<PageAccordion {...defaultProps} {...opts.props} />, { queryClient });
 };
