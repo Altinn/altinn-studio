@@ -52,7 +52,7 @@ export const PolicyEditorPage = ({
     app,
     resourceId,
   );
-  const isConsentResource = resourceData?.resourceType === 'Consentresource';
+  const isConsentResource = resourceData?.resourceType === 'ConsentResource';
   const { data: accessLists, isPending: isLoadingAccessLists } = useGetAllAccessListsQuery(
     org,
     isConsentResource,

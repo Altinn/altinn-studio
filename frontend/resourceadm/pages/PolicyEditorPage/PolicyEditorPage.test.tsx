@@ -125,7 +125,7 @@ describe('PolicyEditorPage', () => {
           nn: '',
           en: '',
         },
-        resourceType: 'Consentresource',
+        resourceType: 'ConsentResource',
       }),
     );
 
