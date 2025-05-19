@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import {
   InformationSquareIcon,
   SidebarBothIcon,
@@ -10,14 +10,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 
-const aboutTabId: SettingsModalTabId = 'about';
-const setupTabId: SettingsModalTabId = 'setup';
-const policyTabId: SettingsModalTabId = 'policy';
-const accessControlTabId: SettingsModalTabId = 'access_control';
-const maskinportenTabId: SettingsModalTabId = 'maskinporten';
+const aboutTabId: SettingsPageTabId = 'about';
+const setupTabId: SettingsPageTabId = 'setup';
+const policyTabId: SettingsPageTabId = 'policy';
+const accessControlTabId: SettingsPageTabId = 'access_control';
+const maskinportenTabId: SettingsPageTabId = 'maskinporten';
 
 export const useAppSettingsMenuTabConfigs =
-  (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
+  (): StudioContentMenuButtonTabProps<SettingsPageTabId>[] => {
     const { t } = useTranslation();
 
     return [
