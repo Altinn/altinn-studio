@@ -100,7 +100,7 @@ describe('PageAccordion', () => {
     const expectedPagesModel = {
       ...groupsPagesModelMock,
     };
-    expectedPagesModel.groups.splice(0, 1);
+    expectedPagesModel.groups[0].order.splice(0, 1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
       org,
