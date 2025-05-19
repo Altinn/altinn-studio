@@ -238,7 +238,7 @@ export class ArrayUtils {
   }
 
   /** Checks if the values in two arrays are the same, ignoring the sequence of the values in the arrays */
-  public static arraysHaveSameValuesIgnoringOrder<T>(a: T[], b: T[]): boolean {
+  public static arraysEqualUnordered<T>(a: T[], b: T[]): boolean {
     if (a.length !== b.length) return false;
 
     const sortedA = [...a].sort();
