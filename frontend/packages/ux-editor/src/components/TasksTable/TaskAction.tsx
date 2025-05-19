@@ -14,6 +14,9 @@ import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 
 export type TaskActionProps = {
   task: TaskNavigationGroup;
@@ -31,6 +34,8 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
+  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
+  const { setSelectedFormLayoutSetName } = useAppContext();
   const [isOpen, setIsOpen] = React.useState(false);
 
   if (!isNavigationMode) {
@@ -63,6 +68,11 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
     handleUpdateTaskNavigationGroup(updatedNavigationTasks);
   };
 
+  const handleRedirect = () => {
+    const layoutSetId = getLayoutSetIdForTask(task, layoutSetsModel);
+    setSelectedFormLayoutSetName(layoutSetId);
+  };
+
   return (
     <StudioPopover.TriggerContext>
       <StudioPopover.Trigger variant='tertiary' onClick={() => setIsOpen(!isOpen)}>
@@ -90,7 +100,12 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
           <StudioButton variant='tertiary' onClick={removeNavigationTask} icon={<EyeClosedIcon />}>
             {t('ux_editor.task_table.menu_task_hide')}
           </StudioButton>
-          <StudioButton variant='tertiary' onClick={() => {}} icon={<ArrowRightIcon />}>
+          <StudioButton
+            variant='tertiary'
+            onClick={handleRedirect}
+            icon={<ArrowRightIcon />}
+            disabled={isDefaultReceiptTask(task, layoutSetsModel)}
+          >
             {t('ux_editor.task_table.menu_task_redirect')}
           </StudioButton>
         </div>
