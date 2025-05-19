@@ -58,12 +58,35 @@ describe('useSelectedFormLayoutName', () => {
     expect(result.current.selectedFormLayoutName).toEqual(undefined);
   });
 
+  it('should return selected layout when the selected layout is valid and in a group', async () => {
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.FormLayoutSettings, org, app, selectedLayoutSet], {
+      pages: {
+        groups: { order: [layout1NameMock] },
+      },
+    });
+    client.setQueryData([QueryKey.Pages, org, app, selectedLayoutSet], {
+      groups: [{ order: { id: layout1NameMock } }],
+    });
+
+    const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), {
+      wrapper: ({ children }) => {
+        return wrapper({ children, client });
+      },
+    });
+
+    expect(result.current.selectedFormLayoutName).toEqual(layout1NameMock);
+  });
+
   it('should return selected layout when the selected layout is valid', async () => {
     const client = createQueryClientMock();
     client.setQueryData([QueryKey.FormLayoutSettings, org, app, selectedLayoutSet], {
       pages: {
         order: [layout1NameMock],
       },
+    });
+    client.setQueryData([QueryKey.Pages, org, app, selectedLayoutSet], {
+      pages: [{ id: layout1NameMock }],
     });
 
     const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), {
