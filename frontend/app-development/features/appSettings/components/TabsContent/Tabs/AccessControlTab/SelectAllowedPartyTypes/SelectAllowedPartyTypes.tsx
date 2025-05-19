@@ -104,7 +104,7 @@ function ActionsButtons({
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const isNewValuesSameAsInitialValues: boolean = ArrayUtils.arraysHaveSameValuesIgnoringOrder(
+  const isNewValuesSameAsInitialValues: boolean = ArrayUtils.arraysEqualUnordered(
     initialValues,
     selectedValues,
   );
