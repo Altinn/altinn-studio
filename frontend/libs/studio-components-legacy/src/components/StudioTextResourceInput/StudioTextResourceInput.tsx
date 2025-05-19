@@ -240,7 +240,7 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       },
       [onBlur, editOrCreateTextResource, updateTextResource],
     );
-    
+
     const changeTextResourceIfExists = useCallback(
       (value: string): void => {
         if (!currentTextResource) return;
