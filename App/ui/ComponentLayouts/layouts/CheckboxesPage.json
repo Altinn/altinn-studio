@@ -49,8 +49,7 @@
             "label": "Lange strekninger på større veier i Norge",
             "value": "langeStrekningerPaStorreVeierINorge"
           }
-        ],
-        "required": true
+        ]
       },
       {
         "size": "h3",
