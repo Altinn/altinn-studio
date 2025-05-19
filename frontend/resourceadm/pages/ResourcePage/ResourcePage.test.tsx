@@ -256,8 +256,8 @@ describe('ResourcePage', () => {
     await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
   });
 
-  it('fetches consent templates when resource is consentresource', async () => {
-    const resource = { ...mockResource1, resourceType: 'Consentresource' as ResourceTypeOption };
+  it('fetches consent templates when resource is ConsentResource', async () => {
+    const resource = { ...mockResource1, resourceType: 'ConsentResource' as ResourceTypeOption };
     const getResource = jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource));
 
     renderResourcePage({ getResource });

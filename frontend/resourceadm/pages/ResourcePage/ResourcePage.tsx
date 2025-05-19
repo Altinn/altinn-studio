@@ -68,7 +68,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
   const { data: consentTemplates } = useGetConsentTemplates(
     org,
-    resourceData?.resourceType === 'Consentresource',
+    resourceData?.resourceType === 'ConsentResource',
   );
 
   // Mutation function for editing a resource

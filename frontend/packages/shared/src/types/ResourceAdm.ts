@@ -47,7 +47,7 @@ export type ResourceTypeOption =
   | 'MaskinportenSchema'
   | 'BrokerService'
   | 'CorrespondenceService'
-  | 'Consentresource';
+  | 'ConsentResource';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
