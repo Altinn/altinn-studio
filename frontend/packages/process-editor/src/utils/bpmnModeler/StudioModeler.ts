@@ -126,6 +126,19 @@ export class StudioModeler {
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
     const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
+    console.log({
+      configNode,
+      dataTypeName,
+    });
     return businessObject.extensionElements?.values[0][configNode][dataTypeName];
+  }
+
+  public getSigneeStatesDataTypeId(
+    bpmnTaskType: BpmnTaskType,
+    businessObject: BpmnBusinessObjectEditor,
+  ): string {
+    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+    const signeeStateKey = 'signeeStatesDataTypeId';
+    return businessObject?.extensionElements?.values[0][configNode][signeeStateKey];
   }
 }

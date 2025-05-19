@@ -119,6 +119,7 @@ export class OnProcessTaskRemoveHandler {
    */
   private handleUserControlledSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
+    this.handleRemoveSigneeState(taskMetadata);
   }
 
   /**
@@ -185,5 +186,16 @@ export class OnProcessTaskRemoveHandler {
     }
 
     this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
+  }
+
+  private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getSigneeStatesDataTypeId(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId,
+    });
   }
 }

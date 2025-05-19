@@ -95,8 +95,8 @@ class SupportedPaletteProvider {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
                   dataTypes: [],
                 }),
-                signatureDataType: `userControlledSignatureInformation-${generateRandomId(4)}`,
-                signeeStatesDataTypeId: `signee-states-${generateRandomId(4)}`,
+                signatureDataType: `user-controlled-signatures-${generateRandomId(4)}`,
+                signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
                 signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
                 correspondenceResource: '', // No default

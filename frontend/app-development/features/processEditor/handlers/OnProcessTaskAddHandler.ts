@@ -112,6 +112,7 @@ export class OnProcessTaskAddHandler {
    */
   private handleUserControlledSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskAdd(taskMetadata);
+    this.addSigneeStateToApplicationMetadata(taskMetadata);
   }
 
   /**
@@ -138,6 +139,19 @@ export class OnProcessTaskAddHandler {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+      allowedContributers: [AllowedContributor.AppOwned],
+    });
+  }
+
+  private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+
+    this.addDataTypeToAppMetadata({
+      dataTypeId: studioModeler.getSigneeStatesDataTypeId(
+        taskMetadata.taskType,
+        taskMetadata.taskEvent.element.businessObject,
+      ),
       taskId: taskMetadata.taskEvent.element.id,
       allowedContributers: [AllowedContributor.AppOwned],
     });
