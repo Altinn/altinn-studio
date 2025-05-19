@@ -28,7 +28,7 @@ describe('TabsContent', () => {
 
   it('should render Policy tab content when currentTab is "policy"', () => {
     renderTabsContent({ currentTab: 'policy' });
-    expect(screen.getByText('Policy tab')).toBeInTheDocument();
+    expect(getHeading('policy')).toBeInTheDocument();
   });
 
   it('should render Access Control tab content when currentTab is "access_control"', () => {
