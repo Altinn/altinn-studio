@@ -1,5 +1,6 @@
 import React from 'react';
-import type { ReactElement } from 'react';
+import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import classes from './SelectAllowedPartyTypes.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
@@ -8,15 +9,20 @@ import {
   useStudioCheckboxTableLogic,
   StudioButton,
 } from '@studio/components';
-import type { AllowedPartyTypes, ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type {
+  AllowedPartyTypes,
+  ApplicationMetadata,
+  PartyTypesAllowed,
+} from 'app-shared/types/ApplicationMetadata';
 import {
   getPartyTypesAllowedOptions,
   getSelectedPartyTypes,
   mapSelectedValuesToPartyTypesAllowed,
 } from './utils';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { toast } from 'react-toastify';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;
@@ -27,21 +33,14 @@ export function SelectAllowedPartyTypes({
 }: SelectAllowedPartyTypesProps): ReactElement {
   const { t } = useTranslation();
 
-  const partyTypesAllowed = appMetadata.partyTypesAllowed;
+  const partyTypesAllowed: PartyTypesAllowed = appMetadata.partyTypesAllowed;
 
   const initialValues: AllowedPartyTypes[] = getSelectedPartyTypes(partyTypesAllowed);
   const title: string = t('app_settings.access_control_tab_option_all_types');
   const minimimumRequiredCheckboxes: number = 1;
 
-  const { hasError, getCheckboxProps, selectedValues } = useStudioCheckboxTableLogic(
-    initialValues,
-    title,
-    minimimumRequiredCheckboxes,
-  );
-
-  console.log('initialValues', initialValues);
-  console.log('selectedValues', selectedValues);
-  console.log('initialValues === selectedValues', initialValues === selectedValues);
+  const { hasError, getCheckboxProps, selectedValues, setSelectedValue } =
+    useStudioCheckboxTableLogic(initialValues, title, minimimumRequiredCheckboxes);
 
   return (
     <StudioFormGroup
@@ -76,22 +75,42 @@ export function SelectAllowedPartyTypes({
           ))}
         </StudioCheckboxTable.Body>
       </StudioCheckboxTable>
-      <SaveButton appMetadata={appMetadata} selectedValues={selectedValues} hasError={hasError} />
+      <ActionsButtons
+        appMetadata={appMetadata}
+        selectedValues={selectedValues}
+        hasError={hasError}
+        initialValues={initialValues}
+        setSelectedValue={setSelectedValue}
+      />
     </StudioFormGroup>
   );
 }
 
-type SaveButtonProps = {
+type ActionsButtonsProps = {
   appMetadata: ApplicationMetadata;
   selectedValues: string[];
   hasError: boolean;
+  initialValues: AllowedPartyTypes[];
+  setSelectedValue: Dispatch<SetStateAction<string[]>>;
 };
-function SaveButton({ appMetadata, selectedValues, hasError }: SaveButtonProps): ReactElement {
+function ActionsButtons({
+  appMetadata,
+  selectedValues,
+  initialValues,
+  hasError,
+  setSelectedValue,
+}: ActionsButtonsProps): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const savePartyTypesAllowed = () => {
+  const isNewValuesSameAsInitialValues: boolean = ArrayUtils.arraysHaveSameValuesIgnoringOrder(
+    initialValues,
+    selectedValues,
+  );
+  const buttonDisabled: boolean = hasError || isNewValuesSameAsInitialValues;
+
+  const savePartyTypesAllowed = (): void => {
     const listIsEmpty: boolean = selectedValues.length === 0;
     if (listIsEmpty) {
       return;
@@ -113,9 +132,22 @@ function SaveButton({ appMetadata, selectedValues, hasError }: SaveButtonProps):
     );
   };
 
+  const resetPartyTypesAllowed = (): void => {
+    setSelectedValue(initialValues);
+  };
+
   return (
-    <StudioButton onClick={savePartyTypesAllowed} disabled={hasError} icon={<CheckmarkIcon />}>
-      {t('app_settings.access_control_tab_save_options')}
-    </StudioButton>
+    <div className={classes.buttonContainer}>
+      <StudioButton
+        onClick={savePartyTypesAllowed}
+        disabled={buttonDisabled}
+        icon={<CheckmarkIcon />}
+      >
+        {t('app_settings.access_control_tab_save_options')}
+      </StudioButton>
+      <StudioButton variant='secondary' onClick={resetPartyTypesAllowed} icon={<XMarkIcon />}>
+        {t('app_settings.access_control_tab_reset_options')}
+      </StudioButton>
+    </div>
   );
 }

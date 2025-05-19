@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 
@@ -6,6 +7,7 @@ export type UseStudioCheckboxTableLogicResult = {
   selectedValues: string[];
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
+  setSelectedValue: Dispatch<SetStateAction<string[]>>;
 };
 
 /**
@@ -26,7 +28,7 @@ export function useStudioCheckboxTableLogic(
 ): UseStudioCheckboxTableLogicResult {
   const [hasError, setHasError] = useState<boolean>(false);
 
-  const { getCheckboxProps, value } = useCheckboxGroup({
+  const { getCheckboxProps, value, setValue } = useCheckboxGroup({
     name: checkBoxTitle,
     error: hasError,
     value: initialOptions,
@@ -41,5 +43,6 @@ export function useStudioCheckboxTableLogic(
     selectedValues: value,
     hasError,
     getCheckboxProps,
+    setSelectedValue: setValue,
   };
 }

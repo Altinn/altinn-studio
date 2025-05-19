@@ -183,6 +183,7 @@
   "app_settings.access_control_tab_option_organisation": "Hovedenhet (juridisk enhet)",
   "app_settings.access_control_tab_option_person": "Privatperson",
   "app_settings.access_control_tab_option_sub_unit": "Underenhet (bedrift)",
+  "app_settings.access_control_tab_reset_options": "Avbryt",
   "app_settings.access_control_tab_save_options": "Lagre",
   "app_settings.access_control_tab_save_options_error_message": "Det oppsto en feil under lagring av innstillingene. Prøv igjen senere.",
   "app_settings.access_control_tab_save_options_success_message": "Innstillingene ble lagret.",

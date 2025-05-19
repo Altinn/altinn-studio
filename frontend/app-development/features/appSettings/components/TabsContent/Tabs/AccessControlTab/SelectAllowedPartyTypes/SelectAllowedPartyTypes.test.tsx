@@ -140,6 +140,39 @@ describe('SelectAllowedPartyTypes', () => {
     const successMessage = textMock('app_settings.access_control_tab_save_options_error_message');
     expect(getText(successMessage)).toBeInTheDocument();
   });
+
+  it('should reset checkboxes to initial values when reset button is clicked', async () => {
+    const user = userEvent.setup();
+    renderSelectAllowedPartyTypes();
+
+    const randomcheckbox = getCheckbox(
+      textMock('app_settings.access_control_tab_option_bankruptcy_estate'),
+    );
+    expect(randomcheckbox).toBeChecked();
+    await user.click(randomcheckbox);
+    expect(randomcheckbox).not.toBeChecked();
+
+    const resetButton = getButton(textMock('app_settings.access_control_tab_reset_options'));
+    await user.click(resetButton);
+    expect(randomcheckbox).toBeChecked();
+  });
+
+  it('should disable save button when checkboxes are not changed from initial values', async () => {
+    const user = userEvent.setup();
+    renderSelectAllowedPartyTypes();
+
+    const saveButton = getButton(textMock('app_settings.access_control_tab_save_options'));
+    expect(saveButton).toBeDisabled();
+
+    const allTypeCheckbox = getCheckbox(
+      textMock('app_settings.access_control_tab_option_all_types'),
+    );
+    await user.click(allTypeCheckbox);
+    expect(saveButton).not.toBeDisabled();
+
+    await user.click(allTypeCheckbox);
+    expect(saveButton).toBeDisabled();
+  });
 });
 
 const defaultProps: SelectAllowedPartyTypesProps = {
