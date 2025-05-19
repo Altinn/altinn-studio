@@ -18,6 +18,7 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import cn from 'classnames';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
@@ -86,7 +87,9 @@ export const PageGroupAccordion = ({
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
-          className={`${classes.groupHeaderWrapper} ${selecteGroup ? classes.selected : ''}`}
+          className={cn(classes.groupHeaderWrapper, {
+            [classes.selected]: selecteGroup,
+          })}
           data-testid={pageGroupAccordionHeader(groupIndex)}
           onClick={() => setSelectedItem({ type: 'group', id: groupDisplayName })}
         >

@@ -18,13 +18,6 @@ jest.mock('../../../utils/formLayoutUtils', () => ({
   findLayoutsContainingDuplicateComponents: jest.fn(),
 }));
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn(),
-  FeatureFlag: {
-    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
-  },
-}));
-
 // Test data
 const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
@@ -121,7 +114,6 @@ describe('PageConfigPanel', () => {
 const renderPageConfigPanel = (
   selectedLayoutName: string = DEFAULT_SELECTED_LAYOUT_NAME,
   textResources = defaultTexts,
-  appContextProps = { selectedGroupName: undefined },
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
@@ -136,10 +128,7 @@ const renderPageConfigPanel = (
 
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: {
-      selectedFormLayoutName: selectedLayoutName,
       selectedItem: { type: 'page', id: selectedLayoutName },
-      selectedFormLayoutSetName: layoutSet,
-      ...appContextProps,
     },
   });
 };

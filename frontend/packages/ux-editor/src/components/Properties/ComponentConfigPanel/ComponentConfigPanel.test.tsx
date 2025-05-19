@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { ComponentConfigPanel } from './ComponentConfigPanel';
@@ -48,6 +49,14 @@ const editFormComponentSpy = jest.spyOn(
 );
 
 const expressionsTestId = 'expressions';
+
+const expectToggleAccordion = async (name: string, user: UserEvent) => {
+  const button = screen.getByRole('button', { name });
+  await user.click(button);
+  expect(button).toHaveAttribute('aria-expanded', 'true');
+  await user.click(button);
+  expect(button).toHaveAttribute('aria-expanded', 'false');
+};
 
 describe('ComponentConfigPanel', () => {
   afterEach(() => {
@@ -142,13 +151,6 @@ describe('ComponentConfigPanel', () => {
       const mockSetSelectedItem = jest.fn();
       renderComponentConfig(
         {
-          formItem: componentMocks[ComponentType.Input],
-          formItemId: componentMocks[ComponentType.Input].id,
-        },
-        { setSelectedItem: mockSetSelectedItem },
-      );
-      renderComponentConfig(
-        {
           formItem: undefined,
           formItemId: undefined,
         },
@@ -166,14 +168,6 @@ describe('ComponentConfigPanel', () => {
         },
         { setSelectedItem: mockSetSelectedItem },
       );
-
-      renderComponentConfig(
-        {
-          formItem: componentMocks[ComponentType.Input],
-          formItemId: componentMocks[ComponentType.Input].id,
-        },
-        { setSelectedItem: mockSetSelectedItem },
-      );
       expect(mockSetSelectedItem).not.toHaveBeenCalled();
     });
   });
@@ -181,17 +175,12 @@ describe('ComponentConfigPanel', () => {
   describe('Summary', () => {
     it('should toggle summary overrides when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('ux_editor.component_properties.summary.override.title');
       renderComponentConfig({
         formItem: componentMocks[ComponentType.Summary2],
         formItemId: componentMocks[ComponentType.Summary2].id,
       });
-      const button = screen.queryByRole('button', {
-        name: textMock('ux_editor.component_properties.summary.override.title'),
-      });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
 
     it('should not render summary overrides accordion when formItem is not a Summary2 component', () => {
@@ -206,12 +195,9 @@ describe('ComponentConfigPanel', () => {
   describe('Text', () => {
     it('Toggles text when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('right_menu.text');
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.text') });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
 
     it('Sets accordion title to include images when component is image', async () => {
@@ -226,14 +212,9 @@ describe('ComponentConfigPanel', () => {
   describe('DataModelBindings', () => {
     it('Toggles dataModelBindings when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('right_menu.data_model_bindings');
       renderComponentConfig();
-      const button = screen.queryByRole('button', {
-        name: textMock('right_menu.data_model_bindings'),
-      });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
   });
 
@@ -246,12 +227,9 @@ describe('ComponentConfigPanel', () => {
 
     it('Toggles content when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('right_menu.content');
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
   });
 
@@ -264,12 +242,9 @@ describe('ComponentConfigPanel', () => {
 
     it('Toggles dynamics when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('right_menu.dynamics');
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.dynamics') });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
 
     it('Shows new dynamics by default', async () => {
@@ -288,12 +263,9 @@ describe('ComponentConfigPanel', () => {
 
     it('Toggles calculations when clicked', async () => {
       const user = userEvent.setup();
+      const name = textMock('right_menu.calculations');
       renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.calculations') });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(name, user);
     });
   });
 

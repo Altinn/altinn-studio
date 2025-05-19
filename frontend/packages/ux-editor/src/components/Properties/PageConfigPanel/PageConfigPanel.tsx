@@ -24,7 +24,6 @@ export const PageConfigPanel = () => {
 
   const t = useText();
   const modalRef = useRef<HTMLDialogElement>(null);
-  const layoutIsSelected = selectedItem?.type === 'page';
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
     selectedItem?.id,
@@ -33,9 +32,7 @@ export const PageConfigPanel = () => {
     layoutNameTextResourceSelector,
   );
   const layoutNameText = layoutNameTextResource?.value;
-  const headingTitle = !layoutIsSelected
-    ? t('right_menu.content_empty')
-    : (layoutNameText ?? selectedItem?.id);
+  const headingTitle = layoutNameText || selectedItem?.id || t('right_menu.content_empty');
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
   const layout = layouts[selectedItem?.id];
@@ -51,8 +48,8 @@ export const PageConfigPanel = () => {
     }
   }, [hasDuplicatedIdsInAllLayouts]);
 
-  if (layoutIsSelected && hasDuplicatedIds) {
-    return <PageConfigWarning selectedFormLayoutName={selectedItem?.id} layout={layout} />;
+  if (hasDuplicatedIds) {
+    return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
   }
 
   return (
@@ -65,35 +62,33 @@ export const PageConfigPanel = () => {
           level: 2,
         }}
       />
-      {layoutIsSelected && (
-        <Fragment key={selectedItem?.id}>
-          <EditPageId layoutName={selectedItem?.id} />
-          <Accordion color='subtle'>
-            <Accordion.Item>
-              <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
-              <Accordion.Content className={classes.text}>
-                <TextResource
-                  handleIdChange={() => {}}
-                  label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                  textResourceId={selectedItem?.id}
-                />
-              </Accordion.Content>
-            </Accordion.Item>
-            <Accordion.Item>
-              <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
-              <Accordion.Content>
-                <HiddenExpressionOnLayout />
-              </Accordion.Content>
-            </Accordion.Item>
-            <Accordion.Item>
-              <Accordion.Header>{t('right_menu.pdf')}</Accordion.Header>
-              <Accordion.Content className={classes.pdf}>
-                <PdfConfig />
-              </Accordion.Content>
-            </Accordion.Item>
-          </Accordion>
-        </Fragment>
-      )}
+      <Fragment key={selectedItem?.id}>
+        <EditPageId layoutName={selectedItem.id} />
+        <Accordion color='subtle'>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
+            <Accordion.Content className={classes.text}>
+              <TextResource
+                handleIdChange={() => {}}
+                label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
+                textResourceId={selectedItem?.id}
+              />
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
+            <Accordion.Content>
+              <HiddenExpressionOnLayout />
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Header>{t('right_menu.pdf')}</Accordion.Header>
+            <Accordion.Content className={classes.pdf}>
+              <PdfConfig />
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      </Fragment>
       <PageConfigWarningModal modalRef={modalRef} />
     </>
   );

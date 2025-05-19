@@ -7,6 +7,7 @@ import { ComponentConfigPanel } from './ComponentConfigPanel/ComponentConfigPane
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { ItemType } from './ItemType';
 
 export const Properties = () => {
   return (
@@ -21,11 +22,11 @@ const PropertiesSelectedConfig = () => {
   const { t } = useTranslation();
 
   switch (selectedItem?.type) {
-    case 'component':
+    case ItemType.Component:
       return <ComponentConfigPanel />;
-    case 'page':
+    case ItemType.Page:
       return <PageConfigPanel />;
-    case 'group':
+    case ItemType.Group:
       return <GroupConfigPanel />;
     default:
       return (
