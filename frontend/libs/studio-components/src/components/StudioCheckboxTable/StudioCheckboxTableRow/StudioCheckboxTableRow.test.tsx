@@ -6,6 +6,7 @@ import type { StudioCheckboxTableRowProps } from './StudioCheckboxTableRow';
 import { StudioCheckboxTableContextProvider } from '../StudioCheckboxTableContext';
 import type { StudioCheckboxTableContextProps } from '../StudioCheckboxTableContext';
 import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
+import { CHECKBOX_TABLE_ERROR_ID } from '../constants';
 
 const option1: string = 'Option 1';
 const mockGetCheckboxProps: StudioGetCheckboxProps = {
@@ -30,6 +31,15 @@ describe('StudioCheckboxTableRow', () => {
 
     const checkbox = screen.getByRole('checkbox', { name: option1 });
     expect(checkbox).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('sets aria-describedby to the error id when hasError is true', () => {
+    renderStudioCheckboxTableRow({
+      providerProps: { hasError: true },
+    });
+
+    const checkbox = screen.getByRole('checkbox', { name: option1 });
+    expect(checkbox).toHaveAttribute('aria-describedby', CHECKBOX_TABLE_ERROR_ID);
   });
 });
 

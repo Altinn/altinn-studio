@@ -22,11 +22,13 @@ export type UseStudioCheckboxTableLogicResult = {
  * @returns an object containing selected values, error state, and a function to get checkbox props
  */
 export function useStudioCheckboxTableLogic(
-  initialOptions: string[],
+  initialOptions: string[] = [],
   checkBoxTitle: string,
   requiredNumberOfCheckedOptions: number = 1,
 ): UseStudioCheckboxTableLogicResult {
-  const [hasError, setHasError] = useState<boolean>(false);
+  const actualRequiredNumber = Math.max(0, requiredNumberOfCheckedOptions);
+
+  const [hasError, setHasError] = useState<boolean>(initialOptions.length < actualRequiredNumber);
 
   const { getCheckboxProps, value, setValue } = useCheckboxGroup({
     name: checkBoxTitle,
@@ -35,9 +37,9 @@ export function useStudioCheckboxTableLogic(
   });
 
   useEffect(() => {
-    const lessOptionsThanRequiredSelected: boolean = value.length < requiredNumberOfCheckedOptions;
+    const lessOptionsThanRequiredSelected: boolean = value.length < actualRequiredNumber;
     setHasError(lessOptionsThanRequiredSelected);
-  }, [requiredNumberOfCheckedOptions, value.length]);
+  }, [actualRequiredNumber, value.length]);
 
   return {
     selectedValues: value,
