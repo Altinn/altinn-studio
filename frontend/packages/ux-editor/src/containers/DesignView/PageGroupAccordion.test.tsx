@@ -80,7 +80,6 @@ describe('PageGroupAccordion', () => {
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
 
-
   it('should display fallback name if group name is empty', async () => {
     await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
     const groupHeader = groupAccordionHeader(0);
@@ -99,6 +98,7 @@ describe('PageGroupAccordion', () => {
     expect(groupHeader).toHaveClass('selected');
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent(fallbackName);
+  });
 
   it('should display group name when group has multiple pages', async () => {
     const multiPageGroupMock: PagesModel = {
