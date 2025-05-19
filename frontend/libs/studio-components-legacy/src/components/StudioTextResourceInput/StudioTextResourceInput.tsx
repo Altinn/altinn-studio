@@ -80,6 +80,9 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeTextResource?.(newTextResource);
     };
 
+    const handleBlurTextResource = (textResource: TextResource): void =>
+      onBlurTextResource?.(textResource);
+
     const rootClass = cn(givenClass, classes.container);
 
     return (
@@ -237,7 +240,7 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
       },
       [onBlur, editOrCreateTextResource, updateTextResource],
     );
-
+    
     const changeTextResourceIfExists = useCallback(
       (value: string): void => {
         if (!currentTextResource) return;

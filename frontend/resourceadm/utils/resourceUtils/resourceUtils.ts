@@ -9,6 +9,7 @@ import type {
   Resource,
   ResourceFormError,
   ResourceError,
+  ConsentMetadata,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
@@ -22,6 +23,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
+  ConsentResource: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -379,6 +381,87 @@ export const validateResource = (
     }
   }
 
+  // validate consentTemplate
+  if (resourceData.resourceType === 'ConsentResource') {
+    if (!resourceData.consentTemplate) {
+      errors.push({
+        field: 'consentTemplate',
+        error: t('resourceadm.about_resource_consent_template_missing'),
+      });
+    }
+    const consentTextError = getMissingInputLanguageString(
+      {
+        nb: resourceData.consentText?.nb,
+        nn: resourceData.consentText?.nn,
+        en: resourceData.consentText?.en,
+      },
+      t('resourceadm.about_resource_error_usage_string_consent_text'),
+      t,
+    );
+    if (consentTextError) {
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextError,
+      });
+    }
+    if (!resourceData.consentText?.nn) {
+      errors.push({
+        field: 'consentText',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
+      });
+    }
+    if (!resourceData.consentText?.en) {
+      errors.push({
+        field: 'consentText',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
+      });
+    }
+
+    // validate consentMetadata values used in consentText
+    const unknowMetadataValues = getUnknownMetadataValues(
+      resourceData.consentMetadata,
+      resourceData.consentText,
+    );
+    const errorLanguages: string[] = [];
+    Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
+      if (unknowMetadataValues[language].length) {
+        errors.push({
+          field: 'consentText',
+          index: language,
+          error: t('resourceadm.about_resource_error_unknown_metadata_language', {
+            unknownMetadataValues: unknowMetadataValues[language].join(', '),
+          }),
+        });
+        if (language !== 'nb') {
+          errorLanguages.push(t(`language.${language}`));
+        }
+      }
+    });
+    if (errorLanguages.length) {
+      const lastErrorLanguage = errorLanguages.pop();
+      let consentTextNbError = '';
+      if (errorLanguages.length > 0) {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata_multiple', {
+          lang1: errorLanguages.join(', '),
+          lang2: lastErrorLanguage,
+        });
+      } else {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata', {
+          lang1: lastErrorLanguage,
+        });
+      }
+
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextNbError,
+      });
+    }
+  }
+
   // validate contactPoints
   // if there are no contactPoints, an empty contactPoint is added in the contactPoints component
   if (!resourceData.contactPoints?.length) {
@@ -454,4 +537,39 @@ export const getMigrationErrorMessage = (
     };
   }
   return null;
+};
+
+export const convertMetadataStringToConsentMetadata = (metadataString: string): ConsentMetadata => {
+  return metadataString.split(',').reduce((acc: ConsentMetadata, key: string) => {
+    const trimmedKey = key.trim();
+    if (trimmedKey.length) {
+      acc[trimmedKey] = { optional: false };
+    }
+    return acc;
+  }, {});
+};
+
+const getConsentMetadataValuesFromText = (text: string | null | undefined): string[] => {
+  return text?.match(/{([^{}]*?)}/g) ?? [];
+};
+const getUnknownMetadataValuesInText = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentText: string | null | undefined,
+) => {
+  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
+  const unknownMetadataValueUsed = metadataKeysInConsentText
+    .map((metadataKey) => metadataKey.slice(1, -1))
+    .filter((metadataKey) => !metadataValues?.[metadataKey]);
+
+  return unknownMetadataValueUsed;
+};
+const getUnknownMetadataValues = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentTexts: SupportedLanguage | null | undefined,
+) => {
+  return {
+    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nb),
+    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
+    en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
+  };
 };
