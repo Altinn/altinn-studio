@@ -22,5 +22,5 @@ public enum ResourceType
 
     CorrespondenceService = 1 << 6,
 
-    Consentresource = 1 << 7,
+    ConsentResource = 1 << 7,
 }
