@@ -25,6 +25,11 @@ export class TextResourceUtils {
     return this.textResources.get(id);
   }
 
+  public getValueIfExists(id: string): string | null {
+    const textResource = this.get(id);
+    return textResource ? textResource.value : null;
+  }
+
   public set(textResource: TextResource): TextResourceUtils {
     const newMap = this.cloneMap();
     newMap.set(textResource.id, textResource);
