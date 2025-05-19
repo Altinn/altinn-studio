@@ -314,10 +314,10 @@ function TextResourceSelectorCell({
   return (
     <StudioInputTable.Cell.TextResource
       currentId={currentId}
-      onBlurTextResource={handleUpdateTextResource}
       onChangeCurrentId={onChangeCurrentId}
       onChangeTextResource={handleChangeTextResource}
       onCreateTextResource={handleCreateTextResource}
+      onUpdateTextResource={handleUpdateTextResource}
       required={required}
       textResources={textResources}
       texts={textResourceTexts(number, property)}
