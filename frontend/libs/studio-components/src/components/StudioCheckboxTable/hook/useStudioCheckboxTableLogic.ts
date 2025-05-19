@@ -4,6 +4,7 @@ import { useCheckboxGroup } from '@digdir/designsystemet-react';
 
 export type UseStudioCheckboxTableLogicResult = {
   selectedValues: string[];
+  setSelectedValues: (value: string[]) => void;
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
 };
@@ -28,7 +29,7 @@ export function useStudioCheckboxTableLogic(
 
   const [hasError, setHasError] = useState<boolean>(initialOptions.length < actualRequiredNumber);
 
-  const { getCheckboxProps, value } = useCheckboxGroup({
+  const { getCheckboxProps, value, setValue } = useCheckboxGroup({
     name: checkBoxTitle,
     error: hasError,
     value: initialOptions,
@@ -43,5 +44,6 @@ export function useStudioCheckboxTableLogic(
     selectedValues: value,
     hasError,
     getCheckboxProps,
+    setSelectedValues: setValue,
   };
 }
