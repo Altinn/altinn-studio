@@ -27,7 +27,6 @@ import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
-
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn(),
   FeatureFlag: {
