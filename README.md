@@ -7,7 +7,7 @@ This frontend is tasked with fetching layout files, components and other configu
 presents the UI for different steps in the workflow of an Altinn application. It is made to talk with the application
 backend developed using our [nuget packages](https://github.com/Altinn/app-lib-dotnet), usually extended from
 our [application template](https://github.com/Altinn/app-template-dotnet). If you want to try out creating your own
-apps in Altinn Studio, [check out our documentation](https://docs.altinn.studio/app/getting-started/).
+apps in Altinn Studio, [check out our documentation](https://docs.altinn.studio/altinn-studio/getting-started/).
 
 ## Getting started
 
