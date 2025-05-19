@@ -1699,7 +1699,7 @@
   "ux_editor.groups.add": "Legg til ny gruppe",
   "ux_editor.image_component.settings": "Innstillinger for bilde",
   "ux_editor.info": "Informasjon",
-  "ux_editor.info.new_overview_page": "Vi har kommet med ny forside til Utforming. Den gjør det lettere å få oversikt over flyten i arbeidet med å lage apper. Her bruker du oppgaver til å utforme på en mer smidig måte, uavhengig av hvor i prosessen du befinner deg. Etter hvert kommer det også nye innstillinger for å utforme appen på tvers av alle oppgavene i en arbeidsflyt.",
+  "ux_editor.info.new_overview_page": "På forsiden til Utforming bruker du oppgaver til å utforme appen, noe som gir enklere oversikt over arbeidsflyten. Etter hvert kommer det også innstillinger for å utforme appen på tvers av alle oppgavene i en arbeidsflyt.",
   "ux_editor.input_popover_label": "Gi nytt navn til siden",
   "ux_editor.input_popover_save_button": "Lagre",
   "ux_editor.latitude_label": "Latitude",
