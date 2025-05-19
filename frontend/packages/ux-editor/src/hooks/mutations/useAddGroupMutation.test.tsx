@@ -13,7 +13,7 @@ const layoutSetId = 'test-layout-set';
 const mockPages: PagesModel = {
   groups: [
     {
-      name: `${textMock('general.layout_set')} 1`,
+      name: `${textMock('ux_editor.page_layout_group')} 1`,
       order: [{ id: `${textMock('general.page')}1` }],
     },
   ],
@@ -71,7 +71,7 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
+          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -84,11 +84,11 @@ describe('useAddGroupMutation', () => {
     const multiGroupPages: PagesModel = {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
+          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
         {
-          name: `${textMock('general.layout_set')} 2`,
+          name: `${textMock('ux_editor.page_layout_group')} 2`,
           order: [{ id: `${textMock('general.page')}` }],
         },
       ],
@@ -104,7 +104,7 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...multiGroupPages.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
+          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -116,10 +116,10 @@ describe('useAddGroupMutation', () => {
     const queryClient = createQueryClientMock();
     const pagesWithUndefinedOrder: PagesModel = {
       groups: [
-        { name: `${textMock('general.layout_set')} 1`, order: undefined },
+        { name: `${textMock('ux_editor.page_layout_group')} 1`, order: undefined },
         {
-          name: `${textMock('general.layout_set')} 2`,
-          order: [{ id: `${textMock('general.layout_set')} 1` }],
+          name: `${textMock('ux_editor.page_layout_group')} 2`,
+          order: [{ id: `${textMock('ux_editor.page_layout_group')} 1` }],
         },
       ],
       pages: [],
@@ -134,7 +134,7 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithUndefinedOrder.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
+          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -161,7 +161,7 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithNonMatchingId.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
+          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}2` }],
         },
       ],
@@ -184,7 +184,7 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
+          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
