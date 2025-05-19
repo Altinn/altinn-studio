@@ -36,6 +36,31 @@ jest.mock('../../hooks/useComponentPropertyDescription', () => ({
 }));
 
 describe('FormComponentConfig', () => {
+  it('should render nothing if schema is undefined', () => {
+    render({
+      props: {
+        schema: undefined,
+      },
+    });
+
+    expect(
+      screen.queryByText(textMock('ux_editor.component_properties.grid')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render nothing if schema properties are undefined', () => {
+    render({
+      props: {
+        schema: {
+          properties: undefined,
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock('ux_editor.component_properties.grid')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should render expected default components', async () => {
     render({});
     const properties = ['readOnly', 'required', 'hidden'];

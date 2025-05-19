@@ -6,35 +6,36 @@ import {
 } from '../../../utils/component';
 
 export const usePropertyTypes = (schema, customProperties) => {
-  const allPropertyKeys = Object.keys(schema.properties || {});
+  const allPropertyKeys = Object.keys(schema?.properties || {});
 
   return useMemo(() => {
+    const properties = schema?.properties || {};
     const booleanKeys = getSupportedPropertyKeysForPropertyType(
-      schema.properties,
+      properties,
       [PropertyTypes.boolean],
       customProperties,
     );
 
     const stringKeys = getSupportedPropertyKeysForPropertyType(
-      schema.properties,
+      properties,
       [PropertyTypes.string],
       customProperties,
     );
 
     const numberKeys = getSupportedPropertyKeysForPropertyType(
-      schema.properties,
+      properties,
       [PropertyTypes.number, PropertyTypes.integer],
       customProperties,
     );
 
     const arrayKeys = getSupportedPropertyKeysForPropertyType(
-      schema.properties,
+      properties,
       [PropertyTypes.array],
       customProperties,
     );
 
     const objectKeys = getSupportedPropertyKeysForPropertyType(
-      schema.properties,
+      properties,
       [PropertyTypes.object],
       [...customProperties, 'source'],
     );
@@ -61,5 +62,5 @@ export const usePropertyTypes = (schema, customProperties) => {
       objectKeys,
       unSupportedKeys,
     };
-  }, [schema.properties, customProperties, allPropertyKeys]);
+  }, [schema?.properties, customProperties, allPropertyKeys]);
 };
