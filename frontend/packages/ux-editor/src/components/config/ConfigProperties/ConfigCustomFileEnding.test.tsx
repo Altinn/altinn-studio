@@ -68,7 +68,10 @@ describe('ConfigCustomFileEnding', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigCustomFileEndingProps = {
       component: inputComponent,
-      hasCustomFileEndings: true,
+      hasCustomFileEndings: {
+        default: true,
+        description: 'hasCustomFileEndings',
+      },
       handleComponentUpdate: jest.fn(),
     };
     return renderWithProviders(<ConfigCustomFileEnding {...defaultProps} {...props} />, {
