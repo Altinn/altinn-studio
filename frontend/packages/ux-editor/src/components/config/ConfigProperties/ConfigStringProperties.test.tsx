@@ -65,14 +65,23 @@ describe('ConfigStringProperties', () => {
     ).toBeInTheDocument();
   });
 
-  const render = ({ props = {} }: { props?: Partial<ConfigStringPropertiesProps> }) => {
-    const { Input: inputComponent } = componentMocks;
-    const defaultProps: ConfigStringPropertiesProps = {
-      schema: InputSchema,
-      component: inputComponent,
-      handleComponentUpdate: jest.fn(),
-      stringPropertyKeys: [],
-    };
-    return renderWithProviders(<ConfigStringProperties {...defaultProps} {...props} />);
-  };
+  it('should not render anything when stringPropertyKeys is empty', () => {
+    render({
+      props: {
+        stringPropertyKeys: [],
+      },
+    });
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
 });
+
+const render = ({ props = {} }: { props?: Partial<ConfigStringPropertiesProps> }) => {
+  const { Input: inputComponent } = componentMocks;
+  const defaultProps: ConfigStringPropertiesProps = {
+    schema: InputSchema,
+    component: inputComponent,
+    handleComponentUpdate: jest.fn(),
+    stringPropertyKeys: [],
+  };
+  return renderWithProviders(<ConfigStringProperties {...defaultProps} {...props} />);
+};

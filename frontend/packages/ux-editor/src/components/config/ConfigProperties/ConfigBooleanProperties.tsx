@@ -49,12 +49,15 @@ export const ConfigBooleanProperties = ({
       ))}
 
       {/** Custom logic for custom file endings */}
-      <ConfigCustomFileEnding
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-        hasCustomFileEndings={schema.properties.hasCustomFileEndings}
-      />
+      {schema.properties?.hasCustomFileEndings && (
+        <ConfigCustomFileEnding
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+          hasCustomFileEndings={schema.properties.hasCustomFileEndings}
+        />
+      )}
 
+      {/** Custom logic for custom file endings */}
       {showAll &&
         additionalKeys.map((propertyKey) => (
           <EditBooleanValue

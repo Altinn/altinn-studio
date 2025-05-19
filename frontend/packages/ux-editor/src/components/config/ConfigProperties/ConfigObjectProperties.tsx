@@ -59,7 +59,7 @@ export const ConfigObjectProperties = ({
                     <Paragraph size='small'>{componentPropertyDescription(propertyKey)}</Paragraph>
                   )}
                   <FormComponentConfig
-                    schema={schema.properties[propertyKey]}
+                    schema={schema.properties[propertyKey] || {}}
                     component={component[propertyKey] || {}}
                     handleComponentUpdate={(updatedComponent: FormComponent) => {
                       handleComponentUpdate({

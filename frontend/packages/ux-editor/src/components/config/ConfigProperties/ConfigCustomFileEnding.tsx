@@ -5,7 +5,11 @@ import type { FormComponent } from '../../../types/FormComponent';
 import type { BaseConfigProps } from './types';
 
 export interface ConfigCustomFileEndingProps extends BaseConfigProps {
-  hasCustomFileEndings: any;
+  hasCustomFileEndings: {
+    default: boolean;
+    description: string;
+    tyep?: string;
+  };
 }
 
 export const ConfigCustomFileEnding = ({
