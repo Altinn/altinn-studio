@@ -81,15 +81,14 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
-    
+    const selecteGroup = selectedItem?.type === 'group' && selectedItem.id === groupDisplayName;
+
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
-          className={`${classes.groupHeaderWrapper} ${
-            selectedGroup === groupIndex ? classes.selected : ''
-          }`}
+          className={`${classes.groupHeaderWrapper} ${selecteGroup ? classes.selected : ''}`}
           data-testid={pageGroupAccordionHeader(groupIndex)}
-          onClick={() => setSelectedItem({ type: 'group', id: displayName })}
+          onClick={() => setSelectedItem({ type: 'group', id: groupDisplayName })}
         >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
