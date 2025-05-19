@@ -80,6 +80,7 @@ describe('PageGroupAccordion', () => {
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
 
+
   it('should display fallback name if group name is empty', async () => {
     await renderPageGroupAccordion({ props: { pages: pagesMockWithUnnamedGroup } });
     const groupHeader = groupAccordionHeader(0);
@@ -98,6 +99,37 @@ describe('PageGroupAccordion', () => {
     expect(groupHeader).toHaveClass('selected');
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent(fallbackName);
+
+  it('should display group name when group has multiple pages', async () => {
+    const multiPageGroupMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: 'Group 1',
+          order: [{ id: 'Side 1' }, { id: 'Side 2' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: multiPageGroupMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Group 1');
+  });
+
+  it('should display page ID as displayName when group has one page', async () => {
+    const singlePageGroupWithEmptyNameMock: PagesModel = {
+      pages: null,
+      groups: [
+        {
+          name: '',
+          order: [{ id: 'Side 1' }],
+        },
+      ],
+    };
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupWithEmptyNameMock } });
+    const groupHeader = groupAccordionHeader(0);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side 1');
   });
 });
 

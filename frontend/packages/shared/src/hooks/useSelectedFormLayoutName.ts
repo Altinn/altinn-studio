@@ -1,6 +1,7 @@
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import { useFormLayoutSettingsQuery } from '../../../ux-editor/src/hooks/queries/useFormLayoutSettingsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useGetPageByName } from '@altinn/ux-editor/hooks/useGetPageByName';
 
 export type UseSelectedFormLayoutNameResult = {
   selectedFormLayoutName: string;
@@ -16,19 +17,19 @@ export const useSelectedFormLayoutName = (
     app,
     selectedFormLayoutSetName,
   );
+  const getPage = useGetPageByName({ org, app, layoutSetName: selectedFormLayoutSetName });
 
-  const isValidLayout = (layoutName: string): boolean => {
-    const layoutPagesOrder = formLayoutSettings?.pages?.order;
-    const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-    const isPdf = formLayoutSettings?.pages?.pdfLayoutName === layoutName;
-    return isExistingLayout || isPdf;
+  const isValidLayout = (pageName: string): boolean => {
+    const pageExists = getPage(pageName) !== undefined;
+    const isPdf = formLayoutSettings?.pages?.pdfLayoutName === pageName;
+    return pageExists || isPdf;
   };
 
   const [selectedFormLayoutName, setSelectedFormLayoutName] = useSearchParamsState<string>(
     'layout',
     undefined,
-    (value: string) => {
-      return isValidLayout(value) ? value : undefined;
+    (pageName: string) => {
+      return isValidLayout(pageName) ? pageName : undefined;
     },
   );
 

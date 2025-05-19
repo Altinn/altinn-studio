@@ -79,12 +79,9 @@ export const PageGroupAccordion = ({
         });
       }
     };
-    const displayName = group.name || `${t('general.layout_set')} ${groupIndex + 1}`;
-    const selectedGroup = pages.groups.findIndex(
-      (groupp, index) =>
-        selectedItem?.type === 'group' &&
-        (groupp.name || `${t('general.layout_set')} ${index + 1}`) === selectedItem?.id,
-    );
+
+    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
@@ -97,12 +94,12 @@ export const PageGroupAccordion = ({
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
             <StudioHeading level={3} size='2xs'>
-              {displayName}
+              {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioButton
-              title={t('general.delete_item', { item: displayName })}
+              title={t('general.delete_item', { item: groupDisplayName })}
               color='danger'
               icon={<TrashIcon />}
               onClick={handleConfirmDelete}

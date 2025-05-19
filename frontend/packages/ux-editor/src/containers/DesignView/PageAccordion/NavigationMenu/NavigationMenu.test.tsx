@@ -138,17 +138,13 @@ describe('NavigationMenu', () => {
         {
           name: pagelayout1NameMock,
           type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
+          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
         },
         {
           name: pagelayout2NameMock,
           type: pagelayout2NameMock,
           markWhenCompleted: true,
           order: [{ id: layout2NameMock }],
-        },
-        {
-          name: 'EmptyGroup',
-          order: [],
         },
       ],
     });
@@ -166,17 +162,13 @@ describe('NavigationMenu', () => {
         {
           name: pagelayout1NameMock,
           type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
+          order: [{ id: layout1NameMock }, { id: layout2NameMock }],
         },
         {
           name: pagelayout2NameMock,
           type: pagelayout2NameMock,
           markWhenCompleted: true,
           order: [{ id: layout2NameMock }],
-        },
-        {
-          name: 'EmptyGroup',
-          order: [],
         },
       ],
     });

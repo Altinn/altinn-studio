@@ -10,6 +10,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components-legacy';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
+import { usePagesQuery } from '@altinn/ux-editor/hooks/queries/usePagesQuery';
+import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -48,16 +50,30 @@ export const PageAccordion = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
+  const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
 
   const { mutate: deletePage, isPending } = useDeletePageMutation(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
 
   const handleConfirmDelete = () => {
+    const isUsingGroups = !!pages.groups;
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deletePage(pageName);
+      if (isUsingGroups) {
+        const updatedPageGroups = { ...pages };
+        updatedPageGroups.groups.map((group) => {
+          group.order = group.order.filter((page) => page.id !== pageName);
+        });
+        updatedPageGroups.groups = updatedPageGroups.groups.filter(
+          (group) => group.order.length > 0,
+        );
+        changePageGroups(updatedPageGroups);
+      } else {
+        deletePage(pageName);
+      }
     }
   };
 
