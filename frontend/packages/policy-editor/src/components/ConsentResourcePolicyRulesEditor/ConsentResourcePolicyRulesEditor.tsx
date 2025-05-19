@@ -91,7 +91,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
     <div className={classes.consentRuleCard}>
       <StudioCheckbox.Group
         legend={
-          <StudioHeading size='xs' level={1}>
+          <StudioHeading size='xs' level={2}>
             {t('policy_editor.consent_resource_request_consent_header')}
           </StudioHeading>
         }
