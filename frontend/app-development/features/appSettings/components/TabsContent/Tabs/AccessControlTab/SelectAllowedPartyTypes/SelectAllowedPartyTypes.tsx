@@ -39,6 +39,10 @@ export function SelectAllowedPartyTypes({
     minimimumRequiredCheckboxes,
   );
 
+  console.log('initialValues', initialValues);
+  console.log('selectedValues', selectedValues);
+  console.log('initialValues === selectedValues', initialValues === selectedValues);
+
   return (
     <StudioFormGroup
       legend={t('app_settings.access_control_tab_checkbox_legend_label')}

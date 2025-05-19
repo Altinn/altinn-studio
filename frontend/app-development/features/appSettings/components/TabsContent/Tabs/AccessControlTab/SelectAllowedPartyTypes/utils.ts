@@ -14,7 +14,7 @@ export const partyTypesAllowedMap: Record<AllowedPartyTypes, string> = {
   bankruptcyEstate: 'app_settings.access_control_tab_option_bankruptcy_estate',
 };
 
-export function getPartyTypesAllowedOptions() {
+export function getPartyTypesAllowedOptions(): { value: string; label: string }[] {
   return Object.keys(partyTypesAllowedMap).map((key) => ({
     value: key,
     label: partyTypesAllowedMap[key],
