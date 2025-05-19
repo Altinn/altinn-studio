@@ -20,7 +20,6 @@ export const Properties = () => {
 const PropertiesSelectedConfig = () => {
   const { selectedItem } = useAppContext();
   const { t } = useTranslation();
-
   switch (selectedItem?.type) {
     case ItemType.Component:
       return <ComponentConfigPanel />;
