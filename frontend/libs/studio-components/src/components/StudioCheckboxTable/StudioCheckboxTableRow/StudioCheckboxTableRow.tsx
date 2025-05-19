@@ -22,7 +22,7 @@ export function StudioCheckboxTableRow({
       <StudioTable.Cell>
         <StudioCheckbox
           aria-label={label}
-          aria-describedby={CHECKBOX_TABLE_ERROR_ID}
+          aria-describedby={hasError ? CHECKBOX_TABLE_ERROR_ID : undefined}
           aria-invalid={hasError}
           {...getCheckboxProps}
         />

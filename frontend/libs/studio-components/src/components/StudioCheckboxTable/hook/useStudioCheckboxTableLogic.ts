@@ -24,7 +24,9 @@ export function useStudioCheckboxTableLogic(
   checkBoxTitle: string,
   requiredNumberOfCheckedOptions: number = 1,
 ): UseStudioCheckboxTableLogicResult {
-  const [hasError, setHasError] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(
+    initialOptions.length < requiredNumberOfCheckedOptions,
+  );
 
   const { getCheckboxProps, value } = useCheckboxGroup({
     name: checkBoxTitle,

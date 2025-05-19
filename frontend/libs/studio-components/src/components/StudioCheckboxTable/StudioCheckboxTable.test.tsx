@@ -3,9 +3,8 @@ import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { StudioCheckboxTable } from './';
+import { StudioCheckboxTable, useStudioCheckboxTableLogic } from './';
 import type { StudioCheckboxTableProps } from './StudioCheckboxTable';
-import { useStudioCheckboxTableLogic } from './hook/useStudioCheckboxTableLogic';
 
 const mockCheckboxTitle: string = 'Checkbox title';
 const option1: string = 'Option 1';
