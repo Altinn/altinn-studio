@@ -74,7 +74,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers.splice(index, 1);
     handleComponentChange({
       ...component,
-      layers,
+      layers: layers.length > 0 ? layers : undefined,
     });
   };
 
