@@ -189,6 +189,7 @@
   "app_settings.access_control_tab_save_options_success_message": "Innstillingene ble lagret.",
   "app_settings.heading": "Innstillinger",
   "app_settings.loading_content": "Laster inn data",
+  "app_settings.policy_tab_heading": "Tilganger",
   "app_settings.setup_tab_heading": "Oppsett",
   "app_settings.setup_tab_switch_autoDeleteOnProcessEnd": "Automatisk sletting etter innsending",
   "app_settings.setup_tab_switch_copyInstanceSettings_enabled": "Brukeren kan kopiere eksemplaret",
