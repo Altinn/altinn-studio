@@ -42,7 +42,7 @@ describe('StudioCheckboxTable', () => {
     expect(getCheckbox(option3)).not.toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('should have aria-invalid when hasError is trye and all elements are unchecked', () => {
+  it('should have aria-invalid when hasError is true and all elements are unchecked', () => {
     renderCheckboxTable({ componentProps: { hasError: true }, initialValues: [] });
     expect(getCheckbox(mockCheckboxTitle)).toHaveAttribute('aria-invalid', 'true');
     expect(getCheckbox(option1)).toHaveAttribute('aria-invalid', 'true');
@@ -89,11 +89,16 @@ describe('StudioCheckboxTable', () => {
     expect(getCheckbox(option3)).not.toBeChecked();
     expect(screen.getByText(mockErrorMessage)).toBeInTheDocument();
   });
+
+  it('does not show error message if hasError is false', () => {
+    renderCheckboxTable({ componentProps: { errorMessage: mockErrorMessage } });
+    expect(screen.queryByText(mockErrorMessage)).not.toBeInTheDocument();
+  });
 });
 
 type Props = {
   componentProps?: Partial<StudioCheckboxTableProps>;
-  initialValues: string[];
+  initialValues?: string[];
   requiredNumberOfCheckedOptions?: number;
 };
 
