@@ -2,6 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { SettingsTabId } from '../../types/SettingsTabId';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { AboutTab } from './Tabs/AboutTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
 
 export type TabsContentProps = {
@@ -11,7 +12,7 @@ export type TabsContentProps = {
 export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
   switch (currentTab) {
     case 'about': {
-      return <AccessControlTab />; // <AboutTab />;
+      return <AboutTab />;
     }
     case 'setup': {
       return <div>Setup tab</div>;
