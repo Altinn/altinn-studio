@@ -31,6 +31,20 @@ describe('StudioCheckboxTableHead', () => {
     const checkbox = screen.getByRole('checkbox', { name: mockCheckboxTitle });
     expect(checkbox).toHaveAttribute('aria-invalid', 'true');
   });
+
+  it('renders the title in the header cell', () => {
+    renderStudioCheckboxTableHead();
+    const headerCell = screen.getByRole('columnheader', { name: mockCheckboxTitle });
+    expect(headerCell).toBeInTheDocument();
+  });
+
+  it('renders the description cell title when provided', () => {
+    const descriptionCellTitle = 'Description';
+    renderStudioCheckboxTableHead({ componentProps: { descriptionCellTitle } });
+
+    const descriptionHeaderCell = screen.getByRole('columnheader', { name: descriptionCellTitle });
+    expect(descriptionHeaderCell).toBeInTheDocument();
+  });
 });
 
 const defaultProps: StudioCheckboxTableHeadProps = {
