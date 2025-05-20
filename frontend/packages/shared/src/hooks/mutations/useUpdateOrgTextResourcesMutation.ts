@@ -45,6 +45,8 @@ export const useUpdateOrgTextResourcesMutation = (
       return { key };
     },
     onError: (_err, _newData, { key }) => client.invalidateQueries({ queryKey: key, exact: true }),
+    onSuccess: (data, _variables, { key }) =>
+      client.setQueryData<ITextResourcesWithLanguage>(key, data),
   });
 };
 
