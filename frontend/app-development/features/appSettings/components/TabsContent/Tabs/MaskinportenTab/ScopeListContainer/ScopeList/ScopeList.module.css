@@ -1,0 +1,7 @@
+.link {
+}
+
+.informationText  {
+  color: var(--fds-semantic-text-neutral-subtle);
+  padding-bottom: var(--ds-size-4);
+}
