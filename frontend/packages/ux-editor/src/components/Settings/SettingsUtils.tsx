@@ -80,11 +80,11 @@ export const getHiddenTasks = ({
 
 export const getLayoutSetIdForTask = (
   task: TaskNavigationGroup,
-  layoutSetsModel: LayoutSetsModel,
+  layoutSets: LayoutSetModel[],
 ): string => {
   const isReceipt = task.taskType === TaskType.Receipt;
 
-  const matchingLayoutSet = layoutSetsModel?.sets.find((layoutSet) =>
+  const matchingLayoutSet = layoutSets?.find((layoutSet) =>
     isReceipt
       ? layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT
       : layoutSet.task?.id === task.taskId,
@@ -95,10 +95,10 @@ export const getLayoutSetIdForTask = (
 
 export const isDefaultReceiptTask = (
   task: TaskNavigationGroup,
-  layoutSetsModel: LayoutSetsModel,
+  layoutSets: LayoutSetModel[],
 ): boolean => {
   const isReceipt = task.taskType === TaskType.Receipt;
-  const isCustomReceipt = layoutSetsModel?.sets.some(
+  const isCustomReceipt = layoutSets?.some(
     (layoutSet) => layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
   );
 
