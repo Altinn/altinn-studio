@@ -74,10 +74,9 @@ describe('getLayoutSetIdForTask', () => {
 
 describe('isDefaultReceiptTask', () => {
   it('should return true for default receipt task', () => {
-    const layoutSetsWithoutCustomReceipt = {
-      ...layoutSetsMock,
-      sets: layoutSetsMock.filter((layoutSet) => layoutSet.task.id !== 'CustomReceipt'),
-    };
+    const layoutSetsWithoutCustomReceipt = layoutSetsMock.filter(
+      (layoutSet) => layoutSet.task.id !== 'CustomReceipt',
+    );
     const task = { taskType: TaskType.Receipt };
     expect(isDefaultReceiptTask(task, layoutSetsWithoutCustomReceipt)).toBe(true);
   });
