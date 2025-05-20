@@ -9,6 +9,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '../../testing/layoutSetsMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const tasksMock: TaskNavigationGroup[] = [
   { taskType: 'data', name: 'Task 1', taskId: 'Task_1' },
@@ -18,7 +20,7 @@ const tasksMock: TaskNavigationGroup[] = [
 
 describe('TasksTableBody', () => {
   it('should render the alert message when in navigation mode and no tasks are provided', () => {
-    renderTasksTableBody({ tasks: [] });
+    renderTasksTableBody({ props: { tasks: [] } });
 
     const alertTitle = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(alertTitle).toBeInTheDocument();
@@ -46,13 +48,40 @@ describe('TasksTableBody', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(layoutSetMock2.pageCount)).toBeInTheDocument();
+  });
+
+  it('should show 1 as page count when the task is a receipt', () => {
+    renderTasksTableBody();
 
     const taskMockReceipt = tasksMock[2];
 
     expect(
       screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
     ).toBeInTheDocument();
-    expect(screen.getByText(0)).toBeInTheDocument();
+    expect(screen.getByText(1)).toBeInTheDocument();
+  });
+
+  it('should show correct page count when the task is a custom receipt', () => {
+    const layoutSetsExtended = [
+      {
+        id: 'layoutSet3SubformNameMock',
+        dataType: 'data-model-3',
+        type: 'data',
+        task: { id: PROTECTED_TASK_NAME_CUSTOM_RECEIPT, type: 'data' },
+        pageCount: 4,
+      },
+    ];
+
+    renderTasksTableBody({
+      layoutSetsExtended,
+    });
+
+    const taskMockReceipt = tasksMock[2];
+
+    expect(
+      screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(layoutSetsExtended[0].pageCount)).toBeInTheDocument();
   });
 
   it('should render the tasks with their names, but not display buttons when in navigation mode', () => {
@@ -67,7 +96,7 @@ describe('TasksTableBody', () => {
   });
 
   it('should not render the names when in hidden mode, but display buttons to each row', () => {
-    renderTasksTableBody({ isNavigationMode: false });
+    renderTasksTableBody({ props: { isNavigationMode: false } });
 
     const { task1, task2, displayButtons } = getCommonElements();
 
@@ -77,7 +106,7 @@ describe('TasksTableBody', () => {
   });
 
   it('should render task name for receipt but not taskId', () => {
-    renderTasksTableBody({ tasks: [tasksMock[2]] });
+    renderTasksTableBody({ props: { tasks: [tasksMock[2]] } });
 
     const { receipt, receiptId } = getCommonElements();
     expect(receipt).toBeInTheDocument();
@@ -96,13 +125,19 @@ const getCommonElements = () => ({
   }),
 });
 
-const renderTasksTableBody = (props: Partial<TasksTableBodyProps> = {}) => {
+const renderTasksTableBody = ({
+  props = {},
+  layoutSetsExtended = layoutSetsExtendedMock,
+}: {
+  props?: Partial<TasksTableBodyProps>;
+  layoutSetsExtended?: LayoutSetModel[];
+} = {}) => {
   const defaultProps: TasksTableBodyProps = {
     tasks: tasksMock,
     isNavigationMode: true,
   };
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtended);
   const mergedProps = { ...defaultProps, ...props };
 
   return renderWithProviders(

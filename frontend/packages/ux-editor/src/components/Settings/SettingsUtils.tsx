@@ -78,18 +78,21 @@ export const getHiddenTasks = ({
   return hiddenTasks;
 };
 
+export const getLayoutSetForTask = (
+  task: TaskNavigationGroup,
+  layoutSets: LayoutSetModel[],
+): LayoutSetModel => {
+  const isReceipt = task.taskType === TaskType.Receipt;
+  const taskId = isReceipt ? PROTECTED_TASK_NAME_CUSTOM_RECEIPT : task.taskId;
+
+  return layoutSets?.find((layoutSet) => layoutSet.task?.id === taskId);
+};
+
 export const getLayoutSetIdForTask = (
   task: TaskNavigationGroup,
   layoutSets: LayoutSetModel[],
 ): string => {
-  const isReceipt = task.taskType === TaskType.Receipt;
-
-  const matchingLayoutSet = layoutSets?.find((layoutSet) =>
-    isReceipt
-      ? layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT
-      : layoutSet.task?.id === task.taskId,
-  );
-
+  const matchingLayoutSet = getLayoutSetForTask(task, layoutSets);
   return matchingLayoutSet?.id;
 };
 

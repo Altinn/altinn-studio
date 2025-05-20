@@ -5,7 +5,12 @@ import { StudioAlert } from '@studio/components-legacy';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { getTaskIcon, taskNavigationType, TaskType } from '../Settings/SettingsUtils';
+import {
+  getLayoutSetForTask,
+  getTaskIcon,
+  taskNavigationType,
+  TaskType,
+} from '../Settings/SettingsUtils';
 import { useTaskNavigationGroupName } from '../../hooks/useTaskNavigationGroupName';
 import { TaskAction } from './TaskAction';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -67,10 +72,9 @@ const TaskRow = ({ task, tasks, index, isNavigationMode }: TaskRowProps): ReactE
   const taskTypeName = taskNavigationType(task.taskType);
   const { taskNavigationName, taskIdName } = useTaskNavigationGroupName(task);
 
-  const taskTypeCellContent =
-    task.taskType === TaskType.Receipt ? t(taskTypeName) : `${t(taskTypeName)}: ${taskIdName}`;
-  const pageCount =
-    layoutSets?.find((layoutSet) => layoutSet.task?.id === task.taskId)?.pageCount ?? 0;
+  const isReceipt = task.taskType === TaskType.Receipt;
+  const taskTypeCellContent = isReceipt ? t(taskTypeName) : `${t(taskTypeName)}: ${taskIdName}`;
+  const pageCount = getLayoutSetForTask(task, layoutSets)?.pageCount ?? (isReceipt ? 1 : 0);
 
   return (
     <StudioTable.Row

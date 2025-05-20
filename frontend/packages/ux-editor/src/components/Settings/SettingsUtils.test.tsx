@@ -1,5 +1,6 @@
 import {
   getHiddenTasks,
+  getLayoutSetForTask,
   getLayoutSetIdForTask,
   getTaskIcon,
   isDefaultReceiptTask,
@@ -57,6 +58,18 @@ describe('getHiddenTasks', () => {
       { taskId: 'task4', taskType: TaskType.Signing, pageCount: undefined },
       { taskType: TaskType.Receipt },
     ]);
+  });
+});
+
+describe('getLayoutSetForTask', () => {
+  it('should return the correct layout set for a given task', () => {
+    const task = { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data };
+    expect(getLayoutSetForTask(task, layoutSetsMock)).toBe(layoutSetsMock[0]);
+  });
+
+  it('should return the correct layout set for a custom receipt', () => {
+    const task = { taskType: TaskType.Receipt };
+    expect(getLayoutSetForTask(task, layoutSetsMock)).toBe(layoutSetsMock[3]);
   });
 });
 
