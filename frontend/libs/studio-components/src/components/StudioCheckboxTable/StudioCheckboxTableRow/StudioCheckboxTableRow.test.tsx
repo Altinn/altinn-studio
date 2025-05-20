@@ -41,6 +41,28 @@ describe('StudioCheckboxTableRow', () => {
     const checkbox = screen.getByRole('checkbox', { name: option1 });
     expect(checkbox).toHaveAttribute('aria-describedby', CHECKBOX_TABLE_ERROR_ID);
   });
+
+  it('renders the label in the cell', () => {
+    renderStudioCheckboxTableRow();
+    const labelCell = screen.getByRole('cell', { name: option1 });
+    expect(labelCell).toBeInTheDocument();
+  });
+
+  it('renders the description in the cell when provided', () => {
+    const description = 'Description';
+    renderStudioCheckboxTableRow({ componentProps: { description } });
+
+    const descriptionCell = screen.getByRole('cell', { name: description });
+    expect(descriptionCell).toBeInTheDocument();
+  });
+
+  it('renders the description cell when description is an empty string', () => {
+    const description = '';
+    renderStudioCheckboxTableRow({ componentProps: { description } });
+
+    const descriptionCell = screen.getByRole('cell', { name: '' });
+    expect(descriptionCell).toBeInTheDocument();
+  });
 });
 
 const defaultProps: StudioCheckboxTableRowProps = {

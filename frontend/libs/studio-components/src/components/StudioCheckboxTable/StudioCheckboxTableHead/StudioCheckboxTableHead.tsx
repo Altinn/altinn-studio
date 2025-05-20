@@ -8,11 +8,13 @@ import { useCheckboxTableContext } from '../StudioCheckboxTableContext';
 export type StudioCheckboxTableHeadProps = {
   title: string;
   getCheckboxProps: StudioGetCheckboxProps;
+  descriptionCellTitle?: string;
 };
 
 export function StudioCheckboxTableHead({
   title,
   getCheckboxProps,
+  descriptionCellTitle,
 }: StudioCheckboxTableHeadProps): ReactElement {
   const { hasError } = useCheckboxTableContext();
   return (
@@ -27,6 +29,9 @@ export function StudioCheckboxTableHead({
           />
         </StudioTable.HeaderCell>
         <StudioTable.HeaderCell aria-hidden>{title}</StudioTable.HeaderCell>
+        {descriptionCellTitle && (
+          <StudioTable.HeaderCell>{descriptionCellTitle}</StudioTable.HeaderCell>
+        )}
       </StudioTable.Row>
     </StudioTable.Head>
   );
