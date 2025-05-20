@@ -1,9 +1,9 @@
 import React from 'react';
-import type { ReactElement } from 'react';
+import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import classes from './ScopeList.module.css';
 import {
+  StudioButton,
   StudioCheckboxTable,
-  StudioFormGroup,
   StudioLink,
   StudioParagraph,
   useStudioCheckboxTable,
@@ -16,6 +16,11 @@ import {
   type MaskinportenScopes,
   type MaskinportenScope,
 } from 'app-shared/types/MaskinportenScope';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
+import { toast } from 'react-toastify';
+import { ArrayUtils } from '@studio/pure-functions';
+import { mapMaskinPortenScopesToScopeList, mapSelectedValuesToMaskinportenScopes } from './utils';
 
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
@@ -25,23 +30,14 @@ export type ScopeListProps = {
 export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement {
   const { t } = useTranslation();
 
-  const allOptions = maskinPortenScopes;
-  const selectedOptions = selectedScopes;
-  console.log('allOptions', allOptions);
-  console.log('selectedOptions', selectedOptions);
-
-  const initialValues: string[] = selectedOptions.map((scope: MaskinportenScope) => scope.scope); // TODO MOVE
-
+  const initialValues: string[] = mapMaskinPortenScopesToScopeList(selectedScopes);
   const title: string = t('app_settings.maskinporten_select_all_scopes');
-  const minimimumRequiredCheckboxes = 0;
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   const { getCheckboxProps, selectedValues, setSelectedValues } = useStudioCheckboxTable(
     initialValues,
     title,
-    minimimumRequiredCheckboxes,
   );
-
-  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   return (
     <div>
@@ -51,19 +47,17 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
       </StudioParagraph>
       <StudioParagraph className={classes.informationText}>
         <Trans i18nKey='app_settings.maskinporten_tab_available_scopes_description_help'>
-          <StudioLink href={contactByEmail.url('serviceOwner')} className={classes.link}>
-            {' '}
-          </StudioLink>
+          <StudioLink href={contactByEmail.url('serviceOwner')}> </StudioLink>
         </Trans>
       </StudioParagraph>
       <StudioCheckboxTable>
         <StudioCheckboxTable.Head
           title={title}
+          descriptionCellTitle={t('app_settings.maskinporten_select_all_scopes_description')}
           getCheckboxProps={{
             ...getCheckboxProps({
               allowIndeterminate: true,
               value: 'all',
-              // disabled - TODO
             }),
           }}
         />
@@ -72,7 +66,7 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
             <StudioCheckboxTable.Row
               key={mappedOption.scope}
               label={mappedOption.scope}
-              // description={mappedOption.description}
+              description={mappedOption.description}
               getCheckboxProps={{
                 ...getCheckboxProps({
                   value: mappedOption.scope,
@@ -82,6 +76,75 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
           ))}
         </StudioCheckboxTable.Body>
       </StudioCheckboxTable>
+      <ActionButtons
+        selectedValues={selectedValues}
+        setSelectedValues={setSelectedValues}
+        initialValues={initialValues}
+        maskinportenScopes={maskinPortenScopes}
+      />
+    </div>
+  );
+}
+
+type ActionButtonsProps = {
+  selectedValues: string[];
+  setSelectedValues: Dispatch<SetStateAction<string[]>>;
+  initialValues: string[];
+  maskinportenScopes: MaskinportenScope[];
+};
+
+function ActionButtons({
+  selectedValues,
+  setSelectedValues,
+  initialValues,
+  maskinportenScopes,
+}: ActionButtonsProps): ReactElement {
+  const { t } = useTranslation();
+
+  const isNewValuesSameAsInitialValues: boolean = ArrayUtils.arraysEqualUnordered(
+    initialValues,
+    selectedValues,
+  );
+
+  const disableButtons: boolean = isNewValuesSameAsInitialValues;
+
+  const { mutate: mutateSelectedMaskinportenScopes } =
+    useUpdateSelectedMaskinportenScopesMutation();
+
+  const saveScopes = () => {
+    const updatedScopeList: MaskinportenScope[] = mapSelectedValuesToMaskinportenScopes(
+      selectedValues,
+      maskinportenScopes,
+    );
+    const updatedScopes: MaskinportenScopes = { scopes: updatedScopeList };
+
+    mutateSelectedMaskinportenScopes(updatedScopes, {
+      onSuccess: () => {
+        toast.success(t('app_settings.maskinporten_tab_save_scopes_success_message'));
+      },
+      onError: () => {
+        toast.error(t('app_settings.maskinporten_tab_save_scopes_error_message'));
+      },
+    });
+  };
+
+  const reset = () => {
+    setSelectedValues(initialValues);
+  };
+
+  return (
+    <div className={classes.buttonContainer}>
+      <StudioButton onClick={saveScopes} disabled={disableButtons} icon={<CheckmarkIcon />}>
+        {t('app_settings.maskinporten_tab_save_scopes')}
+      </StudioButton>
+      <StudioButton
+        variant='secondary'
+        disabled={disableButtons}
+        onClick={reset}
+        icon={<XMarkIcon />}
+      >
+        {t('app_settings.maskinporten_tab_reset_scopes')}
+      </StudioButton>
     </div>
   );
 }
