@@ -112,6 +112,7 @@ function ActionsButtons({
     selectedValues,
   );
   const buttonDisabled: boolean = hasError || isNewValuesSameAsInitialValues;
+  const resetButtonDisabled: boolean = isNewValuesSameAsInitialValues;
 
   const savePartyTypesAllowed = (): void => {
     const listIsEmpty: boolean = selectedValues.length === 0;
@@ -148,7 +149,12 @@ function ActionsButtons({
       >
         {t('app_settings.access_control_tab_save_options')}
       </StudioButton>
-      <StudioButton variant='secondary' onClick={resetPartyTypesAllowed} icon={<XMarkIcon />}>
+      <StudioButton
+        variant='secondary'
+        disabled={resetButtonDisabled}
+        onClick={resetPartyTypesAllowed}
+        icon={<XMarkIcon />}
+      >
         {t('app_settings.access_control_tab_reset_options')}
       </StudioButton>
     </div>

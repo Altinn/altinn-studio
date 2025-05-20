@@ -173,6 +173,32 @@ describe('SelectAllowedPartyTypes', () => {
     await user.click(allTypeCheckbox);
     expect(saveButton).toBeDisabled();
   });
+
+  it('should disable reset button when checkboxes are not changed from initial values', async () => {
+    const user = userEvent.setup();
+    const appMetadataMock = {
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        person: true,
+        organisation: true,
+        subUnit: true,
+        bankruptcyEstate: true,
+      },
+    };
+    renderSelectAllowedPartyTypes({ componentProps: { appMetadata: appMetadataMock } });
+
+    const resetButton = getButton(textMock('app_settings.access_control_tab_reset_options'));
+    expect(resetButton).toBeDisabled();
+
+    const allTypeCheckbox = getCheckbox(
+      textMock('app_settings.access_control_tab_option_all_types'),
+    );
+    await user.click(allTypeCheckbox);
+    expect(resetButton).not.toBeDisabled();
+
+    await user.click(allTypeCheckbox);
+    expect(resetButton).toBeDisabled();
+  });
 });
 
 const defaultProps: SelectAllowedPartyTypesProps = {
