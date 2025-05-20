@@ -13,7 +13,14 @@ import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
 
-export const ComponentConfigPanel = () => {
+import type { ItemType } from '../ItemType';
+import type { SelectedItem } from '../../../AppContext';
+
+type ComponentConfigPanelProps = {
+  selectedItem: Extract<SelectedItem, { type: ItemType.Component }>;
+};
+
+export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps) => {
   const { t } = useTranslation();
   const { setSelectedItem } = useAppContext();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
