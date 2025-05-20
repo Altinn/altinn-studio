@@ -52,7 +52,9 @@ export const getHiddenTasks = ({
 }: GetHiddenTasksProps): TaskNavigationGroup[] => {
   const filteredLayoutSets = layoutSetsModel.sets.filter((layoutSet) => {
     return (
-      layoutSet?.type !== 'subform' && layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT
+      layoutSet?.type !== 'subform' &&
+      layoutSet.task?.id !== PROTECTED_TASK_NAME_CUSTOM_RECEIPT &&
+      layoutSet?.task
     );
   });
 
