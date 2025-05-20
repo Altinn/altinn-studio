@@ -23,12 +23,12 @@ describe('TabsContent', () => {
 
   it('should render Setup tab content when currentTab is "setup"', () => {
     renderTabsContent({ currentTab: 'setup' });
-    expect(screen.getByText('Setup tab')).toBeInTheDocument();
+    expect(getHeading('setup')).toBeInTheDocument();
   });
 
   it('should render Policy tab content when currentTab is "policy"', () => {
     renderTabsContent({ currentTab: 'policy' });
-    expect(screen.getByText('Policy tab')).toBeInTheDocument();
+    expect(getHeading('policy')).toBeInTheDocument();
   });
 
   it('should render Access Control tab content when currentTab is "access_control"', () => {

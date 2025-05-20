@@ -28,6 +28,7 @@ export type CodeListData = {
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -68,7 +69,7 @@ export function CodeListPage({
     [textResources],
   );
 
-  const handleBlurTextResource = useCallback(
+  const handleUpdateTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
       onUpdateTextResource?.(updatedTextResource);
@@ -93,8 +94,8 @@ export function CodeListPage({
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
-        onBlurTextResource={handleBlurTextResource}
         onCreateCodeList={onCreateCodeList}
+        onUpdateTextResource={handleUpdateTextResource}
         onUploadCodeList={handleUploadCodeList}
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
@@ -104,10 +105,10 @@ export function CodeListPage({
       />
       <CodeLists
         codeListsData={filteredCodeLists}
-        onBlurTextResource={handleBlurTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
+        onUpdateTextResource={handleUpdateTextResource}
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
         codeListsUsages={codeListsUsages}
