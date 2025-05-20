@@ -59,7 +59,6 @@ const getButton = (name: string) => {
 const renderTasksTable = (props: Partial<TasksTableProps> = {}) => {
   const defaultProps: TasksTableProps = {
     tasks: tasksMock,
-    onSelectTask: jest.fn(),
     onSelectAllTasks: jest.fn(),
   };
 

@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
 import { StudioTable } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -77,16 +76,6 @@ describe('TasksTableBody', () => {
     expect(displayButtons.length).toBe(3);
   });
 
-  it('should call onSelectTask when a task is clicked', async () => {
-    const user = userEvent.setup();
-    const onSelectTask = jest.fn();
-    renderTasksTableBody({ onSelectTask, isNavigationMode: false });
-
-    const task1Button = screen.getAllByRole('button')[0];
-    await user.click(task1Button);
-    expect(onSelectTask).toHaveBeenCalledWith(0);
-  });
-
   it('should render task name for receipt but not taskId', () => {
     renderTasksTableBody({ tasks: [tasksMock[2]] });
 
@@ -111,7 +100,6 @@ const renderTasksTableBody = (props: Partial<TasksTableBodyProps> = {}) => {
   const defaultProps: TasksTableBodyProps = {
     tasks: tasksMock,
     isNavigationMode: true,
-    onSelectTask: jest.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);

@@ -3,7 +3,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useTextResourceValue } from '../components/TextResource/hooks/useTextResourceValue';
 import { useTranslation } from 'react-i18next';
-import { TaskType } from '../components/Settings/SettingsUtils';
+import { getLayoutSetIdForTask, TaskType } from '../components/Settings/SettingsUtils';
 
 type ReturnTaskNamesProps = {
   taskNavigationName: string;
@@ -23,14 +23,12 @@ export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTas
     };
   }
 
-  const matchingTask = layoutSets?.find((layoutSet) => layoutSet.task?.id === task.taskId);
-
   const taskNavigationName = task?.name
     ? (textResourceName ?? task.name)
     : t(`ux_editor.task_table_type.${task.taskType}`);
 
   return {
     taskNavigationName,
-    taskIdName: matchingTask?.id,
+    taskIdName: getLayoutSetIdForTask(task, layoutSets),
   };
 };
