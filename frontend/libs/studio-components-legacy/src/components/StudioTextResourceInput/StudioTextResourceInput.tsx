@@ -80,9 +80,6 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
       onChangeTextResource?.(newTextResource);
     };
 
-    const handleBlurTextResource = (textResource: TextResource): void =>
-      onBlurTextResource?.(textResource);
-
     const rootClass = cn(givenClass, classes.container);
 
     return (
