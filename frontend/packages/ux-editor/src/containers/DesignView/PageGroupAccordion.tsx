@@ -93,7 +93,7 @@ export const PageGroupAccordion = ({
             [classes.selected]: selectedGroup,
           })}
           data-testid={pageGroupAccordionHeader(groupIndex)}
-          onClick={() => setSelectedItem({ type: ItemType.Group, id: groupDisplayName })}
+          onClick={() => setSelectedItem({ type: 'group', id: groupIndex })}
         >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />

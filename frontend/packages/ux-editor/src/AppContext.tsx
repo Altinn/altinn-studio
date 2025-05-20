@@ -15,7 +15,7 @@ export interface WindowWithQueryClient extends Window {
 
 export type SelectedItem = {
   type: 'component' | 'page' | 'group';
-  id: string;
+  id: string | number;
 };
 
 export interface AppContextProps {
