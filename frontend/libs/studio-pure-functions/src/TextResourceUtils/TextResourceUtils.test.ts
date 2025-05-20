@@ -12,7 +12,7 @@ const text2 = 'Goodbye World';
 const text3 = 'Hello Goodbye';
 const textResource1: TextResource = { id: text1Id, value: text1 };
 const textResource2: TextResource = { id: text2Id, value: text2, customData: 'test' };
-const textResource3: TextResource = { id: text3Id, value: text3, otherCutomData: 'Lorem ipsum' };
+const textResource3: TextResource = { id: text3Id, value: text3, otherCustomData: 'Lorem ipsum' };
 const textResourceEntries: Array<[string, TextResource]> = [
   [text1Id, textResource1],
   [text2Id, textResource2],
