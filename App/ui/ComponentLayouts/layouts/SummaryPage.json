@@ -7,68 +7,55 @@
         "type": "NavigationBar"
       },
       {
-        "dataModelBindings": {
-          "simpleBinding": "shortAnswerInput"
+        "id": "Summary2-Tabs",
+        "type": "Tabs",
+        "textResourceBindings": {
+          "title": "Oppsummering av ulike deler"
         },
-        "id": "Input-Test",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "InputPage.Input.title"
-        }
+        "tabs": [
+          {
+            "id": "layoutSet",
+            "title": "Alt",
+            "children": ["Summary2-layoutSet"]
+          },
+          {
+            "id": "layoutSet-layoutset-hideEmptyFields",
+            "title": "Alt (skjul tomme felter)",
+            "children": ["Summary2-layoutSet-hideEmptyFields"]
+          },
+          {
+            "id": "page",
+            "title": "Siden 'Kort svar'",
+            "children": ["Summary2-page1"]
+          }
+        ]
       },
       {
-        "size": "M",
-        "id": "Header-in-new-summaryaergreg",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Her rendres summary av en enkelt komponent:"
-        }
-      },
-      {
-        "id": "Summary2-84wghp-componentaergaerg",
+        "id": "Summary2-layoutSet",
         "type": "Summary2",
-        "target": {
-          "type": "component",
-          "id": "Input-Test"
-        }
+        "overrides": [
+          {
+            "componentId": "Summary2-Tabs",
+            "hidden": true
+          }
+        ]
       },
       {
-        "size": "M",
-        "id": "Header-in-new-summaryerg",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Her vises Summary en enkelt side:"
-        }
-      },
-      {
-        "id": "Summary2-84wghp-page2",
+        "id": "Summary2-layoutSet-hideEmptyFields",
         "type": "Summary2",
-        "hidden": false,
+        "hideEmptyFields": true,
+        "overrides": [
+          { "pageId": "SummaryPage", "hidden": true },
+          { "componentType": "Grid", "hideEmptyRows": true }
+        ]
+      },
+      {
+        "id": "Summary2-page1",
+        "type": "Summary2",
         "target": {
           "type": "page",
           "id": "InputPage"
         }
-      },
-      {
-        "id": "person-lookup-summary",
-        "type": "Summary2",
-        "target": {
-          "type": "component",
-          "id": "personLookup"
-        }
-      },
-      {
-        "size": "M",
-        "id": "whole-layoutset",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Her vises summary av et helt layoutSet:"
-        }
-      },
-      {
-        "id": "Summary2-84wghp-layoutset",
-        "type": "Summary2",
-        "hidden": false
       },
       {
         "id": "Button-qHGXDg",
