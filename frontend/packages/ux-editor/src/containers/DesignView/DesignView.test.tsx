@@ -186,10 +186,13 @@ describe('DesignView', () => {
 
   it('Does not render group accordions when order is empty or undefined', () => {
     setupFeatureFlag(true);
-    renderDesignView();
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    const secondGroupHeader = screen.getByTestId('page-group-accordion-ellipsis-menu-1');
-    expect(within(secondGroupHeader).getByText(layout2NameMock)).toBeInTheDocument();
+    renderDesignView({
+      layoutSettings: {
+        ...formLayoutSettingsMock,
+        pages: { order: [], pdfLayoutName: undefined },
+      },
+    });
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
     expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
   });
 
