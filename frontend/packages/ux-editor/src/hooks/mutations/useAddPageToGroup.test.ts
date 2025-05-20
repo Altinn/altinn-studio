@@ -1,55 +1,30 @@
 import { useAddPageToGroup } from './useAddPageToGroup';
 import { renderHook } from '@testing-library/react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
-import { useAppContext } from '../useAppContext';
-import { useTranslation } from 'react-i18next';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { org, app } from '@studio/testing/testids';
-
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: jest.fn(),
-}));
-jest.mock('./useUpdateGroupsMutation');
-jest.mock('../useAppContext');
-jest.mock('app-shared/hooks/useStudioEnvironmentParams');
-jest.mock('app-shared/contexts/ServicesContext');
-jest.mock('react-i18next', () => ({
-  useTranslation: jest.fn(),
-}));
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockSetSelectedFormLayoutName = jest.fn();
 const mockUpdateLayoutsForPreview = jest.fn();
-const mockInvalidateQueries = jest.fn();
 const mockMutate = jest.fn();
 const mockLayoutSetName = 'default';
+
+jest.mock('./useUpdateGroupsMutation', () => ({
+  useUpdateGroupsMutation: jest.fn(() => ({
+    mutate: mockMutate,
+  })),
+}));
+
+jest.mock('../useAppContext', () => ({
+  useAppContext: jest.fn(() => ({
+    selectedFormLayoutSetName: mockLayoutSetName,
+    setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
+    updateLayoutsForPreview: mockUpdateLayoutsForPreview,
+  })),
+}));
 
 describe('useAddPageToGroup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
-    (useServicesContext as jest.Mock).mockReturnValue({
-      createPage: jest.fn(),
-    });
-    (useAppContext as jest.Mock).mockReturnValue({
-      selectedFormLayoutSetName: mockLayoutSetName,
-      setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
-      updateLayoutsForPreview: mockUpdateLayoutsForPreview,
-    });
-    (useStudioEnvironmentParams as jest.Mock).mockReturnValue({
-      org: org,
-      app: app,
-    });
-    (useTranslation as jest.Mock).mockReturnValue({
-      t: (key: string) => key,
-    });
-    (useUpdateGroupsMutation as jest.Mock).mockReturnValue({
-      mutate: mockMutate,
-    });
   });
 
   it('should add a page to the group and call the mutation', async () => {
@@ -69,7 +44,7 @@ describe('useAddPageToGroup', () => {
           expect.objectContaining({
             order: expect.arrayContaining([
               expect.objectContaining({
-                id: 'ux_editor.page1',
+                id: textMock('ux_editor.page') + '1',
               }),
             ]),
           }),
@@ -79,7 +54,7 @@ describe('useAddPageToGroup', () => {
     );
     const onSuccessCallback = mockMutate.mock.calls[0][1].onSuccess;
     await onSuccessCallback();
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith('ux_editor.page1');
+    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(textMock('ux_editor.page') + '1');
     expect(mockUpdateLayoutsForPreview).toHaveBeenCalledWith(mockLayoutSetName);
   });
 
@@ -88,7 +63,10 @@ describe('useAddPageToGroup', () => {
       pages: [],
       groups: [
         {
-          order: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
+          order: [
+            { id: textMock('ux_editor.page') + '1' },
+            { id: textMock('ux_editor.page') + '2' },
+          ],
         },
       ],
     };
@@ -99,10 +77,10 @@ describe('useAddPageToGroup', () => {
         groups: expect.arrayContaining([
           expect.objectContaining({
             order: expect.arrayContaining([
-              { id: 'ux_editor.page1' },
-              { id: 'ux_editor.page2' },
+              { id: textMock('ux_editor.page') + '1' },
+              { id: textMock('ux_editor.page') + '2' },
               expect.objectContaining({
-                id: 'ux_editor.page3',
+                id: textMock('ux_editor.page') + '3',
               }),
             ]),
           }),
@@ -153,7 +131,7 @@ describe('useAddPageToGroup', () => {
       expect.objectContaining({
         groups: [
           expect.objectContaining({
-            order: [{ id: 'ux_editor.page1' }],
+            order: [{ id: textMock('ux_editor.page') + '1' }],
           }),
         ],
       }),
@@ -164,10 +142,17 @@ describe('useAddPageToGroup', () => {
   describe('useAddPageToGroup loop coverage', () => {
     it('should increment multiple times when many duplicates exist', () => {
       const mockPagesModel: PagesModel = {
-        pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }, { id: 'ux_editor.page3' }],
+        pages: [
+          { id: textMock('ux_editor.page') + '1' },
+          { id: textMock('ux_editor.page') + '2' },
+          { id: textMock('ux_editor.page') + '3' },
+        ],
         groups: [
           {
-            order: [{ id: 'ux_editor.page4' }, { id: 'ux_editor.page5' }],
+            order: [
+              { id: textMock('ux_editor.page') + '4' },
+              { id: textMock('ux_editor.page') + '5' },
+            ],
           },
         ],
       };
@@ -178,9 +163,9 @@ describe('useAddPageToGroup', () => {
           groups: [
             expect.objectContaining({
               order: [
-                { id: 'ux_editor.page4' },
-                { id: 'ux_editor.page5' },
-                { id: 'ux_editor.page6' },
+                { id: textMock('ux_editor.page') + '4' },
+                { id: textMock('ux_editor.page') + '5' },
+                { id: textMock('ux_editor.page') + '6' },
               ],
             }),
           ],
@@ -194,7 +179,7 @@ describe('useAddPageToGroup', () => {
         pages: [],
         groups: [
           {
-            order: [{ id: 'ux_editor.page1' }],
+            order: [{ id: textMock('ux_editor.page') + '1' }],
           },
         ],
       };
@@ -204,7 +189,10 @@ describe('useAddPageToGroup', () => {
         expect.objectContaining({
           groups: [
             expect.objectContaining({
-              order: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page2' }],
+              order: [
+                { id: textMock('ux_editor.page') + '1' },
+                { id: textMock('ux_editor.page') + '2' },
+              ],
             }),
           ],
         }),
@@ -214,7 +202,11 @@ describe('useAddPageToGroup', () => {
 
     it('should increment multiple times with gap in numbering', () => {
       const mockPagesModel: PagesModel = {
-        pages: [{ id: 'ux_editor.page1' }, { id: 'ux_editor.page3' }, { id: 'ux_editor.page4' }],
+        pages: [
+          { id: textMock('ux_editor.page') + '1' },
+          { id: textMock('ux_editor.page') + '3' },
+          { id: textMock('ux_editor.page') + '4' },
+        ],
         groups: [
           {
             order: [],
@@ -228,7 +220,7 @@ describe('useAddPageToGroup', () => {
         expect.objectContaining({
           groups: [
             expect.objectContaining({
-              order: [{ id: 'ux_editor.page5' }],
+              order: [{ id: textMock('ux_editor.page') + '5' }],
             }),
           ],
         }),
