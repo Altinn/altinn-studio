@@ -64,22 +64,14 @@ describe('useUpdateOrgTextResourcesMutation', () => {
     expect(client.getQueryData(key)).toEqual(updatedData);
   });
 
-  it('Restores the previous data on error', async () => {
+  it('Invalidates the data on error', async () => {
     const client = createClientWithData();
+    const invalidateSpy = jest.spyOn(client, 'invalidateQueries');
     const { result } = render(client);
     updateOrgTextResources.mockRejectedValueOnce(new Error('Error'));
     result.current.mutate(args);
     await waitFor(() => expect(result.current.status).toBe('error'));
-    expect(client.getQueryData([QueryKey.OrgTextResources, orgName, language])).toEqual(oldData);
-  });
-
-  it('Removes the query on error when there is no previous data', async () => {
-    const client = createQueryClientMock();
-    const { result } = render(client);
-    updateOrgTextResources.mockRejectedValueOnce(new Error('Error'));
-    result.current.mutate(args);
-    await waitFor(() => expect(result.current.status).toBe('error'));
-    expect(client.getQueryData([QueryKey.OrgTextResources, orgName, language])).toBeUndefined();
+    expect(invalidateSpy).toHaveBeenCalledTimes(1);
   });
 });
 

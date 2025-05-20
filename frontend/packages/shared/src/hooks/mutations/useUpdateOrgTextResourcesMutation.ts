@@ -2,7 +2,6 @@ import type {
   DefaultError,
   UseMutationResult,
   QueryKey as TanstackQueryKey,
-  QueryClient,
 } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
@@ -17,7 +16,6 @@ export type UpdateOrgTextResourcesMutationArgs = {
 };
 
 type Context = {
-  previousData?: ITextResourcesWithLanguage;
   key: TanstackQueryKey;
 };
 
@@ -43,13 +41,10 @@ export const useUpdateOrgTextResourcesMutation = (
       updateOrgTextResources(org, language, payload),
     onMutate: (args: UpdateOrgTextResourcesMutationArgs): Context => {
       const key = queryKey(org, args.language);
-      const previousData: ITextResourcesWithLanguage | undefined =
-        client.getQueryData<ITextResourcesWithLanguage>(key);
       client.setQueryData<ITextResourcesWithLanguage>(key, updater(args));
-      return { previousData, key };
+      return { key };
     },
-    onError: (_err, _newData, { previousData, key }) =>
-      setOrRemoveQueryData(client, key, previousData),
+    onError: (_err, _newData, { key }) => client.invalidateQueries({ queryKey: key, exact: true }),
   });
 };
 
@@ -68,16 +63,4 @@ function updater({ language, payload }: UpdateOrgTextResourcesMutationArgs): Upd
     const updatedUtils = utils.setValues(payload);
     return updatedUtils.withLanguage(language);
   };
-}
-
-function setOrRemoveQueryData<Data>(
-  queryClient: QueryClient,
-  queryKey: TanstackQueryKey,
-  data: Data | undefined,
-): void {
-  if (data === undefined) {
-    queryClient.removeQueries({ queryKey, exact: true });
-  } else {
-    queryClient.setQueryData<Data>(queryKey, data);
-  }
 }
