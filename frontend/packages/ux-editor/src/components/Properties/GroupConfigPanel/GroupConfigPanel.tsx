@@ -6,12 +6,18 @@ import { FileIcon } from '@studio/icons';
 import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
-import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
+import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
+import type { SelectedItem } from '../../../AppContext';
+import type { ItemType } from '../ItemType';
 
-export const GroupConfigPanel = () => {
+type GroupConfigPanelProps = {
+  selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
+};
+
+export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
-  const { selectedItem, selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: changePageGroup, isPending: mutatingPages } = useChangePageGroupOrder(
     org,
@@ -19,11 +25,11 @@ export const GroupConfigPanel = () => {
     selectedFormLayoutSetName,
   );
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const selectedGroup = pages.groups[selectedItem?.id];
+  const selectedGroup = pages.groups[selectedItem.id];
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
     selectedGroup.markWhenCompleted = event.target.checked;
-    pages.groups[selectedItem?.id] = selectedGroup;
+    pages.groups[selectedItem.id] = selectedGroup;
     changePageGroup(pages);
   };
 
