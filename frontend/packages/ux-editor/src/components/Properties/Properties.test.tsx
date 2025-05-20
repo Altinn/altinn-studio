@@ -5,15 +5,13 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import {
-  layoutSet1NameMock,
-  layoutSetsExtendedMock,
-} from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock } from 'app-shared/hooks/useSelectedTaskId.test';
 import { layoutMock } from '../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { SelectedItem } from '../../AppContext';
+import { ItemType } from './ItemType';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -35,19 +33,19 @@ describe('Properties', () => {
     });
 
     it('shows page config when selectedItem is a page', () => {
-      renderProperties({ selectedItem: { type: 'page', id: layout1NameMock } });
+      renderProperties({ selectedItem: { type: ItemType.Page, id: layout1NameMock } });
       const pageConfigPanel = screen.getByTestId('pageConfigPanel');
       expect(pageConfigPanel).toBeInTheDocument();
     });
 
     it('shows group config when selectedItem is a group', () => {
-      renderProperties({ selectedItem: { type: 'group', id: '' } });
+      renderProperties({ selectedItem: { type: ItemType.Group, id: '' } });
       const pageConfigPanel = screen.getByTestId('groupConfigPanel');
       expect(pageConfigPanel).toBeInTheDocument();
     });
 
     it('shows component config when selectedItem is a component', () => {
-      renderProperties({ selectedItem: { type: 'component', id: 'test-component' } });
+      renderProperties({ selectedItem: { type: ItemType.Component, id: 'test-component' } });
       const pageConfigPanel = screen.getByTestId('properties-root');
       expect(pageConfigPanel).toBeInTheDocument();
     });
@@ -58,8 +56,6 @@ const renderProperties = ({ selectedItem }: { selectedItem: SelectedItem }) => {
   const queryClientMock = createQueryClientMock();
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
-  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClientMock.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, layoutSet1NameMock],
     formLayoutSettingsMock,

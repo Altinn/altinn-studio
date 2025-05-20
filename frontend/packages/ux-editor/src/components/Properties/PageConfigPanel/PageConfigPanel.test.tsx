@@ -12,6 +12,7 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMoc
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { findLayoutsContainingDuplicateComponents } from '../../../utils/formLayoutUtils';
+import { ItemType } from '../ItemType';
 
 jest.mock('../../../utils/formLayoutUtils', () => ({
   ...jest.requireActual('../../../utils/formLayoutUtils'),
@@ -128,7 +129,7 @@ const renderPageConfigPanel = (
 
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: {
-      selectedItem: { type: 'page', id: selectedLayoutName },
+      selectedItem: { type: ItemType.Page, id: selectedLayoutName },
     },
   });
 };

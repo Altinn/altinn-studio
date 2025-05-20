@@ -13,6 +13,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from '../../AppContext';
+import { ItemType } from '../../components/Properties/ItemType';
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -93,7 +94,7 @@ describe('PageGroupAccordion', () => {
 
   it('should mark group as selected when selectedGroupName matches group name', async () => {
     await renderPageGroupAccordion({
-      appContextProps: { selectedItem: { type: 'group', id: 'Group 1' } },
+      appContextProps: { selectedItem: { type: ItemType.Group, id: 'Group 1' } },
     });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toHaveClass('selected');

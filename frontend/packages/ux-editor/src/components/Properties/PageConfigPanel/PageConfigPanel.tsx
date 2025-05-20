@@ -26,16 +26,16 @@ export const PageConfigPanel = () => {
   const modalRef = useRef<HTMLDialogElement>(null);
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
-    selectedItem?.id,
+    selectedItem.id,
   );
   const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
     layoutNameTextResourceSelector,
   );
   const layoutNameText = layoutNameTextResource?.value;
-  const headingTitle = layoutNameText || selectedItem?.id || t('right_menu.content_empty');
+  const headingTitle = layoutNameText || selectedItem.id;
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
-  const layout = layouts[selectedItem?.id];
+  const layout = layouts[selectedItem.id];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
   const duplicateLayouts: string[] =
@@ -62,7 +62,7 @@ export const PageConfigPanel = () => {
           level: 2,
         }}
       />
-      <Fragment key={selectedItem?.id}>
+      <Fragment key={selectedItem.id}>
         <EditPageId layoutName={selectedItem.id} />
         <Accordion color='subtle'>
           <Accordion.Item>
@@ -71,7 +71,7 @@ export const PageConfigPanel = () => {
               <TextResource
                 handleIdChange={() => {}}
                 label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                textResourceId={selectedItem?.id}
+                textResourceId={selectedItem.id}
               />
             </Accordion.Content>
           </Accordion.Item>
