@@ -8,6 +8,7 @@ import { TabPageWrapper } from '../../TabPageWrapper';
 import { StudioParagraph } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
 import { AnsattportenLogin } from './AnsattportenLogin';
+import { ScopeListContainer } from './ScopeListContainer';
 
 export function MaskinportenTab(): ReactElement {
   const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
@@ -22,8 +23,7 @@ export function MaskinportenTab(): ReactElement {
   if (ansattportenAuthStatus.isLoggedIn) {
     return (
       <MaskinportenPageTemplate>
-        {/*<ScopeListContainer />*/}
-        <p>Test</p>
+        <ScopeListContainer />
       </MaskinportenPageTemplate>
     );
   }

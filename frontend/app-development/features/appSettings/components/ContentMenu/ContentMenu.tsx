@@ -3,12 +3,12 @@ import type { ReactElement } from 'react';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 
 export type ContentMenuProps = {
-  currentTab: SettingsModalTabId;
-  onChangeTab: (tabId: SettingsModalTabId) => void;
+  currentTab: SettingsPageTabId;
+  onChangeTab: (tabId: SettingsPageTabId) => void;
 };
 
 export function ContentMenu({ currentTab, onChangeTab }: ContentMenuProps): ReactElement {
@@ -23,7 +23,7 @@ export function ContentMenu({ currentTab, onChangeTab }: ContentMenuProps): Reac
 }
 
 type ContentMenuTabsProps = {
-  tabs: StudioContentMenuButtonTabProps<SettingsModalTabId>[];
+  tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[];
 };
 function ContentMenuTabs({ tabs }: ContentMenuTabsProps): ReactElement[] {
   return tabs.map((tab) => (
@@ -37,7 +37,7 @@ function ContentMenuTabs({ tabs }: ContentMenuTabsProps): ReactElement[] {
 }
 
 function filterFeatureFlag(
-  menuTabConfigs: Array<StudioContentMenuButtonTabProps<SettingsModalTabId>>,
+  menuTabConfigs: Array<StudioContentMenuButtonTabProps<SettingsPageTabId>>,
 ) {
   return shouldDisplayFeature(FeatureFlag.Maskinporten)
     ? menuTabConfigs

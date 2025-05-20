@@ -79,4 +79,5 @@ export enum QueryKey {
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
+  ConsentResourceTemplates = 'ConsentResourceTemplates',
 }

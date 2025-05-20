@@ -5,20 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioParagraph } from '@studio/components';
 import { EnterIcon } from '@studio/icons';
 import { loginWithAnsattPorten } from 'app-shared/api/paths';
-import { openSettingsModalWithTabQueryKey } from 'app-development/hooks/useOpenSettingsModalBasedQueryParam';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
+import { settingsPageQueryParamKey } from 'app-development/features/appSettings/utils';
 
 export function AnsattportenLogin(): ReactElement {
   const { t } = useTranslation();
-
-  const pathname: string = window.location.pathname;
-  const origin: string = window.location.origin;
-  const fullPath: string = origin + pathname;
-  console.log('pathname', pathname);
-  console.log('origin', origin);
-  console.log('fullPath', fullPath);
-  console.log('window.location.href', window.location.href);
-  console.log('window.location.search', window.location.search);
 
   const handleLoginWithAnsattporten = (): void => {
     window.location.href = loginWithAnsattPorten(getRedirectUrl());
@@ -52,8 +43,8 @@ function LoginIcon(): ReactElement {
 }
 
 export function getRedirectUrl(): string {
-  const maskinportenTab: SettingsModalTabId = 'maskinporten';
+  const maskinportenTab: SettingsPageTabId = 'maskinporten';
   const url = new URL(window.location.origin + window.location.pathname);
-  url.searchParams.set(openSettingsModalWithTabQueryKey, maskinportenTab);
+  url.searchParams.set(settingsPageQueryParamKey, maskinportenTab);
   return url.pathname + url.search;
 }
