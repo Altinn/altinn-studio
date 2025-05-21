@@ -192,7 +192,7 @@ public class CustomOpenApiController : Controller
             sb.Append('|');
             if (dataType.AllowedContentTypes is not null)
             {
-                sb.Append(string.Join(", ", dataType.AllowedContentTypes));
+                sb.Append(string.Join(", ", dataType.AllowedContentTypes.Distinct()));
             }
             else
             {
@@ -756,7 +756,7 @@ public class CustomOpenApiController : Controller
         }
         else
         {
-            AddRoutsForAttachmentDataType(doc, tags, dataType, appMetadata);
+            AddRoutesForAttachmentDataType(doc, tags, dataType, appMetadata);
         }
     }
 
@@ -898,7 +898,7 @@ public class CustomOpenApiController : Controller
         );
     }
 
-    private static void AddRoutsForAttachmentDataType(
+    private static void AddRoutesForAttachmentDataType(
         OpenApiDocument doc,
         OpenApiTag[] tags,
         DataType dataType,
@@ -960,10 +960,9 @@ public class CustomOpenApiController : Controller
                         {
                             Required = true,
                             Content =
-                                dataType.AllowedContentTypes?.ToDictionary(
-                                    contentType => contentType,
-                                    contentType => new OpenApiMediaType()
-                                )
+                                dataType
+                                    .AllowedContentTypes?.Distinct()
+                                    .ToDictionary(contentType => contentType, contentType => new OpenApiMediaType())
                                 ?? new Dictionary<string, OpenApiMediaType>()
                                 {
                                     ["application/octet-stream"] = new OpenApiMediaType(),
