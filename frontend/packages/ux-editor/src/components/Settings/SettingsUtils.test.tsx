@@ -59,6 +59,20 @@ describe('getHiddenTasks', () => {
       { taskType: TaskType.Receipt },
     ]);
   });
+
+  it('should not include layout sets without a task', () => {
+    const result = getHiddenTasks({
+      taskNavigationGroups: [],
+      layoutSets: [
+        { id: 'layout1', dataType: null, type: '', task: null },
+        { id: 'layout2', dataType: null, type: '', task: { id: 'task2', type: 'data' } },
+      ],
+    });
+    expect(result).toEqual([
+      { taskId: 'task2', taskType: TaskType.Data, pageCount: undefined },
+      { taskType: TaskType.Receipt },
+    ]);
+  });
 });
 
 describe('getLayoutSetForTask', () => {
