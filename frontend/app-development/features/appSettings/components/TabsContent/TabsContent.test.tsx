@@ -33,7 +33,7 @@ describe('TabsContent', () => {
 
   it('should render Access Control tab content when currentTab is "access_control"', () => {
     renderTabsContent({ currentTab: 'access_control' });
-    expect(screen.getByText('Access Control tab')).toBeInTheDocument();
+    expect(getHeading('access_control')).toBeInTheDocument();
   });
 
   it('should render Maskinporten tab when feature flag is enabled', () => {
