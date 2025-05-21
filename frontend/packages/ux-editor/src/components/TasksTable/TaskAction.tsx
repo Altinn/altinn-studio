@@ -14,6 +14,7 @@ import classes from './TaskAction.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
@@ -34,13 +35,19 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
+  const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const addTaskToNavigationGroup = () => {
+    const updatedNavigationTasks = [...taskNavigationGroups, task];
+    updateTaskNavigationGroup(updatedNavigationTasks);
+  };
+
   if (!isNavigationMode) {
     return (
-      <StudioButton variant='tertiary' icon={<EyeIcon />} onClick={() => {}}>
+      <StudioButton variant='tertiary' icon={<EyeIcon />} onClick={addTaskToNavigationGroup}>
         {t('ux_editor.task_table_display')}
       </StudioButton>
     );
@@ -69,7 +76,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   };
 
   const handleRedirect = () => {
-    const layoutSetId = getLayoutSetIdForTask(task, layoutSetsModel);
+    const layoutSetId = getLayoutSetIdForTask(task, layoutSets);
     setSelectedFormLayoutSetName(layoutSetId);
   };
 
@@ -104,7 +111,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
             variant='tertiary'
             onClick={handleRedirect}
             icon={<ArrowRightIcon />}
-            disabled={isDefaultReceiptTask(task, layoutSetsModel)}
+            disabled={isDefaultReceiptTask(task, layoutSets)}
           >
             {t('ux_editor.task_table.menu_task_redirect')}
           </StudioButton>
