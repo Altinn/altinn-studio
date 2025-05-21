@@ -12,7 +12,7 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
     useAppContext();
   const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
 
-  const addPageToGroup = (groupIndex: number) => {
+  const addPageToGroup = async (groupIndex: number) => {
     const allPageNames = [
       ...(pagesModel?.pages?.map((page) => page.id) || []),
       ...(pagesModel?.groups?.flatMap((group) => group?.order?.map((page) => page.id) || []) || []),
@@ -41,10 +41,10 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
       }),
     };
 
-    updateGroupsMutation.mutate(updatedPages, {
-      onSuccess: async () => {
+    await updateGroupsMutation.mutateAsync(updatedPages, {
+      onSuccess: () => {
         setSelectedFormLayoutName(page.id);
-        await updateLayoutsForPreview(selectedFormLayoutSetName);
+        updateLayoutsForPreview(selectedFormLayoutSetName);
       },
     });
   };

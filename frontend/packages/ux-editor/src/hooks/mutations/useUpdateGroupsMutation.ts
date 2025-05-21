@@ -9,8 +9,8 @@ export const useUpdateGroupsMutation = (org: string, app: string, layoutSetName:
 
   return useMutation({
     mutationFn: (pageGroups: PagesModel) => changePageGroups(org, app, layoutSetName, pageGroups),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
         queryKey: [QueryKey.Pages, org, app, layoutSetName],
       });
       queryClient.invalidateQueries({
