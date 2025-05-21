@@ -106,7 +106,7 @@ describe('ResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('displays migrate tab in left navigation bar when resource reference is present in resource and resource is not GenericAccessResource', async () => {
+  it('does not display migrate tab in left navigation bar when resource reference is present in resource and resource is not GenericAccessResource', async () => {
     const getResource = jest
       .fn()
       .mockImplementation(() =>
@@ -119,7 +119,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
     ).not.toBeInTheDocument();
   });
 
@@ -134,7 +134,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
     ).not.toBeInTheDocument();
   });
 
