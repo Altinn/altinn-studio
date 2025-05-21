@@ -50,8 +50,7 @@
             "label": "Lange strekninger på større veier i Norge",
             "value": "langeStrekningerPaStorreVeierINorge"
           }
-        ],
-        "required": false
+        ]
       },
       {
         "id": "MultipleSelectPage-Header-Summary",
@@ -149,9 +148,10 @@
       {
         "dataModelBindings": {
           "group": "MultiselectGroupExample",
-          "simpleBinding": "MultiselectGroupExample.Name.firstname"
+          "simpleBinding": "MultiselectGroupExample.Name.firstname",
+          "checked": "MultiselectGroupExample.Internal.isChecked"
         },
-        "deletionStrategy":"hard",
+        "deletionStrategy":"soft",
         "id": "MultipleSelectPage-Checkboxes2",
         "type": "MultipleSelect",
         "textResourceBindings": {

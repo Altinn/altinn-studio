@@ -147,7 +147,7 @@
       {
         "dataModelBindings": {
           "group": "CheckboxesGroupExample",
-          "simpleBinding": "CheckboxesGroupExample.Name.id",
+          "simpleBinding": "CheckboxesGroupExample.Name.firstname",
           "checked": "CheckboxesGroupExample.Internal.isChecked"
         },
         "deletionStrategy":"soft",
@@ -156,8 +156,7 @@
         "textResourceBindings": {
           "title": "CheckboxesPage.Checkboxes.title"
         },
-        "optionsId": "personsNumber",
-        "required": true
+        "optionsId": "persons"
       },
       {
         "id": "CheckboxesPage-RepeatingGroup",
@@ -181,7 +180,7 @@
         "textResourceBindings": {
           "title":"Name"
         },
-        "value": ["dataModel","CheckboxesGroupExample.Name.id"]
+        "value": ["dataModel","CheckboxesGroupExample.Name.firstname"]
       },
       {
         "id": "CheckboxesPage-RepeatingGroupAge",
