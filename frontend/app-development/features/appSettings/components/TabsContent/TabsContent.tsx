@@ -15,7 +15,7 @@ export type TabsContentProps = {
 export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
   switch (currentTab) {
     case 'about': {
-      return <MaskinportenTab />; //<AboutTab />;
+      return <AboutTab />;
     }
     case 'setup': {
       return <SetupTab />;
@@ -27,8 +27,7 @@ export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
       return <AccessControlTab />;
     }
     case 'maskinporten': {
-      // return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <div>Maskinporten tab</div> : null;
-      return <MaskinportenTab />;
+      return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <MaskinportenTab /> : null;
     }
   }
 }

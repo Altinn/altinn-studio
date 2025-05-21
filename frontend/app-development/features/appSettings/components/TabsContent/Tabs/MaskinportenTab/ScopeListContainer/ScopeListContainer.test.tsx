@@ -1,15 +1,13 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ScopeListContainer } from './ScopeListContainer';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import '@testing-library/jest-dom';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import {
-  type MaskinportenScopes,
-  type MaskinportenScope,
-} from 'app-shared/types/MaskinportenScope';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -24,122 +22,112 @@ const scopeMock2: MaskinportenScope = {
 const maskinportenScopes: MaskinportenScopes = { scopes: [scopeMock1, scopeMock2] };
 
 describe('ScopeListContainer', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should display a spinner while loading', () => {
     renderScopeListContainer();
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(getText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('should display a list of scopes if maskinporten scopes are available', async () => {
-    const mockGetMaskinportenScopes = jest
+    const getMaskinportenScopes = jest
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
-    const mockGetSelectedMaskinportenScopes = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
     renderScopeListContainer({
-      queries: {
-        getMaskinportenScopes: mockGetMaskinportenScopes,
-        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
-      },
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
     });
 
     await waitForGetScopesCheckIsDone();
 
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
-
+    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
     maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(screen.getByRole('checkbox', { name: scope.scope }));
-      expect(screen.getByText(scope.description));
-      expect(screen.getByRole('checkbox', { name: scope.scope })).not.toBeChecked();
+      expect(getCheckbox(scope.scope)).toBeInTheDocument();
+      expect(getCell(scope.description)).toBeInTheDocument();
+      expect(getCheckbox(scope.scope)).not.toBeChecked();
     });
   });
 
   it('should display a list of scopes if selected maskinporten scopes are available', async () => {
-    const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const mockGetSelectedMaskinportenScopes = jest
+    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = jest
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
 
     renderScopeListContainer({
-      queries: {
-        getMaskinportenScopes: mockGetMaskinportenScopes,
-        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
-      },
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
     });
 
     await waitForGetScopesCheckIsDone();
 
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
-
+    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
     maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(screen.getByRole('checkbox', { name: scope.scope }));
-      expect(screen.getByText(scope.description));
-      expect(screen.getByRole('checkbox', { name: scope.scope })).toBeChecked();
+      expect(getCheckbox(scope.scope)).toBeInTheDocument();
+      expect(getCell(scope.description)).toBeInTheDocument();
+      expect(getCheckbox(scope.scope)).toBeChecked();
     });
   });
 
   it('should display a merged list of scopes if both selected scopes and available scopes are available', async () => {
     const availableScopes: MaskinportenScopes = { scopes: [scopeMock1] };
-    const mockGetMaskinportenScopes = jest
+    const getMaskinportenScopes = jest
       .fn()
       .mockImplementation(() => Promise.resolve(availableScopes));
 
     const selectedScopes: MaskinportenScopes = { scopes: [scopeMock2] };
-    const mockGetSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = jest
       .fn()
       .mockImplementation(() => Promise.resolve(selectedScopes));
 
     renderScopeListContainer({
-      queries: {
-        getMaskinportenScopes: mockGetMaskinportenScopes,
-        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
-      },
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
     });
 
     await waitForGetScopesCheckIsDone();
 
-    expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
-
+    expect(getCheckoxes()).toHaveLength(3); // The two scopes + "select all"
     maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
-      expect(screen.getByRole('checkbox', { name: scope.scope }));
-      expect(screen.getByText(scope.description));
+      expect(getCheckbox(scope.scope)).toBeInTheDocument();
+      expect(getCell(scope.description)).toBeInTheDocument();
     });
-    expect(screen.getByRole('checkbox', { name: scopeMock1.scope })).not.toBeChecked();
-    expect(screen.getByRole('checkbox', { name: scopeMock2.scope })).toBeChecked();
+    expect(getCheckbox(scopeMock1.scope)).not.toBeChecked();
+    expect(getCheckbox(scopeMock2.scope)).toBeChecked();
   });
 
   it('should display an alert if no scopes are available', async () => {
-    const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const mockGetSelectedMaskinportenScopes = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([]));
+    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
     renderScopeListContainer({
-      queries: {
-        getMaskinportenScopes: mockGetMaskinportenScopes,
-        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
-      },
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
     });
     await waitForGetScopesCheckIsDone();
 
     expect(
-      screen.getByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
+      getText(textMock('app_settings.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
   });
 });
 
-type RenderScopeListContainerProps = {
-  queries?: Partial<typeof queriesMock>;
-};
-
-const renderScopeListContainer = ({
-  queries = queriesMock,
-}: Partial<RenderScopeListContainerProps> = {}) => {
-  const queryClient = createQueryClientMock();
-  renderWithProviders({ ...queriesMock, ...queries }, queryClient)(<ScopeListContainer />);
+const renderScopeListContainer = (queries: Partial<ServicesContextProps> = {}) => {
+  const queryClient: QueryClient = createQueryClientMock();
+  const allQueries = {
+    ...queriesMock,
+    ...queries,
+  };
+  return renderWithProviders(allQueries, queryClient)(<ScopeListContainer />);
 };
 
 async function waitForGetScopesCheckIsDone() {
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => getText(textMock('general.loading')));
 }
+
+const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
+const getCheckoxes = (): HTMLInputElement[] => screen.getAllByRole('checkbox');
+const getCheckbox = (name: string): HTMLInputElement => screen.getByRole('checkbox', { name });
+const getCell = (name: string): HTMLTableCellElement => screen.getByRole('cell', { name });

@@ -12,3 +12,24 @@ export function mapMaskinPortenScopesToScopeList(
 ): string[] {
   return maskinPortenScopes.map((scope: MaskinportenScope) => scope.scope);
 }
+
+export function combineSelectedAndMaskinportenScopes(
+  selectedScopes: MaskinportenScope[],
+  maskinportenScopes: MaskinportenScope[],
+): MaskinportenScope[] {
+  const combinedScopesList: MaskinportenScope[] = mergeTwoScopeListsToOne(
+    maskinportenScopes,
+    selectedScopes,
+  );
+  return combinedScopesList;
+}
+
+const mergeTwoScopeListsToOne = (
+  maskinPortenScopes: MaskinportenScope[],
+  selectedScopes: MaskinportenScope[],
+): MaskinportenScope[] => {
+  const scopeMap: Map<string, MaskinportenScope> = new Map();
+  maskinPortenScopes.forEach((scope: MaskinportenScope) => scopeMap.set(scope.scope, scope));
+  selectedScopes.forEach((scope: MaskinportenScope) => scopeMap.set(scope.scope, scope));
+  return Array.from(scopeMap.values());
+};

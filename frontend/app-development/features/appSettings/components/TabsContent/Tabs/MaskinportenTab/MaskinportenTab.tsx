@@ -13,8 +13,6 @@ import { ScopeListContainer } from './ScopeListContainer';
 export function MaskinportenTab(): ReactElement {
   const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
-  // const isPendingAuthStatus = false;
-  // const ansattportenAuthStatus = { isLoggedIn: false }; // Mocked data for testing
 
   if (isPendingAuthStatus) {
     return <LoadingTabData />;

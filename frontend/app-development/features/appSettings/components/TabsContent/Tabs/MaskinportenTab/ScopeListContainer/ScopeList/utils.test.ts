@@ -1,4 +1,8 @@
-import { mapSelectedValuesToMaskinportenScopes, mapMaskinPortenScopesToScopeList } from './utils';
+import {
+  mapSelectedValuesToMaskinportenScopes,
+  mapMaskinPortenScopesToScopeList,
+  combineSelectedAndMaskinportenScopes,
+} from './utils';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 const scope1: string = 'scope1';
@@ -8,10 +12,14 @@ const description1: string = 'Scope 1';
 const description2: string = 'Scope 2';
 const description3: string = 'Scope 3';
 
+const maskinportenScope1: MaskinportenScope = { scope: scope1, description: description1 };
+const maskinportenScope2: MaskinportenScope = { scope: scope2, description: description2 };
+const maskinportenScope3: MaskinportenScope = { scope: scope3, description: description3 };
+
 const allScopesMock: MaskinportenScope[] = [
-  { scope: scope1, description: description1 },
-  { scope: scope2, description: description2 },
-  { scope: scope3, description: description3 },
+  maskinportenScope1,
+  maskinportenScope2,
+  maskinportenScope3,
 ];
 
 describe('ScopeList utils functions', () => {
@@ -52,6 +60,46 @@ describe('ScopeList utils functions', () => {
       const result = mapMaskinPortenScopesToScopeList([]);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('combineSelectedAndMaskinportenScopes', () => {
+    it('returns an empty array when both inputs are empty', () => {
+      const result = combineSelectedAndMaskinportenScopes([], []);
+      expect(result).toEqual([]);
+    });
+
+    it('returns only maskinportenScopes when selectedScopes is empty', () => {
+      const maskinportenScopes: MaskinportenScope[] = [maskinportenScope1, maskinportenScope2];
+      const result = combineSelectedAndMaskinportenScopes([], maskinportenScopes);
+      expect(result).toEqual(maskinportenScopes);
+    });
+
+    it('returns only selectedScopes when maskinportenScopes is empty', () => {
+      const selectedScopes: MaskinportenScope[] = [maskinportenScope1, maskinportenScope2];
+      const result = combineSelectedAndMaskinportenScopes(selectedScopes, []);
+      expect(result).toEqual(selectedScopes);
+    });
+
+    it('merges scopes and excludes duplicates when it exists', () => {
+      const selectedScopes: MaskinportenScope[] = [maskinportenScope1];
+      const maskinportenScopes: MaskinportenScope[] = [maskinportenScope1, maskinportenScope2];
+
+      const result = combineSelectedAndMaskinportenScopes(selectedScopes, maskinportenScopes);
+
+      expect(result).toEqual([maskinportenScope1, maskinportenScope2]);
+    });
+
+    it('handles non-overlapping scopes correctly', () => {
+      const selectedScopes: MaskinportenScope[] = [maskinportenScope1];
+      const maskinportenScopes: MaskinportenScope[] = [maskinportenScope2, maskinportenScope3];
+
+      const result = combineSelectedAndMaskinportenScopes(selectedScopes, maskinportenScopes);
+      expect(result).toEqual(
+        expect.arrayContaining([maskinportenScope1, maskinportenScope2, maskinportenScope3]),
+      );
+
+      expect(result).toHaveLength(3);
     });
   });
 });

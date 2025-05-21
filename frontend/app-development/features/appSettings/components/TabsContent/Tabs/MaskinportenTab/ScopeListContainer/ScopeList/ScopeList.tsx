@@ -20,7 +20,11 @@ import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
 import { ArrayUtils } from '@studio/pure-functions';
-import { mapMaskinPortenScopesToScopeList, mapSelectedValuesToMaskinportenScopes } from './utils';
+import {
+  combineSelectedAndMaskinportenScopes,
+  mapMaskinPortenScopesToScopeList,
+  mapSelectedValuesToMaskinportenScopes,
+} from './utils';
 
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
@@ -30,6 +34,10 @@ export type ScopeListProps = {
 export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement {
   const { t } = useTranslation();
 
+  const allAvailableScopes: MaskinportenScope[] = combineSelectedAndMaskinportenScopes(
+    selectedScopes,
+    maskinPortenScopes,
+  );
   const initialValues: string[] = mapMaskinPortenScopesToScopeList(selectedScopes);
   const title: string = t('app_settings.maskinporten_select_all_scopes');
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
@@ -62,7 +70,7 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
           }}
         />
         <StudioCheckboxTable.Body>
-          {maskinPortenScopes.map((mappedOption: MaskinportenScope) => (
+          {allAvailableScopes.map((mappedOption: MaskinportenScope) => (
             <StudioCheckboxTable.Row
               key={mappedOption.scope}
               label={mappedOption.scope}
@@ -80,7 +88,7 @@ export function ScopeList({ maskinPortenScopes, selectedScopes }: ScopeListProps
         selectedValues={selectedValues}
         setSelectedValues={setSelectedValues}
         initialValues={initialValues}
-        maskinportenScopes={maskinPortenScopes}
+        allAvailableScopes={allAvailableScopes}
       />
     </div>
   );
@@ -90,14 +98,14 @@ type ActionButtonsProps = {
   selectedValues: string[];
   setSelectedValues: Dispatch<SetStateAction<string[]>>;
   initialValues: string[];
-  maskinportenScopes: MaskinportenScope[];
+  allAvailableScopes: MaskinportenScope[];
 };
 
 function ActionButtons({
   selectedValues,
   setSelectedValues,
   initialValues,
-  maskinportenScopes,
+  allAvailableScopes,
 }: ActionButtonsProps): ReactElement {
   const { t } = useTranslation();
 
@@ -114,7 +122,7 @@ function ActionButtons({
   const saveScopes = () => {
     const updatedScopeList: MaskinportenScope[] = mapSelectedValuesToMaskinportenScopes(
       selectedValues,
-      maskinportenScopes,
+      allAvailableScopes,
     );
     const updatedScopes: MaskinportenScopes = { scopes: updatedScopeList };
 
