@@ -63,12 +63,10 @@ describe('getHiddenTasks', () => {
   it('should not include layout sets without a task', () => {
     const result = getHiddenTasks({
       taskNavigationGroups: [],
-      layoutSetsModel: {
-        sets: [
-          { id: 'layout1', dataType: null, type: '', task: null },
-          { id: 'layout2', dataType: null, type: '', task: { id: 'task2', type: 'data' } },
-        ],
-      },
+      layoutSets: [
+        { id: 'layout1', dataType: null, type: '', task: null },
+        { id: 'layout2', dataType: null, type: '', task: { id: 'task2', type: 'data' } },
+      ],
     });
     expect(result).toEqual([
       { taskId: 'task2', taskType: TaskType.Data, pageCount: undefined },

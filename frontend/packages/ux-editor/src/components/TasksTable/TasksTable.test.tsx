@@ -13,10 +13,7 @@ const tasksMock: TaskNavigationGroup[] = [
   { taskType: 'type2', name: 'Task 2' },
 ];
 
-const allTasksMock: TaskNavigationGroup[] = [
-  ...tasksMock,
-  { taskType: 'type3', name: 'Task 3', pageCount: 15 },
-];
+const allTasksMock: TaskNavigationGroup[] = [...tasksMock, { taskType: 'type3', name: 'Task 3' }];
 
 describe('TasksTable', () => {
   beforeEach(() => jest.clearAllMocks());
