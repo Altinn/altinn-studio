@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/task-navigation")]
-    public class TaskNavigationController(ITaskNavigationService taskNavigationService, IAppDevelopmentService appDevelopmentService, ILayoutService layoutService) : ControllerBase
+    public class TaskNavigationController(ITaskNavigationService taskNavigationService) : ControllerBase
     {
         /// <summary>
         /// Get task navigation
@@ -39,28 +39,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             IEnumerable<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
             IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
-
-            LayoutSets layoutSets = await appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
-            IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = await Task.WhenAll(taskNavigationGroupList.Select(async taskNavigationGroup =>
-            {
-                TaskNavigationGroupDto taskNavigationGroupDto = taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType);
-                if (taskNavigationGroupDto.TaskId != null)
-                {
-                    LayoutSetConfig layoutSet = layoutSets.Sets?.FirstOrDefault(layoutSet => layoutSet.Tasks?.Contains(taskNavigationGroupDto.TaskId) ?? false);
-                    if (layoutSet != null)
-                    {
-                        string layoutSetId = layoutSet?.Id;
-                        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                            editingContext,
-                            layoutSetId
-                        );
-                        PagesDto pages = PagesDto.From(layoutSettings);
-                        taskNavigationGroupDto.PageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
-                    }
-                }
-
-                return taskNavigationGroupDto;
-            }));
+            IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(taskNavigationGroup => taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType));
 
             return Ok(taskNavigationGroupDto);
         }

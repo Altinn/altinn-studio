@@ -34,7 +34,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
-  const { data: layoutSetsModel } = useLayoutSetsExtendedQuery(org, app);
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -69,7 +69,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   };
 
   const handleRedirect = () => {
-    const layoutSetId = getLayoutSetIdForTask(task, layoutSetsModel);
+    const layoutSetId = getLayoutSetIdForTask(task, layoutSets);
     setSelectedFormLayoutSetName(layoutSetId);
   };
 
@@ -104,7 +104,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
             variant='tertiary'
             onClick={handleRedirect}
             icon={<ArrowRightIcon />}
-            disabled={isDefaultReceiptTask(task, layoutSetsModel)}
+            disabled={isDefaultReceiptTask(task, layoutSets)}
           >
             {t('ux_editor.task_table.menu_task_redirect')}
           </StudioButton>
