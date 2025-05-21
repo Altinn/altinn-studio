@@ -49,16 +49,6 @@
         "optionsId": "likertOptions"
       },
       {
-        "id": "LikertPage-Summary-Group",
-        "type": "Group",
-        "children": [
-          "LikertPage-Header-Summary",
-          "LikertPage-Summary",
-          "LikertPage-Header-Summary2",
-          "LikertPage-Summary2"
-        ]
-      },
-      {
         "size": "h3",
         "id": "LikertPage-Header-Summary",
         "type": "Header",

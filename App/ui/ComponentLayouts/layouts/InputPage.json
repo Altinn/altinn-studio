@@ -152,6 +152,22 @@
         }
       },
       {
+        "id": "Tekst-Fra-Eksternt-Api",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Eksternt api"
+        },
+        "value": [
+          "externalApi",
+          "testId",
+          "details[0].id"
+        ],
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
         "id": "InputPage-NavigationButtons",
         "type": "NavigationButtons",
         "showBackButton": true,
