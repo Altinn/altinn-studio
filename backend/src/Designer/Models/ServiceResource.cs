@@ -129,7 +129,7 @@ namespace Altinn.Studio.Designer.Models
         public string? ConsentTemplate { get; set; }
 
         /// <summary>
-        /// Consent text is markdown? text used if resource is a consent resource
+        /// Consent text is markdown text used if resource is a consent resource
         /// </summary>
         public Dictionary<string, string>? ConsentText { get; set; }
 
@@ -137,6 +137,11 @@ namespace Altinn.Studio.Designer.Models
         /// Defines consentmetadata for consent resources
         /// </summary>
         public Dictionary<string, ConsentMetadata>? ConsentMetadata { get; set; }
+
+        /// <summary>
+        /// If consent resource is used for one time consents, or consents with an expiry date
+        /// </summary>
+        public bool IsOneTimeConsent { get; set; }
 
         /// <summary>
         /// Writes key information when this object is written to Log.
