@@ -91,7 +91,7 @@ describe('ResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
+  it('displays migrate tab in left navigation bar when resource reference is present in resource and resource is GenericAccessResource', async () => {
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
@@ -104,6 +104,23 @@ describe('ResourcePage', () => {
     expect(
       screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
     ).toBeInTheDocument();
+  });
+
+  it('displays migrate tab in left navigation bar when resource reference is present in resource and resource is not GenericAccessResource', async () => {
+    const getResource = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve<Resource>({ ...mockResource1, resourceType: 'ConsentResource' }),
+      );
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    expect(
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not display migrate tab in left navigation bar when resource reference is not in resource', async () => {
