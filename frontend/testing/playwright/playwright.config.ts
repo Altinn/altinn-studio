@@ -108,6 +108,18 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.APP_SETTINGS,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/app-settings/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.APP_SETTINGS_APP,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.TEXT_EDITOR,
       dependencies: [TestNames.SETUP],
       testDir: './tests/text-editor/',
@@ -156,6 +168,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
         TestNames.SETTINGS_MODAL,
+        TestNames.APP_SETTINGS,
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
         TestNames.ORG_LIBRARY,
