@@ -8,14 +8,18 @@ import { useCheckboxTableContext } from '../StudioCheckboxTableContext';
 
 export type StudioCheckboxTableRowProps = {
   label: string;
+  description?: string;
   getCheckboxProps: StudioGetCheckboxProps;
 };
 
 export function StudioCheckboxTableRow({
   label,
+  description,
   getCheckboxProps,
 }: StudioCheckboxTableRowProps): ReactElement {
   const { hasError } = useCheckboxTableContext();
+
+  const showDescriptionCell: boolean = description !== undefined || description === '';
 
   return (
     <StudioTable.Row>
@@ -27,7 +31,8 @@ export function StudioCheckboxTableRow({
           {...getCheckboxProps}
         />
       </StudioTable.Cell>
-      <StudioTable.Cell>{label}</StudioTable.Cell>
+      <StudioTable.Cell aria-hidden>{label}</StudioTable.Cell>
+      {showDescriptionCell && <StudioTable.Cell>{description}</StudioTable.Cell>}
     </StudioTable.Row>
   );
 }

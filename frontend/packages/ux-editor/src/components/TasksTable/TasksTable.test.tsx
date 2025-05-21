@@ -9,8 +9,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 
 const tasksMock: TaskNavigationGroup[] = [
-  { taskType: 'type1', name: 'Task 1', pageCount: 5 },
-  { taskType: 'type2', name: 'Task 2', pageCount: 10 },
+  { taskType: 'type1', name: 'Task 1' },
+  { taskType: 'type2', name: 'Task 2' },
 ];
 
 const allTasksMock: TaskNavigationGroup[] = [
