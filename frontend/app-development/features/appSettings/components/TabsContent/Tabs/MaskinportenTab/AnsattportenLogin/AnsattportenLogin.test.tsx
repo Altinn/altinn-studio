@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AnsattportenLogin, getRedirectUrl } from './AnsattportenLogin';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { settingsPageQueryParamKey } from 'app-development/features/appSettings/utils';
 
 jest.mock('app-shared/api/paths');
 
@@ -11,7 +12,7 @@ describe('AnsattportenLogin', () => {
     render(<AnsattportenLogin />);
 
     expect(
-      screen.getByText(textMock('settings_modal.maskinporten_tab_login_with_description')),
+      screen.getByText(textMock('app_settings.maskinporten_tab_login_with_description')),
     ).toBeInTheDocument();
   });
 
@@ -19,7 +20,7 @@ describe('AnsattportenLogin', () => {
     render(<AnsattportenLogin />);
 
     const button = screen.getByRole('button', {
-      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+      name: textMock('app_settings.maskinporten_tab_login_with_ansattporten'),
     });
     expect(button).toBeInTheDocument();
   });
@@ -32,7 +33,7 @@ describe('AnsattportenLogin', () => {
     render(<AnsattportenLogin />);
 
     const loginButton = screen.getByRole('button', {
-      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+      name: textMock('app_settings.maskinporten_tab_login_with_ansattporten'),
     });
 
     await user.click(loginButton);
@@ -44,7 +45,7 @@ describe('getRedirectUrl', () => {
   it('should build and return correct redirect url', () => {
     mockWindowLocationHref();
     const result = getRedirectUrl();
-    expect(result).toBe('/path/to/page?openSettingsModalWithTab=maskinporten');
+    expect(result).toBe(`/path/to/page?${settingsPageQueryParamKey}=maskinporten`);
   });
 });
 

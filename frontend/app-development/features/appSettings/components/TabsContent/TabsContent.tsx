@@ -6,6 +6,7 @@ import { PolicyTab } from './Tabs/PolicyTab';
 import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
 import { MaskinportenTab } from './Tabs/MaskinportenTab';
+import { AccessControlTab } from './Tabs/AccessControlTab';
 
 export type TabsContentProps = {
   currentTab: SettingsTabId;
@@ -23,7 +24,7 @@ export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
       return <PolicyTab />;
     }
     case 'access_control': {
-      return <div>Access Control tab</div>;
+      return <AccessControlTab />;
     }
     case 'maskinporten': {
       // return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <div>Maskinporten tab</div> : null;
