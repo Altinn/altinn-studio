@@ -25,7 +25,7 @@ describe('MaskinportenTab', () => {
     renderMaskinportenTab();
     await waitForLoggedInStatusCheckIsDone();
 
-    const title = getHeading(textMock('app_settings.maskinporten_tab_title'), 3);
+    const title = getHeading(textMock('app_settings.maskinporten_tab_heading'), 3);
     expect(title).toBeInTheDocument();
 
     const description = getText(textMock('app_settings.maskinporten_tab_description'));

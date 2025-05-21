@@ -11,6 +11,17 @@ import { AnsattportenLogin } from './AnsattportenLogin';
 import { ScopeListContainer } from './ScopeListContainer';
 
 export function MaskinportenTab(): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <TabPageWrapper>
+      <TabPageHeader text={t('app_settings.maskinporten_tab_heading')} />
+      <StudioParagraph>{t('app_settings.maskinporten_tab_description')}</StudioParagraph>
+      <MaskinportenContent />
+    </TabPageWrapper>
+  );
+}
+
+function MaskinportenContent(): ReactElement {
   const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
@@ -20,30 +31,21 @@ export function MaskinportenTab(): ReactElement {
 
   if (ansattportenAuthStatus.isLoggedIn) {
     return (
-      <MaskinportenPageTemplate>
+      <ContentWrapper>
         <ScopeListContainer />
-      </MaskinportenPageTemplate>
+      </ContentWrapper>
     );
   }
-
   return (
-    <MaskinportenPageTemplate>
+    <ContentWrapper>
       <AnsattportenLogin />
-    </MaskinportenPageTemplate>
+    </ContentWrapper>
   );
 }
 
-type MaskinportenPageTemplateProps = {
+type ContentWrapperProps = {
   children: ReactNode;
 };
-
-function MaskinportenPageTemplate({ children }: MaskinportenPageTemplateProps): ReactElement {
-  const { t } = useTranslation();
-  return (
-    <TabPageWrapper>
-      <TabPageHeader text={t('app_settings.maskinporten_tab_title')} />
-      <StudioParagraph>{t('app_settings.maskinporten_tab_description')}</StudioParagraph>
-      <div className={classes.contentWrapper}>{children}</div>
-    </TabPageWrapper>
-  );
+function ContentWrapper({ children }: ContentWrapperProps): ReactElement {
+  return <div className={classes.contentWrapper}>{children}</div>;
 }

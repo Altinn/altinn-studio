@@ -13,11 +13,11 @@ export type ContentMenuProps = {
 
 export function ContentMenu({ currentTab, onChangeTab }: ContentMenuProps): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
-  // const menuTabs = filterFeatureFlag(menuTabConfigs);
+  const menuTabs = filterFeatureFlag(menuTabConfigs);
 
   return (
     <StudioContentMenu selectedTabId={currentTab} onChangeTab={onChangeTab}>
-      <ContentMenuTabs tabs={menuTabConfigs} />
+      <ContentMenuTabs tabs={menuTabs} />
     </StudioContentMenu>
   );
 }
