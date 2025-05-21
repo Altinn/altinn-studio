@@ -80,6 +80,26 @@ describe('useAddPageToGroup', () => {
     });
   });
 
+  it('should handle undefined group.order', async () => {
+    const mockPagesModel: PagesModel = {
+      pages: [],
+      groups: [
+        {
+          order: undefined,
+        },
+      ],
+    };
+    const { result } = render(mockPagesModel);
+    await result.current.addPageToGroup(0);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
+      groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],
+      pages: [],
+    });
+    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(textMock('ux_editor.page') + '1');
+    expect(mockUpdateLayoutsForPreview).toHaveBeenCalledWith(layoutSet1NameMock);
+  });
+
   it('should handle empty groups', async () => {
     const mockPagesModel: PagesModel = {
       pages: [],
