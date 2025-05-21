@@ -16,7 +16,7 @@ interface Bindings {
   values: Record<string, IDataModelReference>;
 }
 
-function toRelativePath(group: IDataModelReference | undefined, binding: IDataModelReference | undefined) {
+export function toRelativePath(group: IDataModelReference | undefined, binding: IDataModelReference | undefined) {
   if (group && binding && binding.field.startsWith(`${group.field}.`)) {
     return binding.field.substring(group.field.length + 1);
   }
@@ -117,17 +117,19 @@ export function useSaveObjectToGroup(listBindings: IDataModelBindingsForList) {
   const formDataSelector = FD.useCurrentSelector();
   const { enabled, toggle, checkedPath } = useSaveToGroup(bindings);
 
-  function isChecked(row: Row) {
+  function isChecked(row: Row): boolean {
     if (!enabled || !bindings.group) {
       return false;
     }
-
     const formData = formDataSelector(bindings.group) as Row[] | undefined;
-    const [, formDataObject] = findRowInFormData(bindings, row, formData);
-    if (checkedPath && formDataObject) {
-      return !!dot.pick(checkedPath, formDataObject);
+    if (!formData) {
+      return false;
     }
-    return false;
+    const [index, formDataRow] = findRowInFormData(bindings, row, formData);
+    if (checkedPath) {
+      return !!(formDataRow && dot.pick(checkedPath, formDataRow));
+    }
+    return index !== undefined && index !== -1;
   }
 
   return { toggle, isChecked, enabled };

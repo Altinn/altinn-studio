@@ -7,10 +7,10 @@ import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
+import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
-import { useValidateListIsEmpty } from 'src/layout/List/useValidateListIsEmpty';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
@@ -90,7 +90,7 @@ export class List extends ListDef {
   }
 
   useEmptyFieldValidation(node: LayoutNode<'List'>): ComponentValidation[] {
-    return useValidateListIsEmpty(node);
+    return useValidateGroupIsEmpty(node);
   }
 
   renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {

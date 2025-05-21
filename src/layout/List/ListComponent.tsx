@@ -57,13 +57,13 @@ export const ListComponent = ({ node }: IListProps) => {
   const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
 
   const { formData, setValues } = useDataModelBindings(bindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
-  const groupBinding = useSaveObjectToGroup(bindings);
+  const { toggle, isChecked, enabled } = useSaveObjectToGroup(bindings);
 
   const tableHeadersToShowInMobile = Object.keys(tableHeaders).filter(
     (key) => !tableHeadersMobile || tableHeadersMobile.includes(key),
   );
 
-  const selectedRow = !groupBinding.enabled
+  const selectedRow = !enabled
     ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
     : '';
 
@@ -76,8 +76,8 @@ export const ListComponent = ({ node }: IListProps) => {
   }
 
   function isRowSelected(row: Row): boolean {
-    if (groupBinding.enabled) {
-      return groupBinding.isChecked(row);
+    if (enabled) {
+      return isChecked(row);
     }
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
@@ -86,8 +86,8 @@ export const ListComponent = ({ node }: IListProps) => {
   const description = item.textResourceBindings?.description;
 
   const handleRowClick = (row: Row) => {
-    if (groupBinding.enabled) {
-      groupBinding.toggle(row);
+    if (enabled) {
+      toggle(row);
     } else {
       handleSelectedRadioRow({ selectedValue: row });
     }
@@ -103,7 +103,7 @@ export const ListComponent = ({ node }: IListProps) => {
       </div>
     ));
 
-  const options = groupBinding.enabled ? (
+  const options = enabled ? (
     <Checkbox.Group
       legend={
         <Heading
@@ -122,7 +122,7 @@ export const ListComponent = ({ node }: IListProps) => {
           onClick={() => handleRowClick(row)}
           value={JSON.stringify(row)}
           className={cn(classes.mobile)}
-          checked={groupBinding.isChecked(row)}
+          checked={isChecked(row)}
         >
           {renderListItems(row, tableHeaders)}
         </Checkbox>
@@ -227,13 +227,13 @@ export const ListComponent = ({ node }: IListProps) => {
                   [classes.selectedRowCell]: isRowSelected(row),
                 })}
               >
-                {groupBinding.enabled ? (
+                {enabled ? (
                   <Checkbox
                     className={classes.toggleControl}
                     aria-label={JSON.stringify(row)}
                     onChange={() => {}}
                     value={JSON.stringify(row)}
-                    checked={groupBinding.isChecked(row)}
+                    checked={isChecked(row)}
                     name={node.id}
                   />
                 ) : (
