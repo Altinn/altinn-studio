@@ -1,7 +1,7 @@
 import { useAddPageToGroup } from './useAddPageToGroup';
-import { renderHook } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderHookWithProviders } from '../../../../ux-editor/src/testing/mocks';
 
 const mockSetSelectedFormLayoutName = jest.fn();
 const mockUpdateLayoutsForPreview = jest.fn();
@@ -11,14 +11,6 @@ const mockLayoutSetName = 'default';
 jest.mock('./useUpdateGroupsMutation', () => ({
   useUpdateGroupsMutation: jest.fn(() => ({
     mutate: mockMutate,
-  })),
-}));
-
-jest.mock('../useAppContext', () => ({
-  useAppContext: jest.fn(() => ({
-    selectedFormLayoutSetName: mockLayoutSetName,
-    setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
-    updateLayoutsForPreview: mockUpdateLayoutsForPreview,
   })),
 }));
 
@@ -91,7 +83,7 @@ describe('useAddPageToGroup', () => {
   });
 
   it('should handle undefined pagesModel', () => {
-    const { result } = renderHook(() => useAddPageToGroup(undefined));
+    const { result } = renderHookWithProviders(() => useAddPageToGroup(undefined));
     result.current.addPageToGroup(0);
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -106,7 +98,7 @@ describe('useAddPageToGroup', () => {
       pages: [],
       groups: undefined,
     };
-    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    const { result } = render(mockPagesModel);
     result.current.addPageToGroup(0);
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -125,7 +117,7 @@ describe('useAddPageToGroup', () => {
         },
       ],
     };
-    const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+    const { result } = render(mockPagesModel);
     result.current.addPageToGroup(0);
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,7 +148,7 @@ describe('useAddPageToGroup', () => {
           },
         ],
       };
-      const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+      const { result } = render(mockPagesModel);
       result.current.addPageToGroup(0);
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -183,7 +175,7 @@ describe('useAddPageToGroup', () => {
           },
         ],
       };
-      const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+      const { result } = render(mockPagesModel);
       result.current.addPageToGroup(0);
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -213,8 +205,7 @@ describe('useAddPageToGroup', () => {
           },
         ],
       };
-
-      const { result } = renderHook(() => useAddPageToGroup(mockPagesModel));
+      const { result } = render(mockPagesModel);
       result.current.addPageToGroup(0);
       expect(mockMutate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -231,5 +222,11 @@ describe('useAddPageToGroup', () => {
 });
 
 const render = (pagesModel: PagesModel) => {
-  return renderHook(() => useAddPageToGroup(pagesModel));
+  return renderHookWithProviders(() => useAddPageToGroup(pagesModel), {
+    appContextProps: {
+      selectedFormLayoutSetName: mockLayoutSetName,
+      setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
+      updateLayoutsForPreview: mockUpdateLayoutsForPreview,
+    },
+  });
 };
