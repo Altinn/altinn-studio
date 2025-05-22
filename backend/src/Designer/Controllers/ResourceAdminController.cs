@@ -143,7 +143,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/allaccesslists")]
         public async Task<ActionResult> GetAllAccessLists(string org)
         {
-            // sjekk at man er medlem av minst et Resources-Publish-XXXX team for å kunne kalle dette endepunktet
+            // check that the user is member of at least one Resources-Publish-XXXX team in the given organization to 
+            // call this service. We use the Resources-Publish team instead of the AccessLists team, so users 
+            // publishing resource can also set accesslists in policy (but might not have access to change acceslists)
             bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
             if (!hasPublishResourcePermission)
             {
@@ -186,7 +188,6 @@ namespace Altinn.Studio.Designer.Controllers
                 accessLists.AddRange(pagedListResponse.Data);
                 string nextPage = pagedListResponse.NextPage;
 
-                // load rest of pages
                 while (!string.IsNullOrWhiteSpace(nextPage))
                 {
                     PagedAccessListResponse nextPagedListResponse = await _resourceRegistry.GetAccessLists(org, env, nextPage);

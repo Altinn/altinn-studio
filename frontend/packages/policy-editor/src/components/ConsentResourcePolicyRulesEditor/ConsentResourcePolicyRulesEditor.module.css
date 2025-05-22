@@ -1,17 +1,21 @@
 .consentRuleCard {
-  border: solid 1px var(--fds-semantic-border-divider-default);
-  padding: var(--fds-spacing-5);
-  margin-bottom: var(--fds-spacing-5);
-  border-radius: var(--fds-sizing-3);
+  border: solid 1px var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-5);
+  margin-bottom: var(--ds-size-5);
+  border-radius: var(--ds-size-3);
 }
 
 .accessListItem {
-  padding: 0 var(--fds-sizing-2);
-  border-bottom: solid 1px var(--fds-semantic-border-divider-default);
+  padding: var(--ds-size-2);
+  border-bottom: solid 1px var(--ds-color-neutral-border-subtle);
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
 }
 
 .allOrganizationsItem {
-  padding: 0 var(--fds-sizing-2);
   background-color: var(--ds-color-neutral-background-tinted);
-  min-height: var(--fds-spacing-12);
+  border-bottom: 0;
+  min-height: var(--ds-size-12);
+  align-items: center;
 }

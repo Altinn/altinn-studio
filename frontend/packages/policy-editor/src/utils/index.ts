@@ -20,9 +20,6 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
-/**
- * Organization subject used by consent resource
- */
 export const organizationSubject: PolicySubject = {
   subjectId: 'organization',
   subjectSource: 'altinn:partytype',
