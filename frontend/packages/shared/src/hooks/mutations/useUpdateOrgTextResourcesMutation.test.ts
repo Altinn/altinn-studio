@@ -47,7 +47,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
   });
 
   it('Replaces the data with the correct keys in the cache', async () => {
-    const client = createClientWithData();
+    const client = createQueryClientWithData();
     const { result } = render(client);
     result.current.mutate(args);
     await waitFor(expect(updateOrgTextResources).toHaveBeenCalled);
@@ -65,7 +65,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
   });
 
   it('Invalidates the data on error', async () => {
-    const client = createClientWithData();
+    const client = createQueryClientWithData();
     const invalidateSpy = jest.spyOn(client, 'invalidateQueries');
     const { result } = render(client);
     updateOrgTextResources.mockRejectedValueOnce(new Error('Error'));
@@ -75,7 +75,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
   });
 });
 
-function createClientWithData(): QueryClient {
+function createQueryClientWithData(): QueryClient {
   const client = createQueryClientMock();
   client.setQueryData([QueryKey.OrgTextResources, orgName, language], oldData);
   return client;
