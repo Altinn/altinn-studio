@@ -166,7 +166,7 @@ namespace LocalTest.Controllers
                         },
                     };
 
-                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic is not null).Id;
+                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic?.ClassRef is not null).Id;
 
                     using var reader = new StreamReader(prefill.OpenReadStream());
                     var content = await reader.ReadToEndAsync();
