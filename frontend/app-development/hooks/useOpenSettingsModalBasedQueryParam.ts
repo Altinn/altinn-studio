@@ -19,7 +19,6 @@ export function useOpenSettingsModalBasedQueryParam(): void {
     ) as SettingsModalTabId;
     const shouldOpenModal: boolean = isValidTab(tabToOpen, tabIds);
     if (shouldOpenModal) {
-      // navigate
       settingsRef.current.openSettings(tabToOpen);
     }
   }, [searchParams, settingsRef, tabIds]);
