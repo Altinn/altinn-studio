@@ -283,7 +283,6 @@ public class CustomOpenApiController : Controller
             {
                 Summary = "Operations for instances",
                 Description = "CRUD operations for instances",
-                Servers = [new OpenApiServer() { Url = $"/{appMetadata.Id}" }],
                 Operations =
                 {
                     [OperationType.Post] = new OpenApiOperation()

@@ -149,12 +149,7 @@
             "$ref": "#/components/responses/ProblemDetails"
           }
         }
-      },
-      "servers": [
-        {
-          "url": "/tdd/contributer-restriction"
-        }
-      ]
+      }
     },
     "/tdd/contributer-restriction/instances/{instanceOwnerPartyId}/{instanceGuid}": {
       "summary": "Operations for instance",
