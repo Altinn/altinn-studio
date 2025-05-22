@@ -1,21 +1,22 @@
+import React, { useState, useId } from 'react';
+import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
 import { PolicyRuleContextProvider } from '../../contexts/PolicyRuleContext';
 import type { PolicyError, PolicyRuleCard } from '../../types';
-import React, { useState, useId } from 'react';
 import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';
 import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccessPackages';
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { accessListSubjectSource, organizationSubject } from '../../utils';
 import {
+  StudioAlert,
   StudioCheckbox,
-  StudioErrorMessage,
+  StudioValidationMessage,
   StudioHeading,
   StudioFieldset,
-} from '@studio/components-legacy';
-import { StudioAlert } from '@studio/components';
+} from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
-import { useTranslation } from 'react-i18next';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
@@ -56,14 +57,15 @@ const AcceptConsentPolicyRule = ({
       setPolicyError={setPolicyError}
     >
       <div className={classes.consentRuleCard}>
-        <StudioFieldset
-          legend={
-            <StudioHeading size='xs' level={2}>
+        <StudioFieldset>
+          <StudioFieldset.Legend>
+            <StudioHeading data-size='xs' level={2}>
               {t('policy_editor.consent_resource_consent_header')}
             </StudioHeading>
-          }
-          description={t('policy_editor.consent_resource_consent_description')}
-        >
+          </StudioFieldset.Legend>
+          <StudioFieldset.Description>
+            {t('policy_editor.consent_resource_consent_description')}
+          </StudioFieldset.Description>
           <div>
             <PolicySubjects />
             <PolicyAccessPackages />
@@ -82,6 +84,22 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   const { t } = useTranslation();
   const { policyRules, subjects, setPolicyRules, savePolicy, showAllErrors } =
     usePolicyEditorContext();
+
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(policyRule.subject);
+
+  const onSubjectChange = (changedValue: string): void => {
+    setSelectedSubjects((prevSelectedSubjects) => {
+      if (prevSelectedSubjects.indexOf(changedValue) > -1) {
+        const newValue = prevSelectedSubjects.filter((subject) => subject !== changedValue);
+        handleSubjectChange(newValue);
+        return newValue;
+      } else {
+        const newValue = [...prevSelectedSubjects, changedValue];
+        handleSubjectChange(newValue);
+        return newValue;
+      }
+    });
+  };
 
   const handleSubjectChange = (newSubjects: string[]): void => {
     const updatedRules = getUpdatedRules(
@@ -103,43 +121,44 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
 
   return (
     <div className={classes.consentRuleCard}>
-      <StudioCheckbox.Group
-        legend={
-          <StudioHeading size='xs' level={2}>
+      <StudioFieldset>
+        <StudioFieldset.Legend>
+          <StudioHeading data-size='xs' level={2}>
             {t('policy_editor.consent_resource_request_consent_header')}
           </StudioHeading>
-        }
-        description={t('policy_editor.consent_resource_request_consent_description')}
-        onChange={handleSubjectChange}
-        value={policyRule.subject}
-        error={
-          hasRuleError && (
-            <StudioErrorMessage size='small'>
-              {t('policy_editor.consent_resource_request_consent_error')}
-            </StudioErrorMessage>
-          )
-        }
-      >
-        {accessListSubjects.length === 0 && (
-          <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
-        )}
-        {accessListSubjects.map((subject) => (
+        </StudioFieldset.Legend>
+        <StudioFieldset.Description>
+          {t('policy_editor.consent_resource_request_consent_description')}
+        </StudioFieldset.Description>
+        <div>
+          {accessListSubjects.length === 0 && (
+            <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
+          )}
+          {accessListSubjects.map((subject) => (
+            <StudioCheckbox
+              key={subject.subjectId}
+              value={subject.subjectId}
+              label={subject.subjectTitle}
+              description={subject.subjectDescription}
+              checked={selectedSubjects.indexOf(subject.subjectId) > -1}
+              onChange={() => onSubjectChange(subject.subjectId)}
+              className={classes.accessListItem}
+            />
+          ))}
           <StudioCheckbox
-            key={subject.subjectId}
-            value={subject.subjectId}
-            description={subject.subjectDescription}
-            className={classes.accessListItem}
-          >
-            {subject.subjectTitle}
-          </StudioCheckbox>
-        ))}
-        <StudioCheckbox
-          value={organizationSubject.subjectId}
-          className={classes.allOrganizationsItem}
-        >
-          {t('policy_editor.consent_resource_all_organizations')}
-        </StudioCheckbox>
-      </StudioCheckbox.Group>
+            value={organizationSubject.subjectId}
+            label={t('policy_editor.consent_resource_all_organizations')}
+            className={cn(classes.accessListItem, classes.allOrganizationsItem)}
+            checked={selectedSubjects.indexOf(organizationSubject.subjectId) > -1}
+            onChange={() => onSubjectChange(organizationSubject.subjectId)}
+          ></StudioCheckbox>
+          {hasRuleError && (
+            <StudioValidationMessage data-size='sm'>
+              {t('policy_editor.consent_resource_request_consent_error')}
+            </StudioValidationMessage>
+          )}
+        </div>
+      </StudioFieldset>
     </div>
   );
 };
