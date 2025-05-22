@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './VersionHelpText.module.css';
-import { HelpText, Paragraph } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
@@ -17,9 +18,8 @@ export const VersionHelpText = (): JSX.Element => {
   return (
     <div className={classes.helpTextWrapper}>
       <Paragraph size='medium'>{t('process_editor.too_old_version_title')}</Paragraph>
-      <HelpText
-        size='medium'
-        title={t('process_editor.too_old_version_helptext_title')}
+      <StudioHelpText
+        aria-label={t('process_editor.too_old_version_helptext_title')}
         placement='bottom'
       >
         <Paragraph spacing size='small' className={classes.helpTextContent}>
@@ -39,7 +39,7 @@ export const VersionHelpText = (): JSX.Element => {
             eller <Link href='/contact'>ta kontakt med oss</Link>.
           </Trans>
         </Paragraph> */}
-      </HelpText>
+      </StudioHelpText>
     </div>
   );
 };
