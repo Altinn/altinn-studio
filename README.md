@@ -149,7 +149,8 @@ To stop localtest
 ```
 
 #### Start your app
-_This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
+
+_This step requires that you have already [set up an app](https://docs.altinn.studio/nb/altinn-studio/guides/development/basic-form/) and [cloned the app](https://docs.altinn.studio/nb/altinn-studio/guides/development/local-dev/) to your local environment._
 
 Move into the `App` folder of your application.
 
