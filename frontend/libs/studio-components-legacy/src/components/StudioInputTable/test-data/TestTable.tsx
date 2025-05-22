@@ -67,7 +67,6 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
       <StudioInputTable.Cell.TextResource
         textResources={textResourcesMock}
         currentId='land.NO'
-        onBlurTextResource={() => {}}
         onChangeCurrentId={() => {}}
         onChangeTextResource={() => {}}
         onCreateTextResource={() => {}}

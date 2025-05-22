@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/designsystemet-react';
+import { ErrorMessage, Link, Paragraph } from '@digdir/designsystemet-react';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
@@ -11,6 +11,7 @@ import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { StudioHelpText } from '@studio/components';
 
 export const AccessControlTab = (): ReactNode => {
   const { t } = useTranslation();
@@ -51,13 +52,12 @@ export const AccessControlTab = (): ReactNode => {
     <TabContent>
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
-        <HelpText
-          size='small'
-          title={t('settings_modal.access_control_tab_help_text_title')}
+        <StudioHelpText
+          aria-label={t('settings_modal.access_control_tab_help_text_title')}
           className={classes.helpText}
         >
           {t('settings_modal.access_control_tab_help_text_heading')}
-        </HelpText>
+        </StudioHelpText>
       </div>
       {displayContent()}
       <span className={classes.docsLinkText}>
