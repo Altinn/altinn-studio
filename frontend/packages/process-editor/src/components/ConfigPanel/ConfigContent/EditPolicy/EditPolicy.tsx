@@ -5,10 +5,21 @@ import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';
 import classes from './EditPolicy.module.css';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const { openPolicyEditor } = useBpmnApiContext();
+
+  const isNewFeature: boolean = shouldDisplayFeature(FeatureFlag.SettingsPage);
+  const packagesRouter = new PackagesRouter({ org, app });
+  const settingsPageHref: string = packagesRouter.getPackageNavigationUrl(
+    'appSettings',
+    '?currentTab=policy',
+  );
 
   return (
     <div className={classes.configContent}>
@@ -19,7 +30,10 @@ export const EditPolicy = () => {
         title={t('process_editor.configuration_panel.edit_policy_open_policy_editor_heading')}
       >
         <StudioButton
-          onClick={openPolicyEditor}
+          as={isNewFeature ? 'a' : undefined}
+          onClick={!isNewFeature ? openPolicyEditor : undefined}
+          href={isNewFeature ? settingsPageHref : undefined}
+          className={isNewFeature ? classes.link : undefined}
           variant='primary'
           color='second'
           icon={<ShieldLockIcon />}

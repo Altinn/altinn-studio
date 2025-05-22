@@ -8,6 +8,8 @@ import {
   BpmnApiContextProvider,
 } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('EditPolicy', () => {
   it('should render', () => {
@@ -35,6 +37,21 @@ describe('EditPolicy', () => {
     expect(
       screen.getByText(textMock('process_editor.configuration_panel.edit_policy_alert_message')),
     ).toBeInTheDocument();
+  });
+
+  it('adds the correct href to the button', () => {
+    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
+
+    renderEditPolicy(<EditPolicy />);
+    const button = screen.getByRole('link', {
+      name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    });
+    expect(button).toHaveAttribute(
+      'href',
+      '/editor/testOrg/testApp/app-settings?currentTab=policy',
+    );
+
+    typedLocalStorage.removeItem('featureFlags');
   });
 });
 
