@@ -737,7 +737,7 @@
   "policy_editor.card_button_text": "Legg til ekstra regelsett",
   "policy_editor.consent_resource_all_organizations": "Alle virksomheter og organisasjoner skal kunne be om samtykke",
   "policy_editor.consent_resource_consent_header": "Hvem skal kunne godkjenne samtykke?",
-  "policy_editor.consent_resource_no_access_lists": "Ingen tilgangslister tilgjengelig, eller du har ikke tilgang til å se tilgangslister",
+  "policy_editor.consent_resource_no_access_lists": "Ingen tilgjengelige tilgangslister, eller du har ikke tilgang til å se tilgangslister",
   "policy_editor.consent_resource_request_consent_error": "Du må velge hvem som kan be om samtykke",
   "policy_editor.consent_resource_request_consent_header": "Hvem skal kunne be om samtykke?",
   "policy_editor.expandable_card_close_icon": "Lukk kortet",
