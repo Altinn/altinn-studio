@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { typedLocalStorage, UrlUtils } from '@studio/pure-functions';
 import type { RoutePaths } from 'app-development/enums/RoutePaths';
-import { LocalStorageKey } from 'app-development/enums/LocalStorageKey';
+import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 type LocationState = {
   from?: RoutePaths;

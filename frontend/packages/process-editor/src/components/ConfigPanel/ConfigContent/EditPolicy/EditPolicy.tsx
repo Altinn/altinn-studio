@@ -10,7 +10,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { LocalStorageKey } from 'app-development/enums/LocalStorageKey';
+import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();

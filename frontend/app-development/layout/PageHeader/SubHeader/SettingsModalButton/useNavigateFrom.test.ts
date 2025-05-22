@@ -3,7 +3,7 @@ import { useNavigateFrom } from './useNavigateFrom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useLocation } from 'react-router-dom';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { LocalStorageKey } from 'app-development/enums/LocalStorageKey';
+import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
