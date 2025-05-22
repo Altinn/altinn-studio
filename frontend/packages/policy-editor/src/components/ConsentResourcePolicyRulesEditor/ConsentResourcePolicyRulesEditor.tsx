@@ -5,7 +5,7 @@ import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';
 import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccessPackages';
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
-import { organizationSubject } from '../../utils';
+import { accessListSubjectSource, organizationSubject } from '../../utils';
 import {
   StudioCheckbox,
   StudioErrorMessage,
@@ -83,7 +83,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   const { policyRules, subjects, setPolicyRules, savePolicy, showAllErrors } =
     usePolicyEditorContext();
 
-  const handleAccessListsChange = (newSubjects: string[]): void => {
+  const handleSubjectChange = (newSubjects: string[]): void => {
     const updatedRules = getUpdatedRules(
       {
         ...policyRule,
@@ -97,8 +97,9 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   };
 
   const accessListSubjects = subjects.filter((subject) =>
-    subject.subjectSource.startsWith('altinn:accesslist'),
+    subject.subjectSource.startsWith(accessListSubjectSource),
   );
+  const hasRuleError = showAllErrors && policyRule.subject.length === 0;
 
   return (
     <div className={classes.consentRuleCard}>
@@ -109,11 +110,10 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
           </StudioHeading>
         }
         description={t('policy_editor.consent_resource_request_consent_description')}
-        onChange={handleAccessListsChange}
+        onChange={handleSubjectChange}
         value={policyRule.subject}
         error={
-          showAllErrors &&
-          policyRule.subject.length === 0 && (
+          hasRuleError && (
             <StudioErrorMessage size='small'>
               {t('policy_editor.consent_resource_request_consent_error')}
             </StudioErrorMessage>

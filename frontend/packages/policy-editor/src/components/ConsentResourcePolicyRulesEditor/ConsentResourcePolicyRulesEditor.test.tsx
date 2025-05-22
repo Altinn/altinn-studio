@@ -8,7 +8,7 @@ import {
   type PolicyEditorContextProps,
 } from '../../contexts/PolicyEditorContext';
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
-import { emptyPolicyRule, organizationSubject } from '../../utils';
+import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '../../utils';
 
 const resourceId = 'consent-resource';
 const requestConsentRule = {
@@ -28,7 +28,7 @@ const acceptConsentRule = {
 
 const accessListSubject = {
   subjectId: 'test-liste',
-  subjectSource: 'altinn:accesslist:ttd',
+  subjectSource: `${accessListSubjectSource}:ttd`,
   subjectTitle: 'Testliste',
   subjectDescription: 'Dette er en testliste',
 };

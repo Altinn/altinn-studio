@@ -29,6 +29,7 @@ export const organizationSubject: PolicySubject = {
   subjectTitle: '',
   subjectDescription: '',
 };
+export const accessListSubjectSource = 'altinn:accesslist';
 
 export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
   const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
