@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ResourceContactPoint, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { HelpText } from '@digdir/designsystemet-react';
 import { StudioFieldset, StudioTextfield } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
@@ -85,12 +85,11 @@ export const ResourceContactPointFieldset = ({
           label={
             <div className={classes.categoryHeader}>
               {t('resourceadm.about_resource_contact_label_category')}
-              <HelpText
-                size='sm'
-                title={`${t('resourceadm.about_resource_contact_label_category_help_prefix')} ${t('resourceadm.about_resource_contact_label_category_help_text')}`}
+              <StudioHelpText
+                aria-label={`${t('resourceadm.about_resource_contact_label_category_help_prefix')} ${t('resourceadm.about_resource_contact_label_category_help_text')}`}
               >
                 {t('resourceadm.about_resource_contact_label_category_help_text')}
-              </HelpText>
+              </StudioHelpText>
             </div>
           }
           value={category}
