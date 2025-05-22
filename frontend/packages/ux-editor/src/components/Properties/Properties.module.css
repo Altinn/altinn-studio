@@ -3,13 +3,3 @@
   flex: var(--properties-width-fraction);
   overflow-x: auto;
 }
-
-.dataModelBindings {
-  padding: var(--fds-spacing-5) 0;
-}
-
-.texts {
-  background-color: var(--fds-semantic-surface-neutral-default);
-  padding-block: var(--fds-spacing-5) 0;
-  padding-inline: 0;
-}

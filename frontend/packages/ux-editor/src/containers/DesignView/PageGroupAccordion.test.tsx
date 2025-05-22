@@ -12,17 +12,19 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { AppContextProps } from '../../AppContext';
+import { ItemType } from '../../components/Properties/ItemType';
 
 const pagesMock: PagesModel = {
   pages: null,
   groups: [
     {
       name: 'Group 1',
-      order: [{ id: 'Side 1' }],
+      order: [{ id: 'Side 1' }, { id: 'Side 2' }],
     },
     {
       name: 'Group 2',
-      order: [{ id: 'Side 2' }],
+      order: [{ id: 'Side 3' }],
     },
   ],
 };
@@ -33,6 +35,10 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageGroupAccordion', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should disable move-up for first group, and move-down for last group', async () => {
     await renderPageGroupAccordion({});
     expect(moveGroupUpButton(0)).toBeDisabled();
@@ -61,52 +67,53 @@ describe('PageGroupAccordion', () => {
     expect(changePageGroups).toHaveBeenCalledWith(org, app, layoutSetName, expectedPagesMock);
   });
 
-  it('should display the page ID as displayName when group has exactly one page', async () => {
-    const singlePageGroupMock: PagesModel = {
-      pages: null,
-      groups: [
-        {
-          name: 'Group 1',
-          order: [{ id: 'Side 1' }],
-        },
-      ],
-    };
-    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
+  it('should display group name when group name is provided', async () => {
+    await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
-    const heading = within(groupHeader).getByRole('heading', { level: 3 });
-    expect(heading).toHaveTextContent('Side 1');
-  });
-
-  it('should display group name when group has multiple pages', async () => {
-    const multiPageGroupMock: PagesModel = {
-      pages: null,
-      groups: [
-        {
-          name: 'Group 1',
-          order: [{ id: 'Side 1' }, { id: 'Side 2' }],
-        },
-      ],
-    };
-    await renderPageGroupAccordion({ props: { pages: multiPageGroupMock } });
-    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toBeInTheDocument();
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent('Group 1');
   });
 
-  it('should display page ID as displayName when group has one page', async () => {
-    const singlePageGroupWithEmptyNameMock: PagesModel = {
+  it('should display page ID as fallback when group name is empty', async () => {
+    const emptyGroupPagesMock: PagesModel = {
       pages: null,
       groups: [
         {
           name: '',
-          order: [{ id: 'Side 1' }],
+          order: [{ id: 'Side1' }],
         },
       ],
     };
-    await renderPageGroupAccordion({ props: { pages: singlePageGroupWithEmptyNameMock } });
+    await renderPageGroupAccordion({ props: { pages: emptyGroupPagesMock } });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toBeInTheDocument();
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side1');
+  });
+
+  it('should mark group as selected when selectedGroupName matches group name', async () => {
+    await renderPageGroupAccordion({
+      appContextProps: { selectedItem: { type: ItemType.Group, id: 'Group 1' } },
+    });
+    const groupHeader = groupAccordionHeader(0);
+    expect(groupHeader).toHaveClass('selected');
+    const heading = within(groupAccordionHeader(0)).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Group 1');
+  });
+
+  it('should display page ID when group has single page', async () => {
+    await renderPageGroupAccordion({});
+    const groupHeader = groupAccordionHeader(1);
+    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    expect(heading).toHaveTextContent('Side 3');
+  });
+
+  it('should display group name when group has multiple pages', async () => {
+    await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
-    expect(heading).toHaveTextContent('Side 1');
+    expect(heading).toHaveTextContent('Group 1');
   });
 });
 
@@ -123,9 +130,10 @@ const moveGroupDownButton = (nth: number) =>
 type renderParameters = {
   props?: Partial<PageGroupAccordionProps>;
   queries?: Partial<ServicesContextProps>;
+  appContextProps?: Partial<AppContextProps>;
 };
 
-const renderPageGroupAccordion = async ({ props, queries }: renderParameters) => {
+const renderPageGroupAccordion = async ({ props, queries, appContextProps }: renderParameters) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesMock);
   renderWithProviders(
@@ -138,6 +146,6 @@ const renderPageGroupAccordion = async ({ props, queries }: renderParameters) =>
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,
-    { queryClient, queries },
+    { queryClient, queries, appContextProps },
   );
 };

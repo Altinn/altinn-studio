@@ -19,6 +19,7 @@ import { AddItemModal } from './AddItemModal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useTranslation } from 'react-i18next';
+import { ItemType } from '../../../components/Properties/ItemType';
 
 export type AddItemProps = {
   containerId: string;
@@ -32,7 +33,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
   const { handleEdit } = useFormItemContext();
 
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { setSelectedItem, selectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation(['translation', 'addComponentModal']);
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
@@ -58,6 +59,10 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
       },
     );
     handleEdit(getItem(updatedLayout, newId));
+    setSelectedItem({
+      type: ItemType.Component,
+      id: newId,
+    });
   };
 
   const onAddComponent = (addedItem: AddedItem) => {

@@ -31,12 +31,17 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { ItemType } from '../components/Properties/ItemType';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user } = useUserQuery();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
+  const {
+    selectedFormLayoutSetName,
+    selectedFormLayoutName,
+    updateLayoutsForPreview,
+    setSelectedItem,
+  } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -119,6 +124,7 @@ export const FormDesigner = (): JSX.Element => {
         },
       );
       handleEdit(getItem(updatedLayout, newId));
+      setSelectedItem({ type: ItemType.Component, id: newId });
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const type = getItem(layout, id).type;
