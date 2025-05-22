@@ -25,7 +25,7 @@ function getNavigateFrom(locationState: LocationState): RoutePaths | undefined {
     LocalStorageKey.PreviousRouteBeforeSettings,
   );
 
-  if (locationState && locationState.from) {
+  if (locationState?.from) {
     return locationState.from;
   }
   if (previousRouteBeforeSettings) {
