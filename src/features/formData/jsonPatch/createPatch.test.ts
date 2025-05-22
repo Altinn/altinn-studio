@@ -235,7 +235,7 @@ describe('createPatch', () => {
       next: { a: [1] },
       expectedPatch: [
         { op: 'test', path: '/a', value: [1, 2, 3] },
-        { op: 'remove', path: '/a/2' },
+        { op: 'remove', path: '/a/1' },
         { op: 'remove', path: '/a/1' },
       ],
     });
@@ -295,8 +295,8 @@ describe('createPatch', () => {
       next: { a: [0, 1, 5, 6] },
       expectedPatch: [
         { op: 'test', path: '/a', value: [0, 1, 2, 3, 4, 5, 6] },
-        { op: 'remove', path: '/a/4' },
-        { op: 'remove', path: '/a/3' },
+        { op: 'remove', path: '/a/2' },
+        { op: 'remove', path: '/a/2' },
         { op: 'remove', path: '/a/2' },
       ],
     });
@@ -676,6 +676,62 @@ describe('createPatch', () => {
         ],
       },
       expectedPatch: [{ op: 'add', path: '/group/-', value: { [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' } }],
+    });
+  });
+
+  describe('deleting multiple rows should keep track of the correct indexes', () => {
+    const prevGroup = [
+      { [ALTINN_ROW_ID]: 'abc123', name: 'Per' },
+      { [ALTINN_ROW_ID]: 'abc234', name: 'Kari' },
+      { [ALTINN_ROW_ID]: 'abc345', name: 'Petter' },
+      { [ALTINN_ROW_ID]: 'abc456', name: 'Lisa' },
+      { [ALTINN_ROW_ID]: 'abc567', name: 'Erlend' },
+    ];
+    testPatch({
+      prev: {
+        group: prevGroup,
+      },
+      next: {
+        group: [
+          { [ALTINN_ROW_ID]: 'abc234', name: 'Kari' },
+          { [ALTINN_ROW_ID]: 'abc456', name: 'Lisa' },
+        ],
+      },
+      expectedPatch: [
+        { op: 'test', path: '/group', value: prevGroup },
+        { op: 'remove', path: '/group/4' }, // Index removal should always appear in the reverse order
+        { op: 'remove', path: '/group/2' },
+        { op: 'remove', path: '/group/0' },
+      ],
+    });
+  });
+
+  describe('deleting multiple rows and then adding a new row', () => {
+    const prevGroup = [
+      { [ALTINN_ROW_ID]: 'abc123', name: 'Per' },
+      { [ALTINN_ROW_ID]: 'abc234', name: 'Kari' },
+      { [ALTINN_ROW_ID]: 'abc345', name: 'Petter' },
+      { [ALTINN_ROW_ID]: 'abc456', name: 'Lisa' },
+      { [ALTINN_ROW_ID]: 'abc567', name: 'Erlend' },
+    ];
+    testPatch({
+      prev: {
+        group: prevGroup,
+      },
+      next: {
+        group: [
+          { [ALTINN_ROW_ID]: 'abc234', name: 'Kari' },
+          { [ALTINN_ROW_ID]: 'abc456', name: 'Lisa' },
+          { [ALTINN_ROW_ID]: 'abc678', name: 'Reidar' },
+        ],
+      },
+      expectedPatch: [
+        { op: 'test', path: '/group', value: prevGroup },
+        { op: 'remove', path: '/group/4' }, // Index removal should always appear in the reverse order
+        { op: 'remove', path: '/group/2' },
+        { op: 'remove', path: '/group/0' },
+        { op: 'add', path: '/group/-', value: { [ALTINN_ROW_ID]: 'abc678', name: 'Reidar' } },
+      ],
     });
   });
 

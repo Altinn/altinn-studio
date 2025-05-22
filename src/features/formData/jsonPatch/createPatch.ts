@@ -100,7 +100,17 @@ function isSameRow(left: unknown, right: unknown): boolean {
  * even if it looks like it at a glance.
  */
 function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<unknown[]>) {
-  const diff = getPatch(prev, next, isSameRow);
+  const diff = getPatch(prev, next, isSameRow).sort((a, b) => {
+    // Always sort 'add' operations last, and then order 'remove' to keep 'oldPos' descending
+    if (a.type === 'add') {
+      return 1;
+    }
+    if (b.type === 'add') {
+      return -1;
+    }
+    return b.oldPos - a.oldPos;
+  });
+
   const allValues = [...next, ...prev, ...(current || [])];
   const allValuesAreStrings = allValues.length > 0 && allValues.every((item) => typeof item === 'string');
   if (allValuesAreStrings) {
@@ -149,9 +159,9 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   const localPatch: JsonPatch = [];
   const arrayAfterChanges = [...prev];
   for (const part of diff) {
-    const { type, newPos: nextPos, oldPos: prevPos, items } = part;
+    const { type, newPos, oldPos, items } = part;
     if (type === 'add') {
-      let nextIndex = nextPos;
+      let nextIndex = newPos;
       for (const item of items) {
         const isAppend = nextIndex === arrayAfterChanges.length;
         localPatch.push({ op: 'add', path: pointer([...path, isAppend ? '-' : String(nextIndex)]), value: item });
@@ -165,11 +175,9 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
     } else if (type === 'remove') {
       // We'll count down instead of up so that we can remove the items from the end first, and then we won't have to
       // worry about the indices changing.
-      let addToIndex = items.length - 1;
       for (const _item of items) {
-        const oldIdx = prevPos + addToIndex--;
-        localPatch.push({ op: 'remove', path: pointer([...path, String(oldIdx)]) });
-        arrayAfterChanges.splice(oldIdx, 1);
+        localPatch.push({ op: 'remove', path: pointer([...path, String(oldPos)]) });
+        arrayAfterChanges.splice(oldPos, 1);
       }
     }
   }

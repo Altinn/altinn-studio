@@ -94,22 +94,20 @@ describe('Checkboxes component', () => {
 
     //Check options in checkboxes component
     cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText3).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText3).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').should('be.checked');
 
     //Uncheck
-    cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').should('be.checked');
-    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').click();
-    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').click();
-
-    //Check that checkboxes is correct
-    cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').should('be.checked');
-    cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').should('be.checked');
-    cy.get(checkboxes).contains('label', checkboxText3).prev('input[type="checkbox"]').should('be.checked');
     cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').should('not.be.checked');
+    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').click();
     cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').should('not.be.checked');
 
     //Validate that the corresponding options in checkboxes is available in RepeatingGroup
@@ -127,7 +125,7 @@ describe('Checkboxes component', () => {
 
     // Unchecking from Checkboxes should remove from RepeatingGroup (observe that data is preserved)
     cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').should('be.checked');
-    cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 2 row
+    cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 2 rows
     cy.get(repGroup)
       .findAllByRole('button', { name: /^Rediger/ })
       .first()
