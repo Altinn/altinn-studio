@@ -3,11 +3,13 @@ using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,7 @@ public sealed class SigningServiceTests : IDisposable
     private readonly SigningService _signingService;
 
     private readonly Mock<IAltinnPartyClient> _altinnPartyClient = new(MockBehavior.Strict);
+    private readonly Mock<IAltinnCdnClient> _altinnCdnClient = new(MockBehavior.Strict);
     private readonly Mock<ISigningDelegationService> _signingDelegationService = new(MockBehavior.Strict);
     private readonly Mock<ISigneeProvider> _signeeProvider = new(MockBehavior.Strict);
     private readonly Mock<ILogger<SigningService>> _logger = new();
@@ -50,6 +53,7 @@ public sealed class SigningServiceTests : IDisposable
         _signingService = new SigningService(
             _hostEnvironment.Object,
             _altinnPartyClient.Object,
+            _altinnCdnClient.Object,
             _signingDelegationService.Object,
             _appMetadata.Object,
             _signingCallToActionService.Object,
@@ -657,6 +661,59 @@ public sealed class SigningServiceTests : IDisposable
 
         // Assert
         _altinnPartyClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetServiceOwnerParty_OrgTtd_ReturnsDigdir()
+    {
+        // Arrange
+        var orgs = new Dictionary<string, AltinnCdnOrgDetails>
+        {
+            {
+                "ttd",
+                new AltinnCdnOrgDetails
+                {
+                    Name = new AltinnCdnOrgName
+                    {
+                        Nb = "Digitaliseringsdirektoratet",
+                        Nn = "Digitaliseringsdirektoratet",
+                        En = "Norwegian Digitalisation Agency",
+                    },
+                    Logo = "https://altinncdn.no/orgs/digdir/digdir.png",
+                    Orgnr = "991825827",
+                    Homepage = "https://www.digdir.no/",
+                    Environments = ["tt02", "production"],
+                }
+            },
+        };
+
+        var altinnCdnOrgs = new AltinnCdnOrgs { Orgs = orgs };
+
+        _altinnCdnClient.Setup(x => x.GetOrgs(It.IsAny<CancellationToken>())).Returns(Task.FromResult(altinnCdnOrgs));
+
+        _appMetadata
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
+
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827")))
+            .ReturnsAsync(
+                new Party
+                {
+                    Name = "Digitaliseringsdirektoratet",
+                    OrgNumber = "991825827",
+                    PartyTypeName = PartyType.Organisation,
+                }
+            );
+
+        // Act
+        (var result, bool success) = await _signingService.GetServiceOwnerParty(CancellationToken.None);
+
+        // Assert
+        Assert.True(success);
+        Assert.NotNull(result);
+        Assert.Equal("Digitaliseringsdirektoratet", result.Name);
+        Assert.Equal("991825827", result.OrgNumber);
     }
 
     [Fact]

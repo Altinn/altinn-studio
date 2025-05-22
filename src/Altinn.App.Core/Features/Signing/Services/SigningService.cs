@@ -22,6 +22,7 @@ namespace Altinn.App.Core.Features.Signing.Services;
 internal sealed class SigningService(
     IHostEnvironment hostEnvironment,
     IAltinnPartyClient altinnPartyClient,
+    IAltinnCdnClient altinnCdnClient,
     ISigningDelegationService signingDelegationService,
     IAppMetadata appMetadata,
     ISigningCallToActionService signingCallToActionService,
@@ -46,6 +47,7 @@ internal sealed class SigningService(
     private readonly ISigneeContextsManager _signeeContextsManager = signeeContextsManager;
     private readonly ISignDocumentManager _signDocumentManager = signDocumentManager;
     private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
+    private readonly IAltinnCdnClient _altinnCdnClient = altinnCdnClient;
     private readonly IAppMetadata _appMetadata = appMetadata;
     private readonly ISigningCallToActionService _signingCallToActionService = signingCallToActionService;
     private const string ApplicationJsonContentType = "application/json";
@@ -118,18 +120,21 @@ internal sealed class SigningService(
                     );
                     signeeContext.SigneeState.CtaCorrespondenceId = response?.Correspondences.Single().CorrespondenceId;
                     signeeContext.SigneeState.HasBeenMessagedForCallToSign = true;
+                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Success);
                 }
                 catch (ConfigurationException e)
                 {
                     _logger.LogError(e, "Correspondence configuration error: {Exception}", e.Message);
                     signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
                     signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
+                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Correspondence send failed: {Exception}", e.Message);
                     signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
                     signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
+                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
                 }
             }
         }
@@ -279,33 +284,24 @@ internal sealed class SigningService(
         }
     }
 
-    private async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(CancellationToken ct)
+    internal async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(CancellationToken ct)
     {
         using var activity = telemetry?.StartGetServiceOwnerPartyActivity();
         Party serviceOwnerParty;
         try
         {
             ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-
-            using var altinnCdnClient = new AltinnCdnClient();
-
-            AltinnCdnOrgs altinnCdnOrgs = await altinnCdnClient.GetOrgs(ct);
-
+            AltinnCdnOrgs altinnCdnOrgs = await _altinnCdnClient.GetOrgs(ct);
             AltinnCdnOrgDetails? serviceOwnerDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(applicationMetadata.Org);
+            PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
+            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup);
 
-            if (serviceOwnerDetails?.Orgnr == "ttd")
-            {
-                // TestDepartementet is often used in test environments, it does not have an organization number, so we use Digitaliseringsdirektoratet's orgnr instead.
-                serviceOwnerDetails.Orgnr = "991825827";
-            }
-
-            serviceOwnerParty = await altinnPartyClient.LookupParty(
-                new PartyLookup { OrgNo = serviceOwnerDetails?.Orgnr }
-            );
+            telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Success);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to look up party for service owner.");
+            telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Error);
             return (new Party(), false);
         }
 

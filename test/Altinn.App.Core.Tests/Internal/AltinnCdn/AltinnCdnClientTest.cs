@@ -99,7 +99,8 @@ public class AltinnCdnClientTest
             )
             .ReturnsAsync(responseMessage);
 
-        var client = new AltinnCdnClient(httpMessageHandlerMock.Object);
+        var httpClient = new HttpClient(httpMessageHandlerMock.Object);
+        var client = new AltinnCdnClient(httpClient);
 
         // Act
         var result = await client.GetOrgs();
@@ -124,7 +125,8 @@ public class AltinnCdnClientTest
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("null") });
 
-        var client = new AltinnCdnClient(httpMessageHandlerMock.Object);
+        var httpClient = new HttpClient(httpMessageHandlerMock.Object);
+        var client = new AltinnCdnClient(httpClient);
 
         // Act
         var act = new Func<Task>(() => client.GetOrgs());
@@ -151,7 +153,8 @@ public class AltinnCdnClientTest
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
-        var altinnCdnClient = new AltinnCdnClient(httpMessageHandlerMock.Object);
+        var httpClient = new HttpClient(httpMessageHandlerMock.Object);
+        var altinnCdnClient = new AltinnCdnClient(httpClient);
 
         // Act
         var act = new Func<Task>(() => altinnCdnClient.GetOrgs(cancellationTokenSource.Token));

@@ -30,6 +30,7 @@ using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.AccessManagement;
+using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -105,6 +106,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
+        services.AddAltinnCdnClient();
         services.AddRegisterClient();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.AddHttpClient<IText, TextClient>();

@@ -1,26 +1,29 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.AltinnCdn;
+
+internal static class AltinnCdnClientDI
+{
+    internal static void AddAltinnCdnClient(this IServiceCollection services) =>
+        services.AddHttpClient<IAltinnCdnClient, AltinnCdnClient>();
+}
 
 internal sealed class AltinnCdnClient : IAltinnCdnClient
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly HttpMessageHandler? _httpMessageHandler;
-    private readonly bool _disposeHandler;
+    private readonly HttpClient _httpClient;
 
-    public AltinnCdnClient(HttpMessageHandler? httpMessageHandler = null, bool disposeHandler = false)
+    public AltinnCdnClient(HttpClient httpClient)
     {
-        _httpMessageHandler = httpMessageHandler;
-        _disposeHandler = disposeHandler;
+        _httpClient = httpClient;
     }
 
     public async Task<AltinnCdnOrgs> GetOrgs(CancellationToken cancellationToken = default)
     {
-        using var client = CreateHttpClient();
-
         AltinnCdnOrgs orgs =
-            await client.GetFromJsonAsync<AltinnCdnOrgs>(
+            await _httpClient.GetFromJsonAsync<AltinnCdnOrgs>(
                 requestUri: "https://altinncdn.no/orgs/altinn-orgs.json",
                 options: _jsonOptions,
                 cancellationToken: cancellationToken
@@ -40,18 +43,8 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
         return orgs;
     }
 
-    private HttpClient CreateHttpClient()
-    {
-        return _httpMessageHandler is not null
-            ? new HttpClient(_httpMessageHandler, disposeHandler: false)
-            : new HttpClient();
-    }
-
     public void Dispose()
     {
-        if (_disposeHandler)
-        {
-            _httpMessageHandler?.Dispose();
-        }
+        // We don't dispose the HttpClient here as it's managed by the HttpClientFactory
     }
 }
