@@ -6,7 +6,12 @@ import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccess
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { organizationSubject } from '../../utils';
-import { StudioCheckbox, StudioErrorMessage, StudioHeading } from '@studio/components-legacy';
+import {
+  StudioCheckbox,
+  StudioErrorMessage,
+  StudioHeading,
+  StudioFieldset,
+} from '@studio/components-legacy';
 import { StudioAlert } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
@@ -51,12 +56,20 @@ const AcceptConsentPolicyRule = ({
       setPolicyError={setPolicyError}
     >
       <div className={classes.consentRuleCard}>
-        <StudioHeading size='xs' level={2}>
-          {t('policy_editor.consent_resource_consent_header')}
-        </StudioHeading>
-        <PolicySubjects />
-        <PolicyAccessPackages />
-        {showErrors && <PolicyRuleErrorMessage />}
+        <StudioFieldset
+          legend={
+            <StudioHeading size='xs' level={2}>
+              {t('policy_editor.consent_resource_consent_header')}
+            </StudioHeading>
+          }
+          description={t('policy_editor.consent_resource_consent_description')}
+        >
+          <div>
+            <PolicySubjects />
+            <PolicyAccessPackages />
+            {showErrors && <PolicyRuleErrorMessage />}
+          </div>
+        </StudioFieldset>
       </div>
     </PolicyRuleContextProvider>
   );
@@ -95,6 +108,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
             {t('policy_editor.consent_resource_request_consent_header')}
           </StudioHeading>
         }
+        description={t('policy_editor.consent_resource_request_consent_description')}
         onChange={handleAccessListsChange}
         value={policyRule.subject}
         error={

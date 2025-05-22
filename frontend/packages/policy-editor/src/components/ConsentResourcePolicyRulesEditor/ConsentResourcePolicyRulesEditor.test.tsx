@@ -70,10 +70,10 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     const onSaveFn = jest.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
-    const allOrganizationsRadio = screen.getByRole('checkbox', {
+    const allOrganizationsCheckbox = screen.getByRole('checkbox', {
       name: textMock('policy_editor.consent_resource_all_organizations'),
     });
-    await user.click(allOrganizationsRadio);
+    await user.click(allOrganizationsCheckbox);
 
     expect(onSaveFn).toHaveBeenCalledWith([
       { ...requestConsentRule, subject: ['organization'] },
