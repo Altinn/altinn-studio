@@ -8,6 +8,9 @@ import classes from './EditPolicy.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { typedLocalStorage } from '@studio/pure-functions';
+import { LocalStorageKey } from 'app-development/enums/LocalStorageKey';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();
@@ -21,6 +24,17 @@ export const EditPolicy = () => {
     '?currentTab=policy',
   );
 
+  const handleClick = () => {
+    if (isNewFeature) {
+      typedLocalStorage.setItem<RoutePaths>(
+        LocalStorageKey.PreviousRouteBeforeSettings,
+        RoutePaths.ProcessEditor,
+      );
+    } else {
+      openPolicyEditor();
+    }
+  };
+
   return (
     <div className={classes.configContent}>
       <Alert severity='info' className={classes.alert}>
@@ -31,7 +45,7 @@ export const EditPolicy = () => {
       >
         <StudioButton
           as={isNewFeature ? 'a' : undefined}
-          onClick={!isNewFeature ? openPolicyEditor : undefined}
+          onClick={handleClick}
           href={isNewFeature ? settingsPageHref : undefined}
           className={isNewFeature ? classes.link : undefined}
           variant='primary'
