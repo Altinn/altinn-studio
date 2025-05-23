@@ -131,6 +131,6 @@ namespace Designer.Tests.Controllers.TextController
             $"{VersionPrefix(orgName, repositoryName)}/language/{language}";
 
         private static StringContent CreateStringContent(Dictionary<string, string> updateDictionary) =>
-            new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
+            new(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
     }
 }
