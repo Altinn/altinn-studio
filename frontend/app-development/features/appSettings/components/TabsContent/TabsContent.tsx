@@ -5,6 +5,7 @@ import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggl
 import { PolicyTab } from './Tabs/PolicyTab';
 import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
+import { MaskinportenTab } from './Tabs/MaskinportenTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
 
 export type TabsContentProps = {
@@ -26,7 +27,7 @@ export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
       return <AccessControlTab />;
     }
     case 'maskinporten': {
-      return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <div>Maskinporten tab</div> : null;
+      return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <MaskinportenTab /> : null;
     }
   }
 }
