@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="keysTexts"></param>
         /// <param name="languageCode"></param>
         /// <returns></returns>
-        public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
+        public Task<TextResource> UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
 
         /// <summary>
         /// Updates references to text keys in layout files.
