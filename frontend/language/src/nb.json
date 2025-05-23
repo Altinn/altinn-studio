@@ -196,7 +196,7 @@
   "app_settings.loading_content": "Laster inn data",
   "app_settings.maskinporten_no_scopes_available_description": "Før du kan velge scopes her i Studio, må du sjekke at du har tilgang til Maskinporten.",
   "app_settings.maskinporten_no_scopes_available_link": "Ta kontakt med Altinn servicedesk for å få hjelp til å sette opp scopes.",
-  "app_settings.maskinporten_no_scopes_available_title": "Det finnes ingen scopes for for din bruker",
+  "app_settings.maskinporten_no_scopes_available_title": "Det finnes ingen scopes for din bruker",
   "app_settings.maskinporten_select_all_scopes": "Velg alle scopes",
   "app_settings.maskinporten_select_all_scopes_description": "Beskrivelse av scope",
   "app_settings.maskinporten_tab_available_scopes_description": "Listen viser alle scopes som virksomheten kan legge til. Du kan velge blant de som er tilgjengelige for din bruker. Når du velger et scope, blir det lagt til i appen din.",

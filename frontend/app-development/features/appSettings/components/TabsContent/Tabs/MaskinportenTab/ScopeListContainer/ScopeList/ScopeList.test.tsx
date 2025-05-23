@@ -84,16 +84,16 @@ describe('ScopeList', () => {
     const combinedScopes: MaskinportenScope[] = [...maskinportenScopesMock, ...selectedScopesMock];
     combinedScopes.forEach((scope: MaskinportenScope) => {
       expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument;
+      expect(getCell(scope.description)).toBeInTheDocument();
     });
     maskinportenScopesMock.forEach((scope: MaskinportenScope) => {
       expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument;
+      expect(getCell(scope.description)).toBeInTheDocument();
       expect(getCheckbox(scope.scope)).not.toBeChecked();
     });
     selectedScopesMock.forEach((scope: MaskinportenScope) => {
       expect(getCheckbox(scope.scope)).toBeInTheDocument();
-      expect(getCell(scope.description)).toBeInTheDocument;
+      expect(getCell(scope.description)).toBeInTheDocument();
       expect(getCheckbox(scope.scope)).toBeChecked();
     });
   });
