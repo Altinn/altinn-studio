@@ -36,6 +36,11 @@ public abstract class Authenticated
     public Scopes Scopes { get; }
 
     /// <summary>
+    /// The client ID from the token (from the client in ID-porten and Maskinporten)
+    /// </summary>
+    public string? ClientId { get; }
+
+    /// <summary>
     /// The JWT token
     /// </summary>
     public string Token { get; }
@@ -45,6 +50,7 @@ public abstract class Authenticated
         TokenIssuer = context.TokenIssuer;
         TokenIsExchanged = context.IsExchanged;
         Scopes = context.Scopes;
+        ClientId = context.ClientIdClaim.IsValidString(out var clientId) ? clientId : null;
         Token = context.TokenStr;
     }
 
@@ -669,6 +675,7 @@ public abstract class Authenticated
         public TokenClaim UserIdClaim = default;
         public TokenClaim UsernameClaim = default;
         public TokenClaim ConsumerClaim = default;
+        public TokenClaim ClientIdClaim = default;
         public OrgClaim? ConsumerClaimValue = default;
         public bool IsInAltinnPortal = false;
         public Scopes Scopes = default;
@@ -769,6 +776,7 @@ public abstract class Authenticated
                     && ConsumerClaim.Value is JsonElement consumerJsonClaim
                 )
                     ConsumerClaimValue = JsonSerializer.Deserialize<OrgClaim>(consumerJsonClaim);
+                TryAssign(claim, "client_id", ref ClientIdClaim);
             }
         }
 
