@@ -16,10 +16,6 @@ export class OnProcessTaskRemoveHandler {
     private readonly deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void,
   ) {}
 
-  /**
-   * This handler is responsible to react on task remove event, to mutate files that are related to the task, but not a part of process-editor domain.
-   * @param taskMetadata
-   */
   public handleOnProcessTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     if (taskMetadata.taskType === 'data') {
       this.handleDataTaskRemove(taskMetadata);
@@ -38,10 +34,6 @@ export class OnProcessTaskRemoveHandler {
     }
   }
 
-  /**
-   * Deletes the layoutSet from the deleted data task
-   * @private
-   */
   private handleDataTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const layoutSetId = getLayoutSetIdFromTaskId(
       taskMetadata.taskEvent.element.id,
@@ -55,11 +47,6 @@ export class OnProcessTaskRemoveHandler {
     }
   }
 
-  /**
-   * Deletes the dataType, layoutSet and policy for the deleted payment task
-   * @param taskMetadata
-   * @private
-   */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
@@ -103,31 +90,15 @@ export class OnProcessTaskRemoveHandler {
     }
   }
 
-  /**
-   * Deletes layoutSet and dataType from the deleted signing task
-   * @param taskMetadata
-   * @private
-   */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
   }
 
-  /**
-   * Deletes layoutSet and dataType from the deleted user-controlled-signing task
-   * @param taskMetadata
-   * @private
-   */
   private handleUserControlledSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
     this.handleRemoveSigneeState(taskMetadata);
   }
 
-  /**
-   * Removes the deleted signature type from the tasks that are connected to the signature type
-   * @param deletedSigningTask
-   * @param studioModeler
-   * @private
-   */
   private removeDeletedSignatureTypeFromTasks(
     deletedSigningTask: OnProcessTaskEvent,
     studioModeler: StudioModeler,

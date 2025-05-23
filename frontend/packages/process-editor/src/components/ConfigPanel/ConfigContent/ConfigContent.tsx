@@ -18,7 +18,7 @@ import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from './EditLayoutSetName';
-import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
+import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 
 export const ConfigContent = (): React.ReactElement => {
