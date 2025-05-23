@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import {
   InformationSquareIcon,
   SidebarBothIcon,
@@ -10,40 +10,40 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 
-const aboutTabId: SettingsModalTabId = 'about';
-const setupTabId: SettingsModalTabId = 'setup';
-const policyTabId: SettingsModalTabId = 'policy';
-const accessControlTabId: SettingsModalTabId = 'access_control';
-const maskinportenTabId: SettingsModalTabId = 'maskinporten';
+const aboutTabId: SettingsPageTabId = 'about';
+const setupTabId: SettingsPageTabId = 'setup';
+const policyTabId: SettingsPageTabId = 'policy';
+const accessControlTabId: SettingsPageTabId = 'access_control';
+const maskinportenTabId: SettingsPageTabId = 'maskinporten';
 
 export const useAppSettingsMenuTabConfigs =
-  (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
+  (): StudioContentMenuButtonTabProps<SettingsPageTabId>[] => {
     const { t } = useTranslation();
 
     return [
       {
         tabId: aboutTabId,
-        tabName: t(`settings_modal.left_nav_tab_${aboutTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${aboutTabId}`),
         icon: <InformationSquareIcon />,
       },
       {
         tabId: setupTabId,
-        tabName: t(`settings_modal.left_nav_tab_${setupTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${setupTabId}`),
         icon: <SidebarBothIcon />,
       },
       {
         tabId: policyTabId,
-        tabName: t(`settings_modal.left_nav_tab_${policyTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${policyTabId}`),
         icon: <ShieldLockIcon />,
       },
       {
         tabId: accessControlTabId,
-        tabName: t(`settings_modal.left_nav_tab_${accessControlTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${accessControlTabId}`),
         icon: <TimerStartIcon />,
       },
       {
         tabId: maskinportenTabId,
-        tabName: t(`settings_modal.left_nav_tab_${maskinportenTabId}`),
+        tabName: t(`app_settings.left_nav_tab_${maskinportenTabId}`),
         icon: <MaskinportenIcon />,
       },
     ];

@@ -165,7 +165,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References;
+    return !!altinn2References && resourceData.resourceType === 'GenericAccessResource';
   };
 
   const aboutPageId = 'about';

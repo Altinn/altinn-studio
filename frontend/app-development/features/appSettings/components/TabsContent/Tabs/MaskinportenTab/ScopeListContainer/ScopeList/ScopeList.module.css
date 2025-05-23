@@ -1,0 +1,11 @@
+.informationText  {
+  color: var(--fds-semantic-text-neutral-subtle);
+  padding-bottom: var(--ds-size-4);
+}
+
+.buttonContainer {
+  display: flex;
+  gap: var(--ds-size-4);
+  margin-top: var(--ds-size-8);
+  margin-bottom: var(--ds-size-2);
+}

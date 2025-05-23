@@ -30,6 +30,7 @@ export interface Resource {
   consentTemplate?: string;
   consentText?: SupportedLanguage;
   consentMetadata?: ConsentMetadata;
+  isOneTimeConsent?: boolean;
 }
 
 export type ResourceAccessListMode = 'Disabled' | 'Enabled';
