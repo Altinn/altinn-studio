@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveText(languageCode, textResource);
         }
 
-        public async Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
+        public async Task<TextResource> UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
             TextResource textResourceObject = await altinnAppGitRepository.GetText(languageCode);
@@ -130,6 +130,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await altinnAppGitRepository.SaveText(languageCode, textResourceObject);
+            return textResourceObject;
         }
 
         /// <inheritdoc />
