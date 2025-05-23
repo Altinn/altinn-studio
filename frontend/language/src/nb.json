@@ -466,6 +466,8 @@
   "general.text": "Tekst",
   "general.true": "Sann",
   "general.try_again": "Prøv igjen",
+  "general.supported_old_version": "Du har en eldre versjon av repoet. Det gjør at du kan oppleve noen problemer i Studio.\n\nVi anbefaler at du oppdaterer til nyeste versjon av repoet og starter Studio på nytt, for å få en bedre brukeropplevelse.",
+  "general.unsupported_old_version": "Du har en versjon av repoet som Studio ikke støtter lenger. Oppdater versjonen din og start Studio på nytt.",
   "general.unknown_error": "Det oppsto en ukjent feil da Studio skulle laste inn data.",
   "general.value": "Verdi",
   "general.widget": "widget",
