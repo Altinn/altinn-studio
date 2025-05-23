@@ -26,8 +26,9 @@ describe('EditUserControlledImplementation', (): void => {
   });
 
   it('should render with label, description and default value', async (): Promise<void> => {
+    const expectedDisplayValue = 'some-default-id';
     const user = userEvent.setup();
-    mockUseGetDefault.mockReturnValue('some-default-id');
+    mockUseGetDefault.mockReturnValue(expectedDisplayValue);
     mockUseUpdate.mockReturnValue(jest.fn());
 
     renderEditUserControlledImplementation();
@@ -35,7 +36,7 @@ describe('EditUserControlledImplementation', (): void => {
 
     expect(getToggleableTextFieldByLabel()).toBeInTheDocument();
     expect(getToggleableTextFieldDescription()).toBeInTheDocument();
-    expect(screen.getByDisplayValue('some-default-id')).toBeInTheDocument();
+    expect(screen.getByDisplayValue(expectedDisplayValue)).toBeInTheDocument();
   });
 
   it('should call updateUserControlledImplementation on blur with the new value', async (): Promise<void> => {
