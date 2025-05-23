@@ -8,10 +8,10 @@ import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
+import { LATEST_FRONTEND_VERSION } from 'app-shared/constants';
 
-const latestFrontendVersion = '4';
 const isLatestFrontendVersion = (version: AppVersion): boolean =>
-  version?.frontendVersion?.startsWith(latestFrontendVersion);
+  version?.frontendVersion?.slice(0, LATEST_FRONTEND_VERSION.length) >= LATEST_FRONTEND_VERSION;
 
 export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();

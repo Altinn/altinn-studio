@@ -1,0 +1,79 @@
+.dialog {
+  background-color: var(--ds-color-warning-surface-tinted);
+  border: 1px solid var(--ds-color-warning-border-default);
+  color: var(--ds-color-text-default);
+
+  --dsc-alert-icon-color: var(--ds-color-text-subtle);
+}
+
+.text {
+  padding: 0;
+}
+
+.alert {
+  border: unset;
+  white-space: break-spaces;
+}
+
+.buttons {
+  display: flex;
+  gap: var(--ds-size-4);
+  justify-content: center;
+}
+
+.linkButton {
+  --dsc-button-background--active: var(--ds-color-base-active);
+  --dsc-button-background--hover: var(--ds-color-base-hover);
+  --dsc-button-background: var(--ds-color-base-default);
+  --dsc-button-color: var(--ds-color-base-contrast-default);
+  --dsc-button-color--hover: var(--ds-color-base-contrast-default);
+  --dsc-button-border-width: var(--ds-border-width-default);
+  --dsc-button-border-style: solid;
+  --dsc-button-border-color: transparent;
+  --dsc-button-gap: var(--ds-size-2);
+  --dsc-button-padding: var(--ds-size-2) var(--ds-size-4);
+  --dsc-button-size: var(--ds-size-12);
+  align-items: center;
+  background: var(--dsc-button-background);
+  border-color: var(--dsc-button-border-color);
+  border-radius: var(--ds-border-radius-default);
+  border-style: var(--dsc-button-border-style);
+  border-width: var(--dsc-button-border-width);
+  box-sizing: border-box;
+  color: var(--dsc-button-color);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: var(--ds-font-weight-medium);
+  gap: var(--dsc-button-gap);
+  height: -webkit-fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
+  justify-content: center;
+  line-height: var(--ds-line-height-sm);
+  min-height: var(--dsc-button-size);
+  min-width: var(--dsc-button-size);
+  outline: none;
+  padding: var(--dsc-button-padding);
+  text-align: inherit;
+  text-decoration: none;
+
+  display: inline-flex;
+  gap: var(--ds-size-1);
+}
+
+.linkButton:focus-visible {
+  box-shadow: var(--dsc--focus, var(--dsc-focus-boxShadow));
+  outline: var(--dsc--focus, var(--dsc-focus-outline));
+  outline-offset: var(--dsc--focus, var(--ds-border-width-focus));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .linkButton:where(:not(:disabled, [aria-disabled='true'], [aria-busy='true'])):hover {
+    background: var(--dsc-button-background--hover);
+    color: var(--dsc-button-color--hover);
+  }
+}
+
+.linkButton:where(:not(:disabled, [aria-disabled='true'], [aria-busy='true'])):active {
+  background: var(--dsc-button-background--active);
+}
