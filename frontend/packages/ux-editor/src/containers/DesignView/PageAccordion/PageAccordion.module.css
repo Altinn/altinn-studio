@@ -4,6 +4,11 @@
   padding: var(--fds-spacing-1);
   background-color: var(--background-color);
   border: 0.5px solid var(--fds-semantic-border-neutral-subtle);
+  border-bottom: none;
+}
+
+.navigationMenuGroup {
+  background-color: var(--ds-color-neutral-background-default);
 }
 
 .accordionHeader,

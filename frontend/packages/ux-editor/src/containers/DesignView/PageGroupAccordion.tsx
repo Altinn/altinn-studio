@@ -18,6 +18,8 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import { Accordion } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
@@ -81,6 +83,7 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    const isGrpupHasOnePage = group.order.length === 1;
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
@@ -95,14 +98,6 @@ export const PageGroupAccordion = ({
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
-            <StudioButton
-              title={t('general.delete_item', { item: groupDisplayName })}
-              color='danger'
-              icon={<TrashIcon />}
-              onClick={handleConfirmDelete}
-              variant='tertiary'
-              disabled={isPending}
-            />
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger variant='tertiary'>
                 <MenuElipsisVerticalIcon />
@@ -126,6 +121,14 @@ export const PageGroupAccordion = ({
                 </div>
               </StudioPopover>
             </StudioPopover.TriggerContext>
+            <StudioButton
+              title={t('general.delete_item', { item: groupDisplayName })}
+              data-color='danger'
+              icon={<TrashIcon />}
+              onClick={handleConfirmDelete}
+              variant='tertiary'
+              disabled={isPending}
+            />
           </div>
         </div>
         {group.order.map((page) => {
@@ -133,7 +136,13 @@ export const PageGroupAccordion = ({
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
 
           return (
-            <div key={page.id} className={classes.groupAccordionWrapper}>
+            <Accordion
+              key={page.id}
+              className={cn(
+                classes.groupAccordionWrapper,
+                isGrpupHasOnePage && classes.groupAccordionWrapperSinglePage,
+              )}
+            >
               <PageAccordion
                 pageName={page.id}
                 isOpen={page.id === selectedFormLayoutName}
@@ -149,7 +158,7 @@ export const PageGroupAccordion = ({
                   />
                 )}
               </PageAccordion>
-            </div>
+            </Accordion>
           );
         })}
         <div className={classes.buttonContainer}>
