@@ -49,6 +49,24 @@ namespace Designer.Tests.Controllers.TextController
         }
 
         [Theory]
+        [MemberData(nameof(Data))]
+        public async Task UpdateTextsForKeys_WithValidInput_ReturnsUpdatedData(string orgName, string appName, string username, string language, Dictionary<string, string> updateDictionary)
+        {
+            string targetRepository = await GenerateTestRepository(orgName, appName, username);
+
+            TextResource expectedResource = GetTextResource(orgName, appName, username, language);
+            PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
+
+            // Act
+            using HttpResponseMessage response = await RunPutRequest(orgName, targetRepository, language, updateDictionary);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), responseContent));
+        }
+
+        [Theory]
         [MemberData(nameof(DataForTextWithVariables))]
         public async Task UpdateTextsForKeys_ForTextsThatHaveVariables_MaintainsVariablesAndReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
