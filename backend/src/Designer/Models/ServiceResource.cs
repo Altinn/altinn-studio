@@ -124,6 +124,26 @@ namespace Altinn.Studio.Designer.Models
         public List<ResourcePartyType>? AvailableForType { get; set; }
 
         /// <summary>
+        /// Consent template defines which template to use if resource is a consent resource
+        /// </summary>
+        public string? ConsentTemplate { get; set; }
+
+        /// <summary>
+        /// Consent text is markdown text used if resource is a consent resource
+        /// </summary>
+        public Dictionary<string, string>? ConsentText { get; set; }
+
+        /// <summary>
+        /// Defines consentmetadata for consent resources
+        /// </summary>
+        public Dictionary<string, ConsentMetadata>? ConsentMetadata { get; set; }
+
+        /// <summary>
+        /// If consent resource is used for one time consents, or consents with an expiry date
+        /// </summary>
+        public bool IsOneTimeConsent { get; set; }
+
+        /// <summary>
         /// Writes key information when this object is written to Log.
         /// </summary>
         /// <returns></returns>

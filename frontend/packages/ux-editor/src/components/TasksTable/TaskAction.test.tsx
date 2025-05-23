@@ -6,16 +6,24 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import {
+  layoutSet1NameMock,
+  layoutSetsExtendedMock,
+} from '@altinn/ux-editor/testing/layoutSetsMock';
+import { TaskType } from '../Settings/SettingsUtils';
+import type { AppContextProps } from '@altinn/ux-editor/AppContext';
 
 const mockTask = [
   {
-    taskId: 'task1',
-    taskType: 'TaskType1',
+    taskId: 'Task_1',
+    taskType: 'data',
     pageCount: 2,
   },
   {
-    taskId: 'task2',
-    taskType: 'TaskType2',
+    taskId: 'Task_2',
+    taskType: 'data',
     pageCount: 3,
   },
 ];
@@ -24,7 +32,7 @@ describe('TaskAction', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('should render display button when not in navigation mode', () => {
-    renderTaskAction({ isNavigationMode: false });
+    renderTaskAction({ props: { isNavigationMode: false } });
 
     const displayButton = screen.getByRole('button', {
       name: textMock('ux_editor.task_table_display'),
@@ -45,6 +53,31 @@ describe('TaskAction', () => {
     expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [mockTask[1]]);
   });
 
+  it('should call addTaskToNavigationGroup when display button is clicked', async () => {
+    const user = userEvent.setup();
+    const hiddenTask = {
+      taskId: 'Task_3',
+      taskType: 'data',
+      pageCount: 3,
+    };
+
+    renderTaskAction({
+      props: {
+        isNavigationMode: false,
+        task: hiddenTask,
+      },
+    });
+    const displayButton = screen.getByRole('button', {
+      name: textMock('ux_editor.task_table_display'),
+    });
+    await user.click(displayButton);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateTaskNavigationGroup).toHaveBeenCalledWith(org, app, [
+      ...mockTask,
+      hiddenTask,
+    ]);
+  });
+
   it('should call moveNavigationTask when down button is clicked', async () => {
     const user = userEvent.setup();
     renderTaskAction();
@@ -62,7 +95,7 @@ describe('TaskAction', () => {
 
   it('should call moveNavigationTask when up button is clicked', async () => {
     const user = userEvent.setup();
-    renderTaskAction({ task: mockTask[1], index: 1 });
+    renderTaskAction({ props: { task: mockTask[1], index: 1 } });
 
     const upButton = screen.getByRole('button', {
       name: textMock('ux_editor.task_table.menu_task_up'),
@@ -84,23 +117,50 @@ describe('TaskAction', () => {
     expect(upButton).toBeDisabled();
   });
   it('should disable move down button when task is last in the list', () => {
-    renderTaskAction({ task: mockTask[1], index: 1 });
+    renderTaskAction({ props: { task: mockTask[1], index: 1 } });
 
     const downButton = screen.getByRole('button', {
       name: textMock('ux_editor.task_table.menu_task_down'),
     });
     expect(downButton).toBeDisabled();
   });
+
+  it('should disable form editor button when task is a default receipt', () => {
+    renderTaskAction({ props: { task: { taskType: TaskType.Receipt } } });
+    expect(getFormEditorButton()).toBeDisabled();
+  });
+
+  it('should set selected layout set name when clicking on navigation button', async () => {
+    const user = userEvent.setup();
+    const setSelectedFormLayoutSetName = jest.fn();
+
+    renderTaskAction({ appContextProps: { setSelectedFormLayoutSetName } });
+
+    await user.click(getFormEditorButton());
+    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith(layoutSet1NameMock);
+  });
 });
 
-const renderTaskAction = (props: Partial<TaskActionProps> = {}) => {
+const getFormEditorButton = () =>
+  screen.getByRole('button', {
+    name: textMock('ux_editor.task_table.menu_task_redirect'),
+  });
+
+type RenderTaskActionProps = {
+  props?: Partial<TaskActionProps>;
+  appContextProps?: Partial<AppContextProps>;
+};
+
+const renderTaskAction = ({ props, appContextProps }: RenderTaskActionProps = {}) => {
   const mockProps: TaskActionProps = {
     task: mockTask[0],
     tasks: mockTask,
     index: 0,
     isNavigationMode: true,
   };
-
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TaskNavigationGroup, org, app], mockTask);
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   const mergedProps = { ...mockProps, ...props };
-  renderWithProviders(<TaskAction {...mergedProps} />);
+  renderWithProviders(<TaskAction {...mergedProps} />, { queryClient, appContextProps });
 };

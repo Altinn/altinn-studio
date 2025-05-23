@@ -1,1 +1,1 @@
-export type Translation = 'none' | 'title' | 'description' | 'rightDescription';
+export type Translation = 'none' | 'title' | 'description' | 'rightDescription' | 'consentText';

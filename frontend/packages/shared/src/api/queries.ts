@@ -16,6 +16,7 @@ import {
   formLayoutsPath,
   frontEndSettingsPath,
   layoutSetsPath,
+  layoutSetsExtendedPath,
   layoutSettingsPath,
   optionListIdsPath,
   optionListsPath,
@@ -67,6 +68,7 @@ import {
   layoutPagesPath,
   taskNavigationGroupPath,
   availableResourcesInOrgLibraryPath,
+  consentTemplatesPath,
   orgTextLanguagesPath,
 } from './paths';
 
@@ -89,7 +91,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
-import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview } from 'app-shared/types/ResourceAdm';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -102,7 +104,7 @@ import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -135,7 +137,7 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
+export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
@@ -185,6 +187,7 @@ export const getResourceAccessLists = (org: string, resourceId: string, environm
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<DelegationCountOverview>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
+export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(consentTemplatesPath(org));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));

@@ -139,6 +139,7 @@ function OrgContentLibraryWithContextAndData({
         props: {
           codeListsData: codeListDataList,
           onCreateCodeList: handleCreate,
+          onCreateTextResource: handleUpdateTextResource,
           onDeleteCodeList: deleteCodeList,
           onUpdateCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
