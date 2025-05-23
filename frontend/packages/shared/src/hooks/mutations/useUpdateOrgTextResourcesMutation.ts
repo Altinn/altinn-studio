@@ -8,31 +8,61 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export type UpdateOrgTextResourcesMutationArgs = {
   language: string;
   payload: KeyValuePairs<string>;
 };
 
-export const useUpdateOrgTextResourcesMutation = (
-  org: string,
-): UseMutationResult<
+type Context = {
+  key: TanstackQueryKey;
+};
+
+export type UseUpdateOrgTextResourcesMutationResult = UseMutationResult<
   ITextResourcesWithLanguage,
   DefaultError,
-  UpdateOrgTextResourcesMutationArgs
-> => {
+  UpdateOrgTextResourcesMutationArgs,
+  Context
+>;
+
+export const useUpdateOrgTextResourcesMutation = (
+  org: string,
+): UseUpdateOrgTextResourcesMutationResult => {
   const client = useQueryClient();
   const { updateOrgTextResources } = useServicesContext();
-  return useMutation<ITextResourcesWithLanguage, DefaultError, UpdateOrgTextResourcesMutationArgs>({
+  return useMutation<
+    ITextResourcesWithLanguage,
+    DefaultError,
+    UpdateOrgTextResourcesMutationArgs,
+    Context
+  >({
     mutationFn: ({ language, payload }: UpdateOrgTextResourcesMutationArgs) =>
       updateOrgTextResources(org, language, payload),
-    onSuccess: (textResourcesWithLanguage) => {
-      const queryKey: TanstackQueryKey = [
-        QueryKey.OrgTextResources,
-        org,
-        textResourcesWithLanguage.language,
-      ];
-      client.setQueryData(queryKey, textResourcesWithLanguage);
+    onMutate: (args: UpdateOrgTextResourcesMutationArgs): Context => {
+      const key = queryKey(org, args.language);
+      client.setQueryData<ITextResourcesWithLanguage>(key, updater(args));
+      return { key };
     },
+    onError: (_err, _newData, { key }) => client.invalidateQueries({ queryKey: key, exact: true }),
+    onSuccess: (data, _variables, { key }) =>
+      client.setQueryData<ITextResourcesWithLanguage>(key, data),
   });
 };
+
+const queryKey = (org: string, language: string): TanstackQueryKey => [
+  QueryKey.OrgTextResources,
+  org,
+  language,
+];
+
+type Updater = (oldData?: ITextResourcesWithLanguage) => ITextResourcesWithLanguage;
+
+function updater({ language, payload }: UpdateOrgTextResourcesMutationArgs): Updater {
+  return (oldData?: ITextResourcesWithLanguage): ITextResourcesWithLanguage => {
+    const resources = oldData?.resources || [];
+    const utils = TextResourceUtils.fromArray(resources);
+    const updatedUtils = utils.setValues(payload);
+    return updatedUtils.withLanguage(language);
+  };
+}

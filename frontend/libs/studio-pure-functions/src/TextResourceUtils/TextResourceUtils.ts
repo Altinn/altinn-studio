@@ -1,5 +1,6 @@
 import type { TextResource } from '../types/TextResource';
 import type { TextResourceMap } from '../types/TextResourceMap';
+import type { TextResourcesWithLanguage } from '../types/TextResourcesWithLanguage';
 
 export class TextResourceUtils {
   private readonly textResources: TextResourceMap;
@@ -30,9 +31,25 @@ export class TextResourceUtils {
     return textResource ? textResource.value : null;
   }
 
+  public withLanguage(language: string): TextResourcesWithLanguage {
+    return {
+      language,
+      resources: this.asArray(),
+    };
+  }
+
   public set(textResource: TextResource): TextResourceUtils {
     const newMap = this.cloneMap();
     newMap.set(textResource.id, textResource);
+    return new TextResourceUtils(newMap);
+  }
+
+  public setValues(updates: Record<string, string>): TextResourceUtils {
+    const newMap = this.cloneMap();
+    Object.entries(updates).forEach(([id, value]) => {
+      const textResource = newMap.get(id);
+      newMap.set(id, { ...textResource, id, value });
+    });
     return new TextResourceUtils(newMap);
   }
 
