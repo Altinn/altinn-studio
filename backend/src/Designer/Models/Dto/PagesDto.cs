@@ -35,6 +35,8 @@ public class PagesDto
                     {
                         Name = group.Name,
                         Pages = group.Order.Select(pageId => new PageDto { Id = pageId }).ToList(),
+                        MarkWhenCompleted = group.MarkWhenCompleted,
+                        Type = group.Type,
                     })
                     .ToList(),
             },
@@ -67,6 +69,8 @@ public class PagesDto
                     {
                         Name = group.Name,
                         Order = [.. group.Pages.Select(page => page.Id)],
+                        MarkWhenCompleted = group.MarkWhenCompleted,
+                        Type = group.Type,
                     })
                     .ToList(),
             },
