@@ -39,6 +39,7 @@ describe('EditUserControlledImplementation', (): void => {
   });
 
   it('should call updateUserControlledImplementation on blur with the new value', async (): Promise<void> => {
+    const newId = 'new-id';
     const user = userEvent.setup();
     const mockUpdateFn = jest.fn();
     mockUseGetDefault.mockReturnValue('initial-id');
@@ -49,10 +50,10 @@ describe('EditUserControlledImplementation', (): void => {
 
     const textField = getToggleableTextFieldByLabel();
     await user.clear(textField);
-    await user.type(textField, 'new-id');
+    await user.type(textField, newId);
     await user.tab();
 
-    expect(mockUpdateFn).toHaveBeenCalledWith('new-id');
+    expect(mockUpdateFn).toHaveBeenCalledWith(newId);
   });
 });
 
@@ -60,13 +61,13 @@ function renderEditUserControlledImplementation(): void {
   render(<EditUserControlledImplementation />);
 }
 
-function getToggleableTextFieldButton(): HTMLElement {
+function getToggleableTextFieldButton(): HTMLButtonElement {
   return screen.getByRole('button', {
     name: textMock('process_editor.configuration_panel.edit_default_user_controlled_interface'),
   });
 }
 
-function getToggleableTextFieldByLabel(): HTMLElement {
+function getToggleableTextFieldByLabel(): HTMLInputElement {
   return screen.getByLabelText(
     textMock('process_editor.configuration_panel.edit_default_user_controlled_interface'),
   );

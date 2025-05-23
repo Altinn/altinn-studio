@@ -1,6 +1,5 @@
-import { BpmnGuard } from './BpmnGuard';
+import { BpmnGuard, GuardErrorMessage } from './BpmnGuard';
 import type { Element } from 'bpmn-moddle';
-import { GuardErrorMessage } from './GuardErrorMessage';
 
 describe('BpmnGuard', () => {
   describe('ensureExtensionElementBusinessObject', () => {

@@ -126,10 +126,6 @@ export class StudioModeler {
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
     const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-    console.log({
-      configNode,
-      dataTypeName,
-    });
     return businessObject.extensionElements?.values[0][configNode][dataTypeName];
   }
 

@@ -1,5 +1,9 @@
 import type { Element } from 'bpmn-moddle';
-import { GuardErrorMessage } from './GuardErrorMessage';
+
+export enum GuardErrorMessage {
+  MissingSignature = 'Missing signature config in BPMN extension element',
+  MissingExtensionElement = 'Missing extension elements in BPMN businessObject',
+}
 
 // Guards ensure required BPMN structure is present before continuing logic, throwing early if assumptions fail.
 export class BpmnGuard {

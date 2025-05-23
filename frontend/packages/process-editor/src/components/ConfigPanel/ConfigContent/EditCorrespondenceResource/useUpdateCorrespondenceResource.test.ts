@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
+
 jest.mock('../../../../contexts/BpmnContext');
 
 describe('useUpdateCorrespondenceResource', () => {

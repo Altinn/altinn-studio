@@ -57,13 +57,13 @@ describe('EditCorrespondenceResource', (): void => {
   });
 });
 
-function getToggableTextFieldButton(): HTMLElement {
+function getToggableTextFieldButton(): HTMLButtonElement {
   return screen.getByRole('button', {
     name: textMock('process_editor.configuration_panel.correspondence_resource'),
   });
 }
 
-function getToggableTextFieldByLabel(): HTMLElement {
+function getToggableTextFieldByLabel(): HTMLInputElement {
   return screen.getByLabelText(
     textMock('process_editor.configuration_panel.correspondence_resource'),
   );

@@ -19,7 +19,7 @@ import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedActio
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation/EditUserControlledImplementation';
-import { EditCorrespondenceResource } from './EditCorrespondenceResource/EditCorrespondenceResource';
+import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -29,6 +29,7 @@ export const ConfigContent = (): React.ReactElement => {
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = bpmnDetails.taskType === 'userControlledSigning';
+  const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
     (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
@@ -61,7 +62,7 @@ export const ConfigContent = (): React.ReactElement => {
           className={classes.displayTile}
           showPadlock={false}
         />
-        {(isSigningTask || isUserControlledSigningTask) && (
+        {shouldDisplayEditDataTypesToSign && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
             {!isFirstSigningTask && (
