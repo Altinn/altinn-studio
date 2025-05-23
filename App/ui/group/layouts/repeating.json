@@ -381,7 +381,11 @@
         "id": "nested-source",
         "type": "Dropdown",
         "textResourceBindings": {
-          "title": "hvor fikk du vite om skjemaet?"
+          "title": [
+            "concat",
+            "Hvor fikk du vite om skjemaet? Over her valgte du ",
+            ["optionLabel", "list2", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"]]
+          ]
         },
         "dataModelBindings": {
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.source"
