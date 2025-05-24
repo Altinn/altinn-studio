@@ -20,6 +20,14 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
+export const organizationSubject: PolicySubject = {
+  subjectId: 'organization',
+  subjectSource: 'altinn:partytype',
+  subjectTitle: '',
+  subjectDescription: '',
+};
+export const accessListSubjectSource = 'altinn:accesslist';
+
 export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
   const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
     const splitted = policySubject.split(':');

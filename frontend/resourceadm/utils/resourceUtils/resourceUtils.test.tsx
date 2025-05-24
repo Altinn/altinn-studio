@@ -7,6 +7,8 @@ import {
   validateResource,
   getMigrationErrorMessage,
   getAvailableEnvironments,
+  getResourcePolicyRules,
+  getResourceSubjects,
 } from './';
 import type { EnvId } from './resourceUtils';
 import type {
@@ -17,6 +19,8 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import type { Policy, PolicyRule } from '@altinn/policy-editor/types';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -447,5 +451,114 @@ describe('getAvailableEnvironments', () => {
   it('returns default environment list + yt01 for org skd', () => {
     const environments = getAvailableEnvironments('skd');
     expect(environments.map(({ id }) => id)).toEqual(['tt02', 'prod', 'yt01']);
+  });
+});
+
+describe('getResourcePolicyRules', () => {
+  const resourceId = 'test-resource-id';
+
+  const createPolicy = (rules: PolicyRule[]): Policy => ({
+    rules,
+    requiredAuthenticationLevelEndUser: '0',
+    requiredAuthenticationLevelOrg: '',
+  });
+
+  const expectedConsentRules: PolicyRule[] = [
+    {
+      ...emptyPolicyRule,
+      subject: [organizationSubject.subjectId],
+      actions: ['requestconsent'],
+      ruleId: '1',
+      resources: [[`urn:altinn:resource:${resourceId}`]],
+    },
+    {
+      ...emptyPolicyRule,
+      actions: ['consent'],
+      ruleId: '2',
+      resources: [[`urn:altinn:resource:${resourceId}`]],
+    },
+  ];
+
+  it('should add default consent rules if resource is a consent resource and no consent rules exist', () => {
+    const policyData = createPolicy([]);
+    const result = getResourcePolicyRules(policyData, resourceId, true);
+
+    expect(result.rules).toEqual(expectedConsentRules);
+  });
+
+  it('should remove consent rules if resource is not a consent resource but has consent rules', () => {
+    const normalRule = {
+      ...emptyPolicyRule,
+      subject: [],
+      actions: [],
+      ruleId: '3',
+      resources: [[`urn:altinn:resource:${resourceId}`]],
+    };
+    const policyData = createPolicy([...expectedConsentRules, normalRule]);
+    const result = getResourcePolicyRules(policyData, resourceId, false);
+
+    expect(result.rules).toEqual([normalRule]);
+  });
+
+  it('should return the same policy if resource is a consent resource and consent rules already exist', () => {
+    const policyData = createPolicy(expectedConsentRules);
+    const result = getResourcePolicyRules(policyData, resourceId, true);
+
+    expect(result.rules).toEqual(expectedConsentRules);
+  });
+
+  it('should return the same policy if resource is not a consent resource and no consent rules exist', () => {
+    const policyData = createPolicy([]);
+    const result = getResourcePolicyRules(policyData, resourceId, false);
+
+    expect(result.rules).toEqual([]);
+  });
+});
+
+describe('getResourceSubjects', () => {
+  it('should return subjectData if resource is not consent resource', () => {
+    const subjectData = [
+      {
+        subjectId: 'siskd',
+        subjectSource: 'altinn:rolecode',
+        subjectTitle: 'Begrenset signeringsrett',
+        subjectDescription: '',
+      },
+    ];
+    const result = getResourceSubjects(undefined, subjectData, 'ttd', false);
+    expect(result).toEqual(subjectData);
+  });
+
+  it('should return subjectData with accesslists and organization subject if resource is consent resource', () => {
+    const accessList = {
+      env: 'tt02',
+      identifier: 'test-liste',
+      name: 'Testliste',
+    };
+    const subjectData = [
+      {
+        subjectId: 'siskd',
+        subjectSource: 'altinn:rolecode',
+        subjectTitle: 'Begrenset signeringsrett',
+        subjectDescription: '',
+      },
+    ];
+    const accessLists = [accessList];
+    const result = getResourceSubjects(accessLists, subjectData, 'ttd', true);
+    expect(result).toEqual([
+      ...subjectData,
+      {
+        subjectId: accessList.identifier,
+        subjectSource: 'altinn:accesslist:ttd',
+        subjectTitle: accessList.name,
+        subjectDescription: undefined,
+      },
+      organizationSubject,
+    ]);
+  });
+
+  it('should return subjectData with organization subject if resource is consent resource', () => {
+    const result = getResourceSubjects(undefined, [], 'ttd', true);
+    expect(result).toEqual([organizationSubject]);
   });
 });

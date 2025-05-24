@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
@@ -136,6 +137,70 @@ namespace Altinn.Studio.Designer.Controllers
         {
             HttpStatusCode statusCode = await _resourceRegistry.RemoveResourceAccessList(org, id, listId, env);
             return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/allaccesslists")]
+        public async Task<ActionResult> GetAllAccessLists(string org)
+        {
+            // check that the user is member of at least one Resources-Publish-XXXX team in the given organization to 
+            // call this service. We use the Resources-Publish team instead of the AccessLists team, so users 
+            // publishing resource can also set accesslists in policy (but might not have access to change acceslists)
+            bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
+            if (!hasPublishResourcePermission)
+            {
+                return StatusCode(403);
+            }
+
+            List<string> envs = GetEnvironmentsForOrg(org);
+            List<AccessList> allAccessLists = [];
+            foreach (string environment in envs)
+            {
+                List<AccessList> envAccessLists = await GetAllAccessListsForEnv(environment, org);
+                allAccessLists.AddRange(envAccessLists.Where(envAccessList =>
+                {
+                    bool isAlreadyInList = allAccessLists.Any(accessList => accessList.Identifier == envAccessList.Identifier);
+                    return !isAlreadyInList;
+                }));
+            }
+
+            return Ok(allAccessLists);
+        }
+
+        private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
+        {
+            List<Team> teams = await _giteaApi.GetTeams();
+            List<string> envs = GetEnvironmentsForOrg(org);
+
+            bool isTeamMember = teams.Any(team =>
+                team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase) &&
+                envs.Any(env => team.Name.Equals($"Resources-Publish-{env}", StringComparison.OrdinalIgnoreCase))
+            );
+            return isTeamMember;
+        }
+
+        private async Task<List<AccessList>> GetAllAccessListsForEnv(string env, string org)
+        {
+            List<AccessList> accessLists = [];
+            try
+            {
+                PagedAccessListResponse pagedListResponse = await _resourceRegistry.GetAccessLists(org, env, "");
+                accessLists.AddRange(pagedListResponse.Data);
+                string nextPage = pagedListResponse.NextPage;
+
+                while (!string.IsNullOrWhiteSpace(nextPage))
+                {
+                    PagedAccessListResponse nextPagedListResponse = await _resourceRegistry.GetAccessLists(org, env, nextPage);
+                    accessLists.AddRange(nextPagedListResponse.Data);
+                    nextPage = nextPagedListResponse.NextPage;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching access lists for org {org} in env {env}: {ex.Message}");
+            }
+
+            return accessLists;
         }
 
         [HttpGet]
