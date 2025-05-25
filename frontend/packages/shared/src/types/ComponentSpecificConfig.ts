@@ -49,13 +49,13 @@ export type DataModelBindingsSimple = {
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
 
 type DataModelBindingsOrganisationLookup = {
-  organisation_lookup_orgnr: string | InternalBindingFormat;
-  organisation_lookup_name?: string | InternalBindingFormat;
+  organisation_lookup_orgnr: IDataModelBindings;
+  organisation_lookup_name?: IDataModelBindings;
 };
 
 type DataModelBindingsPersonLookup = {
-  person_lookup_ssn: string | InternalBindingFormat;
-  person_lookup_name: string | InternalBindingFormat;
+  person_lookup_ssn: IDataModelBindings;
+  person_lookup_name: IDataModelBindings;
 };
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
