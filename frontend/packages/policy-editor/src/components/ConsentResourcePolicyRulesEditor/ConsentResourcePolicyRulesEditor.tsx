@@ -14,6 +14,7 @@ import {
   StudioValidationMessage,
   StudioHeading,
   StudioFieldset,
+  useStudioCheckboxGroup,
 } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
@@ -85,22 +86,6 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   const { policyRules, subjects, setPolicyRules, savePolicy, showAllErrors } =
     usePolicyEditorContext();
 
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(policyRule.subject);
-
-  const onSubjectChange = (changedValue: string): void => {
-    setSelectedSubjects((prevSelectedSubjects) => {
-      if (prevSelectedSubjects.indexOf(changedValue) > -1) {
-        const newValue = prevSelectedSubjects.filter((subject) => subject !== changedValue);
-        handleSubjectChange(newValue);
-        return newValue;
-      } else {
-        const newValue = [...prevSelectedSubjects, changedValue];
-        handleSubjectChange(newValue);
-        return newValue;
-      }
-    });
-  };
-
   const handleSubjectChange = (newSubjects: string[]): void => {
     const updatedRules = getUpdatedRules(
       {
@@ -114,10 +99,16 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
     savePolicy(updatedRules);
   };
 
+  const hasSubjectError = showAllErrors && policyRule.subject.length === 0;
+  const { getCheckboxProps } = useStudioCheckboxGroup({
+    error: hasSubjectError && t('policy_editor.consent_resource_request_consent_error'),
+    value: policyRule.subject,
+    onChange: handleSubjectChange,
+  });
+
   const accessListSubjects = subjects.filter((subject) =>
     subject.subjectSource.startsWith(accessListSubjectSource),
   );
-  const hasRuleError = showAllErrors && policyRule.subject.length === 0;
 
   return (
     <div className={classes.consentRuleCard}>
@@ -140,19 +131,21 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
               value={subject.subjectId}
               label={subject.subjectTitle}
               description={subject.subjectDescription}
-              checked={selectedSubjects.indexOf(subject.subjectId) > -1}
-              onChange={() => onSubjectChange(subject.subjectId)}
               className={classes.accessListItem}
+              {...getCheckboxProps(subject.subjectId)}
             />
           ))}
           <StudioCheckbox
             value={organizationSubject.subjectId}
-            label={t('policy_editor.consent_resource_all_organizations')}
+            label={
+              <span className={classes.allOrganizationsItemLabel}>
+                {t('policy_editor.consent_resource_all_organizations')}
+              </span>
+            }
             className={cn(classes.accessListItem, classes.allOrganizationsItem)}
-            checked={selectedSubjects.indexOf(organizationSubject.subjectId) > -1}
-            onChange={() => onSubjectChange(organizationSubject.subjectId)}
+            {...getCheckboxProps(organizationSubject.subjectId)}
           ></StudioCheckbox>
-          {hasRuleError && (
+          {hasSubjectError && (
             <StudioValidationMessage data-size='sm'>
               {t('policy_editor.consent_resource_request_consent_error')}
             </StudioValidationMessage>
