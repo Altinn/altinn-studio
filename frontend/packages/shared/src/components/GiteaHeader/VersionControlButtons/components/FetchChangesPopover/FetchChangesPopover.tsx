@@ -11,6 +11,8 @@ import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -43,16 +45,28 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
     setIsLoading(true);
     const { data: result } = await fetchPullData();
-    setIsLoading(false);
 
     if (result.repositoryStatus === 'Ok') {
-      if (onPullSuccess) onPullSuccess();
+      onPullSuccess?.();
+      queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], (oldStatus: RepoStatus) => ({
+        ...oldStatus,
+        behindBy: 0,
+        aheadBy: oldStatus?.aheadBy || 0,
+        contentStatus: oldStatus?.contentStatus || {},
+        repositoryStatus: 'Ok',
+      }));
 
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries({
+        predicate: (q) => {
+          const queryKey = q.queryKey;
+          return queryKey.includes(owner) || queryKey.includes(repoName);
+        },
+      });
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       await commitAndPushChanges('');
       setPopoverOpen(false);
     }
+    setIsLoading(false);
   };
 
   return (
