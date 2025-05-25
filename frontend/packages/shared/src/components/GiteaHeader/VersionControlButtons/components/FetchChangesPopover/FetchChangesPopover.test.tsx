@@ -12,6 +12,7 @@ import {
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -97,6 +98,39 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('should update UI after successful fetch', async () => {
+    const user = userEvent.setup();
+    const mockRepoStatus: RepoStatus = {
+      behindBy: 2,
+      aheadBy: 0,
+      contentStatus: [],
+      repositoryStatus: '',
+      hasMergeConflict: false,
+    };
+    const getRepoPull = mockGetRepoPull.mockImplementation(async () => {
+      mockRepoStatus.behindBy = 0;
+      return { repositoryStatus: 'Ok', hasMergeConflict: false };
+    });
+
+    renderFetchChangesPopover({
+      queries: { getRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        onPullSuccess: jest.fn(),
+        repoStatus: mockRepoStatus,
+      },
+    });
+    expect(screen.getByText('2')).toBeInTheDocument();
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('sync_header.service_updated_to_latest')),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByText('2')).not.toBeInTheDocument();
   });
 
   it('should call commitAndPushChanges and close popover when there is a merge conflict or checkout conflict', async () => {
