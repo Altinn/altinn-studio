@@ -386,13 +386,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<string> partyIds = membersDto.Data.Select(x => x.Identifiers.OrganizationNumber);
             List<AccessListMember> members = new List<AccessListMember>();
 
-            int BATCH_LOOKUP_SIZE = 190; // url cannot exceed 2048 characters, if there are many members, lookup names from brreg in batches
+            const int BATCH_LOOKUP_SIZE = 190; // url cannot exceed 2048 characters, if there are many members, lookup names from brreg in batches
             // lookup party names
             if (partyIds.Any())
             {
                 for (int i = 0; i < partyIds.Count(); i += BATCH_LOOKUP_SIZE)
                 {
-                    IEnumerable<string> batchPartyIds = partyIds.Where((_x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE));
+                    IEnumerable<string> batchPartyIds = partyIds.Where((x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE));
                     string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
                     string partyIdsString = string.Join(",", batchPartyIds);
                     List<BrregParty>[] parties = await Task.WhenAll(
@@ -644,6 +644,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             SubjectResourcesDto responseContent = await response.Content.ReadAsAsync<SubjectResourcesDto>();
             return responseContent.Data;
+        }
+
+        public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
+        {
+            // Temp location. Will be moved to CDN
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/consent_templates.json";
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string consentTemplatesString = await response.Content.ReadAsStringAsync();
+                List<ConsentTemplate> consentTemplates = JsonSerializer.Deserialize<List<ConsentTemplate>>(consentTemplatesString, _serializerOptions);
+                // Filter out templates not permitted for this service owner
+                consentTemplates = [.. consentTemplates
+                    .Where(t =>
+                        t.RestrictedToServiceOwners == null
+                        || t.RestrictedToServiceOwners.Count == 0
+                        || t.RestrictedToServiceOwners.Contains(org, StringComparer.OrdinalIgnoreCase))];
+                return consentTemplates;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving consent templates", ex);
+            }
         }
 
         private async Task<List<BrregParty>> GetBrregParties(string url)

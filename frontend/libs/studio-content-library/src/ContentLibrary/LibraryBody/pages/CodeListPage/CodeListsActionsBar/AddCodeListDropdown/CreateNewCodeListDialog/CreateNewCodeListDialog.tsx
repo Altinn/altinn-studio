@@ -11,17 +11,19 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
-type CreateNewCodeListDialogProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+export type CreateNewCodeListDialogProps = {
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 function CreateNewCodeListDialog(
   {
-    onBlurTextResource,
-    onUpdateCodeList,
+    onCreateCodeList,
+    onCreateTextResource,
+    onUpdateTextResource,
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
@@ -50,9 +52,10 @@ function CreateNewCodeListDialog(
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
-          onBlurTextResource={onBlurTextResource}
-          onUpdateCodeList={onUpdateCodeList}
+          onCreateCodeList={onCreateCodeList}
+          onCreateTextResource={onCreateTextResource}
           onCloseModal={handleCloseDialog}
+          onUpdateTextResource={onUpdateTextResource}
           textResources={textResources}
         />
       </StudioDialog.Block>
@@ -67,17 +70,19 @@ export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
-  onBlurTextResource?: (textResource: TextResource) => void;
-  onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   onCloseModal: () => void;
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 function CreateNewCodeList({
   codeList,
   codeListNames,
-  onBlurTextResource,
-  onUpdateCodeList,
+  onCreateCodeList,
+  onCreateTextResource,
+  onUpdateTextResource,
   onCloseModal,
   textResources,
 }: CreateNewCodeListProps) {
@@ -86,15 +91,17 @@ function CreateNewCodeList({
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
+  const initialCodeListWithMetadata: CodeListWithMetadata = {
+    title: '',
+    codeList,
+  };
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
-    useState<CodeListWithMetadata>({
-      title: '',
-      codeList,
-    });
+    useState<CodeListWithMetadata>(initialCodeListWithMetadata);
 
   const handleSaveCodeList = () => {
-    onUpdateCodeList(currentCodeListWithMetadata);
+    onCreateCodeList(currentCodeListWithMetadata);
     onCloseModal();
+    setCurrentCodeListWithMetadata(initialCodeListWithMetadata);
   };
 
   const handleCodeListTitleChange = (updatedTitle: string) => {
@@ -110,7 +117,7 @@ function CreateNewCodeList({
     }
   };
 
-  const handleCodeListChange = (updatedCodeList: CodeList) => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList) => {
     setIsCodeListValid(true);
     const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
       currentCodeListWithMetadata,
@@ -137,9 +144,10 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onBlurTextResource={onBlurTextResource}
-          onChange={handleCodeListChange}
+          onCreateTextResource={onCreateTextResource}
           onInvalid={handleInvalidCodeList}
+          onUpdateCodeList={handleUpdateCodeList}
+          onUpdateTextResource={onUpdateTextResource}
           texts={editorTexts}
           textResources={textResources}
         />

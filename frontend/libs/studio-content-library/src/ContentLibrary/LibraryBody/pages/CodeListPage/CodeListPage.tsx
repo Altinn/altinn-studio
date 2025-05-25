@@ -16,6 +16,7 @@ import {
 import type { TextResourceWithLanguage } from '../../../../types/TextResourceWithLanguage';
 import type { TextResources } from '../../../../types/TextResources';
 import type { CodeListWithMetadata } from './types/CodeListWithMetadata';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { InfoBox } from '../../InfoBox';
 
 export type CodeListData = {
@@ -26,6 +27,8 @@ export type CodeListData = {
 
 export type CodeListPageProps = {
   codeListsData: CodeListData[];
+  onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
@@ -33,12 +36,13 @@ export type CodeListPageProps = {
   onUploadCodeList: (uploadedCodeList: File) => void;
   codeListsUsages?: CodeListReference[];
   textResources?: TextResources;
-  externalResourceIds?: string[];
+  externalResources?: ExternalResource[];
   onImportCodeListFromOrg?: (codeListId: string) => void;
 };
 
 export function CodeListPage({
   codeListsData,
+  onCreateCodeList,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -46,7 +50,7 @@ export function CodeListPage({
   onUploadCodeList,
   codeListsUsages,
   textResources,
-  externalResourceIds,
+  externalResources,
   onImportCodeListFromOrg,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
@@ -65,7 +69,7 @@ export function CodeListPage({
     [textResources],
   );
 
-  const handleBlurTextResource = useCallback(
+  const handleUpdateTextResource = useCallback(
     (textResource: TextResource) => {
       const updatedTextResource = createTextResourceWithLanguage(language, textResource);
       onUpdateTextResource?.(updatedTextResource);
@@ -90,21 +94,21 @@ export function CodeListPage({
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
-        onBlurTextResource={handleBlurTextResource}
+        onCreateCodeList={onCreateCodeList}
+        onUpdateTextResource={handleUpdateTextResource}
         onUploadCodeList={handleUploadCodeList}
-        onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
         onSetSearchString={setSearchString}
         textResources={textResourcesForLanguage}
-        externalResourceIds={externalResourceIds}
+        externalResources={externalResources}
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
         codeListsData={filteredCodeLists}
-        onBlurTextResource={handleBlurTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
+        onUpdateTextResource={handleUpdateTextResource}
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
         codeListsUsages={codeListsUsages}

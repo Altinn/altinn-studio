@@ -13,17 +13,18 @@ import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
-import classes from './EditCodeList.module.css';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';
+import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
   textResources?: TextResource[];
@@ -32,17 +33,18 @@ export type EditCodeListProps = {
 export function EditCodeList({
   codeList,
   codeListTitle,
-  onBlurTextResource,
+  onCreateTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  onUpdateTextResource,
   codeListNames,
   codeListSources,
   textResources,
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
 
-  const handleCodeListChange = (updatedCodeList: CodeList): void => {
+  const handleUpdateCodeList = (updatedCodeList: CodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(
       { title: codeListTitle, codeList: codeList },
       updatedCodeList,
@@ -65,9 +67,9 @@ export function EditCodeList({
       />
       <StudioCodeListEditor
         codeList={codeList}
-        onAddOrDeleteItem={handleCodeListChange}
-        onBlurAny={handleCodeListChange}
-        onBlurTextResource={onBlurTextResource}
+        onCreateTextResource={onCreateTextResource}
+        onUpdateTextResource={onUpdateTextResource}
+        onUpdateCodeList={handleUpdateCodeList}
         texts={editorTexts}
         textResources={textResources}
       />

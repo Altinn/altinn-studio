@@ -180,7 +180,6 @@ const layout2Mock: ExternalFormLayout = {
 };
 export const pagesModelMock: PagesModel = {
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
-  groups: [],
 };
 
 export const groupsPagesModelMock: PagesModel = {
@@ -188,7 +187,7 @@ export const groupsPagesModelMock: PagesModel = {
     {
       name: pagelayout1NameMock,
       type: pagelayout1NameMock,
-      order: [{ id: layout1NameMock }],
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
     {
       name: pagelayout2NameMock,
@@ -196,12 +195,16 @@ export const groupsPagesModelMock: PagesModel = {
       markWhenCompleted: true,
       order: [{ id: layout2NameMock }],
     },
+  ],
+};
+export const pageGroupsMultiplePagesMock: PagesModel = {
+  groups: [
     {
-      name: 'EmptyGroup',
-      order: [],
+      name: pagelayout1NameMock,
+      type: pagelayout1NameMock,
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
   ],
-  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,

@@ -1,26 +1,11 @@
 import {
-  changeTextResourceInList,
   editTextResourceValue,
-  getTextResourceById,
-  determineDefaultMode,
+  createNewTextResource,
+  generateRandomTextResourceId,
 } from './utils';
-import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { TextResource } from '../../types/TextResource';
-import { Mode } from './types/Mode';
 
 describe('utils', () => {
-  describe('getTextResourceById', () => {
-    it('Returns the text resource with the given ID', () => {
-      const result = getTextResourceById(textResourcesMock, 'land.NO');
-      expect(result).toEqual({ id: 'land.NO', value: 'Norge' });
-    });
-
-    it('Returns undefined when the text resource with the given ID does not exist', () => {
-      const result = getTextResourceById(textResourcesMock, 'non-existing-id');
-      expect(result).toBeUndefined();
-    });
-  });
-
   describe('editTextResourceValue', () => {
     it('Changes the value of the given text resource', () => {
       const currentValue = 'Lorem ipsum';
@@ -37,38 +22,31 @@ describe('utils', () => {
     });
   });
 
-  describe('changeTextResourceInList', () => {
-    it('Changes the text resource with the given ID in the list', () => {
-      const textResource0 = { id: '0', value: 'Test 0' };
-      const textResource1 = { id: '1', value: 'Test 1' };
-      const textResource2 = { id: '2', value: 'Test 2' };
-      const textResources = [textResource0, textResource1, textResource2];
-      const newTextResource1 = { id: '1', value: 'Updated value' };
-      const result = changeTextResourceInList(textResources, newTextResource1);
-      expect(result).toEqual([textResource0, newTextResource1, textResource2]);
-    });
-
-    it('Returns a new array', () => {
-      const textResources = [{ id: '0', value: 'Test 0' }];
-      const newTextResource = { id: '0', value: 'Updated value' };
-      const result = changeTextResourceInList(textResources, newTextResource);
-      expect(result).not.toBe(textResources);
+  describe('createNewTextResource', () => {
+    it('Returns a text resource with a generated id', () => {
+      const value: string = 'Lorem ipsum';
+      const result: TextResource = createNewTextResource(value);
+      expect(result.value).toBe('Lorem ipsum');
+      expect(result.id).toEqual(expect.any(String));
     });
   });
 
-  describe('determineDefaultMode', () => {
-    it('Returns "editValue" when a valid ID is given', () => {
-      const result = determineDefaultMode('land.NO');
-      expect(result).toBe(Mode.EditValue);
+  describe('generateRandomTextResourceId', () => {
+    const numberOfIds = 1000;
+    const ids: string[] = [];
+    for (let i = 0; i < numberOfIds; i++) {
+      ids.push(generateRandomTextResourceId());
+    }
+
+    it('Returns a string with the correct format', () => {
+      ids.forEach((id: string) => {
+        expect(id).toMatch(/^id_[a-zA-Z0-9]{12}$/);
+      });
     });
 
-    it.each([
-      ['an empty string', ''],
-      ['null', null],
-      ['undefined', undefined],
-    ])('Returns "search" when the ID is %s', (_, id) => {
-      const result = determineDefaultMode(id);
-      expect(result).toBe(Mode.Search);
+    it('Returns a different ID each time', () => {
+      const idSet = new Set(ids);
+      expect(idSet.size).toBe(numberOfIds);
     });
   });
 });

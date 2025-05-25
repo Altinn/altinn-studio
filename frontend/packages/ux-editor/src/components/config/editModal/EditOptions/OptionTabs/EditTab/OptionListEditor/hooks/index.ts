@@ -1,3 +1,3 @@
 export { useTextResourcesForLanguage } from './useTextResourcesForLanguage';
-export { useHandleBlurTextResource } from './useHandleBlurTextResource';
-export { useConcatOptionsLabels } from './useConcatOptionsLabels';
+export { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
+export { useConcatOptionListLabels } from './useConcatOptionListLabels';

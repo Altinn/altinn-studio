@@ -5,6 +5,7 @@ import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
+  ConsentTemplate,
   Resource,
   ResourceContactPoint,
   ResourceStatusOption,
@@ -53,6 +54,17 @@ const mockResource2: Resource = {
   delegable: true,
   rightDescription: { nb: '', nn: '', en: '' },
 };
+const mockConsentResource: Resource = {
+  ...mockResource1,
+  resourceType: 'ConsentResource',
+  consentText: {
+    nb: 'Du samtykker til å dele dine data med {org}',
+    nn: 'consentNn',
+    en: 'consentEn',
+  },
+  isOneTimeConsent: true,
+};
+
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
 ) as ResourceTypeOption;
@@ -63,6 +75,7 @@ const mockNewDescriptionInput: string = ' test';
 const mockNewHomepageInput: string = 'google.com';
 const mockNewKeyboardInput: string = ', key 3';
 const mockNewRightDescriptionInput: string = 'mock';
+const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
 jest.mock('react-router-dom', () => ({
@@ -306,6 +319,135 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles consentText changes', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_text_label'),
+      { exact: false },
+    );
+    expect(consentTextNbInput).toHaveValue(mockConsentResource.consentText.nb);
+
+    await user.type(consentTextNbInput, mockNewConsentTextInput);
+    await waitFor(() => consentTextNbInput.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${mockConsentResource.consentText.nb}${mockNewConsentTextInput}`,
+      },
+    });
+  });
+
+  it('handles consentTemplate changes', async () => {
+    const user = userEvent.setup();
+    const consentTemplateTitle = 'Fullmakt til å utføre en tjeneste';
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
+        consentTemplates={[
+          {
+            id: 'poa',
+            title: consentTemplateTitle,
+          } as ConsentTemplate,
+          {
+            id: 'sblanesoknad',
+            title: 'Samtykkebasert lånesøknad',
+          } as ConsentTemplate,
+        ]}
+      />,
+    );
+
+    const consentTemplateRadio = screen.getByLabelText(consentTemplateTitle);
+    await user.click(consentTemplateRadio);
+
+    expect(consentTemplateRadio).toBeChecked();
+  });
+
+  it('displays error if consent templates cannot be loaded', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        consentTemplates={undefined}
+        resourceData={{ ...mockConsentResource }}
+      />,
+    );
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_templates_error')),
+    ).toBeInTheDocument();
+  });
+
+  it('handles consentMetadata changes', async () => {
+    const user = userEvent.setup();
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentMetadata: { org: { optional: false } } }}
+      />,
+    );
+
+    const consentMetadataField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_metadata'),
+    );
+    await user.type(consentMetadataField, ', year');
+    await waitFor(() => consentMetadataField.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentMetadata: {
+        org: { optional: false },
+        year: { optional: false },
+      },
+    });
+  });
+
+  it('handles isOneTimeConsent switch changes', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const isOneTimeConsentInput = screen.getByLabelText(
+      textMock('resourceadm.about_resource_one_time_consent_label'),
+    );
+    expect(isOneTimeConsentInput).toBeChecked();
+
+    await user.click(isOneTimeConsentInput);
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      isOneTimeConsent: false,
+    });
+  });
+
+  it('displays field errors for consent fields', () => {
+    const consentTemplateError = 'CONSENT_TEMPLATE_ERROR';
+    const consentTextError = 'CONSENT_TEXT_ERROR';
+
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[
+          {
+            field: 'consentTemplate',
+            error: consentTemplateError,
+          },
+          {
+            field: 'consentText',
+            index: 'nb',
+            error: consentTextError,
+          },
+        ]}
+        resourceData={mockConsentResource}
+      />,
+    );
+
+    expect(screen.getAllByText(consentTemplateError)).toHaveLength(2);
+    expect(screen.getAllByText(consentTextError)).toHaveLength(2);
+  });
+
   it('displays errors for the required translation fields', async () => {
     render(
       <AboutResourcePage
@@ -434,5 +576,32 @@ describe('AboutResourcePage', () => {
     expect(
       screen.getByText(textMock('resourceadm.about_resource_references', { index: 1 })),
     ).toBeInTheDocument();
+  });
+
+  it('should display correct fields for resourceType ConsentResource', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[]}
+        consentTemplates={[]}
+        resourceData={{ ...mockResource1, resourceType: 'ConsentResource' }}
+      />,
+    );
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_text_label')),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_template_label')),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_one_time_consent_label')),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByText(textMock('resourceadm.about_resource_limited_by_rrr_label')),
+    ).not.toBeInTheDocument();
   });
 });

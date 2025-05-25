@@ -19,5 +19,5 @@
 }
 
 .switch {
-  margin-block: 10px;
+  margin-block: var(--ds-size-4);
 }

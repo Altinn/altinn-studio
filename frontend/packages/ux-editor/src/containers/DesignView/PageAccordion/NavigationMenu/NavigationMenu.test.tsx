@@ -1,12 +1,10 @@
 import {
-  groupsPagesModelMock,
   layout1NameMock,
   layout2NameMock,
-  pagelayout1NameMock,
-  pagelayout2NameMock,
+  pageGroupsMultiplePagesMock,
   pagesModelMock,
-} from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+} from '../../../../testing/layoutMock';
+import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { screen, waitFor } from '@testing-library/react';
@@ -23,6 +21,7 @@ import {
 } from '../../../../testing/mocks';
 import type { NavigationMenuProps } from './NavigationMenu';
 import { NavigationMenu } from './NavigationMenu';
+import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -49,7 +48,7 @@ describe('NavigationMenu', () => {
 
   it('should open the menu when clicking the menu icon', async () => {
     const user = userEvent.setup();
-    await render();
+    await render({});
 
     const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenu).not.toBeInTheDocument();
@@ -64,7 +63,7 @@ describe('NavigationMenu', () => {
   });
   it('should close the menu when clicking the menu icon twice', async () => {
     const user = userEvent.setup();
-    await render();
+    await render({});
 
     const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenu).not.toBeInTheDocument();
@@ -87,7 +86,7 @@ describe('NavigationMenu', () => {
 
   it('should close the menu when clicking outside the menu', async () => {
     const user = userEvent.setup();
-    await render();
+    await render({});
 
     const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
     await user.click(menuButtons[0]);
@@ -107,7 +106,7 @@ describe('NavigationMenu', () => {
 
   it('shows the up and down button by default', async () => {
     const user = userEvent.setup();
-    await render();
+    await render({});
     const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
     await user.click(menuButtons[0]);
 
@@ -120,65 +119,61 @@ describe('NavigationMenu', () => {
     expect(downButton).toBeInTheDocument();
   });
 
-  it('should toggle the page order using up and down buttons', async () => {
-    const user = userEvent.setup();
-    await render();
+  describe('when the pages are in page order configuration', () => {
+    it('should toggle the page order using up and down buttons', async () => {
+      const user = userEvent.setup();
+      await render({});
 
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
-    await user.click(menuButtons[0]);
-    const menuItemDown = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_down'),
-    });
-    await user.click(menuItemDown);
+      const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+      await user.click(menuButtons[0]);
+      const menuItemDown = screen.getByRole('menuitem', {
+        name: textMock('ux_editor.page_menu_down'),
+      });
+      await user.click(menuItemDown);
 
-    expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
-    expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
-      groups: [
-        {
-          name: pagelayout1NameMock,
-          type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
-        },
-        {
-          name: pagelayout2NameMock,
-          type: pagelayout2NameMock,
-          markWhenCompleted: true,
-          order: [{ id: layout2NameMock }],
-        },
-        {
-          name: 'EmptyGroup',
-          order: [],
-        },
-      ],
-    });
-    expect(menuItemDown).not.toBeInTheDocument();
+      expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(1);
+      expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+        pages: [{ id: layout2NameMock }, { id: layout1NameMock }],
+      });
+      expect(menuItemDown).not.toBeInTheDocument();
 
-    await user.click(menuButtons[1]);
-    const menuItemUp = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
+      await user.click(menuButtons[1]);
+      const menuItemUp = screen.getByRole('menuitem', {
+        name: textMock('ux_editor.page_menu_up'),
+      });
+      await user.click(menuItemUp);
+      expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
+      expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+        pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+      });
     });
-    await user.click(menuItemUp);
-    expect(queriesMock.changePageOrder).toHaveBeenCalledTimes(2);
-    expect(queriesMock.changePageOrder).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
-      pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
-      groups: [
-        {
-          name: pagelayout1NameMock,
-          type: pagelayout1NameMock,
-          order: [{ id: layout1NameMock }],
-        },
-        {
-          name: pagelayout2NameMock,
-          type: pagelayout2NameMock,
-          markWhenCompleted: true,
-          order: [{ id: layout2NameMock }],
-        },
-        {
-          name: 'EmptyGroup',
-          order: [],
-        },
-      ],
+  });
+
+  describe('when the pages are in groups', () => {
+    it('should be able to move page in group down', async () => {
+      const user = userEvent.setup();
+      await render({
+        pagesModel: pageGroupsMultiplePagesMock,
+      });
+      const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+      await user.click(menuButtons[0]);
+      const menuItemDown = screen.getByRole('menuitem', {
+        name: textMock('ux_editor.page_menu_down'),
+      });
+      await user.click(menuItemDown);
+
+      const updatedPagesModel = {
+        ...pageGroupsMultiplePagesMock,
+      };
+      updatedPagesModel.groups[0].order.reverse();
+      expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
+        org,
+        app,
+        mockSelectedLayoutSet,
+        updatedPagesModel,
+      );
+      expect(menuItemDown).not.toBeInTheDocument();
     });
   });
 });
@@ -195,11 +190,15 @@ const waitForData = async () => {
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<NavigationMenuProps> = {}) => {
+type renderParams = {
+  props?: Partial<NavigationMenuProps>;
+  pagesModel?: PagesModel;
+};
+
+const render = async ({ props = {}, pagesModel = pagesModelMock }: renderParams) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModelMock);
-  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], groupsPagesModelMock);
+  queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
   await waitForData();
   return renderWithProviders(
     <>

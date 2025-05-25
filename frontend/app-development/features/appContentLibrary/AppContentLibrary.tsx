@@ -34,9 +34,9 @@ import type { OptionListReferences } from 'app-shared/types/OptionListReferences
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
-import { useGetAvailableCodeListsFromOrgQuery } from 'app-development/hooks/queries/useGetAvailableCodeListsFromOrgQuery';
-import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
+import { useGetAvailableOrgResourcesQuery } from '../../hooks/queries/useGetAvailableOrgResourcesQuery';
 import { useImportCodeListFromOrgToAppMutation } from 'app-development/hooks/mutations/useImportCodeListFromOrgToAppMutation';
+import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -50,16 +50,14 @@ export function AppContentLibrary(): React.ReactElement {
     app,
   );
   const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
-  const {
-    data: availableCodeListsToImportFromOrg,
-    status: availableCodeListsToImportFromOrgStatus,
-  } = useGetAvailableCodeListsFromOrgQuery(org, LibraryContentType.CodeList);
+  const { data: availableOrgResources, status: availableOrgResourcesStatus } =
+    useGetAvailableOrgResourcesQuery(org);
 
   const status = mergeQueryStatuses(
     optionListDataListStatus,
     optionListUsagesStatus,
     textResourcesStatus,
-    availableCodeListsToImportFromOrgStatus,
+    availableOrgResourcesStatus,
   );
 
   switch (status) {
@@ -73,7 +71,7 @@ export function AppContentLibrary(): React.ReactElement {
           optionListDataList={optionListDataList}
           optionListUsages={optionListUsages}
           textResources={textResources}
-          availableCodeListsToImportFromOrg={availableCodeListsToImportFromOrg ?? []}
+          availableOrgResources={availableOrgResources}
         />
       );
   }
@@ -83,14 +81,14 @@ type AppContentLibraryWithDataProps = {
   optionListDataList: OptionListData[];
   optionListUsages: OptionListReferences;
   textResources: ITextResources;
-  availableCodeListsToImportFromOrg?: string[];
+  availableOrgResources?: ExternalResource[];
 };
 
 function AppContentLibraryWithData({
   optionListDataList,
   optionListUsages,
   textResources,
-  availableCodeListsToImportFromOrg = [],
+  availableOrgResources = [],
 }: AppContentLibraryWithDataProps): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
@@ -113,6 +111,11 @@ function AppContentLibraryWithData({
     updateOptionList({ optionListId: title, optionList: codeList });
   };
 
+  const handleCreate = ({ title, codeList }: CodeListWithMetadata): void => {
+    // OptionsController uses PUT for both creating and updating code lists
+    updateOptionList({ optionListId: title, optionList: codeList });
+  };
+
   const handleImportCodeListFromOrg = (codeListId: string): void => {
     importCodeListFromOrg(codeListId);
   };
@@ -130,14 +133,16 @@ function AppContentLibraryWithData({
       codeList: {
         props: {
           codeListsData: codeListDataList,
+          onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
+          onCreateTextResource: handleUpdateTextResource,
           onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           codeListsUsages,
           textResources,
-          externalResourceIds: availableCodeListsToImportFromOrg,
+          externalResources: availableOrgResources,
           onImportCodeListFromOrg: handleImportCodeListFromOrg,
         },
       },

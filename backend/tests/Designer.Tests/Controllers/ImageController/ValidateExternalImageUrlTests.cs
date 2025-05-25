@@ -15,13 +15,13 @@ namespace Designer.Tests.Controllers.ImageController;
 
 public class ValidateExternalImageUrlTests(
     WebApplicationFactory<Program> factory,
-    MockServerFixture _mockServerFixture
+    MockServerFixture mockServerFixture
 )
     : DesignerEndpointsTestsBase<ValidateExternalImageUrlTests>(factory),
         IClassFixture<WebApplicationFactory<Program>>,
         IClassFixture<MockServerFixture>
 {
-    private readonly MockServerFixture _mockServerFixture = _mockServerFixture;
+    private readonly MockServerFixture _mockServerFixture = mockServerFixture;
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
     private const string EmptyApp = "empty-app";

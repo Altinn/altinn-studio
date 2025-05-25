@@ -55,10 +55,10 @@ export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/opt
 export const importCodeListFromOrgPath = (org, app, codeListId) => `${basePath}/${org}/${app}/options/import/${codeListId}`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
-export const availableResourcesInOrgLibraryPath = (org, contentType) => `${basePath}/${org}/content/${contentType}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
+export const layoutSetsExtendedPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
@@ -67,6 +67,9 @@ export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${ba
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 export const layoutPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/layouts/layoutSet/${layoutSetName}`;
 export const layoutPagesPath = (org, app, layoutSetName, pageName) => `${layoutPath(org, app, layoutSetName)}/pages/${pageName ? pageName : ''}`;
+export const layoutPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/page-groups/`;
+export const layoutConvertToPageGroupsPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pagegroups/`;
+export const layoutConvertToPageOrderPath = (org, app, layoutSetName) => `${layoutPath(org, app, layoutSetName)}/convert-to-pageorder/`;
 export const taskNavigationGroupPath = (org, app) => `${basePath}/${org}/${app}/task-navigation`; // Get, Post, Put, Delete
 
 // Gitea
@@ -93,6 +96,8 @@ export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${basePath}/${org}/text/language/${language}`; // Get, patch, post
+export const orgTextLanguagesPath = (org) => `${basePath}/${org}/text/languages`; // Get
+export const availableResourcesInOrgLibraryPath = (org, contentType) => `${basePath}/${org}/content?${s({ contentType })}`; // Get
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
@@ -173,6 +178,7 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
 export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
+export const consentTemplatesPath = (org) => `${basePath}/${org}/resources/consenttemplates/`; // Get
 
 // Preview
 export const instancesPath = (org, app) => `/${org}/${app}/instances`;

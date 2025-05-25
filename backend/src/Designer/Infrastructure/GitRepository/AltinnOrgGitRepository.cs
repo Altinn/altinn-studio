@@ -18,7 +18,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.??.json";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -64,13 +64,14 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     public async Task<TextResource> GetText(string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string resourcePath = GetPathToJsonTextsFile($"resource.{languageCode}.json");
-        if (!FileExistsByRelativePath(resourcePath))
+        if (!TextResourceFileExists(languageCode))
         {
             throw new NotFoundException("Text resource file not found.");
         }
+
+        string resourcePath = GetPathToTextResourceFromLanguageCode(languageCode);
         string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
-        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, JsonOptions);
+        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
 
         return textResource;
     }
@@ -84,10 +85,19 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string fileName = $"resource.{languageCode}.json";
-        string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
-        string texts = JsonSerializer.Serialize(jsonTexts, JsonOptions);
+        string textsFileRelativeFilePath = GetPathToTextResourceFromLanguageCode(languageCode);
+        string texts = JsonSerializer.Serialize(jsonTexts, s_jsonOptions);
         await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts, true, cancellationToken);
+    }
+
+    /// <summary>
+    /// Checks if a text resource file corresponding to the specified language code exists.
+    /// </summary>
+    /// <param name="languageCode">The language code corresponding to the text resource file.</param>
+    public bool TextResourceFileExists(string languageCode)
+    {
+        string path = GetPathToTextResourceFromLanguageCode(languageCode);
+        return FileExistsByRelativePath(path);
     }
 
     /// <summary>
@@ -126,7 +136,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
             throw new NotFoundException($"code list file {codeListId}.json was not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
-        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, JsonOptions);
+        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
 
         return codeList;
     }
@@ -141,7 +151,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string payloadString = JsonSerializer.Serialize(codeList, JsonOptions);
+        string payloadString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
         await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
@@ -157,7 +167,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string codeListString = JsonSerializer.Serialize(codeList, JsonOptions);
+        string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
         string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
@@ -181,7 +191,18 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         DeleteFileByRelativePath(codeListFilePath);
     }
 
-    private static string GetPathToJsonTextsFile(string fileName)
+    private static string GetPathToTextResourceFromLanguageCode(string languageCode)
+    {
+        string fileName = GetTextResourceFileName(languageCode);
+        return GetPathToTextResourceFileFromFilename(fileName);
+    }
+
+    private static string GetTextResourceFileName(string languageCode)
+    {
+        return $"resource.{languageCode}.json";
+    }
+
+    private static string GetPathToTextResourceFileFromFilename(string fileName)
     {
         return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
     }

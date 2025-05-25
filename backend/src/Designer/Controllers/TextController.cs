@@ -137,8 +137,8 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
-                return Ok($"The text resource, resource.{languageCode}.json, was updated.");
+                TextResource textResource = await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
+                return Ok(textResource);
 
             }
             catch (ArgumentException exception)
@@ -202,7 +202,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     await _mediator.Publish(new LanguageTextsKeyChangedEvent
                     {
-                        idMutations = mutations,
+                        IdMutations = mutations,
                         EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
                     });
                     await _textsService.SaveText(org, app, developer, textResourceObject, languageCode);

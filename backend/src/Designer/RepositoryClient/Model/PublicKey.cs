@@ -25,20 +25,20 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="PublicKey" /> class.
         /// </summary>
-        /// <param name="CreatedAt">CreatedAt.</param>
-        /// <param name="Fingerprint">Fingerprint.</param>
-        /// <param name="Id">Id.</param>
-        /// <param name="Key">Key.</param>
-        /// <param name="Title">Title.</param>
-        /// <param name="Url">Url.</param>
-        public PublicKey(DateTime? CreatedAt = default(DateTime?), string Fingerprint = default(string), long? Id = default(long?), string Key = default(string), string Title = default(string), string Url = default(string))
+        /// <param name="createdAt">CreatedAt.</param>
+        /// <param name="fingerprint">Fingerprint.</param>
+        /// <param name="id">Id.</param>
+        /// <param name="key">Key.</param>
+        /// <param name="title">Title.</param>
+        /// <param name="url">Url.</param>
+        public PublicKey(DateTime? createdAt = default(DateTime?), string fingerprint = default(string), long? id = default(long?), string key = default(string), string title = default(string), string url = default(string))
         {
-            this.CreatedAt = CreatedAt;
-            this.Fingerprint = Fingerprint;
-            this.Id = Id;
-            this.Key = Key;
-            this.Title = Title;
-            this.Url = Url;
+            this.CreatedAt = createdAt;
+            this.Fingerprint = fingerprint;
+            this.Id = id;
+            this.Key = key;
+            this.Title = title;
+            this.Url = url;
         }
 
         /// <summary>

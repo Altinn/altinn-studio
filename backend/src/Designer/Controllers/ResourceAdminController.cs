@@ -568,6 +568,18 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
+            if (resource.ResourceType == ResourceType.ConsentResource)
+            {
+                if (string.IsNullOrWhiteSpace(resource.ConsentTemplate))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentTemplate", "resourceerror.missingconsenttemplate");
+                }
+                if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.ConsentText))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentText", "resourceerror.missingconsenttext");
+                }
+            }
+
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
@@ -615,6 +627,25 @@ namespace Altinn.Studio.Designer.Controllers
                 Console.WriteLine("Invalid repository for resource");
                 return new StatusCodeResult(400);
             }
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/consenttemplates")]
+        public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
+        {
+            string cacheKey = $"consentTemplates${org}";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate> consentTemplates))
+            {
+                consentTemplates = await _resourceRegistry.GetConsentTemplates(org);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, consentTemplates, cacheEntryOptions);
+            }
+
+            return consentTemplates;
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
@@ -698,14 +729,16 @@ namespace Altinn.Studio.Designer.Controllers
             return string.Format("{0}-resources", org);
         }
 
-        private List<string> GetEnvironmentsForOrg(string org)
+        private static List<string> GetEnvironmentsForOrg(string org)
         {
-            List<string> environmentsForOrg = ["prod", "tt02"];
-            if (OrgUtil.IsTestEnv(org) || string.Equals(org, "digdir", StringComparison.OrdinalIgnoreCase))
+            List<string> defaultOrgs = ["prod", "tt02"];
+            return org.ToUpper() switch
             {
-                environmentsForOrg.AddRange(["at22", "at23", "at24", "yt01"]);
-            }
-            return environmentsForOrg;
+                "TTD" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
+                "DIGDIR" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
+                "SKD" => [.. defaultOrgs, "yt01"],
+                _ => defaultOrgs,
+            };
         }
     }
 }

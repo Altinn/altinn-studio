@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
@@ -41,6 +41,7 @@ describe('AddMapLayer', () => {
   let componentMock;
 
   afterEach(() => {
+    jest.clearAllMocks();
     componentMock = {
       layers: [
         {
@@ -140,5 +141,41 @@ describe('AddMapLayer', () => {
         },
       ],
     });
+  });
+
+  it('should set layers to undefined when deleting last layer', async () => {
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
+    const button = within(screen.getByRole('menubar')).getByRole('button');
+    await user.click(button);
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({});
+  });
+
+  it('should call handleComponentChange with deleted layer with multiple layers', async () => {
+    const multipleLayersComponent: any = {
+      layers: [
+        {
+          attribution: undefined,
+          subdomains: undefined,
+          url: undefined,
+        },
+        {
+          attribution: undefined,
+          subdomains: undefined,
+          url: undefined,
+        },
+      ],
+    };
+    const user = userEvent.setup();
+    await renderMapComponent({ component: multipleLayersComponent });
+    const button = within(screen.getAllByRole('menubar')[0]).getByRole('button');
+    await user.click(button);
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    const expectedComponent = {
+      ...multipleLayersComponent,
+    };
+    expectedComponent.layers.splice(0, 1);
+    expect(handleComponentChangeMock).toHaveBeenLastCalledWith(expectedComponent);
   });
 });
