@@ -12,14 +12,62 @@ import {
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: jest.fn(),
+}));
 
 const mockGetRepoPull = jest.fn();
 
 describe('fetchChanges', () => {
   afterEach(jest.clearAllMocks);
+
+  it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
+    const user = userEvent.setup();
+    const mockInvalidateQueries = jest.fn();
+    const mockSetQueryData = jest.fn();
+    const mockQueryClient = {
+      invalidateQueries: mockInvalidateQueries,
+      setQueryData: mockSetQueryData,
+    };
+    (useQueryClient as jest.Mock).mockReturnValue(mockQueryClient);
+    mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
+    );
+    renderWithProviders({ getRepoPull: mockGetRepoPull }, new QueryClient(), {
+      owner: org,
+      repoName: app,
+    })(
+      <VersionControlButtonsContext.Provider
+        value={{
+          ...mockVersionControlButtonsContextValue,
+          onPullSuccess: jest.fn(),
+          repoStatus: {
+            behindBy: 2,
+            aheadBy: 0,
+            contentStatus: [],
+            repositoryStatus: '',
+            hasMergeConflict: false,
+          },
+        }}
+      >
+        <FetchChangesPopover />
+      </VersionControlButtonsContext.Provider>,
+    );
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+    const predicate = mockInvalidateQueries.mock.calls[0][0].predicate;
+    expect(predicate({ queryKey: [org, 'some-key'] })).toBe(true);
+    expect(predicate({ queryKey: [app, 'some-key'] })).toBe(true);
+    expect(predicate({ queryKey: ['other-owner', 'other-repo'] })).toBe(false);
+  });
 
   it('should call "getPullRepo"" when clicking sync button', async () => {
     const user = userEvent.setup();
@@ -98,39 +146,6 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
-  });
-
-  it('should update UI after successful fetch', async () => {
-    const user = userEvent.setup();
-    const mockRepoStatus: RepoStatus = {
-      behindBy: 2,
-      aheadBy: 0,
-      contentStatus: [],
-      repositoryStatus: '',
-      hasMergeConflict: false,
-    };
-    const getRepoPull = mockGetRepoPull.mockImplementation(async () => {
-      mockRepoStatus.behindBy = 0;
-      return { repositoryStatus: 'Ok', hasMergeConflict: false };
-    });
-
-    renderFetchChangesPopover({
-      queries: { getRepoPull },
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        onPullSuccess: jest.fn(),
-        repoStatus: mockRepoStatus,
-      },
-    });
-    expect(screen.getByText('2')).toBeInTheDocument();
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    await waitFor(() => {
-      expect(
-        screen.getByText(textMock('sync_header.service_updated_to_latest')),
-      ).toBeInTheDocument();
-    });
-    expect(screen.queryByText('2')).not.toBeInTheDocument();
   });
 
   it('should call commitAndPushChanges and close popover when there is a merge conflict or checkout conflict', async () => {
