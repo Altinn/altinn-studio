@@ -372,6 +372,12 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
 
+
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches")]
+        public async Task<List<Branch>> Branches(string org, string repository)
+            => await _giteaApi.GetBranches(org, repository);
+
         /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>

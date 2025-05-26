@@ -397,6 +397,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<List<Branch>> GetBranches(string org, string repository)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<List<Branch>>();
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository);
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public async Task<Branch> CreateBranch(string org, string repository, string branchName)
         {
             // In quite a few cases we have experienced that we get a 404 back
@@ -427,6 +441,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return await _httpClient.SendAsync(message);
         }
+
+
 
         /// <inheritdoc />
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
