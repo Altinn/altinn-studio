@@ -112,10 +112,10 @@ export const isDefaultReceiptTask = (
   return isReceipt && !isCustomReceipt;
 };
 
-export const createNewTextResourceId = (tasks: TaskNavigationGroup[], index: number): string => {
+export const createNewTextResourceId = (task: TaskNavigationGroup): string => {
   const generateIdOptions = {
-    layoutId: tasks[index].taskType,
-    componentId: tasks[index]?.taskId ?? tasks[index].taskType,
+    layoutId: task.taskType,
+    componentId: task?.taskId ?? task.taskType,
     textResourceKey: generateRandomId(6),
   };
 

@@ -106,7 +106,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
           </StudioButton>
           <StudioDivider className={classes.divider} />
           <EditNameAction
-            nameId={task.name}
+            task={task}
             tasks={tasks}
             index={index}
             handleUpdateTaskNavigationGroup={handleUpdateTaskNavigationGroup}
