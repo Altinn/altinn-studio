@@ -83,8 +83,8 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   await processEditorPage.policyConfig.clickOnPolicyAccordion();
-  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
-  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyLinkIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorLink();
 
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
 });
@@ -105,8 +105,8 @@ test('Opening the settings page after the user has opened it from the process ed
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   await processEditorPage.policyConfig.clickOnPolicyAccordion();
-  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
-  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyLinkIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorLink();
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
 
   await settingsPage.navigateToTab('setup');

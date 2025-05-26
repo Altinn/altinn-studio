@@ -14,16 +14,16 @@ export class PolicyConfig extends BasePage {
       .click();
   }
 
-  public async waitForNavigateToPolicyButtonIsVisible(): Promise<void> {
-    const button = this.page.getByRole('link', {
+  public async waitForNavigateToPolicyLinkIsVisible(): Promise<void> {
+    const link = this.page.getByRole('link', {
       name: this.textMock(
         'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
       ),
     });
-    await expect(button).toBeVisible();
+    await expect(link).toBeVisible();
   }
 
-  public async clickOnNavigateToPolicyEditorButton(): Promise<void> {
+  public async clickOnNavigateToPolicyEditorLink(): Promise<void> {
     await this.page
       .getByRole('link', {
         name: this.textMock(
