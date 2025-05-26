@@ -14,6 +14,7 @@ export enum FeatureFlag {
   TaskNavigationTabNav = 'taskNavigationTabNav',
   ConsentResource = 'consentResource',
   SettingsPage = 'settingsPage',
+  AppMetadata = 'appMetadata',
 }
 
 /*
