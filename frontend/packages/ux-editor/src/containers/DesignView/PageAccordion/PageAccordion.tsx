@@ -91,8 +91,9 @@ export const PageAccordion = ({
             {pageName}
           </Accordion.Header>
         </div>
-
-        <div className={cn(classes.navigationMenu, isUsingGroups && classes.navigationMenuGroup)}>
+        <div
+          className={cn(classes.navigationMenu, { [classes.navigationMenuGroup]: isUsingGroups })}
+        >
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton

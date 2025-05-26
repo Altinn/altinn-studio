@@ -4,7 +4,7 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { MenuElipsisVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
@@ -83,7 +83,7 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
-    const isGrpupHasOnePage = group.order.length === 1;
+    const hasGroupOnePage = group.order.length === 1;
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
@@ -92,8 +92,8 @@ export const PageGroupAccordion = ({
           data-testid={pageGroupAccordionHeader(groupIndex)}
         >
           <div className={classes.container}>
-            <FolderIcon aria-hidden className={classes.liftIcon} />
-            <StudioHeading level={3} size='2xs'>
+            <FolderIcon aria-hidden className={cn(classes.liftIcon, classes.customSize)} />
+            <StudioHeading level={3} className={cn(classes.groupHeader, classes.customSize)}>
               {groupDisplayName}
             </StudioHeading>
           </div>
@@ -121,11 +121,11 @@ export const PageGroupAccordion = ({
                 </div>
               </StudioPopover>
             </StudioPopover.TriggerContext>
-            <StudioButton
+            <StudioDeleteButton
               title={t('general.delete_item', { item: groupDisplayName })}
               data-color='danger'
               icon={<TrashIcon />}
-              onClick={handleConfirmDelete}
+              onDelete={handleConfirmDelete}
               variant='tertiary'
               disabled={isPending}
             />
@@ -138,10 +138,9 @@ export const PageGroupAccordion = ({
           return (
             <Accordion
               key={page.id}
-              className={cn(
-                classes.groupAccordionWrapper,
-                isGrpupHasOnePage && classes.groupAccordionWrapperSinglePage,
-              )}
+              className={cn(classes.groupAccordionWrapper, {
+                [classes.groupAccordionWrapperSinglePage]: hasGroupOnePage,
+              })}
             >
               <PageAccordion
                 pageName={page.id}
