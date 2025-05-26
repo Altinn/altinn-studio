@@ -173,7 +173,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Call branch endpoint
-            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master"));
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches"));
             var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch[]>();
             Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
             Assert.NotEmpty(deserializedBranchModel);
