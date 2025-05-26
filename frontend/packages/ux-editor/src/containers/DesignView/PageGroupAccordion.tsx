@@ -18,13 +18,14 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
   onAccordionClick: (pageName: string) => void;
-  addPageInGroup: (groupIndex: number) => void;
   isAddPagePending: boolean;
 }
 
@@ -33,7 +34,6 @@ export const PageGroupAccordion = ({
   layouts,
   selectedFormLayoutName,
   onAccordionClick,
-  addPageInGroup,
   isAddPagePending,
 }: PageGroupAccordionProps): ReactNode => {
   const { t } = useTranslation();
@@ -53,6 +53,9 @@ export const PageGroupAccordion = ({
     app,
     selectedFormLayoutSetName,
   );
+
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(pagesModel);
 
   const moveGroupUp = (groupIndex: number) => {
     const newGroups = [...pages.groups];
@@ -155,7 +158,7 @@ export const PageGroupAccordion = ({
         <div className={classes.buttonContainer}>
           <StudioButton
             icon={<PlusIcon aria-hidden />}
-            onClick={() => addPageInGroup(groupIndex)}
+            onClick={() => handleAddPageInsideGroup(groupIndex)}
             className={classes.button}
             disabled={isAddPagePending}
           >

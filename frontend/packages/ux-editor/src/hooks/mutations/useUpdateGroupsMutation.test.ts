@@ -5,29 +5,27 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-const mockInvalidateQueries = jest.fn();
-
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQueryClient: jest.fn(),
-}));
+const invalidateQueriesMock = jest.fn();
 
 describe('useUpdateGroupsMutation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (queriesMock.changePageGroups as jest.Mock).mockResolvedValue(undefined);
-    (useQueryClient as jest.Mock).mockReturnValue({
-      invalidateQueries: mockInvalidateQueries,
-    });
   });
   const renderUseUpdateGroupsMutation = (
     org: string,
     app: string,
     layoutSetName: string = 'default',
   ) => {
-    return renderHookWithProviders(() => useUpdateGroupsMutation(org, app, layoutSetName), {
-      queries: queriesMock,
-    });
+    return renderHookWithProviders(
+      () => {
+        const queryClient = useQueryClient();
+        queryClient.invalidateQueries = invalidateQueriesMock;
+        return useUpdateGroupsMutation(org, app, layoutSetName);
+      },
+      {
+        queries: queriesMock,
+      },
+    );
   };
 
   it('should call changePageGroups with correct parameters', async () => {
@@ -55,15 +53,15 @@ describe('useUpdateGroupsMutation', () => {
       ],
     };
     await result.current.mutateAsync(pageGroups);
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({
       queryKey: [QueryKey.Pages, org, app, 'default'],
     });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayouts, org, app, 'default'],
     });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayoutSettings, org, app, 'default'],
     });
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(3);
+    expect(invalidateQueriesMock).toHaveBeenCalledTimes(3);
   });
 });
