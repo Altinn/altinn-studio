@@ -4,7 +4,7 @@
   gap: var(--fds-spacing-3);
   background-color: var(--fds-semantic-background-default);
   border: var(--fds-border_width-active) solid var(--fds-semantic-border-first-active);
-  border-radius: var(--fds-border_radius-large);
+  border-radius: var(--fds-border_radius-medium);
 }
 
 .subformTabs {

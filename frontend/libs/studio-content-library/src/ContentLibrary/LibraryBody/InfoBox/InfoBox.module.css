@@ -1,5 +1,5 @@
 .infoBoxContainer {
-  border-radius: var(--fds-border_radius-large);
+  border-radius: var(--fds-border_radius-medium);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   overflow: hidden;
   height: fit-content;
