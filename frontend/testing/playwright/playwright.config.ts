@@ -96,18 +96,6 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: TestNames.SETTINGS_MODAL,
-      dependencies: [TestNames.SETUP],
-      testDir: './tests/settings-modal/',
-      testMatch: '*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: '.playwright/auth/user.json',
-        testAppName: AppNames.SETTINGS_MODAL_APP,
-        headless: true,
-      },
-    },
-    {
       name: TestNames.APP_SETTINGS,
       dependencies: [TestNames.SETUP],
       testDir: './tests/app-settings/',
@@ -167,7 +155,6 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
-        TestNames.SETTINGS_MODAL,
         TestNames.APP_SETTINGS,
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
