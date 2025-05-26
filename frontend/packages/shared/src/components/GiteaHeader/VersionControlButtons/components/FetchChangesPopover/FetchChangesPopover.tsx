@@ -59,7 +59,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
       await queryClient.invalidateQueries({
         predicate: (q) => {
           const queryKey = q.queryKey;
-          return queryKey.includes(owner) || queryKey.includes(repoName);
+          return queryKey.includes(owner) && queryKey.includes(repoName);
         },
       });
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
