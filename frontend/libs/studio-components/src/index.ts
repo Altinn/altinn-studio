@@ -1,2 +1,2 @@
 export * from './components';
-export { useCheckboxGroup as useStudioCheckboxGroup } from '@digdir/designsystemet-react';
+export * from './hooks';
