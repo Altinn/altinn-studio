@@ -11,27 +11,27 @@ describe('useAppSettingsMenuTabConfigs', () => {
     expect(result.current).toEqual([
       {
         tabId: 'about',
-        tabName: textMock('settings_modal.left_nav_tab_about'),
+        tabName: textMock('app_settings.left_nav_tab_about'),
         icon: expect.any(Object),
       },
       {
         tabId: 'setup',
-        tabName: textMock('settings_modal.left_nav_tab_setup'),
+        tabName: textMock('app_settings.left_nav_tab_setup'),
         icon: expect.any(Object),
       },
       {
         tabId: 'policy',
-        tabName: textMock('settings_modal.left_nav_tab_policy'),
+        tabName: textMock('app_settings.left_nav_tab_policy'),
         icon: expect.any(Object),
       },
       {
         tabId: 'access_control',
-        tabName: textMock('settings_modal.left_nav_tab_access_control'),
+        tabName: textMock('app_settings.left_nav_tab_access_control'),
         icon: expect.any(Object),
       },
       {
         tabId: 'maskinporten',
-        tabName: textMock('settings_modal.left_nav_tab_maskinporten'),
+        tabName: textMock('app_settings.left_nav_tab_maskinporten'),
         icon: expect.any(Object),
       },
     ]);
