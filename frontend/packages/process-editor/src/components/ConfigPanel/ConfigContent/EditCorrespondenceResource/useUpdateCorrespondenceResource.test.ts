@@ -65,14 +65,15 @@ describe('useUpdateCorrespondenceResource', () => {
 
     const { result } = renderHook(() => useUpdateCorrespondenceResource());
 
+    const newValue = 'newValue';
     act(() => {
-      result.current('newValue');
+      result.current(newValue);
     });
 
     expect(mockUpdateModdleProperties).toHaveBeenCalledWith(
       element,
       element.businessObject.extensionElements.values[0].signatureConfig,
-      { correspondenceResource: 'newValue' },
+      { correspondenceResource: newValue },
     );
   });
 });
