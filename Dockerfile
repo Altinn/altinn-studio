@@ -65,7 +65,7 @@ COPY --from=generate-studio-backend /app_output .
 
 COPY --from=generate-studio-frontend /build/frontend/app-development/dist ./wwwroot/editor/
 COPY --from=generate-studio-frontend /build/frontend/dashboard/dist ./wwwroot/dashboard/
-COPY --from=generate-studio-frontend /build/frontend/studio-root/dist ./wwwroot/studio-root/
+COPY --from=generate-studio-frontend /build/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/frontend/resourceadm/dist ./wwwroot/resourceadm/
 
