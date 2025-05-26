@@ -16,7 +16,6 @@ import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useNavigateFrom } from './useNavigateFrom';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
@@ -119,8 +118,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
@@ -136,8 +133,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.UIEditor,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
@@ -156,8 +151,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
@@ -176,8 +169,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: null,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {

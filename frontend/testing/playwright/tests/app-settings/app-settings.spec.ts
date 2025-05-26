@@ -13,8 +13,6 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   const designerApi = new DesignerApi({ app: testAppName });
   const response = await designerApi.createApp(request, storageState as StorageState);
   expect(response.ok()).toBeTruthy();
-
-  localStorage.setItem('featureFlags', JSON.stringify(['settingsPage']));
 });
 
 test.afterAll(async ({ request, testAppName }) => {
@@ -26,13 +24,15 @@ test.afterAll(async ({ request, testAppName }) => {
 const setUpAndVerifySettingsPage = async (
   page: Page,
   testAppName: string,
-  tabToStartAt: SettingsPageTab = 'about',
+  tabToStartAt?: SettingsPageTab,
 ): Promise<SettingsPage> => {
   const settingsPage = new SettingsPage(page, { app: testAppName });
   await settingsPage.loadSettingsPage();
   await settingsPage.verifySettingsPage();
-  if (tabToStartAt !== 'about') {
+
+  if (tabToStartAt && tabToStartAt !== 'about') {
     settingsPage.navigateToTab(tabToStartAt);
+    settingsPage.verifyThatTabIsVisible(tabToStartAt);
   }
   return settingsPage;
 };

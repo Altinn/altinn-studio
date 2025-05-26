@@ -9,7 +9,6 @@ import {
 } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { MemoryRouter } from 'react-router-dom';
@@ -53,8 +52,6 @@ describe('EditPolicy', () => {
   });
 
   it('adds the correct href to the button', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
-
     renderEditPolicy(<EditPolicy />);
     const button = screen.getByRole('link', {
       name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
@@ -70,8 +67,6 @@ describe('EditPolicy', () => {
   it('sets the correct local storage item when the button is clicked', async () => {
     // As real navigations are not supported in jsdom, we need this mock to prevent errors
     jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
 
     renderEditPolicy(<EditPolicy />);
     const user = userEvent.setup();

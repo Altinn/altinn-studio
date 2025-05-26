@@ -6,7 +6,6 @@ import { SettingsModal } from './SettingsModal';
 import { useSettingsModalContext } from '../../../../contexts/SettingsModalContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
@@ -22,8 +21,7 @@ export const SettingsModalButton = (): ReactElement => {
   const { navigateFrom, currentRoutePath } = useNavigateFrom();
   const pageNavigateToSettingsFrom: RoutePaths = navigateFrom || RoutePaths.Overview;
 
-  const isSettingsPage: boolean =
-    currentRoutePath === RoutePaths.AppSettings && shouldDisplayFeature(FeatureFlag.SettingsPage);
+  const isSettingsPage: boolean = currentRoutePath === RoutePaths.AppSettings;
   const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
 
   const handleClick = () => {
@@ -35,11 +33,7 @@ export const SettingsModalButton = (): ReactElement => {
   };
 
   const handleClickSettingsButton = () => {
-    if (shouldDisplayFeature(FeatureFlag.SettingsPage)) {
-      navigate(RoutePaths.AppSettings, { state: { from: currentRoutePath } });
-    } else {
-      settingsRef.current.openSettings();
-    }
+    navigate(RoutePaths.AppSettings, { state: { from: currentRoutePath } });
   };
 
   const handleClickGoBackButton = () => {
