@@ -31,8 +31,8 @@ const setUpAndVerifySettingsPage = async (
   await settingsPage.verifySettingsPage();
 
   if (tabToStartAt && tabToStartAt !== 'about') {
-    settingsPage.navigateToTab(tabToStartAt);
-    settingsPage.verifyThatTabIsVisible(tabToStartAt);
+    await settingsPage.navigateToTab(tabToStartAt);
+    await settingsPage.verifyThatTabIsVisible(tabToStartAt);
   }
   return settingsPage;
 };
@@ -75,10 +75,10 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
   await policyEditor.selectRulesTab();
 
   const securityLevel2 = 2;
-  policyEditor.verifySelectedSecurityLevel(securityLevel2);
+  await policyEditor.verifySelectedSecurityLevel(securityLevel2);
 
   const securityLevel3 = 3;
-  await policyEditor.selectSecurityLevel(securityLevel3);
+  await await policyEditor.selectSecurityLevel(securityLevel3);
   policyEditor.verifySelectedSecurityLevel(securityLevel3);
 
   // In dev, the API call to save the policy takes some time, and therefore we add functionality to wait for a while to wait for the save to happen
