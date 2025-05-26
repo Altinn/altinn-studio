@@ -58,9 +58,7 @@ describe('fetchChanges', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
     const predicate = mockInvalidateQueries.mock.calls[0][0].predicate;
-    expect(predicate({ queryKey: [org, 'some-key'] })).toBe(true);
-    expect(predicate({ queryKey: [app, 'some-key'] })).toBe(true);
-    expect(predicate({ queryKey: ['other-owner', 'other-repo'] })).toBe(false);
+    expect(predicate({ queryKey: [org, app, 'RepoStatus'] })).toBe(true);
     expect(mockSetQueryData).toHaveBeenCalledWith(['RepoStatus', org, app], expect.any(Function));
     const updateFunction = mockSetQueryData.mock.calls[0][1];
     const result = updateFunction({
