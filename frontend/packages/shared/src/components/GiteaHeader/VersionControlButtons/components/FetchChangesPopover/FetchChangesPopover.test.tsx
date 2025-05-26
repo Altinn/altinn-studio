@@ -77,6 +77,54 @@ describe('fetchChanges', () => {
     });
   });
 
+  it('should handle undefined contentStatus', async () => {
+    const user = userEvent.setup();
+    const mockInvalidateQueries = jest.fn();
+    const mockSetQueryData = jest.fn();
+    const mockQueryClient = {
+      invalidateQueries: mockInvalidateQueries,
+      setQueryData: mockSetQueryData,
+    };
+    (useQueryClient as jest.Mock).mockReturnValue(mockQueryClient);
+    mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
+    );
+    renderFetchChangesPopover({
+      queries: { getRepoPull: mockGetRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        onPullSuccess: jest.fn(),
+        repoStatus: {
+          behindBy: 2,
+          aheadBy: 0,
+          contentStatus: undefined,
+          repositoryStatus: '',
+          hasMergeConflict: false,
+        },
+      },
+    });
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    await waitFor(() => {
+      expect(mockSetQueryData).toHaveBeenCalledWith(['RepoStatus', org, app], expect.any(Function));
+    });
+    const updateFunction = mockSetQueryData.mock.calls[0][1];
+    const result = updateFunction({
+      behindBy: 2,
+      aheadBy: 0,
+      contentStatus: undefined,
+      repositoryStatus: '',
+      hasMergeConflict: false,
+    });
+    expect(result).toEqual({
+      behindBy: 0,
+      aheadBy: 0,
+      contentStatus: {},
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    });
+  });
+
   it('should call "getPullRepo"" when clicking sync button', async () => {
     const user = userEvent.setup();
 
