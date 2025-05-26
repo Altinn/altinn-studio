@@ -16,6 +16,9 @@ import { TabPageWrapper } from '../../TabPageWrapper';
 import { TabDataError } from '../../TabDataError';
 import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { NewInputFields } from './NewInputFields';
+import type { AppResource } from 'app-shared/types/AppResource';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -74,7 +77,9 @@ function AboutTabContent(): ReactElement {
       );
     }
     case 'success': {
-      return (
+      return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
+        <NewInputFields appResource={mockAppResource} />
+      ) : (
         <>
           <CreatedFor
             repositoryType={repositoryType}
@@ -87,3 +92,9 @@ function AboutTabContent(): ReactElement {
     }
   }
 }
+
+const mockAppResource: AppResource = {
+  repositoryName: 'example-repo',
+  serviceName: { nb: 'test', nn: '', en: '' },
+  serviceId: 'example-service-id',
+};

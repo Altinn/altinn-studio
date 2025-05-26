@@ -1,0 +1,79 @@
+import React, { useState } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
+import classes from './NewInputFields.module.css';
+import { useTranslation } from 'react-i18next';
+import { StudioTextfield } from '@studio/components';
+import type { AppResource } from 'app-shared/types/AppResource';
+import { ActionButtons } from './ActionButtons';
+import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
+import type { Translation } from 'app-development/features/appSettings/types/Translation';
+import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+
+type NewInputFieldsProps = {
+  appResource: AppResource;
+};
+
+export function NewInputFields({ appResource }: NewInputFieldsProps): ReactElement {
+  const { t } = useTranslation();
+  const [translationType, setTranslationType] = useState<Translation>('none');
+  const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
+
+  const saveAppConfig = () => {
+    console.log('Save App Resource', updatedAppResource);
+  };
+
+  const resetAppConfig = () => {
+    // TODO - alert user about unsaved changes being lost
+    setUpdatedAppResource(appResource);
+  };
+
+  const showServiceNameFields = (): void => setTranslationType('serviceName');
+  const hideTranslationFields = (): void => setTranslationType('none');
+
+  return (
+    <div className={classes.wrapper}>
+      {/* TODO - Add ErrorSummary component here */}
+      <StudioTextfield
+        label={t('app_settings.about_tab_repo_label')}
+        description={t('app_settings.about_tab_repo_description')}
+        defaultValue={updatedAppResource.repositoryName}
+        className={classes.textField}
+        readOnly
+      />
+      <LanguageTextField
+        label={t('app_settings.about_tab_name_label')}
+        id={InputFieldIds.ServiceName}
+        value={updatedAppResource.serviceName}
+        onChange={(updatedLanguage: SupportedLanguage) => {
+          setUpdatedAppResource((oldVal: AppResource) => ({
+            ...oldVal,
+            serviceName: updatedLanguage,
+          }));
+        }}
+        onFocus={showServiceNameFields}
+        isTranslationPanelOpen={translationType === 'serviceName'}
+        required
+      />
+      <StudioTextfield
+        label={t('app_settings.about_tab_alt_id_label')}
+        description={t('app_settings.about_tab_alt_id_description')}
+        value={updatedAppResource.serviceId}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+          setUpdatedAppResource((oldVal: AppResource) => ({
+            ...oldVal,
+            serviceId: e.target.value,
+          }));
+        }}
+        onFocus={hideTranslationFields}
+        className={classes.textField}
+        required={false}
+        tagText={t('general.optional')}
+      />
+      <ActionButtons onSave={saveAppConfig} onReset={resetAppConfig} areButtonsDisabled={false} />
+    </div>
+  );
+}
+
+enum InputFieldIds {
+  ServiceName = 'serviceName',
+}
