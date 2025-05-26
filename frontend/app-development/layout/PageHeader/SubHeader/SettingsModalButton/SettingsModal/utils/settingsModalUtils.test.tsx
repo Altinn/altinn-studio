@@ -1,12 +1,12 @@
 import React from 'react';
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
 import { createNavigationTab } from './index';
 import { TestFlaskIcon } from '@studio/icons';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 
-const mockTabId1: SettingsModalTab = 'about';
-const mockTabId2: SettingsModalTab = 'policy';
-const mockCurrentTab: SettingsModalTab = mockTabId1;
+const mockTabId1: SettingsModalTabId = 'about';
+const mockTabId2: SettingsModalTabId = 'policy';
+const mockCurrentTab: SettingsModalTabId = mockTabId1;
 
 describe('settingsModalUtils', () => {
   describe('createNavigationTab', () => {

@@ -24,7 +24,7 @@ export type UseStudioCheckboxTableResult = {
 export function useStudioCheckboxTable(
   initialOptions: string[] = [],
   checkBoxTitle: string,
-  minCountCheckedOptions: number = 1,
+  minCountCheckedOptions: number = 0,
 ): UseStudioCheckboxTableResult {
   const actualRequiredNumber = Math.max(0, minCountCheckedOptions);
 
