@@ -1,1 +1,1 @@
-export * from './EditUserControlledImplementation';
+export { EditUserControlledImplementation } from './EditUserControlledImplementation';
