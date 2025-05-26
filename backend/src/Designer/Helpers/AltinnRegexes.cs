@@ -12,4 +12,7 @@ public partial class AltinnRegexes
 
     [GeneratedRegex("^[a-zA-Z0-9-_\\.]*$")]
     public static partial Regex AltinnEnvironmentNameRegex();
+
+    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9-_\\.\\/\\(\\):]*$")]
+    public static partial Regex AltinnBranchNameRegex();
 }

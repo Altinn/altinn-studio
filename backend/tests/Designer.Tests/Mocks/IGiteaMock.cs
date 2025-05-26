@@ -50,6 +50,30 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<List<Branch>> GetBranches(string org, string repository)
+        {
+            List<Branch> branches =
+            [
+                new Branch
+                {
+                    Name = "master",
+                    Commit = new PayloadCommit
+                    {
+                        Id = "1234567890abcdef1234567890abcdef12345678"
+                    }
+                },
+                new Branch
+                {
+                    Name = "develop",
+                    Commit = new PayloadCommit
+                    {
+                        Id = "abcdef1234567890abcdef1234567890abcdef12"
+                    }
+                }
+            ];
+            return Task.FromResult(branches);
+        }
+
         public Task<User> GetCurrentUser()
         {
             return Task.FromResult(new User());
