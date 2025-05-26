@@ -50,15 +50,16 @@ export const EditNameAction = ({
   };
 
   const handleCancel = () => {
-    if (currentValue === originTextResourceValueRef.current) {
-      dialogRef.current?.close();
-    } else {
+    const isValueChanged = currentValue !== originTextResourceValueRef.current;
+
+    if (isValueChanged) {
       mutate({
         textId: textResourceId,
         language: defaultLangCode,
         translation: originTextResourceValueRef.current,
       });
     }
+
     dialogRef.current?.close();
   };
 
@@ -69,7 +70,7 @@ export const EditNameAction = ({
         variant='tertiary'
         className={classes.openDialogButton}
       >
-        Endre visningsnavn
+        {t('ux_editor.task_table.menu_edit_name')}
       </StudioDialog.Trigger>
       <StudioDialog ref={dialogRef} closeButton={false}>
         <TextResourceEditor
@@ -79,7 +80,7 @@ export const EditNameAction = ({
           placeholderValue={t(taskTypeName)}
         />
         <StudioButton variant='primary' onClick={handleTextResourceChange} icon={<CheckmarkIcon />}>
-          Lagre
+          {t('general.save')}
         </StudioButton>
         <StudioButton
           variant='secondary'
@@ -87,7 +88,7 @@ export const EditNameAction = ({
           icon={<XMarkIcon />}
           className={classes.cancelButton}
         >
-          Avbryt
+          {t('general.cancel')}
         </StudioButton>
       </StudioDialog>
     </StudioDialog.TriggerContext>
