@@ -194,7 +194,7 @@ describe('CodeListPage', () => {
     const newDescription = 'Ny beskrivelse';
 
     renderCodeListPage({ textResources, codeListsData: codeListDataList, onCreateTextResource });
-    const labelField = await openAndGerFirstDescriptionField(user, codeList2Data.title);
+    const labelField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
     await user.type(labelField, newDescription);
     await user.tab();
 
@@ -298,7 +298,7 @@ const getFirstLabelField = (area: HTMLElement): HTMLElement => {
   return within(area).getByRole('textbox', { name: labelFieldLabel });
 };
 
-const openAndGerFirstDescriptionField = async (
+const openAndGetFirstDescriptionField = async (
   user: UserEvent,
   codeListTitle: string,
 ): Promise<HTMLElement> => {
