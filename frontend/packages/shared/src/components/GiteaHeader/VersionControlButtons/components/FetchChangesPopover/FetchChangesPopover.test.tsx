@@ -38,26 +38,20 @@ describe('fetchChanges', () => {
     mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
     );
-    renderWithProviders({ getRepoPull: mockGetRepoPull }, new QueryClient(), {
-      owner: org,
-      repoName: app,
-    })(
-      <VersionControlButtonsContext.Provider
-        value={{
-          ...mockVersionControlButtonsContextValue,
-          onPullSuccess: jest.fn(),
-          repoStatus: {
-            behindBy: 2,
-            aheadBy: 0,
-            contentStatus: [],
-            repositoryStatus: '',
-            hasMergeConflict: false,
-          },
-        }}
-      >
-        <FetchChangesPopover />
-      </VersionControlButtonsContext.Provider>,
-    );
+    renderFetchChangesPopover({
+      queries: { getRepoPull: mockGetRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        onPullSuccess: jest.fn(),
+        repoStatus: {
+          behindBy: 2,
+          aheadBy: 0,
+          contentStatus: [],
+          repositoryStatus: '',
+          hasMergeConflict: false,
+        },
+      },
+    });
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await user.click(fetchButton);
     await waitFor(() => {
@@ -67,6 +61,22 @@ describe('fetchChanges', () => {
     expect(predicate({ queryKey: [org, 'some-key'] })).toBe(true);
     expect(predicate({ queryKey: [app, 'some-key'] })).toBe(true);
     expect(predicate({ queryKey: ['other-owner', 'other-repo'] })).toBe(false);
+    expect(mockSetQueryData).toHaveBeenCalledWith(['RepoStatus', org, app], expect.any(Function));
+    const updateFunction = mockSetQueryData.mock.calls[0][1];
+    const result = updateFunction({
+      behindBy: 2,
+      aheadBy: 0,
+      contentStatus: [],
+      repositoryStatus: '',
+      hasMergeConflict: false,
+    });
+    expect(result).toEqual({
+      behindBy: 0,
+      aheadBy: 0,
+      contentStatus: [],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    });
   });
 
   it('should call "getPullRepo"" when clicking sync button', async () => {
@@ -192,14 +202,17 @@ describe('fetchChanges', () => {
 });
 
 type Props = {
-  queries: Partial<ServicesContextProps>;
-  versionControlButtonsContextProps: Partial<VersionControlButtonsContextProps>;
+  queries?: Partial<ServicesContextProps>;
+  versionControlButtonsContextProps?: Partial<VersionControlButtonsContextProps>;
 };
 
 const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
   const { queries, versionControlButtonsContextProps } = props;
 
-  return renderWithProviders({ ...queriesMock, ...queries })(
+  return renderWithProviders({ ...queriesMock, ...queries }, new QueryClient(), {
+    owner: org,
+    repoName: app,
+  })(
     <VersionControlButtonsContext.Provider
       value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
     >
