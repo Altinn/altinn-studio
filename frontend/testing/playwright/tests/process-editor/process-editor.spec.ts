@@ -87,8 +87,6 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
 
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
-  await processEditorPage.policyConfig.closePolicyEditor();
-  await processEditorPage.policyConfig.verifyThatPolicyEditorIsClosed();
 });
 
 test('Opening the settings page after the user has opened it from the process editor and navigated to another tab', async ({

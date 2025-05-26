@@ -15,7 +15,7 @@ export class PolicyConfig extends BasePage {
   }
 
   public async waitForNavigateToPolicyButtonIsVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
+    const button = this.page.getByRole('link', {
       name: this.textMock(
         'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
       ),
@@ -25,7 +25,7 @@ export class PolicyConfig extends BasePage {
 
   public async clickOnNavigateToPolicyEditorButton(): Promise<void> {
     await this.page
-      .getByRole('button', {
+      .getByRole('link', {
         name: this.textMock(
           'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
         ),
@@ -39,14 +39,6 @@ export class PolicyConfig extends BasePage {
       level: 4,
     });
     await expect(heading).toBeVisible();
-  }
-
-  public async closePolicyEditor(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: 'close modal', // Todo: Replace 'close modal' with this.textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
-      })
-      .click();
   }
 
   public async verifyThatPolicyEditorIsClosed(): Promise<void> {
