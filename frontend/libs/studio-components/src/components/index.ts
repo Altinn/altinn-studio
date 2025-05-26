@@ -24,7 +24,7 @@ export { StudioTextfield } from './StudioTextfield';
 export { StudioSpinner } from './StudioSpinner';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioFormGroup } from './StudioFormGroup';
-export { StudioCheckbox } from './StudioCheckbox';
+export { StudioCheckbox, useStudioCheckboxGroup } from './StudioCheckbox';
 export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTable';
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
