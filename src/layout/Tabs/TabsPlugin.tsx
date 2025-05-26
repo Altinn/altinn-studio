@@ -84,14 +84,28 @@ export class TabsPlugin<Type extends CompTypes>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<Config<Type>>) {
+  itemFactory({ item, idMutators, getCapabilities, layoutMap }: DefPluginStateFactoryProps<Config<Type>>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tabsInternal = structuredClone((item as any).tabs || []) as TabConfigInternal[];
 
     // Remove all children, as they will be added as nodes later:
     for (const tab of tabsInternal) {
       const children = (tab as unknown as TabConfig).children ?? [];
-      tab.childIds = children.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
+      const mutatedIds: string[] = [];
+      for (const childId of children) {
+        const rawLayout = layoutMap[childId];
+        const capabilities = rawLayout && getCapabilities(rawLayout.type);
+        if (!capabilities?.renderInTabs) {
+          continue;
+        }
+
+        let id = childId;
+        for (const mutator of idMutators) {
+          id = mutator(id);
+        }
+        mutatedIds.push(id);
+      }
+      tab.childIds = mutatedIds;
       (tab as unknown as TabConfig).children = [];
     }
 

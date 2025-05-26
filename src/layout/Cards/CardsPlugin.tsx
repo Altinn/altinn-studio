@@ -101,15 +101,33 @@ export class CardsPlugin<Type extends CompTypes>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<Config<Type>>) {
+  itemFactory({ item, idMutators, getCapabilities, layoutMap }: DefPluginStateFactoryProps<Config<Type>>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cardsInternal = structuredClone((item as any).cards || []) as CardInternal[];
 
     for (const card of cardsInternal) {
       const children = (card as CardConfigExternal).children ?? [];
+      card.childIds = [];
+      for (const childId of children) {
+        const rawLayout = layoutMap[childId];
+        const capabilities = rawLayout && getCapabilities(rawLayout.type);
+        if (!capabilities || !capabilities.renderInCards) {
+          // No need to log again, we already do that in claimChildren
+          continue;
+        }
+        let id = childId;
+        for (const mutator of idMutators) {
+          id = mutator(id);
+        }
+        card.childIds.push(id);
+      }
       const mediaId = (card as CardConfigExternal).media;
-      card.childIds = children.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
-      card.mediaId = mediaId && idMutators.reduce((id, mutator) => mutator(id), mediaId);
+      const rawMediaLayout = mediaId && layoutMap[mediaId];
+      const mediaCapabilities = rawMediaLayout && getCapabilities(rawMediaLayout.type);
+      if (mediaCapabilities && mediaCapabilities.renderInCardsMedia && mediaId) {
+        card.mediaId = idMutators.reduce((id, mutator) => mutator(id), mediaId);
+      }
+
       (card as CardConfigExternal).children = undefined;
       (card as CardConfigExternal).media = undefined;
     }
