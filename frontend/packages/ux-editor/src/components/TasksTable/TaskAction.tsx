@@ -18,6 +18,7 @@ import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNav
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
+import { EditNameAction } from './EditNameAction';
 
 export type TaskActionProps = {
   task: TaskNavigationGroup;
@@ -104,6 +105,12 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
             {t('ux_editor.task_table.menu_task_down')}
           </StudioButton>
           <StudioDivider className={classes.divider} />
+          <EditNameAction
+            nameId={task.name}
+            tasks={tasks}
+            index={index}
+            handleUpdateTaskNavigationGroup={handleUpdateTaskNavigationGroup}
+          />
           <StudioButton variant='tertiary' onClick={removeNavigationTask} icon={<EyeClosedIcon />}>
             {t('ux_editor.task_table.menu_task_hide')}
           </StudioButton>
