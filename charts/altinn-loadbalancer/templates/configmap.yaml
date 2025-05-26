@@ -119,6 +119,13 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
           proxy_set_header    X-Forwarded-Proto $scheme;
         }
+
+        location / {
+          proxy_pass 			    http://designer/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
       }
     # write the log to syslog so it can be read by the sidecar
     access_log syslog:server=127.0.0.1:5531,facility=local7,tag=nginx combined;
