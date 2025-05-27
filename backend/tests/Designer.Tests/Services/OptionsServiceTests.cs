@@ -174,14 +174,14 @@ public class OptionsServiceTests : IDisposable
         var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, ExistingOptionListId, newOptions);
 
         // Assert
-        Assert.Equal(updatedOptions.Count, updatedOptions.Count);
+        Assert.Equal(newOptions.Count, updatedOptions.Count);
 
         for (int i = 0; i < updatedOptions.Count; i++)
         {
-            Assert.Equal(updatedOptions[i].Label, updatedOptions[i].Label);
-            Assert.Equal(updatedOptions[i].Value, updatedOptions[i].Value);
-            Assert.Equal(updatedOptions[i].Description, updatedOptions[i].Description);
-            Assert.Equal(updatedOptions[i].HelpText, updatedOptions[i].HelpText);
+            Assert.Equal(newOptions[i].Label, updatedOptions[i].Label);
+            Assert.Equal(newOptions[i].Value, updatedOptions[i].Value);
+            Assert.Equal(newOptions[i].Description, updatedOptions[i].Description);
+            Assert.Equal(newOptions[i].HelpText, updatedOptions[i].HelpText);
         }
     }
 
