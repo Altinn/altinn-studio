@@ -1,0 +1,6 @@
+*                                           @altinn/team-studio
+src/Altinn.Platform/Altinn.Platform.PDF/**  @altinn/team-core
+src/test/K6/src/tests/platform/pdf/**       @altinn/team-core
+src/test/K6/src/tests/platform/profile/**   @altinn/team-core
+src/test/K6/src/tests/platform/receipt/**   @altinn/team-core
+src/test/K6/src/tests/platform/storage/**   @altinn/team-core
