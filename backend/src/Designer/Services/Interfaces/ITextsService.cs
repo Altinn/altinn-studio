@@ -50,15 +50,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode);
 
         /// <summary>
-        /// Updates values for
+        /// Updates text values for the specified keys and returns the updated TextResource.
         /// </summary>
         /// <param name="org"></param>
         /// <param name="repo"></param>
         /// <param name="developer"></param>
         /// <param name="keysTexts"></param>
         /// <param name="languageCode"></param>
-        /// <returns></returns>
-        public Task UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
+        /// <returns>The updated TextResource object after applying the changes.</returns>
+        public Task<TextResource> UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode);
 
         /// <summary>
         /// Updates references to text keys in layout files.

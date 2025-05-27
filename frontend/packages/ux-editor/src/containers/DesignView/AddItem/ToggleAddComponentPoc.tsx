@@ -1,13 +1,13 @@
 import React from 'react';
 import { FeedbackForm } from './FeedbackForm';
 import { StudioParagraph, StudioSwitch } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import {
   addFeatureFlagToLocalStorage,
   FeatureFlag,
   removeFeatureFlagFromLocalStorage,
   shouldDisplayFeature,
 } from 'app-shared/utils/featureToggleUtils';
-import { HelpText } from '@digdir/designsystemet-react';
 import classes from './ToggleAddComponentPoc.module.css';
 
 /**
@@ -37,20 +37,19 @@ export function ToggleAddComponentPoc(): React.ReactElement {
         >
           Prøv nytt design
         </StudioSwitch>
-        <HelpText
-          size='sm'
-          title='Prøv vårt nye design for å legge til komponenter'
-          placement='bottom-start'
+        <StudioHelpText
+          aria-label='Prøv vårt nye design for å legge til komponenter'
+          placement='bottom'
         >
-          <StudioParagraph spacing size='sm'>
+          <StudioParagraph spacing>
             Vi jobber med brukeropplevelsen i Studio. Vil du prøve vårt forslag til nytt design for
             å legge til komponenter?
           </StudioParagraph>
-          <StudioParagraph spacing size='sm'>
+          <StudioParagraph>
             Du kan fortelle oss hva du synes om det nye designet ved å trykke på &quot;Gi
             tilbakemelding&quot; nederst til høyre på siden.
           </StudioParagraph>
-        </HelpText>
+        </StudioHelpText>
       </div>
       {shouldDisplayFeature(FeatureFlag.AddComponentModal) && <FeedbackForm />}
     </>

@@ -31,6 +31,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { ItemType } from '../components/Properties/ItemType';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -123,7 +124,7 @@ export const FormDesigner = (): JSX.Element => {
         },
       );
       handleEdit(getItem(updatedLayout, newId));
-      setSelectedItem({ type: 'component', id: newId });
+      setSelectedItem({ type: ItemType.Component, id: newId });
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const type = getItem(layout, id).type;

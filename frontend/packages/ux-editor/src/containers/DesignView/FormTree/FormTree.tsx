@@ -7,6 +7,7 @@ import { useFormItemContext } from '../../FormItemContext';
 import { getItem } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';
+import { ItemType } from '../../../components/Properties/ItemType';
 
 export type FormTreeProps = {
   layout: IInternalLayout;
@@ -21,7 +22,7 @@ export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
   const handleSelect = async (id: string) => {
     handleEdit(getItem(layout, id));
     setSelectedItem({
-      type: 'component',
+      type: ItemType.Component,
       id: id,
     });
   };

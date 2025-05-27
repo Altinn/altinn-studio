@@ -19,6 +19,7 @@ import { AddItemModal } from './AddItemModal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useTranslation } from 'react-i18next';
+import { ItemType } from '../../../components/Properties/ItemType';
 
 export type AddItemProps = {
   containerId: string;
@@ -59,7 +60,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
     );
     handleEdit(getItem(updatedLayout, newId));
     setSelectedItem({
-      type: 'component',
+      type: ItemType.Component,
       id: newId,
     });
   };

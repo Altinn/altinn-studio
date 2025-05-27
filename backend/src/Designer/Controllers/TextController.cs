@@ -137,8 +137,8 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
-                return Ok($"The text resource, resource.{languageCode}.json, was updated.");
+                TextResource textResource = await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
+                return Ok(textResource);
 
             }
             catch (ArgumentException exception)
