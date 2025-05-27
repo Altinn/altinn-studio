@@ -4,7 +4,6 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
@@ -18,13 +17,13 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 const mockGetRepoPull = jest.fn();
-const mockInvalidateQueries = jest.fn();
 
 describe('fetchChanges', () => {
   afterEach(jest.clearAllMocks);
 
   it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
     const user = userEvent.setup();
+    const mockInvalidateQueries = jest.fn();
     mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
     );
@@ -111,6 +110,7 @@ describe('fetchChanges', () => {
 
   it('should call onPullSuccess when fetching changes', async () => {
     const user = userEvent.setup();
+    const mockInvalidateQueries = jest.fn();
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok' }),
     );
@@ -179,10 +179,10 @@ const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = invalidateQueries;
 
-  return renderWithProviders({ ...queriesMock, ...queries }, queryClient, {
-    owner: org,
-    repoName: app,
-  })(
+  return renderWithProviders(
+    { ...queries },
+    queryClient,
+  )(
     <VersionControlButtonsContext.Provider
       value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
     >
