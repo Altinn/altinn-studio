@@ -941,6 +941,7 @@
   "right_menu.calculations": "Valg for beregninger",
   "right_menu.content": "Innhold",
   "right_menu.content_empty": "Du har ikke valgt noen side",
+  "right_menu.content_group_message": "Denne fanen er under utvikling - innhold kommer snart.",
   "right_menu.data_model_bindings": "Datamodeller",
   "right_menu.data_model_bindings_delete_confirm": "Er du sikker på at du vil slette dette datamodellfeltet?",
   "right_menu.data_model_bindings_edit": "Rediger datamodellfeltet {{binding}}",
