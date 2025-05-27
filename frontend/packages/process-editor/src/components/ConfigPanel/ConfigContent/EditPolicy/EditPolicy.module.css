@@ -6,3 +6,7 @@
 .alert {
   margin-bottom: var(--fds-spacing-5);
 }
+
+.link {
+  color: var(--fds-semantic-text-action-second-on_action);
+}

@@ -9,7 +9,7 @@ import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 
 describe('ContentMenu', () => {
   afterEach(() => {
@@ -24,7 +24,7 @@ describe('ContentMenu', () => {
     const onChangeTabMock = jest.fn();
     renderContentMenu({ currentTab: 'about', onChangeTab: onChangeTabMock });
 
-    menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsModalTabId>) => {
+    menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsPageTabId>) => {
       expect(screen.getByRole('tab', { name: tab.tabName })).toBeInTheDocument();
     });
   });
@@ -34,7 +34,7 @@ describe('ContentMenu', () => {
     const onChangeTabMock = jest.fn();
     renderContentMenu({ currentTab: 'about', onChangeTab: onChangeTabMock });
 
-    menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsModalTabId>) => {
+    menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsPageTabId>) => {
       if (tab.tabId === 'maskinporten') {
         expect(screen.queryByRole('tab', { name: tab.tabName })).not.toBeInTheDocument();
       } else {

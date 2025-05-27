@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { StudioGetCheckboxProps } from '../types/StudioGetCheckboxProps';
 import { useCheckboxGroup } from '@digdir/designsystemet-react';
 
 export type UseStudioCheckboxTableResult = {
   selectedValues: string[];
-  setSelectedValues: (value: string[]) => void;
+  setSelectedValues: Dispatch<SetStateAction<string[]>>;
   hasError: boolean;
   getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
 };
@@ -23,7 +24,7 @@ export type UseStudioCheckboxTableResult = {
 export function useStudioCheckboxTable(
   initialOptions: string[] = [],
   checkBoxTitle: string,
-  minCountCheckedOptions: number = 1,
+  minCountCheckedOptions: number = 0,
 ): UseStudioCheckboxTableResult {
   const actualRequiredNumber = Math.max(0, minCountCheckedOptions);
 

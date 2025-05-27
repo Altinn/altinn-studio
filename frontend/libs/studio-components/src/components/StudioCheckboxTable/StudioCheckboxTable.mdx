@@ -25,6 +25,8 @@ import * as StudioCheckboxTableStories from './StudioCheckboxTable.stories';
   {
     // The selected values
     selectedValues: string[];
+    // Function to update the state of the selected values
+    setSelectedValues: React.Dispatch<React.SetStateAction<string[]>>;
     // If there is an error in the checkbox group
     hasError: boolean;
     // Function that returns all other props for a HTML checkbox element, e.g., disabled, required, onChange, ...

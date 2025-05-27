@@ -18,6 +18,8 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import cn from 'classnames';
+import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 
@@ -41,7 +43,7 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: changePageGroupOrder } = useChangePageGroupOrder(
     org,
@@ -84,12 +86,17 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    const selectedGroup =
+      selectedItem?.type === ItemType.Group && selectedItem.id === groupDisplayName;
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
         <div
-          className={classes.groupHeaderWrapper}
+          className={cn(classes.groupHeaderWrapper, {
+            [classes.selected]: selectedGroup,
+          })}
           data-testid={pageGroupAccordionHeader(groupIndex)}
+          onClick={() => setSelectedItem({ type: ItemType.Group, id: groupDisplayName })}
         >
           <div className={classes.container}>
             <FolderIcon aria-hidden className={classes.liftIcon} />
