@@ -20,13 +20,14 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
 import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
+import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
   onAccordionClick: (pageName: string) => void;
-  onAddPage: () => void;
   isAddPagePending: boolean;
 }
 
@@ -35,7 +36,6 @@ export const PageGroupAccordion = ({
   layouts,
   selectedFormLayoutName,
   onAccordionClick,
-  onAddPage,
   isAddPagePending,
 }: PageGroupAccordionProps): ReactNode => {
   const { t } = useTranslation();
@@ -55,6 +55,9 @@ export const PageGroupAccordion = ({
     app,
     selectedFormLayoutSetName,
   );
+
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(pagesModel);
 
   const moveGroupUp = (groupIndex: number) => {
     const newGroups = [...pages.groups];
@@ -138,7 +141,6 @@ export const PageGroupAccordion = ({
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
-
           return (
             <div key={page.id} className={classes.groupAccordionWrapper}>
               <PageAccordion
@@ -148,7 +150,7 @@ export const PageGroupAccordion = ({
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
               >
-                {page.id === selectedFormLayoutName && (
+                {page.id === selectedFormLayoutName && layout && (
                   <FormLayout
                     layout={layout}
                     isInvalid={isInvalidLayout}
@@ -162,7 +164,7 @@ export const PageGroupAccordion = ({
         <div className={classes.buttonContainer}>
           <StudioButton
             icon={<PlusIcon aria-hidden />}
-            onClick={onAddPage}
+            onClick={() => handleAddPageInsideGroup(groupIndex)}
             className={classes.button}
             disabled={isAddPagePending}
           >

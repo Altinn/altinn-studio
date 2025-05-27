@@ -14,6 +14,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from '../../AppContext';
 import { ItemType } from '../../components/Properties/ItemType';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -115,6 +116,16 @@ describe('PageGroupAccordion', () => {
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent('Group 1');
   });
+
+  it('should call handleAddPageInsideGroup when add button is clicked', async () => {
+    const user = userEvent.setup();
+    await renderPageGroupAccordion({});
+    const addButtons = screen.getAllByRole('button', {
+      name: textMock('ux_editor.pages_add'),
+    });
+    await user.click(addButtons[0]);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
@@ -142,7 +153,6 @@ const renderPageGroupAccordion = async ({ props, queries, appContextProps }: ren
       pages={pagesMock}
       layouts={layouts}
       onAccordionClick={jest.fn()}
-      onAddPage={jest.fn()}
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,

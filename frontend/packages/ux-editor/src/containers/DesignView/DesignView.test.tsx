@@ -187,11 +187,14 @@ describe('DesignView', () => {
 
   it('Does not render group accordions when order is empty or undefined', () => {
     setupFeatureFlag(true);
-    renderDesignView({});
-    expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
-    expect(screen.getByText(layout2NameMock)).toBeInTheDocument();
-    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
-    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+    renderDesignView({
+      layoutSettings: {
+        ...formLayoutSettingsMock,
+        pages: { order: [], pdfLayoutName: undefined },
+      },
+    });
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
   });
 
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
