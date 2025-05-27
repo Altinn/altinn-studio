@@ -6,6 +6,11 @@ import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
 import { GlobeIcon } from '@studio/icons';
+import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import {
+  getErrorMessagesForLanguage,
+  mapLanguageKeyToLanguageText,
+} from '../../../utils/appResourceLanguageUtils';
 
 type TranslationBoxProps = {
   label: string;
@@ -14,6 +19,7 @@ type TranslationBoxProps = {
   onChange: (value: SupportedLanguage) => void;
   required?: boolean;
   tagText?: string;
+  errors: AppResourceFormError[];
 };
 
 export function TranslationBox({
@@ -23,6 +29,7 @@ export function TranslationBox({
   onChange,
   required = false,
   tagText,
+  errors,
 }: TranslationBoxProps): ReactElement {
   const { t } = useTranslation();
 
@@ -36,7 +43,7 @@ export function TranslationBox({
         <div className={classes.headingWrapper}>
           <GlobeIcon className={classes.icon} />
           <StudioHeading data-size='xs' level={4}>
-            Oversettelse
+            {t('app_settings.about_tab_language_translation_header')}
           </StudioHeading>
         </div>
         <StudioAlert data-color='info'>
@@ -52,6 +59,7 @@ export function TranslationBox({
           required={required}
           tagText={tagText}
           language='nn'
+          errors={errors}
         />
         <Textfield
           label={label}
@@ -63,6 +71,7 @@ export function TranslationBox({
           required={required}
           tagText={tagText}
           language='en'
+          errors={errors}
         />
       </div>
     </div>
@@ -77,6 +86,7 @@ type TextfieldProps = {
   required?: boolean;
   tagText?: string;
   language: ValidLanguage;
+  errors?: AppResourceFormError[];
 };
 
 function Textfield({
@@ -87,11 +97,14 @@ function Textfield({
   required = false,
   tagText,
   language,
+  errors,
 }: TextfieldProps): ReactElement {
   const { t } = useTranslation();
 
   const languageText: string = mapLanguageKeyToLanguageText(language, t);
   const fieldLabel: string = `${label} (${languageText})`;
+
+  const errorMessage: string[] | undefined = getErrorMessagesForLanguage(errors, language);
   return (
     <StudioTextfield
       label={fieldLabel}
@@ -102,15 +115,7 @@ function Textfield({
       required={required}
       tagText={tagText}
       rows={isTextArea ? 5 : undefined}
+      error={errorMessage}
     />
   );
 }
-
-export const mapLanguageKeyToLanguageText = (
-  val: ValidLanguage,
-  translationFunction: (key: string) => string,
-) => {
-  if (val === 'nb') return translationFunction('language.nb');
-  if (val === 'nn') return translationFunction('language.nn');
-  return translationFunction('language.en');
-};

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioValidationMessage } from '@studio/components';
@@ -19,6 +19,7 @@ import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { NewInputFields } from './NewInputFields';
 import type { AppResource } from 'app-shared/types/AppResource';
+import { validateAppResource } from './utils/appResourceValidationUtils';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -33,7 +34,10 @@ export function AboutTab(): ReactElement {
 
 function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
+
+  const [appResource, setAppResource] = useState<AppResource>(mockAppResource);
 
   const {
     status: appConfigStatus,
@@ -78,7 +82,7 @@ function AboutTabContent(): ReactElement {
     }
     case 'success': {
       return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
-        <NewInputFields appResource={mockAppResource} />
+        <NewInputFields appResource={appResource} />
       ) : (
         <>
           <CreatedFor

@@ -5,6 +5,7 @@ import classes from './LanguageTextfield.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { TranslationBox } from './TranslationBox';
+import type { AppResourceFormError } from 'app-shared/types/AppResource';
 
 type LanguageTextFieldProps = {
   id: string;
@@ -16,6 +17,7 @@ type LanguageTextFieldProps = {
   isTextArea?: boolean;
   required?: boolean;
   isTranslationPanelOpen: boolean;
+  errors?: AppResourceFormError[];
 };
 
 export function LanguageTextField({
@@ -28,6 +30,7 @@ export function LanguageTextField({
   isTextArea = false,
   required = false,
   isTranslationPanelOpen,
+  errors,
 }: LanguageTextFieldProps): ReactElement {
   const { t } = useTranslation();
 
@@ -43,6 +46,10 @@ export function LanguageTextField({
 
   const fieldLabel: string = `${label} (${t('language.nb')})`;
 
+  const mainFieldError = errors
+    .filter((error) => error.index === 'nb')
+    .map((error, index) => error.error);
+
   return (
     <div className={classes.languageFieldWrapper}>
       <StudioTextfield
@@ -57,6 +64,7 @@ export function LanguageTextField({
         required={required}
         tagText={tagText}
         rows={isTextArea ? 5 : undefined}
+        error={mainFieldError.length > 0 ? mainFieldError : undefined}
       />
       {isTranslationPanelOpen && (
         <TranslationBox
@@ -66,6 +74,7 @@ export function LanguageTextField({
           onChange={onChange}
           required={required}
           tagText={tagText}
+          errors={errors}
         />
       )}
     </div>

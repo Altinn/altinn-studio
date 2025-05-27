@@ -5,3 +5,9 @@ export type AppResource = {
   serviceName: SupportedLanguage;
   serviceId: string;
 };
+
+export interface AppResourceFormError {
+  field: keyof AppResource;
+  index?: number | keyof SupportedLanguage;
+  error: string;
+}

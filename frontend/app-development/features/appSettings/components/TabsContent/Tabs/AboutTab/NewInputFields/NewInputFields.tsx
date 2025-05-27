@@ -3,11 +3,12 @@ import type { ChangeEvent, ReactElement } from 'react';
 import classes from './NewInputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
-import type { AppResource } from 'app-shared/types/AppResource';
+import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
 import type { Translation } from 'app-development/features/appSettings/types/Translation';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import { validateAppResource } from '../utils/appResourceValidationUtils';
 
 type NewInputFieldsProps = {
   appResource: AppResource;
@@ -17,9 +18,20 @@ export function NewInputFields({ appResource }: NewInputFieldsProps): ReactEleme
   const { t } = useTranslation();
   const [translationType, setTranslationType] = useState<Translation>('none');
   const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
+  const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
+
+  const validationErrors: AppResourceFormError[] = validateAppResource(appResource, t);
 
   const saveAppConfig = () => {
-    console.log('Save App Resource', updatedAppResource);
+    if (validationErrors.length === 0) {
+      setShowAppResourceErrors(false);
+      console.log('AppResource saved: ', updatedAppResource);
+    } else {
+      setShowAppResourceErrors(true);
+      window.scrollTo(0, 0);
+      console.error('Validation errors:', validationErrors);
+      // Show some message about that errors need to be fixed
+    }
   };
 
   const resetAppConfig = () => {
@@ -52,6 +64,11 @@ export function NewInputFields({ appResource }: NewInputFieldsProps): ReactEleme
         }}
         onFocus={showServiceNameFields}
         isTranslationPanelOpen={translationType === 'serviceName'}
+        errors={
+          showAppResourceErrors
+            ? validationErrors.filter((error) => error.field === 'serviceName')
+            : []
+        }
         required
       />
       <StudioTextfield
