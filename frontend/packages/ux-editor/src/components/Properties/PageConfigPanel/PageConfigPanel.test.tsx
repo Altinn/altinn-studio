@@ -12,6 +12,7 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMoc
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { findLayoutsContainingDuplicateComponents } from '../../../utils/formLayoutUtils';
+import { ItemType } from '../ItemType';
 
 jest.mock('../../../utils/formLayoutUtils', () => ({
   ...jest.requireActual('../../../utils/formLayoutUtils'),
@@ -47,15 +48,6 @@ const layouts: IFormLayouts = {
 describe('PageConfigPanel', () => {
   beforeEach(() => {
     (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue([]);
-  });
-  it('render heading with "no selected page" message when selected layout is "default"', async () => {
-    renderPageConfigPanel();
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
-  });
-
-  it('render heading with "no selected page" message when selected layout is undefined', () => {
-    renderPageConfigPanel(undefined);
-    screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
   });
 
   it('render heading with layout page name when layout is selected', () => {
@@ -136,6 +128,8 @@ const renderPageConfigPanel = (
   );
 
   return renderWithProviders(<PageConfigPanel />, {
-    appContextProps: { selectedFormLayoutName: selectedLayoutName },
+    appContextProps: {
+      selectedItem: { type: ItemType.Page, id: selectedLayoutName },
+    },
   });
 };
