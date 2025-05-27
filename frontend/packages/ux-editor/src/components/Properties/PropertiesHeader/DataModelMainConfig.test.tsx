@@ -46,16 +46,16 @@ describe('DataModelMainConfig', () => {
       requiredDataModelBindings: multipleBindingsRequired,
     });
 
-    multipleBindingsRequired.forEach((prop) => {
+    for (const prop of multipleBindingsRequired) {
       const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
       const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
         componentName: propText,
       });
-      const dataModelBindingButton = screen.getByRole('button', {
+      const dataModelBindingButton = await screen.findByRole('button', {
         name: labelText,
       });
       expect(dataModelBindingButton).toBeInTheDocument();
-    });
+    }
   });
 
   it('updates data model binding when deleting the binding', async () => {
