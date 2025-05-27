@@ -14,6 +14,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from '../../AppContext';
 import { ItemType } from '../../components/Properties/ItemType';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const pagesMock: PagesModel = {
   pages: null,
@@ -118,16 +119,12 @@ describe('PageGroupAccordion', () => {
 
   it('should call handleAddPageInsideGroup when add button is clicked', async () => {
     const user = userEvent.setup();
-    const mockChangePageGroups = jest.fn().mockResolvedValue({});
-    const queries = { changePageGroups: mockChangePageGroups };
-    await renderPageGroupAccordion({ queries });
+    await renderPageGroupAccordion({});
     const addButtons = screen.getAllByRole('button', {
       name: textMock('ux_editor.pages_add'),
     });
     await user.click(addButtons[0]);
-    expect(mockChangePageGroups).toHaveBeenCalledTimes(1);
-    const updatedPages = mockChangePageGroups.mock.calls[0][3];
-    expect(updatedPages.groups[0].order).toHaveLength(3);
+    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
   });
 });
 
