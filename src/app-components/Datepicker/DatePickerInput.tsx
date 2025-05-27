@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PatternFormat } from 'react-number-format';
+import type { Ref } from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
 import { format, isValid } from 'date-fns';
@@ -22,15 +23,10 @@ export interface DatePickerInputProps {
   autoComplete?: 'bday';
 }
 
-export function DatePickerInput({
-  id,
-  value,
-  datepickerFormat,
-  timeStamp,
-  onValueChange,
-  readOnly,
-  autoComplete,
-}: DatePickerInputProps) {
+function DatePickerInputRef(
+  { id, value, datepickerFormat, timeStamp, onValueChange, readOnly, autoComplete }: DatePickerInputProps,
+  ref: Ref<HTMLInputElement>,
+) {
   const dateValue = strictParseISO(value);
   const formattedDateValue = dateValue ? format(dateValue, datepickerFormat) : value;
   const [inputValue, setInputValue] = useState(formattedDateValue ?? '');
@@ -58,6 +54,7 @@ export function DatePickerInput({
 
   return (
     <PatternFormat
+      getInputRef={ref}
       format={getFormatAsPatternFormat(datepickerFormat)}
       customInput={Textfield}
       mask='_'
@@ -77,3 +74,6 @@ export function DatePickerInput({
     />
   );
 }
+
+export const DatePickerInput = React.forwardRef(DatePickerInputRef);
+DatePickerInput.displayName = 'DatePickerInput';

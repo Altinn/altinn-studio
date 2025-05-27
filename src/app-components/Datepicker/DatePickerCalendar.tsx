@@ -14,7 +14,6 @@ export interface CalendarDialogProps {
   minDate?: Date;
   locale?: string;
   required?: boolean;
-  autoFocus?: boolean;
   onBlur?: () => void;
   DropdownCaption: typeof MonthCaption;
 }
@@ -26,7 +25,6 @@ export const DatePickerCalendar = ({
   maxDate,
   locale,
   required,
-  autoFocus,
   DropdownCaption,
 }: CalendarDialogProps) => {
   const currentLocale = getLocale(locale ?? 'nb');
@@ -70,7 +68,7 @@ export const DatePickerCalendar = ({
         }
       }}
       components={{ MonthCaption: DropdownCaption }}
-      autoFocus={autoFocus}
+      autoFocus={true}
       style={{ minHeight: '405px', maxWidth: '100%' }}
     />
   );

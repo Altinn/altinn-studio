@@ -7,7 +7,6 @@ import { Label } from 'src/app-components/Label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
@@ -38,7 +37,6 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');
   const dateFormat = getDatepickerFormat(getDateFormat(format, languageLocale));
-  const isMobile = useIsMobile();
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings);
   const value = formData.simpleBinding;
@@ -76,7 +74,6 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
             readOnly={readOnly}
             required={required}
             locale={languageLocale}
-            isMobile={isMobile}
             minDate={calculatedMinDate}
             maxDate={calculatedMaxDate}
             DropdownCaption={DropdownCaption}
