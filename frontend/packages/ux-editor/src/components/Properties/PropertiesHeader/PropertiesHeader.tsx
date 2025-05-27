@@ -81,7 +81,7 @@ export const PropertiesHeader = ({
             <TextMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
-              title={textResourceBindings?.properties?.title}
+              componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
             />
             <ComponentMainConfig
               component={formItem}
