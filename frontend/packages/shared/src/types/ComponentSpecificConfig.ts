@@ -48,6 +48,16 @@ export type DataModelBindingsSimple = {
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
 
+type DataModelBindingsOrganisationLookup = {
+  organisation_lookup_orgnr: IDataModelBindings;
+  organisation_lookup_name?: IDataModelBindings;
+};
+
+type DataModelBindingsPersonLookup = {
+  person_lookup_ssn: IDataModelBindings;
+  person_lookup_name: IDataModelBindings;
+};
+
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
   value: T;
@@ -329,6 +339,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     validateOnNext?: PageValidation;
     validateOnPrevious?: PageValidation;
   };
+  [ComponentType.OrganisationLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsOrganisationLookup;
+    };
   [ComponentType.Panel]: {
     variant?: FormPanelVariant;
     showIcon?: boolean;
@@ -336,6 +350,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Paragraph]: {};
   [ComponentType.Payment]: SummarizableComponentProps;
   [ComponentType.PaymentDetails]: {};
+  [ComponentType.PersonLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsPersonLookup;
+    };
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &
     SummarizableComponentProps &
