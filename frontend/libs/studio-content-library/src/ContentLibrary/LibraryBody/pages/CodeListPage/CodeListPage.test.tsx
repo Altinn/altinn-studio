@@ -194,8 +194,8 @@ describe('CodeListPage', () => {
     const newDescription = 'Ny beskrivelse';
 
     renderCodeListPage({ textResources, codeListsData: codeListDataList, onCreateTextResource });
-    const labelField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
-    await user.type(labelField, newDescription);
+    const emptyDescriptionField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
+    await user.type(emptyDescriptionField, newDescription);
     await user.tab();
 
     const expectedLanguage = 'nb';
