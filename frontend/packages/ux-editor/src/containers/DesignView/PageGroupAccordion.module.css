@@ -3,6 +3,15 @@
   margin: var(--fds-spacing-3);
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+}
+
+.groupHeaderWrapper:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.selected {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
 }
 
 .liftIcon {
