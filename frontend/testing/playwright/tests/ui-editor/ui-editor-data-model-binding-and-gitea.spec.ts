@@ -61,7 +61,6 @@ test('That it is possible to drag in a new component, add a title to the newly a
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
 
-  await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.writeTitleTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
@@ -70,7 +69,6 @@ test('That it is possible to drag in a new component, add a title to the newly a
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
 
-  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
 });
@@ -123,7 +121,6 @@ test('That it is possible to navigate back to ui-editor page and add the data mo
   await uiEditorPage.verifyUiEditorPage(pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
-  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
@@ -183,7 +180,6 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
 
-  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
   await uiEditorPage.clickOnDataModelBindingCombobox();
   await uiEditorPage.clickOnDataModelPropertyOption(newDataModel);
