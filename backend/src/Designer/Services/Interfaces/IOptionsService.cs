@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
