@@ -15,6 +15,7 @@ export function ContentMenu({ onChangeTab }: ContentMenuProps): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
 
+  // TODO - WHY IS THE COLOR IN CONTENT MENU NOT CORRECT WHEN CANCELING THE BLOCKER
   const currentTab: SettingsPageTabId = getCurrentSettingsTab();
 
   return (

@@ -81,7 +81,10 @@ function AboutTabContent(): ReactElement {
     }
     case 'success': {
       return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
-        <NewInputFields appResource={appResource} />
+        <NewInputFields
+          appResource={appResource}
+          saveAppResource={(updatedAppResource: AppResource) => setAppResource(updatedAppResource)}
+        />
       ) : (
         <>
           <CreatedFor
