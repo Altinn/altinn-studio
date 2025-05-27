@@ -1,1 +1,1 @@
-export { EditCorrespondenceResource }  from './EditCorrespondenceResource';
+export { EditCorrespondenceResource } from './EditCorrespondenceResource';
