@@ -31,7 +31,37 @@ public class FounderSigneesProvider : ISigneeProvider
                     [stifterPerson.Fornavn, stifterPerson.Mellomnavn, stifterPerson.Etternavn]
                 ),
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
+                CommunicationConfig = new CommunicationConfig
+                {
+                                        InboxMessage = new InboxMessage
+                    {
+                        TitleTextResourceKey = "signing.correspondence_title_common",
+                        SummaryTextResourceKey = "signing.correspondence_summary_stifter_person",
+                        BodyTextResourceKey = "signing.correspondence_body_stifter_person"
+                    },
+                    Notification = new Notification
+                    {
+                        Email = new Email
+                        {
+                            EmailAddress = stifterPerson.Epost,
+                            SubjectTextResourceKey = "signing.email_subject",
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterPerson.Fornavn
+                            ),
+                        },
+                        Sms = new Sms
+                        {
+                            MobileNumber = stifterPerson.Mobiltelefon,
+                            BodyTextResourceKey = "signing.notification_content".Replace(
+                                "{0}",
+                                stifterPerson.Fornavn
+                            ),
+                        }
+                    }
+                }
             };
+
 
             providedSignees.Add(personSignee);
         }
