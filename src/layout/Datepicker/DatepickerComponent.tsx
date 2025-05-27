@@ -32,6 +32,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
     id,
     dataModelBindings,
     grid,
+    autocomplete,
   } = useNodeItem(node);
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
@@ -81,6 +82,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
             DropdownCaption={DropdownCaption}
             buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
             calendarIconTitle={langAsString('date_picker.aria_label_icon')}
+            autoComplete={autocomplete}
           />
         </Flex>
       </ComponentStructureWrapper>

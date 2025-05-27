@@ -10,7 +10,7 @@ import {
   strictParseFormat,
   strictParseISO,
 } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { getFormatPattern } from 'src/utils/dateUtils';
+import { dateFormatCanBeNumericInReactPatternFormat, getFormatAsPatternFormat } from 'src/utils/dateUtils';
 
 export interface DatePickerInputProps {
   id: string;
@@ -19,6 +19,7 @@ export interface DatePickerInputProps {
   value?: string;
   onValueChange?: (value: string) => void;
   readOnly?: boolean;
+  autoComplete?: 'bday';
 }
 
 export function DatePickerInput({
@@ -28,11 +29,12 @@ export function DatePickerInput({
   timeStamp,
   onValueChange,
   readOnly,
+  autoComplete,
 }: DatePickerInputProps) {
-  const formatPattern = getFormatPattern(datepickerFormat);
   const dateValue = strictParseISO(value);
   const formattedDateValue = dateValue ? format(dateValue, datepickerFormat) : value;
   const [inputValue, setInputValue] = useState(formattedDateValue ?? '');
+  const numericMode = dateFormatCanBeNumericInReactPatternFormat(datepickerFormat);
 
   useEffect(() => {
     setInputValue(formattedDateValue ?? '');
@@ -56,7 +58,7 @@ export function DatePickerInput({
 
   return (
     <PatternFormat
-      format={formatPattern}
+      format={getFormatAsPatternFormat(datepickerFormat)}
       customInput={Textfield}
       mask='_'
       className={styles.calendarInput}
@@ -68,6 +70,10 @@ export function DatePickerInput({
       onBlur={saveValue}
       readOnly={readOnly}
       aria-readonly={readOnly}
+      autoComplete={autoComplete}
+      // May force a numerical input mode in mobile browsers
+      inputMode={numericMode ? 'numeric' : 'text'}
+      pattern={numericMode ? '[0-9]*' : undefined}
     />
   );
 }

@@ -4,85 +4,52 @@ import { getLanguageFromCode } from 'src/language/languages';
 import type { FixedLanguageList } from 'src/language/languages';
 
 const UNICODE_TOKENS = /[^a-zA-Z0-9]+/g;
-export type Token =
-  | 'G'
-  | 'GG'
-  | 'GGG'
-  | 'GGGG'
-  | 'GGGGG'
-  | 'y'
-  | 'yy'
-  | 'yyy'
-  | 'yyyy'
-  | 'u'
-  | 'uu'
-  | 'uuu'
-  | 'uuuu'
-  | 'M'
-  | 'MM'
-  | 'MMM'
-  | 'MMMM'
-  | 'MMMMM'
-  | 'd'
-  | 'dd'
-  | 'a'
-  | 'E'
-  | 'EE'
-  | 'EEE'
-  | 'EEEE'
-  | 'EEEEE'
-  | 'h'
-  | 'hh'
-  | 'H'
-  | 'HH'
-  | 'm'
-  | 'mm'
-  | 's'
-  | 'ss'
-  | 'S'
-  | 'SS'
-  | 'SSS';
 type Separator = string | undefined;
+export type Token = keyof typeof tokenOptions;
 
-const tokenMappings: Record<Token, Intl.DateTimeFormatOptions> = {
-  G: { era: 'short' },
-  GG: { era: 'short' },
-  GGG: { era: 'short' },
-  GGGG: { era: 'long' },
-  GGGGG: { era: 'narrow' },
-  y: { year: 'numeric' },
-  yy: { year: '2-digit' },
-  yyy: { year: 'numeric' },
-  yyyy: { year: 'numeric' },
-  u: { year: 'numeric' },
-  uu: { year: 'numeric' },
-  uuu: { year: 'numeric' },
-  uuuu: { year: 'numeric' },
-  M: { month: 'numeric' },
-  MM: { month: '2-digit' },
-  MMM: { month: 'short' },
-  MMMM: { month: 'long' },
-  MMMMM: { month: 'narrow' },
-  d: { day: 'numeric' },
-  dd: { day: '2-digit' },
-  E: { weekday: 'short' },
-  EE: { weekday: 'short' },
-  EEE: { weekday: 'short' },
-  EEEE: { weekday: 'long' },
-  EEEEE: { weekday: 'narrow' },
-  a: { hour12: true, hour: '2-digit' },
-  h: { hour: 'numeric', hourCycle: 'h12' },
-  hh: { hour: '2-digit', hourCycle: 'h12' },
-  H: { hour: 'numeric', hourCycle: 'h23' },
-  HH: { hour: '2-digit', hourCycle: 'h23' },
-  m: { minute: 'numeric' },
-  mm: { minute: '2-digit' },
-  s: { second: 'numeric' },
-  ss: { second: '2-digit' },
-  S: { fractionalSecondDigits: 1 },
-  SS: { fractionalSecondDigits: 2 },
-  SSS: { fractionalSecondDigits: 3 },
-};
+interface ExtraOptions {
+  numeric: boolean;
+}
+
+const tokenOptions = {
+  G: { era: 'short', numeric: false },
+  GG: { era: 'short', numeric: false },
+  GGG: { era: 'short', numeric: false },
+  GGGG: { era: 'long', numeric: false },
+  GGGGG: { era: 'narrow', numeric: false },
+  y: { year: 'numeric', numeric: true },
+  yy: { year: '2-digit', numeric: true },
+  yyy: { year: 'numeric', numeric: true },
+  yyyy: { year: 'numeric', numeric: true },
+  u: { year: 'numeric', numeric: true },
+  uu: { year: 'numeric', numeric: true },
+  uuu: { year: 'numeric', numeric: true },
+  uuuu: { year: 'numeric', numeric: true },
+  M: { month: 'numeric', numeric: true },
+  MM: { month: '2-digit', numeric: true },
+  MMM: { month: 'short', numeric: false },
+  MMMM: { month: 'long', numeric: false },
+  MMMMM: { month: 'narrow', numeric: false },
+  d: { day: 'numeric', numeric: true },
+  dd: { day: '2-digit', numeric: true },
+  E: { weekday: 'short', numeric: false },
+  EE: { weekday: 'short', numeric: false },
+  EEE: { weekday: 'short', numeric: false },
+  EEEE: { weekday: 'long', numeric: false },
+  EEEEE: { weekday: 'narrow', numeric: false },
+  a: { hour12: true, hour: '2-digit', numeric: false },
+  h: { hour: 'numeric', hourCycle: 'h12', numeric: true },
+  hh: { hour: '2-digit', hourCycle: 'h12', numeric: true },
+  H: { hour: 'numeric', hourCycle: 'h23', numeric: true },
+  HH: { hour: '2-digit', hourCycle: 'h23', numeric: true },
+  m: { minute: 'numeric', numeric: true },
+  mm: { minute: '2-digit', numeric: true },
+  s: { second: 'numeric', numeric: true },
+  ss: { second: '2-digit', numeric: true },
+  S: { fractionalSecondDigits: 1, numeric: true },
+  SS: { fractionalSecondDigits: 2, numeric: true },
+  SSS: { fractionalSecondDigits: 3, numeric: true },
+} satisfies Record<string, Intl.DateTimeFormatOptions & ExtraOptions>;
 
 export function formatDateLocale(localeStr: string, date: Date, unicodeFormat?: string) {
   if (!unicodeFormat) {
@@ -95,7 +62,7 @@ export function formatDateLocale(localeStr: string, date: Date, unicodeFormat?: 
   let output = '';
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    const options = tokenMappings[token];
+    const options = tokenOptions[token];
     const separator = separators[i] ?? '';
     if (!options) {
       // TODO: Throw an error instead?
@@ -132,7 +99,10 @@ export function getDatepickerFormat(unicodeFormat: string): string {
   }, '');
 }
 
-export function getFormatPattern(datePickerFormat: string): string {
+/**
+ * Convert the date picker format to a react-number-format pattern format
+ */
+export function getFormatAsPatternFormat(datePickerFormat: string): string {
   return datePickerFormat.replaceAll(/[dmy]/gi, '#');
 }
 
@@ -207,4 +177,25 @@ function lookup(lang: FixedLanguageList, key: keyof FixedLanguageList) {
  */
 export function toTimeZonedDate(date: string | Date, zone: string = 'Europe/Oslo') {
   return new TZDate(new Date(date), zone);
+}
+
+/**
+ * This will accept a Unicode date format and figure out if 'inputMode: numeric' can be used for an input field when
+ * combined with a pattern format in react-number-format. When the numeric mode is set, the mobile OS will show a
+ * strictly numeric keyboard (with no punctuation possible, at least on iOS). Since react-number-format fills in the
+ * separators for you automatically, there is no need for the user to actually type them, so we can give the user
+ * a better keyboard for these inputs.
+ *
+ * @see https://github.com/s-yadav/react-number-format/issues/189
+ * @see getFormatAsPatternFormat
+ */
+export function dateFormatCanBeNumericInReactPatternFormat(format: string): boolean {
+  const tokens = format.split(UNICODE_TOKENS) as Token[];
+  for (const token of tokens) {
+    if (!tokenOptions[token] || !tokenOptions[token].numeric) {
+      return false;
+    }
+  }
+
+  return true;
 }

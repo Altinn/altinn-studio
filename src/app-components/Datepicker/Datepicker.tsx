@@ -27,6 +27,7 @@ export type DatePickerControlProps = {
   DropdownCaption: typeof MonthCaption;
   buttonAriaLabel: string;
   calendarIconTitle: string;
+  autoComplete?: 'bday';
 };
 
 export const DatePickerControl: React.FC<DatePickerControlProps> = ({
@@ -44,6 +45,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
   buttonAriaLabel,
   DropdownCaption,
   calendarIconTitle,
+  autoComplete,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const dateValue = new Date(value);
@@ -73,6 +75,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
           timeStamp={timeStamp}
           onValueChange={onValueChange}
           readOnly={readOnly}
+          autoComplete={autoComplete}
         />
         <DatePickerDialog
           isDialogOpen={isDialogOpen}

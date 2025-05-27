@@ -17,6 +17,7 @@ export const Config = new CG.component({
   },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
+  .addProperty(new CG.prop('autocomplete', new CG.const('bday').optional()))
   .addProperty(
     new CG.prop(
       'minDate',

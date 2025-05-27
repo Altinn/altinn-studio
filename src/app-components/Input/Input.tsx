@@ -31,6 +31,7 @@ export type InputProps = {
   | 'placeholder'
   | 'inputMode'
   | 'style'
+  | 'pattern'
 >;
 
 export function Input(props: InputProps) {

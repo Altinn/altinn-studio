@@ -19,6 +19,7 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { InputProps } from 'src/app-components/Input/Input';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type {
+  HTMLAutoCompleteValues,
   NumberFormatProps as NumberFormatPropsCG,
   PatternFormatProps as PatternFormatPropsCG,
 } from 'src/layout/common.generated';
@@ -58,6 +59,50 @@ function getVariantWithFormat(
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
+function getMobileKeyboardProps(
+  variant: Variant,
+  autocomplete: HTMLAutoCompleteValues | undefined,
+): Pick<InputProps, 'inputMode' | 'pattern'> {
+  if (variant.type === 'search') {
+    return { inputMode: 'search', pattern: undefined };
+  }
+
+  if (autocomplete === 'email') {
+    return { inputMode: 'email', pattern: undefined };
+  }
+
+  if (autocomplete === 'url' || autocomplete === 'photo') {
+    return { inputMode: 'url', pattern: undefined };
+  }
+
+  if (autocomplete === 'tel') {
+    return { inputMode: 'tel', pattern: '[-+()0-9]*' };
+  }
+
+  if (variant.type === 'pattern') {
+    // Pattern inputs are simple. They fill out spaces or separators for you automatically, so the user can focus on
+    // typing the numbers.
+    return { inputMode: 'numeric', pattern: undefined };
+  }
+
+  if (variant.type === 'number') {
+    if (variant.format.allowNegative === false) {
+      return { inputMode: 'decimal', pattern: `[0-9,.]*` };
+    }
+
+    if (navigator?.platform && /iPhone|iPad/.test(navigator.platform)) {
+      // Decimal on iOS does not allow negative numbers, so we have to fall back to text
+      // when negatives are allowed. For more details, see the issue:
+      // https://github.com/s-yadav/react-number-format/issues/189#issuecomment-623267349
+      return { inputMode: 'text', pattern: `-?[0-9,.]*` };
+    }
+
+    return { inputMode: 'decimal', pattern: `-?[0-9,.]*` };
+  }
+
+  return { inputMode: 'text', pattern: undefined };
+}
+
 export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node' | 'overrideDisplay'>) => {
   const {
     id,
@@ -80,6 +125,9 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
 
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
+  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
+  const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
+  const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
 
   const inputProps: InputProps = {
     id,
@@ -97,10 +145,10 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
     characterLimit: !readOnly ? characterLimit : undefined,
     style: { width: '100%' },
+    inputMode,
+    pattern,
   };
 
-  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
-  const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
   switch (variant.type) {
     case 'search':
     case 'text':
