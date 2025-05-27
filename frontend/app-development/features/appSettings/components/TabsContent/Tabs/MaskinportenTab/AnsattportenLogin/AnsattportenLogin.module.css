@@ -1,0 +1,39 @@
+.loginIconWrapper {
+  margin-block: var(--ds-size-9);
+  position: relative;
+  display: inline-block;
+  padding: var(--ds-size-5);
+}
+
+.loginIcon {
+  font-size: var(--ds-size-15);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ds-color-neutral-text-default);
+}
+
+.loginIconBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--ds-color-accent-surface-active);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.loginButton {
+  margin-bottom: var(--ds-size-10);
+}
+
+.descriptionText {
+  text-align: center;
+  padding-inline: var(--ds-size-13);
+  margin-bottom: var(--ds-size-10);
+}

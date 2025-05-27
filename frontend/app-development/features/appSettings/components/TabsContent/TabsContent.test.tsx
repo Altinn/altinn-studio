@@ -33,19 +33,19 @@ describe('TabsContent', () => {
 
   it('should render Access Control tab content when currentTab is "access_control"', () => {
     renderTabsContent({ currentTab: 'access_control' });
-    expect(screen.getByText('Access Control tab')).toBeInTheDocument();
+    expect(getHeading('access_control')).toBeInTheDocument();
   });
 
   it('should render Maskinporten tab when feature flag is enabled', () => {
     addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
 
     renderTabsContent({ currentTab: 'maskinporten' });
-    expect(screen.getByText('Maskinporten tab')).toBeInTheDocument();
+    expect(getHeading('maskinporten')).toBeInTheDocument();
   });
 
   it('should not render anything when feature flag is disabled for Maskinporten tab', () => {
     renderTabsContent({ currentTab: 'maskinporten' });
-    expect(screen.queryByText('Maskinporten tab')).not.toBeInTheDocument();
+    expect(queryHeading('maskinporten')).not.toBeInTheDocument();
   });
 });
 
@@ -63,6 +63,12 @@ const renderTabsContent = (props: Partial<TabsContentProps> = {}) => {
 
 const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
   screen.getByRole('heading', {
+    name: textMock(`app_settings.${tabId}_tab_heading`),
+    level: 3,
+  });
+
+const queryHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
+  screen.queryByRole('heading', {
     name: textMock(`app_settings.${tabId}_tab_heading`),
     level: 3,
   });
