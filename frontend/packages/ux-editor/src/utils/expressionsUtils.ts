@@ -5,7 +5,7 @@ import type { FormComponent } from '../types/FormComponent';
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
 export const getDataModelElementNames = (dataModelElements: DataModelFieldElement[]): string[] => {
   return dataModelElements
-    .filter((element) => element.dataBindingName)
+    ?.filter((element) => element.dataBindingName)
     .map((element) => element.dataBindingName);
 };
 
