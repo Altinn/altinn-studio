@@ -23,6 +23,7 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
+import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -39,6 +40,7 @@ export const DesignView = (): ReactNode => {
   const {
     selectedFormLayoutSetName,
     selectedFormLayoutName,
+    setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
@@ -71,8 +73,16 @@ export const DesignView = (): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
+      setSelectedItem({
+        type: ItemType.Page,
+        id: pageName,
+      });
     } else {
       setSelectedFormLayoutName(undefined);
+      setSelectedItem({
+        type: ItemType.Page,
+        id: pageName,
+      });
     }
   };
 
