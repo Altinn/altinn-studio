@@ -90,7 +90,7 @@ describe('EditDataModelBinding', () => {
 
   it('should render type as label if no label is provided', () => {
     renderEditDataModelBinding({});
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
     const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
       componentName: type,
     });
@@ -103,7 +103,7 @@ describe('EditDataModelBinding', () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
     const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
       componentName: type,
     });
@@ -115,7 +115,7 @@ describe('EditDataModelBinding', () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
     const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
       componentName: type,
     });

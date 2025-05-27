@@ -90,7 +90,7 @@ export const PropertiesHeader = ({
             <DataModelMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
-              requiredDataModelBindings={dataModelBindings?.required}
+              requiredDataModelBindings={dataModelBindings?.required || []}
             />
           </>
         )}
