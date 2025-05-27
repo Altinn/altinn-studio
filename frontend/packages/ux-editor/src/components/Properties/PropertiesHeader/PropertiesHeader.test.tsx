@@ -14,8 +14,6 @@ import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { typedLocalStorage } from '@studio/pure-functions';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -33,7 +31,6 @@ describe('PropertiesHeader', () => {
   afterEach(() => {
     jest.clearAllMocks();
     queryClientMock.clear();
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('renders the header name for the component', () => {
@@ -175,20 +172,12 @@ describe('PropertiesHeader', () => {
     expect(alert).not.toBeInTheDocument();
   });
 
-  it('should render main configuration header when feature flag is set', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.MainConfig);
+  it('should render main configuration header', () => {
     renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
 
     const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
     const headerMainConfig = screen.getByText(sectionHeader);
     expect(headerMainConfig).toBeInTheDocument();
-  });
-
-  it('should not render main configuration header when feature flag is not set', () => {
-    renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
-    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
-    const headerMainConfig = screen.queryByText(sectionHeader);
-    expect(headerMainConfig).not.toBeInTheDocument();
   });
 });
 
