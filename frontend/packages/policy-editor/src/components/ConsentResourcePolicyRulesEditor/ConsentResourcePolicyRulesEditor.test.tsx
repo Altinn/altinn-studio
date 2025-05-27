@@ -10,6 +10,18 @@ import {
 import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEditor';
 import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '../../utils';
 
+const accessListSubject = {
+  subjectId: 'test-liste',
+  subjectSource: `${accessListSubjectSource}:ttd`,
+  subjectTitle: 'Testliste',
+  subjectDescription: 'Dette er en testliste',
+};
+const accessListSubject2 = {
+  subjectId: 'test-liste2',
+  subjectSource: `${accessListSubjectSource}:ttd`,
+  subjectTitle: 'Testliste2',
+  subjectDescription: 'Dette er en testliste2',
+};
 const resourceId = 'consent-resource';
 const requestConsentRule = {
   ...emptyPolicyRule,
@@ -24,13 +36,6 @@ const acceptConsentRule = {
   actions: ['consent'],
   ruleId: '2',
   resources: [[{ id: resourceId, type: 'urn:altinn:resource' }]],
-};
-
-const accessListSubject = {
-  subjectId: 'test-liste',
-  subjectSource: `${accessListSubjectSource}:ttd`,
-  subjectTitle: 'Testliste',
-  subjectDescription: 'Dette er en testliste',
 };
 
 describe('ConsentResourcePolicyRulesEditor', () => {
@@ -65,10 +70,15 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should set all organizations subject in rule for request consent after all organizations checkbox is clicked', async () => {
+  it('should deselect all access lists after no access list restriction checkbox is clicked', async () => {
     const user = userEvent.setup();
     const onSaveFn = jest.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
+
+    const accessListCheckbox = screen.getByRole('checkbox', {
+      name: accessListSubject.subjectTitle,
+    });
+    await user.click(accessListCheckbox);
 
     const allOrganizationsCheckbox = screen.getByRole('checkbox', {
       name: textMock('policy_editor.consent_resource_all_organizations'),
@@ -81,10 +91,39 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     ]);
   });
 
-  it('should set access list subject in rule for request consent after access list checkbox is clicked', async () => {
+  it('should set access list subjects in rule for request consent after access list checkbox is clicked', async () => {
     const user = userEvent.setup();
     const onSaveFn = jest.fn();
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
+
+    const accessListCheckbox = screen.getByRole('checkbox', {
+      name: accessListSubject.subjectTitle,
+    });
+    await user.click(accessListCheckbox);
+
+    const accessListCheckbox2 = screen.getByRole('checkbox', {
+      name: accessListSubject2.subjectTitle,
+    });
+    await user.click(accessListCheckbox2);
+
+    expect(onSaveFn).toHaveBeenCalledWith([
+      {
+        ...requestConsentRule,
+        subject: [accessListSubject.subjectId, accessListSubject2.subjectId],
+      },
+      acceptConsentRule,
+    ]);
+  });
+
+  it('should deselect no access list restriction checkbox in rule for request consent after access list checkbox is clicked', async () => {
+    const user = userEvent.setup();
+    const onSaveFn = jest.fn();
+    renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
+
+    const allOrganizationsCheckbox = screen.getByRole('checkbox', {
+      name: textMock('policy_editor.consent_resource_all_organizations'),
+    });
+    await user.click(allOrganizationsCheckbox);
 
     const accessListCheckbox = screen.getByRole('checkbox', {
       name: accessListSubject.subjectTitle,
@@ -121,7 +160,7 @@ const renderConsentResourcePolicyRulesEditor = (
     <PolicyEditorContext.Provider
       value={{
         ...mockPolicyEditorContextValue,
-        subjects: [accessListSubject, organizationSubject],
+        subjects: [accessListSubject, accessListSubject2, organizationSubject],
         policyRules: [requestConsentRule, acceptConsentRule],
         ...policyEditorContextProps,
       }}

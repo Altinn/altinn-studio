@@ -86,11 +86,24 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   const { policyRules, subjects, setPolicyRules, savePolicy, showAllErrors } =
     usePolicyEditorContext();
 
-  const handleSubjectChange = (newSubjects: string[]): void => {
+  const handleSubjectChange = (newSubjects: string[], currentValue: string[]): void => {
+    const newSubjectsHasOrganizationSubject = newSubjects.includes(organizationSubject.subjectId);
+    const currentValueHasOrganizationSubject = currentValue.includes(organizationSubject.subjectId);
+
+    let subjectsToSave = newSubjects;
+    if (newSubjectsHasOrganizationSubject && !currentValueHasOrganizationSubject) {
+      // If the organization subject is added, remove all other subjects
+      subjectsToSave = [organizationSubject.subjectId];
+    } else if (currentValueHasOrganizationSubject && newSubjects.length > 1) {
+      // If any other subject is added while the organization subject is selected, remove the organization subject
+      subjectsToSave = newSubjects.filter((subject) => subject !== organizationSubject.subjectId);
+    }
+    setValue(subjectsToSave);
+
     const updatedRules = getUpdatedRules(
       {
         ...policyRule,
-        subject: newSubjects,
+        subject: subjectsToSave,
       },
       policyRule.ruleId,
       policyRules,
@@ -100,7 +113,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   };
 
   const hasSubjectError = showAllErrors && policyRule.subject.length === 0;
-  const { getCheckboxProps } = useStudioCheckboxGroup({
+  const { getCheckboxProps, setValue } = useStudioCheckboxGroup({
     error: hasSubjectError && t('policy_editor.consent_resource_request_consent_error'),
     value: policyRule.subject,
     onChange: handleSubjectChange,
