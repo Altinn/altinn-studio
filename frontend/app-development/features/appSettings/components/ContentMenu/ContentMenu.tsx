@@ -5,15 +5,17 @@ import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
+import { getCurrentSettingsTab } from '../../utils';
 
 export type ContentMenuProps = {
-  currentTab: SettingsPageTabId;
   onChangeTab: (tabId: SettingsPageTabId) => void;
 };
 
-export function ContentMenu({ currentTab, onChangeTab }: ContentMenuProps): ReactElement {
+export function ContentMenu({ onChangeTab }: ContentMenuProps): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
+
+  const currentTab: SettingsPageTabId = getCurrentSettingsTab();
 
   return (
     <StudioContentMenu selectedTabId={currentTab} onChangeTab={onChangeTab}>

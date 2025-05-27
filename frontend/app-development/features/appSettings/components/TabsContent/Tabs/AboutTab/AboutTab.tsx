@@ -19,7 +19,6 @@ import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { NewInputFields } from './NewInputFields';
 import type { AppResource } from 'app-shared/types/AppResource';
-import { validateAppResource } from './utils/appResourceValidationUtils';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
