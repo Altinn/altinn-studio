@@ -115,6 +115,20 @@ describe('PageGroupAccordion', () => {
     const heading = within(groupHeader).getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent('Group 1');
   });
+
+  it('should call handleAddPageInsideGroup when add button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockChangePageGroups = jest.fn().mockResolvedValue({});
+    const queries = { changePageGroups: mockChangePageGroups };
+    await renderPageGroupAccordion({ queries });
+    const addButtons = screen.getAllByRole('button', {
+      name: textMock('ux_editor.pages_add'),
+    });
+    await user.click(addButtons[0]);
+    expect(mockChangePageGroups).toHaveBeenCalledTimes(1);
+    const updatedPages = mockChangePageGroups.mock.calls[0][3];
+    expect(updatedPages.groups[0].order).toHaveLength(3);
+  });
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
