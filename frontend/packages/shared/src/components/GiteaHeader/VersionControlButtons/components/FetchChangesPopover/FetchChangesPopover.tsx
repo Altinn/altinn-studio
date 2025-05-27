@@ -11,8 +11,6 @@ import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -48,14 +46,6 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
     if (result.repositoryStatus === 'Ok') {
       onPullSuccess?.();
-      queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], (oldStatus: RepoStatus) => ({
-        ...oldStatus,
-        behindBy: 0,
-        aheadBy: oldStatus?.aheadBy || 0,
-        contentStatus: oldStatus?.contentStatus || {},
-        repositoryStatus: 'Ok',
-      }));
-
       await queryClient.invalidateQueries({
         predicate: (q) => {
           const queryKey = q.queryKey;
