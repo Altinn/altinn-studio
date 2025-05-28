@@ -33,7 +33,6 @@ export function AboutTab(): ReactElement {
 
 function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
-  const { t } = useTranslation();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
 
   const [appResource, setAppResource] = useState<AppResource>(mockAppResource);

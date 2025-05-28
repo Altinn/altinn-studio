@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './NewInputFields.module.css';
 import { useTranslation } from 'react-i18next';
@@ -6,11 +6,12 @@ import { StudioTextfield, StudioErrorSummary } from '@studio/components';
 import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
-import type { Translation } from 'app-development/features/appSettings/types/Translation';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { validateAppResource } from '../utils/appResourceValidationUtils';
 import { NavigationWarningDialog } from '../NavigationWarningDialog/NavigationWarningDialog';
 import { useBeforeUnload } from '../hooks/useBeforeUnload';
+
+export type TranslationType = 'none' | keyof AppResource;
 
 // TODO - Take in prop to say that user has changed tab
 type NewInputFieldsProps = {
@@ -23,7 +24,7 @@ export function NewInputFields({
   saveAppResource,
 }: NewInputFieldsProps): ReactElement {
   const { t } = useTranslation();
-  const [translationType, setTranslationType] = useState<Translation>('none');
+  const [translationType, setTranslationType] = useState<TranslationType>('none');
   const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
   const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
 
@@ -60,7 +61,7 @@ export function NewInputFields({
   return (
     <div className={classes.wrapper}>
       {showAppResourceErrors && validationErrors.length > 0 && (
-        <StudioErrorSummary>
+        <StudioErrorSummary className={classes.errorSummary}>
           <StudioErrorSummary.Heading>
             {t('app_settings.about_tab_error_summary_header')}
           </StudioErrorSummary.Heading>
@@ -71,7 +72,7 @@ export function NewInputFields({
                 <StudioErrorSummary.Item key={JSON.stringify(error)}>
                   <StudioErrorSummary.Link
                     href={href}
-                    onClick={() => setTranslationType(error.field as Translation)}
+                    onClick={() => setTranslationType(error.field)}
                   >
                     {error.error}
                   </StudioErrorSummary.Link>

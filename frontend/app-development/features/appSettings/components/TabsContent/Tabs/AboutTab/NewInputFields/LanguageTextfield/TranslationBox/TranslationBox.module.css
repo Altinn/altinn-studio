@@ -3,7 +3,7 @@
   top: 50%;
   right: 0;
   transform: translateY(-50%);
-  margin-left: var(--ds-size-6); /* spacing to the right */
+  margin-left: var(--ds-size-6);
   width: 35%;
   z-index: 100;
 }
