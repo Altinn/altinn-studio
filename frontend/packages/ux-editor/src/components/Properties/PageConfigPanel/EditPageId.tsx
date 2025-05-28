@@ -8,13 +8,14 @@ import { useAppContext, useText } from '../../../hooks';
 import { useModifyPageMutation } from '../../../hooks/mutations/useModifyPageMutation';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { ItemType } from '../ItemType';
 
 export interface EditPageIdProps {
   layoutName: string;
 }
 export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutSetName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutateAsync: modifyPageMutation, isPending } = useModifyPageMutation(
     org,
@@ -33,6 +34,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
     mutateTextId([{ oldId: pageName, newId: newName }]);
     await modifyPageMutation(newPage);
     setSelectedFormLayoutName(newName);
+    setSelectedItem({ type: ItemType.Page, id: newName });
   };
 
   return (
