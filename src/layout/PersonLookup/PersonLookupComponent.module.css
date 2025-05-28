@@ -13,7 +13,7 @@
 /* breakpoints-md */
 @media only screen and (min-width: 840px) {
   .componentWrapper {
-    grid-template-columns: repeat(2, minmax(250px, 250px)) auto;
+    grid-template-columns: minmax(100px, 200px) auto min-content;
     grid-template-areas: 'ssnLabel nameLabel .' 'ssn name submit' 'apiError apiError .';
     align-items: start;
     column-gap: var(--fds-spacing-6);

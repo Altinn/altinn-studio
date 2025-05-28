@@ -5,7 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
-import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { DropdownSummary } from 'src/layout/Dropdown/DropdownSummary';
@@ -47,7 +47,7 @@ export class Dropdown extends DropdownDef {
   }
 
   useEmptyFieldValidation(node: LayoutNode<'Dropdown'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlySimpleBinding(node);
+    return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Dropdown'>): string[] {

@@ -15,9 +15,6 @@ import { getDescriptionId } from 'src/components/label/Label';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
-import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupComponent.module.css';
 import { validateOrganisationLookupResponse, validateOrgnr } from 'src/layout/OrganisationLookup/validation';
@@ -81,7 +78,6 @@ export function OrganisationLookupComponent({
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
-  const bindingValidations = useBindingValidationsForNode(node);
   const { langAsString } = useLanguage();
 
   const { data, refetch: performLookup, isFetching } = useQuery(orgLookupQueries.lookup(tempOrgNr));
@@ -118,6 +114,7 @@ export function OrganisationLookupComponent({
     setValue('organisation_lookup_orgnr', '');
     dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', '');
     setTempOrgNr('');
+    setOrgNrErrors(undefined);
   }
 
   const hasSuccessfullyFetched = !!organisation_lookup_orgnr;
@@ -155,16 +152,16 @@ export function OrganisationLookupComponent({
             className={classes.orgnr}
             required={required}
             readOnly={hasSuccessfullyFetched || isFetching}
-            error={
-              (orgNrErrors?.length && <Lang id={orgNrErrors.join(' ')} />) ||
-              (hasValidationErrors(bindingValidations?.organisation_lookup_orgnr) && (
-                <ComponentValidations validations={bindingValidations?.organisation_lookup_orgnr} />
-              ))
-            }
+            error={orgNrErrors?.length && <Lang id={orgNrErrors.join(' ')} />}
             onValueChange={(e) => {
               setTempOrgNr(e.value);
+              setOrgNrErrors(undefined);
             }}
-            onBlur={(e) => handleValidateOrgnr(e.target.value)}
+            onKeyDown={async (ev) => {
+              if (ev.key === 'Enter') {
+                await handleSubmit();
+              }
+            }}
             allowLeadingZeros
             inputMode='numeric'
             pattern='[0-9]{9}'
@@ -176,7 +173,7 @@ export function OrganisationLookupComponent({
                 variant='secondary'
                 isLoading={isFetching}
               >
-                Hent opplysninger
+                <Lang id='organisation_lookup.submit_button' />
               </Button>
             ) : (
               <Button
@@ -184,7 +181,7 @@ export function OrganisationLookupComponent({
                 color='danger'
                 onClick={handleClear}
               >
-                Fjern
+                <Lang id='organisation_lookup.clear_button' />
               </Button>
             )}
           </div>

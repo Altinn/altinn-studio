@@ -16,7 +16,7 @@
 /* breakpoints-md */
 @media only screen and (min-width: 840px) {
   .componentWrapper {
-    grid-template-columns: minmax(250px, 250px) auto;
+    grid-template-columns: auto min-content;
     grid-template-rows: repeat(4, min-content);
     grid-template-areas:
       'orgnrLabel .'

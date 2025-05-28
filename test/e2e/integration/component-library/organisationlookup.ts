@@ -27,7 +27,7 @@ describe('Organisation lookup', () => {
 
     // Type invalid orgNr
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).blur();
+    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
 
     // Type valid orgNr
@@ -71,9 +71,31 @@ describe('Organisation lookup', () => {
 
     // Fetch organisation with server error
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).clear();
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668');
-    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668{Enter}');
     cy.wait('@failedFetchOrganisationServerError');
     cy.findByText(/Ukjent feil. Vennligst prøv igjen senere/i).should('exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'OrganisationLookup') {
+        component.showValidations = ['All'];
+      }
+    });
+
+    // 3 instances of this text (component, Summary2, ErrorReport)
+    cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('exist').and('have.length', 3);
+
+    cy.changeLayout((component) => {
+      if (component.type === 'OrganisationLookup') {
+        component.showValidations = undefined;
+      }
+      if (component.type === 'NavigationButtons') {
+        component.validateOnNext = { page: 'current', show: ['All'] };
+      }
+    });
+
+    cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).click();
+
+    cy.findAllByText('Du må fylle ut organisasjonsnummer og hente opplysninger').should('exist').and('have.length', 3);
   });
 });

@@ -28,12 +28,12 @@ describe('Person lookup component', () => {
     cy.findByRole('textbox', { name: /Etternavn/i }).should('exist');
     cy.findByRole('button', { name: /Hent opplysninger/i }).should('exist');
 
-    //Type invalid fnr
+    // Type invalid SSN
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).type('123456789');
-    cy.findByRole('textbox', { name: /Fødselsnummer/i }).blur();
+    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.findByText(/fødselsnummeret\/d-nummeret er ugyldig./i).should('exist');
 
-    //Type valid fnr
+    // Type valid SSN
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).clear();
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).type('08829698278');
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).blur();
@@ -80,9 +80,35 @@ describe('Person lookup component', () => {
       body: { success: false, personDetails: null },
     }).as('forbidden');
 
-    cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+    cy.findByRole('textbox', { name: /Etternavn/i }).type('{Enter}');
     cy.wait('@forbidden');
 
     cy.findByText(/Ukjent feil. Vennligst prøv igjen senere./i).should('exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'PersonLookup') {
+        component.showValidations = ['All'];
+      }
+    });
+
+    // 3 instances of this text (component, Summary2, ErrorReport)
+    cy.findAllByText('Du må fylle ut fødselsnummer og hente opplysninger').should('exist').and('have.length', 3);
+    cy.findAllByText('Du må fylle ut navn og hente opplysninger').should('exist').and('have.length', 3);
+
+    cy.changeLayout((component) => {
+      if (component.type === 'PersonLookup') {
+        component.showValidations = undefined;
+      }
+      if (component.type === 'NavigationButtons') {
+        component.validateOnNext = { page: 'current', show: ['All'] };
+      }
+    });
+
+    cy.findByText('Du må fylle ut fødselsnummer og hente opplysninger').should('not.exist');
+    cy.findByText('Du må fylle ut navn og hente opplysninger').should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).click();
+
+    cy.findAllByText('Du må fylle ut fødselsnummer og hente opplysninger').should('exist').and('have.length', 3);
+    cy.findAllByText('Du må fylle ut navn og hente opplysninger').should('exist').and('have.length', 3);
   });
 });

@@ -5,7 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
-import { useEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
@@ -46,7 +46,7 @@ export class LikertItem extends LikertItemDef {
   }
 
   useEmptyFieldValidation(node: LayoutNode<'LikertItem'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlySimpleBinding(node);
+    return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'LikertItem'>): string[] {
