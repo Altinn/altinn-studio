@@ -34,12 +34,6 @@
 .groupAccordionWrapper {
   margin-left: var(--fds-spacing-8);
   margin-right: var(--fds-spacing-8);
-  border-bottom: 0 !important;
-  border-left: 0.5px solid var(--fds-semantic-border-neutral-subtle);
-}
-
-.groupAccordionWrapperSinglePage {
-  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-subtle) !important;
 }
 
 .buttonContainer {

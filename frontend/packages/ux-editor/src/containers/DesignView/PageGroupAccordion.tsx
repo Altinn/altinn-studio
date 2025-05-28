@@ -83,7 +83,6 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
-    const hasGroupOnePage = group.order.length === 1;
 
     return (
       <div key={group.order[0].id} className={classes.groupWrapper}>
@@ -136,12 +135,7 @@ export const PageGroupAccordion = ({
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
 
           return (
-            <Accordion
-              key={page.id}
-              className={cn(classes.groupAccordionWrapper, {
-                [classes.groupAccordionWrapperSinglePage]: hasGroupOnePage,
-              })}
-            >
+            <Accordion key={page.id} className={classes.groupAccordionWrapper}>
               <PageAccordion
                 pageName={page.id}
                 isOpen={page.id === selectedFormLayoutName}
