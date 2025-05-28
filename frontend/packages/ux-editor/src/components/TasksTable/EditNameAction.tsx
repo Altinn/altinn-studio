@@ -11,7 +11,7 @@ import classes from './EditNameAction.module.css';
 import { defaultLangCode } from '@altinn/text-editor';
 import { useTranslation } from 'react-i18next';
 
-type EditNameModalProps = {
+export type EditNameActionProps = {
   task: TaskNavigationGroup;
   tasks: TaskNavigationGroup[];
   index: number;
@@ -23,10 +23,10 @@ export const EditNameAction = ({
   tasks,
   index,
   handleUpdateTaskNavigationGroup,
-}: EditNameModalProps) => {
+}: EditNameActionProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate } = useUpsertTextResourceMutation(org, app);
+  const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const liveTextResourceValue = useTextResourceValue(task?.name);
@@ -53,7 +53,7 @@ export const EditNameAction = ({
     const isValueChanged = currentValue !== originTextResourceValueRef.current;
 
     if (isValueChanged) {
-      mutate({
+      upsertTextResource({
         textId: textResourceId,
         language: defaultLangCode,
         translation: originTextResourceValueRef.current,
