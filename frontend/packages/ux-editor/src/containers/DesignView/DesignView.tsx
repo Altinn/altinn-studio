@@ -161,7 +161,6 @@ export const DesignView = (): ReactNode => {
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}
-              onAddPage={handleAddPage}
               isAddPagePending={isAddPageMutationPending}
             />
           ) : (
