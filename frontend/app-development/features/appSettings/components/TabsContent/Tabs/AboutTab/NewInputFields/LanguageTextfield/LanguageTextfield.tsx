@@ -53,7 +53,7 @@ export function LanguageTextField({
   return (
     <div className={classes.languageFieldWrapper}>
       <StudioTextfield
-        id={id}
+        id={`${id}-nb`}
         label={fieldLabel}
         description={description}
         value={value['nb']}
@@ -75,6 +75,7 @@ export function LanguageTextField({
           required={required}
           tagText={tagText}
           errors={errors}
+          id={id}
         />
       )}
     </div>

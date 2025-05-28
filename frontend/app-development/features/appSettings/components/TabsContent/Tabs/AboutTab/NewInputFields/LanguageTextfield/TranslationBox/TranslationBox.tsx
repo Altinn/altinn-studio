@@ -20,6 +20,7 @@ type TranslationBoxProps = {
   required?: boolean;
   tagText?: string;
   errors: AppResourceFormError[];
+  id: string;
 };
 
 export function TranslationBox({
@@ -30,6 +31,7 @@ export function TranslationBox({
   required = false,
   tagText,
   errors,
+  id,
 }: TranslationBoxProps): ReactElement {
   const { t } = useTranslation();
 
@@ -60,6 +62,7 @@ export function TranslationBox({
           tagText={tagText}
           language='nn'
           errors={errors}
+          id={id}
         />
         <Textfield
           label={label}
@@ -72,6 +75,7 @@ export function TranslationBox({
           tagText={tagText}
           language='en'
           errors={errors}
+          id={id}
         />
       </div>
     </div>
@@ -87,6 +91,7 @@ type TextfieldProps = {
   tagText?: string;
   language: ValidLanguage;
   errors?: AppResourceFormError[];
+  id: string;
 };
 
 function Textfield({
@@ -98,6 +103,7 @@ function Textfield({
   tagText,
   language,
   errors,
+  id,
 }: TextfieldProps): ReactElement {
   const { t } = useTranslation();
 
@@ -116,6 +122,7 @@ function Textfield({
       tagText={tagText}
       rows={isTextArea ? 5 : undefined}
       error={errorMessage}
+      id={`${id}-${language}`}
     />
   );
 }

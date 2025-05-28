@@ -32,6 +32,7 @@ export function NewInputFields({
   useBeforeUnload(updatedAppResource !== appResource);
 
   const saveAppConfig = () => {
+    hideTranslationFields();
     if (validationErrors.length === 0) {
       setShowAppResourceErrors(false);
       saveAppResource(updatedAppResource);
@@ -45,6 +46,7 @@ export function NewInputFields({
   };
 
   const resetAppConfig = () => {
+    hideTranslationFields();
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
       setUpdatedAppResource(appResource);
       saveAppResource(appResource);
@@ -57,7 +59,6 @@ export function NewInputFields({
 
   return (
     <div className={classes.wrapper}>
-      {/* TODO - Add ErrorSummary component here */}
       {showAppResourceErrors && validationErrors.length > 0 && (
         <StudioErrorSummary>
           <StudioErrorSummary.Heading>
@@ -65,15 +66,14 @@ export function NewInputFields({
           </StudioErrorSummary.Heading>
           <StudioErrorSummary.List>
             {validationErrors.map((error: AppResourceFormError) => {
-              const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
-
+              const href: string = getErrorSummaryHref(error);
               return (
                 <StudioErrorSummary.Item key={JSON.stringify(error)}>
-                  <StudioErrorSummary.Link href={href}>
-                    {t(`app_settings.about_tab_error_${error.field}`, {
-                      field: error.field,
-                      error: error.error,
-                    })}
+                  <StudioErrorSummary.Link
+                    href={href}
+                    onClick={() => setTranslationType(error.field as Translation)}
+                  >
+                    {error.error}
                   </StudioErrorSummary.Link>
                 </StudioErrorSummary.Item>
               );
@@ -134,4 +134,18 @@ export function NewInputFields({
 
 enum InputFieldIds {
   ServiceName = 'serviceName',
+}
+
+function getErrorSummaryHref(error: AppResourceFormError): string {
+  const isIndexUndefined: boolean = error.index === undefined;
+  const isIndexNumber: boolean = typeof error.index === 'number';
+  const isIndexString: boolean = typeof error.index === 'string';
+
+  if (!isIndexUndefined && isIndexNumber) {
+    return `#${error.field}-${error.index}`;
+  }
+  if (!isIndexUndefined && isIndexString) {
+    return `#${error.field}-${error.index}`;
+  }
+  return `#${error.field}`;
 }
