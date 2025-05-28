@@ -43,6 +43,7 @@ export type CodeListPageProps = {
 export function CodeListPage({
   codeListsData,
   onCreateCodeList,
+  onCreateTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -67,6 +68,14 @@ export function CodeListPage({
   const textResourcesForLanguage = useMemo(
     () => getTextResourcesForLanguage(language, textResources),
     [textResources],
+  );
+
+  const handleCreateTextResource = useCallback(
+    (textResource: TextResource) => {
+      const updatedTextResource = createTextResourceWithLanguage(language, textResource);
+      onCreateTextResource?.(updatedTextResource);
+    },
+    [onCreateTextResource],
   );
 
   const handleUpdateTextResource = useCallback(
@@ -95,6 +104,7 @@ export function CodeListPage({
       <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
         onCreateCodeList={onCreateCodeList}
+        onCreateTextResource={handleCreateTextResource}
         onUpdateTextResource={handleUpdateTextResource}
         onUploadCodeList={handleUploadCodeList}
         codeListNames={codeListTitles}
@@ -105,6 +115,7 @@ export function CodeListPage({
       />
       <CodeLists
         codeListsData={filteredCodeLists}
+        onCreateTextResource={handleCreateTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
