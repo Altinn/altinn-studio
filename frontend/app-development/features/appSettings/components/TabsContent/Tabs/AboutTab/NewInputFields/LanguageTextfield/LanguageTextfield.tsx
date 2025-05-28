@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { StudioTextfield } from '@studio/components';
 import classes from './LanguageTextfield.module.css';
@@ -6,6 +6,10 @@ import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { TranslationBox } from './TranslationBox';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import {
+  getErrorMessagesForLanguage,
+  getTextfieldRows,
+} from '../../utils/appResourceLanguageUtils';
 
 type LanguageTextFieldProps = {
   id: string;
@@ -35,6 +39,8 @@ export function LanguageTextField({
   const { t } = useTranslation();
 
   const tagText: string = required ? t('general.required') : t('general.optional');
+  const fieldLabel: string = `${label} (${t('language.nb')})`;
+  const mainFieldError: string[] = getErrorMessagesForLanguage(errors, 'nb');
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -43,12 +49,6 @@ export function LanguageTextField({
     const newLanguage = { ...value, [language]: e.target.value };
     onChange(newLanguage);
   };
-
-  const fieldLabel: string = `${label} (${t('language.nb')})`;
-
-  const mainFieldError = errors
-    .filter((error) => error.index === 'nb')
-    .map((error, index) => error.error);
 
   return (
     <div className={classes.languageFieldWrapper}>
@@ -63,8 +63,8 @@ export function LanguageTextField({
         onFocus={onFocus}
         required={required}
         tagText={tagText}
-        rows={isTextArea ? 5 : undefined}
-        error={mainFieldError.length > 0 ? mainFieldError : undefined}
+        rows={getTextfieldRows(isTextArea)}
+        error={mainFieldError}
       />
       {isTranslationPanelOpen && (
         <TranslationBox
@@ -81,5 +81,3 @@ export function LanguageTextField({
     </div>
   );
 }
-
-const emptyLanguages: SupportedLanguage = { nb: '', nn: '', en: '' };

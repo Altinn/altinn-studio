@@ -8,11 +8,9 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { useBlocker, useNavigate } from 'react-router-dom';
-import type { Blocker } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
 
-// TODO FIX NAVIGATE BACK CORRECTLY
 export const SettingsModalButton = (): ReactElement => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
@@ -36,39 +34,12 @@ export const SettingsModalButton = (): ReactElement => {
     }
   };
 
-  /*
-  const settingsButtonBlocker: Blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    //console.log('currentLocation in button', currentLocation);
-    //console.log('nextLocation', nextLocation);
-
-    const fromAboutTab: boolean = nextLocation.search.includes('currentTab=about');
-    // console.log('fromAboutTab', fromAboutTab);
-    const searchChanged: boolean = currentLocation.search !== nextLocation.search;
-
-    return searchChanged && fromAboutTab;
-  });*/
-
   const handleClickSettingsButton = () => {
     if (shouldDisplayFeature(FeatureFlag.SettingsPage)) {
-      // console.log('navigateFrom', navigateFrom);
-      //console.log('currentRoutePath', currentRoutePath);
       navigate(
         { pathname: RoutePaths.AppSettings, search: 'currentTab=about' },
         { state: { from: currentRoutePath } },
       );
-      /*
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.set('currentTab', 'about');
-      window.history.pushState({}, '', `?${searchParams}`);*/
-      /*navigate(
-        {
-          pathname: RoutePaths.AppSettings,
-          search: `?currentTab=${pageNavigateToSettingsFrom}`,
-        },
-        {
-          state: { from: currentRoutePath },
-        },
-      );*/
     } else {
       settingsRef.current.openSettings();
     }

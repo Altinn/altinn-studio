@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
+import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -80,10 +81,19 @@ function AboutTabContent(): ReactElement {
     }
     case 'success': {
       return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
-        <NewInputFields
-          appResource={appResource}
-          saveAppResource={(updatedAppResource: AppResource) => setAppResource(updatedAppResource)}
-        />
+        <div className={classes.wrapper}>
+          <CreatedFor
+            repositoryType={repositoryType}
+            repository={repositoryData}
+            authorName={applicationMetadataData?.createdBy}
+          />
+          <NewInputFields
+            appResource={appResource}
+            saveAppResource={(updatedAppResource: AppResource) =>
+              setAppResource(updatedAppResource)
+            }
+          />
+        </div>
       ) : (
         <>
           <CreatedFor

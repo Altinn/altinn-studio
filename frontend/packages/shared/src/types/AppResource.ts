@@ -6,8 +6,8 @@ export type AppResource = {
   serviceId: string;
 };
 
-export interface AppResourceFormError {
+export type AppResourceFormError = {
   field: keyof AppResource;
   index?: number | keyof SupportedLanguage;
   error: string;
-}
+};

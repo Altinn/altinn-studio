@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './NewInputFields.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield, StudioErrorSummary } from '@studio/components';
+import { StudioTextfield } from '@studio/components';
 import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { validateAppResource } from '../utils/appResourceValidationUtils';
-import { NavigationWarningDialog } from '../NavigationWarningDialog/NavigationWarningDialog';
+import { NavigationWarningDialog } from './NavigationWarningDialog/NavigationWarningDialog';
 import { useBeforeUnload } from '../hooks/useBeforeUnload';
+import { ErrorSummary } from './ErrorSummary';
+import { TranslationType } from 'app-development/features/appSettings/types/Translation';
 
-export type TranslationType = 'none' | keyof AppResource;
+const Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS: number = 200;
 
-// TODO - Take in prop to say that user has changed tab
 type NewInputFieldsProps = {
   appResource: AppResource;
   saveAppResource: (appResource: AppResource) => void; // Remove prop when endpoint is implemented
@@ -29,24 +30,28 @@ export function NewInputFields({
   const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
 
   const validationErrors: AppResourceFormError[] = validateAppResource(updatedAppResource, t);
+  const serviceNameErrors: AppResourceFormError[] = getValidationErrorsForField(
+    !showAppResourceErrors,
+    validationErrors,
+    'serviceName',
+  );
 
   useBeforeUnload(updatedAppResource !== appResource);
 
-  const saveAppConfig = () => {
+  const saveAppConfig = (): void => {
     hideTranslationFields();
     if (validationErrors.length === 0) {
       setShowAppResourceErrors(false);
       saveAppResource(updatedAppResource);
-      console.log('AppResource saved: ', updatedAppResource);
+      console.log('AppResource saved: ', updatedAppResource); // Will be removed when endpoint is implemented
     } else {
       setShowAppResourceErrors(true);
-      window.scrollTo(0, 0);
-      console.error('Validation errors:', validationErrors);
-      // Show some message about that errors need to be fixed
+      window.scrollTo(0, Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS);
+      console.error('Validation errors:', validationErrors); // Will be removed when endpoint is implemented
     }
   };
 
-  const resetAppConfig = () => {
+  const resetAppConfig = (): void => {
     hideTranslationFields();
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
       setUpdatedAppResource(appResource);
@@ -58,29 +63,27 @@ export function NewInputFields({
   const showServiceNameFields = (): void => setTranslationType('serviceName');
   const hideTranslationFields = (): void => setTranslationType('none');
 
+  const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
+    setUpdatedAppResource((oldVal: AppResource) => ({
+      ...oldVal,
+      serviceName: updatedLanguage,
+    }));
+  };
+
+  const onChangeServiceId = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppResource((oldVal: AppResource) => ({
+      ...oldVal,
+      serviceId: e.target.value,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       {showAppResourceErrors && validationErrors.length > 0 && (
-        <StudioErrorSummary className={classes.errorSummary}>
-          <StudioErrorSummary.Heading>
-            {t('app_settings.about_tab_error_summary_header')}
-          </StudioErrorSummary.Heading>
-          <StudioErrorSummary.List>
-            {validationErrors.map((error: AppResourceFormError) => {
-              const href: string = getErrorSummaryHref(error);
-              return (
-                <StudioErrorSummary.Item key={JSON.stringify(error)}>
-                  <StudioErrorSummary.Link
-                    href={href}
-                    onClick={() => setTranslationType(error.field)}
-                  >
-                    {error.error}
-                  </StudioErrorSummary.Link>
-                </StudioErrorSummary.Item>
-              );
-            })}
-          </StudioErrorSummary.List>
-        </StudioErrorSummary>
+        <ErrorSummary
+          validationErrors={validationErrors}
+          onClickErrorLink={(field: TranslationType) => setTranslationType(field)}
+        />
       )}
       <NavigationWarningDialog hasContentChanged={updatedAppResource !== appResource} />
       <StudioTextfield
@@ -88,37 +91,24 @@ export function NewInputFields({
         description={t('app_settings.about_tab_repo_description')}
         defaultValue={updatedAppResource.repositoryName}
         className={classes.textField}
+        onFocus={hideTranslationFields}
         readOnly
       />
       <LanguageTextField
         label={t('app_settings.about_tab_name_label')}
         id={InputFieldIds.ServiceName}
         value={updatedAppResource.serviceName}
-        onChange={(updatedLanguage: SupportedLanguage) => {
-          setUpdatedAppResource((oldVal: AppResource) => ({
-            ...oldVal,
-            serviceName: updatedLanguage,
-          }));
-        }}
+        onChange={onChangeServiceName}
         onFocus={showServiceNameFields}
         isTranslationPanelOpen={translationType === 'serviceName'}
-        errors={
-          showAppResourceErrors
-            ? validationErrors.filter((error) => error.field === 'serviceName')
-            : []
-        }
+        errors={serviceNameErrors}
         required
       />
       <StudioTextfield
         label={t('app_settings.about_tab_alt_id_label')}
         description={t('app_settings.about_tab_alt_id_description')}
         value={updatedAppResource.serviceId}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-          setUpdatedAppResource((oldVal: AppResource) => ({
-            ...oldVal,
-            serviceId: e.target.value,
-          }));
-        }}
+        onChange={onChangeServiceId}
         onFocus={hideTranslationFields}
         className={classes.textField}
         required={false}
@@ -137,16 +127,11 @@ enum InputFieldIds {
   ServiceName = 'serviceName',
 }
 
-function getErrorSummaryHref(error: AppResourceFormError): string {
-  const isIndexUndefined: boolean = error.index === undefined;
-  const isIndexNumber: boolean = typeof error.index === 'number';
-  const isIndexString: boolean = typeof error.index === 'string';
-
-  if (!isIndexUndefined && isIndexNumber) {
-    return `#${error.field}-${error.index}`;
-  }
-  if (!isIndexUndefined && isIndexString) {
-    return `#${error.field}-${error.index}`;
-  }
-  return `#${error.field}`;
+function getValidationErrorsForField(
+  hideErrors: boolean,
+  validationErrors: AppResourceFormError[],
+  field: keyof AppResource,
+): AppResourceFormError[] {
+  if (hideErrors) return [];
+  return validationErrors.filter((error) => error.field === field);
 }

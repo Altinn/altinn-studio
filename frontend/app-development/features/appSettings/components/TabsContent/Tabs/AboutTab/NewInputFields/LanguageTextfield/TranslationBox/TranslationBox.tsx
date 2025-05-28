@@ -9,6 +9,7 @@ import { GlobeIcon } from '@studio/icons';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
 import {
   getErrorMessagesForLanguage,
+  getTextfieldRows,
   mapLanguageKeyToLanguageText,
 } from '../../../utils/appResourceLanguageUtils';
 
@@ -35,6 +36,13 @@ export function TranslationBox({
 }: TranslationBoxProps): ReactElement {
   const { t } = useTranslation();
 
+  const languageTextNN: string = mapLanguageKeyToLanguageText('nn', t);
+  const languageTextEN: string = mapLanguageKeyToLanguageText('en', t);
+  const fieldLabelNN: string = `${label} (${languageTextNN})`;
+  const fieldLabelEN: string = `${label} (${languageTextEN})`;
+  const errorMessageNN: string[] | undefined = getErrorMessagesForLanguage(errors, 'nn');
+  const errorMessageEN: string[] | undefined = getErrorMessagesForLanguage(errors, 'en');
+
   const handleChange = (lang: ValidLanguage, newValue: string): void => {
     onChange({ ...value, [lang]: newValue });
   };
@@ -51,78 +59,35 @@ export function TranslationBox({
         <StudioAlert data-color='info'>
           <StudioParagraph>{t('app_settings.about_tab_translation_box_alert')}</StudioParagraph>
         </StudioAlert>
-        <Textfield
-          label={label}
-          value={value}
+        <StudioTextfield
+          label={fieldLabelNN}
+          value={value['nn']}
+          multiple={isTextArea}
+          className={classes.textField}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
             handleChange('nn', e.target.value)
           }
-          isTextArea={isTextArea}
           required={required}
           tagText={tagText}
-          language='nn'
-          errors={errors}
-          id={id}
+          rows={getTextfieldRows(isTextArea)}
+          error={errorMessageNN}
+          id={`${id}-nn`}
         />
-        <Textfield
-          label={label}
-          value={value}
+        <StudioTextfield
+          label={fieldLabelEN}
+          value={value['en']}
+          multiple={isTextArea}
+          className={classes.textField}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
             handleChange('en', e.target.value)
           }
-          isTextArea={isTextArea}
           required={required}
           tagText={tagText}
-          language='en'
-          errors={errors}
-          id={id}
+          rows={getTextfieldRows(isTextArea)}
+          error={errorMessageEN}
+          id={`${id}-en`}
         />
       </div>
     </div>
-  );
-}
-
-type TextfieldProps = {
-  label: string;
-  value: SupportedLanguage;
-  onChange: (value: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  isTextArea?: boolean;
-  required?: boolean;
-  tagText?: string;
-  language: ValidLanguage;
-  errors?: AppResourceFormError[];
-  id: string;
-};
-
-function Textfield({
-  label,
-  value,
-  onChange,
-  isTextArea = false,
-  required = false,
-  tagText,
-  language,
-  errors,
-  id,
-}: TextfieldProps): ReactElement {
-  const { t } = useTranslation();
-
-  const languageText: string = mapLanguageKeyToLanguageText(language, t);
-  const fieldLabel: string = `${label} (${languageText})`;
-
-  const errorMessage: string[] | undefined = getErrorMessagesForLanguage(errors, language);
-  return (
-    <StudioTextfield
-      label={fieldLabel}
-      value={value[language]}
-      multiple={isTextArea}
-      className={classes.textField}
-      onChange={onChange}
-      required={required}
-      tagText={tagText}
-      rows={isTextArea ? 5 : undefined}
-      error={errorMessage}
-      id={`${id}-${language}`}
-    />
   );
 }
