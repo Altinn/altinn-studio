@@ -16,7 +16,7 @@ type LanguageTextFieldProps = {
   label: string;
   description?: string;
   value: SupportedLanguage;
-  onChange: (value: SupportedLanguage) => void;
+  updateLanguage: (value: SupportedLanguage) => void;
   onFocus: () => void;
   isTextArea?: boolean;
   required?: boolean;
@@ -29,7 +29,7 @@ export function LanguageTextField({
   label,
   description,
   value,
-  onChange,
+  updateLanguage,
   onFocus,
   isTextArea = false,
   required = false,
@@ -47,7 +47,7 @@ export function LanguageTextField({
     language: ValidLanguage,
   ): void => {
     const newLanguage = { ...value, [language]: e.target.value };
-    onChange(newLanguage);
+    updateLanguage(newLanguage);
   };
 
   return (
@@ -71,7 +71,7 @@ export function LanguageTextField({
           label={label}
           isTextArea={isTextArea}
           value={value}
-          onChange={onChange}
+          onChange={updateLanguage}
           required={required}
           tagText={tagText}
           errors={errors}

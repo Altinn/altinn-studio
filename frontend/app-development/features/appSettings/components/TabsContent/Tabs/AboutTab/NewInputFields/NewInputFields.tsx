@@ -98,7 +98,7 @@ export function NewInputFields({
         label={t('app_settings.about_tab_name_label')}
         id={InputFieldIds.ServiceName}
         value={updatedAppResource.serviceName}
-        onChange={onChangeServiceName}
+        updateLanguage={onChangeServiceName}
         onFocus={showServiceNameFields}
         isTranslationPanelOpen={translationType === 'serviceName'}
         errors={serviceNameErrors}
