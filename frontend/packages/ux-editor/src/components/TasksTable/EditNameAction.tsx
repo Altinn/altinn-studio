@@ -79,17 +79,18 @@ export const EditNameAction = ({
           onSetCurrentValue={setCurrentValue}
           placeholderValue={t(taskTypeName)}
         />
-        <StudioButton variant='primary' onClick={handleTextResourceChange} icon={<CheckmarkIcon />}>
-          {t('general.save')}
-        </StudioButton>
-        <StudioButton
-          variant='secondary'
-          onClick={handleCancel}
-          icon={<XMarkIcon />}
-          className={classes.cancelButton}
-        >
-          {t('general.cancel')}
-        </StudioButton>
+        <div className={classes.buttonGroup}>
+          <StudioButton
+            variant='primary'
+            onClick={handleTextResourceChange}
+            icon={<CheckmarkIcon />}
+          >
+            {t('general.save')}
+          </StudioButton>
+          <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
+            {t('general.cancel')}
+          </StudioButton>
+        </div>
       </StudioDialog>
     </StudioDialog.TriggerContext>
   );
