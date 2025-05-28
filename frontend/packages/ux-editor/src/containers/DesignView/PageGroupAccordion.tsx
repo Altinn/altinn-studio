@@ -4,7 +4,7 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { MenuElipsisVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
@@ -18,6 +18,7 @@ import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGrou
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import { Accordion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
@@ -99,20 +100,12 @@ export const PageGroupAccordion = ({
           onClick={() => setSelectedItem({ type: ItemType.Group, id: groupDisplayName })}
         >
           <div className={classes.container}>
-            <FolderIcon aria-hidden className={classes.liftIcon} />
-            <StudioHeading level={3} size='2xs'>
+            <FolderIcon aria-hidden className={cn(classes.liftIcon, classes.customSize)} />
+            <StudioHeading level={3} className={cn(classes.groupHeader, classes.customSize)}>
               {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
-            <StudioButton
-              title={t('general.delete_item', { item: groupDisplayName })}
-              color='danger'
-              icon={<TrashIcon />}
-              onClick={handleConfirmDelete}
-              variant='tertiary'
-              disabled={isPending}
-            />
             <StudioPopover.TriggerContext>
               <StudioPopover.Trigger variant='tertiary'>
                 <MenuElipsisVerticalIcon />
@@ -136,13 +129,21 @@ export const PageGroupAccordion = ({
                 </div>
               </StudioPopover>
             </StudioPopover.TriggerContext>
+            <StudioDeleteButton
+              title={t('general.delete_item', { item: groupDisplayName })}
+              data-color='danger'
+              icon={<TrashIcon />}
+              onDelete={handleConfirmDelete}
+              variant='tertiary'
+              disabled={isPending}
+            />
           </div>
         </div>
         {group.order.map((page) => {
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
           return (
-            <div key={page.id} className={classes.groupAccordionWrapper}>
+            <Accordion key={page.id} className={classes.groupAccordionWrapper}>
               <PageAccordion
                 pageName={page.id}
                 isOpen={page.id === selectedFormLayoutName}
@@ -158,7 +159,7 @@ export const PageGroupAccordion = ({
                   />
                 )}
               </PageAccordion>
-            </div>
+            </Accordion>
           );
         })}
         <div className={classes.buttonContainer}>
