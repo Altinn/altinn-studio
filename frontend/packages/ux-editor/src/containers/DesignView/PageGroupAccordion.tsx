@@ -24,7 +24,6 @@ import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemTy
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 
-
 export interface PageGroupAccordionProps {
   pages: PagesModel;
   layouts: IFormLayouts;
