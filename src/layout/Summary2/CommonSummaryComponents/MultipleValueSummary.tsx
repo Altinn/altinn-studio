@@ -69,9 +69,8 @@ export const MultipleValueSummary = ({
     .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
   const displayValues = dataModelBindings.group
-    ? displayRows
+    ? Object.values(getCommaSeparatedOptionsToText(displayRows?.join(','), options, langAsString))
     : Object.values(getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString));
-
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
 

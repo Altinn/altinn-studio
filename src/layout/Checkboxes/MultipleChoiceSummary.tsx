@@ -38,7 +38,7 @@ export function MultipleChoiceSummary({ targetNode }: IMultipleChoiceSummaryProp
     .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
   const data = dataModelBindings.group
-    ? displayRows
+    ? getCommaSeparatedOptionsToText(displayRows?.join(','), options, langAsString)
     : getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString);
 
   return (

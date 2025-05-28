@@ -333,6 +333,51 @@ describe('Checkboxes component', () => {
       .find('span.fds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
+  it('Renders the summary2 component with correct text for Checkboxes with group, hard deletion and Number', () => {
+    cy.interceptLayout('ComponentLayouts', (component) => {
+      if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
+        component.deletionStrategy = 'hard';
+        component.dataModelBindings.checked = undefined;
+        component.optionsId = 'personsNumber';
+      }
+    });
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Avkryssningsbokser');
+
+    const checkboxes = '[data-componentid=CheckboxesPage-Checkboxes2]';
+    const summary2 = '[data-componentid=CheckboxesPage-Header-Summary2-Component2]';
+
+    const checkboxText1 = 'Karoline';
+    const checkboxText2 = 'Kåre';
+    const checkboxText3 = 'Johanne';
+    const checkboxText4 = 'Kari';
+    const checkboxText5 = 'Petter';
+
+    //Check options in checkboxes component
+    cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText3).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').click();
+
+    //Uncheck
+    cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').click();
+    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').click();
+
+    //Check that checkboxes is correct
+    cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').should('be.checked');
+    cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').should('be.checked');
+    cy.get(checkboxes).contains('label', checkboxText3).prev('input[type="checkbox"]').should('be.checked');
+    cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').should('not.be.checked');
+    cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').should('not.be.checked');
+
+    const expectedText = [checkboxText1, checkboxText2, checkboxText3].join(', ');
+
+    cy.get(`div${summary2}`)
+      .next()
+      .find('span.fds-paragraph') // Targets the span with the summary text
+      .should('have.text', expectedText);
+  });
 
   //Required
   it('Required validation shows when chekcbox is selected with simpleBinding', () => {
@@ -381,6 +426,29 @@ describe('Checkboxes component', () => {
         component.required = true;
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
+      }
+    });
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Oppsummering 2.0');
+    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.gotoNavPage('Avkryssningsbokser');
+
+    const checkboxes = '[data-componentid=CheckboxesPage-Checkboxes2]';
+
+    cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('exist');
+
+    const checkboxText1 = 'Karoline';
+    cy.contains('label', checkboxText1).prev('input[type="checkbox"]').check();
+
+    cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
+  });
+  it('Required validation shows when chekcbox is selected with group, hard delete and Number', () => {
+    cy.interceptLayout('ComponentLayouts', (component) => {
+      if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
+        component.required = true;
+        component.deletionStrategy = 'hard';
+        component.dataModelBindings.checked = undefined;
+        component.optionsId = 'personsNumber';
       }
     });
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });

@@ -61,7 +61,7 @@ export class Checkboxes extends CheckboxesDef {
       .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
     const data = dataModelBindings.group
-      ? displayRows
+      ? getCommaSeparatedOptionsToText(displayRows?.join(','), options, langAsString)
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 
     return Object.values(data).join(', ');
