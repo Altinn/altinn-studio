@@ -84,10 +84,7 @@
           "description": "Her legger du inn organisasjonsnummer",
           "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
-        "required": true,
-        "grid": {
-          "md": 6
-        }
+        "required": true
       },
       {
         "dataModelBindings": {
@@ -133,10 +130,7 @@
           "description": "Her legger du inn etternavn og fødselsnummer",
           "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "required": true,
-        "grid": {
-          "md": 6
-        }
+        "required": true
       },
       {
         "dataModelBindings": {
