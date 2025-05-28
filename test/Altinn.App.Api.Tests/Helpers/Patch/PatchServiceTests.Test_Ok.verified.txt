@@ -1,18 +1,19 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Data.Patch,
+      Name: Data.Patch,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     },
     {
-      ActivityName: Data.ProcessWrite.IDataProcessorProxy,
-      IdFormat: W3C
+      Name: Data.ProcessWrite.IDataProcessorProxy,
+      IdFormat: W3C,
+      HasParent: true
     }
-  ],
-  Metrics: []
+  ]
 }

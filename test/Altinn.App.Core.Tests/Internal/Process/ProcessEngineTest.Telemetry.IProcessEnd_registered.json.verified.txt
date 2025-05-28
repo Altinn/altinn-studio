@@ -1,50 +1,54 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Process.End,
+      Name: Process.End,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.EndHandler.Castle.Proxies.IProcessEndProxy,
+      Name: Process.EndHandler.Castle.Proxies.IProcessEndProxy,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.EndHandlers,
+      Name: Process.EndHandlers,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.HandleEvents,
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.Next,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        }
-      ],
+      Name: Process.Next,
       IdFormat: W3C,
       Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
       Events: [
         {
           Name: change,
@@ -63,17 +67,18 @@
             {}
           ]
         }
-      ]
+      ],
+      HasParent: false
     },
     {
-      ActivityName: Process.StoreEvents,
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     }
-  ],
-  Metrics: []
+  ]
 }

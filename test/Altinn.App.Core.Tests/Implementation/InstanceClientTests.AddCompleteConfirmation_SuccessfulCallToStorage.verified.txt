@@ -1,7 +1,8 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Instance.CompleteConfirmation,
+      Name: Instance.CompleteConfirmation,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
@@ -10,14 +11,16 @@
           instance.owner.party.id: 1337
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     }
   ],
   Metrics: [
     {
-      altinn_app_lib_instances_completed: [
+      Name: altinn_app_lib_instances_completed,
+      MeterName: test,
+      Measurements: [
         {
-          Value: 1
+          Value: 1.0
         }
       ]
     }

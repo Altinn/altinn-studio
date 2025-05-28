@@ -1,7 +1,9 @@
 ﻿{
   Activities: [
     {
-      ActivityName: GET {org}/{app}/api/v1/applicationmetadata,
+      Name: GET {org}/{app}/api/v1/applicationmetadata,
+      Kind: Server,
+      IdFormat: W3C,
       Tags: [
         {
           http.request.method: GET
@@ -40,7 +42,10 @@
           user.authentication.method: maskinporten
         },
         {
-          user.authentication.token.isExchanged: True
+          user.authentication.token.clientId: Guid_2
+        },
+        {
+          user.authentication.token.isExchanged: true
         },
         {
           user.authentication.token.issuer: Maskinporten
@@ -49,9 +54,7 @@
           user.authentication.type: ServiceOwner
         }
       ],
-      IdFormat: W3C,
-      Kind: Server
+      HasParent: false
     }
-  ],
-  Metrics: []
+  ]
 }

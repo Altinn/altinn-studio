@@ -1,7 +1,9 @@
 ﻿{
   Activities: [
     {
-      ActivityName: GET {org}/{app}/api/v1/applicationmetadata,
+      Name: GET {org}/{app}/api/v1/applicationmetadata,
+      Kind: Server,
+      IdFormat: W3C,
       Tags: [
         {
           http.request.method: GET
@@ -28,7 +30,7 @@
           url.scheme: http
         },
         {
-          user.authentication.inAltinnPortal: True
+          user.authentication.inAltinnPortal: true
         },
         {
           user.authentication.level: 4
@@ -37,7 +39,7 @@
           user.authentication.method: BankID
         },
         {
-          user.authentication.token.isExchanged: False
+          user.authentication.token.isExchanged: false
         },
         {
           user.authentication.token.issuer: Altinn
@@ -52,9 +54,7 @@
           user.party.id: Scrubbed
         }
       ],
-      IdFormat: W3C,
-      Kind: Server
+      HasParent: true
     }
-  ],
-  Metrics: []
+  ]
 }

@@ -189,6 +189,11 @@ public sealed partial class Telemetry : IDisposable
         public const string UserAuthenticationTokenIsExchanged = "user.authentication.token.isExchanged";
 
         /// <summary>
+        /// Label for the authentication token clientId claim.
+        /// </summary>
+        public const string UserAuthenticationTokenClientId = "user.authentication.token.clientId";
+
+        /// <summary>
         /// Label for the authentication token is issued from Altinn portal.
         /// </summary>
         public const string UserAuthenticationInAltinnPortal = "user.authentication.inAltinnPortal";

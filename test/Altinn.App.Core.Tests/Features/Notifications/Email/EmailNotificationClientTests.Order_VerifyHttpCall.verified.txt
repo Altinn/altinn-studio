@@ -1,24 +1,31 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Notifications.Order,
+      Name: Notifications.Order,
+      IdFormat: W3C,
       Tags: [
         {
           type: email
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     }
   ],
   Metrics: [
     {
-      altinn_app_lib_notification_orders: [
+      Name: altinn_app_lib_notification_orders,
+      MeterName: test,
+      Measurements: [
         {
-          Value: 1,
-          Tags: {
-            result: success,
-            type: email
-          }
+          Value: 1.0,
+          Tags: [
+            {
+              result: success
+            },
+            {
+              type: email
+            }
+          ]
         }
       ]
     }

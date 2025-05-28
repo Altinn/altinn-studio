@@ -1,7 +1,9 @@
 ﻿{
   Activities: [
     {
-      ActivityName: POST {org}/{app}/instances/create,
+      Name: POST {org}/{app}/instances/create,
+      Kind: Server,
+      IdFormat: W3C,
       Tags: [
         {
           http.request.method: POST
@@ -28,7 +30,7 @@
           url.scheme: http
         },
         {
-          user.authentication.inAltinnPortal: True
+          user.authentication.inAltinnPortal: true
         },
         {
           user.authentication.level: 0
@@ -37,7 +39,7 @@
           user.authentication.method: Mock
         },
         {
-          user.authentication.token.isExchanged: False
+          user.authentication.token.isExchanged: false
         },
         {
           user.authentication.token.issuer: Altinn
@@ -52,9 +54,77 @@
           user.party.id: 501337
         }
       ],
-      IdFormat: W3C,
-      Kind: Server
+      HasParent: false
     }
   ],
-  Metrics: []
+  Metrics: [
+    {
+      Name: http.server.request.duration,
+      MeterName: Microsoft.AspNetCore.Hosting,
+      Measurements: [
+        {
+          Tags: [
+            {
+              http.request.method: POST
+            },
+            {
+              http.response.status_code: 201
+            },
+            {
+              http.route: {org}/{app}/instances/create
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_1
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.isExchanged: false
+            },
+            {
+              user.authentication.token.issuer: Altinn
+            },
+            {
+              user.authentication.type: User
+            }
+          ]
+        },
+        {
+          Tags: [
+            {
+              http.request.method: GET
+            },
+            {
+              http.response.status_code: 200
+            },
+            {
+              http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_1
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.isExchanged: false
+            },
+            {
+              user.authentication.token.issuer: Altinn
+            },
+            {
+              user.authentication.type: User
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

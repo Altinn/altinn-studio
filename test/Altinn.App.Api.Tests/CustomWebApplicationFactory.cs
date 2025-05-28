@@ -52,6 +52,17 @@ public class ApiTestBase
         return false;
     };
 
+    protected readonly Func<TestId?, MetricMeasurement, bool> MetricFilter = static (thisTestId, metric) =>
+    {
+        Assert.NotNull(thisTestId);
+        if (metric.Tags.TryGetValue(nameof(TestId), out var testId) && testId is Guid id && id == thisTestId.Value)
+        {
+            return true;
+        }
+
+        return false;
+    };
+
     protected ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
         _factory = factory;
@@ -92,6 +103,11 @@ public class ApiTestBase
             if (activity is not null)
             {
                 activity.AddTag(nameof(TestId), _testId);
+            }
+            var metrics = httpContext.Features.Get<IHttpMetricsTagsFeature>();
+            if (metrics is not null)
+            {
+                metrics.Tags.Add(new KeyValuePair<string, object?>(nameof(TestId), _testId));
             }
             return _next(httpContext);
         }

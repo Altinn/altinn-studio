@@ -360,6 +360,8 @@ public static class TelemetryActivityExtensions
         activity.SetTag(Labels.UserAuthenticationType, currentAuth.GetType().Name);
         activity.SetTag(Labels.UserAuthenticationTokenIssuer, currentAuth.TokenIssuer);
         activity.SetTag(Labels.UserAuthenticationTokenIsExchanged, currentAuth.TokenIsExchanged);
+        if (currentAuth.ClientId is not null)
+            activity.SetTag(Labels.UserAuthenticationTokenClientId, currentAuth.ClientId);
         switch (currentAuth)
         {
             case Authenticated.None:

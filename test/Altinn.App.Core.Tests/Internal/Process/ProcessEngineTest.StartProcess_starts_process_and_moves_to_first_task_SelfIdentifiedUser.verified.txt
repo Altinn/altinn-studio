@@ -1,23 +1,24 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Process.HandleEvents,
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     },
     {
-      ActivityName: Process.Start,
+      Name: Process.Start,
+      IdFormat: W3C,
+      Status: Ok,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C,
-      Status: Ok,
       Events: [
         {
           Name: change,
@@ -37,23 +38,27 @@
             }
           ]
         }
-      ]
+      ],
+      HasParent: false
     },
     {
-      ActivityName: Process.StoreEvents,
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     }
   ],
   Metrics: [
     {
-      altinn_app_lib_processes_started: [
+      Name: altinn_app_lib_processes_started,
+      MeterName: test,
+      Measurements: [
         {
-          Value: 1
+          Value: 1.0
         }
       ]
     }

@@ -2,13 +2,14 @@
   telemetry: {
     Activities: [
       {
-        ActivityName: Validation.RunValidator,
+        Name: Validation.RunValidator,
+        IdFormat: W3C,
         Tags: [
           {
             validation.issue_count: 1
           },
           {
-            validator.has_relevant_changes: True
+            validator.has_relevant_changes: true
           },
           {
             validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
@@ -17,10 +18,11 @@
             validator.type: FormDataValidatorWrapper
           }
         ],
-        IdFormat: W3C
+        HasParent: true
       },
       {
-        ActivityName: Validation.ValidateIncremental,
+        Name: Validation.ValidateIncremental,
+        IdFormat: W3C,
         Tags: [
           {
             task.id: Task_1
@@ -29,7 +31,6 @@
             validation.total_issue_count: 1
           }
         ],
-        IdFormat: W3C,
         Events: [
           {
             Name: ChangedDataElements,
@@ -46,10 +47,10 @@
               }
             ]
           }
-        ]
+        ],
+        HasParent: false
       }
-    ],
-    Metrics: []
+    ]
   },
   issues: [
     {

@@ -1,6 +1,8 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Http.Features;
+using Labels = Altinn.App.Core.Features.Telemetry.Labels;
+using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
 
 namespace Altinn.App.Api.Infrastructure.Middleware;
 
@@ -27,44 +29,64 @@ internal sealed class TelemetryEnrichingMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var activity = context.Features.Get<IHttpActivityFeature>()?.Activity;
-        if (activity is null)
+
+        if (activity is not null)
         {
-            await _next(context);
-            return;
+            try
+            {
+                var authenticationContext = context.RequestServices.GetRequiredService<IAuthenticationContext>();
+                var currentAuth = authenticationContext.Current;
+                activity.SetAuthenticated(currentAuth);
+
+                // Set telemetry tags with route values if available.
+                if (
+                    context.Request.RouteValues.TryGetValue("instanceOwnerPartyId", out var instanceOwnerPartyId)
+                    && instanceOwnerPartyId != null
+                    && int.TryParse(instanceOwnerPartyId.ToString(), out var instanceOwnerPartyIdInt)
+                )
+                {
+                    activity.SetInstanceOwnerPartyId(instanceOwnerPartyIdInt);
+                }
+
+                var routeValues = context.Request.RouteValues;
+                if (
+                    routeValues.TryGetValue("instanceGuid", out var instanceGuidObj)
+                    && instanceGuidObj is Guid instanceGuid
+                )
+                {
+                    activity.SetInstanceId(instanceGuid);
+                }
+
+                if (routeValues.TryGetValue("dataGuid", out var dataGuidObj) && dataGuidObj is Guid dataGuid)
+                {
+                    activity.SetDataElementId(dataGuid);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while enriching trace telemetry.");
+            }
         }
 
-        try
+        var metrics = context.Features.Get<IHttpMetricsTagsFeature>();
+        if (metrics is not null)
         {
-            var authenticationContext = context.RequestServices.GetRequiredService<IAuthenticationContext>();
-            var currentAuth = authenticationContext.Current;
-            activity.SetAuthenticated(currentAuth);
-
-            // Set telemetry tags with route values if available.
-            if (
-                context.Request.RouteValues.TryGetValue("instanceOwnerPartyId", out var instanceOwnerPartyId)
-                && instanceOwnerPartyId != null
-                && int.TryParse(instanceOwnerPartyId.ToString(), out var instanceOwnerPartyIdInt)
-            )
+            var tags = metrics.Tags;
+            try
             {
-                activity.SetInstanceOwnerPartyId(instanceOwnerPartyIdInt);
-            }
+                var authenticationContext = context.RequestServices.GetRequiredService<IAuthenticationContext>();
+                var auth = authenticationContext.Current;
 
-            var routeValues = context.Request.RouteValues;
-            if (
-                routeValues.TryGetValue("instanceGuid", out var instanceGuidObj) && instanceGuidObj is Guid instanceGuid
-            )
-            {
-                activity.SetInstanceId(instanceGuid);
+                tags.Add(new Tag(Labels.UserAuthenticationType, auth.GetType().Name));
+                tags.Add(new Tag(Labels.UserAuthenticationTokenIssuer, auth.TokenIssuer));
+                tags.Add(new Tag(Labels.UserAuthenticationTokenIsExchanged, auth.TokenIsExchanged));
+                if (auth.ClientId is not null)
+                    tags.Add(new Tag(Labels.UserAuthenticationTokenClientId, auth.ClientId));
             }
-
-            if (routeValues.TryGetValue("dataGuid", out var dataGuidObj) && dataGuidObj is Guid dataGuid)
+            catch (Exception ex)
             {
-                activity.SetDataElementId(dataGuid);
+                _logger.LogError(ex, "An error occurred while enriching metric telemetry.");
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while enriching telemetry.");
         }
 
         await _next(context);

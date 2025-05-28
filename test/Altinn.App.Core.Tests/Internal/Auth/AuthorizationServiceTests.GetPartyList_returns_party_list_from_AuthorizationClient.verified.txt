@@ -1,14 +1,14 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Authorization.Service.GetPartyList,
+      Name: Authorization.Service.GetPartyList,
+      IdFormat: W3C,
       Tags: [
         {
           user.id: 1337
         }
       ],
-      IdFormat: W3C
+      HasParent: false
     }
-  ],
-  Metrics: []
+  ]
 }

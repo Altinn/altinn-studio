@@ -128,8 +128,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         {
             services.AddTelemetrySink(
                 shouldAlsoListenToActivities: (_, source) => source.Name == "Microsoft.AspNetCore",
+                shouldAlsoListenToMetrics: (_, source) => source.Name == "Microsoft.AspNetCore.Hosting",
                 activityFilter: (_, activity) =>
-                    this.ActivityFilter(_, activity) && activity.DisplayName == "POST {org}/{app}/instances/create"
+                    this.ActivityFilter(_, activity) && activity.DisplayName == "POST {org}/{app}/instances/create",
+                metricFilter: (_, metric) =>
+                    this.MetricFilter(_, metric) && metric.Name == "http.server.request.duration"
             );
         };
 
@@ -155,7 +158,8 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
         var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-        await telemetry.SnapshotActivities(settings => settings.UseTextForParameters(token.Type.ToString()));
+        await Task.Delay(100); // For some reason metric telemetry is not captured immediately, waiting a bit
+        await telemetry.Snapshot(settings => settings.UseTextForParameters(token.Type.ToString()));
     }
 
     [Fact]

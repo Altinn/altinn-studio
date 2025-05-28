@@ -1,7 +1,8 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Authorization.Service.AuthorizeAction,
+      Name: Authorization.Service.AuthorizeAction,
+      IdFormat: W3C,
       Tags: [
         {
           authorization.action: reject
@@ -16,10 +17,12 @@
           task.id: Task_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
+      Name: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
+      Kind: Server,
+      IdFormat: W3C,
       Tags: [
         {
           http.request.method: PUT
@@ -49,7 +52,7 @@
           url.scheme: http
         },
         {
-          user.authentication.inAltinnPortal: True
+          user.authentication.inAltinnPortal: true
         },
         {
           user.authentication.level: 2
@@ -58,7 +61,7 @@
           user.authentication.method: BankID
         },
         {
-          user.authentication.token.isExchanged: False
+          user.authentication.token.isExchanged: false
         },
         {
           user.authentication.token.issuer: Altinn
@@ -73,29 +76,32 @@
           user.party.id: 500600
         }
       ],
+      HasParent: false
+    },
+    {
+      Name: Process.End,
       IdFormat: W3C,
-      Kind: Server
-    },
-    {
-      ActivityName: Process.End,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.HandleEvents,
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: Process.Next,
+      Name: Process.Next,
+      IdFormat: W3C,
+      Status: Ok,
       Tags: [
         {
           instance.guid: Guid_1
@@ -104,8 +110,6 @@
           process.action: reject
         }
       ],
-      IdFormat: W3C,
-      Status: Ok,
       Events: [
         {
           Name: change,
@@ -130,101 +134,123 @@
             }
           ]
         }
-      ]
+      ],
+      HasParent: true
     },
     {
-      ActivityName: Process.StoreEvents,
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
-      IdFormat: W3C
+      HasParent: true
     },
     {
-      ActivityName: ProcessClient.GetProcessDefinition,
-      IdFormat: W3C
+      Name: ProcessClient.GetProcessDefinition,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetAllFlowElements,
-      IdFormat: W3C
+      Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetAllFlowElements,
-      IdFormat: W3C
+      Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetAltinnTaskExtension,
-      IdFormat: W3C
+      Name: ProcessReader.GetAltinnTaskExtension,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetEndEventIds,
-      IdFormat: W3C
+      Name: ProcessReader.GetEndEventIds,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetEndEvents,
-      IdFormat: W3C
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetEndEvents,
-      IdFormat: W3C
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetEndEvents,
-      IdFormat: W3C
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetExclusiveGateways,
-      IdFormat: W3C
+      Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetExclusiveGateways,
-      IdFormat: W3C
+      Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetFlowElement,
-      IdFormat: W3C
+      Name: ProcessReader.GetFlowElement,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetNextElements,
-      IdFormat: W3C
+      Name: ProcessReader.GetNextElements,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetProcessTaskIds,
-      IdFormat: W3C
+      Name: ProcessReader.GetProcessTaskIds,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetProcessTasks,
-      IdFormat: W3C
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetProcessTasks,
-      IdFormat: W3C
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetProcessTasks,
-      IdFormat: W3C
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetSequenceFlows,
-      IdFormat: W3C
+      Name: ProcessReader.GetSequenceFlows,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetStartEvents,
-      IdFormat: W3C
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.GetStartEvents,
-      IdFormat: W3C
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.IsEndEvent,
-      IdFormat: W3C
+      Name: ProcessReader.IsEndEvent,
+      IdFormat: W3C,
+      HasParent: true
     },
     {
-      ActivityName: ProcessReader.IsProcessTask,
-      IdFormat: W3C
+      Name: ProcessReader.IsProcessTask,
+      IdFormat: W3C,
+      HasParent: true
     }
-  ],
-  Metrics: []
+  ]
 }
