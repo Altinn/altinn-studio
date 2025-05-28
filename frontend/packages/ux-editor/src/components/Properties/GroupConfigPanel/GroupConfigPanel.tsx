@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioFieldset, StudioSwitch } from '@studio/components';
+import { StudioFieldset, StudioSpinner, StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon } from '@studio/icons';
@@ -11,7 +11,7 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
 
-type GroupConfigPanelProps = {
+export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
 };
 
@@ -25,17 +25,15 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     selectedFormLayoutSetName,
   );
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const selectedGroup = pages?.groups[selectedItem?.id];
+
+  const selectedGroup = pages?.groups?.[selectedItem?.id];
+  if (!selectedGroup) return <StudioSpinner aria-label={t('general.loading')} />;
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
     selectedGroup.markWhenCompleted = event.target.checked;
     pages.groups[selectedItem?.id] = selectedGroup;
     changePageGroup(pages);
   };
-
-  if (!selectedGroup) {
-    return null;
-  }
 
   return (
     <>
