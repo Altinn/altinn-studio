@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+import PCImage404Url from './images/PCImage404.png';
 import type { HTMLAttributes, ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import classes from './StudioNotFoundPage.module.css';
@@ -20,7 +22,7 @@ export const StudioNotFoundPage = forwardRef<HTMLDivElement, StudioNotFoundPageP
     return (
       <div ref={ref} className={cn(className, classes.wrapper)} {...rest}>
         <div className={classes.contentWrapper}>
-          <img src={require('./images/PCImage404.png')} alt='' data-testid='404-error' />
+          <img src={PCImage404Url} alt='' data-testid='404-error' />
           <div className={classes.textWrapper}>
             <Heading level={1} size='large'>
               {title}

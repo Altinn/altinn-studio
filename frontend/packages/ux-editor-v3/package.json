@@ -20,9 +20,6 @@
   },
   "license": "3-Clause BSD",
   "main": "index.js",
-  "peerDependencies": {
-    "webpack": "5.97.1"
-  },
   "scripts": {
     "test": "jest --maxWorkers=50%"
   }
