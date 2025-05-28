@@ -2,6 +2,7 @@ import React, { forwardRef, type JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { TabsDef } from 'src/layout/Tabs/config.def.generated';
 import { Tabs as TabsComponent } from 'src/layout/Tabs/Tabs';
 import { TabsSummary } from 'src/layout/Tabs/TabsSummary';
@@ -27,7 +28,11 @@ export class Tabs extends TabsDef {
   }
 
   renderSummary2(props: Summary2Props<'Tabs'>): JSX.Element | null {
-    return <TabsSummary componentNode={props.target} />;
+    return (
+      <EmptyChildrenBoundary>
+        <TabsSummary componentNode={props.target} />
+      </EmptyChildrenBoundary>
+    );
   }
 
   renderSummaryBoilerplate(): boolean {

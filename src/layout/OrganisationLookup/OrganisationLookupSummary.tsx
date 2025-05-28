@@ -8,6 +8,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -17,69 +18,82 @@ interface OrganisationLookupSummaryProps {
 }
 
 export function OrganisationLookupSummary({ componentNode }: OrganisationLookupSummaryProps) {
-  const { dataModelBindings, title } = useNodeItem(componentNode, (i) => ({
+  const { dataModelBindings, title, required } = useNodeItem(componentNode, (i) => ({
     dataModelBindings: i.dataModelBindings,
     title: i.textResourceBindings?.title,
+    required: i.required,
   }));
   const { formData } = useDataModelBindings(dataModelBindings);
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
   const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const bindingValidations = useBindingValidationsForNode(componentNode);
+  const isEmpty = !(organisation_lookup_orgnr || organisation_lookup_name);
 
   return (
-    <div className={classes.organisationSummaryWrapper}>
-      <Heading
-        size='sm'
-        level={2}
-      >
-        <Lang
-          id={title}
-          node={componentNode}
-        />
-      </Heading>
-      <div className={classes.organisationLookupSummary}>
-        <div className={classes.organisationLookupSummaryNr}>
-          <SingleValueSummary
-            title={
-              <Lang
-                id='organisation_lookup.orgnr_label'
-                node={componentNode}
-              />
-            }
-            displayData={organisation_lookup_orgnr}
-            componentNode={componentNode}
-            hideEditButton={organisation_lookup_name ? true : false}
-            isCompact={isCompact}
-            emptyFieldText={emptyFieldText}
-          />
-          <ComponentValidations
-            validations={bindingValidations?.organisation_lookup_orgnr}
+    <SummaryFlex
+      target={componentNode}
+      content={
+        isEmpty
+          ? required
+            ? SummaryContains.EmptyValueRequired
+            : SummaryContains.EmptyValueNotRequired
+          : SummaryContains.SomeUserContent
+      }
+    >
+      <div className={classes.organisationSummaryWrapper}>
+        <Heading
+          size='sm'
+          level={2}
+        >
+          <Lang
+            id={title}
             node={componentNode}
           />
-        </div>
-        {organisation_lookup_name && (
-          <div className={classes.organisationLookupSummaryName}>
+        </Heading>
+        <div className={classes.organisationLookupSummary}>
+          <div className={classes.organisationLookupSummaryNr}>
             <SingleValueSummary
               title={
                 <Lang
-                  id='organisation_lookup.org_name'
+                  id='organisation_lookup.orgnr_label'
                   node={componentNode}
                 />
               }
-              displayData={organisation_lookup_name}
+              displayData={organisation_lookup_orgnr}
               componentNode={componentNode}
-              hideEditButton={false}
+              hideEditButton={organisation_lookup_name ? true : false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
-              validations={bindingValidations?.organisation_lookup_name}
+              validations={bindingValidations?.organisation_lookup_orgnr}
               node={componentNode}
             />
           </div>
-        )}
+          {organisation_lookup_name && (
+            <div className={classes.organisationLookupSummaryName}>
+              <SingleValueSummary
+                title={
+                  <Lang
+                    id='organisation_lookup.org_name'
+                    node={componentNode}
+                  />
+                }
+                displayData={organisation_lookup_name}
+                componentNode={componentNode}
+                hideEditButton={false}
+                isCompact={isCompact}
+                emptyFieldText={emptyFieldText}
+              />
+              <ComponentValidations
+                validations={bindingValidations?.organisation_lookup_name}
+                node={componentNode}
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SummaryFlex>
   );
 }

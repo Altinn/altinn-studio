@@ -30,7 +30,7 @@ function SummaryBody({ target }: SummaryBodyProps) {
   return <ComponentSummaryById componentId={target.id} />;
 }
 
-export function SummaryComponent2({ summaryNode }: ISummaryComponent2) {
+function SummaryComponent2Inner({ summaryNode }: ISummaryComponent2) {
   const target = useNodeItem(summaryNode, (i) => i.target);
   return (
     <TaskStoreProvider>
@@ -42,3 +42,6 @@ export function SummaryComponent2({ summaryNode }: ISummaryComponent2) {
     </TaskStoreProvider>
   );
 }
+
+export const SummaryComponent2 = React.memo(SummaryComponent2Inner);
+SummaryComponent2.displayName = 'SummaryComponent2';

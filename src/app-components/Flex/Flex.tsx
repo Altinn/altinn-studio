@@ -51,17 +51,13 @@ export const Flex = forwardRef<HTMLDivElement, Props>(
 
     const styles: CSSProperties | undefined = container
       ? {
-          display: 'flex',
           flexDirection: direction,
           flexWrap,
           justifyContent,
           alignItems,
           ...style,
         }
-      : {
-          display: 'block',
-          ...style,
-        };
+      : style;
 
     return (
       <Tag

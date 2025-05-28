@@ -10,6 +10,8 @@ import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
+import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IAttachmentSummaryComponent {
@@ -31,9 +33,20 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
     }
     return attachment.data.tags && attachment.data.tags?.length > 0;
   });
+  const isEmpty = filteredAttachments.length === 0;
+  const required = useNodeItem(targetNode, (i) => i.minNumberOfAttachments > 0);
 
   return (
-    <>
+    <SummaryFlex
+      target={targetNode}
+      content={
+        isEmpty
+          ? required
+            ? SummaryContains.EmptyValueRequired
+            : SummaryContains.EmptyValueNotRequired
+          : SummaryContains.SomeUserContent
+      }
+    >
       <Label
         node={targetNode}
         overrideId={`attachment-summary2-${targetNode.id}`}
@@ -57,6 +70,6 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
           isFetching={isFetching}
         />
       )}
-    </>
+    </SummaryFlex>
   );
 }

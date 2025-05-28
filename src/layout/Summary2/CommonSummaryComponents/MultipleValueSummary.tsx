@@ -23,6 +23,7 @@ type Row = Record<string, string | number | boolean>;
 interface MultipleValueSummaryProps {
   title: React.ReactNode;
   componentNode: ValidNodes;
+  displayValues: ReturnType<typeof useMultipleValuesForSummary>;
   showAsList?: boolean;
   isCompact: boolean | undefined;
   emptyFieldText: string | undefined;
@@ -42,13 +43,7 @@ function getDisplayType(
   return 'list';
 }
 
-export const MultipleValueSummary = ({
-  title,
-  componentNode,
-  showAsList,
-  isCompact,
-  emptyFieldText,
-}: MultipleValueSummaryProps) => {
+export function useMultipleValuesForSummary(componentNode: ValidNodes) {
   const { dataModelBindings } = useNodeItem(componentNode);
   const options = useNodeOptions(componentNode).options;
   const rawFormData = useNodeFormData(componentNode);
@@ -68,9 +63,19 @@ export const MultipleValueSummary = ({
     ?.filter((row) => (!relativeCheckedPath ? true : dot.pick(relativeCheckedPath, row) === true))
     .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
-  const displayValues = dataModelBindings.group
+  return dataModelBindings.group
     ? Object.values(getCommaSeparatedOptionsToText(displayRows?.join(','), options, langAsString))
     : Object.values(getCommaSeparatedOptionsToText(rawFormData.simpleBinding, options, langAsString));
+}
+
+export const MultipleValueSummary = ({
+  title,
+  componentNode,
+  displayValues,
+  showAsList,
+  isCompact,
+  emptyFieldText,
+}: MultipleValueSummaryProps) => {
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
 

@@ -62,3 +62,14 @@ export function useSummaryOverrides<Type extends CompTypes>(node: LayoutNode<Typ
   }
   return output;
 }
+
+/**
+ * Finds summary overrides for a given page key
+ */
+export function useSummaryOverridesForPage(pageId: string) {
+  const overrides = useSummaryProp('overrides');
+  if (!overrides) {
+    return undefined;
+  }
+  return overrides.find((o) => 'pageId' in o && o.pageId === pageId);
+}

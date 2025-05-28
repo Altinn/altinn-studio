@@ -6,6 +6,7 @@ import { GroupDef } from 'src/layout/Group/config.def.generated';
 import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import { GroupSummary } from 'src/layout/Group/GroupSummary';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
+import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -32,7 +33,11 @@ export class Group extends GroupDef {
   }
 
   renderSummary2(props: Summary2Props<'Group'>): JSX.Element | null {
-    return <GroupSummary componentNode={props.target} />;
+    return (
+      <EmptyChildrenBoundary>
+        <GroupSummary componentNode={props.target} />
+      </EmptyChildrenBoundary>
+    );
   }
 
   renderSummaryBoilerplate(): boolean {

@@ -12,6 +12,7 @@ import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { RawGeometry } from 'src/layout/Map/types';
@@ -29,64 +30,81 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
   const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
+  const required = useNodeItem(target, (i) => i.required);
 
   if (markerBinding && !markerLocationIsValid) {
     return (
-      <SingleValueSummary
-        title={
-          <Lang
-            id={title}
-            node={target}
-          />
-        }
-        componentNode={target}
-        errors={errors}
-        hideEditButton={readOnly}
-        isCompact={isCompact}
-        emptyFieldText={emptyFieldText}
-      />
+      <SummaryFlex
+        target={target}
+        content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
+      >
+        <SingleValueSummary
+          title={
+            <Lang
+              id={title}
+              node={target}
+            />
+          }
+          componentNode={target}
+          errors={errors}
+          hideEditButton={readOnly}
+          isCompact={isCompact}
+          emptyFieldText={emptyFieldText}
+        />
+      </SummaryFlex>
     );
   }
 
   return (
-    <div className={classes.summaryItemWrapper}>
-      <div className={classes.summaryItem}>
-        <Label
-          node={target}
-          renderLabelAs='span'
-          textResourceBindings={{ title }}
-        />
-        {!readOnly && (
-          <EditButton
-            className={classes.editButton}
-            componentNode={target}
-            summaryComponentId={target.id}
-          />
-        )}
-      </div>
-      <Map
-        mapNode={target}
-        markerLocation={markerLocation}
-        geometries={geometries}
-        isSummary={true}
-      />
-      {markerLocation && (
-        <Paragraph className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>
-          <Lang
-            id='map_component.selectedLocation'
-            params={[markerLocation.latitude, markerLocation.longitude]}
-          />
-        </Paragraph>
-      )}
-      {errors?.map(({ message }) => (
-        <ErrorMessage key={message.key}>
-          <Lang
-            id={message.key}
-            params={message.params}
+    <SummaryFlex
+      target={target}
+      content={
+        markerLocation
+          ? SummaryContains.SomeUserContent
+          : required
+            ? SummaryContains.EmptyValueRequired
+            : SummaryContains.EmptyValueNotRequired
+      }
+    >
+      <div className={classes.summaryItemWrapper}>
+        <div className={classes.summaryItem}>
+          <Label
             node={target}
+            renderLabelAs='span'
+            textResourceBindings={{ title }}
           />
-        </ErrorMessage>
-      ))}
-    </div>
+          {!readOnly && (
+            <EditButton
+              className={classes.editButton}
+              componentNode={target}
+              summaryComponentId={target.id}
+            />
+          )}
+        </div>
+        <Map
+          mapNode={target}
+          markerLocation={markerLocation}
+          geometries={geometries}
+          isSummary={true}
+        />
+        {markerLocation && (
+          <Paragraph className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>
+            <Lang
+              id='map_component.selectedLocation'
+              params={[markerLocation.latitude, markerLocation.longitude]}
+            />
+          </Paragraph>
+        )}
+        {errors?.map(({ message }) => (
+          <ErrorMessage key={message.key}>
+            <Lang
+              id={message.key}
+              params={message.params}
+              node={target}
+            />
+          </ErrorMessage>
+        ))}
+      </div>
+    </SummaryFlex>
   );
 }

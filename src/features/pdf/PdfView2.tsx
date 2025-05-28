@@ -198,7 +198,7 @@ function PdfForNode({ nodeId }: { nodeId: string }) {
 
   const betaEnabled = getFeature('betaPDFenabled');
   if (betaEnabled.value) {
-    return <ComponentSummary componentNode={node} />;
+    return <ComponentSummary target={node} />;
   }
 
   return (

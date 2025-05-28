@@ -97,7 +97,7 @@ export function useLayoutSetId() {
   return layoutSetId ?? currentProcessLayoutSetId;
 }
 
-export function useDataTypeFromLayoutSet(layoutSetName: string) {
+export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
   const layoutSets = useLayoutSets();
   return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
 }

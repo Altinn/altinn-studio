@@ -10,6 +10,7 @@ import { Label } from 'src/app-components/Label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
+import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -31,7 +32,11 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
 
   if (isLoading) {
     return (
-      <SigneeListSummaryContainer heading={heading}>
+      <SigneeListSummaryContainer
+        heading={heading}
+        target={componentNode}
+        content={SummaryContains.Presentational}
+      >
         <Paragraph>
           <Lang id='signee_list_summary.loading' />
         </Paragraph>
@@ -41,7 +46,11 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
 
   if (error) {
     return (
-      <SigneeListSummaryContainer heading={heading}>
+      <SigneeListSummaryContainer
+        heading={heading}
+        target={componentNode}
+        content={SummaryContains.SomeUserContent}
+      >
         <Paragraph>
           <Lang id='signee_list_summary.error' />
         </Paragraph>
@@ -51,7 +60,11 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
 
   if (signatures.length === 0) {
     return (
-      <SigneeListSummaryContainer heading={heading}>
+      <SigneeListSummaryContainer
+        heading={heading}
+        target={componentNode}
+        content={SummaryContains.EmptyValueNotRequired}
+      >
         <Paragraph>
           <Lang id='signee_list_summary.no_signatures' />
         </Paragraph>
@@ -60,7 +73,11 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
   }
 
   return (
-    <SigneeListSummaryContainer heading={heading}>
+    <SigneeListSummaryContainer
+      heading={heading}
+      target={componentNode}
+      content={SummaryContains.SomeUserContent}
+    >
       <ul className={classes.signeeList}>
         {signatures.map((item, index) => (
           <li
@@ -94,17 +111,28 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
   );
 }
 
-function SigneeListSummaryContainer({ heading, children }: PropsWithChildren<{ heading: ReactElement | undefined }>) {
+interface SigneeListSummaryContentProps extends PropsWithChildren {
+  heading: ReactElement | undefined;
+  target: LayoutNode<'SigneeList'>;
+  content: SummaryContains;
+}
+
+function SigneeListSummaryContainer({ target, content, heading, children }: SigneeListSummaryContentProps) {
   return (
-    <div>
-      {heading && (
-        <Label
-          label={heading}
-          size='lg'
-        />
-      )}
-      {children}
-    </div>
+    <SummaryFlex
+      target={target}
+      content={content}
+    >
+      <div>
+        {heading && (
+          <Label
+            label={heading}
+            size='lg'
+          />
+        )}
+        {children}
+      </div>
+    </SummaryFlex>
   );
 }
 

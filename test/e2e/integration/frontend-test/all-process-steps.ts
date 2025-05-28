@@ -30,6 +30,7 @@ describe('All process steps', () => {
     cy.get(appFrontend.sendinButton).clickAndGone();
 
     cy.fillOut('datalist');
+    testAllSummary2();
     cy.get(appFrontend.sendinButton).clickAndGone();
 
     testConfirmationPage();
@@ -47,6 +48,17 @@ describe('All process steps', () => {
     testInstanceData();
   });
 });
+
+function testAllSummary2() {
+  cy.findByRole('button', { name: /Neste/ }).click();
+  cy.findAllByTestId('summary-single-value-component').first().should('contain.text', 'Task_2');
+
+  // WCAG test fails here, and we have no good way to register the wrong heading order as expected in this case, since
+  // we run multiple snapshots (and thus multiple wcag tests) in this larger test.
+  cy.snapshot('all-summary2', { wcag: false });
+
+  cy.findByRole('button', { name: /Forrige/ }).click();
+}
 
 function testConfirmationPage() {
   cy.get(appFrontend.confirm.container).should('be.visible');

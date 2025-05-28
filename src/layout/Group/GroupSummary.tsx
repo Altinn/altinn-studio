@@ -4,10 +4,12 @@ import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
-import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -52,7 +54,7 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
     );
   }
 
-  return <ComponentSummary componentNode={child} />;
+  return <ComponentSummary target={child} />;
 }
 
 export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
@@ -63,36 +65,49 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
 
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const childComponents = useNodeItem(componentNode, (i) => i.childComponents);
+  const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   return (
-    <section
-      className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
-      data-testid={dataTestId}
-    >
-      {(summaryTitle || title) && (
-        <Heading
-          size={isNestedGroup ? 'xsmall' : 'small'}
-          level={headingLevel}
+    <ConditionalWrapper
+      condition={hierarchyLevel === 0}
+      wrapper={(children) => (
+        <SummaryFlexForContainer
+          hideWhen={hideEmptyFields}
+          target={componentNode}
         >
-          <Lang
-            id={summaryTitle ?? title}
-            node={componentNode}
-          />
-        </Heading>
+          {children}
+        </SummaryFlexForContainer>
       )}
-      <Flex
-        container
-        spacing={6}
-        alignItems='flex-start'
+    >
+      <section
+        className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
+        data-testid={dataTestId}
       >
-        {childComponents.map((childId) => (
-          <ChildComponent
-            key={childId}
-            id={childId}
-            hierarchyLevel={hierarchyLevel}
-          />
-        ))}
-      </Flex>
-    </section>
+        {(summaryTitle || title) && (
+          <Heading
+            size={isNestedGroup ? 'xsmall' : 'small'}
+            level={headingLevel}
+          >
+            <Lang
+              id={summaryTitle ?? title}
+              node={componentNode}
+            />
+          </Heading>
+        )}
+        <Flex
+          container
+          spacing={6}
+          alignItems='flex-start'
+        >
+          {childComponents.map((childId) => (
+            <ChildComponent
+              key={childId}
+              id={childId}
+              hierarchyLevel={hierarchyLevel}
+            />
+          ))}
+        </Flex>
+      </section>
+    </ConditionalWrapper>
   );
 };

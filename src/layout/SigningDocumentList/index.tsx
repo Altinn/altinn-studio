@@ -1,10 +1,10 @@
-import { forwardRef, type JSX } from 'react';
-import React from 'react';
+import React, { forwardRef, type JSX } from 'react';
 
 import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.def.generated';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
+import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { ProcessTaskType } from 'src/types';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -38,14 +38,21 @@ export class SigningDocumentList extends SigningDocumentListDef {
     const textResourceBindings = useNodeItem(target, (i) => i.textResourceBindings);
 
     return (
-      <SigningDocumentListComponent
-        textResourceBindings={{
-          ...textResourceBindings,
-          title:
-            textResourceBindings?.summaryTitle ?? textResourceBindings?.title ?? 'signing_document_list_summary.header',
-          description: undefined,
-        }}
-      />
+      <SummaryFlex
+        target={target}
+        content={SummaryContains.SomeUserContent}
+      >
+        <SigningDocumentListComponent
+          textResourceBindings={{
+            ...textResourceBindings,
+            title:
+              textResourceBindings?.summaryTitle ??
+              textResourceBindings?.title ??
+              'signing_document_list_summary.header',
+            description: undefined,
+          }}
+        />
+      </SummaryFlex>
     );
   }
 }

@@ -6,19 +6,52 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
 import { Lang } from 'src/features/language/Lang';
+import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router-dom');
 jest.mock('src/utils/layout/useNodeItem');
+jest.mock('src/utils/layout/NodesContext');
 jest.mock('src/features/language/Lang');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
   const mockedUseNodeItem = jest.mocked(useNodeItem);
+  const mockedUseIsHidden = jest.mocked(Hidden.useIsHidden);
+  const mockedNode = new LayoutNode({
+    type: 'SigneeList',
+    id: 'mock-id',
+    baseId: 'mock-id',
+    multiPageIndex: undefined,
+    rowIndex: undefined,
+    parent: new LayoutPage(),
+  });
+  const mockedItem: CompInternal<'SigneeList'> = {
+    id: 'mock-id',
+    type: 'SigneeList',
+    textResourceBindings: {
+      title: 'title',
+    },
+  };
+
+  function mockNodeItem(extras: Partial<CompInternal<'SigneeList'>> = {}) {
+    mockedUseNodeItem.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (node: LayoutNode, selector: ((item: CompInternal<'SigneeList'>) => unknown) | undefined): any => {
+        if (!node || node !== mockedNode) {
+          throw new Error('node in useNodeItem() is not the mocked one');
+        }
+        const full = { ...mockedItem, ...extras };
+        return selector ? selector(full) : full;
+      },
+    );
+  }
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -28,8 +61,9 @@ describe('SigneeListSummary', () => {
       instanceGuid: 'instanceGuid',
       taskId: 'taskId',
     });
-    mockedUseNodeItem.mockReturnValue('title' as unknown as ReturnType<typeof useNodeItem>);
+    mockNodeItem();
     jest.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    jest.mocked(mockedUseIsHidden).mockReturnValue(false);
   });
 
   it('should render loading state', () => {
@@ -43,7 +77,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={null}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -63,7 +97,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={null}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -83,7 +117,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={null}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -103,7 +137,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={null}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -154,7 +188,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={undefined}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -173,13 +207,13 @@ describe('SigneeListSummary', () => {
       error: null,
     } as unknown as ReturnType<typeof useSigneeList>);
 
-    mockedUseNodeItem.mockReturnValue('originalTitle' as unknown as ReturnType<typeof useNodeItem>);
+    mockNodeItem({ textResourceBindings: { title: 'originalTitle' } });
 
     // Test case
     render(
       <SigneeListSummary
         titleOverride={undefined}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -195,13 +229,13 @@ describe('SigneeListSummary', () => {
       error: null,
     } as unknown as ReturnType<typeof useSigneeList>);
 
-    mockedUseNodeItem.mockReturnValue(undefined);
+    mockNodeItem({ textResourceBindings: {} });
 
     // Test case
     render(
       <SigneeListSummary
         titleOverride={undefined}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 
@@ -222,7 +256,7 @@ describe('SigneeListSummary', () => {
     render(
       <SigneeListSummary
         titleOverride={titleOverride}
-        componentNode={{} as LayoutNode<'SigneeList'>}
+        componentNode={mockedNode}
       />,
     );
 

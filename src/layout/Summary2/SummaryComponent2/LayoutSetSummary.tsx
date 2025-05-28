@@ -2,6 +2,7 @@ import React from 'react';
 
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { LayoutSetSummaryAccordion } from 'src/layout/Summary2/CommonSummaryComponents/LayoutSetSummaryAccordion';
+import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 
@@ -25,9 +26,8 @@ export function LayoutSetSummary({ pageKey }: LayoutSetSummaryProps) {
   }
 
   return filteredPages.map((layoutId) => (
-    <PageSummary
-      pageId={layoutId}
-      key={layoutId}
-    />
+    <EmptyChildrenBoundary key={layoutId}>
+      <PageSummary pageId={layoutId} />
+    </EmptyChildrenBoundary>
   ));
 }
