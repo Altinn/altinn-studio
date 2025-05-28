@@ -20,7 +20,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
         data-testid='groupConfigPanel'
         icon={<FileIcon />}
         heading={{
-          text: selectedItem?.id.toString(),
+          text: selectedItem.id.toString(),
           level: 2,
         }}
       />
