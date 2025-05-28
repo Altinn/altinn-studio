@@ -39,7 +39,7 @@ describe('Properties', () => {
     });
 
     it('shows group config when selectedItem is a group', () => {
-      renderProperties({ selectedItem: { type: ItemType.Group, id: '' } });
+      renderProperties({ selectedItem: { type: ItemType.Group, id: 0 } });
       const pageConfigPanel = screen.getByTestId('groupConfigPanel');
       expect(pageConfigPanel).toBeInTheDocument();
     });
