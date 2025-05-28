@@ -1,9 +1,9 @@
 import React from 'react';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
