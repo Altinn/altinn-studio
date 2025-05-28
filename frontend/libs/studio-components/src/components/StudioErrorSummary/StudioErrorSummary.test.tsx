@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import { StudioErrorSummary } from './';
 import type { StudioErrorSummaryProps } from './';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -31,7 +32,7 @@ const heading: string = 'Test Heading';
 const item1: string = 'Test Item 1';
 const item2: string = 'Test Item 2';
 
-function renderStudioErrorSummary(props: StudioErrorSummaryProps) {
+function renderStudioErrorSummary(props: StudioErrorSummaryProps): RenderResult {
   return render(
     <StudioErrorSummary {...props}>
       <StudioErrorSummary.Heading>{heading}</StudioErrorSummary.Heading>
