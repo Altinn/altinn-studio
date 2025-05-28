@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createNewTextResourceId, taskNavigationType } from '../Settings/SettingsUtils';
-import { StudioButton, StudioDialog } from '@studio/components';
+import { StudioButton, StudioDialog, StudioFieldset } from '@studio/components';
 import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
@@ -73,24 +73,27 @@ export const EditNameAction = ({
         {t('ux_editor.task_table.menu_edit_name')}
       </StudioDialog.Trigger>
       <StudioDialog ref={dialogRef} closeButton={false}>
-        <TextResourceEditor
-          textResourceId={textResourceId}
-          onReferenceChange={setTextResourceId}
-          onSetCurrentValue={setCurrentValue}
-          placeholderValue={t(taskTypeName)}
-        />
-        <div className={classes.buttonGroup}>
-          <StudioButton
-            variant='primary'
-            onClick={handleTextResourceChange}
-            icon={<CheckmarkIcon />}
-          >
-            {t('general.save')}
-          </StudioButton>
-          <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
-            {t('general.cancel')}
-          </StudioButton>
-        </div>
+        <StudioFieldset>
+          <StudioFieldset.Legend>{t('ux_editor.task_table.menu_edit_name')}</StudioFieldset.Legend>
+          <TextResourceEditor
+            textResourceId={textResourceId}
+            onReferenceChange={setTextResourceId}
+            onSetCurrentValue={setCurrentValue}
+            placeholderValue={t(taskTypeName)}
+          />
+          <div className={classes.buttonGroup}>
+            <StudioButton
+              variant='primary'
+              onClick={handleTextResourceChange}
+              icon={<CheckmarkIcon />}
+            >
+              {t('general.save')}
+            </StudioButton>
+            <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
+              {t('general.cancel')}
+            </StudioButton>
+          </div>
+        </StudioFieldset>
       </StudioDialog>
     </StudioDialog.TriggerContext>
   );
