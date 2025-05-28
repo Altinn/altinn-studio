@@ -53,19 +53,6 @@ export const Text = () => {
           layoutName={selectedFormLayoutName}
         />
       )}
-      {(schema.properties.options || schema.properties.optionsId) && (
-        <EditOptions
-          component={
-            form as
-              | (FormComponentBase<ComponentType.Checkboxes> &
-                  ComponentSpecificConfig<ComponentType.Checkboxes>)
-              | (FormComponentBase<ComponentType.RadioButtons> &
-                  ComponentSpecificConfig<ComponentType.RadioButtons>)
-          }
-          handleComponentChange={handleComponentChange}
-          layoutName={selectedFormLayoutName}
-        />
-      )}
       {form.type === ComponentType.Image && (
         <>
           <Heading level={2} size='2xs' className={classes.heading}>
