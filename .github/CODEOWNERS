@@ -1,0 +1,4 @@
+*                                           @altinn/team-studio
+src/Altinn.Platform/Altinn.Platform.PDF/**  @altinn/team-core
+src/test/K6/**                              @altinn/team-core
+frontend/resourceadm/**                     @altinn/team-access-info 
