@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './NewInputFields.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield, StudioErrorSummary } from '@studio/components';
 import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
@@ -59,9 +59,27 @@ export function NewInputFields({
     <div className={classes.wrapper}>
       {/* TODO - Add ErrorSummary component here */}
       {showAppResourceErrors && validationErrors.length > 0 && (
-        <div>
-          <p>TODO</p>
-        </div>
+        <StudioErrorSummary>
+          <StudioErrorSummary.Heading>
+            {t('app_settings.about_tab_error_summary_header')}
+          </StudioErrorSummary.Heading>
+          <StudioErrorSummary.List>
+            {validationErrors.map((error: AppResourceFormError) => {
+              const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
+
+              return (
+                <StudioErrorSummary.Item key={JSON.stringify(error)}>
+                  <StudioErrorSummary.Link href={href}>
+                    {t(`app_settings.about_tab_error_${error.field}`, {
+                      field: error.field,
+                      error: error.error,
+                    })}
+                  </StudioErrorSummary.Link>
+                </StudioErrorSummary.Item>
+              );
+            })}
+          </StudioErrorSummary.List>
+        </StudioErrorSummary>
       )}
       <NavigationWarningDialog hasContentChanged={updatedAppResource !== appResource} />
       <StudioTextfield
