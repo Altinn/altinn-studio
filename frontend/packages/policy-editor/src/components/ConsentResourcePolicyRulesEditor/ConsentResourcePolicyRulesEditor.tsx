@@ -159,7 +159,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
             {...getCheckboxProps(organizationSubject.subjectId)}
           />
           {hasSubjectError && (
-            <StudioValidationMessage data-size='sm'>
+            <StudioValidationMessage>
               {t('policy_editor.consent_resource_request_consent_error')}
             </StudioValidationMessage>
           )}
