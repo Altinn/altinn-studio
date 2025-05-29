@@ -23,5 +23,5 @@ export const MEDIA_QUERY_MAX_WIDTH = '(max-width: 1024px)';
 export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 export const MINIMUM_FRONTEND_VERSION = '3';
 export const LATEST_FRONTEND_VERSION = '4';
-export const MINIMUM_BACKEND_VERSION = '8';
-export const LATEST_BACKEND_VERSION = '7';
+export const MINIMUM_BACKEND_VERSION = '7';
+export const LATEST_BACKEND_VERSION = '8';

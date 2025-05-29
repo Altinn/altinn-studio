@@ -1,26 +1,13 @@
-.dialog {
-  background-color: var(--ds-color-warning-surface-tinted);
-  border: 1px solid var(--ds-color-warning-border-default);
-  color: var(--ds-color-text-default);
-
-  --dsc-alert-icon-color: var(--ds-color-text-subtle);
-}
-
-.text {
-  padding: 0;
-}
-
 .alert {
-  border: unset;
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-4);
-  white-space: break-spaces;
+  gap: var(--ds-size-6);
 }
 
 .buttons {
   display: flex;
   gap: var(--ds-size-4);
+  margin-top: var(--ds-size-6);
   justify-content: center;
 }
 
