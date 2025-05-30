@@ -29,3 +29,4 @@ export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTab
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
 export { StudioLink } from './StudioLink';
+export { StudioErrorSummary } from './StudioErrorSummary';
