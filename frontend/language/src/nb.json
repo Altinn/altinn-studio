@@ -1962,7 +1962,7 @@
   "ux_editor.options.multiple": "{{value}} alternativer",
   "ux_editor.options.option_edit_text": "Rediger kodeliste",
   "ux_editor.options.option_remove_text": "Fjern kobling til kodelisten",
-  "ux_editor.options.section_heading": "Valg for kodelister",
+  "ux_editor.options.section_heading": "Valg for alternativer",
   "ux_editor.options.single": "{{value}} alternativ",
   "ux_editor.options.tab_code_list": "Velg kodeliste",
   "ux_editor.options.tab_manual": "Sett opp egne alternativer",
