@@ -15,16 +15,16 @@ export const OutdatedVersionRemindChoiceDialog = ({
   close,
 }: OutdatedVersionRemindChoiceDialogProps) => {
   const { t } = useTranslation();
-  const handleRememberChoiceForSession = () => {
-    setShowOutdatedVersionDialog();
-  };
-
   const [opened, setOpened] = useState(false);
 
   return (
     <div>
       <StudioPopover.TriggerContext>
-        <StudioPopover.Trigger variant='tertiary' className={classes.closeButton}>
+        <StudioPopover.Trigger
+          variant='tertiary'
+          className={classes.closeButton}
+          aria-label={t('general.close')}
+        >
           <XMarkIcon />
         </StudioPopover.Trigger>
         <StudioPopover
@@ -38,7 +38,7 @@ export const OutdatedVersionRemindChoiceDialog = ({
           <StudioParagraph>{t('session.reminder')}</StudioParagraph>
           <div className={classes.buttons}>
             <StudioButton onClick={close}>{t('session.do_show_again')}</StudioButton>
-            <StudioButton onClick={handleRememberChoiceForSession}>
+            <StudioButton onClick={setShowOutdatedVersionDialog}>
               {t('session.dont_show_again')}
             </StudioButton>
           </div>
