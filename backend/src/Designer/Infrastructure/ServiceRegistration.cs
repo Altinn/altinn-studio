@@ -69,6 +69,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddTransient<ITextsService, TextsService>();
             services.AddTransient<IOptionsService, OptionsService>();
+            services.AddTransient<IOptionListReferenceService, OptionListReferenceService>();
             services.AddTransient<IOrgCodeListService, OrgCodeListService>();
             services.AddTransient<IOrgContentService, OrgContentService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();

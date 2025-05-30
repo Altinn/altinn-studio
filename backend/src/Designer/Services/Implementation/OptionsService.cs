@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -21,17 +19,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IAppDevelopmentService _appDevelopmentService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    /// <param name="appDevelopmentService"></param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _appDevelopmentService = appDevelopmentService;
     }
 
     /// <inheritdoc />
@@ -72,71 +67,6 @@ public class OptionsService : IOptionsService
         return optionsList;
     }
 
-    /// <inheritdoc />
-    public async Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository =
-            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-
-        var optionListReferences = await altinnAppGitRepository.FindOptionListReferencesInLayoutSets(cancellationToken);
-        var optionListReferencesWithTaskData = await AddTaskDataToOptionListReferences(altinnRepoEditingContext, optionListReferences, cancellationToken);
-
-        return optionListReferencesWithTaskData;
-    }
-
-    public async Task<List<RefToOptionListSpecifier>> AddTaskDataToOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<RefToOptionListSpecifier> optionListReferences, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        if (optionListReferences.Count == 0)
-        {
-            return optionListReferences;
-        }
-
-        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(altinnRepoEditingContext, cancellationToken);
-        if (layoutSetsModel.Sets.Count == 0)
-        {
-            return optionListReferences;
-        }
-
-        AddTaskDataToOptionListReference(optionListReferences, layoutSetsModel);
-
-        return optionListReferences;
-    }
-
-    private static void AddTaskDataToOptionListReference(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
-    {
-        foreach (var reference in optionListReferences)
-        {
-            AddTaskDataToOptionListReference(reference, layoutSetsModel);
-        }
-    }
-
-    private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
-    {
-        foreach (var source in reference.OptionListIdSources)
-        {
-            AddTaskDataToSourceFromLayoutSetModels(source, layoutSetsModel);
-        }
-    }
-
-    private static void AddTaskDataToSourceFromLayoutSetModels(OptionListIdSource source, LayoutSetsModel layoutSetsModel)
-    {
-        var layoutSetModel = FindLayoutSetModelBySourceId(layoutSetsModel, source.LayoutSetId);
-        AddTaskDataToSource(source, layoutSetModel);
-    }
-
-    private static LayoutSetModel FindLayoutSetModelBySourceId(LayoutSetsModel layoutSetsModels, string sourceId)
-    {
-        return layoutSetsModels.Sets.FirstOrDefault(set => set.Id == sourceId);
-    }
-
-    private static void AddTaskDataToSource(OptionListIdSource source, LayoutSetModel layoutSetModel)
-    {
-        source.TaskId = layoutSetModel?.Task.Id;
-        source.TaskType = layoutSetModel?.Task.Type;
-    }
 
     private void ValidateOption(Option option)
     {
