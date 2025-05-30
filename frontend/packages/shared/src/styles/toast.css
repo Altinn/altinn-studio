@@ -1,8 +1,7 @@
 :root {
   --toastify-color-info: var(--fds-semantic-surface-action-primary-default);
   --toastify-color-success: var(--fds-semantic-surface-success-default);
-  --toastify-color-warning: var(--ds-color-warning-surface-tinted);
-  --toastify-text-color-warning: var(--ds-color-warning-text-default);
+  --toastify-color-warning: var(--fds-semantic-surface-warning-default);
   --toastify-color-error: var(--fds-semantic-surface-danger-default);
   --toastify-toast-width: 400px;
 }
