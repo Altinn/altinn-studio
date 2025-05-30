@@ -152,6 +152,14 @@ public class OrgCodeListService : IOrgCodeListService
         return codeListIds;
     }
 
+    public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
+    {
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId);
+    }
+
     private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
