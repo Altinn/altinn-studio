@@ -65,6 +65,21 @@ describe('TextResourceUtils', () => {
     it('Is pure', verifyInitialMapIsUnchanged);
   });
 
+  describe('toObject', () => {
+    const result = textResourceUtils.toObject();
+
+    it('Converts the text resources to an object with id-value pairs', () => {
+      const expectedResult = {
+        [text1Id]: text1,
+        [text2Id]: text2,
+        [text3Id]: text3,
+      };
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Is pure', verifyInitialMapIsUnchanged);
+  });
+
   describe('set', () => {
     describe('When the given ID does not exist', () => {
       const newTextResource: TextResource = { id: '4', value: 'New Text' };
