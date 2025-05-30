@@ -141,7 +141,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateCodeListId_ShouldReturnVoid()
+    public async Task UpdateCodeListId_ShouldRenameCodeListFile_WhenValidParameters()
     {
         // Arrange
         const string CodeListId = "codeListString";

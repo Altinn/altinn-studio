@@ -174,6 +174,31 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
+    /// Renames a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to be renamed.</param>
+    /// <param name="newCodeListId">The new name of the code list.</param>
+    /// <exception cref="NotFoundException">File not found</exception>
+    /// <exception cref="InvalidOperationException">Target code list name already exists.</exception>
+    public void UpdateCodeListId(string codeListId, string newCodeListId)
+    {
+        string currentFilePath = GetCodeListFilePath(codeListId);
+        if (!FileExistsByRelativePath(currentFilePath))
+        {
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
+        }
+
+        string newFilePath = GetCodeListFilePath(newCodeListId);
+        if (FileExistsByRelativePath(newFilePath))
+        {
+            throw new InvalidOperationException($"code list file {newCodeListId}.json already exists.");
+        }
+
+        string destinationFileName = GetCodeListFileName(newCodeListId);
+        MoveFileByRelativePath(currentFilePath, newFilePath, destinationFileName);
+    }
+
+    /// <summary>
     /// Deletes a code list with the provided id.
     /// </summary>
     /// <param name="codeListId">The name of the cost list to be deleted.</param>
@@ -191,13 +216,6 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         DeleteFileByRelativePath(codeListFilePath);
     }
 
-    public void UpdateCodeListId(string codeListId, string newCodeListId)
-    {
-        string currentFilePath = GetCodeListFilePath(codeListId);
-        string newFilePath = GetCodeListFilePath(newCodeListId);
-        string destinationFileName = GetCodeListFileName(newCodeListId);
-        MoveFileByRelativePath(currentFilePath, newFilePath, destinationFileName);
-    }
     private static string GetPathToTextResourceFromLanguageCode(string languageCode)
     {
         string fileName = GetTextResourceFileName(languageCode);

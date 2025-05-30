@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,13 +109,29 @@ public class OrgCodeListController : ControllerBase
 
     [HttpPut]
     [Route("change-name/{codeListId}")]
-    public ActionResult UpdateCodeListId(string org, [FromRoute] string codeListId, [FromBody] string newCodeListId)
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public ActionResult UpdateCodeListId(string org, [FromRoute] string codeListId, [FromBody] string newCodeListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        _orgCodeListService.UpdateCodeListId(org, developer, codeListId, newCodeListId);
-
-        return Ok();
+        try
+        {
+            _orgCodeListService.UpdateCodeListId(org, developer, codeListId, newCodeListId);
+            return Ok();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     /// <summary>

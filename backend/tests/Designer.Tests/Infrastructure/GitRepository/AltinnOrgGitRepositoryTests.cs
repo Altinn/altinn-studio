@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
+using LibGit2Sharp;
 using SharedResources.Tests;
 using Xunit;
 
@@ -223,6 +224,38 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         string newCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(newCodeListId));
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
+    }
+
+    [Theory]
+    [InlineData("org-content", "codeListString", "codeListNumber")]
+    public async Task UpdateCodeListId_WithExistingCodeList_ShouldThrowInvalidOperationException_WhenTargetCodeListAlreadyExists(
+        string repository,
+        string codeListId,
+        string newCodeListId
+    )
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act and assert
+        Assert.Throws<InvalidOperationException>(() => altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId));
+    }
+
+    [Theory]
+    [InlineData("org-content", "non-existing-code-list-id", "new-id")]
+    public async Task UpdateCodeListId_WithNonExistingCodeList_ShouldThrowNotfoundException(
+        string repository,
+        string codeListId,
+        string newCodeListId
+    )
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act and assert
+        Assert.Throws<NotFoundException>(() => altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId));
     }
 
     [Theory]

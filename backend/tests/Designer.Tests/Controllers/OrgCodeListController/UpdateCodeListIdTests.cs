@@ -20,26 +20,25 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
     private const string Org = "ttd";
     private const string Developer = "testUser";
     private const string Repo = "org-content";
-    private const string CodeListId = "codeListString";
 
-    [Fact]
-    public async Task Put_Returns200Ok_WhenUpdatingCodeListId()
+    [Theory]
+    [InlineData("codeListString", "new-id")]
+    public async Task Put_Returns200Ok_WhenUpdatingCodeListId(string codeListId, string newCodeListId)
     {
         // Arrange
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
 
-        string apiUrl = ApiUrl(targetOrg);
+        string apiUrl = ApiUrl(targetOrg, codeListId);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string NewCodeListId = "new-id";
-        httpRequestMessage.Content = new StringContent($"\"{NewCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{CodeListId}.json");
-        string newCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{NewCodeListId}.json");
+        string oldCodeListFilePath = Path.Join(repositoryDir, CodeListFilePath(codeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, CodeListFilePath(newCodeListId));
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,5 +46,46 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         Assert.True(File.Exists(newCodeListFilePath));
     }
 
-    private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/change-name/{CodeListId}";
+    [Theory]
+    [InlineData("codeListString", "codeListNumber")]
+    public async Task Put_Returns409Conflict_WhenUpdatingCodeListId_IfCodeListAlreadyWithNewIdExist(string codeListId, string newCodeListId)
+    {
+        // Arrange
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        string apiUrl = ApiUrl(targetOrg, codeListId);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("non-existing-code-list", "new-id")]
+    public async Task Put_Returns404NotFound_WhenUpdatingCodeListId_IfCodeListDoesNotExist(string codeListId, string newCodeListId)
+    {
+        // Arrange
+        string targetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
+        await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
+
+        string apiUrl = ApiUrl(targetOrg, codeListId);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        httpRequestMessage.Content = new StringContent($"\"{newCodeListId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static string CodeListFilePath(string codeListId) => $"Codelists/{codeListId}.json";
+    private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/change-name/{codeListId}";
 }
