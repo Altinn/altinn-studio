@@ -1,1 +1,0 @@
-export { SetupTabContent } from './SetupTabContent';

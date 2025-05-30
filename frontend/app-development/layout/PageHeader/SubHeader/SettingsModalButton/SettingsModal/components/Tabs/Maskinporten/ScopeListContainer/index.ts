@@ -1,1 +1,0 @@
-export { ScopeListContainer } from './ScopeListContainer';

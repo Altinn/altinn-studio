@@ -1,9 +1,0 @@
-.wrapper {
-  --field-spacing: var(--studio-modal-spacing);
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--field-spacing);
-  padding-bottom: var(--field-spacing);
-  border-bottom: var(--studio-border-divider);
-}
