@@ -11,7 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
-import { useNode } from 'src/utils/layout/NodesContext';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -22,8 +22,12 @@ export type EditButtonProps = {
   navigationOverride?: (() => Promise<NavigationResult> | void) | null;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
-export function EditButtonById({ id, ...rest }: { id: string } & Omit<EditButtonProps, 'componentNode'>) {
-  const componentNode = useNode(id);
+/**
+ * Render an edit button for the first visible (non-hidden) node in a list of possible IDs
+ */
+export function EditButtonFirstVisible({ ids, ...rest }: { ids: string[] } & Omit<EditButtonProps, 'componentNode'>) {
+  const nodeId = Hidden.useFirstVisibleNode(ids);
+  const componentNode = useNode(nodeId);
   if (!componentNode) {
     return null;
   }

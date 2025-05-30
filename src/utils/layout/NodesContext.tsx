@@ -931,6 +931,20 @@ export const Hidden = {
 
     return orderWithHidden.includes(pageKey);
   },
+
+  /**
+   * Iterate through a list of node IDs and find the first one that is not hidden
+   */
+  useFirstVisibleNode(nodeIds: string[]): string | undefined {
+    return WhenReady.useSelector((state) => {
+      for (const id of nodeIds) {
+        if (!isHidden(state, 'node', id)) {
+          return id;
+        }
+      }
+      return undefined;
+    });
+  },
 };
 
 export type NodeDataSelector = ReturnType<typeof NodesInternal.useNodeDataSelector>;

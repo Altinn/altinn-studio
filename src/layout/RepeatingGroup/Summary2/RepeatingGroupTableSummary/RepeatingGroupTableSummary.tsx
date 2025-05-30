@@ -20,13 +20,13 @@ import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.mo
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
 import { RepeatingGroupTableTitle, useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
-import { EditButtonById } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { EditButtonFirstVisible } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummaryById, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider, useDataModelLocationForRow } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -130,6 +130,7 @@ function DataRow({ row, node, pdfModeActive, columnSettings }: DataRowProps) {
   const layoutLookups = useLayoutLookups();
   const rawIds = useTableComponentIds(node);
   const indexedIds = useIndexedComponentIds(rawIds);
+  const otherChildren = useNodeDirectChildren(node, row?.index)?.map((n) => n.id);
   const dataModelBindings = useNodeItem(node, (i) => i.dataModelBindings);
 
   if (!row) {
@@ -160,7 +161,7 @@ function DataRow({ row, node, pdfModeActive, columnSettings }: DataRowProps) {
             align='right'
             className={tableClasses.buttonCell}
           >
-            {row?.itemIds && row?.itemIds?.length > 0 && indexedIds.length > 0 && <EditButtonById id={indexedIds[0]} />}
+            <EditButtonFirstVisible ids={[...indexedIds, ...otherChildren, node.id]} />
           </Table.Cell>
         )}
       </Table.Row>
