@@ -4,9 +4,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import {
-  APP_DEVELOPMENT_BASENAME,
-} from 'app-shared/constants';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
@@ -46,6 +44,7 @@ describe('OutdatedVersion', () => {
       await screen.findByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
     ).toBeInTheDocument();
     expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
+  });
 
   it('does not render dialog if no outdated version', async () => {
     render({
