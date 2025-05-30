@@ -1,4 +1,4 @@
-import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources, ITextResourcesWithLanguage } from '../types/global';
 import { TextResourceUtils } from '@studio/pure-functions';
 
 export const setTextResourcesForLanguage = (
@@ -12,3 +12,8 @@ export const setTextResourcesForLanguage = (
     [language]: utils.prependOrUpdateMultiple(newResources).asArray(),
   };
 };
+
+export const updateEntireLanguage = (
+  current: ITextResources,
+  { language, resources }: ITextResourcesWithLanguage,
+): ITextResources => ({ ...current, [language]: resources });
