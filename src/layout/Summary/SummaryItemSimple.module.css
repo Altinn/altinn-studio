@@ -9,3 +9,7 @@
   line-height: 1.6875;
   overflow-wrap: break-word;
 }
+
+.multiline {
+  white-space: pre-wrap;
+}

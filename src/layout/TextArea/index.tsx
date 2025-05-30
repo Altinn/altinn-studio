@@ -26,7 +26,12 @@ export class TextArea extends TextAreaDef {
 
   renderSummary({ targetNode }: SummaryRendererProps<'TextArea'>): JSX.Element | null {
     const displayData = useDisplayData(targetNode);
-    return <SummaryItemSimple formDataAsString={displayData} />;
+    return (
+      <SummaryItemSimple
+        formDataAsString={displayData}
+        multiline
+      />
+    );
   }
 
   renderSummary2(props: Summary2Props<'TextArea'>): JSX.Element | null {
