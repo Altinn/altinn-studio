@@ -24,13 +24,6 @@ export const convertTextResourcesObjectToArray = (
   textResources: ITextResourcesObjectFormat,
 ): ITextResource[] => Object.entries(textResources).map(([id, value]) => ({ id, value }));
 
-/**
- * Modifies the text resources object with new text resources in the given language.
- * @param existingResources The existing text resources.
- * @param language The language of which text resources are modified.
- * @param newResources The new text resources in the given language.
- * @returns The modified text resources object.
- */
 export const setTextResourcesForLanguage = (
   existingResources: ITextResources,
   language: string,
