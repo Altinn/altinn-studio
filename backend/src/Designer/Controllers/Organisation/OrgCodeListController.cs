@@ -106,6 +106,17 @@ public class OrgCodeListController : ControllerBase
         return Ok(codeLists);
     }
 
+    [HttpPut]
+    [Route("change-name/{codeListId}")]
+    public ActionResult UpdateCodeListId(string org, [FromRoute] string codeListId, [FromBody] string newCodeListId)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        _orgCodeListService.UpdateCodeListId(org, developer, codeListId, newCodeListId);
+
+        return Ok();
+    }
+
     /// <summary>
     /// Create new code list.
     /// </summary>

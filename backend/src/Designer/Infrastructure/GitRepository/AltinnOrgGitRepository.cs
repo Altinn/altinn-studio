@@ -130,7 +130,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        string codeListFilePath = GetCodeListFilePath(codeListId);
         if (!FileExistsByRelativePath(codeListFilePath))
         {
             throw new NotFoundException($"code list file {codeListId}.json was not found.");
@@ -153,7 +153,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string payloadString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
-        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        string codeListFilePath = GetCodeListFilePath(codeListId);
         await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
     }
 
@@ -169,7 +169,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
         string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
-        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        string codeListFilePath = GetCodeListFilePath(codeListId);
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
     }
 
@@ -182,7 +182,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string codeListFilePath = Path.Combine(CodeListFolderPath, $"{codeListId}.json");
+        string codeListFilePath = GetCodeListFilePath(codeListId);
         if (!FileExistsByRelativePath(codeListFilePath))
         {
             throw new NotFoundException($"code list file {codeListId}.json was not found.");
@@ -191,15 +191,32 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         DeleteFileByRelativePath(codeListFilePath);
     }
 
+    public void UpdateCodeListId(string codeListId, string newCodeListId)
+    {
+        string currentFilePath = GetCodeListFilePath(codeListId);
+        string newFilePath = GetCodeListFilePath(newCodeListId);
+        string destinationFileName = GetCodeListFileName(newCodeListId);
+        MoveFileByRelativePath(currentFilePath, newFilePath, destinationFileName);
+    }
     private static string GetPathToTextResourceFromLanguageCode(string languageCode)
     {
         string fileName = GetTextResourceFileName(languageCode);
         return GetPathToTextResourceFileFromFilename(fileName);
     }
 
+    private static string GetCodeListFilePath(string codeListId)
+    {
+        return Path.Combine(CodeListFolderPath, GetCodeListFileName(codeListId));
+    }
+
     private static string GetTextResourceFileName(string languageCode)
     {
         return $"resource.{languageCode}.json";
+    }
+
+    private static string GetCodeListFileName(string codeListId)
+    {
+        return $"{codeListId}.json";
     }
 
     private static string GetPathToTextResourceFileFromFilename(string fileName)
