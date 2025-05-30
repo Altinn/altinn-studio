@@ -12,7 +12,6 @@ import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextMainConfig } from './TextMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
@@ -46,7 +45,6 @@ export const PropertiesHeader = ({
     : formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
-  const isMainConfigFeatureEnabled = shouldDisplayFeature(FeatureFlag.MainConfig);
 
   return (
     <>
@@ -73,31 +71,27 @@ export const PropertiesHeader = ({
             handleComponentChange={handleComponentUpdate}
           />
         )}
-        {!hideMainConfig && isMainConfigFeatureEnabled && <HeaderMainConfig />}
+        {!hideMainConfig && <HeaderMainConfig />}
         {!hideMainConfig && (
           <>
             <EditComponentIdRow
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            {isMainConfigFeatureEnabled && (
-              <TextMainConfig
-                component={formItem}
-                handleComponentChange={handleComponentUpdate}
-                title={textResourceBindings?.properties?.title}
-              />
-            )}
+            <TextMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
+            />
             <ComponentMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />
-            {isMainConfigFeatureEnabled && (
-              <DataModelMainConfig
-                component={formItem}
-                handleComponentChange={handleComponentUpdate}
-                requiredDataModelBindings={dataModelBindings?.required}
-              />
-            )}
+            <DataModelMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              requiredDataModelBindings={dataModelBindings?.required || []}
+            />
           </>
         )}
       </div>
