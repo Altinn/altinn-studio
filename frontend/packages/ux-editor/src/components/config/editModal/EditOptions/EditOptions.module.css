@@ -1,12 +1,10 @@
 .root {
-  margin-top: var(--fds-spacing-2);
-  padding: var(--fds-spacing-2) 0 0;
   background-color: white;
   border-radius: var(--fds-border_radius-medium);
   box-shadow: var(--fds-shadow-small);
   margin: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
-  padding: var(--data-model-binding-spacing);
-  gap: var(--data-model-binding-spacing);
+  padding: var(--fds-spacing-3);
+  gap: var(--fds-spacing-3);
 }
 
 .root legend * {
