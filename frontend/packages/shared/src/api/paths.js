@@ -104,7 +104,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
-export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
+export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
