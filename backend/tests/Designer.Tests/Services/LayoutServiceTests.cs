@@ -75,7 +75,6 @@ public class LayoutServiceTests
             {
                 Assert.NotNull(page.Id);
             }
-            Assert.Single(group.Pages);
         }
     }
 
