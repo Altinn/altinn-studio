@@ -179,6 +179,26 @@ describe('PropertiesHeader', () => {
     const headerMainConfig = screen.getByText(sectionHeader);
     expect(headerMainConfig).toBeInTheDocument();
   });
+
+  it('should render main configuration for options for selection components', () => {
+    renderPropertiesHeader({
+      formItem: componentMocks[ComponentType.RadioButtons],
+    });
+
+    const sectionHeader = textMock('ux_editor.options.section_heading');
+    const headerMainConfig = screen.getByText(sectionHeader);
+    expect(headerMainConfig).toBeInTheDocument();
+  });
+
+  it('should not render main configuration for options for non-selection components', () => {
+    renderPropertiesHeader({
+      formItem: componentMocks[ComponentType.Input],
+    });
+
+    const sectionHeader = textMock('ux_editor.options.section_heading');
+    const headerMainConfig = screen.queryByText(sectionHeader);
+    expect(headerMainConfig).not.toBeInTheDocument();
+  });
 });
 
 const renderPropertiesHeader = (

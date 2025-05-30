@@ -36,6 +36,18 @@ describe('ComponentMainConfig', () => {
     expect(subformHeader).toBeInTheDocument();
   });
 
+  it.each([
+    ComponentType.Checkboxes,
+    ComponentType.Dropdown,
+    ComponentType.Likert,
+    ComponentType.MultipleSelect,
+    ComponentType.RadioButtons,
+  ])('should render options config when the component type matches', (componentType) => {
+    renderComponentMainConfig(mainConfigComponentMock(componentType));
+    const optionsHeader = screen.getByText(textMock('ux_editor.options.section_heading'));
+    expect(optionsHeader).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', async () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');

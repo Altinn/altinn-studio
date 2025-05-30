@@ -83,14 +83,14 @@ export const PropertiesHeader = ({
               handleComponentChange={handleComponentUpdate}
               componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
             />
-            <ComponentMainConfig
-              component={formItem}
-              handleComponentChange={handleComponentUpdate}
-            />
             <DataModelMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
               requiredDataModelBindings={dataModelBindings?.required || []}
+            />
+            <ComponentMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
             />
           </>
         )}

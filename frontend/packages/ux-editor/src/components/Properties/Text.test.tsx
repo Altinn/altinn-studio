@@ -146,55 +146,6 @@ describe('TextTab', () => {
       expect(screen.getByText(descriptionTextValue)).toBeInTheDocument();
     });
 
-    it('should render options section if component schema has options property', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components.ComponentWithOptionsMock,
-            optionsId: undefined,
-            options: [{ label: labelTextId, value: 'value' }],
-          },
-        },
-      });
-
-      expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
-    });
-
-    it('should render options section if component schema has optionsId property', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components.ComponentWithOptionsMock,
-            optionsId: 'optionsId',
-            options: undefined,
-          },
-        },
-      });
-
-      expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
-    });
-
-    it('should NOT render options section if component schema has neither options nor optionsId property', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            id: 'ComponentWithoutOptionsMock',
-            type: ComponentType.Input,
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/inputComponent',
-            dataModelBindings: { simpleBinding: 'some-path' },
-          },
-        },
-      });
-
-      expect(
-        screen.queryByText(textMock('ux_editor.options.section_heading')),
-      ).not.toBeInTheDocument();
-    });
-
     it('should render image section if component is image', () => {
       render({
         props: {
@@ -242,31 +193,6 @@ describe('TextTab', () => {
       });
       await user.type(enterTextField, newText);
       await waitFor(() => enterTextField.blur());
-      await waitFor(() => {
-        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
-      });
-    });
-
-    it('should call handleUpdate when handleComponentChange is triggered from EditOptions', async () => {
-      const user = userEvent.setup();
-      const newOptionsRef = 'newOptionsRef';
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...componentMocks[ComponentType.Checkboxes],
-          },
-        },
-      });
-      const addReferenceTab = await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_reference_id'),
-      });
-      await waitFor(() => user.click(addReferenceTab));
-      const enterReferenceField = screen.getByRole('textbox', {
-        name: textMock('ux_editor.modal_properties_custom_code_list_id'),
-      });
-      await user.type(enterReferenceField, newOptionsRef);
-      await waitFor(() => enterReferenceField.blur());
       await waitFor(() => {
         expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
       });
