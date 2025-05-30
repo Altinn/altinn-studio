@@ -4,6 +4,7 @@ import { SummaryMainConfig } from './SpecificMainConfig/SummaryMainConfig';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
+import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -30,6 +31,10 @@ export const ComponentMainConfig = ({
     case ComponentType.Likert:
       return (
         <OptionsMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
+    case ComponentType.Image:
+      return (
+        <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
       return null;
