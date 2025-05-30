@@ -13,57 +13,17 @@ describe('UnsupportedVersion', () => {
     jest.clearAllMocks();
   });
 
-  it('renders dialog if frontend is unsupported', async () => {
-    render({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '8' }),
-    });
-
+  it('renders dialog', async () => {
+    render();
     expect(
       await screen.findByRole('heading', {
         name: textMock('versions.unsupported_version'),
         level: 2,
       }),
     ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
-  });
-
-  it('renders dialog if backend is unsupported', async () => {
-    render({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '6' }),
-    });
-
     expect(
-      await screen.findByRole('heading', {
-        name: textMock('versions.unsupported_version'),
-        level: 2,
-      }),
+      await screen.findByText(textMock('versions.unsupported_old_version')),
     ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
-  });
-
-  it('renders dialog if both frontend and backend are unsupported', async () => {
-    render({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '6' }),
-    });
-
-    expect(
-      await screen.findByRole('heading', {
-        name: textMock('versions.unsupported_version'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
-  });
-
-  it('does not render dialog if no unsupported version', async () => {
-    render({
-      getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '8' }),
-    });
-
-    expect(
-      screen.queryByRole('heading', { name: textMock('versions.unsupported_version') }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole(textMock('versions.supported_old_version'))).not.toBeInTheDocument();
   });
 });
 
