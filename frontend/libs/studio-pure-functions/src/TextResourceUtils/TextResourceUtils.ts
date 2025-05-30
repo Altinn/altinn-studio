@@ -53,6 +53,29 @@ export class TextResourceUtils {
     return new TextResourceUtils(newMap);
   }
 
+  public setMultiple(textResources: TextResource[]): TextResourceUtils {
+    const newMap = this.cloneMap();
+    textResources.forEach((textResource) => {
+      newMap.set(textResource.id, textResource);
+    });
+    return new TextResourceUtils(newMap);
+  }
+
+  public prependOrUpdateMultiple(textResources: TextResource[]): TextResourceUtils {
+    const newResources = this.filterOutExisting(textResources);
+    const newMap = this.prependMultiple(newResources);
+    return newMap.setMultiple(textResources);
+  }
+
+  private filterOutExisting(textResources: TextResource[]): TextResource[] {
+    return textResources.filter((textResource) => !this.textResources.has(textResource.id));
+  }
+
+  private prependMultiple(textResources: TextResource[]): TextResourceUtils {
+    const existingResources: TextResource[] = this.asArray();
+    return TextResourceUtils.fromArray([...textResources, ...existingResources]);
+  }
+
   public delete(id: string): TextResourceUtils {
     const newMap = this.cloneMap();
     newMap.delete(id);
