@@ -16,7 +16,7 @@ export const SettingsModalButton = (): ReactElement => {
   const navigate = useNavigate();
 
   const { navigateFrom, currentRoutePath } = useNavigateFrom();
-  const pageNavigateToSettingsFrom: RoutePaths = navigateFrom || RoutePaths.Overview;
+  const pageNavigateToSettingsFrom: string = navigateFrom || RoutePaths.Overview;
 
   const isSettingsPage: boolean = currentRoutePath === RoutePaths.AppSettings;
   const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
@@ -51,7 +51,15 @@ export const SettingsModalButton = (): ReactElement => {
 };
 
 function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
-  return isSettingsPage ? `sync_header.settings_back_to_${from}` : 'sync_header.settings';
+  if (isSettingsPage) {
+    const fromKey: string = splitKeyFromFullPath(from || '');
+    return `sync_header.settings_back_to_${fromKey}`;
+  }
+  return 'sync_header.settings';
+}
+function splitKeyFromFullPath(fullPath: string): string {
+  const parts: string[] = fullPath.split('?');
+  return parts[0];
 }
 
 type ButtonIconProps = {
