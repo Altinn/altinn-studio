@@ -1,7 +1,12 @@
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
-import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import {
+  useAppVersionQuery,
+  useRepoMetadataQuery,
+  useRepoStatusQuery,
+  useUserQuery,
+} from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
@@ -13,6 +18,9 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { MINIMUM_BACKEND_VERSION, MINIMUM_FRONTEND_VERSION } from 'app-shared/constants';
+import { OutdatedVersion } from './OldVersions/OutdatedVersion';
+import { UnsupportedVersion } from './OldVersions/UnsupportedVersion';
 
 /**
  * Displays the layout for the app development pages
@@ -62,6 +70,7 @@ type PagesToRenderProps = {
 };
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   const { org, app } = useStudioEnvironmentParams();
+  const { data } = useAppVersionQuery(org, app);
 
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {
     return <NotFoundPage />;
@@ -69,9 +78,22 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={org} repoName={app} />;
   }
+
+  const isFrontendUnsupported =
+    data?.frontendVersion?.slice(0, MINIMUM_FRONTEND_VERSION.length) < MINIMUM_FRONTEND_VERSION;
+  const isBackendUnsupported =
+    data?.backendVersion?.slice(0, MINIMUM_BACKEND_VERSION.length) < MINIMUM_BACKEND_VERSION;
+
+  if (isFrontendUnsupported || isBackendUnsupported) {
+    return <UnsupportedVersion />;
+  }
+
   return (
-    <WebSocketSyncWrapper>
-      <Outlet />
-    </WebSocketSyncWrapper>
+    <>
+      <OutdatedVersion />
+      <WebSocketSyncWrapper>
+        <Outlet />
+      </WebSocketSyncWrapper>
+    </>
   );
 };

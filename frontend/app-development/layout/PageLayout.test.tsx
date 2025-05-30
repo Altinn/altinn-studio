@@ -51,6 +51,30 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders "UnsupportedVersion" when version is no longer supported', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    render({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '6' }),
+    });
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+
+    expect(
+      screen.getByRole('heading', { name: textMock('versions.unsupported_version'), level: 2 }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "OutdatedVersion" when version is outdated', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    render({
+      getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
+    });
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
+
+    expect(
+      screen.getByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
+    ).toBeInTheDocument();
+  });
+
   it('renders the page content and no errors when there are no errors', async () => {
     (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
@@ -83,6 +107,73 @@ describe('PageLayout', () => {
       clientsName: ['FileSyncSuccess', 'FileSyncError', 'EntityUpdated'],
       webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
       webSocketConnector: WSConnector,
+    });
+  });
+
+  describe('UnsupportedVersion', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('renders dialog if frontend is unsupported', async () => {
+      render({
+        getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '8' }),
+      });
+
+      expect(
+        await screen.findByRole('heading', {
+          name: textMock('versions.unsupported_version'),
+          level: 2,
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(textMock('versions.unsupported_old_version')),
+      ).toBeInTheDocument();
+    });
+
+    it('renders dialog if backend is unsupported', async () => {
+      render({
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '6' }),
+      });
+
+      expect(
+        await screen.findByRole('heading', {
+          name: textMock('versions.unsupported_version'),
+          level: 2,
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(textMock('versions.unsupported_old_version')),
+      ).toBeInTheDocument();
+    });
+
+    it('renders dialog if both frontend and backend are unsupported', async () => {
+      render({
+        getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '6' }),
+      });
+
+      expect(
+        await screen.findByRole('heading', {
+          name: textMock('versions.unsupported_version'),
+          level: 2,
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(textMock('versions.unsupported_old_version')),
+      ).toBeInTheDocument();
+    });
+
+    it('does not render dialog if no unsupported version', async () => {
+      render({
+        getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '8' }),
+      });
+
+      expect(
+        screen.queryByRole('heading', { name: textMock('versions.unsupported_version') }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole(textMock('versions.unsupported_old_version')),
+      ).not.toBeInTheDocument();
     });
   });
 });
