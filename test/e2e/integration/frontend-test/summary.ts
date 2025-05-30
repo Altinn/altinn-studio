@@ -191,7 +191,12 @@ describe('Summary', () => {
     groupElements().eq(5).should('contain.text', 'automation');
     groupElements().eq(5).should('contain.text', texts.nestedOptionsToggle);
     groupElements().eq(5).should('not.contain.text', texts.nestedOptions);
-    groupElements().eq(5).should('contain.text', 'hvor fikk du vite om skjemaet? : Annet');
+    groupElements()
+      .eq(5)
+      .should(
+        'contain.text',
+        'Hvor fikk du vite om skjemaet? Over her valgte du alternativ 2, Digitaliseringsdirektoratet : Annet',
+      );
     groupElements().eq(5).should('contain.text', 'Referanse : Test');
     groupElements().eq(5).find('button').first().should('contain.text', texts.change);
 
@@ -301,7 +306,10 @@ describe('Summary', () => {
       .children()
       .eq(5)
       .first()
-      .should('contain.text', `hvor fikk du vite om skjemaet? : Altinn`);
+      .should(
+        'contain.text',
+        `Hvor fikk du vite om skjemaet? Over her valgte du alternativ 1, Altinn : AltinnReferanse`,
+      );
     cy.get('#summary-mainGroup-5 [data-testid=summary-source-5] > div')
       .children()
       .last()

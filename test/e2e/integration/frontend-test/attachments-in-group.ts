@@ -185,9 +185,19 @@ describe('Repeating group attachments', () => {
       },
     ];
 
+    // Making sure that optionLabel fetches the option list when in a repeating group:
+    // https://github.com/Altinn/app-frontend-react/issues/2117
     cy.get(appFrontend.group.row(0).uploadSingle.fileUploader).should(
       'contain.text',
       'Last opp alle vedlegg med kilde Altinn her:',
+    );
+
+    // Making sure that optionLabel fetches the option list even when the component that uses the expression is
+    // a statically fetchable option component:
+    // https://github.com/Altinn/app-frontend-react/issues/3386
+    cy.get('[data-componentid="nested-source-0-0"]').should(
+      'contain.text',
+      'Hvor fikk du vite om skjemaet? Over her valgte du alternativ 1, Altinn',
     );
 
     uploadFile({

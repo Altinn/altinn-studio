@@ -122,30 +122,40 @@ function getAllReferencedCodeLists(
   for (const layout of Object.values(layouts)) {
     for (const component of layout ?? []) {
       if (canBeFetchedStatically(component)) {
-        // These are not needed for the expression engine, but it's nice to start pre-fetching these before
-        // the rest of the data is available.
-        const url = getOptionsUrl({
-          instanceId,
-          language,
-          optionsId: component.optionsId,
-          queryParameters: component.queryParameters,
-          secure: component.secure,
-        });
-        if (urls.has(url)) {
-          // If the same URL is already in the list, we don't need to add it again. This is especially important
-          // if this optionsId is needed both in static and dynamic contexts (i.e. both referenced in a component and
-          // in an expression). The expression engine can only read from the store, so we need to make sure that we
-          // don't overwrite with 'storeInZustand: false'. The recursive function below will always overwrite, and
-          // thus take precedence.
-          continue;
-        }
-        urls.set(url, { optionsId: component.optionsId, storeInZustand: false });
+        addStaticallyFetchable(component, language, instanceId, urls);
       }
+
       addCodeListsFromExpressionsRecursive(component, language, instanceId, urls);
     }
   }
 
   return urls;
+}
+
+function addStaticallyFetchable(
+  component: StaticallyFetchableOptionsComponent,
+  language: string,
+  instanceId: string | undefined,
+  urls: Map<string, ToFetch>,
+) {
+  // These are not needed for the expression engine, but it's nice to start pre-fetching these before
+  // the rest of the data is available.
+  const url = getOptionsUrl({
+    instanceId,
+    language,
+    optionsId: component.optionsId,
+    queryParameters: component.queryParameters,
+    secure: component.secure,
+  });
+  if (urls.has(url)) {
+    // If the same URL is already in the list, we don't need to add it again. This is especially important
+    // if this optionsId is needed both in static and dynamic contexts (i.e. both referenced in a component and
+    // in an expression). The expression engine can only read from the store, so we need to make sure that we
+    // don't overwrite with 'storeInZustand: false'. The recursive function below will always overwrite, and
+    // thus take precedence.
+    return;
+  }
+  urls.set(url, { optionsId: component.optionsId, storeInZustand: false });
 }
 
 /**
@@ -190,14 +200,16 @@ function addCodeListsFromExpressionsRecursive(
   }
 }
 
+type StaticallyFetchableOptionsComponent = ISelectionComponent &
+  Required<Pick<ISelectionComponent, 'optionsId'>> & {
+    queryParameters?: Record<string, ParamValue>;
+  };
+
 /**
  * Some components may have a static configuration that allows us to fetch the options before the data model has
  * been fetched.
  */
-function canBeFetchedStatically(component: unknown): component is ISelectionComponent &
-  Required<Pick<ISelectionComponent, 'optionsId'>> & {
-    queryParameters?: Record<string, ParamValue>;
-  } {
+function canBeFetchedStatically(component: unknown): component is StaticallyFetchableOptionsComponent {
   return !!(
     component &&
     typeof component === 'object' &&
