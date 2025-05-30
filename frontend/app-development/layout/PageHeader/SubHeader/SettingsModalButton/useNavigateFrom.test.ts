@@ -99,4 +99,19 @@ describe('useNavigateFrom', () => {
 
     typedLocalStorage.removeItem(LocalStorageKey.PreviousRouteBeforeSettings);
   });
+
+  it('returns the correct currentRoutePahth when pathname and search are provided', () => {
+    (useLocation as jest.Mock).mockReturnValue({
+      pathname: `/org/app/${RoutePaths.AppSettings}`,
+      search: '?query=123',
+      state: { from: RoutePaths.UIEditor },
+    });
+
+    const { result } = renderHook(() => useNavigateFrom());
+
+    expect(result.current).toEqual({
+      navigateFrom: RoutePaths.UIEditor,
+      currentRoutePath: `${RoutePaths.AppSettings}?query=123`,
+    });
+  });
 });

@@ -13,10 +13,11 @@ export const useNavigateFrom = () => {
 
   const navigateFrom: RoutePaths | undefined = getNavigateFrom(state);
   const currentRoutePath: string = UrlUtils.extractThirdRouterParam(location.pathname);
+  const search: string = location?.search ?? '';
 
   return {
     navigateFrom,
-    currentRoutePath,
+    currentRoutePath: `${currentRoutePath}${search}`,
   };
 };
 

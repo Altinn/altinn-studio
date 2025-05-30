@@ -16,7 +16,6 @@ import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useNavigateFrom } from './useNavigateFrom';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
@@ -34,63 +33,11 @@ jest.mock('react-router-dom', () => ({
   useNavigate: jest.fn(),
 }));
 
-describe('SettingsModal', () => {
+describe('SettingsModalButton', () => {
   const user = userEvent.setup();
   afterEach(() => {
     typedLocalStorage.removeItem('featureFlags');
     jest.clearAllMocks();
-  });
-
-  it('has SettingsModal default to closed', async () => {
-    renderSettingsModalButton();
-
-    const modalHeading = screen.queryByRole('heading', {
-      name: textMock('settings_modal.heading'),
-      level: 2,
-    });
-
-    expect(modalHeading).not.toBeInTheDocument();
-  });
-
-  it('opens the SettingsModal when the button is clicked', async () => {
-    renderSettingsModalButton();
-
-    const modalHeading = screen.queryByRole('heading', {
-      name: textMock('settings_modal.heading'),
-      level: 2,
-    });
-    expect(modalHeading).not.toBeInTheDocument();
-
-    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
-    await user.click(button);
-
-    const modalHeadingAfter = screen.getByRole('heading', {
-      name: textMock('settings_modal.heading'),
-    });
-    expect(modalHeadingAfter).toBeInTheDocument();
-  });
-
-  it('closes the SettingsModal when the modal is closed', async () => {
-    renderSettingsModalButton();
-    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
-    await user.click(button);
-
-    const modalHeading = screen.getByRole('heading', {
-      name: textMock('settings_modal.heading'),
-      level: 2,
-    });
-    expect(modalHeading).toBeInTheDocument();
-
-    const closeButton = screen.getByRole('button', {
-      name: 'close modal', // Todo: Replace with textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
-    });
-    await user.click(closeButton);
-
-    const modalHeadingAfter = screen.queryByRole('heading', {
-      name: textMock('settings_modal.heading'),
-      level: 2,
-    });
-    expect(modalHeadingAfter).not.toBeInTheDocument();
   });
 
   it('should render the button with text on a large screen', () => {
@@ -119,8 +66,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
@@ -136,8 +81,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.UIEditor,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
@@ -156,8 +99,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
@@ -176,8 +117,6 @@ describe('SettingsModal', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: null,
     });
-
-    addFeatureFlagToLocalStorage(FeatureFlag.SettingsPage);
     renderSettingsModalButton();
 
     const goBackButton = screen.getByRole('button', {
