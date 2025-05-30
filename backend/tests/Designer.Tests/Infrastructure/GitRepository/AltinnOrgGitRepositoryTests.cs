@@ -219,8 +219,8 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Combine(repositoryDir, RelativePathCodeList(codeListId));
-        string newCodeListFilePath = Path.Combine(repositoryDir, RelativePathCodeList(newCodeListId));
+        string oldCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(newCodeListId));
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
     }
@@ -239,7 +239,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string codeListFilePath = Path.Combine(repositoryDir, RelativePathCodeList(codeListId));
+        string codeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
         Assert.False(File.Exists(codeListFilePath));
     }
 

@@ -38,8 +38,8 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(targetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Combine(repositoryDir, $"Codelists/{CodeListId}.json");
-        string newCodeListFilePath = Path.Combine(repositoryDir, $"Codelists/{NewCodeListId}.json");
+        string oldCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{CodeListId}.json");
+        string newCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{NewCodeListId}.json");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

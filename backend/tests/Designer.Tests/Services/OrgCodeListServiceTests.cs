@@ -156,8 +156,8 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Combine(repositoryDir, $"Codelists/{CodeListId}.json");
-        string newCodeListFilePath = Path.Combine(repositoryDir, $"Codelists/{NewCodeListId}.json");
+        string oldCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{CodeListId}.json");
+        string newCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{NewCodeListId}.json");
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
     }

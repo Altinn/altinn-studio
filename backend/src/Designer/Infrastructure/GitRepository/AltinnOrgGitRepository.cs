@@ -206,7 +206,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     private static string GetCodeListFilePath(string codeListId)
     {
-        return Path.Combine(CodeListFolderPath, GetCodeListFileName(codeListId));
+        return Path.Join(CodeListFolderPath, GetCodeListFileName(codeListId));
     }
 
     private static string GetTextResourceFileName(string languageCode)
@@ -221,6 +221,6 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     private static string GetPathToTextResourceFileFromFilename(string fileName)
     {
-        return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Combine(LanguageResourceFolderName, fileName);
+        return string.IsNullOrEmpty(fileName) ? LanguageResourceFolderName : Path.Join(LanguageResourceFolderName, fileName);
     }
 }
