@@ -43,16 +43,20 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
     setIsLoading(true);
     const { data: result } = await fetchPullData();
-    setIsLoading(false);
 
     if (result.repositoryStatus === 'Ok') {
-      if (onPullSuccess) onPullSuccess();
-
-      await queryClient.invalidateQueries();
+      onPullSuccess?.();
+      await queryClient.invalidateQueries({
+        predicate: (q) => {
+          const queryKey = q.queryKey;
+          return queryKey.includes(owner) && queryKey.includes(repoName);
+        },
+      });
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       await commitAndPushChanges('');
       setPopoverOpen(false);
     }
+    setIsLoading(false);
   };
 
   return (
