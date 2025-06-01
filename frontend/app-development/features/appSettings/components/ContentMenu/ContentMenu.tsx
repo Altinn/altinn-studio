@@ -5,7 +5,8 @@ import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
-import { getCurrentSettingsTab } from '../../utils';
+import { getAllSettingsPageTabIds } from '../../utils';
+import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
 export type ContentMenuProps = {
   onChangeTab: (tabId: SettingsPageTabId) => void;
@@ -14,12 +15,11 @@ export type ContentMenuProps = {
 export function ContentMenu({ onChangeTab }: ContentMenuProps): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
-
-  // TODO - WHY IS THE COLOR IN CONTENT MENU NOT CORRECT WHEN CANCELING THE BLOCKER
-  const currentTab: SettingsPageTabId = getCurrentSettingsTab();
+  const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(menuTabs);
+  const { currentTab, setCurrentTab } = useCurrentSettingsTab(tabIds);
 
   return (
-    <StudioContentMenu selectedTabId={currentTab} onChangeTab={onChangeTab}>
+    <StudioContentMenu selectedTabId={currentTab} onChangeTab={setCurrentTab}>
       <ContentMenuTabs tabs={menuTabs} />
     </StudioContentMenu>
   );

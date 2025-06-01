@@ -5,7 +5,7 @@ import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 
-type ActionButtonsProps = {
+export type ActionButtonsProps = {
   onSave: () => void;
   onReset: () => void;
   areButtonsDisabled: boolean;

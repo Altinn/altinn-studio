@@ -11,7 +11,7 @@ import { validateAppResource } from '../utils/appResourceValidationUtils';
 import { NavigationWarningDialog } from './NavigationWarningDialog/NavigationWarningDialog';
 import { useBeforeUnload } from '../hooks/useBeforeUnload';
 import { ErrorSummary } from './ErrorSummary';
-import { TranslationType } from 'app-development/features/appSettings/types/Translation';
+import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 
 const Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS: number = 200;
 

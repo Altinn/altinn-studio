@@ -6,11 +6,10 @@ import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
 import { MaskinportenTab } from './Tabs/MaskinportenTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
-import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
-import { getCurrentSettingsTab } from '../../utils';
+import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
 export function TabsContent(): ReactElement {
-  const currentTab: SettingsPageTabId = getCurrentSettingsTab();
+  const { currentTab } = useCurrentSettingsTab();
 
   switch (currentTab) {
     case 'about': {
