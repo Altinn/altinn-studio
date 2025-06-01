@@ -1,13 +1,28 @@
+.groupWrapper {
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
 .groupHeaderWrapper {
   display: flex;
   margin: var(--fds-spacing-3);
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+}
+
+.groupHeaderWrapper:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.selected {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+}
+
+.customSize {
+  font-size: var(--fds-sizing-4);
 }
 
 .liftIcon {
   padding-right: var(--fds-spacing-3);
-  font-size: var(--fds-sizing-6);
 }
 
 .container {

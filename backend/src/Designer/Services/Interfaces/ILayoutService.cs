@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Converts the `pages` property of a layout to use `groups` instead of `order`
         ///
-        /// This implementation creates a single group for each page
+        /// This implementation creates a single group including all pages
         /// </summary>
         public Task ConvertPagesToPageGroups(
             AltinnRepoEditingContext editingContext,

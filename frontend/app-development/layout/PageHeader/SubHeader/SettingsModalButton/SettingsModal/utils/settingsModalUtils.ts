@@ -1,4 +1,4 @@
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type { ReactNode } from 'react';
 
@@ -14,9 +14,9 @@ import type { ReactNode } from 'react';
  */
 export const createNavigationTab = (
   icon: ReactNode,
-  tabId: SettingsModalTab,
+  tabId: SettingsModalTabId,
   onClick: () => void,
-  currentTab: SettingsModalTab,
+  currentTab: SettingsModalTabId,
 ): LeftNavigationTab => {
   return {
     icon,

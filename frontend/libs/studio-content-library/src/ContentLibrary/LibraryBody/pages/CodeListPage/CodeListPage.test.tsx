@@ -188,6 +188,25 @@ describe('CodeListPage', () => {
     expect(onUpdateTextResource).toHaveBeenCalledWith(expectedObject);
   });
 
+  it('Calls onCreateTextResource with the new text resource and the default language when a text resource is added', async () => {
+    const user = userEvent.setup();
+    const onCreateTextResource = jest.fn();
+    const newDescription = 'Ny beskrivelse';
+
+    renderCodeListPage({ textResources, codeListsData: codeListDataList, onCreateTextResource });
+    const emptyDescriptionField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
+    await user.type(emptyDescriptionField, newDescription);
+    await user.tab();
+
+    const expectedLanguage = 'nb';
+    const expectedObject: TextResourceWithLanguage = {
+      language: expectedLanguage,
+      textResource: expect.objectContaining({ value: newDescription }),
+    };
+    expect(onCreateTextResource).toHaveBeenCalledTimes(1);
+    expect(onCreateTextResource).toHaveBeenCalledWith(expectedObject);
+  });
+
   it('Renders with text resources in the input fields of the create dialog when given', async () => {
     const user = userEvent.setup();
 
@@ -224,6 +243,26 @@ describe('CodeListPage', () => {
     expect(onUpdateTextResource).toHaveBeenCalledWith(expectedObject);
   });
 
+  it('Calls onCreateTextResource with the new text resource and the default language when a text resource is added in the create dialog', async () => {
+    const user = userEvent.setup();
+    const onCreateTextResource = jest.fn();
+    const newLabel = 'Ny ledetekst';
+
+    renderCodeListPage({ textResources, onCreateTextResource });
+    const dialog = await openCreateDialog(user);
+    await addCodeListItem(user, dialog);
+    await user.type(getFirstLabelField(dialog), newLabel);
+    await user.tab();
+
+    const expectedLanguage = 'nb';
+    const expectedObject: TextResourceWithLanguage = {
+      language: expectedLanguage,
+      textResource: expect.objectContaining({ value: newLabel }),
+    };
+    expect(onCreateTextResource).toHaveBeenCalledTimes(1);
+    expect(onCreateTextResource).toHaveBeenCalledWith(expectedObject);
+  });
+
   it('renders an info box when no code lists are passed', () => {
     renderCodeListPage({ codeListsData: [] });
     const alert = screen.getByText(textMock('app_content_library.code_lists.info_box.title'));
@@ -257,6 +296,21 @@ const openAndGetFirstLabelField = async (
 const getFirstLabelField = (area: HTMLElement): HTMLElement => {
   const labelFieldLabel = textMock('code_list_editor.text_resource.label.value', { number: 1 });
   return within(area).getByRole('textbox', { name: labelFieldLabel });
+};
+
+const openAndGetFirstDescriptionField = async (
+  user: UserEvent,
+  codeListTitle: string,
+): Promise<HTMLElement> => {
+  await user.click(getCodeListHeading(codeListTitle));
+  const accordion = getCodeListAccordion(codeListTitle);
+  return getFirstDescriptionField(accordion);
+};
+
+const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
+  const inputLabelKey = 'code_list_editor.text_resource.description.value';
+  const descriptionFieldLabel = textMock(inputLabelKey, { number: 1 });
+  return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
 const getCodeListAccordion = (codeListTitle: string): HTMLElement =>

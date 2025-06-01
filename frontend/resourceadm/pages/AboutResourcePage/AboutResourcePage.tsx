@@ -233,6 +233,16 @@ export const AboutResourcePage = ({
               required
               errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
+            <ResourceSwitchInput
+              id='isOneTimeConsent'
+              label={t('resourceadm.about_resource_one_time_consent_label')}
+              value={resourceData.isOneTimeConsent ?? true}
+              onFocus={() => setTranslationType('none')}
+              onChange={(isChecked: boolean) =>
+                handleSave({ ...resourceData, isOneTimeConsent: isChecked })
+              }
+              toggleTextTranslationKey='resourceadm.about_resource_one_time_consent_show_text'
+            />
           </>
         )}
         <ResourceTextField
