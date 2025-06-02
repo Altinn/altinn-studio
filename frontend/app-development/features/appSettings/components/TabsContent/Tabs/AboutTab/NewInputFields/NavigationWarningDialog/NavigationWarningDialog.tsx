@@ -16,12 +16,12 @@ export function NavigationWarningDialog({
 }: NavigationWarningDialogProps): ReactElement {
   const { t } = useTranslation();
 
-  const { currentTab } = useCurrentSettingsTab();
+  const { tabToDisplay } = useCurrentSettingsTab();
 
   const blocker: Blocker = useBlocker(({ currentLocation, nextLocation }) => {
     const pathnamechanged = currentLocation.pathname !== nextLocation.pathname;
 
-    const nextTabIsDifferentFromCurrentTab = !nextLocation.search.includes(currentTab);
+    const nextTabIsDifferentFromCurrentTab = !nextLocation.search.includes(tabToDisplay);
 
     return hasContentChanged && (pathnamechanged || nextTabIsDifferentFromCurrentTab);
   });

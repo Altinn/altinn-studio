@@ -9,9 +9,9 @@ import { AccessControlTab } from './Tabs/AccessControlTab';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
 export function TabsContent(): ReactElement {
-  const { currentTab } = useCurrentSettingsTab();
+  const { tabToDisplay } = useCurrentSettingsTab();
 
-  switch (currentTab) {
+  switch (tabToDisplay) {
     case 'about': {
       return <AboutTab />;
     }

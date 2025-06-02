@@ -11,10 +11,10 @@ export function ContentMenu(): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
   const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(menuTabs);
-  const { currentTab, setCurrentTab } = useCurrentSettingsTab(tabIds);
+  const { tabToDisplay, setTabToDisplay } = useCurrentSettingsTab(tabIds);
 
   return (
-    <StudioContentMenu selectedTabId={currentTab} onChangeTab={setCurrentTab}>
+    <StudioContentMenu selectedTabId={tabToDisplay} onChangeTab={setTabToDisplay}>
       <ContentMenuTabs tabs={menuTabs} />
     </StudioContentMenu>
   );

@@ -24,10 +24,10 @@ describe('ContentMenu', () => {
     const menuTabConfigs = useAppSettingsMenuTabConfigs();
     addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
 
-    const setCurrentTab = jest.fn();
+    const setTabToDisplay = jest.fn();
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: 'about',
-      setCurrentTab,
+      tabToDisplay: 'about',
+      setTabToDisplay,
     });
     renderContentMenu();
 
@@ -38,10 +38,10 @@ describe('ContentMenu', () => {
 
   it('should render only non-Maskinporten tabs when feature flag is disabled', () => {
     const menuTabConfigs = useAppSettingsMenuTabConfigs();
-    const setCurrentTab = jest.fn();
+    const setTabToDisplay = jest.fn();
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: 'about',
-      setCurrentTab,
+      tabToDisplay: 'about',
+      setTabToDisplay,
     });
     renderContentMenu();
 
@@ -54,22 +54,22 @@ describe('ContentMenu', () => {
     });
   });
 
-  it('should call setCurrentTab when a tab is clicked', () => {
-    const setCurrentTab = jest.fn();
-    const currentTab: SettingsPageTabId = 'about';
+  it('should call setTabToDisplay when a tab is clicked', () => {
+    const setTabToDisplay = jest.fn();
+    const tabToDisplay: SettingsPageTabId = 'about';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab,
-      setCurrentTab,
+      tabToDisplay,
+      setTabToDisplay,
     });
     renderContentMenu();
 
     const aboutTab = screen.getByRole('tab', {
-      name: textMock(`app_settings.left_nav_tab_${currentTab}`),
+      name: textMock(`app_settings.left_nav_tab_${tabToDisplay}`),
     });
     aboutTab.click();
 
-    expect(setCurrentTab).toHaveBeenCalledWith(currentTab);
-    expect(setCurrentTab).toHaveBeenCalledTimes(1);
+    expect(setTabToDisplay).toHaveBeenCalledWith(tabToDisplay);
+    expect(setTabToDisplay).toHaveBeenCalledTimes(1);
   });
 });
 

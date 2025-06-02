@@ -26,7 +26,7 @@ describe('useCurrentSettingsTab', () => {
 
     const { result } = renderHook(() => useCurrentSettingsTab(validTabs));
 
-    expect(result.current.currentTab).toBe('setup');
+    expect(result.current.tabToDisplay).toBe('setup');
   });
 
   it('falls back to default tab if currentTab is missing', () => {
@@ -40,7 +40,7 @@ describe('useCurrentSettingsTab', () => {
 
     const { result } = renderHook(() => useCurrentSettingsTab(validTabs));
 
-    expect(result.current.currentTab).toBe('about');
+    expect(result.current.tabToDisplay).toBe('about');
   });
 
   it('falls back to default tab if currentTab is invalid', () => {
@@ -54,7 +54,7 @@ describe('useCurrentSettingsTab', () => {
 
     const { result } = renderHook(() => useCurrentSettingsTab(validTabs));
 
-    expect(result.current.currentTab).toBe('about');
+    expect(result.current.tabToDisplay).toBe('about');
   });
 
   it('calls setSearchParams with valid tab', () => {
@@ -74,14 +74,14 @@ describe('useCurrentSettingsTab', () => {
     const { result } = renderHook(() => useCurrentSettingsTab(validTabs));
 
     act(() => {
-      result.current.setCurrentTab('setup');
+      result.current.setTabToDisplay('setup');
     });
 
     expect(mockSetSearchParams).toHaveBeenCalledWith(expect.any(URLSearchParams));
     expect(mockSetSearchParams.mock.calls[0][0].get('currentTab')).toBe('setup');
   });
 
-  it('sets default tab if setCurrentTab is called with invalid tab', () => {
+  it('sets default tab if setTabToDisplay is called with invalid tab', () => {
     const mockGet = jest.fn().mockReturnValue('about');
     const mockSetSearchParams = jest.fn();
 
@@ -98,7 +98,7 @@ describe('useCurrentSettingsTab', () => {
     const { result } = renderHook(() => useCurrentSettingsTab(validTabs));
 
     act(() => {
-      result.current.setCurrentTab('not_valid' as SettingsPageTabId);
+      result.current.setTabToDisplay('not_valid' as SettingsPageTabId);
     });
 
     expect(mockSetSearchParams).toHaveBeenCalledWith(expect.any(URLSearchParams));

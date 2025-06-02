@@ -19,45 +19,45 @@ describe('TabsContent', () => {
     typedLocalStorage.removeItem('featureFlags');
   });
 
-  it('should render About tab content when currentTab is "about"', () => {
-    const setCurrentTab = jest.fn();
+  it('should render About tab content when tabToDisplay is "about"', () => {
+    const setTabToDisplay = jest.fn();
     const aboutTab: SettingsPageTabId = 'about';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: aboutTab,
-      setCurrentTab,
+      tabToDisplay: aboutTab,
+      setTabToDisplay,
     });
     renderTabsContent();
     expect(getHeading(aboutTab)).toBeInTheDocument();
   });
 
-  it('should render Setup tab content when currentTab is "setup"', () => {
-    const setCurrentTab = jest.fn();
+  it('should render Setup tab content when tabToDisplay is "setup"', () => {
+    const setTabToDisplay = jest.fn();
     const setupTab: SettingsPageTabId = 'setup';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: setupTab,
-      setCurrentTab,
+      tabToDisplay: setupTab,
+      setTabToDisplay,
     });
     renderTabsContent();
     expect(getHeading(setupTab)).toBeInTheDocument();
   });
 
-  it('should render Policy tab content when currentTab is "policy"', () => {
-    const setCurrentTab = jest.fn();
+  it('should render Policy tab content when tabToDisplay is "policy"', () => {
+    const setTabToDisplay = jest.fn();
     const policyTab: SettingsPageTabId = 'policy';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: policyTab,
-      setCurrentTab,
+      tabToDisplay: policyTab,
+      setTabToDisplay,
     });
     renderTabsContent();
     expect(getHeading(policyTab)).toBeInTheDocument();
   });
 
-  it('should render Access Control tab content when currentTab is "access_control"', () => {
-    const setCurrentTab = jest.fn();
+  it('should render Access Control tab content when tabToDisplay is "access_control"', () => {
+    const setTabToDisplay = jest.fn();
     const accessControlTab: SettingsPageTabId = 'access_control';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: accessControlTab,
-      setCurrentTab,
+      tabToDisplay: accessControlTab,
+      setTabToDisplay,
     });
     renderTabsContent();
     expect(getHeading(accessControlTab)).toBeInTheDocument();
@@ -66,11 +66,11 @@ describe('TabsContent', () => {
   it('should render Maskinporten tab when feature flag is enabled', () => {
     addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
 
-    const setCurrentTab = jest.fn();
+    const setTabToDisplay = jest.fn();
     const maskinPortenTab: SettingsPageTabId = 'maskinporten';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: maskinPortenTab,
-      setCurrentTab,
+      tabToDisplay: maskinPortenTab,
+      setTabToDisplay,
     });
 
     renderTabsContent();
@@ -78,11 +78,11 @@ describe('TabsContent', () => {
   });
 
   it('should not render anything when feature flag is disabled for Maskinporten tab', () => {
-    const setCurrentTab = jest.fn();
+    const setTabToDisplay = jest.fn();
     const maskinPortenTab: SettingsPageTabId = 'maskinporten';
     (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      currentTab: maskinPortenTab,
-      setCurrentTab,
+      tabToDisplay: maskinPortenTab,
+      setTabToDisplay,
     });
     renderTabsContent();
     expect(queryHeading(maskinPortenTab)).not.toBeInTheDocument();
