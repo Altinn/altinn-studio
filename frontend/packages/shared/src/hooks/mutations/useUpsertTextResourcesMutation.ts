@@ -5,7 +5,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {
   convertTextResourcesArrayToObject,
-  modifyTextResources,
+  setTextResourcesForLanguage,
 } from 'app-shared/utils/textResourceUtils';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 
@@ -38,7 +38,7 @@ export const useUpsertTextResourcesMutation = (
       queryClient.setQueryData(
         [QueryKey.TextResources, org, app],
         (oldTexts: ITextResources): ITextResources =>
-          modifyTextResources(oldTexts, language, textResources),
+          setTextResourcesForLanguage(oldTexts, language, textResources),
       );
     },
   });

@@ -37,7 +37,6 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type {
   IFrontEndSettings,
   ILayoutSettings,
-  ITextResourcesObjectFormat,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
@@ -76,6 +75,7 @@ import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -276,9 +276,9 @@ export const queriesMock: ServicesContextProps = {
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
-  upsertTextResources: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
+  upsertTextResources: jest.fn().mockImplementation(async (_org, _app, language) => {
+    return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
+  }),
   undeployAppFromEnv: jest.fn().mockImplementation(() => Promise.resolve()),
   deletePage: jest.fn().mockImplementation(() => Promise.resolve()),
   modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),
