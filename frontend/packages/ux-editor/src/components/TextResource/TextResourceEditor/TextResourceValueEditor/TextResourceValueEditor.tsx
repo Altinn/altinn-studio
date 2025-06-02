@@ -64,7 +64,7 @@ export const TextResourceValueEditor = ({
       <StudioTextarea
         label={t('ux_editor.text_resource_binding_text')}
         onBlur={handleBlur}
-        value={valueState || placeholderValue}
+        value={valueState ?? placeholderValue}
         onChange={handleTextEntryChange}
         ref={textareaRef}
       />

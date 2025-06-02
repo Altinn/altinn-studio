@@ -47,6 +47,7 @@ export const EditNameAction = ({
     };
     handleUpdateTaskNavigationGroup(updatedNavigationTasks);
     dialogRef.current?.close();
+    originTextResourceValueRef.current = currentValue;
   };
 
   const handleCancel = () => {
@@ -60,6 +61,7 @@ export const EditNameAction = ({
       });
     }
 
+    originTextResourceValueRef.current = undefined;
     dialogRef.current?.close();
   };
 
@@ -72,7 +74,11 @@ export const EditNameAction = ({
       >
         {t('ux_editor.task_table.menu_edit_name')}
       </StudioDialog.Trigger>
-      <StudioDialog ref={dialogRef} closeButton={false}>
+      <StudioDialog
+        ref={dialogRef}
+        closeButton={false}
+        onKeyDown={(e) => e.key === 'Escape' && handleCancel()}
+      >
         <StudioFieldset>
           <StudioFieldset.Legend>{t('ux_editor.task_table.menu_edit_name')}</StudioFieldset.Legend>
           <TextResourceEditor
