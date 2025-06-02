@@ -22,7 +22,7 @@ const findTextResource = (textResources: ITextResources, id: string) =>
   textResources?.[language]?.find((resource) => resource.id === id);
 
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
-  findTextResource(textResources, id)?.value || '';
+  findTextResource(textResources, id)?.value;
 
 export const TextResourceValueEditor = ({
   textResourceId,
