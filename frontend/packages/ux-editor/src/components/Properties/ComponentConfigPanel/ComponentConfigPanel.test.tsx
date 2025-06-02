@@ -17,6 +17,7 @@ import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaM
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
+import { ItemType } from '../ItemType';
 
 const editFormComponentTestId = 'content';
 const textTestId = 'text';
@@ -323,7 +324,9 @@ const getComponent = (
       ...formItemContextProps,
     }}
   >
-    <ComponentConfigPanel />
+    <ComponentConfigPanel
+      selectedItem={{ type: ItemType.Component, id: componentMocks[ComponentType.Input].id }}
+    />
   </FormItemContext.Provider>
 );
 

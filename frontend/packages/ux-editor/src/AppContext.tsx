@@ -8,15 +8,25 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
+import type { ItemType } from './components/Properties/ItemType';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
 }
 
-export type SelectedItem = {
-  type: 'component' | 'page' | 'group';
-  id: string;
-};
+export type SelectedItem =
+  | {
+      type: ItemType.Group;
+      id: number;
+    }
+  | {
+      type: ItemType.Page;
+      id: string;
+    }
+  | {
+      type: ItemType.Component;
+      id: string;
+    };
 
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;

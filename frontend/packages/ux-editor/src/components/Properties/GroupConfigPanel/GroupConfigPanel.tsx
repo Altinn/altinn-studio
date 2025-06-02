@@ -4,11 +4,15 @@ import classes from './GroupConfigPanel.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon } from '@studio/icons';
-import { useAppContext } from '../../../hooks';
+import type { ItemType } from '../ItemType';
+import type { SelectedItem } from '../../../AppContext';
 
-export const GroupConfigPanel = () => {
+type GroupConfigPanelProps = {
+  selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
+};
+
+export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
-  const { selectedItem } = useAppContext();
 
   return (
     <>
@@ -16,7 +20,7 @@ export const GroupConfigPanel = () => {
         data-testid='groupConfigPanel'
         icon={<FileIcon />}
         heading={{
-          text: selectedItem?.id,
+          text: selectedItem.id.toString(),
           level: 2,
         }}
       />

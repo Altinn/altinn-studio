@@ -127,9 +127,10 @@ const renderPageConfigPanel = (
     [],
   );
 
-  return renderWithProviders(<PageConfigPanel />, {
+  const selectedItem: any = { type: ItemType.Page, id: selectedLayoutName };
+  return renderWithProviders(<PageConfigPanel selectedItem={selectedItem} />, {
     appContextProps: {
-      selectedItem: { type: ItemType.Page, id: selectedLayoutName },
+      selectedItem,
     },
   });
 };
