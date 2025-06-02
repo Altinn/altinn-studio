@@ -30,7 +30,6 @@ export type ProcessEditorProps = {
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
   saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
-  openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
   onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
@@ -49,7 +48,6 @@ export const ProcessEditor = ({
   mutateLayoutSetId,
   mutateDataTypes,
   saveBpmn,
-  openPolicyEditor,
   onProcessTaskAdd,
   onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
@@ -77,7 +75,6 @@ export const ProcessEditor = ({
         mutateLayoutSetId={mutateLayoutSetId}
         mutateDataTypes={mutateDataTypes}
         saveBpmn={saveBpmn}
-        openPolicyEditor={openPolicyEditor}
         onProcessTaskAdd={onProcessTaskAdd}
         onProcessTaskRemove={onProcessTaskRemove}
       >
