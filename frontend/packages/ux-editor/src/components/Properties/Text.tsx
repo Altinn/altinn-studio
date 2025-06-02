@@ -5,10 +5,8 @@ import { Alert, Heading } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components-legacy';
-import { EditOptions } from '../config/editModal/EditOptions';
-import type { FormComponent, FormComponentBase } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../hooks';
 import { EditImage } from '../config/editModal/EditImage';
 import classes from './Text.module.css';
@@ -50,19 +48,6 @@ export const Text = () => {
           component={form}
           handleComponentChange={handleComponentChange}
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
-          layoutName={selectedFormLayoutName}
-        />
-      )}
-      {(schema.properties.options || schema.properties.optionsId) && (
-        <EditOptions
-          component={
-            form as
-              | (FormComponentBase<ComponentType.Checkboxes> &
-                  ComponentSpecificConfig<ComponentType.Checkboxes>)
-              | (FormComponentBase<ComponentType.RadioButtons> &
-                  ComponentSpecificConfig<ComponentType.RadioButtons>)
-          }
-          handleComponentChange={handleComponentChange}
           layoutName={selectedFormLayoutName}
         />
       )}
