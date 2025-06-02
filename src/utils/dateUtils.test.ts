@@ -1,3 +1,4 @@
+import { PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { formatDateLocale } from 'src/utils/dateUtils';
 import type { Token } from 'src/utils/dateUtils';
 
@@ -446,5 +447,15 @@ describe('formatDateLocale', () => {
   it('formats on a default locale format if no unicodeToken is provided', () => {
     expect(formatDateLocale('nb', date)).toBe('15.05.2023');
     expect(formatDateLocale('en', date)).toBe('5/15/23');
+  });
+  describe('Date Formatting Comparison Tests', () => {
+    const testDate = new Date('2025-03-12T07:11:00Z');
+    it('should show how formatDateLocale handles different locales with PrettyDateAndTime', () => {
+      const nbResult = formatDateLocale('nb', testDate, PrettyDateAndTime);
+      const enResult = formatDateLocale('en', testDate, PrettyDateAndTime);
+
+      expect(nbResult).toBe('12.03.2025 / 07:11'); // European
+      expect(enResult).toBe('12.03.2025 / 07:11'); // American
+    });
   });
 });
