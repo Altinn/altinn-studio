@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-06-10",
+      "title": "Hovedinnstillinger for komponenter",
+      "content": "Vi har lagd en egen seksjon for hovedinnstillinger for kompontenter i Utforming. Når du skal konfigurere en komponent kan du nå se hovedinnstillinger øverst i konfigurasjonen. Vi har startet med et utvalg av felles innstillinger. Vi jobber videre med å sikre at de viktigste innstillingene for en komponent er lett tilgjengelige via Hovedinnstillinger."
+    },
+    {
       "date": "2025-05-11",
       "title": "Nytt redigeringsverktøy for kodelister i Utforming",
       "content": "Vi har forbedret designet på kodelister og gjort det enklere å redigere de du har lastet opp i biblioteket."
