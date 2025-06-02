@@ -1,18 +1,14 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ContentMenu } from './ContentMenu';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderWithProviders } from 'app-development/test/mocks';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
-import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-
-jest.mock('../../hooks/useCurrentSettingsTab');
+import { MemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 
 describe('ContentMenu', () => {
   afterEach(() => {
@@ -23,12 +19,6 @@ describe('ContentMenu', () => {
   it('should render all menu tabs when Maskinporten feature flag is enabled', () => {
     const menuTabConfigs = useAppSettingsMenuTabConfigs();
     addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
-
-    const setTabToDisplay = jest.fn();
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: 'about',
-      setTabToDisplay,
-    });
     renderContentMenu();
 
     menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsPageTabId>) => {
@@ -38,11 +28,6 @@ describe('ContentMenu', () => {
 
   it('should render only non-Maskinporten tabs when feature flag is disabled', () => {
     const menuTabConfigs = useAppSettingsMenuTabConfigs();
-    const setTabToDisplay = jest.fn();
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: 'about',
-      setTabToDisplay,
-    });
     renderContentMenu();
 
     menuTabConfigs.forEach((tab: StudioContentMenuButtonTabProps<SettingsPageTabId>) => {
@@ -54,26 +39,30 @@ describe('ContentMenu', () => {
     });
   });
 
-  it('should call setTabToDisplay when a tab is clicked', () => {
-    const setTabToDisplay = jest.fn();
-    const tabToDisplay: SettingsPageTabId = 'about';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay,
-      setTabToDisplay,
-    });
+  it('should call setTabToDisplay when a tab is clicked', async () => {
+    const user = userEvent.setup();
     renderContentMenu();
 
     const aboutTab = screen.getByRole('tab', {
-      name: textMock(`app_settings.left_nav_tab_${tabToDisplay}`),
+      name: textMock('app_settings.left_nav_tab_about'),
     });
-    aboutTab.click();
+    const setupTab = screen.getByRole('tab', {
+      name: textMock('app_settings.left_nav_tab_setup'),
+    });
+    expect(aboutTab).toHaveAttribute('tabindex', '0');
+    expect(setupTab).toHaveAttribute('tabindex', '-1');
 
-    expect(setTabToDisplay).toHaveBeenCalledWith(tabToDisplay);
-    expect(setTabToDisplay).toHaveBeenCalledTimes(1);
+    await user.click(setupTab);
+
+    expect(aboutTab).toHaveAttribute('tabindex', '-1');
+    expect(setupTab).toHaveAttribute('tabindex', '0');
   });
 });
 
 const renderContentMenu = () => {
-  const queryClient = createQueryClientMock();
-  return renderWithProviders(queriesMock, queryClient)(<ContentMenu />);
+  return render(
+    <MemoryRouter initialEntries={[`?currentTab=about`]}>
+      <ContentMenu />
+    </MemoryRouter>,
+  );
 };

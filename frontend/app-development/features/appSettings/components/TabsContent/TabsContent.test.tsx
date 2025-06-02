@@ -1,17 +1,17 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
-import { renderWithProviders } from 'app-development/test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { SettingsTabId } from '../../types/SettingsTabId';
-import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
+import { MemoryRouter } from 'react-router-dom';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
-jest.mock('../../hooks/useCurrentSettingsTab');
+const tabs: SettingsPageTabId[] = ['about', 'setup', 'policy', 'access_control', 'maskinporten'];
 
 describe('TabsContent', () => {
   afterEach(() => {
@@ -19,79 +19,28 @@ describe('TabsContent', () => {
     typedLocalStorage.removeItem('featureFlags');
   });
 
-  it('should render About tab content when tabToDisplay is "about"', () => {
-    const setTabToDisplay = jest.fn();
-    const aboutTab: SettingsPageTabId = 'about';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: aboutTab,
-      setTabToDisplay,
-    });
-    renderTabsContent();
-    expect(getHeading(aboutTab)).toBeInTheDocument();
-  });
-
-  it('should render Setup tab content when tabToDisplay is "setup"', () => {
-    const setTabToDisplay = jest.fn();
-    const setupTab: SettingsPageTabId = 'setup';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: setupTab,
-      setTabToDisplay,
-    });
-    renderTabsContent();
-    expect(getHeading(setupTab)).toBeInTheDocument();
-  });
-
-  it('should render Policy tab content when tabToDisplay is "policy"', () => {
-    const setTabToDisplay = jest.fn();
-    const policyTab: SettingsPageTabId = 'policy';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: policyTab,
-      setTabToDisplay,
-    });
-    renderTabsContent();
-    expect(getHeading(policyTab)).toBeInTheDocument();
-  });
-
-  it('should render Access Control tab content when tabToDisplay is "access_control"', () => {
-    const setTabToDisplay = jest.fn();
-    const accessControlTab: SettingsPageTabId = 'access_control';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: accessControlTab,
-      setTabToDisplay,
-    });
-    renderTabsContent();
-    expect(getHeading(accessControlTab)).toBeInTheDocument();
-  });
-
-  it('should render Maskinporten tab when feature flag is enabled', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
-
-    const setTabToDisplay = jest.fn();
-    const maskinPortenTab: SettingsPageTabId = 'maskinporten';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: maskinPortenTab,
-      setTabToDisplay,
-    });
-
-    renderTabsContent();
-    expect(getHeading(maskinPortenTab)).toBeInTheDocument();
+  it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', (tab) => {
+    tab === 'maskinporten' && addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
+    renderTabsContent(tab);
+    expect(getHeading(tab)).toBeInTheDocument();
   });
 
   it('should not render anything when feature flag is disabled for Maskinporten tab', () => {
-    const setTabToDisplay = jest.fn();
     const maskinPortenTab: SettingsPageTabId = 'maskinporten';
-    (useCurrentSettingsTab as jest.Mock).mockReturnValue({
-      tabToDisplay: maskinPortenTab,
-      setTabToDisplay,
-    });
-    renderTabsContent();
+    renderTabsContent(maskinPortenTab);
     expect(queryHeading(maskinPortenTab)).not.toBeInTheDocument();
   });
 });
 
-const renderTabsContent = () => {
+const renderTabsContent = (initialEntries: string = '') => {
   const queryClient = createQueryClientMock();
-  return renderWithProviders(queriesMock, queryClient)(<TabsContent />);
+  return render(
+    <MemoryRouter initialEntries={[`?currentTab=${initialEntries}`]}>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <TabsContent />
+      </ServicesContextProvider>
+    </MemoryRouter>,
+  );
 };
 
 const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>

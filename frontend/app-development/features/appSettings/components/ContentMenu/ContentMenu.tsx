@@ -10,7 +10,7 @@ import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 export function ContentMenu(): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
-  const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(menuTabs);
+  const tabIds: SettingsPageTabId[] = extractTabIdsFromTabs(menuTabs);
   const { tabToDisplay, setTabToDisplay } = useCurrentSettingsTab(tabIds);
 
   return (
@@ -42,6 +42,6 @@ function filterFeatureFlag(
     : menuTabConfigs.filter((tab) => tab.tabId !== 'maskinporten');
 }
 
-function getAllSettingsPageTabIds(tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[]) {
+function extractTabIdsFromTabs(tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[]) {
   return tabs.map(({ tabId }) => tabId);
 }
