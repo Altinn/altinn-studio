@@ -95,7 +95,7 @@ describe('PageGroupAccordion', () => {
 
   it('should mark group as selected when selectedGroupName matches group name', async () => {
     await renderPageGroupAccordion({
-      appContextProps: { selectedItem: { type: ItemType.Group, id: 'Group 1' } },
+      appContextProps: { selectedItem: { type: ItemType.Group, id: 0 } },
     });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toHaveClass('selected');

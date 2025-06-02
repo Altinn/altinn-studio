@@ -60,7 +60,7 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes an code list from the org repository.
+    /// Deletes a code list from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
@@ -76,4 +76,13 @@ public interface IOrgCodeListService
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the name of a code list from the org repository by changing the filename.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="codeListId">Name of the code list</param>
+    /// <param name="newCodeListId">The new name of the code list</param>
+    public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId);
 }
