@@ -1,6 +1,9 @@
 .closeButton {
-  float: right;
-  margin: var(--ds-size-4);
+  margin: var(--ds-size-3);
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
 }
 
 .popover {

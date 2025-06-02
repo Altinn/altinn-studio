@@ -35,13 +35,11 @@ describe('VersionAlert', () => {
     expect(await screen.findByText(`v${LATEST_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.migrate_frontend_version', { latestVersion: LATEST_FRONTEND_VERSION }),
+        textMock('versions.update_frontend', { latestVersion: LATEST_FRONTEND_VERSION }),
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole(`v${LATEST_BACKEND_VERSION}`)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole(textMock('versions.migrate_backend_version')),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole(textMock('versions.update_backend'))).not.toBeInTheDocument();
   });
 
   it('renders backend info when backend is outdated', async () => {
@@ -50,13 +48,11 @@ describe('VersionAlert', () => {
     });
 
     expect(screen.queryByRole(`v${LATEST_FRONTEND_VERSION}`)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole(textMock('versions.migrate_frontend_version')),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole(textMock('versions.update_frontend'))).not.toBeInTheDocument();
     expect(await screen.findByText(`v${LATEST_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.migrate_backend_version', { latestVersion: LATEST_BACKEND_VERSION }),
+        textMock('versions.update_backend', { latestVersion: LATEST_BACKEND_VERSION }),
       ),
     ).toBeInTheDocument();
   });
@@ -69,13 +65,13 @@ describe('VersionAlert', () => {
     expect(await screen.findByText(`v${LATEST_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.migrate_frontend_version', { latestVersion: LATEST_FRONTEND_VERSION }),
+        textMock('versions.update_frontend', { latestVersion: LATEST_FRONTEND_VERSION }),
       ),
     ).toBeInTheDocument();
     expect(await screen.findByText(`v${LATEST_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.migrate_backend_version', { latestVersion: LATEST_BACKEND_VERSION }),
+        textMock('versions.update_backend', { latestVersion: LATEST_BACKEND_VERSION }),
       ),
     ).toBeInTheDocument();
   });

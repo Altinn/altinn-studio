@@ -33,8 +33,9 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.HeaderCell></StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>Current</StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>Latest</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>{t('versions.current_version')}</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>{t('versions.latest_version')}</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell></StudioTable.HeaderCell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
@@ -43,6 +44,20 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
               <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
               <StudioTable.Cell>v{data.frontendVersion}</StudioTable.Cell>
               <StudioTable.Cell>v{LATEST_FRONTEND_VERSION}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {isFrontendOutdated && (
+                  <StudioLink
+                    className={classes.linkButton}
+                    href={altinnDocsUrl({
+                      relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
+                    })}
+                  >
+                    {t('versions.update_frontend', {
+                      latestVersion: LATEST_FRONTEND_VERSION,
+                    })}
+                  </StudioLink>
+                )}
+              </StudioTable.Cell>
             </StudioTable.Row>
           )}
           {isBackendOutdated && (
@@ -50,23 +65,7 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
               <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
               <StudioTable.Cell>v{data.backendVersion}</StudioTable.Cell>
               <StudioTable.Cell>v{LATEST_BACKEND_VERSION}</StudioTable.Cell>
-            </StudioTable.Row>
-          )}
-        </StudioTable.Body>
-      </StudioTable>
-      <div className={classes.buttons}>
-        {isFrontendOutdated && (
-          <StudioLink
-            className={classes.linkButton}
-            href={altinnDocsUrl({
-              relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
-            })}
-          >
-            {t('versions.migrate_frontend_version', {
-              latestVersion: LATEST_FRONTEND_VERSION,
-            })}
-          </StudioLink>
-        )}
+              <StudioTable.Cell>
         {isBackendOutdated && (
           <StudioLink
             className={classes.linkButton}
@@ -74,12 +73,16 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
               relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
             })}
           >
-            {t('versions.migrate_backend_version', {
+                    {t('versions.update_backend', {
               latestVersion: LATEST_BACKEND_VERSION,
             })}
           </StudioLink>
         )}
-      </div>
+              </StudioTable.Cell>
+            </StudioTable.Row>
+          )}
+        </StudioTable.Body>
+      </StudioTable>
     </StudioAlert>
   );
 };

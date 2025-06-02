@@ -2142,10 +2142,12 @@
   "validation_errors.upload_file_name_occupied": "Opplastning feilet. Du prøvde å laste opp en fil som finnes fra før.",
   "validation_errors.upload_file_name_required": "Opplastning feilet. Filnavnet kan ikke være tomt.",
   "validation_errors.value_as_url": "Ugyldig lenke.",
-  "versions.migrate_backend_version": "Migrere backend til v{{latestVersion}}",
-  "versions.migrate_frontend_version": "Migrere frontend til v{{latestVersion}}",
-  "versions.outdated_version": "Utdatert versjon",
+  "versions.current_version": "Gjeldende versjon",
+  "versions.latest_version": "Siste versjon",
+  "versions.update_backend": "Oppdater backend til v{{latestVersion}}",
+  "versions.update_frontend": "Oppdater frontend til v{{latestVersion}}",
+  "versions.outdated_version": "Versjonen er utdatert",
   "versions.supported_old_version": "Du har en eldre versjon av repoet. Det gjør at du kan oppleve noen problemer i Studio.\nVi anbefaler at du oppdaterer til nyeste versjon av repoet og starter Studio på nytt, for å få en bedre brukeropplevelse.",
   "versions.unsupported_old_version": "Du har en versjon av repoet som Studio ikke støtter lenger. Oppdater versjonen din og start Studio på nytt.",
-  "versions.unsupported_version": "Ugyldig versjon"
+  "versions.unsupported_version": "Versjonen støttes ikke"
 }
