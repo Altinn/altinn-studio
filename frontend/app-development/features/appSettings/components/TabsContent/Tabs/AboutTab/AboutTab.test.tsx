@@ -6,11 +6,11 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { mockAppConfig } from 'app-development/layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/appConfigMock';
+import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
 import {
   mockRepository1,
   mockRepository2,
-} from 'app-development/layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/repositoryMock';
+} from 'app-development/features/appSettings/mocks/repositoryMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';

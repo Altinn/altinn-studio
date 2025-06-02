@@ -14,7 +14,8 @@ type SupportedRoutes =
   | 'editorText'
   | 'editorUi'
   | 'gitea'
-  | 'preview';
+  | 'preview'
+  | 'appSettings';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
@@ -32,6 +33,7 @@ const routerRoutes: RouterRoutes = {
   editorUi: '/editor/{{org}}/{{app}}/ui-editor',
   gitea: '/repos/{{org}}/{{app}}',
   preview: '/preview/{{org}}/{{app}}',
+  appSettings: '/editor/{{org}}/{{app}}/app-settings',
 };
 
 export class RouterRoute extends StudioEnvironment {

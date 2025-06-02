@@ -3,6 +3,7 @@ import type {
   ITextResources,
   ITextResourcesObjectFormat,
 } from 'app-shared/types/global';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 /**
  * Converts an array of text resources in the ITextResource format to an object with id as key and value as value.
@@ -23,30 +24,16 @@ export const convertTextResourcesObjectToArray = (
   textResources: ITextResourcesObjectFormat,
 ): ITextResource[] => Object.entries(textResources).map(([id, value]) => ({ id, value }));
 
-/**
- * Modifies the text resources object with new text resources in the given language.
- * @param existingResources The existing text resources.
- * @param language The language of which text resources are modified.
- * @param newResources The new text resources in the given language.
- * @returns The modified text resources object.
- */
-export const modifyTextResources = (
+export const setTextResourcesForLanguage = (
   existingResources: ITextResources,
   language: string,
   newResources: ITextResource[],
 ): ITextResources => {
-  const newlyCreatedText = newResources.filter(
-    (nr) => !existingResources?.[language]?.some((er) => er.id === nr.id),
-  );
-  const updatedResources =
-    existingResources?.[language]?.map((existingResource: ITextResource): ITextResource => {
-      const updatedResource = newResources.find(
-        (newResource) => existingResource?.id === newResource.id,
-      );
-      return updatedResource ?? existingResource;
-    }) ?? [];
+  const updatedTextResources = TextResourceUtils.fromArray(existingResources?.[language] || [])
+    .prependOrUpdateMultiple(newResources)
+    .asArray();
   return {
     ...existingResources,
-    [language]: [...newlyCreatedText, ...updatedResources],
+    [language]: updatedTextResources,
   };
 };
