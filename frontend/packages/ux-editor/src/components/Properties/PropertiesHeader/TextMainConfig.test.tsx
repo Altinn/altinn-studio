@@ -12,7 +12,7 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 const mockHandleComponentUpdate = jest.fn();
-const titleKey = { title: { title: 'Title' } };
+const schemaTextResourceKeys = ['title'];
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
@@ -29,13 +29,13 @@ describe('TextMainConfig', () => {
   });
 
   it('renders when titleKey is defined', () => {
-    renderTextMainConfig({ title: titleKey });
+    renderTextMainConfig({ componentSchemaTextKeys: schemaTextResourceKeys });
     expect(textButton()).toBeInTheDocument();
   });
 
   it('updates text resource binding title when selecting a text resource id', async () => {
     const user = userEvent.setup();
-    renderTextMainConfig({ title: titleKey });
+    renderTextMainConfig({ componentSchemaTextKeys: schemaTextResourceKeys });
     await user.click(textButton());
 
     const searchButton = screen.getByRole('tab', {
@@ -66,7 +66,7 @@ describe('TextMainConfig', () => {
       },
     };
 
-    renderTextMainConfig({ component, title: titleKey });
+    renderTextMainConfig({ component, componentSchemaTextKeys: schemaTextResourceKeys });
     await user.click(textButton());
 
     const removeButton = screen.getByRole('button', {
@@ -86,7 +86,10 @@ const textButton = () =>
     name: textMock('ux_editor.modal_properties_textResourceBindings_title'),
   });
 
-const renderTextMainConfig = ({ component = component1Mock, title = undefined }) => {
+const renderTextMainConfig = ({
+  component = component1Mock,
+  componentSchemaTextKeys = undefined,
+}) => {
   const queryClient = createQueryClientMock();
   const textResourcesList: ITextResources = {
     [DEFAULT_LANGUAGE]: textResources,
@@ -98,7 +101,7 @@ const renderTextMainConfig = ({ component = component1Mock, title = undefined })
     <div data-testid='component-wrapper'>
       <TextMainConfig
         component={component}
-        title={title}
+        componentSchemaTextKeys={componentSchemaTextKeys || []}
         handleComponentChange={mockHandleComponentUpdate}
       />
     </div>,
