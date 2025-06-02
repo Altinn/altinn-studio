@@ -19,9 +19,9 @@ export function getErrorMessagesForLanguage(
 ): string[] | undefined {
   const filteredErrors: AppResourceFormError[] = filterOutErrorsForLanguage(errors, language);
   const errorMessages: string[] = mapErrorToString(filteredErrors);
-  const errorMessagesHasValus: boolean = getErrorMessagesHasValud(errorMessages);
+  const errorMessagesHasValue: boolean = getErrorMessagesHasValue(errorMessages);
 
-  if (errorMessagesHasValus) {
+  if (errorMessagesHasValue) {
     return errorMessages;
   }
   return undefined;
@@ -38,7 +38,7 @@ function mapErrorToString(errors: AppResourceFormError[]): string[] {
   return errors.map((error) => error.error);
 }
 
-function getErrorMessagesHasValud(errors: string[]): boolean {
+function getErrorMessagesHasValue(errors: string[]): boolean {
   return errors.length > 0;
 }
 
