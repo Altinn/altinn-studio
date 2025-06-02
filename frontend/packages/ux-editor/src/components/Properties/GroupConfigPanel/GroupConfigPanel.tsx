@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioFieldset, StudioSpinner, StudioSwitch } from '@studio/components';
+import { StudioSpinner, StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon } from '@studio/icons';
@@ -24,14 +24,18 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { data: pages, isPending: pageQueryPending } = usePagesQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const selectedGroup = pages?.groups?.[selectedItem?.id];
-  if (!selectedGroup) return <StudioSpinner aria-label={t('general.loading')} />;
+  if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
+  const selectedGroup = pages.groups[selectedItem.id];
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
     selectedGroup.markWhenCompleted = event.target.checked;
-    pages.groups[selectedItem?.id] = selectedGroup;
+    pages.groups[selectedItem.id] = selectedGroup;
     changePageGroup(pages);
   };
 
@@ -47,15 +51,13 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
       />
       <div className={classes.configPanel}>
         <div className={classes.fieldSetWrapper}>
-          <StudioFieldset>
-            <StudioSwitch
-              label={t('ux_editor.page_group.markAsCompleted_switch')}
-              position='end'
-              readOnly={mutatingPages}
-              checked={selectedGroup.markWhenCompleted}
-              onChange={onMarkAsCompleted}
-            ></StudioSwitch>
-          </StudioFieldset>
+          <StudioSwitch
+            label={t('ux_editor.page_group.markAsCompleted_switch')}
+            position='end'
+            readOnly={mutatingPages}
+            checked={selectedGroup.markWhenCompleted || false}
+            onChange={onMarkAsCompleted}
+          ></StudioSwitch>
         </div>
       </div>
     </>

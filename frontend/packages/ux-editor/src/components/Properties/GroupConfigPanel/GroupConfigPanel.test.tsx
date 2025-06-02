@@ -15,11 +15,16 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 
 describe('GroupConfigPanel', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should call mutation when clicking markAsCompleted toggle', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
     const changePageGroups = jest.fn();
-    renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups } });
+    const getPages = jest.fn().mockResolvedValue(groupsPagesModelMock);
+    renderGroupConfigPanel({ props: { selectedItem }, queries: { changePageGroups, getPages } });
 
     expect(markAsCompletedSwitch()).toBeInTheDocument();
     await user.click(markAsCompletedSwitch());
@@ -29,7 +34,11 @@ describe('GroupConfigPanel', () => {
   it('should not throw an error and show a spinner if queries are pending', () => {
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
     const queryClientMock = createQueryClientMock();
-    renderGroupConfigPanel({ props: { selectedItem }, queryClientMock });
+    renderGroupConfigPanel({
+      props: { selectedItem },
+      queryClientMock,
+      queries: { getPages: jest.fn().mockResolvedValue({ isPending: true }) },
+    });
 
     expect(spinner()).toBeInTheDocument();
   });
