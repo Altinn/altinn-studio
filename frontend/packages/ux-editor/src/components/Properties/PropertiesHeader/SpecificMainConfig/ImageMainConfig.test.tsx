@@ -7,11 +7,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const imageComponent: FormItem = {
+const imageComponent: FormItem<ComponentType.Image> = {
   id: '0',
   type: ComponentType.Image,
   itemType: 'COMPONENT',
-  target: {},
 };
 
 describe('ComponentMainConfig', () => {
