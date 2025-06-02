@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import classes from './NewInputFields.module.css';
+import classes from './AppResourceForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
 import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
@@ -12,17 +12,18 @@ import { NavigationWarningDialog } from './NavigationWarningDialog/NavigationWar
 import { useBeforeUnload } from '../hooks/useBeforeUnload';
 import { ErrorSummary } from './ErrorSummary';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
+
 const Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS: number = 200;
 
-type NewInputFieldsProps = {
+type AppResourceFormProps = {
   appResource: AppResource;
   saveAppResource: (appResource: AppResource) => void; // Remove prop when endpoint is implemented
 };
 
-export function NewInputFields({
+export function AppResourceForm({
   appResource,
   saveAppResource,
-}: NewInputFieldsProps): ReactElement {
+}: AppResourceFormProps): ReactElement {
   const { t } = useTranslation();
   const [translationType, setTranslationType] = useState<TranslationType>('none');
   const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
@@ -95,7 +96,7 @@ export function NewInputFields({
       />
       <LanguageTextField
         label={t('app_settings.about_tab_name_label')}
-        id={InputFieldIds.ServiceName}
+        id={AppResourceFormFieldIds.ServiceName}
         value={updatedAppResource.serviceName}
         updateLanguage={onChangeServiceName}
         onFocus={showServiceNameFields}
@@ -122,7 +123,7 @@ export function NewInputFields({
   );
 }
 
-enum InputFieldIds {
+enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
 }
 

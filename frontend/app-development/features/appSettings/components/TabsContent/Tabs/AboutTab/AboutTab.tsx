@@ -18,7 +18,7 @@ import { TabDataError } from '../../TabDataError';
 import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { NewInputFields } from './NewInputFields';
+import { AppResourceForm } from './AppResourceForm';
 import type { AppResource } from 'app-shared/types/AppResource';
 
 export function AboutTab(): ReactElement {
@@ -88,7 +88,7 @@ function AboutTabContent(): ReactElement {
             repository={repositoryData}
             authorName={applicationMetadataData?.createdBy}
           />
-          <NewInputFields
+          <AppResourceForm
             appResource={appResource}
             saveAppResource={(updatedAppResource: AppResource) =>
               setAppResource(updatedAppResource)
