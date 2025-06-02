@@ -36,6 +36,7 @@ function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
 
+  // TODO - This is a temporary solution to handle the new app resource structure. Will be replaced with API calls when available.
   const [appResource, setAppResource] = useState<AppResource>(mockAppResource);
 
   const {
