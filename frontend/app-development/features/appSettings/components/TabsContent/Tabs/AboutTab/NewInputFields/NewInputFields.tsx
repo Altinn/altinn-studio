@@ -6,13 +6,12 @@ import { StudioTextfield } from '@studio/components';
 import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextField } from './LanguageTextfield/LanguageTextfield';
-import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppResource } from '../utils/appResourceValidationUtils';
 import { NavigationWarningDialog } from './NavigationWarningDialog/NavigationWarningDialog';
 import { useBeforeUnload } from '../hooks/useBeforeUnload';
 import { ErrorSummary } from './ErrorSummary';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
-
 const Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS: number = 200;
 
 type NewInputFieldsProps = {
