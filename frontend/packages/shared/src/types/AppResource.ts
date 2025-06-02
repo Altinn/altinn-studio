@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from './ResourceAdm';
+import type { SupportedLanguage } from './SupportedLanguages';
 
 export type AppResource = {
   repositoryName: string;

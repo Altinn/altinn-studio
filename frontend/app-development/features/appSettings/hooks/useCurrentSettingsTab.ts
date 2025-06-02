@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { useMemo } from 'react';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
-import { isValidSettingsTab } from '../utils';
+import { settingsPageQueryParamKey } from '../utils';
 
 const DEFAULT_TAB: SettingsPageTabId = 'about';
 
@@ -9,7 +9,9 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentTab: SettingsPageTabId = useMemo(() => {
-    const tab: SettingsPageTabId = searchParams.get('currentTab') as SettingsPageTabId | null;
+    const tab: SettingsPageTabId = searchParams.get(
+      settingsPageQueryParamKey,
+    ) as SettingsPageTabId | null;
     if (validTabIds && !isValidSettingsTab(tab, validTabIds)) {
       return DEFAULT_TAB;
     }
@@ -21,7 +23,7 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
     const finalTab: SettingsPageTabId = isValid ? tabId : DEFAULT_TAB;
 
     const newParams: URLSearchParams = new URLSearchParams(searchParams);
-    newParams.set('currentTab', finalTab);
+    newParams.set(settingsPageQueryParamKey, finalTab);
     setSearchParams(newParams);
   };
 
@@ -29,4 +31,11 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
     currentTab,
     setCurrentTab,
   };
+}
+
+export function isValidSettingsTab(
+  tabId: SettingsPageTabId,
+  tabIds: Array<SettingsPageTabId>,
+): boolean {
+  return tabIds.includes(tabId);
 }

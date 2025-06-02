@@ -5,14 +5,9 @@ import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
-import { getAllSettingsPageTabIds } from '../../utils';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
-export type ContentMenuProps = {
-  onChangeTab: (tabId: SettingsPageTabId) => void;
-};
-
-export function ContentMenu({ onChangeTab }: ContentMenuProps): ReactElement {
+export function ContentMenu(): ReactElement {
   const menuTabConfigs = useAppSettingsMenuTabConfigs();
   const menuTabs = filterFeatureFlag(menuTabConfigs);
   const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(menuTabs);
@@ -45,4 +40,8 @@ function filterFeatureFlag(
   return shouldDisplayFeature(FeatureFlag.Maskinporten)
     ? menuTabConfigs
     : menuTabConfigs.filter((tab) => tab.tabId !== 'maskinporten');
+}
+
+function getAllSettingsPageTabIds(tabs: StudioContentMenuButtonTabProps<SettingsPageTabId>[]) {
+  return tabs.map(({ tabId }) => tabId);
 }

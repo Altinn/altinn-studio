@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 
-type ErrorSummaryProps = {
+export type ErrorSummaryProps = {
   validationErrors: AppResourceFormError[];
   onClickErrorLink: (field: TranslationType) => void;
 };

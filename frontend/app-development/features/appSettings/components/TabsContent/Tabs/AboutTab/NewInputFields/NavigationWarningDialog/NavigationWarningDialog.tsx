@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './NavigationWarningDialog.module.css';
 import { useBlocker } from 'react-router-dom';
 import type { Blocker } from 'react-router-dom';
-import { getCurrentSettingsTab } from 'app-development/features/appSettings/utils';
+import { useCurrentSettingsTab } from 'app-development/features/appSettings/hooks/useCurrentSettingsTab';
 
 export type NavigationWarningDialogProps = {
   hasContentChanged: boolean;
@@ -16,9 +16,12 @@ export function NavigationWarningDialog({
 }: NavigationWarningDialogProps): ReactElement {
   const { t } = useTranslation();
 
+  const { currentTab } = useCurrentSettingsTab();
+
   const blocker: Blocker = useBlocker(({ currentLocation, nextLocation }) => {
     const pathnamechanged = currentLocation.pathname !== nextLocation.pathname;
-    const nextTabIsDifferentFromCurrentTab = !nextLocation.search.includes(getCurrentSettingsTab());
+
+    const nextTabIsDifferentFromCurrentTab = !nextLocation.search.includes(currentTab);
 
     return hasContentChanged && (pathnamechanged || nextTabIsDifferentFromCurrentTab);
   });
