@@ -18,7 +18,6 @@ import { useUpdateProcessDataTypesMutation } from '../../hooks/mutations/useUpda
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
-import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 import { useAppPolicyQuery } from '../../hooks/queries';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
@@ -29,7 +28,6 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const { settingsRef } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
@@ -131,9 +129,6 @@ export const ProcessEditor = (): React.ReactElement => {
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
-      openPolicyEditor={() => {
-        settingsRef.current?.openSettings('policy');
-      }}
       onProcessTaskAdd={onProcessTaskAdd}
       onProcessTaskRemove={onProcessTaskRemove}
     />

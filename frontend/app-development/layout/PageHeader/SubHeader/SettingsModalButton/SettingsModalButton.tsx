@@ -2,8 +2,6 @@ import React, { type ReactElement } from 'react';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { ArrowLeftIcon, CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { SettingsModal } from './SettingsModal';
-import { useSettingsModalContext } from '../../../../contexts/SettingsModalContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
@@ -13,7 +11,6 @@ import { useNavigateFrom } from './useNavigateFrom';
 export const SettingsModalButton = (): ReactElement => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
-  const { settingsRef } = useSettingsModalContext();
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const navigate = useNavigate();
@@ -41,18 +38,15 @@ export const SettingsModalButton = (): ReactElement => {
   };
 
   return (
-    <>
-      <StudioPageHeader.HeaderButton
-        color='light'
-        onClick={handleClick}
-        icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
-        variant={variant}
-        aria-label={buttonText}
-      >
-        {shouldDisplayText && buttonText}
-      </StudioPageHeader.HeaderButton>
-      <SettingsModal ref={settingsRef} />
-    </>
+    <StudioPageHeader.HeaderButton
+      color='light'
+      onClick={handleClick}
+      icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
+      variant={variant}
+      aria-label={buttonText}
+    >
+      {shouldDisplayText && buttonText}
+    </StudioPageHeader.HeaderButton>
   );
 };
 

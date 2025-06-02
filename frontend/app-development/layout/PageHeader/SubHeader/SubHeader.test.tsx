@@ -7,7 +7,6 @@ import { pageHeaderContextMock, previewContextMock } from '../../../test/headerM
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
@@ -123,11 +122,9 @@ const renderSubHeader = ({
 }: Partial<Props<SubHeaderProps>> = {}) => {
   return renderWithProviders()(
     <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <SettingsModalContextProvider>
-        <PreviewContext.Provider value={previewContextMock}>
-          <SubHeader {...defaultProps} {...componentProps} />
-        </PreviewContext.Provider>
-      </SettingsModalContextProvider>
+      <PreviewContext.Provider value={previewContextMock}>
+        <SubHeader {...defaultProps} {...componentProps} />
+      </PreviewContext.Provider>
     </PageHeaderContext.Provider>,
   );
 };
@@ -141,9 +138,7 @@ const renderLeftContent = ({
   };
   return renderWithProviders()(
     <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <SettingsModalContextProvider>
-        <LeftContent {...props} {...componentProps} />
-      </SettingsModalContextProvider>
+      <LeftContent {...props} {...componentProps} />
     </PageHeaderContext.Provider>,
   );
 };
