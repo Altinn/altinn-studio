@@ -51,8 +51,13 @@ describe('DataModelBindings', () => {
   it('renders EditDataModelBindings component when schema is present', () => {
     render();
 
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
+
     const dataModelButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_title.Input`),
+      name: labelText,
     });
     expect(dataModelButton).toBeInTheDocument();
   });
@@ -112,8 +117,13 @@ describe('DataModelBindings', () => {
         },
       });
 
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+        componentName: propText,
+      });
+
       const dataModelButton = screen.getByRole('button', {
-        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: labelText,
       });
       expect(dataModelButton).toBeInTheDocument();
     },
@@ -140,15 +150,21 @@ describe('DataModelBindings', () => {
     );
 
     ['address', 'careOf'].forEach((prop) => {
-      const dataModelButton = screen.getByText(
-        textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
-      );
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('right_menu.data_model_bindings_edit', { binding: propText });
+      const dataModelButton = screen.getByRole('button', {
+        name: labelText,
+      });
       expect(dataModelButton).toBeInTheDocument();
     });
 
     ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+        componentName: propText,
+      });
       const dataModelButton = screen.getByRole('button', {
-        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: labelText,
       });
       expect(dataModelButton).toBeInTheDocument();
     });
@@ -285,8 +301,13 @@ describe('DataModelBindings', () => {
 
     render();
 
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
+
     const dataModelButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_title.Input`),
+      name: labelText,
     });
     await user.click(dataModelButton);
 
