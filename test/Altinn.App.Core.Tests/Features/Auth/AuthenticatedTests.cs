@@ -115,6 +115,12 @@ public class AuthenticatedTests
                 AuthenticationTypes.SystemUser,
                 true
             },
+            {
+                "Altinn-Test-Tools GetEnterpriseUserToken",
+                "eyJhbGciOiJSUzI1NiIsImtpZCI6IkQ4RDg2N0M3RDUyMTM2MEY0RjM1Q0Q1MTU4MEM0OUEwNTE2NUQ0RTEiLCJ0eXAiOiJKV1QiLCJ4NWMiOiJEOEQ4NjdDN0Q1MjEzNjBGNEYzNUNENTE1ODBDNDlBMDUxNjVENEUxIn0.eyJzY29wZSI6ImFsdGlubjplbmR1c2VyIiwidG9rZW5fdHlwZSI6IkJlYXJlciIsImV4cCI6MTc0NzM3NTc2OCwiaWF0IjoxNzQ3MzczOTY4LCJjbGllbnRfaWQiOiI3Y2RlNDk5My1iYWJhLTQ4ZDYtOGViMS1mNmVhZWMzNjVlZmYiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5OTE4MjU4MjcifSwianRpIjoiaG1pUUV6VlAzSmw3WDZqdHg3RnBxeEF3NnFTQzExVlBPZGtxTkxUdVQzUyIsInVybjphbHRpbm46dXNlcmlkIjoxMjMsInVybjphbHRpbm46dXNlcm5hbWUiOiJzb21ldXNlciIsInVybjphbHRpbm46cGFydHlpZCI6NDMxMiwidXJuOmFsdGlubjpvcmdOdW1iZXIiOiI5OTE4MjU4MjciLCJ1cm46YWx0aW5uOmF1dGhlbnRpY2F0ZW1ldGhvZCI6InZpcmtzb21oZXRzYnJ1a2VyIiwidXJuOmFsdGlubjphdXRobGV2ZWwiOjMsImlzcyI6Imh0dHBzOi8vcGxhdGZvcm0udHQwMi5hbHRpbm4ubm8vYXV0aGVudGljYXRpb24vYXBpL3YxL29wZW5pZC8iLCJhY3R1YWxfaXNzIjoiYWx0aW5uLXRlc3QtdG9vbHMiLCJuYmYiOjE3NDczNzM5Njh9.iSIksHCA44VZOp6fISAXlCZoR7kzqXiZLJbgy1qc5znX__5XEJ17O4GCZ7vbR6hmmEWCObjKIrJBd004xFEFu8DK4JidsTAdnxtf71_ZAZIY7erKIxO3R5EdpeSiN1rMnN_w7QN9Azrz3JoRVaOz0lrr8IO36qN6TFL2iZ6XT5pkFG4lz3MqEZDN1jTdSXoQvDrNNcQLRCM9itlCKfY9oiNvZOKgMoBGEZmAQDzcu26apUfb3tVMmIWhvFNqIgJTC_jeu9KXGxp4za2uIFqdebkouprcUexqitF1RhN6LFj4_5x1TQDI1QWAGEN5yqpZHIDh4EvsRi6HK6dnBDv7Rg",
+                AuthenticationTypes.Org,
+                true
+            },
         };
 
     [Theory]
