@@ -8,7 +8,7 @@ import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock } from 'app-shared/hooks/useSelectedTaskId.test';
-import { layoutMock } from '../../testing/layoutMock';
+import { groupsPagesModelMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { SelectedItem } from '../../AppContext';
 import { ItemType } from './ItemType';
@@ -39,7 +39,7 @@ describe('Properties', () => {
     });
 
     it('shows group config when selectedItem is a group', () => {
-      renderProperties({ selectedItem: { type: ItemType.Group, id: '' } });
+      renderProperties({ selectedItem: { type: ItemType.Group, id: 0 } });
       const pageConfigPanel = screen.getByTestId('groupConfigPanel');
       expect(pageConfigPanel).toBeInTheDocument();
     });
@@ -60,6 +60,7 @@ const renderProperties = ({ selectedItem }: { selectedItem: SelectedItem }) => {
     [QueryKey.FormLayoutSettings, org, app, layoutSet1NameMock],
     formLayoutSettingsMock,
   );
+  queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSetName], groupsPagesModelMock);
 
   return renderWithProviders(<Properties />, {
     queryClient: queryClientMock,
