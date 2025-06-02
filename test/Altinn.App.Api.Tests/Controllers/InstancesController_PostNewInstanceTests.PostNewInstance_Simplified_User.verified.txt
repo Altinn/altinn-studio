@@ -1,6 +1,11 @@
 ﻿{
   Activities: [
     {
+      Name: ApplicationMetadata.Service.GetPrefillJson,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -23,9 +28,7 @@
         {
           TestId: Guid_1
         },
-        {
-          url.path: /tdd/permissive-app/instances/create
-        },
+        {Scrubbed},
         {
           url.scheme: http
         },
@@ -55,6 +58,234 @@
         }
       ],
       HasParent: false
+    },
+    {
+      Name: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid},
+      Kind: Server,
+      IdFormat: W3C,
+      Tags: [
+        {
+          http.request.method: GET
+        },
+        {
+          http.response.status_code: 200
+        },
+        {
+          http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}
+        },
+        {
+          instance.owner.party.id: 501337
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_1
+        },
+        {Scrubbed},
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.inAltinnPortal: true
+        },
+        {
+          user.authentication.level: 2
+        },
+        {
+          user.authentication.method: BankID
+        },
+        {
+          user.authentication.token.isExchanged: false
+        },
+        {
+          user.authentication.token.issuer: Altinn
+        },
+        {
+          user.authentication.type: User
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.party.id: 501337
+        }
+      ],
+      HasParent: false
+    },
+    {
+      Name: PrefillService.PrefillDataModelWithId,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.owner.party.id: 501337
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.HandleEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_2
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Start,
+      IdFormat: W3C,
+      Status: Ok,
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              events: [
+                Type=process_StartEvent DataId=,
+                Type=process_StartTask DataId=
+              ]
+            },
+            {
+              to.started: DateTime_1
+            },
+            {
+              to.task.name: Utfylling
+            }
+          ]
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.StoreEvents,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_2
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: ProcessClient.GetProcessDefinition,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEventIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetEndEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetNextElements,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTaskIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTaskIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetProcessTasks,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetSequenceFlows,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEventIds,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetStartEvents,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsEndEvent,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsProcessTask,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.IsProcessTask,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: SerializationService.DeserializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
     }
   ],
   Metrics: [

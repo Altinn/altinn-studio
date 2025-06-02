@@ -343,8 +343,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         this.OverrideServicesForThisTest = (services) =>
         {
             services.AddTelemetrySink(
-                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
-                activityFilter: this.ActivityFilter
+                additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
+                additionalMeters: source => source.Name == "Microsoft.AspNetCore.Hosting",
+                filterMetrics: metric => metric.Name == "http.server.request.duration"
             );
         };
 
@@ -364,7 +365,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         _dataProcessorMock.VerifyNoOtherCalls();
 
-        await telemetry.SnapshotActivities();
+        await telemetry.WaitForServerTelemetry();
+        await Verify(telemetry.GetSnapshot());
     }
 
     [Fact]

@@ -127,16 +127,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         this.OverrideServicesForThisTest = (services) =>
         {
             services.AddTelemetrySink(
-                shouldAlsoListenToActivities: (_, source) => source.Name == "Microsoft.AspNetCore",
-                shouldAlsoListenToMetrics: (_, source) => source.Name == "Microsoft.AspNetCore.Hosting",
-                activityFilter: (_, activity) =>
-                    this.ActivityFilter(_, activity) && activity.DisplayName == "POST {org}/{app}/instances/create",
-                metricFilter: (_, metric) =>
-                    this.MetricFilter(_, metric) && metric.Name == "http.server.request.duration"
+                additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
+                additionalMeters: source => source.Name == "Microsoft.AspNetCore.Hosting",
+                filterMetrics: metric => metric.Name == "http.server.request.duration"
             );
         };
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         var (createResponseParsed, _) = await InstancesControllerFixture.CreateInstanceSimplified(
             org,
@@ -157,9 +155,10 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         readDataElementResponseParsed.Melding.Should().BeNull(); // No content yet
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
-        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
-        await Task.Delay(100); // For some reason metric telemetry is not captured immediately, waiting a bit
-        await telemetry.Snapshot(settings => settings.UseTextForParameters(token.Type.ToString()));
+        await telemetry.WaitForServerTelemetry(n: 2); // Two requests: create instance and read data element
+        await Verify(telemetry.GetSnapshot())
+            .ScrubInstance<KeyValuePair<string, object?>>(kvp => kvp.Key == "url.path")
+            .UseTextForParameters(token.Type.ToString());
     }
 
     [Fact]

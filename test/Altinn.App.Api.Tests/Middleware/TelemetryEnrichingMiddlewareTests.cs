@@ -21,8 +21,8 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         this.OverrideServicesForThisTest = (services) =>
         {
             services.AddTelemetrySink(
-                shouldAlsoListenToActivities: (_, source) => source.Name == "Microsoft.AspNetCore",
-                activityFilter: this.ActivityFilter
+                additionalActivitySources: source => source.Name == "Microsoft.AspNetCore",
+                additionalMeters: source => source.Name == "Microsoft.AspNetCore.Hosting"
             );
         };
 
@@ -47,7 +47,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
-        await telemetry.WaitForServerActivity();
+        await telemetry.WaitForServerTelemetry();
 
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
@@ -58,7 +58,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
 
-        await telemetry.Snapshot(activity);
+        await Verify(telemetry.GetSnapshot());
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
-        await telemetry.WaitForServerActivity();
+        await telemetry.WaitForServerTelemetry();
 
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
@@ -81,7 +81,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
 
-        await telemetry.Snapshot(activity, c => c.ScrubMember(Telemetry.Labels.UserPartyId));
+        await Verify(telemetry.GetSnapshot()).ScrubMember(Telemetry.Labels.UserPartyId);
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
             Assert.NotNull(parentActivity);
             await request();
         }
-        await telemetry.WaitForServerActivity();
+        await telemetry.WaitForServerTelemetry();
 
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
@@ -108,7 +108,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
 
-        await telemetry.Snapshot(activity, c => c.ScrubMember(Telemetry.Labels.UserPartyId));
+        await Verify(telemetry.GetSnapshot()).ScrubMember(Telemetry.Labels.UserPartyId);
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
             parentSpanId = parentActivity.SpanId;
             await request();
         }
-        await telemetry.WaitForServerActivity();
+        await telemetry.WaitForServerTelemetry();
 
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
@@ -136,6 +136,6 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         Assert.NotNull(activity.ParentId);
         Assert.Equal(parentSpanId, activity.ParentSpanId);
 
-        await telemetry.Snapshot(activity, c => c.ScrubMember(Telemetry.Labels.UserPartyId));
+        await Verify(telemetry.GetSnapshot()).ScrubMember(Telemetry.Labels.UserPartyId);
     }
 }

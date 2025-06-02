@@ -56,5 +56,47 @@
       ],
       HasParent: false
     }
+  ],
+  Metrics: [
+    {
+      Name: http.server.request.duration,
+      MeterName: Microsoft.AspNetCore.Hosting,
+      Measurements: [
+        {
+          Tags: [
+            {
+              http.request.method: GET
+            },
+            {
+              http.response.status_code: 200
+            },
+            {
+              http.route: {org}/{app}/api/v1/applicationmetadata
+            },
+            {
+              network.protocol.version: 1.1
+            },
+            {
+              TestId: Guid_1
+            },
+            {
+              url.scheme: http
+            },
+            {
+              user.authentication.token.clientId: Guid_2
+            },
+            {
+              user.authentication.token.isExchanged: true
+            },
+            {
+              user.authentication.token.issuer: Maskinporten
+            },
+            {
+              user.authentication.type: ServiceOwner
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

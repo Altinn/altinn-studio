@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
@@ -17,10 +17,10 @@ public static class TelemetrySinkDI
         string org = "ttd",
         string name = "test",
         string version = "v1",
-        Func<TestId?, ActivitySource, bool>? shouldAlsoListenToActivities = null,
-        Func<TestId?, Meter, bool>? shouldAlsoListenToMetrics = null,
-        Func<TestId?, Activity, bool>? activityFilter = null,
-        Func<TestId?, MetricMeasurement, bool>? metricFilter = null
+        Func<ActivitySource, bool>? additionalActivitySources = null,
+        Func<Meter, bool>? additionalMeters = null,
+        Func<Activity, bool>? filterActivities = null,
+        Func<MetricMeasurement, bool>? filterMetrics = null
     )
     {
         var telemetryRegistration = services.FirstOrDefault(s => s.ServiceType == typeof(Telemetry));
@@ -33,10 +33,10 @@ public static class TelemetrySinkDI
             name,
             version,
             telemetry: null,
-            shouldAlsoListenToActivities,
-            shouldAlsoListenToMetrics,
-            activityFilter,
-            metricFilter
+            additionalActivitySources,
+            additionalMeters,
+            filterActivities,
+            filterMetrics
         ));
         services.AddSingleton<Telemetry>(sp => sp.GetRequiredService<TelemetrySink>().Object);
 
@@ -57,14 +57,48 @@ public sealed record TelemetrySink : IDisposable
 
     public MeterListener MeterListener { get; }
 
-    private bool _waitForServerActivity = true;
-    private readonly TaskCompletionSource _serverActivityTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly Channel<Activity> _serverActivities = Channel.CreateBounded<Activity>(
+        new BoundedChannelOptions(1024)
+        {
+            SingleReader = false,
+            SingleWriter = false,
+            AllowSynchronousContinuations = false,
+            FullMode = BoundedChannelFullMode.DropOldest,
+        }
+    );
+    private readonly Channel<MetricMeasurement> _serverMetrics = Channel.CreateBounded<MetricMeasurement>(
+        new BoundedChannelOptions(1024)
+        {
+            SingleReader = false,
+            SingleWriter = false,
+            AllowSynchronousContinuations = false,
+            FullMode = BoundedChannelFullMode.DropOldest,
+        }
+    );
 
-    private readonly Func<TestId?, Activity, bool>? _activityFilter;
-    private readonly Func<TestId?, MetricMeasurement, bool>? _metricFilter;
+    private readonly Func<Activity, bool>? _filterActivities;
+    private readonly Func<MetricMeasurement, bool>? _filterMetrics;
     private readonly TestId? _testId;
 
-    public async Task WaitForServerActivity() => await _serverActivityTcs.Task;
+    public async Task<IReadOnlyList<Activity>> WaitForServerActivity(int n = 1) =>
+        await _serverActivities.Reader.ReadAllAsync().Take(n).ToArrayAsync();
+
+    public async Task<IReadOnlyList<MetricMeasurement>> WaitForServerMetric(int n = 1) =>
+        await _serverMetrics.Reader.ReadAllAsync().Take(n).ToArrayAsync();
+
+    public async Task<(
+        IReadOnlyList<Activity> Activities,
+        IReadOnlyList<MetricMeasurement> Metrics
+    )> WaitForServerTelemetry(int n = 1)
+    {
+        var activitiesTask = WaitForServerActivity(n);
+        var metricsTask = WaitForServerMetric(n);
+        await Task.WhenAll(activitiesTask, metricsTask);
+        var activities = await activitiesTask;
+        var metrics = await metricsTask;
+
+        return (activities, metrics);
+    }
 
     private readonly ConcurrentBag<Activity> _activities = [];
     private readonly ConcurrentDictionary<
@@ -81,85 +115,30 @@ public sealed record TelemetrySink : IDisposable
 
     public TelemetrySnapshot GetSnapshot() => new(CapturedActivities, CapturedMetrics);
 
-    public TelemetrySnapshot GetSnapshot(Activity activity) =>
-        new([activity], new Dictionary<(string Name, string Meter), IReadOnlyList<MetricMeasurement>>());
-
-    public TelemetrySnapshot GetSnapshot(IEnumerable<Activity> activities) =>
-        new(activities, new Dictionary<(string Name, string Meter), IReadOnlyList<MetricMeasurement>>());
-
-    public async Task Snapshot(
-        Func<SettingsTask, SettingsTask>? configure = null,
-        VerifySettings? settings = null,
-        [CallerFilePath] string sourceFile = ""
-    ) => await SnapshotInternal(configure, settings, sourceFile);
-
-    public async Task Snapshot(
-        Activity activity,
-        Func<SettingsTask, SettingsTask>? configure = null,
-        VerifySettings? settings = null,
-        [CallerFilePath] string sourceFile = ""
-    ) => await SnapshotActivitiesInternal([activity], configure, settings, sourceFile);
-
-    public async Task SnapshotActivities(
-        Func<SettingsTask, SettingsTask>? configure = null,
-        VerifySettings? settings = null,
-        [CallerFilePath] string sourceFile = ""
-    )
-    {
-        if (_waitForServerActivity)
-            await _serverActivityTcs.Task;
-        await SnapshotActivitiesInternal(CapturedActivities, configure, settings, sourceFile);
-    }
-
-    private async Task SnapshotActivitiesInternal(
-        IEnumerable<Activity> activities,
-        Func<SettingsTask, SettingsTask>? configure = null,
-        VerifySettings? settings = null,
-        [CallerFilePath] string sourceFile = ""
-    )
-    {
-        var task = Verify(GetSnapshot(activities), settings: settings, sourceFile: sourceFile);
-        if (configure is not null)
-            task = configure(task);
-        await task;
-    }
-
-    private async Task SnapshotInternal(
-        Func<SettingsTask, SettingsTask>? configure = null,
-        VerifySettings? settings = null,
-        [CallerFilePath] string sourceFile = ""
-    )
-    {
-        var task = Verify(GetSnapshot(), settings: settings, sourceFile: sourceFile);
-        if (configure is not null)
-            task = configure(task);
-        await task;
-    }
-
     public TelemetrySink(
         IServiceProvider? serviceProvider = null,
         string org = "ttd",
         string name = "test",
         string version = "v1",
         Telemetry? telemetry = null,
-        Func<TestId?, ActivitySource, bool>? shouldAlsoListenToActivities = null,
-        Func<TestId?, Meter, bool>? shouldAlsoListenToMetrics = null,
-        Func<TestId?, Activity, bool>? activityFilter = null,
-        Func<TestId?, MetricMeasurement, bool>? metricFilter = null
+        Func<ActivitySource, bool>? additionalActivitySources = null,
+        Func<Meter, bool>? additionalMeters = null,
+        Func<Activity, bool>? filterActivities = null,
+        Func<MetricMeasurement, bool>? filterMetrics = null
     )
     {
         _serviceProvider = serviceProvider;
-        if (shouldAlsoListenToActivities is not null)
+        if (additionalActivitySources is not null)
             Assert.NotNull(_serviceProvider);
-        if (shouldAlsoListenToMetrics is not null)
+        if (additionalMeters is not null)
             Assert.NotNull(_serviceProvider);
-        if (activityFilter is not null)
+        if (filterActivities is not null)
             Assert.NotNull(_serviceProvider);
-        if (metricFilter is not null)
+        if (filterMetrics is not null)
             Assert.NotNull(_serviceProvider);
 
-        _activityFilter = activityFilter;
-        _metricFilter = metricFilter;
+        _filterActivities = filterActivities;
+        _filterMetrics = filterMetrics;
 
         _testId = serviceProvider?.GetService<TestId>();
 
@@ -175,7 +154,7 @@ public sealed record TelemetrySink : IDisposable
                 if (IsDisposed)
                     return false;
                 var sameSource = ReferenceEquals(activitySource, Object.ActivitySource);
-                return sameSource || (shouldAlsoListenToActivities?.Invoke(_testId, activitySource) ?? false);
+                return sameSource || (additionalActivitySources?.Invoke(activitySource) ?? false);
             },
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
             {
@@ -187,12 +166,13 @@ public sealed record TelemetrySink : IDisposable
             {
                 if (IsDisposed)
                     return;
-
-                if (_activityFilter is not null && !_activityFilter(_testId, activity))
+                if (!TestIdActivityFilter(activity))
+                    return;
+                if (_filterActivities is not null && !_filterActivities(activity))
                     return;
                 _activities.Add(activity);
                 if (activity.Kind == ActivityKind.Server)
-                    _serverActivityTcs.TrySetResult();
+                    _serverActivities.Writer.TryWrite(activity);
             },
         };
         ActivitySource.AddActivityListener(ActivityListener);
@@ -204,13 +184,8 @@ public sealed record TelemetrySink : IDisposable
                 if (IsDisposed)
                     return;
                 var sameSource = ReferenceEquals(instrument.Meter, Object.Meter);
-                if (
-                    !sameSource
-                    && (shouldAlsoListenToMetrics is null || !shouldAlsoListenToMetrics(_testId, instrument.Meter))
-                )
-                {
+                if (!sameSource && (additionalMeters is null || !additionalMeters(instrument.Meter)))
                     return;
-                }
 
                 var key = (instrument.Name, instrument.Meter.Name);
                 _metricValues.TryAdd(key, new List<MetricMeasurement>());
@@ -234,29 +209,59 @@ public sealed record TelemetrySink : IDisposable
         object? state
     )
     {
-        Debug.Assert(state is not null);
+        Debug.Assert(state is TelemetrySink);
         var self = (TelemetrySink)state!;
         if (self.IsDisposed)
             return;
         var key = (instrument.Name, instrument.Meter.Name);
         Debug.Assert(self._metricValues[key] is List<MetricMeasurement>);
         var measurements = (List<MetricMeasurement>)self._metricValues[key];
+
         var tags = new Dictionary<string, object?>(tagSpan.Length);
         for (int i = 0; i < tagSpan.Length; i++)
-        {
             tags.Add(tagSpan[i].Key, tagSpan[i].Value);
-        }
-
         foreach (var t in instrument.Tags ?? [])
-        {
             tags.Add(t.Key, t.Value);
-        }
 
         MetricMeasurement record = new(instrument.Name, instrument.Meter.Name, measurement, tags);
-        if (self._metricFilter is not null && !self._metricFilter(self._testId, record))
+        if (!self.TestIdMetricFilter(record))
+            return;
+        if (self._filterMetrics is not null && !self._filterMetrics(record))
             return;
 
         measurements.Add(record);
+
+        if (instrument.Name == "http.server.request.duration" && Math.Abs(measurement) > double.Epsilon)
+            self._serverMetrics.Writer.TryWrite(record);
+    }
+
+    private bool TestIdActivityFilter(Activity activity)
+    {
+        var thisTestId = _testId;
+        if (thisTestId is null)
+            return true;
+
+        var current = activity;
+        do
+        {
+            if (current.GetTagItem(nameof(TestId)) is Guid testId && testId == thisTestId.Value)
+                return true;
+            current = current.Parent;
+        } while (current is not null);
+
+        return false;
+    }
+
+    private bool TestIdMetricFilter(MetricMeasurement metric)
+    {
+        var thisTestId = _testId;
+        if (thisTestId is null)
+            return true;
+
+        if (metric.Tags.TryGetValue(nameof(TestId), out var testId) && testId is Guid id && id == thisTestId.Value)
+            return true;
+
+        return false;
     }
 
     public void Dispose()

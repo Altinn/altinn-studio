@@ -38,31 +38,6 @@ public class ApiTestBase
 
     protected IServiceProvider Services { get; private set; }
 
-    protected readonly Func<TestId?, Activity, bool> ActivityFilter = static (thisTestId, activity) =>
-    {
-        Assert.NotNull(thisTestId);
-        var current = activity;
-        do
-        {
-            if (current.GetTagItem(nameof(TestId)) is Guid testId && testId == thisTestId.Value)
-                return true;
-            current = current.Parent;
-        } while (current is not null);
-
-        return false;
-    };
-
-    protected readonly Func<TestId?, MetricMeasurement, bool> MetricFilter = static (thisTestId, metric) =>
-    {
-        Assert.NotNull(thisTestId);
-        if (metric.Tags.TryGetValue(nameof(TestId), out var testId) && testId is Guid id && id == thisTestId.Value)
-        {
-            return true;
-        }
-
-        return false;
-    };
-
     protected ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
         _factory = factory;

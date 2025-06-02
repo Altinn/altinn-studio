@@ -19,6 +19,7 @@
     <PackageReference Include="Verify.Xunit"/>
     <PackageReference Include="xunit.assert"/>
     <PackageReference Include="OpenTelemetry"/>
+    <PackageReference Include="System.Linq.Async"/>
   </ItemGroup>
 
   <ItemGroup>
