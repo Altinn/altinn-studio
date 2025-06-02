@@ -68,6 +68,11 @@ export const PageAccordion = ({
         updatedPageGroups.groups.map((group) => {
           group.order = group.order.filter((page) => page.id !== pageName);
         });
+        updatedPageGroups.groups.map((group) => {
+          if (group.order.length === 1 && group.name) {
+            group.name = undefined;
+          }
+        });
         updatedPageGroups.groups = updatedPageGroups.groups.filter(
           (group) => group.order.length > 0,
         );
