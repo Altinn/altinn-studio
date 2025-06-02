@@ -8,7 +8,6 @@ import { StudioSpinner } from '@studio/components-legacy';
 import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '../../hooks';
-import { EditImage } from '../config/editModal/EditImage';
 import classes from './Text.module.css';
 import { EditSubformTableColumns } from './EditSubformTableColumns';
 import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
@@ -50,14 +49,6 @@ export const Text = () => {
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
           layoutName={selectedFormLayoutName}
         />
-      )}
-      {form.type === ComponentType.Image && (
-        <>
-          <Heading level={2} size='2xs' className={classes.heading}>
-            {t('ux_editor.properties_panel.texts.sub_title_images')}
-          </Heading>
-          <EditImage component={form} handleComponentChange={handleComponentChange} />
-        </>
       )}
       {form.type === ComponentType.Subform && (
         <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />

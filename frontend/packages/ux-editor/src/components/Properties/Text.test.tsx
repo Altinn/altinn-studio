@@ -146,40 +146,6 @@ describe('TextTab', () => {
       expect(screen.getByText(descriptionTextValue)).toBeInTheDocument();
     });
 
-    it('should render image section if component is image', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...componentMocks[ComponentType.Image],
-          },
-        },
-      });
-      const addImageTabTitle = screen.getByRole('tab', {
-        name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
-      });
-      const pasteUrlTabTitle = screen.getByRole('tab', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-      });
-      expect(addImageTabTitle).toBeInTheDocument();
-      expect(pasteUrlTabTitle).toBeInTheDocument();
-    });
-
-    it('should render sub title for images options when component is image', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...componentMocks[ComponentType.Image],
-          },
-        },
-      });
-      const imagesSubTitle = screen.getByText(
-        textMock('ux_editor.properties_panel.texts.sub_title_images'),
-      );
-      expect(imagesSubTitle).toBeInTheDocument();
-    });
-
     it('should call handleUpdate when handleComponentChange is triggered from EditTextResourceBindings', async () => {
       const user = userEvent.setup();
       const newText = 'newText';
@@ -193,35 +159,6 @@ describe('TextTab', () => {
       });
       await user.type(enterTextField, newText);
       await waitFor(() => enterTextField.blur());
-      await waitFor(() => {
-        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
-      });
-    });
-
-    it('should call handleUpdate when handleComponentChange is triggered from EditImage', async () => {
-      const user = userEvent.setup();
-      const newUrl = 'newUrl';
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...componentMocks[ComponentType.Image],
-          },
-        },
-      });
-      const pasteUrlTab = screen.getByRole('tab', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-      });
-      await user.click(pasteUrlTab);
-      const enterUrlButton = screen.getByRole('button', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url'),
-      });
-      await user.click(enterUrlButton);
-      const enterUrlField = screen.getByRole('textbox', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url'),
-      });
-      await user.type(enterUrlField, newUrl);
-      await waitFor(() => enterUrlField.blur());
       await waitFor(() => {
         expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
       });
