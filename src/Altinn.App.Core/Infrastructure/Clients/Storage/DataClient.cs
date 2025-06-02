@@ -138,7 +138,7 @@ public class DataClient : IDataClient
     )
         where T : notnull
     {
-        using var activity = _telemetry?.StartUpdateDataActivity(instanceGuid, instanceOwnerPartyId);
+        using var activity = _telemetry?.StartUpdateDataActivity(instanceGuid, dataId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
         string token = _userTokenProvider.GetUserToken();
@@ -173,7 +173,7 @@ public class DataClient : IDataClient
         Guid dataId
     )
     {
-        using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
+        using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
@@ -240,7 +240,7 @@ public class DataClient : IDataClient
         Guid dataId
     )
     {
-        using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
+        using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 

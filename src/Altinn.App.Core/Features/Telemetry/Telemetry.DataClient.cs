@@ -21,19 +21,19 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartUpdateDataActivity(Guid? instanceId, int? partyId)
+    internal Activity? StartUpdateDataActivity(Guid instanceId, Guid dataElementId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instanceId);
-        activity?.SetInstanceOwnerPartyId(partyId);
+        activity?.SetDataElementId(dataElementId);
         return activity;
     }
 
-    internal Activity? StartGetBinaryDataActivity(Guid? instanceId, int? partyId)
+    internal Activity? StartGetBinaryDataActivity(Guid instanceId, Guid dataElementId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryData");
         activity?.SetInstanceId(instanceId);
-        activity?.SetInstanceOwnerPartyId(partyId);
+        activity?.SetDataElementId(dataElementId);
         return activity;
     }
 

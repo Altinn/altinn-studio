@@ -91,7 +91,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         DateTimeOffset referenceTime = _timeProvider.GetUtcNow();
 
         _logger.LogDebug("Retrieving Maskinporten token for scopes: {Scopes}", formattedScopes);
-        _telemetry?.StartGetAccessTokenActivity(Variant, Settings.ClientId, formattedScopes);
+        using var activity = _telemetry?.StartGetAccessTokenActivity(Variant, Settings.ClientId, formattedScopes);
 
         var result = await _tokenCache.GetOrCreateAsync(
             cacheKey,
@@ -149,7 +149,11 @@ internal sealed class MaskinportenClient : IMaskinportenClient
         string cacheKey = $"{_altinnCacheKeySalt}_{formattedScopes}";
 
         _logger.LogDebug("Retrieving Altinn token for scopes: {Scopes}", formattedScopes);
-        _telemetry?.StartGetAltinnExchangedAccessTokenActivity(Variant, Settings.ClientId, formattedScopes);
+        using var activity = _telemetry?.StartGetAltinnExchangedAccessTokenActivity(
+            Variant,
+            Settings.ClientId,
+            formattedScopes
+        );
 
         var result = await _tokenCache.GetOrCreateAsync(
             cacheKey,
