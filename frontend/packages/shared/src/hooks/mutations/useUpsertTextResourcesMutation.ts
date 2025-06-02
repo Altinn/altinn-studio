@@ -1,16 +1,9 @@
-import type {
-  ITextResource,
-  ITextResources,
-  ITextResourcesWithLanguage,
-} from 'app-shared/types/global';
+import type { ITextResource, ITextResources, ITextResourcesWithLanguage } from '../../types/global';
 import type { DefaultError, UseMutationResult } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import {
-  setTextResourcesForLanguage,
-  updateEntireLanguage,
-} from 'app-shared/utils/textResourceUtils';
+import { setTextResourcesForLanguage, updateEntireLanguage } from '../../utils/textResourceUtils';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { TextResourceUtils } from '@studio/pure-functions';
 

@@ -9,12 +9,13 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
+import type { AppRouteParams } from '../../types/AppRouteParams';
 import type { RenderHookResult } from '@testing-library/react';
 import { waitFor } from '@testing-library/react';
 import type { QueryClient, QueryKey as TanstackQueryKey } from '@tanstack/react-query';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { QueryKey } from '../../types/QueryKey';
+import { emptyTextResourceListMock } from '../../mocks/emptyTextResourceListMock';
 
 // Test data:
 const org = 'organisation';
@@ -48,7 +49,9 @@ const oldData: ITextResources = {
 };
 
 // Mocks:
-const upsertTextResources = jest.fn().mockResolvedValue({ language: '', resources: [] });
+const upsertTextResources = jest
+  .fn()
+  .mockImplementation((_org, _app, lang) => Promise.resolve(emptyTextResourceListMock(lang)));
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('useUpsertTextResourcesMutation', () => {
