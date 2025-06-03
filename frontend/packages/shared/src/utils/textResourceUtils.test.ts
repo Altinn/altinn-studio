@@ -1,41 +1,11 @@
-import {
-  convertTextResourcesArrayToObject,
-  convertTextResourcesObjectToArray,
-  setTextResourcesForLanguage,
-} from 'app-shared/utils/textResourceUtils';
+import { setTextResourcesForLanguage } from 'app-shared/utils/textResourceUtils';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 
 // Test data:
 const textResourceId1 = 'id1';
 const textResourceId2 = 'id2';
-const textResourceValue1 = 'value1';
-const textResourceValue2 = 'value2';
 
 describe('textResourceUtils', () => {
-  test('convertTextResourcesArrayToObject', () => {
-    expect(
-      convertTextResourcesArrayToObject([
-        { id: textResourceId1, value: textResourceValue1 },
-        { id: textResourceId2, value: textResourceValue2 },
-      ]),
-    ).toEqual({
-      [textResourceId1]: textResourceValue1,
-      [textResourceId2]: textResourceValue2,
-    });
-  });
-
-  test('convertTextResourcesObjectToArray', () => {
-    expect(
-      convertTextResourcesObjectToArray({
-        [textResourceId1]: textResourceValue1,
-        [textResourceId2]: textResourceValue2,
-      }),
-    ).toEqual([
-      { id: textResourceId1, value: textResourceValue1 },
-      { id: textResourceId2, value: textResourceValue2 },
-    ]);
-  });
-
   describe('setTextResourcesForLanguage', () => {
     const language1 = 'nb';
     const language2 = 'en';

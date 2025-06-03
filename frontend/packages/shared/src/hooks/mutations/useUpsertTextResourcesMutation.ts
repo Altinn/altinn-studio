@@ -3,11 +3,9 @@ import type { UseMutationResult } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import {
-  convertTextResourcesArrayToObject,
-  setTextResourcesForLanguage,
-} from 'app-shared/utils/textResourceUtils';
+import { setTextResourcesForLanguage } from 'app-shared/utils/textResourceUtils';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export interface UpsertTextResourcesMutationArgs {
   language: string;
@@ -27,7 +25,7 @@ export const useUpsertTextResourcesMutation = (
         org,
         app,
         language,
-        convertTextResourcesArrayToObject(textResources),
+        TextResourceUtils.fromArray(textResources).toObject(),
       ).then(() => ({ language, textResources })),
     onSuccess: async ({ language, textResources }: UpsertTextResourcesMutationArgs) => {
       if (previewConnection && previewConnection.state === 'Connected') {
