@@ -13,7 +13,7 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
       settingsPageQueryParamKey,
     ) as SettingsPageTabId | null;
 
-    if (validTabIds && !isValidSettingsTab(tab, validTabIds)) {
+    if (!isValidSettingsTab(tab, validTabIds)) {
       return DEFAULT_TAB;
     }
     return tab;
@@ -34,9 +34,11 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   };
 }
 
-export function isValidSettingsTab(
-  tabId: SettingsPageTabId,
-  tabIds: Array<SettingsPageTabId>,
-): boolean {
+export function isValidSettingsTab(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
+  if (!tabId) return false;
+  return isTabIdInTabsList(tabId, tabIds);
+}
+
+export function isTabIdInTabsList(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
   return tabIds.includes(tabId);
 }
