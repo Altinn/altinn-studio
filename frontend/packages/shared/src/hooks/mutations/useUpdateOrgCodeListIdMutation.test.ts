@@ -15,7 +15,7 @@ const codeListMock: CodeList = [{ value: 'value', label: 'label' }];
 describe('useUpdateOrgCodeListIdMutation', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls useUpdateCodeListId with correct parameters', async () => {
+  it('Calls updateOrgCodeListId with correct parameters', async () => {
     const renderUpdateCodeListIdMutationResult = renderHookWithProviders(() =>
       useUpdateOrgCodeListIdMutation(org),
     ).result;

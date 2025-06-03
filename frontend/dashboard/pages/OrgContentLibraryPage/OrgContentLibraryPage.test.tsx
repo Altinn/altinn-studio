@@ -121,7 +121,7 @@ describe('OrgContentLibraryPage', () => {
     expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
   });
 
-  it('calls updateORgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
+  it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
     const updateOrgCodeListId = jest.fn();
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
     const codeListId: string = codeList1Data.title;
