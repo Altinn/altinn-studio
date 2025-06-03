@@ -10,7 +10,6 @@ import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
-import { useOpenSettingsModalBasedQueryParam } from '../hooks/useOpenSettingsModalBasedQueryParam';
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -62,8 +61,6 @@ type PagesToRenderProps = {
   repoStatus: RepoStatus;
 };
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
-  // Listen to URL-search params and opens settings-modal if params matches.
-  useOpenSettingsModalBasedQueryParam();
   const { org, app } = useStudioEnvironmentParams();
 
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {

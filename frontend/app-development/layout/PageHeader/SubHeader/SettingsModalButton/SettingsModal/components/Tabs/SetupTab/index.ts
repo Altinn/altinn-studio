@@ -1,1 +1,0 @@
-export { SetupTab } from './SetupTab';

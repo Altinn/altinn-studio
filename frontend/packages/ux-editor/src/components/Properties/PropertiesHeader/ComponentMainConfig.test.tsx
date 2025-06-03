@@ -36,6 +36,26 @@ describe('ComponentMainConfig', () => {
     expect(subformHeader).toBeInTheDocument();
   });
 
+  it.each([
+    ComponentType.Checkboxes,
+    ComponentType.Dropdown,
+    ComponentType.Likert,
+    ComponentType.MultipleSelect,
+    ComponentType.RadioButtons,
+  ])('should render options config when the component type matches', (componentType) => {
+    renderComponentMainConfig(mainConfigComponentMock(componentType));
+    const optionsHeader = screen.getByText(textMock('ux_editor.options.section_heading'));
+    expect(optionsHeader).toBeInTheDocument();
+  });
+
+  it('should render image config when the component type matches', async () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Image));
+    const imageHeader = screen.getByText(
+      textMock('ux_editor.properties_panel.texts.sub_title_images'),
+    );
+    expect(imageHeader).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', async () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
