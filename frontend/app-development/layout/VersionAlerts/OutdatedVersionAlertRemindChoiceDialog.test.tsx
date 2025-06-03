@@ -6,8 +6,8 @@ import { OutdatedVersionAlertRemindChoiceDialog } from './OutdatedVersionAlertRe
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const defaultProps: OutdatedVersionAlertRemindChoiceDialogProps = {
-  close: jest.fn(),
-  setShowOutdatedVersionDialog: jest.fn(),
+  closeDialog: jest.fn(),
+  closeDialogPermanently: jest.fn(),
 };
 
 describe('OutdatedVersionAlertRemindChoiceDialog', () => {
@@ -31,6 +31,6 @@ describe('OutdatedVersionAlertRemindChoiceDialog', () => {
     await user.click(hidePopoverTemporaryButton);
 
     expect(popover).not.toBeInTheDocument();
-    expect(defaultProps.setShowOutdatedVersionDialog).not.toHaveBeenCalled();
+    expect(defaultProps.closeDialogPermanently).not.toHaveBeenCalled();
   });
 });

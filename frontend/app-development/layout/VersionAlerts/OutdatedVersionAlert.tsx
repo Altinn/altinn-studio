@@ -17,14 +17,14 @@ export const OutdatedVersionAlert = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
-  const [showOutdatedVersionDialog, setShowOutdatedVersionDialog] = useLocalStorage(
-    'showOutdatedVersionDialog',
-    true,
+  const [hideOutdatedVersionDialog, setHideOutdatedVersionDialog] = useLocalStorage(
+    'hideOutdatedVersionDialog',
+    false,
   );
-  const [opened, setOpened] = useState(showOutdatedVersionDialog);
+  const [opened, setOpened] = useState(!hideOutdatedVersionDialog);
 
-  if (!showOutdatedVersionDialog) {
-    return false;
+  if (hideOutdatedVersionDialog) {
+    return;
   }
 
   const isFrontendOutdated = isBelowSupportedVersion(
@@ -43,12 +43,12 @@ export const OutdatedVersionAlert = () => {
   return (
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
       <OutdatedVersionAlertRemindChoiceDialog
-        close={() => setOpened(false)}
-        setShowOutdatedVersionDialog={() => setShowOutdatedVersionDialog(false)}
+        closeDialog={() => setOpened(false)}
+        closeDialogPermanently={() => setHideOutdatedVersionDialog(true)}
       />
       <StudioDialog.Block className={classes.text}>
-        <VersionAlert title={t('versions.outdated_version')} className={classes.alert}>
-          {t('versions.supported_old_version')
+        <VersionAlert title={t('version_alerts.outdated_version_title')} className={classes.alert}>
+          {t('version_alerts.outdated_version_title_content')
             .split('\n')
             .map((tr) => (
               <StudioParagraph key={tr}>{tr}</StudioParagraph>

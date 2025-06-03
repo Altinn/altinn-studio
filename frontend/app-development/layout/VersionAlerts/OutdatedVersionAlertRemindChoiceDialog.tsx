@@ -6,13 +6,13 @@ import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components
 import cn from 'classnames';
 
 export type OutdatedVersionAlertRemindChoiceDialogProps = {
-  close: () => void;
-  setShowOutdatedVersionDialog: () => void;
+  closeDialog: () => void;
+  closeDialogPermanently: () => void;
 };
 
 export const OutdatedVersionAlertRemindChoiceDialog = ({
-  setShowOutdatedVersionDialog,
-  close,
+  closeDialog,
+  closeDialogPermanently,
 }: OutdatedVersionAlertRemindChoiceDialogProps) => {
   const { t } = useTranslation();
   const [opened, setOpened] = useState(false);
@@ -36,8 +36,8 @@ export const OutdatedVersionAlertRemindChoiceDialog = ({
         >
           <StudioParagraph>{t('session.reminder')}</StudioParagraph>
           <div className={classes.buttons}>
-            <StudioButton onClick={close}>{t('session.do_show_again')}</StudioButton>
-            <StudioButton onClick={setShowOutdatedVersionDialog} variant='secondary'>
+            <StudioButton onClick={closeDialog}>{t('session.do_show_again')}</StudioButton>
+            <StudioButton onClick={closeDialogPermanently} variant='secondary'>
               {t('session.dont_show_again')}
             </StudioButton>
           </div>

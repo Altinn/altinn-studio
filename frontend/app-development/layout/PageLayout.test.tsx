@@ -59,7 +59,10 @@ describe('PageLayout', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 
     expect(
-      screen.getByRole('heading', { name: textMock('versions.unsupported_version'), level: 2 }),
+      screen.getByRole('heading', {
+        name: textMock('version_alerts.unsupported_version_title'),
+        level: 2,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -71,7 +74,10 @@ describe('PageLayout', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 
     expect(
-      screen.getByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
+      screen.getByRole('heading', {
+        name: textMock('version_alerts.outdated_version_title'),
+        level: 2,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -122,12 +128,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('versions.unsupported_version'),
+          name: textMock('version_alerts.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('versions.unsupported_old_version')),
+        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -138,12 +144,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('versions.unsupported_version'),
+          name: textMock('version_alerts.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('versions.unsupported_old_version')),
+        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -154,12 +160,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('versions.unsupported_version'),
+          name: textMock('version_alerts.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('versions.unsupported_old_version')),
+        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -169,10 +175,12 @@ describe('PageLayout', () => {
       });
 
       expect(
-        screen.queryByRole('heading', { name: textMock('versions.unsupported_version') }),
+        screen.queryByRole('heading', {
+          name: textMock('version_alerts.unsupported_version_title'),
+        }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole(textMock('versions.unsupported_old_version')),
+        screen.queryByRole(textMock('version_alerts.unsupported_version_content')),
       ).not.toBeInTheDocument();
     });
   });

@@ -20,9 +20,14 @@ describe('OutdatedVersionAlert', () => {
     });
 
     expect(
-      await screen.findByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
+      await screen.findByRole('heading', {
+        name: textMock('version_alerts.outdated_version_title'),
+        level: 2,
+      }),
     ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+    ).toBeInTheDocument();
   });
 
   it('renders dialog if backend is outdated', async () => {
@@ -31,9 +36,14 @@ describe('OutdatedVersionAlert', () => {
     });
 
     expect(
-      await screen.findByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
+      await screen.findByRole('heading', {
+        name: textMock('version_alerts.outdated_version_title'),
+        level: 2,
+      }),
     ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+    ).toBeInTheDocument();
   });
 
   it('renders dialog if both frontend and backend are outdated', async () => {
@@ -42,9 +52,14 @@ describe('OutdatedVersionAlert', () => {
     });
 
     expect(
-      await screen.findByRole('heading', { name: textMock('versions.outdated_version'), level: 2 }),
+      await screen.findByRole('heading', {
+        name: textMock('version_alerts.outdated_version_title'),
+        level: 2,
+      }),
     ).toBeInTheDocument();
-    expect(await screen.findByText(textMock('versions.supported_old_version'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+    ).toBeInTheDocument();
   });
 
   it('does not render dialog if no outdated version', async () => {
@@ -53,9 +68,11 @@ describe('OutdatedVersionAlert', () => {
     });
 
     expect(
-      screen.queryByRole('heading', { name: textMock('versions.outdated_version') }),
+      screen.queryByRole('heading', { name: textMock('version_alerts.outdated_version_title') }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole(textMock('versions.supported_old_version'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole(textMock('version_alerts.outdated_version_title_content')),
+    ).not.toBeInTheDocument();
   });
 
   describe('OutdatedVersionRemindChoiceDialog', () => {

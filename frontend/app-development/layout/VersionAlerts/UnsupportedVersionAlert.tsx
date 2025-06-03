@@ -8,8 +8,8 @@ export const UnsupportedVersionAlert = () => {
 
   return (
     <div className={classes.container}>
-      <VersionAlert title={t('versions.unsupported_version')}>
-        {t('versions.unsupported_old_version')}
+      <VersionAlert title={t('version_alerts.unsupported_version_title')}>
+        {t('version_alerts.unsupported_version_content')}
       </VersionAlert>
     </div>
   );

@@ -17,12 +17,12 @@ describe('UnsupportedVersionAlert', () => {
     render();
     expect(
       await screen.findByRole('heading', {
-        name: textMock('versions.unsupported_version'),
+        name: textMock('version_alerts.unsupported_version_title'),
         level: 2,
       }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(textMock('versions.unsupported_old_version')),
+      await screen.findByText(textMock('version_alerts.unsupported_version_content')),
     ).toBeInTheDocument();
   });
 });

@@ -11,9 +11,6 @@ import { useTranslation } from 'react-i18next';
 import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-development/layout/VersionAlerts/utils';
 
-const isLatestFrontendVersion = (version: AppVersion): boolean =>
-  !isBelowSupportedVersion(version?.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION);
-
 export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
@@ -41,5 +38,10 @@ export const UiEditor = () => {
     );
   };
 
-  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <UiEditorV3 />;
+  const isLatestFrontendVersion = !isBelowSupportedVersion(
+    version?.frontendVersion,
+    MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  );
+
+  return isLatestFrontendVersion ? renderUiEditorContent() : <UiEditorV3 />;
 };

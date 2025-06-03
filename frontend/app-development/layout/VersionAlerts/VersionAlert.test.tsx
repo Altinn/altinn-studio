@@ -35,11 +35,13 @@ describe('VersionAlert', () => {
     expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_frontend', { latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION }),
+        textMock('version_alerts.update_frontend', {
+          latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+        }),
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole(textMock('versions.update_backend'))).not.toBeInTheDocument();
+    expect(screen.queryByRole(textMock('version_alerts.update_backend'))).not.toBeInTheDocument();
   });
 
   it('renders backend info when backend is outdated', async () => {
@@ -48,11 +50,13 @@ describe('VersionAlert', () => {
     });
 
     expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole(textMock('versions.update_frontend'))).not.toBeInTheDocument();
+    expect(screen.queryByRole(textMock('version_alerts.update_frontend'))).not.toBeInTheDocument();
     expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_backend', { latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION }),
+        textMock('version_alerts.update_backend', {
+          latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
+        }),
       ),
     ).toBeInTheDocument();
   });
@@ -65,13 +69,17 @@ describe('VersionAlert', () => {
     expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_frontend', { latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION }),
+        textMock('version_alerts.update_frontend', {
+          latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+        }),
       ),
     ).toBeInTheDocument();
     expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_backend', { latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION }),
+        textMock('version_alerts.update_backend', {
+          latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
+        }),
       ),
     ).toBeInTheDocument();
   });

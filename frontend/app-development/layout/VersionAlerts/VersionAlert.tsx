@@ -12,6 +12,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionAlert.module.css';
 import cn from 'classnames';
 import { isBelowSupportedVersion } from './utils';
+import { ExternalLinkIcon } from '@studio/icons';
 
 export type VersionAlertProps = {
   title: string;
@@ -41,8 +42,8 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.HeaderCell></StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>{t('versions.current_version')}</StudioTable.HeaderCell>
-            <StudioTable.HeaderCell>{t('versions.latest_version')}</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>{t('version_alerts.current_version')}</StudioTable.HeaderCell>
+            <StudioTable.HeaderCell>{t('version_alerts.latest_version')}</StudioTable.HeaderCell>
             <StudioTable.HeaderCell></StudioTable.HeaderCell>
           </StudioTable.Row>
         </StudioTable.Head>
@@ -60,9 +61,10 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
                       relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
                     })}
                   >
-                    {t('versions.update_frontend', {
+                    {t('version_alerts.update_frontend', {
                       latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
                     })}
+                    <ExternalLinkIcon title={t('version_alerts.open_app_in_new_window')} />
                   </StudioLink>
                 )}
               </StudioTable.Cell>
@@ -81,9 +83,10 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
                       relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
                     })}
                   >
-                    {t('versions.update_backend', {
+                    {t('version_alerts.update_backend', {
                       latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
                     })}
+                    <ExternalLinkIcon title={t('version_alerts.open_app_in_new_window')} />
                   </StudioLink>
                 )}
               </StudioTable.Cell>
