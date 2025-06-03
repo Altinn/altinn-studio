@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useRef } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components-legacy';
-import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
+import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
@@ -18,10 +18,14 @@ import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
 import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
+import type { ItemType } from '../ItemType';
+import type { SelectedItem } from '../../../AppContext';
 
-export const PageConfigPanel = () => {
-  const { selectedItem } = useAppContext();
+type PageConfigPanelProps = {
+  selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
+};
 
+export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const t = useText();
   const modalRef = useRef<HTMLDialogElement>(null);
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(

@@ -6,10 +6,12 @@ export const setTextResourcesForLanguage = (
   language: string,
   newResources: ITextResource[],
 ): ITextResources => {
-  const utils = TextResourceUtils.fromArray(existingResources?.[language] || []);
+  const updatedTextResources = TextResourceUtils.fromArray(existingResources?.[language] || [])
+    .prependOrUpdateMultiple(newResources)
+    .asArray();
   return {
     ...existingResources,
-    [language]: utils.prependOrUpdateMultiple(newResources).asArray(),
+    [language]: updatedTextResources,
   };
 };
 

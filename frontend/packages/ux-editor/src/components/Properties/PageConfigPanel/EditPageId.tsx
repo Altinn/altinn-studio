@@ -9,6 +9,7 @@ import { useModifyPageMutation } from '../../../hooks/mutations/useModifyPageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '../ItemType';
+import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 
 export interface EditPageIdProps {
   layoutName: string;
@@ -23,8 +24,18 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
     selectedFormLayoutSetName,
     pageName,
   );
+  const { mutateAsync: changePageGroupOrder } = useChangePageGroupOrder(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
   const t = useText();
+
+  const isUsingGroups = Boolean(pagesModel?.groups);
+  const pageNames = isUsingGroups
+    ? pagesModel?.groups.flatMap((group) => group.order)
+    : pagesModel?.pages;
 
   const handleSaveNewName = async (newName: string) => {
     if (newName === pageName) return;
@@ -32,7 +43,22 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
       id: newName,
     };
     mutateTextId([{ oldId: pageName, newId: newName }]);
-    await modifyPageMutation(newPage);
+
+    if (isUsingGroups) {
+      const newPagesModel = {
+        ...pagesModel,
+        groups: pagesModel.groups.map((group) => ({
+          ...group,
+          order: group.order.map((page) =>
+            page.id === pageName ? { ...page, id: newName } : page,
+          ),
+        })),
+      };
+      await changePageGroupOrder(newPagesModel);
+    } else {
+      await modifyPageMutation(newPage);
+    }
+
     setSelectedFormLayoutName(newName);
     setSelectedItem({ type: ItemType.Page, id: newName });
   };
@@ -44,7 +70,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
           const validationResult = getPageNameErrorKey(
             value,
             pageName,
-            pagesModel?.pages?.map(({ id }) => id),
+            pageNames.map(({ id }) => id),
           );
           return validationResult && t(validationResult);
         }}

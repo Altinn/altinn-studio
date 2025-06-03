@@ -2,11 +2,8 @@ import React, { type ReactElement } from 'react';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { ArrowLeftIcon, CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { SettingsModal } from './SettingsModal';
-import { useSettingsModalContext } from '../../../../contexts/SettingsModalContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
@@ -14,16 +11,14 @@ import { useNavigateFrom } from './useNavigateFrom';
 export const SettingsModalButton = (): ReactElement => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
-  const { settingsRef } = useSettingsModalContext();
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const navigate = useNavigate();
 
   const { navigateFrom, currentRoutePath } = useNavigateFrom();
-  const pageNavigateToSettingsFrom: RoutePaths = navigateFrom || RoutePaths.Overview;
+  const pageNavigateToSettingsFrom: string = navigateFrom || RoutePaths.Overview;
 
-  const isSettingsPage: boolean =
-    currentRoutePath === RoutePaths.AppSettings && shouldDisplayFeature(FeatureFlag.SettingsPage);
+  const isSettingsPage: boolean = currentRoutePath === RoutePaths.AppSettings;
   const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
 
   const handleClick = () => {
@@ -35,11 +30,7 @@ export const SettingsModalButton = (): ReactElement => {
   };
 
   const handleClickSettingsButton = () => {
-    if (shouldDisplayFeature(FeatureFlag.SettingsPage)) {
-      navigate(RoutePaths.AppSettings, { state: { from: currentRoutePath } });
-    } else {
-      settingsRef.current.openSettings();
-    }
+    navigate(RoutePaths.AppSettings, { state: { from: currentRoutePath } });
   };
 
   const handleClickGoBackButton = () => {
@@ -47,23 +38,28 @@ export const SettingsModalButton = (): ReactElement => {
   };
 
   return (
-    <>
-      <StudioPageHeader.HeaderButton
-        color='light'
-        onClick={handleClick}
-        icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
-        variant={variant}
-        aria-label={buttonText}
-      >
-        {shouldDisplayText && buttonText}
-      </StudioPageHeader.HeaderButton>
-      <SettingsModal ref={settingsRef} />
-    </>
+    <StudioPageHeader.HeaderButton
+      color='light'
+      onClick={handleClick}
+      icon={<ButtonIcon isSettingsPage={isSettingsPage} />}
+      variant={variant}
+      aria-label={buttonText}
+    >
+      {shouldDisplayText && buttonText}
+    </StudioPageHeader.HeaderButton>
   );
 };
 
 function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
-  return isSettingsPage ? `sync_header.settings_back_to_${from}` : 'sync_header.settings';
+  if (isSettingsPage) {
+    const fromKey: string = splitKeyFromFullPath(from || '');
+    return `sync_header.settings_back_to_${fromKey}`;
+  }
+  return 'sync_header.settings';
+}
+function splitKeyFromFullPath(fullPath: string): string {
+  const parts: string[] = fullPath.split('?');
+  return parts[0];
 }
 
 type ButtonIconProps = {
