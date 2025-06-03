@@ -93,20 +93,25 @@ public class OptionListReferenceService : IOptionListReferenceService
 
     private void AddComponentReference(string layoutSetName, string layoutName, string componentId, string optionListId)
     {
-        if (OptionListIdAlreadyReferenced(_optionListReferences, optionListId, out var existingRef))
+        if (OptionListIdAlreadyReferenced(optionListId, out var existingRef))
         {
-            if (OptionListIdAlreadyReferencedInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
-            {
-                AddComponentIdToExistingSource(componentId, existingSource);
-            }
-            else
-            {
-                AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
-            }
+            AppendOptionListReference(existingRef, layoutSetName, layoutName, componentId);
         }
         else
         {
-            AddNewOptionListReference(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
+            AddNewOptionListReference(optionListId, layoutSetName, layoutName, componentId);
+        }
+    }
+
+    private static void AppendOptionListReference(OptionListReference existingRef, string layoutSetName, string layoutName, string componentId)
+    {
+        if (OptionListIdAlreadyReferencedInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
+        {
+            AddComponentIdToExistingSource(componentId, existingSource);
+        }
+        else
+        {
+            AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
         }
     }
 
@@ -136,9 +141,9 @@ public class OptionListReferenceService : IOptionListReferenceService
         return repoOptionListIds.Contains(optionListId);
     }
 
-    private static bool OptionListIdAlreadyReferenced(List<OptionListReference> optionListReferences, string optionListId, out OptionListReference existingRef)
+    private bool OptionListIdAlreadyReferenced(string optionListId, out OptionListReference existingRef)
     {
-        existingRef = optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
+        existingRef = _optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
         return existingRef != null;
     }
 
@@ -169,9 +174,9 @@ public class OptionListReferenceService : IOptionListReferenceService
         );
     }
 
-    private static void AddNewOptionListReference(List<OptionListReference> optionListReferences, string optionListId, string layoutSetName, string layoutName, string componentId)
+    private void AddNewOptionListReference(string optionListId, string layoutSetName, string layoutName, string componentId)
     {
-        optionListReferences.Add(
+        _optionListReferences.Add(
             new()
             {
                 OptionListId = optionListId,
