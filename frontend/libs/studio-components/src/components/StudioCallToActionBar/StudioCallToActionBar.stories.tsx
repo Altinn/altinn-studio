@@ -2,20 +2,20 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
-import { StudioHoverCallToAction } from './';
+import { StudioCallToActionBar } from '.';
 
-type Story = StoryFn<typeof StudioHoverCallToAction>;
+type Story = StoryFn<typeof StudioCallToActionBar>;
 
 const meta: Meta = {
-  title: 'Components/StudioHoverCallToAction',
-  component: StudioHoverCallToAction,
+  title: 'Components/StudioCallToActionBar',
+  component: StudioCallToActionBar,
 };
 export const Preview: Story = (args): ReactElement => (
-  <StudioHoverCallToAction {...args}>{args.children}</StudioHoverCallToAction>
+  <StudioCallToActionBar {...args}>{args.children}</StudioCallToActionBar>
 );
 
 Preview.args = {
-  children: 'Please hover me to see the result!',
+  children: 'The blue bar below with the add button is the component',
   onClick: action('Action button is clicked'),
   isVisible: false,
   title: 'My awesome action',

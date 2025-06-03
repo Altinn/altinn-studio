@@ -1,9 +1,9 @@
 import React, { type HTMLAttributes, type ReactElement, type ReactNode } from 'react';
 import cn from 'classnames';
 import { PlusIcon } from '@studio/icons';
-import classes from './StudioHoverCallToAction.module.css';
+import classes from './StudioCallToActionBar.module.css';
 
-export type StudioHoverCallToActionProps = {
+export type StudioCallToActionBarProps = {
   children: ReactNode;
   isVisible: boolean;
   title: string;
@@ -11,7 +11,7 @@ export type StudioHoverCallToActionProps = {
   actionBarClassName?: string;
 } & HTMLAttributes<HTMLDivElement>;
 
-export const StudioHoverCallToAction = ({
+export const StudioCallToActionBar = ({
   title,
   isVisible,
   children,
@@ -19,7 +19,7 @@ export const StudioHoverCallToAction = ({
   actionBarClassName,
   className: givenClassName,
   ...rest
-}: StudioHoverCallToActionProps): ReactElement => {
+}: StudioCallToActionBarProps): ReactElement => {
   const classNames: string = cn(classes.root, givenClassName);
   const actionContainerClassNames = cn(classes.actionContainer, actionBarClassName);
   return (

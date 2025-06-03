@@ -5,11 +5,11 @@
 .actionContainer {
   display: none;
   position: absolute;
+  z-index: 2;
   left: 0;
   right: 0;
 }
 
-.root:hover .actionContainer,
 .isVisible {
   display: flex;
   align-items: center;

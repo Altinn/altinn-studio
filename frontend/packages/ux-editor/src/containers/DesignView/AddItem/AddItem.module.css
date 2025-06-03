@@ -1,3 +1,15 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.root.center {
+  justify-content: center;
+}
+
 .addItemButtons {
   display: flex;
   flex-direction: row;

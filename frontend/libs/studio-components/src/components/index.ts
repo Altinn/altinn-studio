@@ -29,7 +29,4 @@ export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTab
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
 export { StudioLink } from './StudioLink';
-export {
-  type StudioHoverCallToActionProps,
-  StudioHoverCallToAction,
-} from './StudioHoverCallToAction';
+export { type StudioCallToActionBarProps, StudioCallToActionBar } from './StudioCallToActionBar';

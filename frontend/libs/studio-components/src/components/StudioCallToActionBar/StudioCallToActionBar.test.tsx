@@ -2,14 +2,11 @@ import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  StudioHoverCallToAction,
-  type StudioHoverCallToActionProps,
-} from './StudioHoverCallToAction';
+import { StudioCallToActionBar, type StudioCallToActionBarProps } from './StudioCallToActionBar';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
-describe('StudioHoverCallToAction', () => {
+describe('StudioCallToActionBar', () => {
   it('Sets the given className on the action container', () => {
     testRootClassNameAppending((className) =>
       renderComponent({ className, isVisible: true, title: 'CTA Title', onClick: jest.fn() }),
@@ -48,10 +45,10 @@ describe('StudioHoverCallToAction', () => {
 const childText = 'Child content';
 const title = 'Add Item';
 
-function renderComponent(props: Partial<StudioHoverCallToActionProps> = {}): RenderResult {
+function renderComponent(props: Partial<StudioCallToActionBarProps> = {}): RenderResult {
   return render(
-    <StudioHoverCallToAction isVisible={false} title={title} onClick={() => {}} {...props}>
+    <StudioCallToActionBar isVisible={false} title={title} onClick={() => {}} {...props}>
       {childText}
-    </StudioHoverCallToAction>,
+    </StudioCallToActionBar>,
   );
 }
