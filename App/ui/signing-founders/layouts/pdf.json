@@ -8,13 +8,7 @@
         "target": {
           "type": "component",
           "id": "signee-list"
-        },
-        "overrides": [
-          {
-            "componentId": "signee-list",
-            "title": "singing.summary.title.override"
-          }
-        ]
+        }
       }
     ]
   }

@@ -16,7 +16,16 @@
         "textResourceBindings": {
           "title": "Personer som skal signere",
           "description": "Personer som skal signere beskrivelse",
-          "help": "Dette er personer som skal signere"
+          "help": "Dette er personer som skal signere",
+          "summaryTitle": "singing.summary.title.override"
+        }
+      },
+      {
+        "id": "signeeListSummary",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "signee-list"
         }
       },
       {
