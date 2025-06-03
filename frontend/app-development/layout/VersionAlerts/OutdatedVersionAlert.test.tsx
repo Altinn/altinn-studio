@@ -100,7 +100,7 @@ describe('OutdatedVersionAlert', () => {
       // Click hide temporary button
       await user.click(hidePopoverTemporaryButton);
 
-      expect(window.localStorage.getItem('showOutdatedVersionDialog')).toBeNull();
+      expect(window.localStorage.getItem('hideOutdatedVersionDialog')).toBeNull();
     });
 
     it('should close popover and set value in local storage when the "do not show again" is clicked', async () => {
@@ -123,7 +123,7 @@ describe('OutdatedVersionAlert', () => {
       // Click hide forever button
       await user.click(hidePopoverForSessionButton);
 
-      expect(window.localStorage.getItem('showOutdatedVersionDialog')).toBe('false');
+      expect(window.localStorage.getItem('hideOutdatedVersionDialog')).toBe('false');
     });
   });
 });
