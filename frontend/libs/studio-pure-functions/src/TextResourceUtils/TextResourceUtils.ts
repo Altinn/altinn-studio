@@ -22,6 +22,15 @@ export class TextResourceUtils {
     return Array.from(this.textResources.values());
   }
 
+  public toObject(): Record<string, string> {
+    const array = this.asArray();
+    const entries: Array<[string, string]> = array.map((textResource) => [
+      textResource.id,
+      textResource.value,
+    ]);
+    return Object.fromEntries(entries);
+  }
+
   public get(id: string): TextResource | undefined {
     return this.textResources.get(id);
   }
