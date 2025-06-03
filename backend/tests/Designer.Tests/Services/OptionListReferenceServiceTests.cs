@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -25,18 +24,18 @@ public class OptionListReferenceServiceTests
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
 
         // Act
-        List<RefToOptionListSpecifier> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+        List<OptionListReference> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
 
         // Assert
-        List<RefToOptionListSpecifier> expectedResponseList = OptionListReferenceTestData();
+        List<OptionListReference> expectedResponseList = OptionListReferenceTestData();
         Assert.Equivalent(optionListsReferences, expectedResponseList);
     }
 
-    private List<RefToOptionListSpecifier> OptionListReferenceTestData()
+    private List<OptionListReference> OptionListReferenceTestData()
     {
-        return new List<RefToOptionListSpecifier>
+        return new List<OptionListReference>
         {
-            new RefToOptionListSpecifier
+            new OptionListReference
             {
                 OptionListId = "test-options",
                 OptionListIdSources =
@@ -67,7 +66,7 @@ public class OptionListReferenceServiceTests
                     }
                 ]
             },
-            new RefToOptionListSpecifier
+            new OptionListReference
             {
                 OptionListId = "other-options",
                 OptionListIdSources =

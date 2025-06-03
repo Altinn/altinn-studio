@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </summary>
 public class OptionListReferenceService : IOptionListReferenceService
 {
-    private readonly List<RefToOptionListSpecifier> _optionListReferences;
+    private readonly List<OptionListReference> _optionListReferences;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private AltinnAppGitRepository _altinnAppGitRepository;
@@ -33,7 +33,7 @@ public class OptionListReferenceService : IOptionListReferenceService
     }
 
     /// <inheritdoc />
-    public async Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListReference>> GetAllOptionListReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         _altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
@@ -78,12 +78,12 @@ public class OptionListReferenceService : IOptionListReferenceService
     }
 
     /// <summary>
-    /// Finds all <see cref="RefToOptionListSpecifier"/> in a given layout.
+    /// Finds all <see cref="OptionListReference"/> in a given layout.
     /// </summary>
     /// <param name="layoutSetName">The layoutSetName the layout belongs to.</param>
     /// <param name="layoutName">The name of the given layout.</param>
     /// <param name="cancellationToken"> A <see cref="CancellationToken"/> that observes if a call is cancelled.</param>
-    /// <returns>A list of <see cref="RefToOptionListSpecifier"/>.</returns>
+    /// <returns>A list of <see cref="OptionListReference"/>.</returns>
     private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken = default)
     {
         string[] repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds();
@@ -129,7 +129,7 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
         else
         {
-            AddNewRefToOptionListSpecifier(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
+            AddNewOptionListReference(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
         }
     }
 
@@ -154,15 +154,15 @@ public class OptionListReferenceService : IOptionListReferenceService
         return repoOptionListIds.Contains(optionListId);
     }
 
-    private static bool OptionListIdAlreadyReferenced(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, out RefToOptionListSpecifier existingRef)
+    private static bool OptionListIdAlreadyReferenced(List<OptionListReference> optionListReferences, string optionListId, out OptionListReference existingRef)
     {
-        existingRef = refToOptionListSpecifiers.FirstOrDefault(refToOptionList => refToOptionList.OptionListId == optionListId);
+        existingRef = optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
         return existingRef != null;
     }
 
-    private static bool OptionListIdAlreadyReferencedInLayout(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
+    private static bool OptionListIdAlreadyReferencedInLayout(OptionListReference optionListReference, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
     {
-        existingSource = refToOptionListSpecifier.OptionListIdSources.FirstOrDefault(
+        existingSource = optionListReference.OptionListIdSources.FirstOrDefault(
             optionListIdSource =>
                 optionListIdSource.LayoutSetId == layoutSetName
                 && optionListIdSource.LayoutName == layoutName
@@ -175,9 +175,9 @@ public class OptionListReferenceService : IOptionListReferenceService
         existingSource.ComponentIds.Add(componentId);
     }
 
-    private static void AddNewOptionListIdSource(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, string componentId)
+    private static void AddNewOptionListIdSource(OptionListReference optionListReference, string layoutSetName, string layoutName, string componentId)
     {
-        refToOptionListSpecifier.OptionListIdSources.Add(
+        optionListReference.OptionListIdSources.Add(
             new OptionListIdSource
             {
                 LayoutSetId = layoutSetName,
@@ -187,9 +187,9 @@ public class OptionListReferenceService : IOptionListReferenceService
         );
     }
 
-    private static void AddNewRefToOptionListSpecifier(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, string layoutSetName, string layoutName, string componentId)
+    private static void AddNewOptionListReference(List<OptionListReference> optionListReferences, string optionListId, string layoutSetName, string layoutName, string componentId)
     {
-        refToOptionListSpecifiers.Add(
+        optionListReferences.Add(
             new()
             {
                 OptionListId = optionListId,
@@ -216,7 +216,7 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
     }
 
-    private static void AddTaskDataToOptionListReferences(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToOptionListReferences(List<OptionListReference> optionListReferences, LayoutSetsModel layoutSetsModel)
     {
         foreach (var reference in optionListReferences)
         {
@@ -224,7 +224,7 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
     }
 
-    private static void AddTaskDataToOptionListReference(RefToOptionListSpecifier reference, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToOptionListReference(OptionListReference reference, LayoutSetsModel layoutSetsModel)
     {
         foreach (var source in reference.OptionListIdSources)
         {

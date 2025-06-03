@@ -137,7 +137,7 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all usages of all optionListIds in the layouts as <see cref="RefToOptionListSpecifier"/>.
+    /// Gets all usages of all optionListIds in the layouts as <see cref="OptionListReference"/>.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -146,12 +146,12 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("usage")]
-    public async Task<ActionResult<List<RefToOptionListSpecifier>>> GetOptionListsReferences(string org, string repo, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListReference>>> GetOptionListsReferences(string org, string repo, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<RefToOptionListSpecifier> optionListReferences = await _optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+        List<OptionListReference> optionListReferences = await _optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
         return Ok(optionListReferences);
     }
 
