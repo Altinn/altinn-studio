@@ -13,6 +13,7 @@ import { useBeforeUnload } from '../hooks/useBeforeUnload';
 import { ErrorSummary } from './ErrorSummary';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 
+// This makes the page scroll to where the content of the tab starts
 const Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS: number = 200;
 
 type AppResourceFormProps = {
@@ -40,15 +41,29 @@ export function AppResourceForm({
 
   const saveAppConfig = (): void => {
     hideTranslationFields();
-    if (validationErrors.length === 0) {
-      setShowAppResourceErrors(false);
-      saveAppResource(updatedAppResource);
-      console.log('AppResource saved: ', updatedAppResource); // Will be removed when endpoint is implemented
-    } else {
-      setShowAppResourceErrors(true);
-      window.scrollTo(0, Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS);
-      console.error('Validation errors:', validationErrors); // Will be removed when endpoint is implemented
+
+    if (hasValidationErrors()) {
+      handleValidationErrors();
+      return;
     }
+
+    persistAppDetails();
+  };
+
+  const hasValidationErrors = (): boolean => {
+    return validationErrors.length > 0;
+  };
+
+  const handleValidationErrors = (): void => {
+    setShowAppResourceErrors(true);
+    window.scrollTo(0, Y_POSITION_FOR_SCROLL_ON_SHOW_ERRORS);
+    console.error('Validation errors:', validationErrors); // Will be removed when endpoint is implemented
+  };
+
+  const persistAppDetails = (): void => {
+    setShowAppResourceErrors(false);
+    saveAppResource(updatedAppResource);
+    console.log('AppResource saved: ', updatedAppResource); // Will be removed when endpoint is implemented
   };
 
   const resetAppConfig = (): void => {

@@ -8,16 +8,16 @@ const DEFAULT_TAB: SettingsPageTabId = 'about';
 export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabToDisplay: SettingsPageTabId = useMemo(() => {
-    const tab: SettingsPageTabId = searchParams.get(
-      settingsPageQueryParamKey,
-    ) as SettingsPageTabId | null;
+  const requestedTabFromQuery = searchParams.get(
+    settingsPageQueryParamKey,
+  ) as SettingsPageTabId | null;
 
-    if (!isValidSettingsTab(tab, validTabIds)) {
+  const tabToDisplay: SettingsPageTabId = useMemo(() => {
+    if (!isValidSettingsTab(requestedTabFromQuery, validTabIds)) {
       return DEFAULT_TAB;
     }
-    return tab;
-  }, [searchParams, validTabIds]);
+    return requestedTabFromQuery;
+  }, [requestedTabFromQuery, validTabIds]);
 
   const setTabToDisplay = (tabId: SettingsPageTabId): void => {
     const isValid: boolean = validTabIds ? isValidSettingsTab(tabId, validTabIds) : true;
@@ -40,5 +40,5 @@ export function isValidSettingsTab(tabId: SettingsPageTabId, tabIds: SettingsPag
 }
 
 export function isTabIdInTabsList(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
-  return tabIds.includes(tabId);
+  return tabIds?.includes(tabId);
 }
