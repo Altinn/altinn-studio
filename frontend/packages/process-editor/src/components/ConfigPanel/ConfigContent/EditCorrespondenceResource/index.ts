@@ -1,0 +1,1 @@
+export { EditCorrespondenceResource } from './EditCorrespondenceResource';
