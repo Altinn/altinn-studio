@@ -9,6 +9,9 @@ COPY /App .
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+# Add globalization timezone support
+RUN apk add --no-cache icu-libs tzdata
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 EXPOSE 5005
 WORKDIR /App
 COPY --from=build /app_output .
