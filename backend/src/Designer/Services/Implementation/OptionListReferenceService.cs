@@ -73,67 +73,94 @@ public class OptionListReferenceService : IOptionListReferenceService
         cancellationToken.ThrowIfCancellationRequested();
         foreach (string layoutName in layoutNames)
         {
-            var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
-            FindOptionListReferencesInLayout(layout, layoutSetName, layoutName);
+            await FindOptionListReferencesInLayout(layoutSetName, layoutName, cancellationToken);
         }
     }
 
     /// <summary>
     /// Finds all <see cref="RefToOptionListSpecifier"/> in a given layout.
     /// </summary>
-    /// <param name="layout">The layout.</param>
     /// <param name="layoutSetName">The layoutSetName the layout belongs to.</param>
     /// <param name="layoutName">The name of the given layout.</param>
+    /// <param name="cancellationToken"> A <see cref="CancellationToken"/> that observes if a call is cancelled.</param>
     /// <returns>A list of <see cref="RefToOptionListSpecifier"/>.</returns>
-    private void FindOptionListReferencesInLayout(JsonNode layout, string layoutSetName, string layoutName)
+    private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken = default)
     {
         string[] repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds();
-        var components = layout["data"]?["layout"] as JsonArray;
-        if (repoOptionListIds.Length == 0 || components == null)
+        var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
+        var components = GetComponentArray(layout);
+        if (repoOptionListIds.Length > 0 && components?.Count > 0)
         {
-            return;
+            FindOptionListReferencesInComponents(layoutSetName, layoutName, components, repoOptionListIds);
         }
-
-        FindOptionListReferencesInComponents(components, repoOptionListIds, layoutSetName, layoutName);
     }
 
-    private void FindOptionListReferencesInComponents(JsonArray components, string[] repoOptionListIds, string layoutSetName, string layoutName)
+    private static JsonArray GetComponentArray(JsonNode layout)
+    {
+        return layout["data"]?["layout"] as JsonArray;
+    }
+
+    private void FindOptionListReferencesInComponents(string layoutSetName, string layoutName, JsonArray components, string[] repoOptionListIds)
     {
         foreach (var component in components)
         {
-            string componentId = component["id"]?.ToString();
-            string optionListId = component["optionsId"]?.ToString();
+            string componentId = GetComponentId(component);
+            string optionListId = GetComponentOptionsId(component);
 
-            if (!repoOptionListIds.Contains(optionListId) || string.IsNullOrEmpty(optionListId))
+            if (ComponentReferencesOptionList(component) && OptionListIdExistsInRepo(optionListId, repoOptionListIds))
             {
-                continue;
-            }
-
-            if (OptionListIdAlreadyOccurred(_optionListReferences, optionListId, out var existingRef))
-            {
-                if (OptionListIdAlreadyOccurredInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
-                {
-                    AddComponentIdToExistingSource(componentId, existingSource);
-                }
-                else
-                {
-                    AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
-                }
-            }
-            else
-            {
-                AddNewRefToOptionListSpecifier(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
+                AddComponentReference(layoutSetName, layoutName, componentId, optionListId);
             }
         }
     }
 
-    private static bool OptionListIdAlreadyOccurred(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, out RefToOptionListSpecifier existingRef)
+    private void AddComponentReference(string layoutSetName, string layoutName, string componentId, string optionListId)
+    {
+        if (OptionListIdAlreadyReferenced(_optionListReferences, optionListId, out var existingRef))
+        {
+            if (OptionListIdAlreadyReferencedInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
+            {
+                AddComponentIdToExistingSource(componentId, existingSource);
+            }
+            else
+            {
+                AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
+            }
+        }
+        else
+        {
+            AddNewRefToOptionListSpecifier(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
+        }
+    }
+
+    private static string GetComponentId(JsonNode component)
+    {
+        return component["id"]?.ToString();
+    }
+
+    private static string GetComponentOptionsId(JsonNode component)
+    {
+        return component["optionsId"]?.ToString();
+    }
+
+    private static bool ComponentReferencesOptionList(JsonNode component)
+    {
+        string optionListId = GetComponentOptionsId(component);
+        return !string.IsNullOrEmpty(optionListId);
+    }
+
+    private static bool OptionListIdExistsInRepo(string optionListId, string[] repoOptionListIds)
+    {
+        return repoOptionListIds.Contains(optionListId);
+    }
+
+    private static bool OptionListIdAlreadyReferenced(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, out RefToOptionListSpecifier existingRef)
     {
         existingRef = refToOptionListSpecifiers.FirstOrDefault(refToOptionList => refToOptionList.OptionListId == optionListId);
         return existingRef != null;
     }
 
-    private static bool OptionListIdAlreadyOccurredInLayout(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
+    private static bool OptionListIdAlreadyReferencedInLayout(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
     {
         existingSource = refToOptionListSpecifier.OptionListIdSources.FirstOrDefault(
             optionListIdSource =>
