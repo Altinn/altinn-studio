@@ -29,8 +29,7 @@ export const OutdatedVersionRemindChoiceDialog = ({
         </StudioPopover.Trigger>
         <StudioPopover
           placement='bottom'
-          data-variant='tinted'
-          data-color='warning'
+          data-color='info'
           className={cn(classes.popover, !opened && classes.closed)}
           onOpen={() => setOpened(!opened)}
           onClose={() => setOpened(false)}
@@ -38,7 +37,7 @@ export const OutdatedVersionRemindChoiceDialog = ({
           <StudioParagraph>{t('session.reminder')}</StudioParagraph>
           <div className={classes.buttons}>
             <StudioButton onClick={close}>{t('session.do_show_again')}</StudioButton>
-            <StudioButton onClick={setShowOutdatedVersionDialog}>
+            <StudioButton onClick={setShowOutdatedVersionDialog} variant='secondary'>
               {t('session.dont_show_again')}
             </StudioButton>
           </div>

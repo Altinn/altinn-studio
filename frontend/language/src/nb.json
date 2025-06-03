@@ -1180,7 +1180,7 @@
   "schema_editor.uniqueItems": "Bare unike elementer",
   "session.do_show_again": "Ja, takk",
   "session.dont_show_again": "Nei, ikke vis meldingen igjen",
-  "session.reminder": "Ønsker du en påminnelse neste gang du logger på?",
+  "session.reminder": "Vil du ha en påminnelse neste gang du logger på?",
   "settings_modal.about_tab_alt_id_description": "Hvis appen har en annen ID i andre systemer, kan du legge den til her. For eksempel et referansenummer.",
   "settings_modal.about_tab_alt_id_label": "Alternativ ID",
   "settings_modal.about_tab_created_by": "Opprettet av",
