@@ -13,7 +13,7 @@ import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 
-type AddItemProps = {
+export type AddItemProps = {
   containerId: string;
   layout: IInternalLayout;
 };
