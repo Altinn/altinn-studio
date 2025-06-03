@@ -47,13 +47,8 @@ public class OptionListReferenceService : IOptionListReferenceService
     private async Task AddLayoutSetReferences(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         string[] layoutSetNames = _altinnAppGitRepository.GetLayoutSetNames();
-
-        await FindOptionListReferencesInGivenLayoutSets(layoutSetNames, cancellationToken);
-    }
-
-    private async Task FindOptionListReferencesInGivenLayoutSets(string[] layoutSetNames, CancellationToken cancellationToken = default)
-    {
         foreach (string layoutSetName in layoutSetNames)
         {
             await FindOptionListReferencesInLayoutSet(layoutSetName, cancellationToken);
@@ -63,27 +58,14 @@ public class OptionListReferenceService : IOptionListReferenceService
     private async Task FindOptionListReferencesInLayoutSet(string layoutSetName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         string[] layoutNames = _altinnAppGitRepository.GetLayoutNames(layoutSetName);
-
-        await FindOptionListReferencesInGivenLayouts(layoutSetName, layoutNames, cancellationToken);
-    }
-
-    private async Task FindOptionListReferencesInGivenLayouts(string layoutSetName, string[] layoutNames, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
         foreach (string layoutName in layoutNames)
         {
             await FindOptionListReferencesInLayout(layoutSetName, layoutName, cancellationToken);
         }
     }
 
-    /// <summary>
-    /// Finds all <see cref="OptionListReference"/> in a given layout.
-    /// </summary>
-    /// <param name="layoutSetName">The layoutSetName the layout belongs to.</param>
-    /// <param name="layoutName">The name of the given layout.</param>
-    /// <param name="cancellationToken"> A <see cref="CancellationToken"/> that observes if a call is cancelled.</param>
-    /// <returns>A list of <see cref="OptionListReference"/>.</returns>
     private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken = default)
     {
         string[] repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds();
@@ -93,11 +75,6 @@ public class OptionListReferenceService : IOptionListReferenceService
         {
             FindOptionListReferencesInComponents(layoutSetName, layoutName, components, repoOptionListIds);
         }
-    }
-
-    private static JsonArray GetComponentArray(JsonNode layout)
-    {
-        return layout["data"]?["layout"] as JsonArray;
     }
 
     private void FindOptionListReferencesInComponents(string layoutSetName, string layoutName, JsonArray components, string[] repoOptionListIds)
@@ -131,6 +108,11 @@ public class OptionListReferenceService : IOptionListReferenceService
         {
             AddNewOptionListReference(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
         }
+    }
+
+    private static JsonArray GetComponentArray(JsonNode layout)
+    {
+        return layout["data"]?["layout"] as JsonArray;
     }
 
     private static string GetComponentId(JsonNode component)
