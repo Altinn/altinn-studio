@@ -41,7 +41,6 @@
   text-decoration: none;
 
   display: inline-flex;
-  gap: var(--ds-size-1);
 }
 
 .linkButton:focus-visible {

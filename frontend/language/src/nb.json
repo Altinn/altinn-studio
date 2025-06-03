@@ -2144,7 +2144,6 @@
   "validation_errors.value_as_url": "Ugyldig lenke.",
   "version_alerts.current_version": "Gjeldende versjon",
   "version_alerts.latest_version": "Siste versjon",
-  "version_alerts.open_app_in_new_window": "Lenken åpner appen i en ny fane",
   "version_alerts.outdated_version_title": "Versjonen er utdatert",
   "version_alerts.outdated_version_title_content": "Du har en eldre versjon av repoet. Det gjør at du kan oppleve noen problemer i Studio.\nVi anbefaler at du oppdaterer til nyeste versjon av repoet og starter Studio på nytt, for å få en bedre brukeropplevelse.",
   "version_alerts.unsupported_version_content": "Du har en versjon av repoet som Studio ikke støtter lenger. Oppdater versjonen din og start Studio på nytt.",

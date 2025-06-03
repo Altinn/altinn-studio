@@ -64,7 +64,6 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
                     {t('version_alerts.update_frontend', {
                       latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
                     })}
-                    <ExternalLinkIcon title={t('version_alerts.open_app_in_new_window')} />
                   </StudioLink>
                 )}
               </StudioTable.Cell>
@@ -86,7 +85,6 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
                     {t('version_alerts.update_backend', {
                       latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
                     })}
-                    <ExternalLinkIcon title={t('version_alerts.open_app_in_new_window')} />
                   </StudioLink>
                 )}
               </StudioTable.Cell>
