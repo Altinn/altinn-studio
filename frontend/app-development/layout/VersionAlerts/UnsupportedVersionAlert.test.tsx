@@ -1,5 +1,5 @@
 import React from 'react';
-import { UnsupportedVersion } from './UnsupportedVersion';
+import { UnsupportedVersionAlert } from './UnsupportedVersionAlert';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,7 +8,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
-describe('UnsupportedVersion', () => {
+describe('UnsupportedVersionAlert', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -28,7 +28,7 @@ describe('UnsupportedVersion', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(<UnsupportedVersion />, {
+  renderWithProviders(<UnsupportedVersionAlert />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${RoutePaths.UIEditor}`,
     queries,
   });

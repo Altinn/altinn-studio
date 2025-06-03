@@ -8,12 +8,12 @@ import {
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
 } from 'app-shared/constants';
-import classes from './OutdatedVersion.module.css';
-import { OutdatedVersionRemindChoiceDialog } from './OutdatedVersionRemindChoiceDialog';
+import classes from './OutdatedVersionAlert.module.css';
+import { OutdatedVersionAlertRemindChoiceDialog } from './OutdatedVersionAlertRemindChoiceDialog';
 import { VersionAlert } from './VersionAlert';
 import { isBelowSupportedVersion } from './utils';
 
-export const OutdatedVersion = () => {
+export const OutdatedVersionAlert = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
@@ -42,7 +42,7 @@ export const OutdatedVersion = () => {
 
   return (
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
-      <OutdatedVersionRemindChoiceDialog
+      <OutdatedVersionAlertRemindChoiceDialog
         close={() => setOpened(false)}
         setShowOutdatedVersionDialog={() => setShowOutdatedVersionDialog(false)}
       />

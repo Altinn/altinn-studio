@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import classes from './UnsupportedVersion.module.css';
+import classes from './UnsupportedVersionAlert.module.css';
 import { VersionAlert } from './VersionAlert';
 
-export const UnsupportedVersion = () => {
+export const UnsupportedVersionAlert = () => {
   const { t } = useTranslation();
 
   return (

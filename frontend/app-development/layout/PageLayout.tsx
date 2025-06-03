@@ -22,9 +22,9 @@ import {
   MINIMUM_SUPPORTED_BACKEND_VERSION,
   MINIMUM_SUPPORTED_FRONTEND_VERSION,
 } from 'app-shared/constants';
-import { OutdatedVersion } from './OldVersions/OutdatedVersion';
-import { UnsupportedVersion } from './OldVersions/UnsupportedVersion';
-import { isBelowSupportedVersion } from './OldVersions/utils';
+import { OutdatedVersionAlert } from './VersionAlerts/OutdatedVersionAlert';
+import { UnsupportedVersionAlert } from './VersionAlerts/UnsupportedVersionAlert';
+import { isBelowSupportedVersion } from './VersionAlerts/utils';
 
 /**
  * Displays the layout for the app development pages
@@ -93,12 +93,12 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   );
 
   if (isFrontendUnsupported || isBackendUnsupported) {
-    return <UnsupportedVersion />;
+    return <UnsupportedVersionAlert />;
   }
 
   return (
     <>
-      <OutdatedVersion />
+      <OutdatedVersionAlert />
       <WebSocketSyncWrapper>
         <Outlet />
       </WebSocketSyncWrapper>

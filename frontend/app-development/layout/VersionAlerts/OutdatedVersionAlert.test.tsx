@@ -1,5 +1,5 @@
 import React from 'react';
-import { OutdatedVersion } from './OutdatedVersion';
+import { OutdatedVersionAlert } from './OutdatedVersionAlert';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,7 +9,7 @@ import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import userEvent from '@testing-library/user-event';
 
-describe('OutdatedVersion', () => {
+describe('OutdatedVersionAlert', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -112,7 +112,7 @@ describe('OutdatedVersion', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(<OutdatedVersion />, {
+  renderWithProviders(<OutdatedVersionAlert />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${RoutePaths.UIEditor}`,
     queries,
   });

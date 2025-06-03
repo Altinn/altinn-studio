@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@studio/icons';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { StudioButton, StudioPopover } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
 
 export const PreviewLimitationsInfo = () => {
   const { t } = useTranslation();
@@ -40,7 +40,7 @@ export const PreviewLimitationsInfo = () => {
             icon={<XMarkIcon />}
           />
           <StudioPopover.Content className={classes.popoverContent}>
-            <p className={classes.message}>{t('session.reminder')}</p>
+            <StudioParagraph className={classes.message}>{t('session.reminder')}</StudioParagraph>
             <StudioButton
               className={cn(classes.yesButton, classes.button)}
               onClick={handleHidePreviewLimitations}
