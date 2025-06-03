@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
@@ -71,6 +70,7 @@ public class OptionListReferenceService : IOptionListReferenceService
 
     private async Task FindOptionListReferencesInGivenLayouts(string layoutSetName, string[] layoutNames, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (string layoutName in layoutNames)
         {
             var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
@@ -174,14 +174,11 @@ public class OptionListReferenceService : IOptionListReferenceService
     private async Task AddTaskReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
-        if (_optionListReferences.Count == 0 || layoutSetsModel.Sets.Count == 0)
+        if (_optionListReferences.Count > 0)
         {
-            return;
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            AddTaskDataToOptionListReferences(_optionListReferences, layoutSetsModel);
         }
-
-        AddTaskDataToOptionListReferences(_optionListReferences, layoutSetsModel);
     }
 
     private static void AddTaskDataToOptionListReferences(List<RefToOptionListSpecifier> optionListReferences, LayoutSetsModel layoutSetsModel)
