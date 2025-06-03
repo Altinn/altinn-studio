@@ -6,8 +6,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   APP_DEVELOPMENT_BASENAME,
-  LATEST_BACKEND_VERSION,
-  LATEST_FRONTEND_VERSION,
+  MAXIMUM_SUPPORTED_BACKEND_VERSION,
+  MAXIMUM_SUPPORTED_FRONTEND_VERSION,
 } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
@@ -32,13 +32,13 @@ describe('VersionAlert', () => {
       getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '8' }),
     });
 
-    expect(await screen.findByText(`v${LATEST_FRONTEND_VERSION}`)).toBeInTheDocument();
+    expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_frontend', { latestVersion: LATEST_FRONTEND_VERSION }),
+        textMock('versions.update_frontend', { latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION }),
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByRole(`v${LATEST_BACKEND_VERSION}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).not.toBeInTheDocument();
     expect(screen.queryByRole(textMock('versions.update_backend'))).not.toBeInTheDocument();
   });
 
@@ -47,12 +47,12 @@ describe('VersionAlert', () => {
       getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '7' }),
     });
 
-    expect(screen.queryByRole(`v${LATEST_FRONTEND_VERSION}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).not.toBeInTheDocument();
     expect(screen.queryByRole(textMock('versions.update_frontend'))).not.toBeInTheDocument();
-    expect(await screen.findByText(`v${LATEST_BACKEND_VERSION}`)).toBeInTheDocument();
+    expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_backend', { latestVersion: LATEST_BACKEND_VERSION }),
+        textMock('versions.update_backend', { latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION }),
       ),
     ).toBeInTheDocument();
   });
@@ -62,16 +62,16 @@ describe('VersionAlert', () => {
       getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
     });
 
-    expect(await screen.findByText(`v${LATEST_FRONTEND_VERSION}`)).toBeInTheDocument();
+    expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_frontend', { latestVersion: LATEST_FRONTEND_VERSION }),
+        textMock('versions.update_frontend', { latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION }),
       ),
     ).toBeInTheDocument();
-    expect(await screen.findByText(`v${LATEST_BACKEND_VERSION}`)).toBeInTheDocument();
+    expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        textMock('versions.update_backend', { latestVersion: LATEST_BACKEND_VERSION }),
+        textMock('versions.update_backend', { latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION }),
       ),
     ).toBeInTheDocument();
   });

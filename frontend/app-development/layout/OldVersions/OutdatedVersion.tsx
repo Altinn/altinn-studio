@@ -4,10 +4,14 @@ import { useLocalStorage } from '@studio/components-legacy';
 import { StudioDialog, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { LATEST_FRONTEND_VERSION, LATEST_BACKEND_VERSION } from 'app-shared/constants';
+import {
+  MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  MAXIMUM_SUPPORTED_BACKEND_VERSION,
+} from 'app-shared/constants';
 import classes from './OutdatedVersion.module.css';
 import { OutdatedVersionRemindChoiceDialog } from './OutdatedVersionRemindChoiceDialog';
 import { VersionAlert } from './VersionAlert';
+import { isBelowSupportedVersion } from './utils';
 
 export const OutdatedVersion = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -23,10 +27,14 @@ export const OutdatedVersion = () => {
     return false;
   }
 
-  const isFrontendOutdated =
-    data?.frontendVersion?.slice(0, LATEST_FRONTEND_VERSION.length) < LATEST_FRONTEND_VERSION;
-  const isBackendOutdated =
-    data?.backendVersion?.slice(0, LATEST_BACKEND_VERSION.length) < LATEST_BACKEND_VERSION;
+  const isFrontendOutdated = isBelowSupportedVersion(
+    data?.frontendVersion,
+    MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  );
+  const isBackendOutdated = isBelowSupportedVersion(
+    data?.backendVersion,
+    MAXIMUM_SUPPORTED_BACKEND_VERSION,
+  );
 
   if (!isFrontendOutdated && !isBackendOutdated) {
     return;

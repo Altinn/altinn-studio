@@ -18,9 +18,13 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { MINIMUM_BACKEND_VERSION, MINIMUM_FRONTEND_VERSION } from 'app-shared/constants';
+import {
+  MINIMUM_SUPPORTED_BACKEND_VERSION,
+  MINIMUM_SUPPORTED_FRONTEND_VERSION,
+} from 'app-shared/constants';
 import { OutdatedVersion } from './OldVersions/OutdatedVersion';
 import { UnsupportedVersion } from './OldVersions/UnsupportedVersion';
+import { isBelowSupportedVersion } from './OldVersions/utils';
 
 /**
  * Displays the layout for the app development pages
@@ -79,10 +83,14 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
     return <MergeConflictWarning owner={org} repoName={app} />;
   }
 
-  const isFrontendUnsupported =
-    data?.frontendVersion?.slice(0, MINIMUM_FRONTEND_VERSION.length) < MINIMUM_FRONTEND_VERSION;
-  const isBackendUnsupported =
-    data?.backendVersion?.slice(0, MINIMUM_BACKEND_VERSION.length) < MINIMUM_BACKEND_VERSION;
+  const isFrontendUnsupported = isBelowSupportedVersion(
+    data?.frontendVersion,
+    MINIMUM_SUPPORTED_FRONTEND_VERSION,
+  );
+  const isBackendUnsupported = isBelowSupportedVersion(
+    data?.backendVersion,
+    MINIMUM_SUPPORTED_BACKEND_VERSION,
+  );
 
   if (isFrontendUnsupported || isBackendUnsupported) {
     return <UnsupportedVersion />;
