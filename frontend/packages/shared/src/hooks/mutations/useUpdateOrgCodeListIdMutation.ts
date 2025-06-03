@@ -13,14 +13,12 @@ export const useUpdateOrgCodeListIdMutation = (org: string) => {
 
   return useMutation({
     mutationFn: async ({ codeListId, newCodeListId }: UpdateOrgCodeListIdMutationArgs) =>
-      updateOrgCodeListId(org, codeListId, newCodeListId).then(() => ({
-        codeListId,
-        newCodeListId,
-      })),
-    onSuccess: ({ codeListId, newCodeListId }) => {
-      const oldData: CodeListsResponse = queryClient.getQueryData([QueryKey.OrgCodeLists, org]);
-      const newData: CodeListsResponse = updateId(codeListId, newCodeListId, oldData);
-      queryClient.setQueryData([QueryKey.OrgCodeLists, org], newData);
+      updateOrgCodeListId(org, codeListId, newCodeListId),
+
+    onSuccess: (_, { codeListId, newCodeListId }) => {
+      queryClient.setQueryData([QueryKey.OrgCodeLists, org], (oldData: CodeListsResponse) =>
+        updateId(codeListId, newCodeListId, oldData),
+      );
     },
   });
 };
