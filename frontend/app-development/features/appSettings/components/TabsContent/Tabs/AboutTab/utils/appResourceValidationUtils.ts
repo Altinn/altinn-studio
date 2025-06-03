@@ -6,6 +6,12 @@ import { mapLanguageKeyToLanguageText } from './appResourceLanguageUtils';
 
 const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
 
+function filterOutNbLanguage(): ValidLanguage[] {
+  return supportedLanguages.filter((lang) => lang !== 'nb');
+}
+
+const supportedLanguagesWithoutNb: ValidLanguage[] = filterOutNbLanguage();
+
 function getMissingLanguages(language: SupportedLanguage): ValidLanguage[] {
   return supportedLanguages.filter((lang) => !language[lang]);
 }
@@ -78,20 +84,15 @@ export const validateAppResource = (
       error: serviceNameError,
     });
   }
-  if (!appResource.serviceName?.nn) {
-    errors.push({
-      field: 'serviceName',
-      index: 'nn',
-      error: t('app_settings.about_tab_error_translation_missing_service_name_nn'),
-    });
-  }
-  if (!appResource.serviceName?.en) {
-    errors.push({
-      field: 'serviceName',
-      index: 'en',
-      error: t('app_settings.about_tab_error_translation_missing_service_name_en'),
-    });
-  }
+  supportedLanguagesWithoutNb.forEach((lang: ValidLanguage) => {
+    if (!appResource.serviceName?.[lang]) {
+      errors.push({
+        field: 'serviceName',
+        index: lang,
+        error: t(`app_settings.about_tab_error_translation_missing_service_name_${lang}`),
+      });
+    }
+  });
 
   return errors;
 };
