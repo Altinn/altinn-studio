@@ -25,6 +25,8 @@ import {
 import { OutdatedVersionAlert } from './VersionAlerts/OutdatedVersionAlert';
 import { UnsupportedVersionAlert } from './VersionAlerts/UnsupportedVersionAlert';
 import { isBelowSupportedVersion } from './VersionAlerts/utils';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { useNavigateFrom } from './PageHeader/SubHeader/SettingsModalButton/useNavigateFrom';
 
 /**
  * Displays the layout for the app development pages
@@ -76,6 +78,8 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data } = useAppVersionQuery(org, app);
 
+  const { currentRoutePath } = useNavigateFrom();
+
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {
     return <NotFoundPage />;
   }
@@ -92,7 +96,7 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
     MINIMUM_SUPPORTED_BACKEND_VERSION,
   );
 
-  if (isFrontendUnsupported || isBackendUnsupported) {
+  if (currentRoutePath !== RoutePaths.Deploy && (isFrontendUnsupported || isBackendUnsupported)) {
     return <UnsupportedVersionAlert />;
   }
 

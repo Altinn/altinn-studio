@@ -1,6 +1,5 @@
 import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
 import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';

@@ -7,6 +7,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import {
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
+  MINIMUM_SUPPORTED_FRONTEND_VERSION,
+  MINIMUM_SUPPORTED_BACKEND_VERSION,
 } from 'app-shared/constants';
 import classes from './OutdatedVersionAlert.module.css';
 import { OutdatedVersionAlertRemindChoiceDialog } from './OutdatedVersionAlertRemindChoiceDialog';
@@ -24,6 +26,19 @@ export const OutdatedVersionAlert = () => {
   const [opened, setOpened] = useState(!hideOutdatedVersionDialog);
 
   if (hideOutdatedVersionDialog) {
+    return;
+  }
+
+  const isFrontendUnsupported = isBelowSupportedVersion(
+    data?.frontendVersion,
+    MINIMUM_SUPPORTED_FRONTEND_VERSION,
+  );
+  const isBackendUnsupported = isBelowSupportedVersion(
+    data?.backendVersion,
+    MINIMUM_SUPPORTED_BACKEND_VERSION,
+  );
+
+  if (isFrontendUnsupported || isBackendUnsupported) {
     return;
   }
 

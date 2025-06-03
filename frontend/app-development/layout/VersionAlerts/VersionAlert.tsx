@@ -12,7 +12,6 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionAlert.module.css';
 import cn from 'classnames';
 import { isBelowSupportedVersion } from './utils';
-import { ExternalLinkIcon } from '@studio/icons';
 
 export type VersionAlertProps = {
   title: string;
@@ -51,7 +50,9 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
           {isFrontendOutdated && (
             <StudioTable.Row>
               <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
-              <StudioTable.Cell>v{data.frontendVersion}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {data?.frontendVersion ? `v${data?.frontendVersion}` : t('version_alerts.unknown')}
+              </StudioTable.Cell>
               <StudioTable.Cell>v{MAXIMUM_SUPPORTED_FRONTEND_VERSION}</StudioTable.Cell>
               <StudioTable.Cell>
                 {isFrontendOutdated && (
@@ -72,7 +73,9 @@ export const VersionAlert = ({ title, children, className }: VersionAlertProps) 
           {isBackendOutdated && (
             <StudioTable.Row>
               <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
-              <StudioTable.Cell>v{data.backendVersion}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {data?.backendVersion ? `v${data?.backendVersion}` : t('version_alerts.unknown')}
+              </StudioTable.Cell>
               <StudioTable.Cell>v{MAXIMUM_SUPPORTED_BACKEND_VERSION}</StudioTable.Cell>
               <StudioTable.Cell>
                 {isBackendOutdated && (
