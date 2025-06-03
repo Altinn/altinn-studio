@@ -20,7 +20,7 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   }, [requestedTabFromQuery, validTabIds]);
 
   const setTabToDisplay = (tabId: SettingsPageTabId): void => {
-    const isValid: boolean = validTabIds ? isValidSettingsTab(tabId, validTabIds) : true;
+    const isValid: boolean = isValidSettingsTab(tabId, validTabIds);
     const finalTab: SettingsPageTabId = isValid ? tabId : DEFAULT_TAB;
 
     const newParams: URLSearchParams = new URLSearchParams(searchParams);
@@ -34,8 +34,11 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   };
 }
 
-export function isValidSettingsTab(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
-  if (!tabId) return false;
+export function isValidSettingsTab(
+  tabId: SettingsPageTabId,
+  tabIds?: SettingsPageTabId[],
+): boolean {
+  if (!tabIds) return true;
   return isTabIdInTabsList(tabId, tabIds);
 }
 

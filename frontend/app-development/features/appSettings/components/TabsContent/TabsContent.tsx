@@ -11,6 +11,8 @@ import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 export function TabsContent(): ReactElement {
   const { tabToDisplay } = useCurrentSettingsTab();
 
+  // console.log('TabsContent', { tabToDisplay });
+
   switch (tabToDisplay) {
     case 'about': {
       return <AboutTab />;
