@@ -65,6 +65,21 @@ describe('TextResourceUtils', () => {
     it('Is pure', verifyInitialMapIsUnchanged);
   });
 
+  describe('toObject', () => {
+    const result = textResourceUtils.toObject();
+
+    it('Converts the text resources to an object with id-value pairs', () => {
+      const expectedResult = {
+        [text1Id]: text1,
+        [text2Id]: text2,
+        [text3Id]: text3,
+      };
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('Is pure', verifyInitialMapIsUnchanged);
+  });
+
   describe('set', () => {
     describe('When the given ID does not exist', () => {
       const newTextResource: TextResource = { id: '4', value: 'New Text' };
@@ -133,6 +148,53 @@ describe('TextResourceUtils', () => {
 
       it('Is pure', verifyInitialMapIsUnchanged);
     });
+  });
+
+  describe('setMultiple', () => {
+    const newTextResource: TextResource = { id: '4', value: 'New Text' };
+    const updatedTextResource: TextResource = { id: text1Id, value: 'Updated Text' };
+    const result: TextResourceUtils = textResourceUtils.setMultiple([
+      newTextResource,
+      updatedTextResource,
+    ]);
+
+    it('Adds new text resources and updates the existing ones', () => {
+      expect(result.get(newTextResource.id)).toEqual(newTextResource);
+      expect(result.get(updatedTextResource.id)).toEqual(updatedTextResource);
+      expect(result.asArray()).toEqual([
+        updatedTextResource,
+        textResource2,
+        textResource3,
+        newTextResource,
+      ]);
+    });
+
+    it('Is pure', verifyInitialMapIsUnchanged);
+  });
+
+  describe('prependOrUpdateMultiple', () => {
+    const newTextResource1: TextResource = { id: '4', value: 'New Text' };
+    const newTextResource2: TextResource = { id: '5', value: 'Another New Text' };
+    const updatedTextResource1: TextResource = { id: text1Id, value: 'Updated Text' };
+    const updatedTextResource2: TextResource = { id: text2Id, value: 'Another Updated Text' };
+    const result: TextResourceUtils = textResourceUtils.prependOrUpdateMultiple([
+      newTextResource1,
+      updatedTextResource1,
+      newTextResource2,
+      updatedTextResource2,
+    ]);
+
+    it('Prepends new text resources and updates the existing ones', () => {
+      expect(result.asArray()).toEqual([
+        newTextResource1,
+        newTextResource2,
+        updatedTextResource1,
+        updatedTextResource2,
+        textResource3,
+      ]);
+    });
+
+    it('Is pure', verifyInitialMapIsUnchanged);
   });
 
   describe('delete', () => {
