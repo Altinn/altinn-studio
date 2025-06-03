@@ -87,39 +87,42 @@ public class OptionListReferenceService : IOptionListReferenceService
     /// <returns>A list of <see cref="RefToOptionListSpecifier"/>.</returns>
     private void FindOptionListReferencesInLayout(JsonNode layout, string layoutSetName, string layoutName)
     {
-        string[] optionListIds = _altinnAppGitRepository.GetOptionsListIds();
-        var layoutArray = layout["data"]?["layout"] as JsonArray;
-        if (layoutArray == null)
+        string[] repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds();
+        var components = layout["data"]?["layout"] as JsonArray;
+        if (repoOptionListIds.Length == 0 || components == null)
         {
             return;
         }
 
-        foreach (var item in layoutArray)
-        {
-            string optionListId = item["optionsId"]?.ToString();
+        FindOptionListReferencesInComponents(components, repoOptionListIds, layoutSetName, layoutName);
+    }
 
-            if (!optionListIds.Contains(optionListId))
+    private void FindOptionListReferencesInComponents(JsonArray components, string[] repoOptionListIds, string layoutSetName, string layoutName)
+    {
+        foreach (var component in components)
+        {
+            string componentId = component["id"]?.ToString();
+            string optionListId = component["optionsId"]?.ToString();
+
+            if (!repoOptionListIds.Contains(optionListId) || string.IsNullOrEmpty(optionListId))
             {
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(optionListId))
+            if (OptionListIdAlreadyOccurred(_optionListReferences, optionListId, out var existingRef))
             {
-                if (OptionListIdAlreadyOccurred(_optionListReferences, optionListId, out var existingRef))
+                if (OptionListIdAlreadyOccurredInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
                 {
-                    if (OptionListIdAlreadyOccurredInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
-                    {
-                        existingSource.ComponentIds.Add(item["id"]?.ToString());
-                    }
-                    else
-                    {
-                        AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, item["id"]?.ToString());
-                    }
+                    AddComponentIdToExistingSource(componentId, existingSource);
                 }
                 else
                 {
-                    AddNewRefToOptionListSpecifier(_optionListReferences, optionListId, layoutSetName, layoutName, item["id"]?.ToString());
+                    AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
                 }
+            }
+            else
+            {
+                AddNewRefToOptionListSpecifier(_optionListReferences, optionListId, layoutSetName, layoutName, componentId);
             }
         }
     }
@@ -138,6 +141,11 @@ public class OptionListReferenceService : IOptionListReferenceService
                 && optionListIdSource.LayoutName == layoutName
         );
         return existingSource != null;
+    }
+
+    private static void AddComponentIdToExistingSource(string componentId, OptionListIdSource existingSource)
+    {
+        existingSource.ComponentIds.Add(componentId);
     }
 
     private static void AddNewOptionListIdSource(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, string componentId)
