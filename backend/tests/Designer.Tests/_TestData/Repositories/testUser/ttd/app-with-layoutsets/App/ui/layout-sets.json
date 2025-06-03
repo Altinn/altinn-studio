@@ -14,20 +14,6 @@
             "tasks": [
                 "Task_2"
             ]
-        },
-        {
-            "id": "layoutSet3",
-            "dataType": "HvemErHvem_M",
-            "tasks": [
-                "Task_3"
-            ]
-        },
-        {
-            "id": "receipt",
-            "dataType": "datamodel",
-            "tasks": [
-                "CustomReceipt"
-            ]
         }
     ],
     "uiSettings": {}

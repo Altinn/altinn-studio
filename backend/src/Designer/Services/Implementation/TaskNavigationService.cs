@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            Definitions definitions = altinnAppGitRepository.GetDefinitions();
+            Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
             return definitions.Process.Tasks;
         }
 
