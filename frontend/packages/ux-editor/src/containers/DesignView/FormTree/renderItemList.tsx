@@ -3,6 +3,7 @@ import { getChildIds } from '../../../utils/formLayoutUtils';
 import { FormItem } from './FormItem';
 import type { IInternalLayout } from '../../../types/global';
 import { AddItem } from '../AddItem';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const renderItemList = (
   layout: IInternalLayout,
@@ -23,7 +24,7 @@ export const renderItemList = (
         />
       ))}
       {/* Spacer component to make space for the HoverAddButton in containers*/}
-      <Spacer />
+      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && <Spacer />}
     </>
   ) : null;
 };
