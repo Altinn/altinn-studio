@@ -292,16 +292,7 @@ public static class ExpressionEvaluator
 
     private static string Concat(ExpressionValue[] args)
     {
-        return string.Join(
-            "",
-            args.Select(a =>
-                a.ValueKind switch
-                {
-                    JsonValueKind.String => a.String,
-                    _ => ToStringForEquals(a),
-                }
-            )
-        );
+        return string.Join("", args.Select(a => a.ToStringForEquals()));
     }
 
     private static bool Contains(ExpressionValue[] args)
@@ -310,8 +301,8 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
-        string? stringTwo = ToStringForEquals(args[1]);
+        string? stringOne = args[0].ToStringForEquals();
+        string? stringTwo = args[1].ToStringForEquals();
 
         if (stringOne is null || stringTwo is null)
         {
@@ -344,7 +335,7 @@ public static class ExpressionEvaluator
         string? language = state.GetLanguage();
         return UnicodeDateTimeTokenConverter.Format(
             date,
-            args.Length == 2 ? ToStringForEquals(args[1]) : null,
+            args.Length == 2 ? args[1].ToStringForEquals() : null,
             language
         );
     }
@@ -506,8 +497,8 @@ public static class ExpressionEvaluator
                 args
             );
         }
-        string? stringOne = ToStringForEquals(args[0]);
-        string? stringTwo = ToStringForEquals(args[1]);
+        string? stringOne = args[0].ToStringForEquals();
+        string? stringTwo = args[1].ToStringForEquals();
 
         if (stringOne is null || stringTwo is null)
         {
@@ -527,8 +518,8 @@ public static class ExpressionEvaluator
                 args
             );
         }
-        string? stringOne = ToStringForEquals(args[0]);
-        string? stringTwo = ToStringForEquals(args[1]);
+        string? stringOne = args[0].ToStringForEquals();
+        string? stringTwo = args[1].ToStringForEquals();
 
         if (stringOne is null || stringTwo is null)
         {
@@ -548,8 +539,8 @@ public static class ExpressionEvaluator
                 args
             );
         }
-        string? stringOne = ToStringForEquals(args[0]);
-        string? stringTwo = ToStringForEquals(args[1]);
+        string? stringOne = args[0].ToStringForEquals();
+        string? stringTwo = args[1].ToStringForEquals();
 
         if (stringOne is null || stringTwo is null)
         {
@@ -565,7 +556,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"1 argument", ExpressionFunction.stringLength, args);
         }
-        string? stringOne = ToStringForEquals(args[0]);
+        string? stringOne = args[0].ToStringForEquals();
         return stringOne?.Length ?? 0;
     }
 
@@ -575,8 +566,8 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 2 arguments, got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
-        string? stringTwo = ToStringForEquals(args[1]);
+        string? stringOne = args[0].ToStringForEquals();
+        string? stringTwo = args[1].ToStringForEquals();
 
         if (stringOne is null || stringTwo is null)
         {
@@ -593,9 +584,9 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 3 arguments, got {args.Length}");
         }
-        string? subject = ToStringForEquals(args[0]);
-        string? search = ToStringForEquals(args[1]);
-        string? replace = ToStringForEquals(args[2]);
+        string? subject = args[0].ToStringForEquals();
+        string? search = args[1].ToStringForEquals();
+        string? replace = args[2].ToStringForEquals();
 
         if (subject is null || search is null || subject == "" || search == "")
         {
@@ -611,7 +602,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 2-3 arguments, got {args.Length}");
         }
-        string? subject = ToStringForEquals(args[0]);
+        string? subject = args[0].ToStringForEquals();
         double? start = PrepareNumericArg(args[1]);
         double? end = args.Length == 3 ? PrepareNumericArg(args[2]) : null;
         bool hasEnd = args.Length == 3;
@@ -684,7 +675,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
+        string? stringOne = args[0].ToStringForEquals();
         return stringOne?.ToUpperInvariant();
     }
 
@@ -694,7 +685,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
+        string? stringOne = args[0].ToStringForEquals();
         return stringOne?.ToLowerInvariant();
     }
 
@@ -704,7 +695,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
+        string? stringOne = args[0].ToStringForEquals();
         if (stringOne is null)
         {
             return null;
@@ -723,7 +714,7 @@ public static class ExpressionEvaluator
         {
             throw new ExpressionEvaluatorTypeErrorException($"Expected 1 argument, got {args.Length}");
         }
-        string? stringOne = ToStringForEquals(args[0]);
+        string? stringOne = args[0].ToStringForEquals();
         if (stringOne is null)
         {
             return null;
@@ -919,24 +910,6 @@ public static class ExpressionEvaluator
         return a >= b; // Actual implementation
     }
 
-    internal static string? ToStringForEquals(ExpressionValue value) =>
-        value.ValueKind switch
-        {
-            JsonValueKind.Null => null,
-            JsonValueKind.True => "true",
-            JsonValueKind.False => "false",
-            JsonValueKind.String => value.String switch
-            {
-                // Special case for "TruE" to be equal to true
-                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => "true",
-                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => "false",
-                { } sValue when sValue.Equals("null", StringComparison.OrdinalIgnoreCase) => null,
-                { } sValue => sValue,
-            },
-            JsonValueKind.Number => value.Number.ToString(CultureInfo.InvariantCulture),
-            _ => throw new NotImplementedException($"ToStringForEquals not implemented for {value.ValueKind}"),
-        };
-
     internal static bool EqualsImplementation(ExpressionValue[] args)
     {
         if (args.Length != 2)
@@ -949,7 +922,7 @@ public static class ExpressionEvaluator
 
     internal static bool EqualsImplementation(ExpressionValue a, ExpressionValue b)
     {
-        return string.Equals(ToStringForEquals(a), ToStringForEquals(b), StringComparison.Ordinal);
+        return string.Equals(a.ToStringForEquals(), b.ToStringForEquals(), StringComparison.Ordinal);
     }
 
     private static ExpressionValue Argv(ExpressionValue[] args, ExpressionValue[]? positionalArguments)

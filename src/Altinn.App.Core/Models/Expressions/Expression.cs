@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Models.Expressions;
 /// All props are marked as nullable, but a valid instance has either <see cref="Function" /> and <see cref="Args" /> or <see cref="ValueUnion" />
 /// </remarks>
 [JsonConverter(typeof(ExpressionConverter))]
-public readonly record struct Expression
+public readonly struct Expression : IEquatable<Expression>
 {
     /// <summary>
     ///     Construct a value expression with the given value
@@ -40,6 +40,24 @@ public readonly record struct Expression
     {
         Function = function;
         Args = args;
+    }
+
+    /// <summary>
+    /// Construct a function expression with the given function and arguments
+    /// </summary>
+    public Expression(ExpressionFunction function, Expression arg1)
+    {
+        Function = function;
+        Args = [arg1];
+    }
+
+    /// <summary>
+    /// Construct a function expression with the given function and arguments
+    /// </summary>
+    public Expression(ExpressionFunction function, Expression arg1, Expression arg2)
+    {
+        Function = function;
+        Args = [arg1, arg2];
     }
 
     /// <summary>
@@ -79,7 +97,17 @@ public readonly record struct Expression
     /// <summary>
     /// Static helper to create an expression with the value of false
     /// </summary>
-    public static Expression False => new(false);
+    public static Expression False => new(ExpressionValue.False);
+
+    /// <summary>
+    /// Static helper to create an expression with the value of true
+    /// </summary>
+    public static Expression True => new(ExpressionValue.True);
+
+    /// <summary>
+    /// Static helper to create an expression with the value of true
+    /// </summary>
+    public static Expression Null => new(ExpressionValue.Null);
 
     /// <summary>
     /// Overridden for better debugging experience
@@ -87,5 +115,68 @@ public readonly record struct Expression
     public override string ToString()
     {
         return JsonSerializer.Serialize(this);
+    }
+
+    /// <inheritdoc />
+    public bool Equals(Expression other)
+    {
+        throw new NotImplementedException();
+        // // First compare function types
+        // if (Function != other.Function)
+        //     return false;
+        //
+        // // For function expressions, compare arguments
+        // if (IsFunctionExpression)
+        // {
+        //     if (other.Args == null || Args.Count != other.Args.Count)
+        //         return false;
+        //
+        //     return Args.SequenceEqual(other.Args);
+        // }
+        //
+        // // For value expressions, compare value unions
+        // return ValueUnion.Equals(other.ValueUnion);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is Expression other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+        // if (IsFunctionExpression)
+        // {
+        //     var hash = Function.GetHashCode();
+        //     if (Args != null)
+        //     {
+        //         foreach (var arg in Args)
+        //         {
+        //             hash = HashCode.Combine(hash, arg.GetHashCode());
+        //         }
+        //     }
+        //     return hash;
+        // }
+        //
+        // return ValueUnion.GetHashCode();
+    }
+
+    /// <summary>
+    /// Compares two <see cref="Expression"/> instances for equality.
+    /// </summary>
+    public static bool operator ==(Expression left, Expression right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether two <see cref="Expression"/> instances are not equal.
+    /// </summary>
+    public static bool operator !=(Expression left, Expression right)
+    {
+        return !left.Equals(right);
     }
 }

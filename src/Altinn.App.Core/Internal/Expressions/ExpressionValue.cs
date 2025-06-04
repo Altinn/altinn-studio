@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -31,6 +33,16 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Convenient accessor for NULL value
     /// </summary>
     public static ExpressionValue Null => new();
+
+    /// <summary>
+    /// Convenient accessor for true value
+    /// </summary>
+    public static ExpressionValue True => new(true);
+
+    /// <summary>
+    /// Convenient accessor for false value
+    /// </summary>
+    public static ExpressionValue False => new(false);
 
     private ExpressionValue(bool? value)
     {
@@ -121,16 +133,39 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             uint numberValue => numberValue,
             long numberValue => numberValue,
             ulong numberValue => numberValue,
-            decimal numberValue => (double?)numberValue, // expressions uses double which needs an explicit cast
-
-            DateTime dateTimeValue => JsonSerializer.Serialize(dateTimeValue),
-            DateTimeOffset dateTimeOffsetValue => JsonSerializer.Serialize(dateTimeOffsetValue),
-            TimeSpan timeSpanValue => JsonSerializer.Serialize(timeSpanValue),
-            TimeOnly timeOnlyValue => JsonSerializer.Serialize(timeOnlyValue),
-            DateOnly dateOnlyValue => JsonSerializer.Serialize(dateOnlyValue),
-
-            // Dictionary<string, ExpressionValue> objectValue => new ExpressionValue(objectValue),
-            // TODO add support for arrays, objects and other potential types
+            decimal numberValue =>
+                (double?)numberValue // expressions uses double which needs an explicit cast
+            ,
+            DateTime dateTimeValue => JsonSerializer
+                .Serialize(dateTimeValue, _unsafeSerializerOptionsForSerializingDates)
+                .Trim(
+                    '"'
+                ) // Trim quotes to match the string representation
+            ,
+            DateTimeOffset dateTimeOffsetValue => JsonSerializer
+                .Serialize(dateTimeOffsetValue, _unsafeSerializerOptionsForSerializingDates)
+                .Trim(
+                    '"'
+                ) // Trim quotes to match the string representation
+            ,
+            TimeSpan timeSpanValue => JsonSerializer
+                .Serialize(timeSpanValue, _unsafeSerializerOptionsForSerializingDates)
+                .Trim(
+                    '"'
+                ) // Trim quotes to match the string representation
+            ,
+            TimeOnly timeOnlyValue => JsonSerializer
+                .Serialize(timeOnlyValue, _unsafeSerializerOptionsForSerializingDates)
+                .Trim(
+                    '"'
+                ) // Trim quotes to match the string representation
+            ,
+            DateOnly dateOnlyValue => JsonSerializer
+                .Serialize(dateOnlyValue, _unsafeSerializerOptionsForSerializingDates)
+                .Trim(
+                    '"'
+                ) // Trim quotes to match the string representation
+            ,
             _ => Null,
         };
     }
@@ -166,7 +201,9 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         {
             JsonValueKind.True => true,
             JsonValueKind.False => false,
-            _ => throw new InvalidOperationException($"{this} is not a boolean"),
+            _ => throw new InvalidCastException(
+                $"The .Bool property can't be used on an expression value that represent a {_valueKind}"
+            ),
         };
 
     /// <summary>
@@ -176,7 +213,9 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         _valueKind switch
         {
             JsonValueKind.String => _stringValue ?? throw new UnreachableException("Not a string"),
-            _ => throw new InvalidOperationException($"{this} is not a string"),
+            _ => throw new InvalidCastException(
+                $"The .String property can't be used on an expression value that represent a {_valueKind}"
+            ),
         };
 
     /// <summary>
@@ -186,21 +225,27 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         _valueKind switch
         {
             JsonValueKind.Number => _numberValue,
-            _ => throw new InvalidOperationException($"{this} is not a number"),
+            _ => throw new InvalidCastException(
+                $"The .Number property can't be used on an expression value that represent a {_valueKind}"
+            ),
         };
 
     // public Dictionary<string, ExpressionValue> Object =>
     //     _valueKind switch
     //     {
     //         JsonValueKind.Object => _objectValue ?? throw new UnreachableException($"{this} is not an object"),
-    //         _ => throw new InvalidOperationException($"{this} is not an object"),
+    //         _ => throw new InvalidCastException(
+    //            $"The .Object property can't be used on an expression value that represent a {_valueKind}"
+    //        ),
     //     };
     //
     // public ExpressionValue[] Array =>
     //     _valueKind switch
     //     {
     //         JsonValueKind.Array => _arrayValue ?? throw new UnreachableException($"{this} is not an array"),
-    //         _ => throw new InvalidOperationException($"{this} is not an array"),
+    //         _ => throw new InvalidCastException(
+    //            $"The .Array property can't be used on an expression value that represent a {_valueKind}"
+    //        ),
     //     };
 
     /// <summary>
@@ -212,35 +257,84 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             JsonValueKind.Null => "null",
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
-            JsonValueKind.String => JsonSerializer.Serialize(String),
-            JsonValueKind.Number => JsonSerializer.Serialize(Number),
+            JsonValueKind.String => JsonSerializer.Serialize(String, _unsafeSerializerOptionsForSerializingDates),
+            JsonValueKind.Number => Number.ToString(CultureInfo.InvariantCulture),
             // JsonValueKind.Object => JsonSerializer.Serialize(Object),
             // JsonValueKind.Array => JsonSerializer.Serialize(Array),
             _ => throw new InvalidOperationException("Invalid value kind"),
         };
 
     /// <summary>
-    /// Override default equals because we get a really slow default implementation from the runtime
+    /// Get the value as a string that can be used for equality comparisons in ["equals"] expressions.
+    ///
+    /// Has special handeling for strings that are "true", "false", or "null" to make them equal to the primitive types
     /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public string? ToStringForEquals() =>
+        ValueKind switch
+        {
+            JsonValueKind.Null => null,
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.String => String switch
+            {
+                // Special case for "TruE" to be equal to true
+                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => "true",
+                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => "false",
+                { } sValue when sValue.Equals("null", StringComparison.OrdinalIgnoreCase) => null,
+                { } sValue => sValue,
+            },
+            JsonValueKind.Number => Number.ToString(CultureInfo.InvariantCulture),
+            // JsonValueKind.Object => JsonSerializer.Serialize(Object),
+            // JsonValueKind.Array => JsonSerializer.Serialize(Array),
+            _ => throw new NotImplementedException($"ToStringForEquals not implemented for {ValueKind}"),
+        };
+
+    /// <inheritdoc />
     public bool Equals(ExpressionValue other)
     {
-        throw new NotImplementedException("ExpressionValue does not yet implement Equals");
+        throw new NotImplementedException("Equals is not used for ExpressionValue");
+        // First compare value kinds
+        // if (_valueKind != other._valueKind)
+        //     return false;
+
+        // // Then compare actual values based on the kind
+        // return _valueKind switch
+        // {
+        //     JsonValueKind.Null => true, // All null values are equal
+        //     JsonValueKind.True => true, // All true values are equal
+        //     JsonValueKind.False => true, // All false values are equal
+        //     JsonValueKind.String => _stringValue == other._stringValue,
+        //     // ReSharper disable once CompareOfFloatsByEqualityOperator
+        //     JsonValueKind.Number => _numberValue == other._numberValue,
+        //     // JsonValueKind.Object =>
+        //     // JsonValueKind.Array =>
+        //     _ => throw new InvalidOperationException("Invalid value kind"),
+        // };
     }
 
-    /// <summary>
-    /// Override default equals because we get a really slow default implementation from the runtime
-    /// </summary>
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        throw new NotImplementedException("ExpressionValue does not yet implement Equals");
+        return obj is ExpressionValue other && Equals(other);
     }
 
-    /// <summary>
-    /// Override default GetHashCode because we get a really slow default implementation from the runtime
-    /// </summary>
+    /// <inheritdoc />
     public override int GetHashCode()
     {
-        throw new NotImplementedException("ExpressionValue does not yet implement GetHashCode");
+        throw new NotImplementedException("GetHashCode is not implemented for ExpressionValue");
+        // return ValueKind switch
+        // {
+        //     JsonValueKind.Null => 0,
+        //     JsonValueKind.True => 1,
+        //     JsonValueKind.False => 0,
+        //     JsonValueKind.String => _stringValue?.GetHashCode() ?? 0,
+        //     JsonValueKind.Number => _numberValue.GetHashCode(),
+        //     // JsonValueKind.Object =>
+        //     // JsonValueKind.Array =>
+        //     _ => throw new InvalidOperationException("Invalid value kind"),
+        // };
     }
 
     /// <summary>
@@ -258,6 +352,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     {
         return !(left == right);
     }
+
+    private static readonly JsonSerializerOptions _unsafeSerializerOptionsForSerializingDates = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 }
 
 /// <summary>
@@ -268,7 +367,6 @@ internal class ExpressionTypeUnionConverter : JsonConverter<ExpressionValue>
     /// <inheritdoc />
     public override ExpressionValue Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        reader.Read();
         return reader.TokenType switch
         {
             JsonTokenType.True => true,
