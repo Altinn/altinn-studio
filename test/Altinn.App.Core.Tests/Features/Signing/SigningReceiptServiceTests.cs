@@ -15,14 +15,14 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Features.Signing;
 
-public class SigningReceiptServiceTests
+public class SigningReceiptServiceTests(ITestOutputHelper output)
 {
-    static SigningReceiptService SetupService(
+    SigningReceiptService SetupService(
         Mock<ICorrespondenceClient>? correspondenceClientMockOverride = null,
         Mock<IHostEnvironment>? hostEnvironmentMockOverride = null,
         Mock<IDataClient>? dataClientMockOverride = null,
@@ -37,7 +37,6 @@ public class SigningReceiptServiceTests
         Mock<IAppMetadata> appMetadataMock = appMetadataMockOverride ?? new();
         Mock<IAltinnCdnClient> altinnCdnClientMock = altinnCdnClientMockOverride ?? new();
         Mock<ITranslationService> translationServiceMock = new();
-        Mock<ILogger<SigningReceiptService>> loggerMock = new();
         return new SigningReceiptService(
             correspondenceClientMock.Object,
             dataClientMock.Object,
@@ -45,7 +44,7 @@ public class SigningReceiptServiceTests
             altinnCdnClientMock.Object,
             appMetadataMock.Object,
             translationServiceOverride ?? translationServiceMock.Object,
-            loggerMock.Object
+            FakeLoggerXunit.Get<SigningReceiptService>(output)
         );
     }
 
@@ -283,7 +282,11 @@ public class SigningReceiptServiceTests
         );
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         var service = SetupService(translationServiceOverride: translationService);
 
@@ -333,7 +336,11 @@ public class SigningReceiptServiceTests
             .ThrowsAsync(new Exception("Test exception"));
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         var service = SetupService(translationServiceOverride: translationService);
 

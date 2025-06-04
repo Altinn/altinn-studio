@@ -119,6 +119,7 @@ public static class ExpressionEvaluator
             ExpressionFunction.stringIndexOf => StringIndexOf(args),
             ExpressionFunction.stringReplace => StringReplace(args),
             ExpressionFunction.stringSlice => StringSlice(args),
+            ExpressionFunction.text => await Text(state, context, args),
             ExpressionFunction.round => Round(args),
             ExpressionFunction.upperCase => UpperCase(args),
             ExpressionFunction.lowerCase => LowerCase(args),
@@ -152,7 +153,6 @@ public static class ExpressionEvaluator
                     "Second argument must be \"not\" when providing 4 arguments in total"
                 );
         }
-        ;
     }
 
     private static string InstanceContext(LayoutEvaluatorState state, ExpressionValue[] args)
@@ -772,6 +772,28 @@ public static class ExpressionEvaluator
         var preparedArgs = args.Select(arg => PrepareBooleanArg(arg)).ToArray();
         // Ensure all args gets converted, because they might throw an Exception
         return preparedArgs.All(a => a);
+    }
+
+    private static async Task<string?> Text(
+        LayoutEvaluatorState state,
+        ComponentContext context,
+        ExpressionValue[] args
+    )
+    {
+        if (args is [{ ValueKind: JsonValueKind.Null }])
+        {
+            return null;
+        }
+        if (args is [{ ValueKind: JsonValueKind.String } text])
+        {
+            return await state.TranslateText(text.String, context);
+        }
+
+        throw new ExpressionEvaluatorTypeErrorException(
+            "Expression [\"text\"] expects a single string argument",
+            ExpressionFunction.text,
+            args
+        );
     }
 
     private static bool? Or(ExpressionValue[] args)

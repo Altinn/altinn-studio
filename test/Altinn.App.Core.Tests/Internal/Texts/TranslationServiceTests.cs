@@ -3,21 +3,21 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Internal.Texts;
 
 public class TranslationServiceTests
 {
-    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Loose);
-    private readonly TranslationService _translationService;
+    private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
+    private readonly IServiceCollection _services = new ServiceCollection();
 
-    public TranslationServiceTests()
+    public TranslationServiceTests(ITestOutputHelper outputHelper)
     {
         _appResourcesMock
-            .Setup(appResources =>
-                appResources.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.Is<string>(s => s == LanguageConst.Nb))
-            )
+            .Setup(appResources => appResources.GetTexts(It.IsAny<string>(), It.IsAny<string>(), LanguageConst.Nb))
             .ReturnsAsync(
                 new TextResource
                 {
@@ -30,62 +30,82 @@ public class TranslationServiceTests
             );
 
         _appResourcesMock
-            .Setup(appResources =>
-                appResources.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.Is<string>(s => s == LanguageConst.En))
-            )
+            .Setup(appResources => appResources.GetTexts(It.IsAny<string>(), It.IsAny<string>(), LanguageConst.En))
             .ReturnsAsync(
                 new TextResource { Resources = [new TextResourceElement { Id = "text", Value = "english" }] }
             );
 
-        _translationService = new TranslationService(new AppIdentifier("org", "app"), _appResourcesMock.Object);
+        // Fallback for nn that returns null
+        _appResourcesMock
+            .Setup(appResources => appResources.GetTexts(It.IsAny<string>(), It.IsAny<string>(), LanguageConst.Nn))
+            .ReturnsAsync((TextResource?)null);
+
+        _services.AddSingleton(_appResourcesMock.Object);
+        _services.AddSingleton<ITranslationService, TranslationService>();
+        _services.AddSingleton(new AppIdentifier("ttd", "test"));
+        _services.AddFakeLoggingWithXunit(outputHelper);
     }
 
     [Fact]
     public async Task TranslateTextKey_Returns_Nb()
     {
-        var result = await _translationService.TranslateTextKey("text", LanguageConst.Nb);
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey("text", LanguageConst.Nb);
         Assert.Equal("bokmål", result);
     }
 
     [Fact]
     public async Task TranslateTextKey_Returns_En()
     {
-        var result = await _translationService.TranslateTextKey("text", LanguageConst.En);
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey("text", LanguageConst.En);
         Assert.Equal("english", result);
     }
 
     [Fact]
     public async Task TranslateTextKey_Default_Nb()
     {
-        var result = await _translationService.TranslateTextKey("text", null);
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey("text", null);
         Assert.Equal("bokmål", result);
     }
 
     [Fact]
     public async Task TranslateTextKey_Fallback_Nb()
     {
-        var result = await _translationService.TranslateTextKey("text", LanguageConst.Nn);
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey("text", LanguageConst.Nn);
         Assert.Equal("bokmål", result);
     }
 
     [Fact]
     public async Task TranslateTextKey_Fail_Missing()
     {
-        var result = await _translationService.TranslateTextKey("missing", "nb");
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey("missing", "nb");
         Assert.Null(result);
     }
 
     [Fact]
     public async Task TranslateTextKeyLenient_Returns_Null_If_Key_Is_Null()
     {
-        var result = await _translationService.TranslateTextKeyLenient(null, LanguageConst.Nb);
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKeyLenient(null, LanguageConst.Nb);
         Assert.Null(result);
     }
 
     [Fact]
     public async Task TranslateFirstMatchingTextKey_Returns_First_Match()
     {
-        var result = await _translationService.TranslateFirstMatchingTextKey(
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateFirstMatchingTextKey(
             LanguageConst.Nb,
             "missing",
             "text2",
@@ -97,7 +117,9 @@ public class TranslationServiceTests
     [Fact]
     public async Task TranslateFirstMatchingTextKey_Returns_Null_If_No_Match()
     {
-        var result = await _translationService.TranslateFirstMatchingTextKey(
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateFirstMatchingTextKey(
             LanguageConst.Nb,
             "missing",
             "missing2",
@@ -109,14 +131,18 @@ public class TranslationServiceTests
     [Fact]
     public async Task TranslateFirstMatchingTextKey_Default_Nb()
     {
-        var result = await _translationService.TranslateFirstMatchingTextKey(null, "text");
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateFirstMatchingTextKey(null, "text");
         Assert.Equal("bokmål", result);
     }
 
     [Fact]
     public async Task TranslateFirstMatchingTextKey_Fallback_Nb()
     {
-        var result = await _translationService.TranslateFirstMatchingTextKey(LanguageConst.Nn, "text");
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateFirstMatchingTextKey(LanguageConst.Nn, "text");
         Assert.Equal("bokmål", result);
     }
 }

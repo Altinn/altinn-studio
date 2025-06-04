@@ -50,6 +50,7 @@ public class TestInvalid
                     test.DataModel ?? JsonDocument.Parse("{}").RootElement
                 ),
                 componentModel,
+                null!,
                 test.FrontEndSettings ?? new()
             );
             await ExpressionEvaluator.EvaluateExpression(

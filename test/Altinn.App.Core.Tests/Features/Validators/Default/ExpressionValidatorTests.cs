@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -32,7 +33,11 @@ public class ExpressionValidatorTests
         new FrontEndSettings()
     );
     private readonly Mock<ILayoutEvaluatorStateInitializer> _layoutInitializer = new(MockBehavior.Strict);
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public ExpressionValidatorTests(ITestOutputHelper output)
     {
@@ -79,12 +84,30 @@ public class ExpressionValidatorTests
 
         var layout = new LayoutSetComponent(testCase.Layouts.Values.ToList(), "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
-        var evaluatorState = new LayoutEvaluatorState(dataModel, componentModel, _frontendSettings.Value);
+        var translationService = new TranslationService(
+            new AppIdentifier("org", "app"),
+            _appResources.Object,
+            FakeLoggerXunit.Get<TranslationService>(_output)
+        );
+        var evaluatorState = new LayoutEvaluatorState(
+            dataModel,
+            componentModel,
+            translationService,
+            _frontendSettings.Value
+        );
         _layoutInitializer
             .Setup(init =>
                 init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
             )
             .ReturnsAsync(evaluatorState);
+
+        _appResources
+            .Setup(ar => ar.GetTexts("org", "app", "nb"))
+            .ReturnsAsync(
+                testCase.TextResources is null
+                    ? null
+                    : new TextResource { Language = "nb", Resources = testCase.TextResources }
+            );
 
         var dataAccessor = new InstanceDataAccessorFake(instance, appMedatada) { { dataElement, dataModel } };
 
@@ -131,6 +154,9 @@ public record ExpressionValidationTestModel
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
     public required IReadOnlyDictionary<string, PageComponent> Layouts { get; set; }
+
+    [JsonPropertyName("textResources")]
+    public List<TextResourceElement>? TextResources { get; set; }
 
     public class ExpectedObject
     {

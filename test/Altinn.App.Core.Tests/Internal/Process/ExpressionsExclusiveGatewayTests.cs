@@ -286,6 +286,7 @@ public class ExpressionsExclusiveGatewayTests
 
         var layoutStateInit = new LayoutEvaluatorStateInitializer(
             _resources.Object,
+            null!,
             _appMetadata.Object,
             frontendSettings
         );

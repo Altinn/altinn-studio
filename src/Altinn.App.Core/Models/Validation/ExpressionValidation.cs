@@ -9,10 +9,10 @@ namespace Altinn.App.Core.Models.Validation;
 public class ExpressionValidation
 {
     /// <inheritdoc/>
-    public string? Message { get; set; }
+    public Expression Message { get; set; }
 
     /// <inheritdoc/>
-    public Expression? Condition { get; set; }
+    public Expression Condition { get; set; }
 
     /// <inheritdoc/>
     public ValidationIssueSeverity? Severity { get; set; }
@@ -24,7 +24,7 @@ public class ExpressionValidation
 public class RawExpressionValidation
 {
     /// <inheritdoc/>
-    public string? Message { get; set; }
+    public Expression? Message { get; set; }
 
     /// <inheritdoc/>
     public Expression? Condition { get; set; }

@@ -70,6 +70,9 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
 
+    [JsonPropertyName("textResources")]
+    public List<TextResourceElement>? TextResources { get; set; }
+
     [JsonPropertyName("instance")]
     public Instance Instance { get; set; } = new Instance();
 

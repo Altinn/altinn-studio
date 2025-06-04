@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
@@ -16,6 +17,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 {
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
+    private readonly ITranslationService _translationService;
     private readonly IAppMetadata _appMetadata;
     private readonly FrontEndSettings _frontEndSettings;
 
@@ -24,11 +26,13 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     /// </summary>
     public LayoutEvaluatorStateInitializer(
         IAppResources appResources,
+        ITranslationService translationService,
         IAppMetadata appMetadata,
         IOptions<FrontEndSettings> frontEndSettings
     )
     {
         _appResources = appResources;
+        _translationService = translationService;
         _appMetadata = appMetadata;
         _frontEndSettings = frontEndSettings.Value;
     }
@@ -107,7 +111,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         Debug.Assert(dataElement is not null);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var dataAccessor = new SingleDataElementAccessor(instance, dataElement, appMetadata, data);
-        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction);
+        return new LayoutEvaluatorState(dataAccessor, layouts, _translationService, _frontEndSettings, gatewayAction);
     }
 
     /// <inheritdoc />
@@ -121,7 +125,14 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
 
         return Task.FromResult(
-            new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction, language)
+            new LayoutEvaluatorState(
+                dataAccessor,
+                layouts,
+                _translationService,
+                _frontEndSettings,
+                gatewayAction,
+                language
+            )
         );
     }
 }

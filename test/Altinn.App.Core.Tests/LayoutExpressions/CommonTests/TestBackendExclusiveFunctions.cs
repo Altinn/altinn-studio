@@ -73,6 +73,7 @@ public class TestBackendExclusiveFunctions
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             ),
             componentModel,
+            null!,
             test.FrontEndSettings ?? new(),
             test.GatewayAction,
             test.ProfileSettings?.Language

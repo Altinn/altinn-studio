@@ -2,7 +2,9 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -10,6 +12,7 @@ using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
@@ -156,6 +159,10 @@ public class TestFunctions
     [Theory]
     [SharedTest("or")]
     public async Task Or_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("text")]
+    public async Task Text_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("unknown")]
@@ -318,12 +325,26 @@ public class TestFunctions
             componentModel = new LayoutModel([layout], null);
         }
 
+        var appRewourcesMock = new Mock<IAppResources>(MockBehavior.Strict);
+
+        var language = test.ProfileSettings?.Language ?? "nb";
+        appRewourcesMock
+            .Setup(ar => ar.GetTexts(It.IsAny<string>(), It.IsAny<string>(), language))
+            .ReturnsAsync(new TextResource() { Resources = test.TextResources ?? [] });
+
+        var translationService = new TranslationService(
+            new Core.Models.AppIdentifier("org", "app"),
+            appRewourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(_output)
+        );
+
         var state = new LayoutEvaluatorState(
             dataAccessor,
             componentModel,
+            translationService,
             test.FrontEndSettings ?? new FrontEndSettings(),
             test.GatewayAction,
-            test.ProfileSettings?.Language,
+            language,
             TimeZoneInfo.Utc // Frontend uses UTC when formating dates
         );
 

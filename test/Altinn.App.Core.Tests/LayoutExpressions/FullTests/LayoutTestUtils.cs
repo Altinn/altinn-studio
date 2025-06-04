@@ -4,6 +4,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -46,6 +47,8 @@ public static class LayoutTestUtils
     public static async Task<LayoutEvaluatorState> GetLayoutModelTools(object model, string folder)
     {
         var services = new ServiceCollection();
+
+        services.AddFakeLogging();
 
         var modelType = model.GetType();
         var modelTypeFullName = modelType.FullName!;
@@ -93,6 +96,9 @@ public static class LayoutTestUtils
         services.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
 
         services.AddOptions<FrontEndSettings>().Configure(fes => fes.Add("test", "value"));
+
+        services.AddSingleton(new AppIdentifier(Org, App));
+        services.AddTransient<ITranslationService, TranslationService>();
 
         var serviceProvider = services.BuildStrictServiceProvider();
         using var scope = serviceProvider.CreateScope();

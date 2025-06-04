@@ -14,13 +14,13 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Features.Signing;
 
-public class SigningCallToActionServiceTests
+public class SigningCallToActionServiceTests(ITestOutputHelper output)
 {
     private readonly IOptions<GeneralSettings> _generalSettings = Microsoft.Extensions.Options.Options.Create(
         new GeneralSettings()
@@ -45,14 +45,13 @@ public class SigningCallToActionServiceTests
         Mock<IAppMetadata> appMetadataMock = appMetadataMockOverride ?? new();
         Mock<ITranslationService> translationServiceMock = new();
         Mock<IProfileClient> profileClientMock = profileClientMockOverride ?? new();
-        Mock<ILogger<SigningCallToActionService>> loggerMock = new();
         return new SigningCallToActionService(
             correspondenceClientMock.Object,
             hostEnvironmentMock.Object,
             appMetadataMock.Object,
             profileClientMock.Object,
             translationServiceOverride ?? translationServiceMock.Object,
-            loggerMock.Object,
+            FakeLoggerXunit.Get<SigningCallToActionService>(output),
             _generalSettings
         );
     }
@@ -100,7 +99,11 @@ public class SigningCallToActionServiceTests
         appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         SigningCallToActionService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -184,7 +187,11 @@ public class SigningCallToActionServiceTests
         appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         SigningCallToActionService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -281,7 +288,11 @@ public class SigningCallToActionServiceTests
         appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         SigningCallToActionService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -377,7 +388,11 @@ public class SigningCallToActionServiceTests
         appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         SigningCallToActionService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -461,7 +476,11 @@ public class SigningCallToActionServiceTests
         appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, appResourcesMock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            appResourcesMock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
 
         SigningCallToActionService service = SetupService(
             correspondenceClientMockOverride: correspondenceClientMock,
@@ -512,7 +531,11 @@ public class SigningCallToActionServiceTests
             },
         };
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, mock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            mock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
         SigningCallToActionService service = SetupService(translationServiceOverride: translationService);
 
         ApplicationMetadata applicationMetadata = new("org/app")
@@ -558,7 +581,11 @@ public class SigningCallToActionServiceTests
             },
         };
         AppIdentifier appIdentifier = new("org", "app");
-        TranslationService translationService = new(appIdentifier, mock.Object);
+        TranslationService translationService = new(
+            appIdentifier,
+            mock.Object,
+            FakeLoggerXunit.Get<TranslationService>(output)
+        );
         SigningCallToActionService service = SetupService(translationServiceOverride: translationService);
 
         ApplicationMetadata applicationMetadata = new("org/app")

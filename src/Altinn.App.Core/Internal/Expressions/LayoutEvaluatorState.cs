@@ -2,6 +2,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -17,6 +18,7 @@ public class LayoutEvaluatorState
 {
     private readonly DataModel _dataModel;
     private readonly LayoutModel? _componentModel;
+    private readonly ITranslationService _translationService;
     private readonly FrontEndSettings _frontEndSettings;
     private readonly Instance _instanceContext;
     private readonly string? _gatewayAction;
@@ -29,6 +31,7 @@ public class LayoutEvaluatorState
     /// </summary>
     /// <param name="dataAccessor">Accessor for the instance data</param>
     /// <param name="componentModel">The component model for the current layout</param>
+    /// <param name="translationService">Translation service to implement ["text"] expressions</param>
     /// <param name="frontEndSettings">The frontend settings for the current app</param>
     /// <param name="gatewayAction">The gateway action (only for gateways)</param>
     /// <param name="language">The language of the instance viewer</param>
@@ -36,6 +39,7 @@ public class LayoutEvaluatorState
     public LayoutEvaluatorState(
         IInstanceDataAccessor dataAccessor,
         LayoutModel? componentModel,
+        ITranslationService translationService,
         FrontEndSettings frontEndSettings,
         string? gatewayAction = null,
         string? language = null,
@@ -44,6 +48,7 @@ public class LayoutEvaluatorState
     {
         _dataModel = new DataModel(dataAccessor);
         _componentModel = componentModel;
+        _translationService = translationService;
         _frontEndSettings = frontEndSettings;
         _instanceContext = dataAccessor.Instance;
         _gatewayAction = gatewayAction;
@@ -249,6 +254,16 @@ public class LayoutEvaluatorState
     {
         return _componentModel?.GetDefaultDataElementId(_instanceContext)
             ?? throw new InvalidOperationException("Component model not loaded");
+    }
+
+    /// <summary>
+    /// Translates the given text based on the current language setting.
+    /// If no translation is available or the language is not defined, the input text is returned.
+    /// </summary>
+    /// <returns>The translated text if a translation is available; otherwise, the original textKey.</returns>
+    public async Task<string> TranslateText(string textKey, ComponentContext context)
+    {
+        return await _translationService.TranslateTextKey(textKey, this, context) ?? textKey;
     }
 
     // /// <summary>

@@ -79,6 +79,7 @@ public class TestContextList
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             ),
             componentModel,
+            null!,
             new()
         );
 

@@ -191,4 +191,11 @@ public enum ExpressionFunction
     /// Gets the currently selected language (or "nb" if not in a context where language is available)
     /// </summary>
     language,
+
+    /// <summary>
+    /// Lookup the text key in the app's text resources and return the translated value or the key if not found
+    ///
+    /// If no translations exist for the current language, we will use the resources for "nb"
+    /// </summary>
+    text,
 }
