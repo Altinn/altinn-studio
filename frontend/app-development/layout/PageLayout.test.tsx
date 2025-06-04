@@ -60,7 +60,7 @@ describe('PageLayout', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: textMock('version_alerts.unsupported_version_title'),
+        name: textMock('version_dialog.unsupported_version_title'),
         level: 2,
       }),
     ).toBeInTheDocument();
@@ -75,7 +75,7 @@ describe('PageLayout', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: textMock('version_alerts.outdated_version_title'),
+        name: textMock('version_dialog.outdated_version_title'),
         level: 2,
       }),
     ).toBeInTheDocument();
@@ -128,12 +128,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('version_alerts.unsupported_version_title'),
+          name: textMock('version_dialog.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
+        await screen.findByText(textMock('version_dialog.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -144,12 +144,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('version_alerts.unsupported_version_title'),
+          name: textMock('version_dialog.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
+        await screen.findByText(textMock('version_dialog.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -160,12 +160,12 @@ describe('PageLayout', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: textMock('version_alerts.unsupported_version_title'),
+          name: textMock('version_dialog.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
+        await screen.findByText(textMock('version_dialog.unsupported_version_content')),
       ).toBeInTheDocument();
     });
 
@@ -176,11 +176,11 @@ describe('PageLayout', () => {
 
       expect(
         screen.queryByRole('heading', {
-          name: textMock('version_alerts.unsupported_version_title'),
+          name: textMock('version_dialog.unsupported_version_title'),
         }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole(textMock('version_alerts.unsupported_version_content')),
+        screen.queryByRole(textMock('version_dialog.unsupported_version_content')),
       ).not.toBeInTheDocument();
     });
   });

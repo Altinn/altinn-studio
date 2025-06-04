@@ -40,8 +40,8 @@ export const VersionDialog = () => {
 
   if (isFrontendUnsupported || isBackendUnsupported) {
     return (
-      <Dialog title={t('version_alerts.unsupported_version_title')}>
-        {t('version_alerts.unsupported_version_content')}
+      <Dialog title={t('version_dialog.unsupported_version_title')}>
+        {t('version_dialog.unsupported_version_content')}
       </Dialog>
     );
   }
@@ -57,8 +57,8 @@ export const VersionDialog = () => {
 
   if (isFrontendOutdated || isBackendOutdated) {
     return (
-      <Dialog title={t('version_alerts.outdated_version_title')}>
-        {t('version_alerts.outdated_version_title_content')
+      <Dialog title={t('version_dialog.outdated_version_title')}>
+        {t('version_dialog.outdated_version_title_content')
           .split('\n')
           .map((tr) => (
             <StudioParagraph key={tr}>{tr}</StudioParagraph>
@@ -115,10 +115,10 @@ const Dialog = ({ title, children, className }: DialogProps) => {
               <StudioTable.Row>
                 <StudioTable.HeaderCell></StudioTable.HeaderCell>
                 <StudioTable.HeaderCell>
-                  {t('version_alerts.current_version')}
+                  {t('version_dialog.current_version')}
                 </StudioTable.HeaderCell>
                 <StudioTable.HeaderCell>
-                  {t('version_alerts.latest_version')}
+                  {t('version_dialog.latest_version')}
                 </StudioTable.HeaderCell>
                 <StudioTable.HeaderCell></StudioTable.HeaderCell>
               </StudioTable.Row>
@@ -130,7 +130,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                   <StudioTable.Cell>
                     {data?.frontendVersion
                       ? `v${data?.frontendVersion}`
-                      : t('version_alerts.unknown')}
+                      : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_FRONTEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
@@ -141,7 +141,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                           relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
                         })}
                       >
-                        {t('version_alerts.update_frontend', {
+                        {t('version_dialog.update_frontend', {
                           latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
                         })}
                       </StudioLink>
@@ -155,7 +155,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                   <StudioTable.Cell>
                     {data?.backendVersion
                       ? `v${data?.backendVersion}`
-                      : t('version_alerts.unknown')}
+                      : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_BACKEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
@@ -166,7 +166,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                           relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
                         })}
                       >
-                        {t('version_alerts.update_backend', {
+                        {t('version_dialog.update_backend', {
                           latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
                         })}
                       </StudioLink>

@@ -3,7 +3,6 @@ import { VersionDialog } from './VersionDialog';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   APP_DEVELOPMENT_BASENAME,
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
@@ -12,6 +11,8 @@ import {
 import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import userEvent from '@testing-library/user-event';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 describe('VersionDialog', () => {
   describe('Dialog', () => {
@@ -19,66 +20,62 @@ describe('VersionDialog', () => {
       jest.clearAllMocks();
     });
 
-    // it('renders title and text', async () => {
-    //   render();
-
-    //   expect(screen.getByRole('heading', { name: defaultTitle, level: 2 })).toBeInTheDocument();
-    //   expect(screen.getByText(defaultText)).toBeInTheDocument();
-    // });
-
-    it('renders frontend info when frontend is outdated', async () => {
+    it('renders frontend info when frontend is outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '8' }),
+        frontendVersion: '3',
+        backendVersion: '8',
       });
 
-      expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
+      expect(screen.getByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
       expect(
-        await screen.findByText(
-          textMock('version_alerts.update_frontend', {
+        screen.getByText(
+          textMock('version_dialog.update_frontend', {
             latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
           }),
         ),
       ).toBeInTheDocument();
-      expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).not.toBeInTheDocument();
-      expect(screen.queryByRole(textMock('version_alerts.update_backend'))).not.toBeInTheDocument();
+      expect(screen.queryByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).not.toBeInTheDocument();
+      expect(screen.queryByText(textMock('version_dialog.update_backend'))).not.toBeInTheDocument();
     });
 
-    it('renders backend info when backend is outdated', async () => {
+    it('renders backend info when backend is outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '7' }),
+        frontendVersion: '4',
+        backendVersion: '7',
       });
 
-      expect(screen.queryByRole(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).not.toBeInTheDocument();
+      expect(screen.queryByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).not.toBeInTheDocument();
       expect(
-        screen.queryByRole(textMock('version_alerts.update_frontend')),
+        screen.queryByText(textMock('version_dialog.update_frontend')),
       ).not.toBeInTheDocument();
-      expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
+      expect(screen.getByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
       expect(
-        await screen.findByText(
-          textMock('version_alerts.update_backend', {
+        screen.getByText(
+          textMock('version_dialog.update_backend', {
             latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
           }),
         ),
       ).toBeInTheDocument();
     });
 
-    it('renders dialog if both frontend and backend are outdated', async () => {
+    it('renders dialog if both frontend and backend are outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
+        frontendVersion: '3',
+        backendVersion: '7',
       });
 
-      expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
+      expect(screen.getByText(`v${MAXIMUM_SUPPORTED_FRONTEND_VERSION}`)).toBeInTheDocument();
       expect(
-        await screen.findByText(
-          textMock('version_alerts.update_frontend', {
+        screen.getByText(
+          textMock('version_dialog.update_frontend', {
             latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
           }),
         ),
       ).toBeInTheDocument();
-      expect(await screen.findByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
+      expect(screen.getByText(`v${MAXIMUM_SUPPORTED_BACKEND_VERSION}`)).toBeInTheDocument();
       expect(
-        await screen.findByText(
-          textMock('version_alerts.update_backend', {
+        screen.getByText(
+          textMock('version_dialog.update_backend', {
             latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
           }),
         ),
@@ -91,16 +88,16 @@ describe('VersionDialog', () => {
       jest.clearAllMocks();
     });
 
-    it('renders dialog', async () => {
+    it('renders dialog', () => {
       render();
       expect(
-        await screen.findByRole('heading', {
-          name: textMock('version_alerts.unsupported_version_title'),
+        screen.getByRole('heading', {
+          name: textMock('version_dialog.unsupported_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.unsupported_version_content')),
+        screen.getByText(textMock('version_dialog.unsupported_version_content')),
       ).toBeInTheDocument();
     });
   });
@@ -110,64 +107,68 @@ describe('VersionDialog', () => {
       jest.clearAllMocks();
     });
 
-    it('renders dialog if frontend is outdated', async () => {
+    it('renders dialog if frontend is outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '8' }),
+        frontendVersion: '3',
+        backendVersion: '8',
       });
 
       expect(
-        await screen.findByRole('heading', {
-          name: textMock('version_alerts.outdated_version_title'),
+        screen.getByRole('heading', {
+          name: textMock('version_dialog.outdated_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+        screen.getByText(textMock('version_dialog.outdated_version_title_content')),
       ).toBeInTheDocument();
     });
 
-    it('renders dialog if backend is outdated', async () => {
+    it('renders dialog if backend is outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '7' }),
+        frontendVersion: '4',
+        backendVersion: '7',
       });
 
       expect(
-        await screen.findByRole('heading', {
-          name: textMock('version_alerts.outdated_version_title'),
+        screen.getByRole('heading', {
+          name: textMock('version_dialog.outdated_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+        screen.getByText(textMock('version_dialog.outdated_version_title_content')),
       ).toBeInTheDocument();
     });
 
-    it('renders dialog if both frontend and backend are outdated', async () => {
+    it('renders dialog if both frontend and backend are outdated', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
+        frontendVersion: '3',
+        backendVersion: '7',
       });
 
       expect(
-        await screen.findByRole('heading', {
-          name: textMock('version_alerts.outdated_version_title'),
+        screen.getByRole('heading', {
+          name: textMock('version_dialog.outdated_version_title'),
           level: 2,
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(textMock('version_alerts.outdated_version_title_content')),
+        screen.getByText(textMock('version_dialog.outdated_version_title_content')),
       ).toBeInTheDocument();
     });
 
-    it('does not render dialog if no outdated version', async () => {
+    it('does not render dialog if no outdated version', () => {
       render({
-        getAppVersion: () => Promise.resolve({ frontendVersion: '4', backendVersion: '8' }),
+        frontendVersion: '4',
+        backendVersion: '8',
       });
 
       expect(
-        screen.queryByRole('heading', { name: textMock('version_alerts.outdated_version_title') }),
+        screen.queryByRole('heading', { name: textMock('version_dialog.outdated_version_title') }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole(textMock('version_alerts.outdated_version_title_content')),
+        screen.queryByText(textMock('version_dialog.outdated_version_title_content')),
       ).not.toBeInTheDocument();
     });
 
@@ -178,13 +179,14 @@ describe('VersionDialog', () => {
 
       it('should close popover and not set value in local storage when the "do show again" button is clicked', async () => {
         render({
-          getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
+          frontendVersion: '3',
+          backendVersion: '7',
         });
 
         const user = userEvent.setup();
 
         // Open popover
-        const closeButton = await screen.findByRole('button', { name: textMock('general.close') });
+        const closeButton = screen.getByRole('button', { name: textMock('general.close') });
         await user.click(closeButton);
 
         const popover = screen.getByText(textMock('session.reminder'));
@@ -201,13 +203,14 @@ describe('VersionDialog', () => {
 
       it('should close popover and set value in local storage when the "do not show again" is clicked', async () => {
         render({
-          getAppVersion: () => Promise.resolve({ frontendVersion: '3', backendVersion: '7' }),
+          frontendVersion: '3',
+          backendVersion: '7',
         });
 
         const user = userEvent.setup();
 
         // Open popover
-        const closeButton = await screen.findByRole('button', { name: textMock('general.close') });
+        const closeButton = screen.getByRole('button', { name: textMock('general.close') });
         await user.click(closeButton);
 
         const popover = screen.getByText(textMock('session.reminder'));
@@ -225,9 +228,21 @@ describe('VersionDialog', () => {
   });
 });
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
+const render = ({
+  frontendVersion,
+  backendVersion,
+}: {
+  frontendVersion?: string;
+  backendVersion?: string;
+} = {}) => {
+  const queryClientMock = createQueryClientMock();
+  queryClientMock.setQueryData([QueryKey.AppVersion, org, app], {
+    frontendVersion,
+    backendVersion,
+  });
+
   renderWithProviders(<VersionDialog />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${RoutePaths.UIEditor}`,
-    queries,
+    queryClient: queryClientMock,
   });
 };
