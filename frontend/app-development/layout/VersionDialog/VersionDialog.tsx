@@ -23,6 +23,7 @@ import classes from './VersionDialog.module.css';
 import cn from 'classnames';
 import { isBelowSupportedVersion } from './utils';
 import { VersionDialogRemindChoiceDialog } from './VersionDialogRemindChoiceDialog';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export const VersionDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -85,10 +86,13 @@ const Dialog = ({ title, children, className }: DialogProps) => {
   const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
 
-  const [hideVersionDialog, setHideVersionDialog] = useLocalStorage(
-    `studio:hideVersionDialog:${org}:${app}`,
-    false,
+  const [skippedUpdateVersions, setSkippedUpdateVersions] = useLocalStorage<AppVersion>(
+    `studio:skippedUpdateVersions:${org}:${app}`,
   );
+  var hideVersionDialog =
+    skippedUpdateVersions?.frontendVersion === data.frontendVersion &&
+    skippedUpdateVersions?.backendVersion === data.backendVersion;
+
   const [opened, setOpened] = useState(!hideVersionDialog);
 
   if (hideVersionDialog) {
@@ -108,7 +112,12 @@ const Dialog = ({ title, children, className }: DialogProps) => {
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
       <VersionDialogRemindChoiceDialog
         closeDialog={() => setOpened(false)}
-        closeDialogPermanently={() => setHideVersionDialog(true)}
+        closeDialogPermanently={() =>
+          setSkippedUpdateVersions({
+            frontendVersion: data.frontendVersion,
+            backendVersion: data.backendVersion,
+          })
+        }
       />
       <StudioDialog.Block className={classes.text}>
         <StudioAlert data-color='warning' className={cn(classes.alert, className)}>

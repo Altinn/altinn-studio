@@ -86,7 +86,10 @@ describe('VersionDialog', () => {
 
   describe('UnsupportedVersionDialog', () => {
     it('renders dialog', () => {
-      render();
+      render({
+        frontendVersion: '2',
+        backendVersion: '6',
+      });
       expect(
         screen.getByRole('heading', {
           name: textMock('version_dialog.unsupported_version_title'),
@@ -187,7 +190,9 @@ describe('VersionDialog', () => {
         // Click hide temporary button
         await user.click(hidePopoverTemporaryButton);
 
-        expect(window.localStorage.getItem(`studio:hideVersionDialog:${org}:${app}`)).toBeNull();
+        expect(
+          window.localStorage.getItem(`studio:skippedUpdateVersions:${org}:${app}`),
+        ).toBeNull();
       });
 
       it('should close popover and set value in local storage when the "do not show again" is clicked', async () => {
@@ -211,7 +216,9 @@ describe('VersionDialog', () => {
         // Click hide forever button
         await user.click(hidePopoverForSessionButton);
 
-        expect(window.localStorage.getItem(`studio:hideVersionDialog:${org}:${app}`)).toBe('true');
+        expect(window.localStorage.getItem(`studio:skippedUpdateVersions:${org}:${app}`)).toBe(
+          '{"frontendVersion":"3","backendVersion":"7"}',
+        );
       });
     });
   });
