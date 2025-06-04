@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import classes from './OutdatedVersionAlertRemindChoiceDialog.module.css';
+import classes from './VersionDialogRemindChoiceDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
 import cn from 'classnames';
 
-export type OutdatedVersionAlertRemindChoiceDialogProps = {
+export type VersionDialogRemindChoiceDialogProps = {
   closeDialog: () => void;
   closeDialogPermanently: () => void;
 };
 
-export const OutdatedVersionAlertRemindChoiceDialog = ({
+export const VersionDialogRemindChoiceDialog = ({
   closeDialog,
   closeDialogPermanently,
-}: OutdatedVersionAlertRemindChoiceDialogProps) => {
+}: VersionDialogRemindChoiceDialogProps) => {
   const { t } = useTranslation();
   const [opened, setOpened] = useState(false);
 

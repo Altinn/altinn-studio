@@ -1,4 +1,17 @@
+.dialog {
+  --dsc-alert-icon-color: var(--ds-color-text-subtle);
+
+  background-color: var(--ds-color-warning-surface-tinted);
+  border: 1px solid var(--ds-color-warning-border-default);
+  color: var(--ds-color-text-default);
+}
+
+.text {
+  padding: 0;
+}
+
 .alert {
+  border: unset;
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-6);

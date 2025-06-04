@@ -1,12 +1,7 @@
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
-import {
-  useAppVersionQuery,
-  useRepoMetadataQuery,
-  useRepoStatusQuery,
-  useUserQuery,
-} from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
@@ -18,15 +13,7 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import {
-  MINIMUM_SUPPORTED_BACKEND_VERSION,
-  MINIMUM_SUPPORTED_FRONTEND_VERSION,
-} from 'app-shared/constants';
-import { OutdatedVersionAlert } from './VersionAlerts/OutdatedVersionAlert';
-import { UnsupportedVersionAlert } from './VersionAlerts/UnsupportedVersionAlert';
-import { isBelowSupportedVersion } from './VersionAlerts/utils';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { useNavigateFrom } from './PageHeader/SubHeader/SettingsModalButton/useNavigateFrom';
+import { VersionDialog } from './VersionDialog/VersionDialog';
 
 /**
  * Displays the layout for the app development pages
@@ -76,9 +63,6 @@ type PagesToRenderProps = {
 };
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data } = useAppVersionQuery(org, app);
-
-  const { currentRoutePath } = useNavigateFrom();
 
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {
     return <NotFoundPage />;
@@ -87,22 +71,9 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
     return <MergeConflictWarning owner={org} repoName={app} />;
   }
 
-  const isFrontendUnsupported = isBelowSupportedVersion(
-    data?.frontendVersion,
-    MINIMUM_SUPPORTED_FRONTEND_VERSION,
-  );
-  const isBackendUnsupported = isBelowSupportedVersion(
-    data?.backendVersion,
-    MINIMUM_SUPPORTED_BACKEND_VERSION,
-  );
-
-  if (currentRoutePath !== RoutePaths.Deploy && (isFrontendUnsupported || isBackendUnsupported)) {
-    return <UnsupportedVersionAlert />;
-  }
-
   return (
     <>
-      <OutdatedVersionAlert />
+      <VersionDialog />
       <WebSocketSyncWrapper>
         <Outlet />
       </WebSocketSyncWrapper>

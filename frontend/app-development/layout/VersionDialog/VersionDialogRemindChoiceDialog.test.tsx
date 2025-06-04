@@ -1,22 +1,22 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { OutdatedVersionAlertRemindChoiceDialogProps } from './OutdatedVersionAlertRemindChoiceDialog';
-import { OutdatedVersionAlertRemindChoiceDialog } from './OutdatedVersionAlertRemindChoiceDialog';
+import type { VersionDialogRemindChoiceDialogProps } from './VersionDialogRemindChoiceDialog';
+import { VersionDialogRemindChoiceDialog } from './VersionDialogRemindChoiceDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const defaultProps: OutdatedVersionAlertRemindChoiceDialogProps = {
+const defaultProps: VersionDialogRemindChoiceDialogProps = {
   closeDialog: jest.fn(),
   closeDialogPermanently: jest.fn(),
 };
 
-describe('OutdatedVersionAlertRemindChoiceDialog', () => {
+describe('VersionDialogRemindChoiceDialog', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the component', async () => {
-    render(<OutdatedVersionAlertRemindChoiceDialog {...defaultProps} />);
+    render(<VersionDialogRemindChoiceDialog {...defaultProps} />);
 
     const user = userEvent.setup();
 

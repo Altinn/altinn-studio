@@ -8,7 +8,7 @@ import { useLayoutContext } from '../../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
-import { isBelowSupportedVersion } from 'app-development/layout/VersionAlerts/utils';
+import { isBelowSupportedVersion } from 'app-development/layout/VersionDialog/utils';
 
 export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
