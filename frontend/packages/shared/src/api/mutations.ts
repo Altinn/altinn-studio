@@ -197,7 +197,7 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 // Organisation library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
-export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string) => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
+export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
