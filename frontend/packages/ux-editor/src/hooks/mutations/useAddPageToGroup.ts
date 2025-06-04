@@ -14,8 +14,7 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
 
   const nextValidPageName = () => {
     const allPageNames = [
-      ...(pagesModel?.pages?.map((page) => page.id) || []),
-      ...(pagesModel?.groups?.flatMap((group) => group?.order?.map((page) => page.id) || []) || []),
+      ...pagesModel.groups.flatMap((group) => group.order?.map((page) => page.id)),
     ];
 
     let nextNum = allPageNames.length + 1;
@@ -31,7 +30,6 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
   const nextValidGroupName = () => {
     const pageGroupPrefix = t('ux_editor.page_group');
     let i: number = 1;
-    console.log('pagesModel.groups', pagesModel.groups);
     while (pagesModel.groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
       i++;
     }
@@ -40,8 +38,7 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
 
   const addPageToGroup = async (groupIndex: number) => {
     const page: PageModel = { id: nextValidPageName() };
-    const currentGroup = pagesModel?.groups[groupIndex];
-    console.log('currentGroup', currentGroup);
+    const currentGroup = pagesModel.groups[groupIndex];
     currentGroup.order.push(page);
     if (currentGroup.order.length > 1 && !currentGroup.name) {
       currentGroup.name = nextValidGroupName();
