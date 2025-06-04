@@ -11,7 +11,7 @@ import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { WithHoverAddButton } from '@altinn/ux-editor/components/WithHoverAddButton/WithHoverAddButton';
+import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
 
 export type FormItemProps = {
   layout: IInternalLayout;
