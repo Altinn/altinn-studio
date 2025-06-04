@@ -83,7 +83,11 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
 
   return (
     <StudioPopover.TriggerContext>
-      <StudioPopover.Trigger variant='tertiary' onClick={() => setIsOpen(!isOpen)}>
+      <StudioPopover.Trigger
+        variant='tertiary'
+        onClick={() => setIsOpen(!isOpen)}
+        data-testid='task-actions-menu'
+      >
         <MenuElipsisVerticalIcon />
       </StudioPopover.Trigger>
       <StudioPopover placement='right' open={isOpen} onClose={() => setIsOpen(false)}>
