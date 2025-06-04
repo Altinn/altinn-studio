@@ -144,6 +144,7 @@ namespace Designer.Tests.Mocks
             {
                 new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } },
                 new Team { Name = "Resources-Publish-TestEnv", Organization = new Organization { Username = "ttd" } },
+                new Team { Name = "Resources-Publish-TT02", Organization = new Organization { Username = "ttd" } },
                 new Team { Name = "AccessLists-TestEnv", Organization = new Organization { Username = "ttd" } }
             };
             return Task.FromResult(teamWithDeployAccess);

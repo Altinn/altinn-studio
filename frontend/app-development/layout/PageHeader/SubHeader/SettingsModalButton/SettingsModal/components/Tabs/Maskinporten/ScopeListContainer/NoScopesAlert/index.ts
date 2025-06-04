@@ -1,1 +1,0 @@
-export { NoScopesAlert } from './NoScopesAlert';

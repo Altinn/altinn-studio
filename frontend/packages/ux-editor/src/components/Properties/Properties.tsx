@@ -22,11 +22,11 @@ const PropertiesSelectedConfig = () => {
   const { t } = useTranslation();
   switch (selectedItem?.type) {
     case ItemType.Component:
-      return <ComponentConfigPanel />;
+      return <ComponentConfigPanel selectedItem={selectedItem} />;
     case ItemType.Page:
-      return <PageConfigPanel />;
+      return <PageConfigPanel selectedItem={selectedItem} />;
     case ItemType.Group:
-      return <GroupConfigPanel />;
+      return <GroupConfigPanel selectedItem={selectedItem} />;
     default:
       return (
         <StudioSectionHeader
