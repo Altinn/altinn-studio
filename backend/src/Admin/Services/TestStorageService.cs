@@ -23,7 +23,7 @@ class TestStorageService : IStorageService
         _tokenGeneratorService = tokenGeneratorService;
     }
 
-    public async Task<List<Instance>> GetInstances(string org, string env, string app)
+    public async Task<List<SimpleInstance>> GetInstances(string org, string env, string app)
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
         var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
@@ -51,8 +51,8 @@ class TestStorageService : IStorageService
             throw new Exception("Unexpeced response from storage");
         }
 
-        var instances = new List<Instance>();
-        instances.AddRange(queryResponse.Instances);
+        var instances = new List<SimpleInstance>();
+        instances.AddRange(queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)));
 
         while (!string.IsNullOrEmpty(queryResponse.Next))
         {
@@ -71,9 +71,40 @@ class TestStorageService : IStorageService
                 throw new Exception("Unexpeced response from storage");
             }
 
-            instances.AddRange(queryResponse.Instances);
+            instances.AddRange(queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)));
         }
 
         return instances;
+    }
+
+    public async Task<Instance> GetInstance(string org, string env, string instanceOwnerPartyId, string instanceId)
+    {
+        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
+        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
+
+        await Task.WhenAll(platformBaseUrlTask, tokenTask);
+
+        var platformBaseUrl = await platformBaseUrlTask;
+        var token = await tokenTask;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{platformBaseUrl}/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceId}"
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        string responseString = await response.Content.ReadAsStringAsync();
+        var instance =
+            JsonConvert.DeserializeObject<Instance>(responseString)
+            ?? throw new JsonException("Could not deserialize Instance response");
+
+        if (instance == null)
+        {
+            throw new Exception("Unexpeced response from storage");
+        }
+
+        return instance;
     }
 }
