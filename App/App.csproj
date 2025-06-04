@@ -5,10 +5,10 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.3-pr.1268.support-invariant-culture.e0d4717e">
+    <PackageReference Include="Altinn.App.Api" Version="8.7.0-preview.1">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.6.3-pr.1268.support-invariant-culture.e0d4717e" />
+    <PackageReference Include="Altinn.App.Core" Version="8.7.0-preview.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
