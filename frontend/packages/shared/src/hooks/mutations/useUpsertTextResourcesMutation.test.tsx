@@ -70,7 +70,7 @@ describe('useUpsertTextResourcesMutation', () => {
 
   it('Updates the cache optimistically', async () => {
     const queryClient = createQueryClientWithData();
-    const setQueryDataSpy = jest.spyOn(queryClient, 'setQueryData');
+    const setQueryDataSpy = jest.spyOn<QueryClient, 'setQueryData'>(queryClient, 'setQueryData');
     const { result } = renderUpsertTextResourcesMutation(queryClient);
     const newValue = 'Ny verdi';
     const payload: ITextResource[] = [{ id: text1Id, value: newValue }];
@@ -87,7 +87,10 @@ describe('useUpsertTextResourcesMutation', () => {
       ],
       [language2]: lang2TextResources,
     };
-    const [queryKey, updater] = setQueryDataSpy.mock.calls[0];
+    const [queryKey, updater] = setQueryDataSpy.mock.calls[0] as [
+      TanstackQueryKey,
+      (oldData: ITextResources) => ITextResources,
+    ];
     expect(queryKey).toEqual(key);
     expect(updater(oldData)).toEqual(expectedData); // We must retrieve the intermediate value this way since in the test, both onMutate and onSuccess callbacks fire during the same iteration of the event loop
   });
