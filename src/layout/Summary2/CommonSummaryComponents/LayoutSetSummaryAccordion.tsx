@@ -5,6 +5,7 @@ import { Accordion, Label } from '@digdir/designsystemet-react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/LayoutSetSummaryAccordion.module.css';
+import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 
 type LayoutSetAccordionSummaryProps = {
@@ -36,10 +37,12 @@ export function LayoutSetSummaryAccordion({ filteredPages }: LayoutSetAccordionS
               spacing={6}
               alignItems='flex-start'
             >
-              <PageSummary
-                pageId={layoutId}
-                key={layoutId}
-              />
+              <EmptyChildrenBoundary>
+                <PageSummary
+                  pageId={layoutId}
+                  key={layoutId}
+                />
+              </EmptyChildrenBoundary>
             </Flex>
           </Accordion.Content>
         </Accordion.Item>
