@@ -26,7 +26,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
-  ConsentResource: 'resourceadm.about_resource_resource_type_consentresource',
+  Consent: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
