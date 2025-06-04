@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
-using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Admin.Services;
@@ -25,9 +25,13 @@ class TestStorageService : IStorageService
 
     public async Task<List<Instance>> GetInstances(string org, string env, string app)
     {
-        var platformBaseUrl = await _cdnConfigService.GetPlatformBaseUrl(env);
+        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
+        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
 
-        var token = await _tokenGeneratorService.GetTestToken(org, env);
+        await Task.WhenAll(platformBaseUrlTask, tokenTask);
+
+        var platformBaseUrl = await platformBaseUrlTask;
+        var token = await tokenTask;
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,

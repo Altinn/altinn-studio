@@ -20,7 +20,9 @@ public class ApplicationsService : IApplicationsService
         var orgEnvironments = await _cdnConfigService.GetOrgEnvironments(org);
 
         var runningApplications = new Dictionary<string, RunningApplication>();
-        foreach (var env in orgEnvironments)
+        var appsLock = new object();
+
+        var tasks = orgEnvironments.Select(async env =>
         {
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(
@@ -31,7 +33,7 @@ public class ApplicationsService : IApplicationsService
             var deployments = await response.Content.ReadFromJsonAsync<List<Deployment>>();
             if (deployments == null)
             {
-                continue;
+                return;
             }
 
             var orgPrefix = $"{org}-";
@@ -43,15 +45,21 @@ public class ApplicationsService : IApplicationsService
                 }
 
                 var app = deployment.Release.Substring(orgPrefix.Length);
-                var application =
-                    runningApplications.GetValueOrDefault(deployment.Release)
-                    ?? new RunningApplication() { App = app, Org = org };
-                application.Environments.Add(env);
-                runningApplications[deployment.Release] = application;
+                lock (appsLock)
+                {
+                    var application =
+                        runningApplications.GetValueOrDefault(deployment.Release)
+                        ?? new RunningApplication() { App = app, Org = org };
+                    application.Environments.Add(env);
+                    application.Environments.Sort();
+                    runningApplications[deployment.Release] = application;
+                }
             }
-        }
+        });
 
-        return runningApplications.Values.ToList();
+        await Task.WhenAll(tasks);
+
+        return runningApplications.Values.OrderBy(a => a.App).ToList();
     }
 
     private class Deployment

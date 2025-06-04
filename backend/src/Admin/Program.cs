@@ -9,6 +9,7 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddUserSecrets<Program>();
 }
+
 // TODO: Add AltinnTestTools settings from keyvault in staging / prod.
 
 builder.Services.Configure<TestToolsTokenGeneratorSettings>(
