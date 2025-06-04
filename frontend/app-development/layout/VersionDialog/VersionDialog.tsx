@@ -147,7 +147,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                     <StudioLink
                       className={classes.linkButton}
                       href={altinnDocsUrl({
-                        relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
+                        relativeUrl: 'community/changelog/app-frontend/',
                       })}
                     >
                       {t('version_dialog.update_frontend', {
@@ -168,7 +168,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                     <StudioLink
                       className={classes.linkButton}
                       href={altinnDocsUrl({
-                        relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
+                        relativeUrl: 'community/changelog/app-nuget/',
                       })}
                     >
                       {t('version_dialog.update_backend', {
