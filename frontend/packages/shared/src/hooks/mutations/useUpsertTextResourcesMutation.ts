@@ -52,7 +52,7 @@ export const useUpsertTextResourcesMutation = (
         });
       }
       queryClient.setQueryData(
-        [QueryKey.TextResources, org, app],
+        queryKey,
         (oldTexts: ITextResources): ITextResources => updateEntireLanguage(oldTexts, response),
       );
     },

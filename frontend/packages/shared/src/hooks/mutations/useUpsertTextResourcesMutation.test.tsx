@@ -87,7 +87,7 @@ describe('useUpsertTextResourcesMutation', () => {
       ],
       [language2]: lang2TextResources,
     };
-    const [queryKey, updater] = retrieveSetQueryDataArgsFromFirstCall(setQueryDataSpy);
+    const [queryKey, updater] = setQueryDataSpy.mock.calls[0];
     expect(queryKey).toEqual(key);
     expect(updater(oldData)).toEqual(expectedData); // We must retrieve the intermediate value this way since in the test, both onMutate and onSuccess callbacks fire during the same iteration of the event loop
   });
@@ -135,7 +135,3 @@ function createQueryClientWithData(): QueryClient {
   queryClient.setQueryData<ITextResources>([QueryKey.TextResources, org, app], oldData);
   return queryClient;
 }
-
-const retrieveSetQueryDataArgsFromFirstCall = (
-  setQueryDataSpy: jest.SpyInstance,
-): [TanstackQueryKey, (oldData: ITextResources) => ITextResources] => setQueryDataSpy.mock.calls[0];
