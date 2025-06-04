@@ -127,7 +127,7 @@ public class PdfService : IPdfService
 
         string? footerContent = null;
 
-        if (isPreview == true)
+        if (isPreview)
         {
             footerContent = GetPreviewFooter(textResource);
         }
@@ -284,7 +284,8 @@ public class PdfService : IPdfService
         DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
 
         string title = GetTitleText(textResource) ?? "Altinn";
-        string dateGenerated = now.ToString("G", new CultureInfo("nb-NO"));
+
+        string dateGenerated = now.ToString("dd.MM.yyyy HH:mm", new CultureInfo("nb-NO"));
         string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
 
         string footerTemplate =
