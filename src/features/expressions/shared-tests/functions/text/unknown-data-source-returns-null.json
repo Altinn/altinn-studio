@@ -1,0 +1,20 @@
+{
+  "name": "DataSources not found return null",
+  "expression": [
+    "text",
+    "found.key"
+  ],
+  "textResources": [
+    {
+      "id": "found.key",
+      "value": "Value is {0}",
+      "variables": [
+        {
+          "key": "nonExistingdataSourceKey",
+          "dataSource": "nonExistingSource"
+        }
+      ]
+    }
+  ],
+  "expects": "Value is nonExistingdataSourceKey"
+}
