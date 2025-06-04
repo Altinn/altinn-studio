@@ -22,8 +22,8 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionDialog.module.css';
 import cn from 'classnames';
 import { isBelowSupportedVersion } from './utils';
-import { VersionDialogRemindChoiceDialog } from './VersionDialogRemindChoiceDialog';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import { RemindChoiceDialog } from 'app-shared/components/RemindChoiceDialog/RemindChoiceDialog';
 
 export const VersionDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -110,7 +110,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
 
   return (
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
-      <VersionDialogRemindChoiceDialog
+      <RemindChoiceDialog
         closeDialog={() => setOpened(false)}
         closeDialogPermanently={() =>
           setSkippedUpdateVersions({

@@ -13,7 +13,9 @@ describe('PreviewLimitationsInfo', () => {
     // Open popover
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     const alert = within(previewLimitationsAlert);
-    const hidePreviewLimitationsAlertButton = alert.getByRole('button');
+    const hidePreviewLimitationsAlertButton = alert.getByRole('button', {
+      name: textMock('general.close'),
+    });
     await user.click(hidePreviewLimitationsAlertButton);
     const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
     expect(hidePreviewLimitationsPopover).toBeInTheDocument();
@@ -36,7 +38,9 @@ describe('PreviewLimitationsInfo', () => {
     // Open popover
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     const alert = within(previewLimitationsAlert);
-    const hidePreviewLimitationsAlertButton = alert.getByRole('button');
+    const hidePreviewLimitationsAlertButton = alert.getByRole('button', {
+      name: textMock('general.close'),
+    });
     await user.click(hidePreviewLimitationsAlertButton);
     const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
     expect(hidePreviewLimitationsPopover).toBeInTheDocument();

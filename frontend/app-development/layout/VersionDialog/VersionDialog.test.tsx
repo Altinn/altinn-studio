@@ -17,7 +17,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 describe('VersionDialog', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    +window.localStorage.clear();
+    window.localStorage.clear();
   });
 
   describe('Dialog', () => {
@@ -168,7 +168,7 @@ describe('VersionDialog', () => {
       ).not.toBeInTheDocument();
     });
 
-    describe('OutdatedVersionRemindChoiceDialog', () => {
+    describe('RemindChoiceDialog', () => {
       it('should close popover and not set value in local storage when the "do show again" button is clicked', async () => {
         render({
           frontendVersion: '3',
