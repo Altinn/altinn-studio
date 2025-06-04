@@ -15,12 +15,17 @@ const currentName = 'konnichiwa';
 const newName = 'shalom';
 const textResourceId = 'textresource-id';
 const lang = 'nb';
+const textResorceId2 = 'textresource-id-2';
 
 const textResources: ITextResources = {
   nb: [
     {
       id: textResourceId,
       value: currentName,
+    },
+    {
+      id: textResorceId2,
+      value: newName,
     },
   ],
 };
@@ -53,6 +58,43 @@ describe('EditNameAction', () => {
     expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, lang, {
       'textresource-id': newName,
     });
+  });
+
+  it('should set the new text resource id and value when selecting a different text resource id', async () => {
+    const user = userEvent.setup();
+    renderEditNameAction();
+
+    await clickEditNameButton();
+
+    const textResourcesTab = screen.getByRole('tab', {
+      name: textMock('ux_editor.text_resource_binding_search'),
+    });
+    await user.click(textResourcesTab);
+
+    const combobox = screen.getByRole('combobox');
+    const textResorceId2Option = screen.getByRole('option', {
+      name: textResorceId2,
+    });
+    await user.selectOptions(combobox, textResorceId2Option);
+
+    const textInputTab = screen.getByRole('tab', {
+      name: textMock('ux_editor.text_resource_binding_write'),
+    });
+    await user.click(textInputTab);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveValue(newName);
+  });
+
+  it('should close the modal when clicking the cancel button', async () => {
+    const user = userEvent.setup();
+    renderEditNameAction();
+
+    await clickEditNameButton();
+    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    await user.click(cancelButton);
+
+    const textarea = screen.queryByRole('textbox');
+    expect(textarea).not.toBeInTheDocument();
   });
 });
 
