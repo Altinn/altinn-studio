@@ -93,7 +93,7 @@ const TaskRow = ({ task, tasks, index, isNavigationMode }: TaskRowProps): ReactE
           {t(taskNavigationName)}
         </StudioTable.Cell>
       )}
-      <StudioTable.Cell>{pageCount}</StudioTable.Cell>
+      <StudioTable.Cell className={classes.taskPageCountCell}>{pageCount}</StudioTable.Cell>
       <StudioTable.Cell>
         <TaskAction isNavigationMode={isNavigationMode} task={task} tasks={tasks} index={index} />
       </StudioTable.Cell>
