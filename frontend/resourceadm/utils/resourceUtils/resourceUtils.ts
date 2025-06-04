@@ -385,7 +385,7 @@ export const validateResource = (
   }
 
   // validate consentTemplate
-  if (resourceData.resourceType === 'ConsentResource') {
+  if (resourceData.resourceType === 'Consent') {
     if (!resourceData.consentTemplate) {
       errors.push({
         field: 'consentTemplate',

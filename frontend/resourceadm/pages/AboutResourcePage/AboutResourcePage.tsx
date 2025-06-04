@@ -68,7 +68,7 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) =>
-      key === 'ConsentResource' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
+      key === 'Consent' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
     )
     .map(([key, value]) => ({
       value: key,
@@ -185,7 +185,7 @@ export const AboutResourcePage = ({
           required
           errors={validationErrors.filter((error) => error.field === 'description')}
         />
-        {resourceData.resourceType === 'ConsentResource' && (
+        {resourceData.resourceType === 'Consent' && (
           <>
             <ResourceRadioGroup
               id='consentTemplate'
@@ -370,7 +370,7 @@ export const AboutResourcePage = ({
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        {resourceData.resourceType !== 'ConsentResource' && (
+        {resourceData.resourceType !== 'Consent' && (
           <ResourceSwitchInput
             id='accessListMode'
             label={t('resourceadm.about_resource_limited_by_rrr_label')}
