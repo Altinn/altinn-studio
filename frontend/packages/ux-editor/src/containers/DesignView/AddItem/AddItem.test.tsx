@@ -10,42 +10,21 @@ import type { IInternalLayout } from '../../../types/global';
 describe('AddItem', () => {
   it('should render AddItem', () => {
     renderAddItem();
-    expect(
-      screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') }),
-    ).toBeInTheDocument();
+    expect(getAddComponentButton()).toBeInTheDocument();
   });
 
   it('clicking add component should show default components', async () => {
     const user = userEvent.setup();
     renderAddItem();
-    const addButton = screen.getByRole('button', {
-      name: textMock('ux_editor.add_item.add_component'),
-    });
-    await user.click(addButton);
-    expect(
-      await screen.findByText(textMock('ux_editor.add_item.select_component_header')),
-    ).toBeInTheDocument();
+    await user.click(getAddComponentButton());
+    expect(getSelectComponentHeader()).toBeInTheDocument();
   });
 });
 
 describe('InlineItemAdder', () => {
-  it('should render InlineItemAdder with button', () => {
+  it('should render InlineItemAdder', () => {
     renderInlineItemAdder();
-    expect(
-      screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') }),
-    ).toBeInTheDocument();
-  });
-
-  it('clicking add button should open component selection for inline adder', async () => {
-    const user = userEvent.setup();
-    renderInlineItemAdder();
-    const addButton = screen.getByRole('button', {
-      name: textMock('ux_editor.add_item.add_component'),
-    });
-    await user.click(addButton);
-    expect(
-      await screen.findByText(textMock('ux_editor.add_item.select_component_header')),
-    ).toBeInTheDocument();
+    expect(getSelectComponentHeader()).toBeInTheDocument();
   });
 });
 
@@ -86,3 +65,11 @@ const renderInlineItemAdder = (props: Partial<InlineItemAdderProps> = {}) => {
     <InlineItemAdder {...createDefaultInlineItemAdderProps()} {...props} />,
   );
 };
+
+function getAddComponentButton(): HTMLButtonElement {
+  return screen.getByRole('button', { name: textMock('ux_editor.add_item.add_component') });
+}
+
+function getSelectComponentHeader(): HTMLHeadingElement {
+  return screen.getByText(textMock('ux_editor.add_item.select_component_header'));
+}
