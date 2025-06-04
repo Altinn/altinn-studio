@@ -21,9 +21,9 @@ import {
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './VersionDialog.module.css';
 import cn from 'classnames';
-import { isBelowSupportedVersion } from './utils';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { RemindChoiceDialog } from 'app-shared/components/RemindChoiceDialog/RemindChoiceDialog';
+import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 
 export const VersionDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -98,11 +98,11 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
     return;
   }
 
-  const isFrontendOutdated = isBelowSupportedVersion(
+  const isFrontendVersionOutdated = isBelowSupportedVersion(
     frontendVersion,
     MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   );
-  const isBackendOutdated = isBelowSupportedVersion(
+  const isBackendVersionOutdated = isBelowSupportedVersion(
     backendVersion,
     MAXIMUM_SUPPORTED_BACKEND_VERSION,
   );
@@ -136,7 +136,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
               </StudioTable.Row>
             </StudioTable.Head>
             <StudioTable.Body>
-              {isFrontendOutdated && (
+              {isFrontendVersionOutdated && (
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
@@ -157,7 +157,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                   </StudioTable.Cell>
                 </StudioTable.Row>
               )}
-              {isBackendOutdated && (
+              {isBackendVersionOutdated && (
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
