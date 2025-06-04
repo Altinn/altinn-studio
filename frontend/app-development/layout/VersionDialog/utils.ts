@@ -1,2 +1,6 @@
-export const isBelowSupportedVersion = (currentVersion: string, supportedVersion: string) =>
-  currentVersion ? currentVersion.slice(0, supportedVersion.length) < supportedVersion : true;
+export const isBelowSupportedVersion = (currentVersion: string, supportedVersion: number) => {
+  if (!currentVersion) return true;
+
+  var majorVersion = parseInt(currentVersion.split('.')[0]);
+  return majorVersion < supportedVersion;
+};

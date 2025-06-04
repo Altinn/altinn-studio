@@ -29,12 +29,16 @@ export const VersionDialog = () => {
   const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
 
+  if (!data) {
+    return;
+  }
+
   const isFrontendUnsupported = isBelowSupportedVersion(
-    data?.frontendVersion,
+    data.frontendVersion,
     MINIMUM_SUPPORTED_FRONTEND_VERSION,
   );
   const isBackendUnsupported = isBelowSupportedVersion(
-    data?.backendVersion,
+    data.backendVersion,
     MINIMUM_SUPPORTED_BACKEND_VERSION,
   );
 
@@ -47,11 +51,11 @@ export const VersionDialog = () => {
   }
 
   const isFrontendOutdated = isBelowSupportedVersion(
-    data?.frontendVersion,
+    data.frontendVersion,
     MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   );
   const isBackendOutdated = isBelowSupportedVersion(
-    data?.backendVersion,
+    data.backendVersion,
     MAXIMUM_SUPPORTED_BACKEND_VERSION,
   );
 
@@ -67,7 +71,7 @@ export const VersionDialog = () => {
     );
   }
 
-  return null;
+  return;
 };
 
 type DialogProps = {
@@ -92,11 +96,11 @@ const Dialog = ({ title, children, className }: DialogProps) => {
   }
 
   const isFrontendOutdated = isBelowSupportedVersion(
-    data?.frontendVersion,
+    data.frontendVersion,
     MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   );
   const isBackendOutdated = isBelowSupportedVersion(
-    data?.backendVersion,
+    data.backendVersion,
     MAXIMUM_SUPPORTED_BACKEND_VERSION,
   );
 
@@ -128,24 +132,22 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
-                    {data?.frontendVersion
-                      ? `v${data?.frontendVersion}`
+                    {data.frontendVersion
+                      ? `v${data.frontendVersion}`
                       : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_FRONTEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
-                    {isFrontendOutdated && (
-                      <StudioLink
-                        className={classes.linkButton}
-                        href={altinnDocsUrl({
-                          relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
-                        })}
-                      >
-                        {t('version_dialog.update_frontend', {
-                          latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
-                        })}
-                      </StudioLink>
-                    )}
+                    <StudioLink
+                      className={classes.linkButton}
+                      href={altinnDocsUrl({
+                        relativeUrl: 'community/changelog/app-frontend/v4/migrating-from-v3/',
+                      })}
+                    >
+                      {t('version_dialog.update_frontend', {
+                        latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+                      })}
+                    </StudioLink>
                   </StudioTable.Cell>
                 </StudioTable.Row>
               )}
@@ -153,24 +155,20 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
-                    {data?.backendVersion
-                      ? `v${data?.backendVersion}`
-                      : t('version_dialog.unknown')}
+                    {data.backendVersion ? `v${data.backendVersion}` : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_BACKEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
-                    {isBackendOutdated && (
-                      <StudioLink
-                        className={classes.linkButton}
-                        href={altinnDocsUrl({
-                          relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
-                        })}
-                      >
-                        {t('version_dialog.update_backend', {
-                          latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
-                        })}
-                      </StudioLink>
-                    )}
+                    <StudioLink
+                      className={classes.linkButton}
+                      href={altinnDocsUrl({
+                        relativeUrl: 'community/changelog/app-nuget/v8/migrating-from-v7/',
+                      })}
+                    >
+                      {t('version_dialog.update_backend', {
+                        latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
+                      })}
+                    </StudioLink>
                   </StudioTable.Cell>
                 </StudioTable.Row>
               )}

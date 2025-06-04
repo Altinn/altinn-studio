@@ -15,11 +15,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 describe('VersionDialog', () => {
-  describe('Dialog', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
+  afterEach(() => {
+    jest.clearAllMocks();
+    +window.localStorage.clear();
+  });
 
+  describe('Dialog', () => {
     it('renders frontend info when frontend is outdated', () => {
       render({
         frontendVersion: '3',
@@ -84,10 +85,6 @@ describe('VersionDialog', () => {
   });
 
   describe('UnsupportedVersionDialog', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('renders dialog', () => {
       render();
       expect(
@@ -103,10 +100,6 @@ describe('VersionDialog', () => {
   });
 
   describe('OutdatedVersionDialog', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('renders dialog if frontend is outdated', () => {
       render({
         frontendVersion: '3',
@@ -173,10 +166,6 @@ describe('VersionDialog', () => {
     });
 
     describe('OutdatedVersionRemindChoiceDialog', () => {
-      afterEach(() => {
-        jest.clearAllMocks();
-      });
-
       it('should close popover and not set value in local storage when the "do show again" button is clicked', async () => {
         render({
           frontendVersion: '3',
