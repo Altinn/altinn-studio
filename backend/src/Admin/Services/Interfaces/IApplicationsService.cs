@@ -1,6 +1,6 @@
-using Admin.Models;
+using Altinn.Studio.Admin.Models;
 
-namespace Admin.Services.Interfaces;
+namespace Altinn.Studio.Admin.Services.Interfaces;
 
 public interface IApplicationsService
 {

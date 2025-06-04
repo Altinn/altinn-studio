@@ -1,6 +1,6 @@
-using Admin.Configuration;
-using Admin.Services;
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Configuration;
+using Altinn.Studio.Admin.Services;
+using Altinn.Studio.Admin.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

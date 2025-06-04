@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using Admin.Models;
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Models;
+using Altinn.Studio.Admin.Services.Interfaces;
 
-namespace Admin.Services;
+namespace Altinn.Studio.Admin.Services;
 
 public class ApplicationsService : IApplicationsService
 {

@@ -1,8 +1,8 @@
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Services.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Admin.Controllers;
+namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
 [Route("[controller]")]

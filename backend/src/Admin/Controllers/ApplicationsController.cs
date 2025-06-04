@@ -1,19 +1,19 @@
-using Admin.Models;
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Models;
+using Altinn.Studio.Admin.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Admin.Controllers;
+namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class ApplicationsController : ControllerBase
 {
     private readonly IApplicationsService _applicationsService;
-    private readonly ILogger<InstancesController> _logger;
+    private readonly ILogger<ApplicationsController> _logger;
 
     public ApplicationsController(
         IApplicationsService applicationsService,
-        ILogger<InstancesController> logger
+        ILogger<ApplicationsController> logger
     )
     {
         _applicationsService = applicationsService;

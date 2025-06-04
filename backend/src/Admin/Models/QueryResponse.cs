@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Admin.Models;
+namespace Altinn.Studio.Admin.Models;
 
 /// <summary>
 /// Query response object

@@ -1,10 +1,10 @@
 using System.Net.Http.Headers;
-using Admin.Models;
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Models;
+using Altinn.Studio.Admin.Services.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Admin.Services;
+namespace Altinn.Studio.Admin.Services;
 
 class TestStorageService : IStorageService
 {

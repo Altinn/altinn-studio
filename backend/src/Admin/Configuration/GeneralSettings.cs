@@ -1,4 +1,4 @@
-namespace Admin.Configuration;
+namespace Altinn.Studio.Admin.Configuration;
 
 public class GeneralSettings
 {

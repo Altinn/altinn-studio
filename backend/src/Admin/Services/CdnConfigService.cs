@@ -1,10 +1,10 @@
 using System.Text.Json.Serialization;
-using Admin.Configuration;
-using Admin.Services.Interfaces;
+using Altinn.Studio.Admin.Configuration;
+using Altinn.Studio.Admin.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace Admin.Services;
+namespace Altinn.Studio.Admin.Services;
 
 class CdnConfigService : ICdnConfigService
 {

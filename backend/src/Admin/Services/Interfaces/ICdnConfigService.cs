@@ -1,4 +1,4 @@
-namespace Admin.Services.Interfaces;
+namespace Altinn.Studio.Admin.Services.Interfaces;
 
 public interface ICdnConfigService
 {

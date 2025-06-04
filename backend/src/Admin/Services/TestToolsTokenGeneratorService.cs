@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Text;
-using Admin.Configuration;
+using Altinn.Studio.Admin.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace Admin.Services;
+namespace Altinn.Studio.Admin.Services;
 
 public class TestToolsTokenGeneratorService
 {
