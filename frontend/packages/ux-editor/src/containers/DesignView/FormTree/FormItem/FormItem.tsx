@@ -28,6 +28,7 @@ export const FormItem = ({
   duplicateComponents,
   containerId,
 }: FormItemProps): ReactElement => {
+  const { t } = useTranslation();
   const formItem = getItem(layout, id);
   if (!formItem) {
     return <UnknownReferencedItem id={id} layout={layout} />;
@@ -41,7 +42,7 @@ export const FormItem = ({
         layout={layout}
         saveAtIndexPosition={saveAtIndexPosition}
         containerId={containerId || BASE_CONTAINER_ID}
-        title='Ny komponent'
+        title={t('ux_editor.add_item.new_component')}
       >
         <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />
       </WithHoverAddButton>
