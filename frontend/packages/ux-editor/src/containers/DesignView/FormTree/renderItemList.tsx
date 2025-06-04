@@ -22,6 +22,8 @@ export const renderItemList = (
           saveAtIndexPosition={getSavePositionByIndex(index)}
         />
       ))}
+      {/* Spacer component to make space for the HoverAddButton in containers*/}
+      <Spacer />
     </>
   ) : null;
 };
@@ -48,6 +50,10 @@ export const renderItemListWithAddItemButton = (
     </>
   );
 };
+
+function Spacer(): ReactElement {
+  return <div style={{ height: 30, width: '100%' }}></div>;
+}
 
 function getSavePositionByIndex(index: number): number {
   const positionOffset = 1;

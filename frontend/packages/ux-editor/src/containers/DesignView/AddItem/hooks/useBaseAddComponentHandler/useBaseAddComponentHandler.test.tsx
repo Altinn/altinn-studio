@@ -5,6 +5,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { useFormItemContext } from '../../../../FormItemContext';
 
 jest.mock('app-development/contexts/PreviewContext');
 jest.mock('../../../../../hooks', () => ({
@@ -60,14 +62,14 @@ function renderUseAddComponentHandler(layout: IInternalLayout) {
 
 function mockFormItemContext() {
   const handleEditMock = jest.fn();
-  const { useFormItemContext } = require('../../../../FormItemContext');
-  useFormItemContext.mockReturnValue({ handleEdit: handleEditMock });
+
+  (useFormItemContext as jest.Mock).mockReturnValue({ handleEdit: handleEditMock });
   return handleEditMock;
 }
 
 function mockPreviewContext() {
   const doReloadPreviewMock = jest.fn();
-  const { usePreviewContext } = require('app-development/contexts/PreviewContext');
-  usePreviewContext.mockReturnValue({ doReloadPreview: doReloadPreviewMock });
+
+  (usePreviewContext as jest.Mock).mockReturnValue({ doReloadPreview: doReloadPreviewMock });
   return doReloadPreviewMock;
 }

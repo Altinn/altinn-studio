@@ -4,6 +4,7 @@ import { layoutMock } from '../../../../../testing/layoutMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useAddComponentHandlerWithCallback } from './useAddComponentHandlerWithCallback';
+import { useBaseAddComponentHandler } from '../useBaseAddComponentHandler/useBaseAddComponentHandler';
 
 jest.mock('../useBaseAddComponentHandler/useBaseAddComponentHandler', () => ({
   useBaseAddComponentHandler: jest.fn(),
@@ -20,10 +21,7 @@ describe('useAddComponentHandlerWithCallback', () => {
   it('should call baseAddItem with correct arguments and callback)', () => {
     const mockBaseAddItem = jest.fn();
     const callbackMock = jest.fn();
-    const {
-      useBaseAddComponentHandler,
-    } = require('../useBaseAddComponentHandler/useBaseAddComponentHandler');
-    useBaseAddComponentHandler.mockReturnValue({ addItem: mockBaseAddItem });
+    (useBaseAddComponentHandler as jest.Mock).mockReturnValue({ addItem: mockBaseAddItem });
 
     const { addItem } = renderUseAddComponentHandlerWithCallback(layoutMock, callbackMock);
     addItem(...mockedItemToAdd);

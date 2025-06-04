@@ -4,6 +4,7 @@ import type { IInternalLayout } from '../../../../../types/global';
 import { layoutMock } from '../../../../../testing/layoutMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { useBaseAddComponentHandler } from '../useBaseAddComponentHandler/useBaseAddComponentHandler';
 
 jest.mock('../useBaseAddComponentHandler/useBaseAddComponentHandler', () => ({
   useBaseAddComponentHandler: jest.fn(),
@@ -19,10 +20,7 @@ const mockedItemToAdd: [ComponentType, string, number, string] = [
 describe('useAddComponentHandlerSilent', () => {
   it('should call baseAddItem with correct arguments and an empty callback (silent)', () => {
     const mockBaseAddItem = jest.fn();
-    const {
-      useBaseAddComponentHandler,
-    } = require('../useBaseAddComponentHandler/useBaseAddComponentHandler');
-    useBaseAddComponentHandler.mockReturnValue({ addItem: mockBaseAddItem });
+    (useBaseAddComponentHandler as jest.Mock).mockReturnValue({ addItem: mockBaseAddItem });
 
     const { addItem } = renderUseAddComponentHandlerSilent(layoutMock);
     addItem(...mockedItemToAdd);
