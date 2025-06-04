@@ -34,35 +34,33 @@ export const VersionDialog = () => {
     return;
   }
 
-  const isFrontendUnsupported = isBelowSupportedVersion(
-    data.frontendVersion,
-    MINIMUM_SUPPORTED_FRONTEND_VERSION,
-  );
-  const isBackendUnsupported = isBelowSupportedVersion(
-    data.backendVersion,
-    MINIMUM_SUPPORTED_BACKEND_VERSION,
-  );
+  const isUnsupported =
+    isBelowSupportedVersion(data.frontendVersion, MINIMUM_SUPPORTED_FRONTEND_VERSION) ||
+    isBelowSupportedVersion(data.backendVersion, MINIMUM_SUPPORTED_BACKEND_VERSION);
 
-  if (isFrontendUnsupported || isBackendUnsupported) {
+  if (isUnsupported) {
     return (
-      <Dialog title={t('version_dialog.unsupported_version_title')}>
+      <Dialog
+        title={t('version_dialog.unsupported_version_title')}
+        frontendVersion={data.frontendVersion}
+        backendVersion={data.backendVersion}
+      >
         {t('version_dialog.unsupported_version_content')}
       </Dialog>
     );
   }
 
-  const isFrontendOutdated = isBelowSupportedVersion(
-    data.frontendVersion,
-    MAXIMUM_SUPPORTED_FRONTEND_VERSION,
-  );
-  const isBackendOutdated = isBelowSupportedVersion(
-    data.backendVersion,
-    MAXIMUM_SUPPORTED_BACKEND_VERSION,
-  );
+  const isOutdated =
+    isBelowSupportedVersion(data.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION) ||
+    isBelowSupportedVersion(data.backendVersion, MAXIMUM_SUPPORTED_BACKEND_VERSION);
 
-  if (isFrontendOutdated || isBackendOutdated) {
+  if (isOutdated) {
     return (
-      <Dialog title={t('version_dialog.outdated_version_title')}>
+      <Dialog
+        title={t('version_dialog.outdated_version_title')}
+        frontendVersion={data.frontendVersion}
+        backendVersion={data.backendVersion}
+      >
         {t('version_dialog.outdated_version_title_content')
           .split('\n')
           .map((tr) => (
@@ -78,20 +76,21 @@ export const VersionDialog = () => {
 type DialogProps = {
   title: string;
   children: ReactNode;
+  frontendVersion: string;
+  backendVersion: string;
   className?: string;
 };
 
-const Dialog = ({ title, children, className }: DialogProps) => {
+const Dialog = ({ title, children, frontendVersion, backendVersion, className }: DialogProps) => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data } = useAppVersionQuery(org, app);
   const { t } = useTranslation();
 
   const [skippedUpdateVersions, setSkippedUpdateVersions] = useLocalStorage<AppVersion>(
     `studio:skippedUpdateVersions:${org}:${app}`,
   );
   var hideVersionDialog =
-    skippedUpdateVersions?.frontendVersion === data.frontendVersion &&
-    skippedUpdateVersions?.backendVersion === data.backendVersion;
+    skippedUpdateVersions?.frontendVersion === frontendVersion &&
+    skippedUpdateVersions?.backendVersion === backendVersion;
 
   const [opened, setOpened] = useState(!hideVersionDialog);
 
@@ -100,11 +99,11 @@ const Dialog = ({ title, children, className }: DialogProps) => {
   }
 
   const isFrontendOutdated = isBelowSupportedVersion(
-    data.frontendVersion,
+    frontendVersion,
     MAXIMUM_SUPPORTED_FRONTEND_VERSION,
   );
   const isBackendOutdated = isBelowSupportedVersion(
-    data.backendVersion,
+    backendVersion,
     MAXIMUM_SUPPORTED_BACKEND_VERSION,
   );
 
@@ -114,8 +113,8 @@ const Dialog = ({ title, children, className }: DialogProps) => {
         closeDialog={() => setOpened(false)}
         closeDialogPermanently={() =>
           setSkippedUpdateVersions({
-            frontendVersion: data.frontendVersion,
-            backendVersion: data.backendVersion,
+            frontendVersion,
+            backendVersion,
           })
         }
       />
@@ -141,9 +140,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
-                    {data.frontendVersion
-                      ? `v${data.frontendVersion}`
-                      : t('version_dialog.unknown')}
+                    {frontendVersion ? `v${frontendVersion}` : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_FRONTEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
@@ -164,7 +161,7 @@ const Dialog = ({ title, children, className }: DialogProps) => {
                 <StudioTable.Row>
                   <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
                   <StudioTable.Cell>
-                    {data.backendVersion ? `v${data.backendVersion}` : t('version_dialog.unknown')}
+                    {backendVersion ? `v${backendVersion}` : t('version_dialog.unknown')}
                   </StudioTable.Cell>
                   <StudioTable.Cell>v{MAXIMUM_SUPPORTED_BACKEND_VERSION}</StudioTable.Cell>
                   <StudioTable.Cell>
