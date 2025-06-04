@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WithHoverAddButton, type WithHoverAddButtonProps } from './WithHoverAddButton';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const defaultProps: Omit<WithHoverAddButtonProps, 'children'> = {
