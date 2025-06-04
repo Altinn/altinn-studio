@@ -11,6 +11,8 @@ export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 
   const dataModelBindings = ctx.item.dataModelBindings ?? {};
   const groupBinding = dataModelBindings?.group;
   const simpleBinding = dataModelBindings?.simpleBinding;
+  const labelBinding = dataModelBindings?.label;
+  const metadataBinding = dataModelBindings?.metadata;
 
   if (groupBinding) {
     const [groupErrors] = def.validateDataModelBindingsAny(ctx, 'group', ['array'], false);
@@ -19,6 +21,13 @@ export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 
     if (!simpleBinding.field.startsWith(`${groupBinding.field}.`)) {
       errors.push(`simpleBinding must start with the group binding field (must point to a property inside the group)`);
     }
+    if (labelBinding && !labelBinding.field.startsWith(`${groupBinding.field}.`)) {
+      errors.push(`label must start with the group binding field (must point to a property inside the group)`);
+    }
+    if (metadataBinding) {
+      errors.push(`Metadata is not supported when using group`);
+    }
+
     const simpleBindingsWithoutGroup = simpleBinding.field.replace(`${groupBinding.field}.`, '');
     const fieldWithIndex = `${groupBinding.field}[0].${simpleBindingsWithoutGroup}`;
     const [schema, err] = ctx.lookupBinding({

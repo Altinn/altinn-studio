@@ -6,14 +6,17 @@ import { EffectPreselectedOptionIndex } from 'src/features/options/effects/Effec
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
 import { EffectSetDownstreamParameters } from 'src/features/options/effects/EffectSetDownstreamParameters';
 import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel';
+import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorCondition, StageFetchOptions } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
+import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
+import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface GeneratorOptionProps {
@@ -36,7 +39,9 @@ function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionPr
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
-
+  const groupBindings = item.dataModelBindings as
+    | IDataModelBindingsForGroupCheckbox
+    | IDataModelBindingsForGroupMultiselect;
   const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ node, item });
   const { options, preselectedOption } = useFilteredAndSortedOptions({
     unsorted,
@@ -83,7 +88,10 @@ function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionPr
       {downstreamParameters && dataModelBindings && dataModelBindings.metadata ? (
         <EffectSetDownstreamParameters downstreamParameters={downstreamParameters} />
       ) : null}
-      {dataModelBindings && dataModelBindings.label ? (
+      {dataModelBindings && dataModelBindings.label && !!groupBindings.group ? (
+        <EffectStoreLabelInGroup options={options} />
+      ) : null}
+      {dataModelBindings && dataModelBindings.label && !groupBindings.group ? (
         <EffectStoreLabel
           valueType={valueType}
           options={options}

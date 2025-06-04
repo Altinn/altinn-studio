@@ -145,11 +145,19 @@ describe('Checkboxes component', () => {
     cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
     cy.get(repGroup).findAllByRole('cell', { name: '20' }).should('not.exist');
   });
-  it('Adds and removes data properly when using group and soft deletion and Number', () => {
+  it('Adds and removes data properly when using group and soft deletion, Number and label', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.interceptLayout('ComponentLayouts', (component) => {
       if (component.type === 'Checkboxes') {
         component.optionsId = 'personsNumber';
+        component.dataModelBindings.simpleBinding = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.id',
+        };
+        component.dataModelBindings.label = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.firstname',
+        };
       }
     });
 
@@ -164,10 +172,6 @@ describe('Checkboxes component', () => {
     const checkboxText3 = 'Johanne';
     const checkboxText4 = 'Kari';
     const checkboxText5 = 'Petter';
-
-    const checkboxValue1 = '1';
-    const checkboxValue2 = '2';
-    const checkboxValue3 = '3';
 
     //Check options in checkboxes component
     cy.get(checkboxes).contains('label', checkboxText1).prev('input[type="checkbox"]').click();
@@ -189,10 +193,10 @@ describe('Checkboxes component', () => {
     cy.get(checkboxes).contains('label', checkboxText4).prev('input[type="checkbox"]').should('not.be.checked');
     cy.get(checkboxes).contains('label', checkboxText5).prev('input[type="checkbox"]').should('not.be.checked');
 
-    //Validate that the corresponding options in checkboxes is available in RepeatingGroup
-    cy.get(repGroup).findByRole('cell', { name: checkboxValue1 }).should('exist');
-    cy.get(repGroup).findByRole('cell', { name: checkboxValue2 }).should('exist');
-    cy.get(repGroup).findByRole('cell', { name: checkboxValue3 }).should('exist');
+    //Validate that the corresponding options in checkboxes is available in RepeatingGroup and that the labelprop works
+    cy.get(repGroup).findByRole('cell', { name: checkboxText1 }).should('exist');
+    cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
+    cy.get(repGroup).findByRole('cell', { name: checkboxText3 }).should('exist');
 
     // Removing from RepeatingGroup should deselect from checkboxes
     cy.get(repGroup).findAllByRole('row').should('have.length', 4); // Header + 3 rows
@@ -213,7 +217,7 @@ describe('Checkboxes component', () => {
     cy.findAllByRole('button', { name: /Lagre og lukk/ })
       .last()
       .click();
-    cy.get(repGroup).findByRole('cell', { name: checkboxValue2 }).parent().contains('td', '2');
+    cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).parent().contains('td', '2');
     cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').click();
 
     cy.get(repGroup).findAllByRole('row').should('have.length', 2);
@@ -221,8 +225,7 @@ describe('Checkboxes component', () => {
     // Checking 'Kåre' again should bring back the surname
     cy.get(checkboxes).contains('label', checkboxText2).prev('input[type="checkbox"]').click();
     cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 1 row
-    cy.get(repGroup).findByRole('cell', { name: checkboxValue2 }).should('exist');
-    cy.get(repGroup).findAllByRole('cell', { name: '2' }).should('exist');
+    cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
   });
 
   //Summary2
@@ -333,11 +336,19 @@ describe('Checkboxes component', () => {
       .find('span.fds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
-  it('Renders the summary2 component with correct text for Checkboxes with group, hard deletion and Number', () => {
+  it('Renders the summary2 component with correct text for Checkboxes with group, hard deletion, Number and label', () => {
     cy.interceptLayout('ComponentLayouts', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
+        component.dataModelBindings.simpleBinding = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.id',
+        };
+        component.dataModelBindings.label = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.firstname',
+        };
         component.optionsId = 'personsNumber';
       }
     });
@@ -442,12 +453,20 @@ describe('Checkboxes component', () => {
 
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
-  it('Required validation shows when chekcbox is selected with group, hard delete and Number', () => {
+  it('Required validation shows when chekcbox is selected with group, hard delete, Number and label', () => {
     cy.interceptLayout('ComponentLayouts', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
+        component.dataModelBindings.simpleBinding = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.id',
+        };
+        component.dataModelBindings.label = {
+          dataType: 'model',
+          field: 'CheckboxesGroupExample.Name.firstname',
+        };
         component.optionsId = 'personsNumber';
       }
     });

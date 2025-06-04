@@ -46,7 +46,6 @@ export function EffectStoreLabel({ valueType, options }: Props) {
     if (!shouldSetData) {
       return;
     }
-
     if (!translatedLabels || translatedLabels.length === 0) {
       setValue('label', undefined);
       return;
