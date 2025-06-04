@@ -54,28 +54,6 @@ describe('EditNameAction', () => {
       'textresource-id': newName,
     });
   });
-
-  it('should revert the changes in backend if user cancel the changes', async () => {
-    const user = userEvent.setup();
-    renderEditNameAction();
-    await clickEditNameButton();
-    await updateName();
-    await user.tab();
-
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, lang, {
-      'textresource-id': newName,
-    });
-    (queriesMock.upsertTextResources as jest.Mock).mockClear();
-
-    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-    await user.click(cancelButton);
-
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, lang, {
-      'textresource-id': currentName,
-    });
-  });
 });
 
 const clickEditNameButton = async () => {
@@ -102,6 +80,7 @@ const renderEditNameAction = (props: Partial<EditNameActionProps> = {}) => {
     tasks: [],
     index: 0,
     handleUpdateTaskNavigationGroup: jest.fn(),
+    setPopoverOpen: jest.fn(),
   };
 
   const queryClient = createQueryClientMock();

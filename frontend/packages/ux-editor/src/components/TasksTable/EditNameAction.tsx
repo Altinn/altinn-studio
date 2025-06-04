@@ -1,8 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createNewTextResourceId, taskNavigationType } from '../Settings/SettingsUtils';
 import { StudioButton, StudioDialog, StudioFieldset } from '@studio/components';
-import { useTextResourceValue } from '../TextResource/hooks/useTextResourceValue';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { TextResourceEditor } from '../TextResource/TextResourceEditor';
@@ -10,12 +9,16 @@ import { CheckmarkIcon, PencilIcon, XMarkIcon } from '@studio/icons';
 import classes from './EditNameAction.module.css';
 import { defaultLangCode } from '@altinn/text-editor';
 import { useTranslation } from 'react-i18next';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 
 export type EditNameActionProps = {
   task: TaskNavigationGroup;
   tasks: TaskNavigationGroup[];
   index: number;
   handleUpdateTaskNavigationGroup: (updatedNavigationTasks: TaskNavigationGroup[]) => void;
+  setPopoverOpen: (shouldOpen: boolean) => void;
 };
 
 export const EditNameAction = ({
@@ -23,51 +26,54 @@ export const EditNameAction = ({
   tasks,
   index,
   handleUpdateTaskNavigationGroup,
+  setPopoverOpen,
 }: EditNameActionProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const liveTextResourceValue = useTextResourceValue(task?.name);
-  const originTextResourceValueRef = useRef<string | undefined>();
-  originTextResourceValueRef.current ??= liveTextResourceValue;
+  const getResolvedTaskName = (id: string) => {
+    const resource = textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, id)(textResources);
+    return resource?.value || t(taskNavigationType(task.taskType));
+  };
 
   const [textResourceId, setTextResourceId] = useState<string>(
     task?.name ?? createNewTextResourceId(task),
   );
-  const [currentValue, setCurrentValue] = useState(liveTextResourceValue);
-  const taskTypeName = taskNavigationType(task.taskType);
+  const taskName = getResolvedTaskName(task?.name);
+  const [currentValue, setCurrentValue] = useState(taskName);
+  const [openDialog, setOpenDialog] = useState(false);
 
-  const handleTextResourceChange = () => {
+  const handleSaveTextResource = () => {
     const updatedNavigationTasks = [...tasks];
     updatedNavigationTasks[index] = {
       ...updatedNavigationTasks[index],
       name: textResourceId,
     };
     handleUpdateTaskNavigationGroup(updatedNavigationTasks);
-    dialogRef.current?.close();
-    originTextResourceValueRef.current = currentValue;
+    upsertTextResource({
+      textId: textResourceId,
+      language: defaultLangCode,
+      translation: currentValue,
+    });
+    setOpenDialog(false);
   };
 
   const handleCancel = () => {
-    const isValueChanged = currentValue !== originTextResourceValueRef.current;
+    setPopoverOpen(false);
+    setOpenDialog(false);
+  };
 
-    if (isValueChanged) {
-      upsertTextResource({
-        textId: textResourceId,
-        language: defaultLangCode,
-        translation: originTextResourceValueRef.current,
-      });
-    }
-
-    originTextResourceValueRef.current = undefined;
-    dialogRef.current?.close();
+  const handleReferenceChange = (id: string) => {
+    setTextResourceId(id);
+    setCurrentValue(getResolvedTaskName(id));
   };
 
   return (
     <StudioDialog.TriggerContext>
       <StudioDialog.Trigger
+        onClick={() => setOpenDialog(true)}
         icon={<PencilIcon />}
         variant='tertiary'
         className={classes.openDialogButton}
@@ -75,22 +81,22 @@ export const EditNameAction = ({
         {t('ux_editor.task_table.menu_edit_name')}
       </StudioDialog.Trigger>
       <StudioDialog
-        ref={dialogRef}
         closeButton={false}
+        open={openDialog}
         onKeyDown={(e) => e.key === 'Escape' && handleCancel()}
       >
         <StudioFieldset>
           <StudioFieldset.Legend>{t('ux_editor.task_table.menu_edit_name')}</StudioFieldset.Legend>
           <TextResourceEditor
             textResourceId={textResourceId}
-            onReferenceChange={setTextResourceId}
+            onReferenceChange={handleReferenceChange}
             onSetCurrentValue={setCurrentValue}
-            placeholderValue={t(taskTypeName)}
+            textResourceValue={currentValue}
           />
           <div className={classes.buttonGroup}>
             <StudioButton
               variant='primary'
-              onClick={handleTextResourceChange}
+              onClick={handleSaveTextResource}
               icon={<CheckmarkIcon />}
             >
               {t('general.save')}

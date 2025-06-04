@@ -87,42 +87,49 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
         <MenuElipsisVerticalIcon />
       </StudioPopover.Trigger>
       <StudioPopover placement='right' open={isOpen} onClose={() => setIsOpen(false)}>
-        <div className={classes.ellipsisMenuContent}>
-          <StudioButton
-            variant='tertiary'
-            onClick={() => moveNavigationTask(Direction.Up)}
-            icon={<ArrowUpIcon />}
-            disabled={disableMoveUpButton}
-          >
-            {t('ux_editor.task_table.menu_task_up')}
-          </StudioButton>
-          <StudioButton
-            variant='tertiary'
-            onClick={() => moveNavigationTask(Direction.Down)}
-            icon={<ArrowDownIcon />}
-            disabled={disableMoveDownButton}
-          >
-            {t('ux_editor.task_table.menu_task_down')}
-          </StudioButton>
-          <StudioDivider className={classes.divider} />
-          <EditNameAction
-            task={task}
-            tasks={tasks}
-            index={index}
-            handleUpdateTaskNavigationGroup={handleUpdateTaskNavigationGroup}
-          />
-          <StudioButton variant='tertiary' onClick={removeNavigationTask} icon={<EyeClosedIcon />}>
-            {t('ux_editor.task_table.menu_task_hide')}
-          </StudioButton>
-          <StudioButton
-            variant='tertiary'
-            onClick={handleRedirect}
-            icon={<ArrowRightIcon />}
-            disabled={isDefaultReceiptTask(task, layoutSets)}
-          >
-            {t('ux_editor.task_table.menu_task_redirect')}
-          </StudioButton>
-        </div>
+        {isOpen && (
+          <div className={classes.ellipsisMenuContent}>
+            <StudioButton
+              variant='tertiary'
+              onClick={() => moveNavigationTask(Direction.Up)}
+              icon={<ArrowUpIcon />}
+              disabled={disableMoveUpButton}
+            >
+              {t('ux_editor.task_table.menu_task_up')}
+            </StudioButton>
+            <StudioButton
+              variant='tertiary'
+              onClick={() => moveNavigationTask(Direction.Down)}
+              icon={<ArrowDownIcon />}
+              disabled={disableMoveDownButton}
+            >
+              {t('ux_editor.task_table.menu_task_down')}
+            </StudioButton>
+            <StudioDivider className={classes.divider} />
+            <EditNameAction
+              task={task}
+              tasks={tasks}
+              index={index}
+              handleUpdateTaskNavigationGroup={handleUpdateTaskNavigationGroup}
+              setPopoverOpen={setIsOpen}
+            />
+            <StudioButton
+              variant='tertiary'
+              onClick={removeNavigationTask}
+              icon={<EyeClosedIcon />}
+            >
+              {t('ux_editor.task_table.menu_task_hide')}
+            </StudioButton>
+            <StudioButton
+              variant='tertiary'
+              onClick={handleRedirect}
+              icon={<ArrowRightIcon />}
+              disabled={isDefaultReceiptTask(task, layoutSets)}
+            >
+              {t('ux_editor.task_table.menu_task_redirect')}
+            </StudioButton>
+          </div>
+        )}
       </StudioPopover>
     </StudioPopover.TriggerContext>
   );
