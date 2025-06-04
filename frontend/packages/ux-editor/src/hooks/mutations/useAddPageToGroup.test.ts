@@ -46,7 +46,7 @@ describe('useAddPageToGroup', () => {
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
       groups: [
         {
-          name: textMock('ux_editor.page_group') + ' 1',
+          name: textMock('ux_editor.page_layout_group') + ' 1',
           order: [
             { id: textMock('ux_editor.page') + '1' },
             { id: textMock('ux_editor.page') + '2' },
@@ -78,7 +78,7 @@ describe('useAddPageToGroup', () => {
         pages: [{ id: textMock('ux_editor.page') + '1' }, { id: textMock('ux_editor.page') + '2' }],
         groups: [
           {
-            name: textMock('ux_editor.page_group') + ' 1',
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '3' },
               { id: textMock('ux_editor.page') + '4' },
@@ -92,7 +92,7 @@ describe('useAddPageToGroup', () => {
       expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
         groups: [
           {
-            name: textMock('ux_editor.page_group') + ' 1',
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '3' },
               { id: textMock('ux_editor.page') + '4' },
@@ -119,7 +119,7 @@ describe('useAddPageToGroup', () => {
       expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
         groups: [
           {
-            name: textMock('ux_editor.page_group') + ' 1',
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '1' },
               { id: textMock('ux_editor.page') + '2' },
@@ -146,7 +146,7 @@ describe('useAddPageToGroup', () => {
       const mockPagesModel: PagesModel = {
         groups: [
           {
-            name: textMock('ux_editor.page_group') + ' 1',
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '1' },
               { id: textMock('ux_editor.page') + '2' },
@@ -166,7 +166,7 @@ describe('useAddPageToGroup', () => {
         layoutSet1NameMock,
         expect.objectContaining({
           groups: expect.arrayContaining([
-            expect.objectContaining({ name: textMock('ux_editor.page_group') + ' 2' }),
+            expect.objectContaining({ name: textMock('ux_editor.page_layout_group') + ' 2' }),
           ]),
         }),
       );

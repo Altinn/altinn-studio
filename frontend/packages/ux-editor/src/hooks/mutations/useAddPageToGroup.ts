@@ -28,7 +28,7 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
   };
 
   const nextValidGroupName = () => {
-    const pageGroupPrefix = t('ux_editor.page_group');
+    const pageGroupPrefix = t('ux_editor.page_layout_group');
     let i: number = 1;
     while (pagesModel.groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
       i++;
