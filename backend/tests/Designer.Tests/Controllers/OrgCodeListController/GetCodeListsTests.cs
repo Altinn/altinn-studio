@@ -34,7 +34,7 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
         string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        string filePath = Path.Combine(repoPath, "Codelists/");
+        string filePath = Path.Combine(repoPath, "CodeLists/");
         await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
         await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
         await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
