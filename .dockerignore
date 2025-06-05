@@ -6,6 +6,8 @@
 !environments.json
 !yarn.lock
 !.yarn*
+**/backend/src/KubernetesWrapper
+**/backend/tests
 **/node_modules
 **/bin
 **/obj
