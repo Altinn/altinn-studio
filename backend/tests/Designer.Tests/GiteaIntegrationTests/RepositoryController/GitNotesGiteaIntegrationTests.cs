@@ -75,7 +75,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             Assert.Equal(HttpStatusCode.OK, resetResponse.StatusCode);
 
             // this ensures local clone
-            using HttpResponseMessage appDevelopmentIndes = await HttpClient.GetAsync($"editor/{org}/{targetRepo}");
+            using HttpResponseMessage appDevelopmentIndes = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/status");
             Assert.Equal(HttpStatusCode.OK, appDevelopmentIndes.StatusCode);
 
             // Try to create a new commit
