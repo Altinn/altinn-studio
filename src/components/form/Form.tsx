@@ -32,7 +32,6 @@ import { getPageTitle } from 'src/utils/getPageTitle';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import type { NavigateToNodeOptions } from 'src/features/form/layout/NavigateToNode';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
-import type { NodeData } from 'src/utils/layout/types';
 
 interface FormState {
   hasRequired: boolean;
@@ -206,12 +205,6 @@ function useSetExpandedWidth() {
 }
 
 const emptyArray = [];
-
-function nodeDataIsRequired(n: NodeData) {
-  const item = n.item;
-  return !!(item && 'required' in item && item.required === true);
-}
-
 function useFormState(currentPageId: string | undefined): FormState {
   const lookups = useLayoutLookups();
   const topLevelIds = currentPageId ? (lookups.topLevelComponents[currentPageId] ?? emptyArray) : emptyArray;
@@ -244,9 +237,13 @@ function useFormState(currentPageId: string | undefined): FormState {
     return [toMainLayout.reverse(), toErrorReport.reverse()];
   }, [hasErrors, lookups.allComponents, topLevelIds]);
 
-  const hasRequired = NodesInternal.useSelector((state) =>
-    Object.values(state.nodeData).some((node) => node.pageKey === currentPageId && nodeDataIsRequired(node)),
-  );
+  const hasRequired =
+    (currentPageId &&
+      lookups.allPerPage[currentPageId]?.some((id) => {
+        const layout = lookups.allComponents[id];
+        return layout && 'required' in layout && layout.required !== false;
+      })) ||
+    false;
 
   return {
     hasRequired,
