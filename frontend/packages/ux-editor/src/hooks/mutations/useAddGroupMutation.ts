@@ -17,7 +17,7 @@ export const useAddGroupMutation = (org: string, app: string) => {
     mutationFn: async () => {
       const updatedPages = await getPages(org, app, selectedFormLayoutSetName);
       const nextPageNumber = getNextPageNumber(updatedPages.groups, t);
-      const newGroup = createNewGroup(updatedPages.groups, nextPageNumber, t);
+      const newGroup = createNewGroup(nextPageNumber, t);
       const finalPayload = addGroupsWithPages(updatedPages, newGroup);
       return await changePageGroups(org, app, selectedFormLayoutSetName, finalPayload);
     },
@@ -45,12 +45,7 @@ const getNextPageNumber = (groups: GroupModel[], t: (key: string) => string): nu
   return maxPageNumber + 1;
 };
 
-const createNewGroup = (
-  groups: GroupModel[],
-  nextPageNumber: number,
-  t: (key: string) => string,
-): GroupModel => ({
-  name: `${t('ux_editor.page_layout_group')} ${(groups?.length || 0) + 1}`,
+const createNewGroup = (nextPageNumber: number, t: (key: string) => string): GroupModel => ({
   order: [{ id: `${t('general.page')}${nextPageNumber}` }],
 });
 
