@@ -32,17 +32,14 @@ export const useFormLayoutMutation = (
       await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
       return payload.internalLayout;
     },
-    onSuccess: async (savedLayout) => {
+    onSuccess: async () => {
       if (previewConnection && previewConnection.state === 'Connected') {
         await previewConnection.send('sendMessage', 'reload-layouts').catch(function (err) {
           return console.error(err.toString());
         });
       }
 
-      queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app, layoutSetName],
-        (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
-      );
+      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
     },
   });
 };
