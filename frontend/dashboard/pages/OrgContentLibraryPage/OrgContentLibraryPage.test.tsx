@@ -58,7 +58,7 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
-  it('Renders the content library', async () => {
+  it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
@@ -243,6 +243,7 @@ function createQueryClientWithData(): QueryClient {
     [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
     textResourcesWithLanguage,
   );
+  queryClient.setQueryData([QueryKey.RepoStatus, orgName, `${orgName}-content`], repoStatus);
   return queryClient;
 }
 
@@ -255,6 +256,7 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
   queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
+  queryClient.setQueryData([QueryKey.RepoStatus, orgName, `${orgName}-content`], repoStatus);
   return queryClient;
 }
 
