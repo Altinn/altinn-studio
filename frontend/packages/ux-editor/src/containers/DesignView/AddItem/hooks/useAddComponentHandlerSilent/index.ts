@@ -1,0 +1,1 @@
+export { useAddComponentHandlerSilent } from './useAddComponentHandlerSilent';
