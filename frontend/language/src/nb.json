@@ -2021,6 +2021,7 @@
   "ux_editor.task_card.ux_editor": "Utform",
   "ux_editor.task_card_add_new_subform": "Legg til underskjema",
   "ux_editor.task_card_add_new_task": "Legg til ny oppgave",
+  "ux_editor.task_table.menu_edit_name": "Endre visningsnavn",
   "ux_editor.task_table.menu_task_down": "Flytt ned",
   "ux_editor.task_table.menu_task_hide": "Skjul oppgaven",
   "ux_editor.task_table.menu_task_redirect": "Gå til utforming",
