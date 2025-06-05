@@ -75,6 +75,7 @@ function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactEleme
     <StudioPageHeader.HeaderLink
       color='dark'
       variant='regular'
+      isBeta={menuItem.isBeta}
       renderLink={(props) => (
         <NavLink to={path} {...props}>
           <span
