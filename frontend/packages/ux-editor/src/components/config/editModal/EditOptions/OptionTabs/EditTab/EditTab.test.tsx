@@ -91,6 +91,20 @@ describe('EditTab', () => {
       screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
     ).toBeInTheDocument();
   });
+
+  it('Opens the editor dialog when the user clicks on the add button', async () => {
+    renderEditTab({
+      componentProps: {
+        options: undefined,
+        optionsId: undefined,
+      },
+    });
+    const user = userEvent.setup();
+    await waitForSpinnerToBeRemoved();
+    const addButton = screen.getByRole('button', { name: textMock('general.create_new') });
+    await user.click(addButton);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
 });
 
 async function waitForSpinnerToBeRemoved() {

@@ -4,19 +4,30 @@ import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/c
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
-import { useOptionListQuery } from 'app-shared/hooks/queries';
+import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
-import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
+import { OptionListLabels } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/OptionListLabels';
+import { OptionListButtons } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/OptionListButtons';
+import { useTextResourcesForLanguage } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/hooks';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
->;
+> & {
+  onEditButtonClick: () => void;
+};
 
 export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
-  ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
+  (
+    { component, handleComponentChange, onEditButtonClick }: OptionListEditorProps,
+    ref,
+  ): React.ReactNode => {
+    const { org, app } = useStudioEnvironmentParams();
+    const { data: textResources } = useTextResourcesQuery(org, app);
+    const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
+
     const handleDelete = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
@@ -24,18 +35,22 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
 
     if (component.options !== undefined) {
       return (
-        <ManualOptionsEditor
-          ref={dialogRef}
-          component={component}
-          handleComponentChange={handleComponentChange}
-          handleDelete={handleDelete}
-        />
+        <>
+          <OptionListLabels
+            optionListId={component.optionsId}
+            optionList={component.options}
+            textResources={textResourcesForLanguage}
+          />
+          <OptionListButtons handleDelete={handleDelete} handleClick={onEditButtonClick} />
+        </>
       );
     }
 
     return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
   },
 );
+
+const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
 
 type OptionsListResolverProps = {
   handleDelete: () => void;
