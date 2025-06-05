@@ -6,8 +6,10 @@ const useWebStorage = <T>(
   typedStorage: TypedStorage,
   key: string,
   initialValue?: T,
-): [T, (newValue: T) => void, () => void] => {
-  const [value, setValue] = useState<T>(() => typedStorage.getItem(key) || initialValue);
+): [T | undefined, (newValue: T) => void, () => void] => {
+  const [value, setValue] = useState<T | undefined>(
+    () => typedStorage.getItem(key) ?? initialValue,
+  );
 
   const setStorageValue = useCallback(
     (newValue: T) => {

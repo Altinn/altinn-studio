@@ -1,26 +1,3 @@
 .alert {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  font-family: var(--font-family);
-}
-
-.popoverContent {
-  max-width: 100%;
-  display: grid;
-  grid-template-columns: min-content min-content;
-  gap: 0.5rem;
-}
-.message {
-  grid-area: 1 / 1 / 2 / 3;
-  margin: 0;
-}
-.popoverContent .yesButton {
-  grid-area: 2 / 1 / 3 / 2;
-}
-.popoverContent .noButton {
-  grid-area: 2 / 2 / 3 / 3;
-}
-.popoverContent .button {
-  white-space: nowrap;
+  position: relative;
 }
