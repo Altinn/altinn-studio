@@ -83,6 +83,7 @@ export const PageGroupAccordion = ({
         deletePageGroup({
           groups: updatedGroups,
         });
+        if (selectedItem?.id === groupIndex) setSelectedItem(null);
       }
     };
 
@@ -96,17 +97,19 @@ export const PageGroupAccordion = ({
             [classes.selected]: selectedGroup,
           })}
           data-testid={pageGroupAccordionHeader(groupIndex)}
-          onClick={() => setSelectedItem({ type: ItemType.Group, id: groupIndex })}
         >
-          <div className={classes.container}>
-            <FolderIcon aria-hidden className={cn(classes.liftIcon, classes.customSize)} />
-            <StudioHeading level={3} className={cn(classes.groupHeader, classes.customSize)}>
+          <div
+            className={classes.container}
+            onClick={() => setSelectedItem({ type: ItemType.Group, id: groupIndex })}
+          >
+            <FolderIcon aria-hidden />
+            <StudioHeading size='2xs' level={2}>
               {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
-              <StudioPopover.Trigger variant='tertiary'>
+              <StudioPopover.Trigger variant='tertiary' className={classes.elipsisIcon}>
                 <MenuElipsisVerticalIcon />
               </StudioPopover.Trigger>
               <StudioPopover placement='bottom'>
@@ -161,16 +164,14 @@ export const PageGroupAccordion = ({
             </Accordion>
           );
         })}
-        <div className={classes.buttonContainer}>
-          <StudioButton
-            icon={<PlusIcon aria-hidden />}
-            onClick={() => handleAddPageInsideGroup(groupIndex)}
-            className={classes.button}
-            disabled={isAddPagePending}
-          >
-            {t('ux_editor.pages_add')}
-          </StudioButton>
-        </div>
+        <StudioButton
+          icon={<PlusIcon aria-hidden />}
+          onClick={() => handleAddPageInsideGroup(groupIndex)}
+          className={classes.addPagebutton}
+          disabled={isAddPagePending}
+        >
+          {t('ux_editor.pages_add')}
+        </StudioButton>
       </div>
     );
   });
