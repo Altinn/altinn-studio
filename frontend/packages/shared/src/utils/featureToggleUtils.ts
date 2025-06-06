@@ -10,7 +10,6 @@ export enum FeatureFlag {
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
-  TaskNavigationTabNav = 'taskNavigationTabNav',
   ConsentResource = 'consentResource',
   SettingsPage = 'settingsPage',
   AppMetadata = 'appMetadata',

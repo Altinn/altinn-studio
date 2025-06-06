@@ -12,7 +12,7 @@ export const codeListsDataMock: CodeListData[] = [codeListData];
 export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
-      codeListsData: codeListsDataMock,
+      codeListDataList: codeListsDataMock,
       onCreateCodeList: () => {},
       onDeleteCodeList: () => {},
       onUpdateCodeListId: () => {},
