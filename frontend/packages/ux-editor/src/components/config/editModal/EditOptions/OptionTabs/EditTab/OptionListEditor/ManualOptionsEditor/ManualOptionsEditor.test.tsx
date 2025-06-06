@@ -8,8 +8,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ObjectUtils } from '@studio/pure-functions';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { QueryClient } from '@tanstack/react-query';
 import type { ITextResources } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
@@ -30,13 +28,13 @@ describe('ManualOptionEditor', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the open Dialog button', () => {
-    renderManualOptionsEditorWithData();
+    renderManualOptionsEditor();
     expect(getEditButton()).toBeInTheDocument();
   });
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditorWithData();
+    renderManualOptionsEditor();
 
     await user.click(getEditButton());
 
@@ -48,7 +46,7 @@ describe('ManualOptionEditor', () => {
 
   it('should close Dialog', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditorWithData();
+    renderManualOptionsEditor();
 
     await user.click(getEditButton());
 
@@ -59,7 +57,7 @@ describe('ManualOptionEditor', () => {
 
   it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditorWithData({
+    renderManualOptionsEditor({
       props: { component: { ...mockComponent, options: [], optionsId: undefined } },
     });
     const expectedArgs = ObjectUtils.deepCopy(mockComponent);
@@ -77,7 +75,7 @@ describe('ManualOptionEditor', () => {
     const user = userEvent.setup();
     const expectedLanguage = 'nb';
     const expectedTextResource = { 'some-id': 'test' };
-    renderManualOptionsEditorWithData({
+    renderManualOptionsEditor({
       props: {
         component: {
           ...mockComponent,
@@ -102,7 +100,7 @@ describe('ManualOptionEditor', () => {
   });
 
   it('should show placeholder for option label when label is empty', () => {
-    renderManualOptionsEditorWithData({
+    renderManualOptionsEditor({
       props: {
         component: {
           ...mockComponent,
@@ -116,7 +114,7 @@ describe('ManualOptionEditor', () => {
 
   it('should call handleDelete when removing chosen options', async () => {
     const user = userEvent.setup();
-    renderManualOptionsEditorWithData();
+    renderManualOptionsEditor();
 
     await user.click(getDeleteButton());
 
@@ -146,6 +144,7 @@ const defaultProps: ManualOptionsEditorProps = {
   handleDelete: handleDelete,
   handleComponentChange: handleComponentChange,
   component: mockComponent,
+  textResources,
 };
 
 function renderManualOptionsEditor({
@@ -157,15 +156,4 @@ function renderManualOptionsEditor({
     queries,
     queryClient,
   });
-}
-
-function renderManualOptionsEditorWithData({ queries = {}, props = {} } = {}) {
-  const queryClient = createQueryClientWithData();
-  renderManualOptionsEditor({ queries, props, queryClient });
-}
-
-function createQueryClientWithData(): QueryClient {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  return queryClient;
 }
