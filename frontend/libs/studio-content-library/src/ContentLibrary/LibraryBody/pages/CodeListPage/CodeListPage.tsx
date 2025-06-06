@@ -26,7 +26,7 @@ export type CodeListData = {
 };
 
 export type CodeListPageProps = {
-  codeListsData: CodeListData[];
+  codeListDataList: CodeListData[];
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
   onCreateTextResource?: (textResource: TextResourceWithLanguage) => void;
   onDeleteCodeList: (codeListId: string) => void;
@@ -41,7 +41,7 @@ export type CodeListPageProps = {
 };
 
 export function CodeListPage({
-  codeListsData,
+  codeListDataList,
   onCreateCodeList,
   onCreateTextResource,
   onDeleteCodeList,
@@ -58,11 +58,11 @@ export function CodeListPage({
   const [searchString, setSearchString] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
 
-  const codeListIsEmpty: boolean = codeListsData.length === 0;
+  const codeListIsEmpty: boolean = codeListDataList.length === 0;
 
   const filteredCodeLists: CodeListData[] = useMemo(
-    () => filterCodeLists(codeListsData, searchString),
-    [codeListsData, searchString],
+    () => filterCodeLists(codeListDataList, searchString),
+    [codeListDataList, searchString],
   );
 
   const textResourcesForLanguage = useMemo(
@@ -86,7 +86,7 @@ export function CodeListPage({
     [onUpdateTextResource],
   );
 
-  const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
+  const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListDataList, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
     setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
@@ -101,7 +101,7 @@ export function CodeListPage({
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
-      <CodeListsCounterMessage codeListsCount={codeListsData.length} />
+      <CodeListsCounterMessage codeListsCount={codeListDataList.length} />
       <CodeListsActionsBar
         onCreateCodeList={onCreateCodeList}
         onCreateTextResource={handleCreateTextResource}
@@ -114,7 +114,7 @@ export function CodeListPage({
         onImportCodeListFromOrg={onImportCodeListFromOrg}
       />
       <CodeLists
-        codeListsData={filteredCodeLists}
+        codeListDataList={filteredCodeLists}
         onCreateTextResource={handleCreateTextResource}
         onDeleteCodeList={onDeleteCodeList}
         onUpdateCodeListId={handleUpdateCodeListId}
