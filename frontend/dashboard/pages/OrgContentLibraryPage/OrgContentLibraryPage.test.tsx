@@ -261,7 +261,7 @@ function createQueryClientWithData(): QueryClient {
     [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
     textResourcesWithLanguage,
   );
-  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
   return queryClient;
 }
 
@@ -274,22 +274,22 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
   queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
-  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
-  return queryClient;
-}
-
-function CreateQueryClientWithRepoStatus(): QueryClient {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
   return queryClient;
 }
 
 function renderOrgContentLibraryWithRepoStatus(): void {
-  const queryClient = CreateQueryClientWithRepoStatus();
+  const queryClient = createQueryClientWithRepoStatus();
   renderOrgContentLibrary({ queryClient });
 }
 
-function repoStatusQueryKey(orgName: string): string[] {
+function createQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
+  return queryClient;
+}
+
+function repoStatusQueryKey(): string[] {
   const repositoryName = `${orgName}-content`;
   return [QueryKey.RepoStatus, orgName, repositoryName];
 }
