@@ -63,8 +63,10 @@ export const PageAccordion = ({
   const isUsingGroups = !!pages.groups;
   const handleConfirmDelete = () => {
     if (!confirm(t('ux_editor.page_delete_text'))) return;
-    if (selectedItem?.id === pageName) setSelectedItem(undefined);
 
+    if (selectedItem?.id === pageName) {
+      setSelectedItem(undefined);
+    }
     if (isUsingGroups) {
       const updatedGroups = [];
       for (const group of pages.groups) {
