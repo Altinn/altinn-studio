@@ -132,7 +132,7 @@ function AppContentLibraryWithData({
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListDataList,
+          codeListDataList,
           onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
