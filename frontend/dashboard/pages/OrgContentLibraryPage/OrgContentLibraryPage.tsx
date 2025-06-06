@@ -38,6 +38,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
+import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -106,9 +107,10 @@ function OrgContentLibraryWithContextAndData({
   orgName,
   textResources: textResourcesWithLanguage,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
-  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
-  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
   const { mutate: createCodeList } = useCreateOrgCodeListMutation(orgName);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
+  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
+  const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
 
   const handleUpload = useUploadCodeList(orgName);
@@ -124,6 +126,10 @@ function OrgContentLibraryWithContextAndData({
     },
     [updateTextResources],
   );
+
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string): void => {
+    updateCodeListId({ codeListId, newCodeListId });
+  };
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateCodeList({ title, data: codeList });
@@ -141,7 +147,7 @@ function OrgContentLibraryWithContextAndData({
           onCreateCodeList: handleCreate,
           onCreateTextResource: handleUpdateTextResource,
           onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: () => {},
+          onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
