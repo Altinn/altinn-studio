@@ -83,7 +83,7 @@ export const PageGroupAccordion = ({
         deletePageGroup({
           groups: updatedGroups,
         });
-        if (selectedItem.id === groupIndex) setSelectedItem(null);
+        if (selectedItem?.id === groupIndex) setSelectedItem(null);
       }
     };
 
