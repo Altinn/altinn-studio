@@ -58,13 +58,18 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
-  it('Renders the content library', async () => {
+  it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
-  it('renders a spinner while waiting for code lists', () => {
+  it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('renders a spinner while waiting for code lists', () => {
+    renderOrgContentLibraryWithRepoStatus();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -256,6 +261,7 @@ function createQueryClientWithData(): QueryClient {
     [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
     textResourcesWithLanguage,
   );
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
   return queryClient;
 }
 
@@ -268,7 +274,24 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
   queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
   return queryClient;
+}
+
+function renderOrgContentLibraryWithRepoStatus(): void {
+  const queryClient = createQueryClientWithRepoStatus();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function createQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
+  return queryClient;
+}
+
+function repoStatusQueryKey(): string[] {
+  const repositoryName = `${orgName}-content`;
+  return [QueryKey.RepoStatus, orgName, repositoryName];
 }
 
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
