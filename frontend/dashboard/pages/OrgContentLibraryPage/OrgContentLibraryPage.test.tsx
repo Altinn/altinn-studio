@@ -63,8 +63,13 @@ describe('OrgContentLibraryPage', () => {
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
-  it('renders a spinner while waiting for code lists', () => {
+  it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('renders a spinner while waiting for code lists', () => {
+    renderOrgContentLibraryWithRepoStatus();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -243,7 +248,7 @@ function createQueryClientWithData(): QueryClient {
     [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
     textResourcesWithLanguage,
   );
-  queryClient.setQueryData([QueryKey.RepoStatus, orgName, `${orgName}-content`], repoStatus);
+  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
   return queryClient;
 }
 
@@ -256,8 +261,24 @@ function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
   queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
-  queryClient.setQueryData([QueryKey.RepoStatus, orgName, `${orgName}-content`], repoStatus);
+  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
   return queryClient;
+}
+
+function CreateQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey(orgName), repoStatus);
+  return queryClient;
+}
+
+function renderOrgContentLibraryWithRepoStatus(): void {
+  const queryClient = CreateQueryClientWithRepoStatus();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function repoStatusQueryKey(orgName: string): string[] {
+  const repositoryName = `${orgName}-content`;
+  return [QueryKey.RepoStatus, orgName, repositoryName];
 }
 
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
