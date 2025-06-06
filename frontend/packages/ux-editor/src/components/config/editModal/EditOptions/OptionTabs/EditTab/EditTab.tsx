@@ -66,7 +66,7 @@ type EditTabWithDataProps = EditTabProps & {
   textResources: ITextResources;
 };
 
-export function EditTabWithData({
+function EditTabWithData({
   component,
   handleComponentChange,
   optionListIds,
