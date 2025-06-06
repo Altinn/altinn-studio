@@ -50,7 +50,7 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
 
   const { mutate: deletePage, isPending } = useDeletePageMutation(
@@ -62,19 +62,20 @@ export const PageAccordion = ({
 
   const isUsingGroups = !!pages.groups;
   const handleConfirmDelete = () => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
-      if (isUsingGroups) {
-        const updatedPageGroups = { ...pages };
-        updatedPageGroups.groups.map((group) => {
-          group.order = group.order.filter((page) => page.id !== pageName);
-        });
-        updatedPageGroups.groups = updatedPageGroups.groups.filter(
-          (group) => group.order.length > 0,
-        );
-        changePageGroups(updatedPageGroups);
-      } else {
-        deletePage(pageName);
+    if (!confirm(t('ux_editor.page_delete_text'))) return;
+    if (selectedItem?.id === pageName) setSelectedItem(undefined);
+
+    if (isUsingGroups) {
+      const updatedGroups = [];
+      for (const group of pages.groups) {
+        const filteredOrder = group.order.filter((page) => page.id !== pageName);
+        if (filteredOrder.length > 0) {
+          updatedGroups.push({ ...group, order: filteredOrder });
+        }
       }
+      changePageGroups({ ...pages, groups: updatedGroups });
+    } else {
+      deletePage(pageName);
     }
   };
 
