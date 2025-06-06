@@ -8,9 +8,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 
-export type LargeNavigationMenuProps = {
+type LargeNavigationMenuProps = {
   menuItems: HeaderMenuItem[];
 };
+
 export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
   return (
     <ul className={classes.menu}>
