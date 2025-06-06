@@ -90,7 +90,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrieveConfig().codeList.props.codeListsData;
+    const renderedList = retrieveConfig().codeList.props.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
