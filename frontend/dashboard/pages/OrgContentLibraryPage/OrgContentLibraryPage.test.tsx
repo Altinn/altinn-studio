@@ -90,7 +90,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrieveConfig().codeList.props.codeListsData;
+    const renderedList = retrieveConfig().codeList.props.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
@@ -119,6 +119,19 @@ describe('OrgContentLibraryPage', () => {
 
     expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
+  });
+
+  it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
+    const updateOrgCodeListId = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
+    const codeListId: string = codeList1Data.title;
+    const newCodeListId: string = 'new-id';
+
+    retrieveConfig().codeList.props.onUpdateCodeListId(codeListId, newCodeListId);
+    await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
+
+    expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeListId).toHaveBeenCalledWith(orgName, codeListId, newCodeListId);
   });
 
   it('calls createOrgCodeList with correct data when onCreateCodeList is triggered', async () => {

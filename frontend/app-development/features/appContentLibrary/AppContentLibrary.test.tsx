@@ -72,7 +72,7 @@ describe('AppContentLibrary', () => {
 
   it('Renders with the given code lists', () => {
     renderAppContentLibraryWithData();
-    const codeListDataList = retrieveConfig().codeList.props.codeListsData;
+    const codeListDataList = retrieveConfig().codeList.props.codeListDataList;
     const expectedData: CodeListData[] = optionListDataList;
     expect(codeListDataList).toEqual(expectedData);
   });

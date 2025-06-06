@@ -4,7 +4,6 @@ import { StudioAlert, StudioHeading, StudioTabs } from '@studio/components-legac
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SettingsNavigation } from './SettingsNavigation/SettingsNavigation';
 
 enum Tabs {
@@ -14,7 +13,6 @@ enum Tabs {
 
 export const SettingsTabs = (): ReactElement => {
   const { t } = useTranslation();
-  const enableNavigationTab = shouldDisplayFeature(FeatureFlag.TaskNavigationTabNav);
 
   return (
     <div>
@@ -33,13 +31,7 @@ export const SettingsTabs = (): ReactElement => {
           </StudioTabs.Tab>
         </StudioTabs.List>
         <StudioTabs.Content value={Tabs.Navigation}>
-          {enableNavigationTab ? (
-            <SettingsNavigation />
-          ) : (
-            <StudioAlert severity='info' className={classes.wipMessage}>
-              {t('ux_editor.settings.wip_message')}
-            </StudioAlert>
-          )}
+          <SettingsNavigation />
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Database}>
           <StudioAlert severity='info' className={classes.wipMessage}>

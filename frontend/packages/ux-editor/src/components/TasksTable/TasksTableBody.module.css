@@ -30,7 +30,7 @@
 }
 
 .hiddenTaskRow .taskTypeCell,
-.hiddenTaskRow .taskNameCell {
+.hiddenTaskRow .taskPageCountCell {
   opacity: 0.5;
 }
 
