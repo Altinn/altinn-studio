@@ -1,12 +1,10 @@
-.groupWrapper,
-.groupHeaderWrapper {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+.groupWrapper {
+  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-subtle);
 }
 .groupHeaderWrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
 }
 
 .selected {
@@ -20,6 +18,7 @@
   padding: var(--fds-spacing-3);
   flex: 1;
   align-self: stretch;
+  cursor: pointer;
 }
 
 .container:hover {
