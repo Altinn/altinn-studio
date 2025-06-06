@@ -57,7 +57,7 @@ export const TasksTable = ({
             <StudioButton
               variant='secondary'
               onClick={handleMoveAllTasks}
-              icon={isNavigationMode ? <EyeIcon /> : <EyeClosedIcon />}
+              icon={isNavigationMode ? <EyeClosedIcon /> : <EyeIcon />}
               disabled={tasks.length === 0}
             >
               {isNavigationMode
