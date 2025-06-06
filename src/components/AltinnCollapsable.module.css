@@ -8,10 +8,6 @@
   box-sizing: border-box;
 }
 
-.collapsableOpen {
-  max-height: 1000px; /* Set to a value larger than your expected content */
-}
-
 .collapsableClosed {
   visibility: hidden;
   max-height: 0;

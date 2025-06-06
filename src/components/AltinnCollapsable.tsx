@@ -53,7 +53,6 @@ export function AltinnCollapsable({ children, open }: PropsWithChildren<{ open: 
   return (
     <div
       className={cn(classes.collapsable, {
-        [classes.collapsableOpen]: open,
         [classes.collapsableClosed]: !open,
       })}
     >
