@@ -3486,20 +3486,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:8.5.2":
-  version: 8.5.2
-  resolution: "@storybook/addon-links@npm:8.5.2"
+"@storybook/addon-links@npm:9.0.6":
+  version: 9.0.6
+  resolution: "@storybook/addon-links@npm:9.0.6"
   dependencies:
-    "@storybook/csf": "npm:0.1.12"
     "@storybook/global": "npm:^5.0.0"
-    ts-dedent: "npm:^2.0.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    storybook: ^8.5.2
+    storybook: ^9.0.6
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10/6b38ca9cb30b108260d11c3956725f434ccaa47ad43ebf33726584a7d39728da350e176c5016330132b7541f5c9b6834a523025047198a22ea24f3f2a52bf94c
+  checksum: 10/2c139ec08af3e219bd93be3c2324f2b44085ca3b629c97840a35039ef74acd282f6dbe514e4e535604f641303bf506f68af4b8a71799ee37462e4a5bd188e44b
   languageName: node
   linkType: hard
 
@@ -3877,7 +3875,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:3.2.4"
     "@storybook/addon-essentials": "npm:8.5.2"
     "@storybook/addon-interactions": "npm:8.5.2"
-    "@storybook/addon-links": "npm:8.5.2"
+    "@storybook/addon-links": "npm:9.0.6"
     "@storybook/addon-webpack5-compiler-swc": "npm:3.0.0"
     "@storybook/blocks": "npm:8.5.2"
     "@storybook/react": "npm:8.5.2"
@@ -3914,7 +3912,7 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:^1.0.2"
     "@storybook/addon-essentials": "npm:8.5.2"
     "@storybook/addon-interactions": "npm:8.5.2"
-    "@storybook/addon-links": "npm:8.5.2"
+    "@storybook/addon-links": "npm:9.0.6"
     "@storybook/addon-webpack5-compiler-swc": "npm:2.0.0"
     "@storybook/blocks": "npm:8.5.2"
     "@storybook/react": "npm:8.5.2"

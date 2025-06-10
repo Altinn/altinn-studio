@@ -24,7 +24,7 @@
     "@chromatic-com/storybook": "3.2.4",
     "@storybook/addon-essentials": "8.5.2",
     "@storybook/addon-interactions": "8.5.2",
-    "@storybook/addon-links": "8.5.2",
+    "@storybook/addon-links": "9.0.6",
     "@storybook/addon-webpack5-compiler-swc": "2.0.0",
     "@storybook/blocks": "8.5.2",
     "@storybook/react": "8.5.2",
