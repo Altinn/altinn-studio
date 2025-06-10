@@ -160,6 +160,8 @@ volumeMounts:
     mountPath: /mnt/keys
   - name: accesstoken
     mountPath: "/accesstoken"
+  - name: altinn-studio-env
+    mountPath: "/app/wwwroot/designer/config"
 
 volumes:
   - name: altinn-repo-storage
@@ -174,6 +176,9 @@ volumes:
   - name : datakeys
     persistentVolumeClaim:
       claimName: keys
+  - name: altinn-studio-env
+    secret:
+      secretName: altinn-studio-env-secret
 
 ingress:
   - metadata:
