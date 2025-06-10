@@ -276,7 +276,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         Assert.False(File.Exists(codeListFilePath));
     }
 
-    private static string RelativePathCodeList(string codeListId) => $"Codelists/{codeListId}.json";
+    private static string RelativePathCodeList(string codeListId) => $"CodeLists/{codeListId}.json";
 
     private static string RelativePathText(string lang) => $"Texts/resource.{lang}.json";
 

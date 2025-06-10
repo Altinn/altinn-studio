@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 public class AltinnOrgGitRepository : AltinnGitRepository
 {
-    private const string CodeListFolderPath = "Codelists/";
+    private const string CodeListFolderPath = "CodeLists/";
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.??.json";
 
