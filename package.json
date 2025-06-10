@@ -106,7 +106,7 @@
     "jest-preview": "0.3.1",
     "js-levenshtein": "1.1.6",
     "jsdom": "26.1.0",
-    "lint-staged": "15.5.1",
+    "lint-staged": "16.1.0",
     "mime": "4.0.7",
     "mini-css-extract-plugin": "2.9.2",
     "postcss-modules": "6.0.1",
