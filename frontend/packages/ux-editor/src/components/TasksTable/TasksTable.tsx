@@ -84,7 +84,7 @@ export const TasksTable = ({
           data-color='neutral'
         >
           <PlayFillIcon />
-          Forhåndsvis med navigasjonsmeny
+          {t('ux_editor.task_table_preview')}
         </StudioLink>
       )}
     </div>

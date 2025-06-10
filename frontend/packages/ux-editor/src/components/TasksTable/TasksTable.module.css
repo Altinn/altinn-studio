@@ -26,6 +26,7 @@
   background: var(--ds-color-base-default);
   border-radius: var(--ds-border-radius-default);
   font-weight: var(--ds-font-weight-medium);
+  gap: var(--ds-size-1);
 }
 
 .previewLink:hover {
