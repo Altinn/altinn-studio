@@ -26,11 +26,8 @@ export const TasksTable = ({
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
 
-  const [searchParams] = useSearchParams();
-  const layout = searchParams?.get('layout');
   const packagesRouter = new PackagesRouter({ org, app });
-  const previewLinkQueryParams = layout ? `?layout=${layout}` : '';
-  const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${previewLinkQueryParams}`;
+  const previewLink = packagesRouter.getPackageNavigationUrl('preview');
 
   const handleMoveAllTasks = () => {
     if (!isNavigationMode || confirm(t('ux_editor.task_table.remove_tasks'))) {
