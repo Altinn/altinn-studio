@@ -154,8 +154,7 @@ public class SigningUserActionTests
 
         // Act
         var result = await fixture.SigningUserAction.HandleAction(
-            new UserActionContext(fixture.InstanceDataMutatorMock.Object, null),
-            CancellationToken.None
+            new UserActionContext(fixture.InstanceDataMutatorMock.Object, null)
         );
 
         // Assert
@@ -183,8 +182,7 @@ public class SigningUserActionTests
                 fixture.InstanceDataMutatorMock.Object,
                 1337,
                 authentication: TestAuthentication.GetUserAuthentication(1337)
-            ),
-            CancellationToken.None
+            )
         );
 
         // Assert
@@ -218,7 +216,7 @@ public class SigningUserActionTests
         // Act
 
         int dataElementCountBeforeSign = fixture.Instance.Data.Count;
-        var result = await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None);
+        var result = await fixture.SigningUserAction.HandleAction(userActionContext);
 
         // Assert
         Assert.Equal(JsonSerializer.Serialize(UserActionResult.SuccessResult()), JsonSerializer.Serialize(result));
@@ -241,7 +239,7 @@ public class SigningUserActionTests
         );
 
         // Act
-        var result = await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None);
+        var result = await fixture.SigningUserAction.HandleAction(userActionContext);
         var expected = UserActionResult.FailureResult(
             error: new ActionError() { Code = "SignDataElementsFailed", Message = "Failed to sign data elements." },
             errorType: ProcessErrorType.Internal
@@ -270,8 +268,7 @@ public class SigningUserActionTests
 
         // Act
         var result = await fixture.SigningUserAction.HandleAction(
-            new UserActionContext(fixture.InstanceDataMutatorMock.Object, 1337, authentication: token.Auth),
-            CancellationToken.None
+            new UserActionContext(fixture.InstanceDataMutatorMock.Object, 1337, authentication: token.Auth)
         );
 
         // Assert
@@ -359,8 +356,7 @@ public class SigningUserActionTests
                 fixture.InstanceDataMutatorMock.Object,
                 1337,
                 authentication: TestAuthentication.GetUserAuthentication(1337)
-            ),
-            CancellationToken.None
+            )
         );
 
         // Assert
@@ -392,7 +388,7 @@ public class SigningUserActionTests
             authentication: TestAuthentication.GetUserAuthentication(1337)
         );
         // Act
-        var result = await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None);
+        var result = await fixture.SigningUserAction.HandleAction(userActionContext);
         // Assert
         SignatureContext expected = new(
             new InstanceIdentifier(instance),
@@ -432,7 +428,7 @@ public class SigningUserActionTests
 
         // Act
         await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None)
+            await fixture.SigningUserAction.HandleAction(userActionContext)
         );
         fixture.SignClient.VerifyNoOtherCalls();
     }
@@ -452,7 +448,7 @@ public class SigningUserActionTests
 
         // Act
         await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None)
+            await fixture.SigningUserAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }
@@ -473,7 +469,7 @@ public class SigningUserActionTests
 
         // Act
         await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await fixture.SigningUserAction.HandleAction(userActionContext, CancellationToken.None)
+            await fixture.SigningUserAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }
@@ -505,7 +501,7 @@ public class SigningUserActionTests
 
         // Act
         await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await userAction.HandleAction(userActionContext, CancellationToken.None)
+            await userAction.HandleAction(userActionContext)
         );
         signClientMock.VerifyNoOtherCalls();
     }

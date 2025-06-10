@@ -151,9 +151,9 @@ public class ProcessEngine : IProcessEngine
                 userId,
                 language: request.Language,
                 authentication: currentAuth,
-                onBehalfOf: request.ActionOnBehalfOf
-            ),
-            ct
+                onBehalfOf: request.ActionOnBehalfOf,
+                cancellationToken: ct
+            )
         );
 
         if (actionResult.ResultType == ResultType.Failure)

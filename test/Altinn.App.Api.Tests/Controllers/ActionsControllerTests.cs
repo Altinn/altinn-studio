@@ -663,7 +663,7 @@ public class FillAction : IUserAction
         _dataClient = dataClient;
     }
 
-    public async Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct)
+    public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
         _logger.LogInformation("FillAction triggered, with button id: {buttonId}", context.ButtonId);
 
@@ -737,7 +737,7 @@ public class LookupAction : IUserAction
 {
     public string Id => "lookup";
 
-    public async Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct)
+    public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
         await Task.CompletedTask;
         if (context.UserId == 400)

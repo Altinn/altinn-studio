@@ -20,6 +20,7 @@ public class UserActionContext
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="authentication">Information about the authenticated party</param>
     /// <param name="onBehalfOf">The organisation number of the party the user is acting on behalf of</param>
+    /// <param name="cancellationToken">The cancellation token</param>
     public UserActionContext(
         IInstanceDataMutator dataMutator,
         int? userId,
@@ -27,7 +28,8 @@ public class UserActionContext
         Dictionary<string, string>? actionMetadata = null,
         string? language = null,
         Authenticated? authentication = null,
-        string? onBehalfOf = null
+        string? onBehalfOf = null,
+        CancellationToken? cancellationToken = null
     )
     {
         Instance = dataMutator.Instance;
@@ -38,6 +40,7 @@ public class UserActionContext
         ButtonId = buttonId;
         ActionMetadata = actionMetadata ?? [];
         Language = language;
+        CancellationToken = cancellationToken ?? default;
     }
 
     /// <summary>
@@ -116,6 +119,11 @@ public class UserActionContext
     /// The language that will be used for the action
     /// </summary>
     public string? Language { get; }
+
+    /// <summary>
+    /// The cancellation token associated with the action
+    /// </summary>
+    public CancellationToken CancellationToken { get; }
 
     internal IAltinnCdnClient? AltinnCdnClient { get; set; }
 }

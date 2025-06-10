@@ -80,7 +80,7 @@ public class UserActionServiceTests
     {
         public string Id => "dummy";
 
-        public Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct)
+        public Task<UserActionResult> HandleAction(UserActionContext context)
         {
             return Task.FromResult(UserActionResult.SuccessResult());
         }
@@ -90,7 +90,7 @@ public class UserActionServiceTests
     {
         public string Id => "dummy";
 
-        public Task<UserActionResult> HandleAction(UserActionContext context, CancellationToken ct)
+        public Task<UserActionResult> HandleAction(UserActionContext context)
         {
             return Task.FromResult(
                 UserActionResult.SuccessResult(new List<ClientAction>() { ClientAction.NextPage() })

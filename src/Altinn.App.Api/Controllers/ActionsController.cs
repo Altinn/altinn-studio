@@ -137,7 +137,8 @@ public class ActionsController : ControllerBase
             actionRequest.Metadata,
             language,
             currentAuth,
-            actionRequest.OnBehalfOf
+            actionRequest.OnBehalfOf,
+            cancellationToken: ct
         );
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
@@ -155,7 +156,7 @@ public class ActionsController : ControllerBase
             );
         }
 
-        UserActionResult result = await actionHandler.HandleAction(userActionContext, ct);
+        UserActionResult result = await actionHandler.HandleAction(userActionContext);
 
         if (result.ResultType is ResultType.Failure)
         {

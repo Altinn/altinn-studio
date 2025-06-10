@@ -444,7 +444,7 @@ public sealed class ProcessEngineTest
         Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
         userActionMock.Setup(u => u.Id).Returns("sign");
         userActionMock
-            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>(), It.IsAny<CancellationToken>()))
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
             .ReturnsAsync(UserActionResult.SuccessResult());
         using var fixture = Fixture.Create(updatedInstance: expectedInstance, userActions: [userActionMock.Object]);
         fixture
@@ -504,7 +504,7 @@ public sealed class ProcessEngineTest
         Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
         userActionMock.Setup(u => u.Id).Returns("sign");
         userActionMock
-            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>(), It.IsAny<CancellationToken>()))
+            .Setup(u => u.HandleAction(It.IsAny<UserActionContext>()))
             .ReturnsAsync(
                 UserActionResult.FailureResult(
                     error: new ActionError() { Code = "NoUserId", Message = "User id is missing in token" },
