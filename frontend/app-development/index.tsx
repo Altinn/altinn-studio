@@ -10,22 +10,8 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
-import axios from 'axios';
-import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-
-var altinnStudioEnvironment: AltinnStudioEnvironment;
-const loadStudioEnvironment = async () => {
-  const response = await axios.get('/designer/config/env.json');
-  if (response.status === 200) {
-    altinnStudioEnvironment = response.data as AltinnStudioEnvironment;
-  } else {
-    console.error('Failed to load altinnStudioEnvironment');
-  }
-};
-await loadStudioEnvironment();
 
 const loggerConfig: LoggerConfig = {
-  connectionString: altinnStudioEnvironment.aiConnectionString,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
