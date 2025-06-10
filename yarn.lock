@@ -2390,9 +2390,9 @@ __metadata:
   linkType: hard
 
 "@navikt/aksel-icons@npm:^7.17.4":
-  version: 7.21.0
-  resolution: "@navikt/aksel-icons@npm:7.21.0"
-  checksum: 10c0/33a9b4e4769e3ae2c13fbb62ff8097fd1c6f55297a4d456b2e462826b0072b83909f54496825c9ad8a049ab67008efccfbb385230d5d71115b92e2312fe0d10c
+  version: 7.22.0
+  resolution: "@navikt/aksel-icons@npm:7.22.0"
+  checksum: 10c0/a644ad2a3920729d7bbbfcd6a309fba7121063a78d1dc485efb3d385e6987ab68d3e61554dfcab6f026227d219a09ba473d500ea989e8bbb7752507964455540
   languageName: node
   linkType: hard
 
@@ -3566,11 +3566,11 @@ __metadata:
   linkType: hard
 
 "@types/leaflet@npm:1":
-  version: 1.9.17
-  resolution: "@types/leaflet@npm:1.9.17"
+  version: 1.9.18
+  resolution: "@types/leaflet@npm:1.9.18"
   dependencies:
     "@types/geojson": "npm:*"
-  checksum: 10c0/b03c98921a1874212d456f5bddb2e2eda87c1a82b458a73d2df844af2ebe59eba869294b563637f4e52b38a5cd8f88c84febd519feb4bc6f3d14768822c1189c
+  checksum: 10c0/376ef5b5d60664e8cc22908a75149c020ad668330ef61f0e7486a61e85285b3f1b9dafcce9462bd3375be537e4d1227fc0c0524e5c071a4a45ed16bf3fc71608
   languageName: node
   linkType: hard
 
@@ -16771,9 +16771,9 @@ __metadata:
   linkType: hard
 
 "zod@npm:^3.23.8, zod@npm:^3.24.2":
-  version: 3.24.4
-  resolution: "zod@npm:3.24.4"
-  checksum: 10c0/ab3112f017562180a41a0f83d870b333677f7d6b77f106696c56894567051b91154714a088149d8387a4f50806a2520efcb666f108cd384a35c236a191186d91
+  version: 3.25.56
+  resolution: "zod@npm:3.25.56"
+  checksum: 10c0/3800f01d4b1df932b91354eb1e648f69cc7e5561549e6d2bf83827d930a5f33bbf92926099445f6fc1ebb64ca9c6513ef9ae5e5409cfef6325f354bcf6fc9a24
   languageName: node
   linkType: hard
 
