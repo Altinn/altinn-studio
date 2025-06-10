@@ -29,6 +29,7 @@
       "DateAndFormatDate",
       "PersonLookupPage",
       "OrganisationLookupPage",
+      "SimpleTable",
       "SummaryPage"
     ],
     "excludeFromPdf": ["SummaryPage"]
