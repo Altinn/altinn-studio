@@ -31,6 +31,7 @@
       "OrganisationLookupPage",
       "SimpleTable",
       "AccordionPage",
+      "AccordionGroupPage",
       "SummaryPage"
     ],
     "excludeFromPdf": ["SummaryPage"]

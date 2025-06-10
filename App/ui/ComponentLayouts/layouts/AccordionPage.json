@@ -22,13 +22,6 @@
         }
       },
       {
-        "id": "button-example",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Click Me"
-        }
-      },
-      {
         "id": "TablePage-Summary2",
         "type": "Summary2",
         "target": {
