@@ -30,6 +30,7 @@
       "PersonLookupPage",
       "OrganisationLookupPage",
       "SimpleTable",
+      "AccordionPage",
       "SummaryPage"
     ],
     "excludeFromPdf": ["SummaryPage"]

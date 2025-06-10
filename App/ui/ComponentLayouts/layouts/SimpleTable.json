@@ -15,7 +15,7 @@
         }
       },
       {
-        "id": "Table1",g
+        "id": "Table1",
         "type": "SimpleTable",
         "title": "Schmitle",
         "dataModelBindings": {
@@ -61,6 +61,15 @@
         "target": {
           "type": "component",
           "id": "Table1"
+        }
+      },
+      {
+        "id": "Table-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
         }
       }
     ]
