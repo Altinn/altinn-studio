@@ -9,14 +9,18 @@ import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
->;
+> & { textResources: ITextResources };
 
 export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
-  ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
+  (
+    { component, handleComponentChange, textResources }: OptionListEditorProps,
+    dialogRef,
+  ): React.ReactNode => {
     const handleDelete = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
@@ -29,22 +33,31 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           component={component}
           handleComponentChange={handleComponentChange}
           handleDelete={handleDelete}
+          textResources={textResources}
         />
       );
     }
 
-    return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
+    return (
+      <OptionListResolver
+        optionsId={component.optionsId}
+        handleDelete={handleDelete}
+        textResources={textResources}
+      />
+    );
   },
 );
 
 type OptionsListResolverProps = {
   handleDelete: () => void;
   optionsId: string;
+  textResources: ITextResources;
 };
 
 function OptionListResolver({
   handleDelete,
   optionsId,
+  textResources,
 }: OptionsListResolverProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -71,7 +84,13 @@ function OptionListResolver({
         </>
       );
     case 'success': {
-      return <LibraryOptionsEditor handleDelete={handleDelete} optionListId={optionsId} />;
+      return (
+        <LibraryOptionsEditor
+          handleDelete={handleDelete}
+          optionListId={optionsId}
+          textResources={textResources}
+        />
+      );
     }
   }
 }

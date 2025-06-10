@@ -162,6 +162,7 @@ function getDeleteButton() {
 const defaultProps: LibraryOptionsEditorProps = {
   handleDelete: handleDelete,
   optionListId: optionListId,
+  textResources,
 };
 
 function renderLibraryOptionsEditor({
@@ -184,6 +185,5 @@ function renderLibraryOptionsEditorWithData({ queries = {}, props = {} } = {}) {
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
-  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }

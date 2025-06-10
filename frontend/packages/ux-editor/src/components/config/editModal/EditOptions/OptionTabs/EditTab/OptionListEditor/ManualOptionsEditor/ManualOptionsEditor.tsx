@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   handleOptionsChange,
   resetComponentOptions,
@@ -17,16 +15,16 @@ import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './ManualOptionsEditor.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
 export type ManualOptionsEditorProps = {
   handleDelete: () => void;
+  textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
-  ({ component, handleComponentChange, handleDelete }, ref): React.ReactNode => {
+  ({ component, handleComponentChange, handleDelete, textResources }, ref): React.ReactNode => {
     const { t } = useTranslation();
-    const { org, app } = useStudioEnvironmentParams();
-    const { data: textResources } = useTextResourcesQuery(org, app);
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
