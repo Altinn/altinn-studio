@@ -24,7 +24,7 @@ export function SummaryContent({
   overrides,
   RenderSummary,
 }: SummaryContentProps) {
-  const { langAsString } = useLanguage(targetNode);
+  const { langAsString } = useLanguage();
   const summaryItem = useNodeItem(summaryNode);
   const targetItem = useNodeItem(targetNode);
   const display = overrides?.display || summaryItem?.display;
@@ -53,10 +53,7 @@ export function SummaryContent({
             'data-testid': 'has-validation-message',
           })}
         >
-          <Lang
-            id={summaryTitleTrb ?? titleTrb}
-            node={targetNode}
-          />
+          <Lang id={summaryTitleTrb ?? titleTrb} />
         </span>
       )}
       <span className={classes.summary}>

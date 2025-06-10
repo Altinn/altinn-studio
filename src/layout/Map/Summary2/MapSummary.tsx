@@ -39,12 +39,7 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
-          title={
-            <Lang
-              id={title}
-              node={target}
-            />
-          }
+          title={<Lang id={title} />}
           componentNode={target}
           errors={errors}
           hideEditButton={readOnly}
@@ -100,7 +95,6 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
             <Lang
               id={message.key}
               params={message.params}
-              node={target}
             />
           </ErrorMessage>
         ))}

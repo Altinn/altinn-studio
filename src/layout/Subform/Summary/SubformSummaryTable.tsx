@@ -80,7 +80,7 @@ function SubformTableRow({
           <Table.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
-              reference={{ type: 'node', id: targetNode.id }}
+              node={targetNode}
               data={subformData}
               dataSources={subformDataSources}
             />

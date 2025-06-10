@@ -17,7 +17,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
   const icon = useNodeItem(node, (i) => i.icon);
   const direction = useNodeItem(node, (i) => i.direction) ?? 'horizontal';
   const formatting = useNodeItem(node, (i) => i.formatting);
-  const { langAsString } = useLanguage(node);
+  const { langAsString } = useLanguage();
   const currentLanguage = useCurrentLanguage();
 
   if (isNaN(value)) {

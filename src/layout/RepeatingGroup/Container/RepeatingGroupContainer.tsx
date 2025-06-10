@@ -20,6 +20,7 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
@@ -74,8 +75,14 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const { node } = useRepeatingGroup();
   const isNested = node.parent instanceof LayoutNode;
 
-  const { grid } = useNodeItem(node);
+  const groupBinding = useNodeItem(node, (i) => i.dataModelBindings.group);
+  const grid = useNodeItem(node, (i) => i.grid);
+  const rowIndex = useNodeItem(node, (i) => i.rows.find((r) => r?.uuid === editingId)?.index);
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
+
+  if (rowIndex === undefined) {
+    return null;
+  }
 
   return (
     <Fieldset
@@ -89,7 +96,12 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
         condition={!isNested}
         wrapper={(children) => <FullWidthWrapper>{children}</FullWidthWrapper>}
       >
-        <RepeatingGroupsEditContainer editId={editingId} />
+        <DataModelLocationProvider
+          groupBinding={groupBinding}
+          rowIndex={rowIndex}
+        >
+          <RepeatingGroupsEditContainer editId={editingId} />
+        </DataModelLocationProvider>
       </ConditionalWrapper>
       <AddButton />
     </Fieldset>
@@ -104,7 +116,8 @@ function ModeShowAll() {
   const numRows = rowsToDisplay.length;
   const lastIndex = rowsToDisplay[numRows - 1];
 
-  const { grid } = useNodeItem(node);
+  const groupBinding = useNodeItem(node, (i) => i.dataModelBindings.group);
+  const grid = useNodeItem(node, (i) => i.grid);
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
 
   return (
@@ -121,15 +134,18 @@ function ModeShowAll() {
       >
         <>
           {rowsToDisplay.map((row) => (
-            <div
+            <DataModelLocationProvider
               key={`repeating-group-item-${row.uuid}`}
-              style={{ width: '100%', marginBottom: !isNested && row == lastIndex ? 15 : 0 }}
+              groupBinding={groupBinding}
+              rowIndex={row.index}
             >
-              <RepeatingGroupsEditContainer
-                editId={row.uuid}
-                forceHideSaveButton={true}
-              />
-            </div>
+              <div style={{ width: '100%', marginBottom: !isNested && row == lastIndex ? 15 : 0 }}>
+                <RepeatingGroupsEditContainer
+                  editId={row.uuid}
+                  forceHideSaveButton={true}
+                />
+              </div>
+            </DataModelLocationProvider>
           ))}
           <RepeatingGroupPagination inTable={false} />
         </>

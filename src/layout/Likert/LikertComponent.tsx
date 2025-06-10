@@ -15,20 +15,20 @@ import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { typedBoolean } from 'src/utils/typing';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LikertComponentProps = PropsFromGenericComponent<'Likert'>;
 
 export const LikertComponent = ({ node }: LikertComponentProps) => {
+  const groupBinding = useNodeItem(node, (item) => item.dataModelBindings.questions);
   const textResourceBindings = useNodeItem(node, (item) => item.textResourceBindings);
   const mobileView = useIsMobileOrTablet();
   const rows = useNodeItem(node, (item) => item.rows);
-  const rowNodeIds = rows.map((row) => row?.itemNodeId).filter(typedBoolean);
-  const firstLikertNodeId = rowNodeIds[0];
+  const firstLikertNodeId = rows.find((row) => row?.itemNodeId)?.itemNodeId;
   const firstLikertNode = useNode(firstLikertNodeId) as LayoutNode<'LikertItem'> | undefined;
   const { options: calculatedOptions, isFetching } = useNodeOptions(firstLikertNode);
   const columns = useNodeItem(node, (item) => item.columns);
@@ -70,12 +70,17 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           aria-labelledby={textResourceBindings?.title ? getLabelId(node.id) : undefined}
           aria-describedby={textResourceBindings?.description ? getDescriptionId(node.id) : undefined}
         >
-          {rowNodeIds.map((compId) => (
-            <GenericComponentById
-              key={compId}
-              id={compId}
-            />
-          ))}
+          {rows.map((row) =>
+            row && row.itemNodeId ? (
+              <DataModelLocationProvider
+                key={row.index}
+                groupBinding={groupBinding}
+                rowIndex={row.index}
+              >
+                <GenericComponentById id={row.itemNodeId} />
+              </DataModelLocationProvider>
+            ) : null,
+          )}
         </div>
       </ComponentStructureWrapper>
     );
@@ -144,19 +149,24 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             </Table.Row>
           </Table.Head>
           <Table.Body>
-            {rowNodeIds.map((compId) => {
+            {rows.map((row) => {
               const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
                 layout: LayoutStyle.Table,
               };
 
-              return (
-                <GenericComponentById
-                  key={compId}
-                  id={compId}
-                  overrideDisplay={{ directRender: true }}
-                  overrideItemProps={override}
-                />
-              );
+              return row && row.itemNodeId ? (
+                <DataModelLocationProvider
+                  key={row.index}
+                  groupBinding={groupBinding}
+                  rowIndex={row.index}
+                >
+                  <GenericComponentById
+                    id={row.itemNodeId}
+                    overrideDisplay={{ directRender: true }}
+                    overrideItemProps={override}
+                  />
+                </DataModelLocationProvider>
+              ) : null;
             })}
           </Table.Body>
         </Table>

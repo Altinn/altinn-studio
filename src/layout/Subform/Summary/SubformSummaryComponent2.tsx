@@ -98,7 +98,7 @@ const DoSummaryWrapper = ({
 
   const subformEntryName =
     entryDisplayName && !subformDataError
-      ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, { type: 'node', id: node.id })
+      ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, node.id)
       : null;
 
   return (

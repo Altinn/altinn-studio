@@ -4,17 +4,15 @@ import { Paragraph } from '@digdir/designsystemet-react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { ValidLangParam, ValidLanguageKey } from 'src/features/language/useLanguage';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface LangProps {
   id: ValidLanguageKey | string | undefined;
   params?: ValidLangParam[];
-  node?: LayoutNode;
   parseHtmlAndMarkdown?: boolean;
 }
 
-export function Lang({ id, params, node, parseHtmlAndMarkdown }: LangProps) {
-  const { lang, langAsNonProcessedString } = useLanguage(node);
+export function Lang({ id, params, parseHtmlAndMarkdown }: LangProps) {
+  const { lang, langAsNonProcessedString } = useLanguage();
 
   if (parseHtmlAndMarkdown === false) {
     return langAsNonProcessedString(id, params);
@@ -27,8 +25,8 @@ export function Lang({ id, params, node, parseHtmlAndMarkdown }: LangProps) {
  * This will wrap the text in a Paragraph component, but only if the resulting text is a pure string or inline content (span)
  * If lang() returns block elements like headings, lists etc. it is wrapped in a div with Paragraph styling to not cause invalid element nesting
  */
-export function LangAsParagraph({ id, params, node, parseHtmlAndMarkdown }: LangProps) {
-  const { lang, langAsNonProcessedString } = useLanguage(node);
+export function LangAsParagraph({ id, params, parseHtmlAndMarkdown }: LangProps) {
+  const { lang, langAsNonProcessedString } = useLanguage();
 
   if (parseHtmlAndMarkdown === false) {
     return <Paragraph>{langAsNonProcessedString(id, params)}</Paragraph>;

@@ -2,24 +2,17 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { evalExpr } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
 import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
-import type { ExprConfig } from 'src/features/expressions/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
-    const config: ExprConfig<ExprVal.String> = {
-      returnType: ExprVal.String,
-      defaultValue: 'hello world',
-    };
-
     expect(
       evalExpr(
         ['frontendSettings', 'whatever'],
-        { type: 'none' },
         {
           applicationSettings: {},
         } as ExpressionDataSources,
-        { config },
+        { returnType: ExprVal.String, defaultValue: 'hello world' },
       ),
     ).toEqual('hello world');
   });

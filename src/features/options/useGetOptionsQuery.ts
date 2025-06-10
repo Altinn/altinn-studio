@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { skipToken, useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosError, AxiosResponse } from 'axios';
@@ -12,10 +10,8 @@ import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings'
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
-import type { LayoutReference } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IMapping, IQueryParameters } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const useGetOptionsQuery = (
   url: string | undefined,
@@ -35,7 +31,6 @@ export const useGetOptionsQuery = (
 };
 
 export const useGetOptionsUrl = (
-  node: LayoutNode,
   optionsId: string | undefined,
   mapping?: IMapping,
   queryParameters?: IQueryParameters,
@@ -44,8 +39,7 @@ export const useGetOptionsUrl = (
   const mappingResult = FD.useMapping(mapping, GeneratorData.useDefaultDataType());
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
-  const reference: LayoutReference = useMemo(() => ({ type: 'node', id: node.id }), [node]);
-  const resolvedQueryParameters = useResolvedQueryParameters(queryParameters, reference);
+  const resolvedQueryParameters = useResolvedQueryParameters(queryParameters);
 
   return optionsId
     ? getOptionsUrl({

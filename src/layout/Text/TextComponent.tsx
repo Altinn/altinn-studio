@@ -15,7 +15,7 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
   const value = useNodeItem(node, (i) => i.value);
   const icon = useNodeItem(node, (i) => i.icon);
   const direction = useNodeItem(node, (i) => i.direction) ?? 'horizontal';
-  const { langAsString } = useLanguage(node);
+  const { langAsString } = useLanguage();
 
   if (!textResourceBindings?.title) {
     return <DisplayText value={value} />;

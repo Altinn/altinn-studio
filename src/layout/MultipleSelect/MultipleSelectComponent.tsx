@@ -31,7 +31,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 
   const debounce = FD.useDebounceImmediately();
-  const { langAsString, lang } = useLanguage(node);
+  const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ node, overrideDisplay });
@@ -130,10 +130,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
               >
                 <span>
                   <wbr />
-                  <Lang
-                    id={option.label}
-                    node={node}
-                  />
+                  <Lang id={option.label} />
                 </span>
               </Combobox.Option>
             ))}

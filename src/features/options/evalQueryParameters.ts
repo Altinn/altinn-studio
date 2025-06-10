@@ -1,7 +1,7 @@
 import { evalExpr } from 'src/features/expressions';
-import { ExprVal, refAsSuffix } from 'src/features/expressions/types';
+import { ExprVal } from 'src/features/expressions/types';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import type { ExprResolved, LayoutReference } from 'src/features/expressions/types';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { IQueryParameters } from 'src/layout/common.generated';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 
@@ -20,17 +20,14 @@ export function evalQueryParameters(props: ExprResolver<'List'>) {
 
 export function useResolvedQueryParameters(
   queryParameters: IQueryParameters | undefined,
-  reference: LayoutReference,
 ): Record<string, string> | undefined {
   const dataSources = useExpressionDataSources(queryParameters);
   return queryParameters
     ? Object.entries(queryParameters).reduce((obj, [key, expr]) => {
-        obj[key] = evalExpr(expr, reference, dataSources, {
-          config: {
-            returnType: ExprVal.String,
-            defaultValue: '',
-          },
-          errorIntroText: `Invalid expression${refAsSuffix(reference)}`,
+        obj[key] = evalExpr(expr, dataSources, {
+          returnType: ExprVal.String,
+          defaultValue: '',
+          errorIntroText: `Invalid expression in query parameters`,
         });
         return obj;
       }, {})

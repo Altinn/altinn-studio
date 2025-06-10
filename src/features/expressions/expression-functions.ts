@@ -197,7 +197,7 @@ export const ExprFunctionDefinitions = {
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
     returns: ExprVal.String,
-    needs: dataSources('codeListSelector', 'langToolsSelector'),
+    needs: dataSources('codeListSelector', 'langToolsSelector', 'currentDataModelPath'),
   },
   formatDate: {
     args: args(required(ExprVal.Date), optional(ExprVal.String)),
@@ -217,7 +217,7 @@ export const ExprFunctionDefinitions = {
   text: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('langToolsSelector'),
+    needs: dataSources('langToolsSelector', 'currentDataModelPath'),
   },
   linkToComponent: {
     args: args(required(ExprVal.String), required(ExprVal.String)),
@@ -568,8 +568,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const option = options.find((o) => o.value == value);
 
     if (option) {
-      const nodeId = this.reference.type === 'node' ? this.reference.id : undefined;
-      return this.dataSources.langToolsSelector(nodeId).langAsNonProcessedString(option.label);
+      return this.dataSources
+        .langToolsSelector(this.dataSources.currentDataModelPath)
+        .langAsNonProcessedString(option.label);
     }
 
     return null;
@@ -600,8 +601,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       return null;
     }
 
-    const nodeId = this.reference.type === 'node' ? this.reference.id : undefined;
-    return this.dataSources.langToolsSelector(nodeId).langAsNonProcessedString(key);
+    return this.dataSources.langToolsSelector(this.dataSources.currentDataModelPath).langAsNonProcessedString(key);
   },
   linkToComponent(linkText, id) {
     if (id == null) {

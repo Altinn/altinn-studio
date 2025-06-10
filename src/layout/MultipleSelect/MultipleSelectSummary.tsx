@@ -36,12 +36,7 @@ export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'
       }
     >
       <MultipleValueSummary
-        title={
-          <Lang
-            id={title}
-            node={target}
-          />
-        }
+        title={<Lang id={title} />}
         componentNode={target}
         displayValues={displayValues}
         showAsList={showAsList}

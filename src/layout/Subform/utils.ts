@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -11,14 +10,14 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
-import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
+import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import {
   type DataSourceOverrides,
   type ExpressionDataSources,
   useExpressionDataSources,
 } from 'src/utils/layout/useExpressionDataSources';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
-import type { ExprConfig, ExprValToActualOrExpr, NodeReference } from 'src/features/expressions/types';
+import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function useSubformFormData(dataElementId: string) {
@@ -57,16 +56,11 @@ function useFormDataSelectorForSubform(dataType: string, subformData: unknown) {
 }
 
 function useLangToolsSelectorForSubform(dataType: string, subformData: unknown) {
-  return useInnerLanguageWithForcedNodeSelector(
+  return useInnerLanguageWithForcedPathSelector(
     dataType,
     useDataModelNamesForSubform(dataType),
     useFormDataSelectorForSubform(dataType, subformData),
-    selectorContextNotProvided,
   );
-}
-
-function selectorContextNotProvided(..._args: unknown[]): typeof ContextNotProvided {
-  return ContextNotProvided;
 }
 
 function useOverriddenDataSourcesForSubform(
@@ -87,7 +81,6 @@ const dataSourcesNotSupportedInSubform = new Set([
   'optionsSelector',
   'isHiddenSelector',
   'nodeDataSelector',
-  'transposeSelector',
   'layoutLookups',
   'displayValues',
 ] satisfies (keyof ExpressionDataSources)[]);
@@ -111,18 +104,17 @@ export function useExpressionDataSourcesForSubform(
 export function getSubformEntryDisplayName(
   entryDisplayName: ExprValToActualOrExpr<ExprVal.String>,
   dataSources: ExpressionDataSources,
-  reference: NodeReference,
+  nodeId: string,
 ): string | null {
-  const errorIntroText = `Invalid expression for component '${reference.id}'`;
+  const errorIntroText = `Invalid expression for component '${nodeId}'`;
   if (!ExprValidation.isValidOrScalar(entryDisplayName, ExprVal.String, errorIntroText)) {
     return null;
   }
 
-  const config: ExprConfig = {
+  const resolvedValue = evalExpr(entryDisplayName, dataSources, {
     returnType: ExprVal.String,
     defaultValue: '',
-  };
-
-  const resolvedValue = evalExpr(entryDisplayName, reference, dataSources, { config, errorIntroText });
+    errorIntroText,
+  });
   return resolvedValue ? String(resolvedValue) : null;
 }

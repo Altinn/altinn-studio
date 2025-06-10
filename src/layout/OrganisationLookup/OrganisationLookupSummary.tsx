@@ -46,20 +46,12 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
           size='sm'
           level={2}
         >
-          <Lang
-            id={title}
-            node={componentNode}
-          />
+          <Lang id={title} />
         </Heading>
         <div className={classes.organisationLookupSummary}>
           <div className={classes.organisationLookupSummaryNr}>
             <SingleValueSummary
-              title={
-                <Lang
-                  id='organisation_lookup.orgnr_label'
-                  node={componentNode}
-                />
-              }
+              title={<Lang id='organisation_lookup.orgnr_label' />}
               displayData={organisation_lookup_orgnr}
               componentNode={componentNode}
               hideEditButton={organisation_lookup_name ? true : false}
@@ -74,12 +66,7 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
           {organisation_lookup_name && (
             <div className={classes.organisationLookupSummaryName}>
               <SingleValueSummary
-                title={
-                  <Lang
-                    id='organisation_lookup.org_name'
-                    node={componentNode}
-                  />
-                }
+                title={<Lang id='organisation_lookup.org_name' />}
                 displayData={organisation_lookup_name}
                 componentNode={componentNode}
                 hideEditButton={false}

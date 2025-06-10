@@ -3,7 +3,6 @@ import dot from 'dot-object';
 
 import {
   ExprRuntimeError,
-  prettyError,
   traceExpressionError,
   UnexpectedType,
   UnknownArgType,
@@ -22,14 +21,12 @@ import type {
   ExprValToActual,
   ExprValToActualOrExpr,
   ExprValueArgs,
-  LayoutReference,
 } from 'src/features/expressions/types';
 
 type BeforeFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[]) => void;
 type AfterFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[], result: unknown) => void;
 
-export interface EvalExprOptions {
-  config?: ExprConfig;
+export interface EvalExprOptions<V extends ExprVal = ExprVal> extends ExprConfig<V> {
   errorIntroText?: string;
   onBeforeFunctionCall?: BeforeFuncCallback;
   onAfterFunctionCall?: AfterFuncCallback;
@@ -48,7 +45,6 @@ export type EvaluateExpressionParams<DataSources extends readonly Source[] = Sou
   expr: Expression;
   path: string[];
   callbacks: { onBeforeFunctionCall?: BeforeFuncCallback; onAfterFunctionCall?: AfterFuncCallback };
-  reference: LayoutReference;
   dataSources: Pick<ExpressionDataSources, DataSources[number]>;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
@@ -73,63 +69,51 @@ function isExpression(input: unknown): input is Expression {
  */
 export function evalExpr<V extends ExprVal = ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
-  reference: LayoutReference,
   dataSources: ExpressionDataSources,
-  options?: EvalExprOptions,
-) {
+  options: EvalExprOptions,
+): ExprValToActual<V> {
   if (!isExpression(expr)) {
-    return expr;
+    return expr as ExprValToActual<V>;
   }
 
   const callbacks = {
-    onBeforeFunctionCall: options?.onBeforeFunctionCall,
-    onAfterFunctionCall: options?.onAfterFunctionCall,
+    onBeforeFunctionCall: options.onBeforeFunctionCall,
+    onAfterFunctionCall: options.onAfterFunctionCall,
   };
   const evalParams: EvaluateExpressionParams = {
     expr,
     path: [],
     callbacks,
-    reference,
     dataSources,
-    positionalArguments: options?.positionalArguments,
-    valueArguments: options?.valueArguments,
+    positionalArguments: options.positionalArguments,
+    valueArguments: options.valueArguments,
   };
 
   try {
     const result = innerEvalExpr(evalParams);
-    if ((result === null || result === undefined) && options?.config) {
-      return options.config.defaultValue;
+    if (result === null || result === undefined) {
+      return options.defaultValue as ExprValToActual<V>;
     }
 
-    if (
-      !!options?.config?.returnType &&
-      options.config.returnType !== ExprVal.Any &&
-      options.config.returnType !== valueToExprValueType(result)
-    ) {
+    if (options.returnType !== ExprVal.Any && options.returnType !== valueToExprValueType(result)) {
       // If you have an expression that expects (for example) a true|false return value, and the actual returned result
       // is "true" (as a string), it makes sense to finally cast the value to the proper return value type.
-      return exprCastValue(result, options.config.returnType, evalParams);
+      return exprCastValue(result, options.returnType, evalParams) as ExprValToActual<V>;
     }
 
-    return result;
+    return result as ExprValToActual<V>;
   } catch (err) {
     const { expr: errorExpr, path: errorPath } =
       err instanceof ExprRuntimeError
         ? { expr: err.expression, path: err.path }
         : { expr: evalParams.expr, path: evalParams.path };
 
-    if (options && options.config) {
-      // When we know of a default value, we can safely print it as an error to the console and safely recover
-      traceExpressionError(err, errorExpr, errorPath, {
-        config: options.config,
-        ...(options.errorIntroText ? { introText: options.errorIntroText } : {}),
-      });
-      return options.config.defaultValue;
-    } else {
-      // We cannot possibly know the expected default value here, so there are no safe ways to fail here except
-      // throwing the exception to let everyone know we failed.
-      throw new Error(prettyError(err, errorExpr, errorPath));
-    }
+    // When we know of a default value, we can safely print it as an error to the console and safely recover
+    traceExpressionError(err, errorExpr, errorPath, {
+      config: options,
+      ...(options.errorIntroText ? { introText: options.errorIntroText } : {}),
+    });
+    return options.defaultValue as ExprValToActual<V>;
   }
 }
 

@@ -1,6 +1,5 @@
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
-import type { NodeReference, PageReference } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal, CompTypes, ILayouts } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
@@ -35,7 +34,7 @@ interface PlainLayoutLookups {
 interface RelationshipLookups {
   // Map of all component ids to their parent component id
   componentToParent: {
-    [componentId: string]: PageReference | NodeReference | undefined;
+    [componentId: string]: { type: 'page'; id: string } | { type: 'node'; id: string } | undefined;
   };
 
   // Map of all component ids to their children component ids
@@ -111,7 +110,7 @@ function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
  */
 export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
   const plainLookups = makePlainLookup(layouts);
-  const componentToParent: { [componentId: string]: PageReference | NodeReference } = {};
+  const componentToParent: { [componentId: string]: { type: 'page'; id: string } | { type: 'node'; id: string } } = {};
   const componentToChildren: { [componentId: string]: string[] } = {};
   const topLevelComponents: { [pageKey: string]: string[] } = {};
   const childClaims: ChildClaimsMap = {};

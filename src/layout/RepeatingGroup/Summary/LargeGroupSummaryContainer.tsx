@@ -50,10 +50,7 @@ export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderL
             level={headingLevel}
             size={headingSize}
           >
-            <Lang
-              id={legend}
-              node={groupNode}
-            />
+            <Lang id={legend} />
           </Heading>
         )
       }

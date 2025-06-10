@@ -71,7 +71,6 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             row={row}
             isNested={isNested}
             mutableColumnSettings={columnSettings}
-            node={node}
           />
         ))}
       </Table>
@@ -83,10 +82,9 @@ interface GridRowProps {
   row: GridRowInternal;
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
-  node: LayoutNode;
 }
 
-export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: GridRowProps) {
+export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
   if (isGridRowHidden(row, isHiddenSelector)) {
     return null;
@@ -124,10 +122,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
                 isHeader={row.header}
                 columnStyleOptions={textCellSettings}
               >
-                <Lang
-                  id={cell.text}
-                  node={node}
-                />
+                <Lang id={cell.text} />
               </CellWithText>
             );
           }

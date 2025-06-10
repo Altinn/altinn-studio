@@ -41,7 +41,7 @@ export function EditWindowComponent({
   isFetching,
 }: EditWindowProps): React.JSX.Element {
   const { textResourceBindings } = useNodeItem(node);
-  const { langAsString } = useLanguage(node);
+  const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
@@ -191,10 +191,7 @@ export function EditWindowComponent({
                   >
                     <span>
                       <wbr />
-                      <Lang
-                        id={option.label}
-                        node={node}
-                      />
+                      <Lang id={option.label} />
                     </span>
                   </Combobox.Option>
                 ))}

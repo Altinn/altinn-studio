@@ -530,38 +530,25 @@ describe('Summary', () => {
       undefined,
     ];
 
-    const components = [
-      {
-        id: 'dateOfEffect',
-        type: 'Datepicker' as const,
-        summaryComponent: '[data-testid=summary-summary4]',
-        defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
-      },
-      {
-        id: 'reference-group',
-        type: 'Group' as const,
-        summaryComponent: '[data-testid=summary-group-component]',
-        defaultTitle: 'Dette vises når det ikke er satt summaryTitle',
-      },
-    ];
-
     cy.goto('changename');
     cy.gotoNavPage('summary');
 
+    const defaultTitle = 'Dette vises når det ikke er satt summaryTitle';
     for (const title of testTitleData) {
       cy.changeLayout((component) => {
-        for (const c of components) {
-          if (c.id === component.id && c.type === component.type) {
-            component.textResourceBindings = {
-              title: c.defaultTitle,
-              summaryTitle: title?.summaryTitle,
-              summaryAccessibleTitle: title?.summaryAccessibleTitle,
-            };
-          }
+        if (component.id === 'dateOfEffect' || component.id === 'reference-group') {
+          component.textResourceBindings = {
+            title: defaultTitle,
+            summaryTitle: title?.summaryTitle,
+            summaryAccessibleTitle: title?.summaryAccessibleTitle,
+          };
         }
       });
 
-      components.forEach(({ summaryComponent, defaultTitle }) => {
+      cy.log(`Testing with title: ${title?.summaryTitle ?? defaultTitle}`);
+      cy.log(`Testing with accessible title: ${title?.summaryAccessibleTitle ?? defaultTitle}`);
+
+      for (const summaryComponent of ['[data-testid=summary-summary4]', '[data-testid=summary-group-component]']) {
         cy.get(summaryComponent).should('contain.text', title?.summaryTitle ?? defaultTitle);
         cy.get(summaryComponent)
           .find('button')
@@ -570,7 +557,7 @@ describe('Summary', () => {
             'aria-label',
             `Endre: ${title?.summaryAccessibleTitle ?? title?.summaryTitle ?? defaultTitle}`,
           );
-      });
+      }
     }
   });
 

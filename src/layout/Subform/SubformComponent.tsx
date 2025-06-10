@@ -245,7 +245,7 @@ function SubformTableRow({
           <Table.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
-              reference={{ type: 'node', id: node.id }}
+              node={node}
               data={subformData}
               dataSources={subformDataSources}
             />

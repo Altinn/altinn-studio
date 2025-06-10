@@ -24,7 +24,7 @@ export const DevToolsStore = createStore<Store>((set) => ({
   exprPlayground: {
     expression: undefined,
     forPage: undefined,
-    forComponentId: undefined,
+    nodeId: undefined,
   },
   logs: [],
   actions: {
@@ -44,8 +44,8 @@ export const DevToolsStore = createStore<Store>((set) => ({
     setShowHiddenComponents: (value: DevToolsHiddenComponents) => set({ hiddenComponents: value }),
     exprPlaygroundSetExpression: (expression: string | undefined) =>
       set((state) => ({ exprPlayground: { ...state.exprPlayground, expression } })),
-    exprPlaygroundSetContext: (forPage: string | undefined, forComponentId: string | undefined) =>
-      set((state) => ({ exprPlayground: { ...state.exprPlayground, forPage, forComponentId } })),
+    exprPlaygroundSetContext: (nodeId: string | undefined) =>
+      set((state) => ({ exprPlayground: { ...state.exprPlayground, nodeId } })),
     layoutInspectorSet: (selectedComponentId: string | undefined) => set({ layoutInspector: { selectedComponentId } }),
     nodeInspectorSet: (selectedNodeId: string | undefined) => set({ nodeInspector: { selectedNodeId } }),
     postLogs: (newLogs: IDevToolsLog[]) => set(({ logs }) => ({ logs: [...logs, ...newLogs] })),

@@ -152,7 +152,6 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
                     <Lang
                       id={message.key}
                       params={message.params}
-                      node={targetNode}
                     />
                   }
                 />

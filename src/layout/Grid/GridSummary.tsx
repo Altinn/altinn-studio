@@ -147,10 +147,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
               size='xs'
               level={4}
             >
-              <Lang
-                id={title}
-                node={componentNode}
-              />
+              <Lang id={title} />
             </Heading>
           </caption>
         )}
@@ -290,7 +287,7 @@ interface CellProps extends GridRowProps {
   isSmall: boolean;
 }
 
-function SummaryCell({ cell, idx: idx, headerRow, mutableColumnSettings, row, node, isSmall }: CellProps) {
+function SummaryCell({ cell, idx, headerRow, mutableColumnSettings, row, isSmall }: CellProps) {
   const headerTitle = useHeaderText(headerRow, idx);
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
     mutableColumnSettings[idx] = cell.columnOptions;
@@ -317,10 +314,7 @@ function SummaryCell({ cell, idx: idx, headerRow, mutableColumnSettings, row, no
           headerTitle={headerTitle}
           {...baseProps}
         >
-          <Lang
-            id={cell.text}
-            node={node}
-          />
+          <Lang id={cell.text} />
         </SummaryCellWithText>
       );
     }
@@ -444,7 +438,6 @@ function SummaryCellWithComponent({
             <Lang
               id={message.key}
               params={message.params}
-              node={node}
             />
           </ErrorMessage>
         ))}

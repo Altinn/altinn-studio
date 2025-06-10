@@ -1,28 +1,28 @@
 import dot from 'dot-object';
 
 import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
-import { useDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
+import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
+import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import type { ExprVal, ExprValToActualOrExpr, NodeReference } from 'src/features/expressions/types';
+import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 interface IUseSourceOptionsArgs {
   source: IOptionSource | undefined;
-  node: LayoutNode;
 }
 
-export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOptionInternal[] | undefined => {
-  const langTools = useLanguage(node);
-  const groupReference = useGroupReference(source, node);
+export const useSourceOptions = ({ source }: IUseSourceOptionsArgs): IOptionInternal[] | undefined => {
+  const langTools = useLanguage();
+  const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
   const rawValues = FD.useDebouncedSelect((pick) => {
     if (!groupReference || !valueSubPath) {
@@ -60,7 +60,6 @@ export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOpti
     }
 
     const { label, helpText, description } = source;
-    const nodeReference: NodeReference = { type: 'node', id: node.id };
     const output: IOptionInternal[] = [];
     for (const { value, dataModelLocation } of rawValues) {
       /**
@@ -87,22 +86,22 @@ export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOpti
       output.push({
         value,
         dataModelLocation,
-        label: resolveText(label, nodeReference, modifiedDataSources, dataModelLocation) as string,
-        description: resolveText(description, nodeReference, modifiedDataSources, dataModelLocation),
-        helpText: resolveText(helpText, nodeReference, modifiedDataSources, dataModelLocation),
+        label: resolveText(label, modifiedDataSources, dataModelLocation) as string,
+        description: resolveText(description, modifiedDataSources, dataModelLocation),
+        helpText: resolveText(helpText, modifiedDataSources, dataModelLocation),
       });
     }
 
     return output;
-  }, [dataSources, langTools, node.id, rawValues, source]);
+  }, [dataSources, langTools, rawValues, source]);
 };
 
 /**
  * Get the group reference for the source options. This should be transposed to match the current data model location.
  */
-function useGroupReference(source: IOptionSource | undefined, node: LayoutNode): IDataModelReference | undefined {
+function useGroupReference(source: IOptionSource | undefined): IDataModelReference | undefined {
+  const currentLocation = useCurrentDataModelLocation();
   const currentLayoutSet = useCurrentLayoutSet();
-  const transposeSelector = useDataModelBindingTranspose();
   if (!source) {
     return undefined;
   }
@@ -113,13 +112,12 @@ function useGroupReference(source: IOptionSource | undefined, node: LayoutNode):
   if (!groupDataType) {
     return undefined;
   }
-  const rawReference: IDataModelReference = { dataType: groupDataType, field: cleanGroup };
-  const groupReference = transposeSelector(node, rawReference);
-  if (!groupReference) {
-    return undefined;
+  const untransposed: IDataModelReference = { dataType: groupDataType, field: cleanGroup };
+  if (!currentLocation) {
+    return untransposed;
   }
 
-  return groupReference;
+  return transposeDataBinding({ subject: untransposed, currentLocation });
 }
 
 /**
@@ -148,15 +146,18 @@ function getValueSubPath(source: IOptionSource | undefined): string | undefined 
  */
 function resolveText(
   text: ExprValToActualOrExpr<ExprVal.String> | undefined,
-  nodeReference: NodeReference,
   dataSources: ExpressionDataSources,
   reference: IDataModelReference,
 ): string | undefined {
   if (text && ExprValidation.isValid(text)) {
-    return evalExpr(text, nodeReference, dataSources);
+    return evalExpr(
+      text as ExprValToActualOrExpr<ExprVal.String>,
+      { ...dataSources, currentDataModelPath: reference },
+      { returnType: ExprVal.String, defaultValue: '' },
+    );
   }
   if (text) {
-    return dataSources.langToolsSelector(nodeReference.id).langAsStringUsingPathInDataModel(text as string, reference);
+    return dataSources.langToolsSelector(reference).langAsStringUsingPathInDataModel(text as string, reference);
   }
   return undefined;
 }

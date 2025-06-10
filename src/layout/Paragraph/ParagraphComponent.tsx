@@ -21,20 +21,12 @@ export function ParagraphComponent({ node }: IParagraphProps) {
           id={id}
           data-testid={`paragraph-component-${id}`}
         >
-          <LangAsParagraph
-            id={textResourceBindings?.title}
-            node={node}
-          />
+          <LangAsParagraph id={textResourceBindings?.title} />
         </div>
         {textResourceBindings?.help && (
           <HelpTextContainer
             id={id}
-            helpText={
-              <Lang
-                id={textResourceBindings?.help}
-                node={node}
-              />
-            }
+            helpText={<Lang id={textResourceBindings?.help} />}
             title={langAsString(textResourceBindings?.title)}
           />
         )}

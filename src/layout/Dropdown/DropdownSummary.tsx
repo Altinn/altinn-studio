@@ -31,14 +31,7 @@ export const DropdownSummary = ({ target }: Summary2Props<'Dropdown'>) => {
       }
     >
       <SingleValueSummary
-        title={
-          title && (
-            <Lang
-              id={title}
-              node={target}
-            />
-          )
-        }
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         componentNode={target}

@@ -82,7 +82,6 @@ export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
       <ValidationItems
         grouping='Komponent'
         validations={unboundComponentValidations}
-        node={node}
         visibility={nodeVisibility}
       />
       {Object.entries(bindingValidations).map(([binding, validations]) => (
@@ -90,7 +89,6 @@ export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
           key={binding}
           grouping={binding}
           validations={validations}
-          node={node}
           visibility={nodeVisibility}
         />
       ))}
@@ -99,7 +97,6 @@ export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
           key={attachment}
           grouping={attachment}
           validations={validations}
-          node={node}
           visibility={attachmentVisibility}
         />
       ))}
@@ -131,10 +128,9 @@ const CategoryVisibility = ({ mask }: { mask: number }) => (
 interface ValidationItemsProps {
   grouping: string;
   validations: NodeValidation[];
-  node: LayoutNode;
   visibility: number;
 }
-const ValidationItems = ({ grouping, validations, node, visibility }: ValidationItemsProps) => {
+const ValidationItems = ({ grouping, validations, visibility }: ValidationItemsProps) => {
   if (!validations?.length) {
     return null;
   }
@@ -147,7 +143,6 @@ const ValidationItems = ({ grouping, validations, node, visibility }: Validation
           <ValidationItem
             key={`${validation.node.id}-${validation.source}-${validation.message.key}-${validation.severity}`}
             validation={validation}
-            node={node}
             visibility={visibility}
           />
         ))}
@@ -158,10 +153,9 @@ const ValidationItems = ({ grouping, validations, node, visibility }: Validation
 
 interface ValidationItemProps {
   validation: NodeValidation;
-  node: LayoutNode;
   visibility: number;
 }
-const ValidationItem = ({ validation, node, visibility }: ValidationItemProps) => {
+const ValidationItem = ({ validation, visibility }: ValidationItemProps) => {
   // Ignore old severities which are no longer supported
   if (!['error', 'warning', 'info', 'success'].includes(validation.severity)) {
     return null;
@@ -184,7 +178,6 @@ const ValidationItem = ({ validation, node, visibility }: ValidationItemProps) =
         <Lang
           id={validation.message.key}
           params={validation.message.params}
-          node={node}
         />
       </div>
       {category && (

@@ -46,20 +46,12 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
           size='sm'
           level={2}
         >
-          <Lang
-            id={title}
-            node={componentNode}
-          />
+          <Lang id={title} />
         </Heading>
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>
             <SingleValueSummary
-              title={
-                <Lang
-                  id='person_lookup.ssn_label'
-                  node={componentNode}
-                />
-              }
+              title={<Lang id='person_lookup.ssn_label' />}
               displayData={person_lookup_ssn ? obfuscateSsn(person_lookup_ssn) : ''}
               componentNode={componentNode}
               hideEditButton={true}
@@ -74,12 +66,7 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
 
           <div className={classes.personLookupComponentName}>
             <SingleValueSummary
-              title={
-                <Lang
-                  id='person_lookup.name_label'
-                  node={componentNode}
-                />
-              }
+              title={<Lang id='person_lookup.name_label' />}
               displayData={person_lookup_name}
               componentNode={componentNode}
               hideEditButton={false}

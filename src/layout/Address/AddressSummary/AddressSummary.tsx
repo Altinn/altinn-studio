@@ -46,12 +46,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
       <div className={classes.addressSummaryComponent}>
         <div>
           <SingleValueSummary
-            title={
-              <Lang
-                id={title || 'address_component.address'}
-                node={componentNode}
-              />
-            }
+            title={<Lang id={title || 'address_component.address'} />}
             displayData={address}
             componentNode={componentNode}
             isCompact={isCompact}
@@ -66,12 +61,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
         {!simplified && (
           <div>
             <SingleValueSummary
-              title={
-                <Lang
-                  id={careOfTitle || 'address_component.care_of'}
-                  node={componentNode}
-                />
-              }
+              title={<Lang id={careOfTitle || 'address_component.care_of'} />}
               displayData={careOf}
               componentNode={componentNode}
               hideEditButton={true}
@@ -88,12 +78,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
         <div className={classes.addressSummaryComponentZipCode}>
           <div className={classes.addressComponentZipCode}>
             <SingleValueSummary
-              title={
-                <Lang
-                  id={zipCodeTitle || 'address_component.zip_code'}
-                  node={componentNode}
-                />
-              }
+              title={<Lang id={zipCodeTitle || 'address_component.zip_code'} />}
               displayData={zipCode}
               componentNode={componentNode}
               hideEditButton={true}
@@ -108,12 +93,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
 
           <div className={classes.addressSummaryComponentPostplace}>
             <SingleValueSummary
-              title={
-                <Lang
-                  id={postPlaceTitle || 'address_component.post_place'}
-                  node={componentNode}
-                />
-              }
+              title={<Lang id={postPlaceTitle || 'address_component.post_place'} />}
               displayData={postPlace}
               componentNode={componentNode}
               hideEditButton={true}
@@ -128,12 +108,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
           {!simplified && (
             <div>
               <SingleValueSummary
-                title={
-                  <Lang
-                    id={houseNumberTitle || 'address_component.house_number'}
-                    node={componentNode}
-                  />
-                }
+                title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}
                 displayData={houseNumber}
                 componentNode={componentNode}
                 hideEditButton={true}

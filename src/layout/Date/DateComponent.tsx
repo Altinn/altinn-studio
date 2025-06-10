@@ -19,7 +19,7 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
   const value = useNodeItem(node, (i) => i.value);
   const icon = useNodeItem(node, (i) => i.icon);
   const format = useNodeItem(node, (i) => i.format);
-  const { langAsString } = useLanguage(node);
+  const { langAsString } = useLanguage();
   const language = useCurrentLanguage();
   const parsedValue = parseISO(value);
 

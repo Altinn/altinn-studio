@@ -12,7 +12,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
+import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -20,7 +20,6 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
-import { useInnerDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
@@ -33,9 +32,7 @@ import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
-import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
 
 export interface ExpressionDataSources {
   process?: IProcess;
@@ -46,12 +43,11 @@ export interface ExpressionDataSources {
   formDataSelector: FormDataSelector;
   attachmentsSelector: AttachmentsSelector;
   optionsSelector: NodeOptionsSelector;
-  langToolsSelector: (node: LayoutNode | string | undefined) => IUseLanguage;
+  langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
   currentLanguage: string;
   defaultDataType: string | null;
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
   nodeDataSelector: NodeDataSelector;
-  transposeSelector: DataModelTransposeSelector;
   externalApis: ExternalApisResult;
   currentDataModelPath: IDataModelReference | undefined;
   codeListSelector: CodeListSelector;
@@ -85,13 +81,11 @@ const directHooks = {
     isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
     isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(useApplicationMetadata().externalApiIds ?? []),
-  transposeSelector: () => useInnerDataModelBindingTranspose(NodesInternal.useNodeDataSelector()),
   langToolsSelector: (isInGenerator) =>
-    useInnerLanguageWithForcedNodeSelector(
+    useInnerLanguageWithForcedPathSelector(
       isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),
       isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
       FD.useDebouncedSelector(),
-      NodesInternal.useNodeDataSelector(),
     ),
 } satisfies { [K in keyof ExpressionDataSources]?: (isInGenerator: boolean) => ExpressionDataSources[K] };
 

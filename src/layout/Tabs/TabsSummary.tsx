@@ -48,10 +48,7 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
                 size='xs'
                 level={4}
               >
-                <Lang
-                  id={tab.title}
-                  node={componentNode}
-                />
+                <Lang id={tab.title} />
               </Heading>
               <Flex
                 container

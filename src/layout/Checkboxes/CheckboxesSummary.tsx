@@ -37,12 +37,7 @@ export function CheckboxesSummary({ target }: Summary2Props<'Checkboxes'>) {
       }
     >
       <MultipleValueSummary
-        title={
-          <Lang
-            id={title}
-            node={componentNode}
-          />
-        }
+        title={<Lang id={title} />}
         componentNode={componentNode}
         displayValues={displayValues}
         isCompact={isCompact}

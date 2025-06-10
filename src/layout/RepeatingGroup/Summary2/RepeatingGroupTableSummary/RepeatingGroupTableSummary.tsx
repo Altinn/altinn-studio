@@ -98,7 +98,6 @@ export const RepeatingGroupTableSummary = ({ componentNode }: { componentNode: L
           <Lang
             id={message.key}
             params={message.params}
-            node={componentNode}
           />
         </ErrorMessage>
       ))}

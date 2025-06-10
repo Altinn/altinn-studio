@@ -63,10 +63,7 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
                   size='xs'
                   level={4}
                 >
-                  <Lang
-                    id={title}
-                    node={target}
-                  />
+                  <Lang id={title} />
                 </Heading>
               </caption>
             )}
@@ -114,14 +111,7 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
       content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
-        title={
-          title && (
-            <Lang
-              id={title}
-              node={target}
-            />
-          )
-        }
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         componentNode={target}

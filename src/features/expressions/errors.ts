@@ -36,14 +36,11 @@ export class UnexpectedType extends ExprRuntimeError {
 
 export class NodeRelationNotFound extends ExprRuntimeError {
   public constructor(ctx: EvaluateExpressionParams<[]>, id: string) {
-    const ref = ctx.reference;
-    const ourLocation =
-      ref.type === 'node' ? `component ${ref.id}` : ref.type === 'page' ? `page ${ref.id}` : 'unknown';
     super(
       ctx.expr,
       ctx.path,
       `Unable to find component with identifier ${id} in the current context. This component exists inside ` +
-        `a repeating group structure, but is not sibling or parent in relation to ${ourLocation}`,
+        `a repeating group structure, but is not sibling or parent in relation this expression.`,
     );
   }
 }

@@ -25,7 +25,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const item = useNodeItem(node);
   const isValid = useIsValid(node);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
-  const { langAsString, lang } = useLanguage(node);
+  const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ node, overrideDisplay });
@@ -110,10 +110,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
               >
                 <span>
                   <wbr />
-                  <Lang
-                    id={option.label}
-                    node={node}
-                  />
+                  <Lang id={option.label} />
                 </span>
               </Combobox.Option>
             ))}

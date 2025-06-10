@@ -31,14 +31,7 @@ export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) =
       }
     >
       <SingleValueSummary
-        title={
-          title && (
-            <Lang
-              id={title}
-              node={target}
-            />
-          )
-        }
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         componentNode={target}

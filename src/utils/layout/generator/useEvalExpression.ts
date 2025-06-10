@@ -1,28 +1,19 @@
 import { useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
-import { refAsSuffix } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type {
-  ExprConfig,
-  ExprVal,
-  ExprValToActual,
-  ExprValToActualOrExpr,
-  LayoutReference,
-} from 'src/features/expressions/types';
+import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 export function useEvalExpressionInGenerator<V extends ExprVal>(
-  type: V,
-  reference: LayoutReference,
   expr: ExprValToActualOrExpr<V> | undefined,
-  defaultValue: ExprValToActual<V>,
+  options: EvalExprOptions<V>,
 ) {
   const enabled = GeneratorStages.useIsDoneAddingNodes();
-  return useEvalExpression(type, reference, expr, defaultValue, undefined, enabled);
+  return useEvalExpression(expr, options, enabled);
 }
 
 /**
@@ -44,30 +35,21 @@ export function useEvalExpressionInGenerator<V extends ExprVal>(
  *  2. Add the plugin to your component in `config.ts`.
  */
 export function useEvalExpression<V extends ExprVal>(
-  type: V,
-  reference: LayoutReference,
   expr: ExprValToActualOrExpr<V> | undefined,
-  defaultValue: ExprValToActual<V>,
-  _options?: Omit<EvalExprOptions, 'config' | 'errorIntroText'>,
+  _options: EvalExprOptions<V>,
   enabled = true,
-) {
+): ExprValToActual<V> {
   const dataSources = useExpressionDataSources(expr);
-  const options = useShallowMemo(_options ?? {});
+  const options = useShallowMemo(_options);
   return useMemo(() => {
     if (!enabled) {
-      return defaultValue;
+      return options.defaultValue;
     }
 
-    const errorIntroText = `Invalid expression${refAsSuffix(reference)}`;
-    if (!ExprValidation.isValidOrScalar(expr, type, errorIntroText)) {
-      return defaultValue;
+    if (!ExprValidation.isValidOrScalar(expr, options.returnType)) {
+      return options.defaultValue;
     }
 
-    const config: ExprConfig = {
-      returnType: type,
-      defaultValue,
-    };
-
-    return evalExpr(expr, reference, dataSources, { ...options, config, errorIntroText });
-  }, [enabled, dataSources, defaultValue, expr, reference, type, options]);
+    return evalExpr(expr, dataSources, options);
+  }, [enabled, dataSources, expr, options]);
 }

@@ -22,7 +22,7 @@ export function useShallow<S, T extends ObjectOrArray>(selector: (state: S) => T
   };
 }
 
-export type ObjectOrArray = { [key: string]: unknown } | unknown[];
+export type ObjectOrArray = { [key: string]: unknown } | unknown[] | object;
 
 function objectOrArrayShallowEqual<T extends ObjectOrArray>(next: T, prev?: T): prev is T {
   if (!prev) {

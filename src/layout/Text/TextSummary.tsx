@@ -27,14 +27,7 @@ export const TextSummary = ({ target }: Summary2Props<'Text'>) => {
       content={displayData ? SummaryContains.SomeUserContent : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
-        title={
-          title && (
-            <Lang
-              id={title}
-              node={target}
-            />
-          )
-        }
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         componentNode={target}

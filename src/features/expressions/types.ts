@@ -108,7 +108,7 @@ type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
  */
 export interface ExprConfig<V extends ExprVal = ExprVal> {
   returnType: V;
-  defaultValue: ExprValToActual<V> | null;
+  defaultValue: ExprValToActual<V>;
 }
 
 export type ExprPositionalArgs = ExprValToActual<ExprVal.Any>[];
@@ -132,27 +132,3 @@ export interface ExprDateExtensions {
 }
 
 export type ExprDate = Date & { exprDateExtensions: ExprDateExtensions };
-
-export interface PageReference {
-  type: 'page';
-  id: string;
-}
-
-export interface NodeReference {
-  type: 'node';
-  id: string;
-}
-
-interface NoReference {
-  type: 'none';
-}
-
-export type LayoutReference = PageReference | NodeReference | NoReference;
-
-export function refAsSuffix(reference: LayoutReference) {
-  return reference.type === 'page'
-    ? ` for page '${reference.id}'`
-    : reference.type === 'node'
-      ? ` for component '${reference.id}'`
-      : '';
-}

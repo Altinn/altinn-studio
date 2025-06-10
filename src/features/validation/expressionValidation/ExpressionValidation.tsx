@@ -4,12 +4,13 @@ import { FrontendValidationSource, ValidationMask } from '..';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
 import { getKeyWithoutIndex } from 'src/utils/databindings';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import type { Expression, ExprValueArgs, NodeReference } from 'src/features/expressions/types';
+import type { ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -28,10 +29,7 @@ export function ExpressionValidation() {
   );
 }
 
-interface NodeWithBindings {
-  nodeReference: NodeReference;
-  dmb: Record<string, IDataModelReference>;
-}
+type Binding = Record<string, IDataModelReference>;
 
 function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
@@ -40,14 +38,11 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const dataSources = useExpressionDataSources(expressionValidationConfig);
   const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
   const allBindings = NodesInternal.useMemoSelector((state) => {
-    const out: NodeWithBindings[] = [];
+    const out: Binding[] = [];
 
     for (const nodeData of Object.values(state.nodeData)) {
       if (nodeData.layout.dataModelBindings) {
-        out.push({
-          nodeReference: { type: 'node', id: nodeData.layout.id },
-          dmb: nodeData.layout.dataModelBindings as Record<string, IDataModelReference>,
-        });
+        out.push(nodeData.layout.dataModelBindings as Binding);
       }
     }
 
@@ -58,8 +53,8 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
     if (expressionValidationConfig && Object.keys(expressionValidationConfig).length > 0 && formData) {
       const validations = {};
 
-      for (const { nodeReference, dmb } of allBindings) {
-        for (const reference of Object.values(dmb as Record<string, IDataModelReference>)) {
+      for (const dmb of allBindings) {
+        for (const reference of Object.values(dmb)) {
           if (reference.dataType !== dataType) {
             continue;
           }
@@ -86,10 +81,16 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
               defaultDataType: dataType,
               currentDataModelPath: reference,
             };
-            const isInvalid = evalExpr(validationDef.condition as Expression, nodeReference, modifiedDataSources, {
-              positionalArguments: [field],
-              valueArguments,
-            });
+            const isInvalid = evalExpr(
+              validationDef.condition as ExprValToActualOrExpr<ExprVal.Boolean>,
+              modifiedDataSources,
+              {
+                returnType: ExprVal.Boolean,
+                defaultValue: false,
+                positionalArguments: [field],
+                valueArguments,
+              },
+            );
             if (isInvalid) {
               if (!validations[field]) {
                 validations[field] = [];

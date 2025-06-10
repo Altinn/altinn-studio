@@ -122,7 +122,7 @@ function SubformLink({
 
   const subformEntryName =
     !isSubformDataFetching && !subformDataError
-      ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, { type: 'node', id: nodeId })
+      ? getSubformEntryDisplayName(entryDisplayName, subformDataSources, nodeId)
       : null;
 
   if (!subformEntryName) {

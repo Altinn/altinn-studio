@@ -10,6 +10,7 @@ import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -161,11 +162,12 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         onClick={handleErrorClick}
         onKeyDown={handleErrorClick}
       >
-        <Lang
-          id={error.message.key}
-          params={error.message.params}
-          node={node}
-        />
+        <DataModelLocationProviderFromNode nodeId={error.nodeId}>
+          <Lang
+            id={error.message.key}
+            params={error.message.params}
+          />
+        </DataModelLocationProviderFromNode>
       </button>
     </ErrorReportListItem>
   );

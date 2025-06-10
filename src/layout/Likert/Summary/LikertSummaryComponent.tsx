@@ -10,6 +10,7 @@ import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLike
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
@@ -38,6 +39,7 @@ export function LikertSummaryComponent({
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
+  const groupBinding = useNodeItem(targetNode, (i) => i.dataModelBindings.questions);
   const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
@@ -52,30 +54,35 @@ export function LikertSummaryComponent({
     return (
       <>
         {rows.filter(typedBoolean).map((row) => (
-          <LargeLikertSummaryContainer
+          <DataModelLocationProvider
             key={`summary-${targetNode.id}-${row.uuid}`}
-            id={`summary-${targetNode.id}-${row.index}`}
-            groupNode={targetNode}
-            restriction={row.index}
-            renderLayoutNode={(n) => {
-              if (inExcludedChildren(n) || isHidden(n)) {
-                return null;
-              }
+            groupBinding={groupBinding}
+            rowIndex={row.index}
+          >
+            <LargeLikertSummaryContainer
+              id={`summary-${targetNode.id}-${row.index}`}
+              groupNode={targetNode}
+              restriction={row.index}
+              renderLayoutNode={(n) => {
+                if (inExcludedChildren(n) || isHidden(n)) {
+                  return null;
+                }
 
-              return (
-                <SummaryComponent
-                  key={n.id}
-                  summaryNode={summaryNode}
-                  overrides={{
-                    ...overrides,
-                    targetNode: n,
-                    grid: {},
-                    largeGroup: false,
-                  }}
-                />
-              );
-            }}
-          />
+                return (
+                  <SummaryComponent
+                    key={n.id}
+                    summaryNode={summaryNode}
+                    overrides={{
+                      ...overrides,
+                      targetNode: n,
+                      grid: {},
+                      largeGroup: false,
+                    }}
+                  />
+                );
+              }}
+            />
+          </DataModelLocationProvider>
         ))}
       </>
     );
@@ -102,15 +109,20 @@ export function LikertSummaryComponent({
           {rows.length === 0 ? (
             <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
           ) : (
-            rows.filter(typedBoolean).map((row, idx) => (
-              <Row
-                key={idx}
-                row={row}
-                inExcludedChildren={inExcludedChildren}
-                onChangeClick={onChangeClick}
-                changeText={changeText}
-                summaryNode={summaryNode}
-              />
+            rows.filter(typedBoolean).map((row) => (
+              <DataModelLocationProvider
+                key={row.index}
+                groupBinding={groupBinding}
+                rowIndex={row.index}
+              >
+                <Row
+                  row={row}
+                  inExcludedChildren={inExcludedChildren}
+                  onChangeClick={onChangeClick}
+                  changeText={changeText}
+                  summaryNode={summaryNode}
+                />
+              </DataModelLocationProvider>
             ))
           )}
         </div>

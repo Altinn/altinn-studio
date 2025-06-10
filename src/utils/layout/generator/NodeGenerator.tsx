@@ -26,13 +26,7 @@ import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SimpleEval } from 'src/features/expressions';
-import type {
-  ExprConfig,
-  ExprResolved,
-  ExprValToActual,
-  ExprValToActualOrExpr,
-  LayoutReference,
-} from 'src/features/expressions/types';
+import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { CompDef } from 'src/layout';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type {
@@ -109,8 +103,12 @@ interface CommonProps<T extends CompTypes> {
 }
 
 function MarkAsHidden<T extends CompTypes>({ node, externalItem }: CommonProps<T>) {
-  const reference: LayoutReference = useMemo(() => ({ type: 'node', id: node.id }), [node]);
-  const hidden = useEvalExpressionInGenerator(ExprVal.Boolean, reference, externalItem.hidden, false) ?? false;
+  const hidden =
+    useEvalExpressionInGenerator(externalItem.hidden, {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: `Invalid hidden expression for node ${node.id}`,
+    }) ?? false;
   const isSet = NodesInternal.useNodeData(node, (data) => data.hidden === hidden);
   NodesStateQueue.useSetNodeProp({ node, prop: 'hidden', value: hidden }, !isSet);
 
@@ -196,10 +194,6 @@ export function useExpressionResolverProps<T extends CompTypes>(
   rawItem: CompIntermediateExact<T>,
   rowIndex?: number,
 ): ExprResolver<T> {
-  const reference: LayoutReference | undefined = useMemo(
-    () => (node ? { type: 'node', id: node.id } : undefined),
-    [node],
-  );
   const allDataSources = useExpressionDataSources(rawItem);
   const allDataSourcesAsRef = useAsRef(allDataSources);
 
@@ -218,23 +212,18 @@ export function useExpressionResolverProps<T extends CompTypes>(
       defaultValue: ExprValToActual<T>,
       dataSources?: Partial<ExpressionDataSources>,
     ) => {
-      if (!reference) {
-        return defaultValue;
-      }
-
-      const errorIntroText = `Invalid expression for component '${reference.id}'`;
+      const errorIntroText = `Invalid expression for component '${node?.id}'`;
       if (!ExprValidation.isValidOrScalar(expr, type, errorIntroText)) {
         return defaultValue;
       }
 
-      const config: ExprConfig = {
-        returnType: type,
-        defaultValue,
-      };
-
-      return evalExpr(expr, reference, { ...allDataSourcesAsRef.current, ...dataSources }, { config, errorIntroText });
+      return evalExpr(
+        expr,
+        { ...allDataSourcesAsRef.current, ...dataSources },
+        { returnType: type, defaultValue, errorIntroText },
+      );
     },
-    [allDataSourcesAsRef, reference],
+    [allDataSourcesAsRef, node],
   );
 
   const evalBool = useCallback<SimpleEval<ExprVal.Boolean>>(

@@ -9,14 +9,10 @@ import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { type FixedLanguageList, getLanguageFromCode } from 'src/language/languages';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import {
-  useDataModelBindingTranspose,
-  useInnerDataModelBindingTranspose,
-} from 'src/utils/layout/useDataModelBindingTranspose';
+import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type {
   LangDataSources,
@@ -26,9 +22,6 @@ import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LaxNodeDataSelector } from 'src/utils/layout/NodesContext';
-import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
 
 type SimpleLangParam = string | number | undefined;
 export type ValidLangParam = SimpleLangParam | ReactNode | TextReference;
@@ -60,7 +53,6 @@ export interface IUseLanguage {
 }
 
 export interface TextResourceVariablesDataSources {
-  node: LayoutNode | string | undefined;
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
   dataModelPath?: IDataModelReference;
@@ -68,7 +60,6 @@ export interface TextResourceVariablesDataSources {
   defaultDataType: string | undefined | typeof ContextNotProvided;
   formDataTypes: string[] | typeof ContextNotProvided;
   formDataSelector: FormDataSelector | typeof ContextNotProvided;
-  transposeSelector: DataModelTransposeSelector;
 }
 
 export type ValidLanguageKey = keyof FixedLanguageList;
@@ -81,19 +72,16 @@ export type ValidLanguageKey = keyof FixedLanguageList;
  * You get two functions from this hook, and you can choose which one to use based on your needs:
  * - lang(key, params) usually returns a React element
  */
-export function useLanguage(node?: LayoutNode) {
-  const componentCtx = useFormComponentCtx();
-  const nearestNode = node ?? componentCtx?.node;
-
-  return useLanguageWithForcedNode(nearestNode);
+export function useLanguage() {
+  const path = useCurrentDataModelLocation();
+  return useLanguageWithForcedPath(path);
 }
 
-export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
+export function useLanguageWithForcedPath(dataModelPath: IDataModelReference | undefined) {
   const sources = useLangToolsDataSources();
   const defaultDataType = DataModels.useLaxDefaultDataType();
   const formDataTypes = DataModels.useLaxReadableDataTypes();
   const formDataSelector = FD.useLaxDebouncedSelector();
-  const transposeSelector = useDataModelBindingTranspose();
 
   return useMemo(() => {
     const { textResources, language, selectedLanguage, ...dataSources } = sources || {};
@@ -103,26 +91,23 @@ export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
 
     return staticUseLanguage(textResources, language, selectedLanguage, {
       ...(dataSources as LimitedTextResourceVariablesDataSources),
-      node,
+      dataModelPath,
       defaultDataType,
       formDataTypes,
       formDataSelector,
-      transposeSelector,
     });
-  }, [sources, node, defaultDataType, formDataTypes, formDataSelector, transposeSelector]);
+  }, [sources, defaultDataType, formDataTypes, formDataSelector, dataModelPath]);
 }
 
-export function useInnerLanguageWithForcedNodeSelector(
+export function useInnerLanguageWithForcedPathSelector(
   defaultDataType: string | typeof ContextNotProvided | undefined,
   formDataTypes: string[] | typeof ContextNotProvided,
   formDataSelector: FormDataSelector | typeof ContextNotProvided,
-  nodeDataSelector: LaxNodeDataSelector,
 ) {
   const sources = useLangToolsDataSources();
-  const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
 
   return useCallback(
-    (node: LayoutNode | string | undefined) => {
+    (dataModelPath?: IDataModelReference) => {
       const { textResources, language, selectedLanguage, ...dataSources } = sources || ({} as LangDataSources);
       if (!textResources || !language || !selectedLanguage) {
         throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
@@ -130,14 +115,13 @@ export function useInnerLanguageWithForcedNodeSelector(
 
       return staticUseLanguage(textResources, language, selectedLanguage, {
         ...dataSources,
-        node,
+        dataModelPath,
         defaultDataType,
         formDataTypes,
         formDataSelector,
-        transposeSelector,
       });
     },
-    [defaultDataType, formDataSelector, formDataTypes, sources, transposeSelector],
+    [defaultDataType, formDataSelector, formDataTypes, sources],
   );
 }
 
@@ -308,7 +292,6 @@ function splitNTimes(text: string, sep: string, n: number) {
 
 function replaceVariables(text: string, variables: IVariable[], dataSources: TextResourceVariablesDataSources) {
   const {
-    node,
     dataModels,
     instanceDataSources,
     applicationSettings,
@@ -316,7 +299,6 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
     defaultDataType,
     formDataTypes,
     formDataSelector,
-    transposeSelector,
   } = dataSources;
   let out = text;
   for (const idx in variables) {
@@ -342,9 +324,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
 
         const transposed = dataModelPath
           ? transposeDataBinding({ subject: rawReference, currentLocation: dataModelPath })
-          : node
-            ? transposeSelector(node, rawReference)
-            : { dataType: dataTypeToRead, field: value };
+          : { dataType: dataTypeToRead, field: value };
         if (transposed) {
           let readValue: unknown = undefined;
           let modelReader: DataModelReader | undefined = undefined;
@@ -478,8 +458,6 @@ export function staticUseLanguageForTests({
     formDataTypes: [],
     formDataSelector: () => null,
     applicationSettings: {},
-    node: undefined,
-    transposeSelector: (_node, path) => path,
   },
 }: Partial<Omit<ILanguageState, 'language'>> & { language?: Partial<FixedLanguageList> | null } = {}) {
   return staticUseLanguage(textResources, language as FixedLanguageList, selectedLanguage, dataSources);

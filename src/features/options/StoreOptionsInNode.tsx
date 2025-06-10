@@ -42,7 +42,7 @@ function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionPr
   const groupBindings = item.dataModelBindings as
     | IDataModelBindingsForGroupCheckbox
     | IDataModelBindingsForGroupMultiselect;
-  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ node, item });
+  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
   const { options, preselectedOption } = useFilteredAndSortedOptions({
     unsorted,
     valueType,

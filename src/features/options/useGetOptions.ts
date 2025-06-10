@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
+import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -12,7 +13,7 @@ import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
-import type { ExprValueArgs, LayoutReference } from 'src/features/expressions/types';
+import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -22,7 +23,6 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export type OptionsValueType = 'single' | 'multi';
 
 interface FetchOptionsProps {
-  node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
 }
 
@@ -109,16 +109,16 @@ export function useSetOptions(
   };
 }
 
-function useOptionsUrl(node: LayoutNode, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
   const { optionsId, secure, mapping, queryParameters } = item;
-  return useGetOptionsUrl(node, optionsId, mapping, queryParameters, secure);
+  return useGetOptionsUrl(optionsId, mapping, queryParameters, secure);
 }
 
-export function useFetchOptions({ node, item }: FetchOptionsProps) {
+export function useFetchOptions({ item }: FetchOptionsProps) {
   const { options, optionsId, source } = item;
-  const url = useOptionsUrl(node, item);
+  const url = useOptionsUrl(item);
 
-  const sourceOptions = useSourceOptions({ source, node });
+  const sourceOptions = useSourceOptions({ source });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
   const { data, isFetching, error } = useGetOptionsQuery(url);
   useLogFetchError(error, item);
@@ -175,12 +175,10 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, node, item }:
           data: option,
           defaultKey: 'value',
         };
-        const reference: LayoutReference = { type: 'node', id: node.id };
         const keep = evalExpr(
           optionFilter,
-          reference,
           { ...dataSources, currentDataModelPath: dataModelLocation ?? dataSources.currentDataModelPath },
-          { valueArguments },
+          { returnType: ExprVal.Boolean, defaultValue: true, valueArguments },
         );
         if (!keep && selectedValues.includes(option.value)) {
           window.logWarnOnce(

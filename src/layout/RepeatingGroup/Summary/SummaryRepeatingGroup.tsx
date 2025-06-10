@@ -69,7 +69,7 @@ function RegularRepeatingGroup(props: FullProps) {
   const { textResourceBindings: trb } = useNodeItem(targetNode);
 
   const display = overrides?.display || summaryDisplay;
-  const { langAsString } = useLanguage(targetNode);
+  const { langAsString } = useLanguage();
 
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
@@ -87,10 +87,7 @@ function RegularRepeatingGroup(props: FullProps) {
       >
         <div className={classes.container}>
           <span className={classes.label}>
-            <Lang
-              id={summaryTitleTrb ?? titleTrb}
-              node={targetNode}
-            />
+            <Lang id={summaryTitleTrb ?? titleTrb} />
           </span>
           {!display?.hideChangeButton ? (
             <EditButton
@@ -185,34 +182,40 @@ function RegularRepeatingGroupRow({
 
 function LargeRepeatingGroup({ targetNode, summaryNode, overrides, inExcludedChildren, rows }: FullProps) {
   const isHidden = Hidden.useIsHiddenSelector();
+  const groupBinding = useNodeItem(targetNode, (i) => i.dataModelBindings.group);
 
   return (
     <>
       {rows.filter(typedBoolean).map((row) => (
-        <LargeGroupSummaryContainer
+        <DataModelLocationProvider
           key={`summary-${targetNode.id}-${row.uuid}`}
-          id={`summary-${targetNode.id}-${row.index}`}
-          groupNode={targetNode}
-          restriction={row.index}
-          renderLayoutNode={(n) => {
-            if (inExcludedChildren(n) || isHidden(n)) {
-              return null;
-            }
+          groupBinding={groupBinding}
+          rowIndex={row.index}
+        >
+          <LargeGroupSummaryContainer
+            id={`summary-${targetNode.id}-${row.index}`}
+            groupNode={targetNode}
+            restriction={row.index}
+            renderLayoutNode={(n) => {
+              if (inExcludedChildren(n) || isHidden(n)) {
+                return null;
+              }
 
-            return (
-              <SummaryComponent
-                key={n.id}
-                summaryNode={summaryNode}
-                overrides={{
-                  ...overrides,
-                  targetNode: n,
-                  grid: {},
-                  largeGroup: false,
-                }}
-              />
-            );
-          }}
-        />
+              return (
+                <SummaryComponent
+                  key={n.id}
+                  summaryNode={summaryNode}
+                  overrides={{
+                    ...overrides,
+                    targetNode: n,
+                    grid: {},
+                    largeGroup: false,
+                  }}
+                />
+              );
+            }}
+          />
+        </DataModelLocationProvider>
       ))}
     </>
   );

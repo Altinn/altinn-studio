@@ -69,7 +69,7 @@ function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: La
     <SubformCellContent
       key={i}
       cellContent={entry.cellContent}
-      reference={{ type: 'node', id: node.id }}
+      node={node}
       data={subformData}
       dataSources={subformDataSources}
     />

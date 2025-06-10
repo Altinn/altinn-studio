@@ -88,10 +88,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
             size={isNestedGroup ? 'xsmall' : 'small'}
             level={headingLevel}
           >
-            <Lang
-              id={summaryTitle ?? title}
-              node={componentNode}
-            />
+            <Lang id={summaryTitle ?? title} />
           </Heading>
         )}
         <Flex
