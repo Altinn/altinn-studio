@@ -30,7 +30,6 @@
   align-items: center;
   padding: var(--fds-spacing-3) var(--fds-spacing-2);
   background-color: var(--background-color);
-  border-left: 0.5px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .elipsisIcon {
