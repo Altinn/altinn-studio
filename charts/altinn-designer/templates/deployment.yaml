@@ -67,6 +67,8 @@ spec:
             {{- end }}
           {{- end }}
         {{- if .Values.volumes }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
       volumes:
       {{- range $volume := .Values.volumes }}
         - name: {{ $volume.name }}
