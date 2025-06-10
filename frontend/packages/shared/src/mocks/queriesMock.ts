@@ -271,6 +271,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
