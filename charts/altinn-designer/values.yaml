@@ -64,6 +64,11 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AI_CONNECTION_STRING
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: aiConnectionString
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -160,8 +165,6 @@ volumeMounts:
     mountPath: /mnt/keys
   - name: accesstoken
     mountPath: "/accesstoken"
-  - name: altinn-studio-env
-    mountPath: "/app/wwwroot/designer/config"
 
 volumes:
   - name: altinn-repo-storage
@@ -176,9 +179,6 @@ volumes:
   - name : datakeys
     persistentVolumeClaim:
       claimName: keys
-  - name: altinn-studio-env
-    secret:
-      secretName: altinn-studio-env-secret
 
 ingress:
   - metadata:
@@ -206,3 +206,14 @@ ingress:
         traefik.frontend.priority: "600"
     paths:
       - path: /designerapi/
+
+
+lifecycle:
+  postStart:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - >
+          mkdir -p wwwroot/designer/config &&
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\"}" > wwwroot/designer/config/env.json
