@@ -52,7 +52,9 @@ class TestStorageService : IStorageService
         }
 
         var instances = new List<SimpleInstance>();
-        instances.AddRange(queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)));
+        instances.AddRange(
+            queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
+        );
 
         while (!string.IsNullOrEmpty(queryResponse.Next))
         {
@@ -71,13 +73,15 @@ class TestStorageService : IStorageService
                 throw new Exception("Unexpeced response from storage");
             }
 
-            instances.AddRange(queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)));
+            instances.AddRange(
+                queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
+            );
         }
 
         return instances;
     }
 
-    public async Task<Instance> GetInstance(string org, string env, string instanceOwnerPartyId, string instanceId)
+    public async Task<Instance> GetInstance(string org, string env, string instanceId)
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
         var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
@@ -89,7 +93,7 @@ class TestStorageService : IStorageService
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"{platformBaseUrl}/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceId}"
+            $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.SendAsync(request);
@@ -106,5 +110,37 @@ class TestStorageService : IStorageService
         }
 
         return instance;
+    }
+
+    public async Task<(Stream, string, string?)> GetInstanceDataElement(
+        string org,
+        string env,
+        string instanceId,
+        string dataElementId
+    )
+    {
+        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
+        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
+
+        await Task.WhenAll(platformBaseUrlTask, tokenTask);
+
+        var platformBaseUrl = await platformBaseUrlTask;
+        var token = await tokenTask;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/data/{dataElementId}"
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+
+        var contentType =
+            response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+        var fileName = response.Content.Headers.ContentDisposition?.FileName;
+        var stream = await response.Content.ReadAsStreamAsync();
+
+        return (stream, contentType, fileName);
     }
 }

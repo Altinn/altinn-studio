@@ -21,8 +21,19 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}", Name = "Apps")]
-    public async Task<IEnumerable<RunningApplication>> Get(string org)
+    public async Task<ActionResult<IEnumerable<RunningApplication>>> Get(string org)
     {
-        return await _applicationsService.GetRunningApplications(org);
+        try
+        {
+            return Ok(await _applicationsService.GetRunningApplications(org));
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
 }

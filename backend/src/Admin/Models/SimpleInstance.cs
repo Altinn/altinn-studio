@@ -8,9 +8,6 @@ public class SimpleInstance
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 
-    [JsonPropertyName("instanceOwnerPartyId")]
-    public required string InstanceOwnerPartyId { get; set; }
-
     [JsonPropertyName("org")]
     public required string Org { get; set; }
 
@@ -63,10 +60,9 @@ public class SimpleInstance
     {
         return new SimpleInstance()
         {
-            Id = instance.Id.Split("/")[1],
-            InstanceOwnerPartyId = instance.Id.Split("/")[0],
+            Id = instance.Id.Substring($"{instance.InstanceOwner.PartyId}/".Length),
             Org = instance.Org,
-            App = instance.AppId.Split("/")[1], // TODO: Can the app name contain "/"?
+            App = instance.AppId.Substring($"{instance.Org}/".Length),
             CurrentTask = instance.Process.CurrentTask?.Name,
             DueBefore = instance.DueBefore,
             IsComplete = instance.Process.Ended != null,
@@ -78,7 +74,10 @@ public class SimpleInstance
             IsHardDeleted = instance.Status.IsHardDeleted,
             HardDeletedAt = instance.Status.HardDeleted,
             IsConfirmed = instance.CompleteConfirmations?.Count is int Count && Count > 0,
-            ConfirmedAt = instance.CompleteConfirmations?.OrderBy(c => c.ConfirmedOn).FirstOrDefault()?.ConfirmedOn,
+            ConfirmedAt = instance
+                .CompleteConfirmations?.OrderBy(c => c.ConfirmedOn)
+                .FirstOrDefault()
+                ?.ConfirmedOn,
             CreatedAt = instance.Created,
             LastChangedAt = instance.LastChanged,
         };
