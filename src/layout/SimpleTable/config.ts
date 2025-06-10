@@ -50,6 +50,7 @@ export const Config = new CG.component({
                 new CG.prop('type', new CG.const('link')),
                 new CG.prop('hrefPath', new CG.str()),
                 new CG.prop('textPath', new CG.str()),
+                new CG.prop('openInNewTab', new CG.bool().optional()),
               ),
               new CG.obj(
                 new CG.prop('type', new CG.const('date')),

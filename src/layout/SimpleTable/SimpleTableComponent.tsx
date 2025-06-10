@@ -166,7 +166,14 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
               if (component.type === 'link') {
                 const href = pick(component.hrefPath, rowData);
                 const text = pick(component.textPath, rowData);
-                return <Link href={href}>{text}</Link>;
+                return (
+                  <Link
+                    href={href}
+                    target={component.openInNewTab ? '_blank' : undefined}
+                  >
+                    {text}
+                  </Link>
+                );
               }
 
               return (
