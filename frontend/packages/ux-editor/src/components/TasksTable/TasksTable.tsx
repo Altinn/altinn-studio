@@ -8,7 +8,6 @@ import { EyeClosedIcon, EyeIcon, PlayFillIcon } from '@studio/icons';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';
-import { useSearchParams } from 'react-router-dom';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export type TasksTableProps = {
