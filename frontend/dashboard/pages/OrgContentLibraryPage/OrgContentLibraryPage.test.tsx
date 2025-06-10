@@ -33,6 +33,10 @@ const orgPath = '/' + orgName;
 const defaultProviderData: ProviderData = {
   initialEntries: [orgPath],
 };
+const repositoryName = `${orgName}-content`;
+const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
+const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
+const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -256,12 +260,9 @@ function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void 
 
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData(
-    [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
-    textResourcesWithLanguage,
-  );
-  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
@@ -272,9 +273,9 @@ function renderOrgContentLibraryWithMissingTextResources(): void {
 
 function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
-  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, null);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
@@ -285,13 +286,8 @@ function renderOrgContentLibraryWithRepoStatus(): void {
 
 function createQueryClientWithRepoStatus(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData(repoStatusQueryKey(), repoStatus);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
-}
-
-function repoStatusQueryKey(): string[] {
-  const repositoryName = `${orgName}-content`;
-  return [QueryKey.RepoStatus, orgName, repositoryName];
 }
 
 function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult {
