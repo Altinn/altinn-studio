@@ -1,6 +1,6 @@
 # Internal handling of the signing interface
 
--   Status: Proposed
+-   Status: Accepted
 -   Deciders: Johannes Haukland, Bjørn Tore on behalf of Team Apps
 -   Date: 2024-09-25
 
