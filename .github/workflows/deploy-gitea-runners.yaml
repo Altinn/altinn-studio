@@ -31,7 +31,9 @@ jobs:
   construct-org-environments-array:
     runs-on: ubuntu-latest
     env:
-      default-org-environments: '[{"org": "ttd", "environments": ["dev", "staging", "prod"]}]'
+      default-org-environments: >-
+        [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
+
     outputs:
       orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
     steps:
@@ -39,6 +41,7 @@ jobs:
         id: construct-enviornments
         run: |
           environments="${{ inputs.org-enviornments || env.default-org-environments }}"
+          echo "Raw environments input: $environments"
           # This will parse the input JSON and construct an array of objects with org and environment
           # Example input: [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
           # Example output: [{"org": "ttd", "environment": "dev"}, {"org": "ttd", "environment": "staging"}, {"org": "ttd", "environment": "prod"}]
