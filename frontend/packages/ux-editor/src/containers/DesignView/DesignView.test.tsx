@@ -24,6 +24,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
+import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
@@ -186,11 +187,14 @@ describe('DesignView', () => {
 
   it('Does not render group accordions when order is empty or undefined', () => {
     setupFeatureFlag(true);
-    renderDesignView({});
-    expect(screen.getByText(layout1NameMock)).toBeInTheDocument();
-    expect(screen.getByText(layout2NameMock)).toBeInTheDocument();
-    expect(screen.queryByText('EmptySideoppsett')).not.toBeInTheDocument();
-    expect(screen.queryByText('NoOrderSideoppsett')).not.toBeInTheDocument();
+    renderDesignView({
+      layoutSettings: {
+        ...formLayoutSettingsMock,
+        pages: { order: [], pdfLayoutName: undefined },
+      },
+    });
+    expect(screen.queryByText('Sideoppsett 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
   });
 
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
@@ -203,23 +207,6 @@ describe('DesignView', () => {
     expect(addGroupButton).toBeInTheDocument();
     await user.click(addGroupButton);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls "deletePageGroup" when deleting a group from PageGroupAccordion', async () => {
-    const user = userEvent.setup();
-    setupFeatureFlag(true);
-    renderDesignView({ pagesModel: groupsPagesModelMock });
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
-    const deleteButton = screen.getAllByRole('button', {
-      name: textMock('general.delete_item', {
-        item: 'Sideoppsett 1',
-      }),
-    })[0];
-
-    await user.click(deleteButton);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    confirmSpy.mockRestore();
   });
 
   it('calls "setSelectedFormLayoutName" with page name when clicking a closed accordion in a group', async () => {
@@ -269,10 +256,17 @@ const renderDesignView = ({
     layoutSettings,
   );
 
+  const appContextWithGroupsMock = {
+    ...appContextMock,
+    setSelectedGroupName: jest.fn(),
+  };
+
   return renderWithProviders(
     <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
-        <DesignView />
+        <AppContext.Provider value={appContextWithGroupsMock}>
+          <DesignView />
+        </AppContext.Provider>
       </FormItemContextProvider>
     </StudioDragAndDrop.Provider>,
     {

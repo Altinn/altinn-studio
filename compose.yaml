@@ -9,7 +9,6 @@ volumes:
   pgdata:
   pgadmindata:
   redisdata:
-  runnerdata:
 
 services:
   studio_azure_mock:
@@ -159,18 +158,19 @@ services:
 
   studio_repositories_runner:
     container_name: gitea-runner
-    image: gitea/act_runner:0.2.11-dind-rootless
     restart: always
-    privileged: true
     depends_on:
       studio_repositories:
         condition: service_healthy
-    volumes:
-      - runnerdata:/data
+    build:
+      context: ./gitea-runner
+    privileged: false
     environment:
       - GITEA_INSTANCE_URL=http://studio_repositories:3000
-      - DOCKER_HOST=unix:///var/run/user/1000/docker.sock
       - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+      - GITEA_RUNNER_EPHEMERAL=1
+      - GITEA_RUNNER_ONCE=0
+      - GITEA_RUNNER_LABELS=ubuntu-latest:host
 
   studio_db:
     container_name: studio-db

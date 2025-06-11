@@ -94,6 +94,7 @@ export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/im
 // Library - org-level
 export const orgCodeListsPath = (org) => `${basePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${basePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
+export const orgCodeListUpdateIdPath = (org, codeListId) => `${basePath}/${org}/code-lists/change-name/${codeListId}`;
 export const orgCodeListUploadPath = (org) => `${basePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${basePath}/${org}/text/language/${language}`; // Get, patch, post
 export const orgTextLanguagesPath = (org) => `${basePath}/${org}/text/languages`; // Get
@@ -104,7 +105,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
-export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
+export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -170,6 +171,7 @@ export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/r
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
 export const accessListsPath = (org, env, page) => `${basePath}/${env}/${org}/resources/accesslist/${page ? `?page=${page}` : ''}`; // Get
+export const allAccessListsPath = (org) => `${basePath}/${org}/resources/allaccesslists/`; // Get
 export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
 export const createAccessListsPath = (org, env) => `${basePath}/${env}/${org}/resources/accesslist/`; //  Post
 export const accessListPath = (org, listId, env, etag = '') => `${basePath}/${env}/${org}/resources/accesslist/${listId}${etag ? `?etag=${etag}` : ''}`; // Get, Patch, Delete

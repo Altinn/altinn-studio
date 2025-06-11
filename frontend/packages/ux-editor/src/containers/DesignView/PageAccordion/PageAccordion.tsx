@@ -12,6 +12,7 @@ import { StudioButton } from '@studio/components-legacy';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
+import cn from 'classnames';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -59,13 +60,19 @@ export const PageAccordion = ({
   );
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
 
+  const isUsingGroups = !!pages.groups;
   const handleConfirmDelete = () => {
-    const isUsingGroups = !!pages.groups;
     if (confirm(t('ux_editor.page_delete_text'))) {
       if (isUsingGroups) {
         const updatedPageGroups = { ...pages };
-        updatedPageGroups.groups.map((group) => {
-          group.order = group.order.filter((page) => page.id !== pageName);
+        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
+          return { ...group, order: group.order.filter((page) => page.id !== pageName) };
+        });
+        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
+          if (group.order.length === 1 && group.name) {
+            return { ...group, name: group.order[0].id };
+          }
+          return group;
         });
         updatedPageGroups.groups = updatedPageGroups.groups.filter(
           (group) => group.order.length > 0,
@@ -90,8 +97,9 @@ export const PageAccordion = ({
             {pageName}
           </Accordion.Header>
         </div>
-
-        <div className={classes.navigationMenu}>
+        <div
+          className={cn(classes.navigationMenu, { [classes.navigationMenuGroup]: isUsingGroups })}
+        >
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton

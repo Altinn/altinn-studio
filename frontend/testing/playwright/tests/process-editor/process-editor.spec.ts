@@ -10,7 +10,7 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
-import { SettingsModal } from '../../components/SettingsModal';
+import { SettingsPage } from '../../pages/SettingsPage';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -83,22 +83,19 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   await processEditorPage.policyConfig.clickOnPolicyAccordion();
-  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
-  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyLinkIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorLink();
 
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
-  await processEditorPage.policyConfig.closePolicyEditor();
-  await processEditorPage.policyConfig.verifyThatPolicyEditorIsClosed();
 });
 
-test('Opening the settings modal from the header after the user has opened it from the process editor and navigated to another tab', async ({
+test('Opening the settings page after the user has opened it from the process editor and navigated to another tab', async ({
   page,
   testAppName,
 }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
-  const settingsModal = new SettingsModal(page, { app: testAppName });
-  const header = new AppDevelopmentHeader(page, { app: testAppName });
+  const settingsPage = new SettingsPage(page, { app: testAppName });
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
     'Task_1',
@@ -108,19 +105,12 @@ test('Opening the settings modal from the header after the user has opened it fr
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   await processEditorPage.policyConfig.clickOnPolicyAccordion();
-  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
-  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyLinkIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorLink();
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
 
-  await settingsModal.navigateToTab('setup');
-  await settingsModal.verifyThatTabIsVisible('setup');
-  await settingsModal.clickOnCloseSettingsModalButton();
-  await settingsModal.verifyThatSettingsModalIsNotOpen();
-
-  await header.clickOnOpenSettingsModalButton();
-  await settingsModal.verifyThatSettingsModalIsOpen();
-  await settingsModal.clickOnCloseSettingsModalButton();
-  await settingsModal.verifyThatSettingsModalIsNotOpen();
+  await settingsPage.navigateToTab('setup');
+  await settingsPage.verifyThatTabIsVisible('setup');
 });
 
 test('that the user can edit the id of a task and add data-types to sign', async ({

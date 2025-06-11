@@ -13,7 +13,6 @@ const layoutSetId = 'test-layout-set';
 const mockPages: PagesModel = {
   groups: [
     {
-      name: `${textMock('ux_editor.page_layout_group')} 1`,
       order: [{ id: `${textMock('general.page')}1` }],
     },
   ],
@@ -71,7 +70,6 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -84,11 +82,9 @@ describe('useAddGroupMutation', () => {
     const multiGroupPages: PagesModel = {
       groups: [
         {
-          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
         {
-          name: `${textMock('ux_editor.page_layout_group')} 2`,
           order: [{ id: `${textMock('general.page')}` }],
         },
       ],
@@ -104,7 +100,6 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...multiGroupPages.groups,
         {
-          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -116,9 +111,8 @@ describe('useAddGroupMutation', () => {
     const queryClient = createQueryClientMock();
     const pagesWithUndefinedOrder: PagesModel = {
       groups: [
-        { name: `${textMock('ux_editor.page_layout_group')} 1`, order: undefined },
+        { order: undefined },
         {
-          name: `${textMock('ux_editor.page_layout_group')} 2`,
           order: [{ id: `${textMock('ux_editor.page_layout_group')} 1` }],
         },
       ],
@@ -134,7 +128,6 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithUndefinedOrder.groups,
         {
-          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
@@ -145,10 +138,7 @@ describe('useAddGroupMutation', () => {
   it('handles page IDs that do not match the regex when calculating next page number', async () => {
     const queryClient = createQueryClientMock();
     const pagesWithNonMatchingId: PagesModel = {
-      groups: [
-        { name: 'Layout Set 1', order: [{ id: 'customPage' }] },
-        { name: 'Layout Set 2', order: [{ id: 'page1' }] },
-      ],
+      groups: [{ order: [{ id: 'customPage' }] }, { order: [{ id: 'page1' }] }],
       pages: [],
     };
     const services = {
@@ -161,7 +151,6 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithNonMatchingId.groups,
         {
-          name: `${textMock('ux_editor.page_layout_group')} 3`,
           order: [{ id: `${textMock('general.page')}2` }],
         },
       ],
@@ -184,7 +173,6 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('ux_editor.page_layout_group')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
