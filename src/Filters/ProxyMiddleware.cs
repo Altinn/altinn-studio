@@ -32,6 +32,7 @@ public class ProxyMiddleware
             new Regex("^/Home/"),
             new Regex("^/localtestresources/"),
             new Regex("^/LocalPlatformStorage/"),
+            new Regex("^/accessmanagement/"),
             new Regex("^/authentication/"),
             new Regex("^/authorization/"),
             new Regex("^/profile/"),

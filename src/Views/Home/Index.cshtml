@@ -70,7 +70,7 @@
     {
       @Html.AntiForgeryToken();
       <div class="form-group">
-        <label for="exampleInputEmail1">Select test users</label>
+        <label for="UserSelect">Select test users</label>
         @Html.DropDownListFor(model => model.UserSelect, Model.TestUsers, new { Class = "form-control" })
       </div>
       @if(!Model.AppModeIsHttp)
@@ -81,7 +81,7 @@
         </div>
       }
       <div class="form-group">
-        <label for="exampleInputEmail1">Select your authentication level</label>
+        <label for="AuthenticationLevel">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
       @if(Model.AppModeIsHttp)
