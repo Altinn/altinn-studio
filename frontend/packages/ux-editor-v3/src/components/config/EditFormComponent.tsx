@@ -21,6 +21,8 @@ import {
   shouldDisplayFeature,
   FeatureFlag,
 } from 'app-shared/utils/featureToggleUtils';
+import { formItemConfigs } from '../../data/formItemConfig';
+import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -69,6 +71,11 @@ export const EditFormComponent = ({
       removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
     }
   };
+
+  const isUnknownInternalComponent: boolean = !formItemConfigs[component.type];
+  if (isUnknownInternalComponent) {
+    return <UnknownComponentAlert componentName={component.type} />;
+  }
 
   return (
     <Fieldset className={classes.root} legend=''>

@@ -5,9 +5,11 @@ import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
+import { formItemConfigs } from '../../data/formItemConfig';
+import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export const Dynamics = () => {
-  const { formItemId: formId } = useFormItemContext();
+  const { formItemId: formId, formItem: form } = useFormItemContext();
 
   const [showOldExpressions, setShowOldExpressions] = useState<boolean>(false);
   const t = useText();
@@ -18,6 +20,11 @@ export const Dynamics = () => {
 
   const conditionalRulesExist =
     (window as WindowWithRuleModel).conditionalRuleHandlerObject !== undefined;
+
+  const isUnknownInternalComponent: boolean = form && !formItemConfigs[form.type];
+  if (isUnknownInternalComponent) {
+    return <UnknownComponentAlert componentName={form.type} />;
+  }
 
   return (
     <>
