@@ -13,6 +13,7 @@ import {
   StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
+  StudioSpinner,
 } from '@studio/components-legacy';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
@@ -55,9 +56,12 @@ type OrgContentLibraryProps = {
 };
 
 function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
+  const { t } = useTranslation();
   const orgRepoName = useOrgRepoName();
-  const { data: repoStatus } = useRepoStatusQuery(orgName, orgRepoName);
+  const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
+
+  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
 
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
