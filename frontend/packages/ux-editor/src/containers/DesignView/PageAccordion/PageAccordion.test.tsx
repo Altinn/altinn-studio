@@ -101,6 +101,7 @@ describe('PageAccordion', () => {
       ...groupsPagesModelMock,
     };
     expectedPagesModel.groups[0].order.splice(0, 1);
+    expectedPagesModel.groups[0].name = expectedPagesModel.groups[0].order[0].id;
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
       org,
