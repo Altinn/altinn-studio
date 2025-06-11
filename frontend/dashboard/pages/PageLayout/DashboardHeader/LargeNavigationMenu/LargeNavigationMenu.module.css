@@ -1,12 +1,9 @@
 .menu {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   list-style-type: none;
-  flex: 2;
   padding: 0 var(--fds-spacing-4);
   gap: var(--fds-spacing-2);
-  font-size: var(--fds-sizing-4);
 }
 
 .active {
