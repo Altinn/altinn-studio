@@ -41,6 +41,7 @@ import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema
 import SubformSchema from './schemas/json/component/Subform.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import Summary2Schema from './schemas/json/component/Summary2.schema.v1.json';
+import TextSchema from './schemas/json/component/Text.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -88,6 +89,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Subform]: SubformSchema,
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.Summary2]: Summary2Schema,
+  [ComponentType.Text]: TextSchema,
   [ComponentType.TextArea]: TextAreaSchema,
   [ComponentType.Divider]: Divider,
 };

@@ -35,8 +35,9 @@ const useTextResourceTitle = (): ((item: FormComponent | FormContainer) => strin
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
   return useCallback(
-    (item: FormComponent | FormContainer) =>
-      getTextResource(item.textResourceBindings?.title, textResources),
+    (item: FormComponent | FormContainer) => {
+      return getTextResource(item.textResourceBindings?.title, textResources);
+    },
     [textResources],
   );
 };

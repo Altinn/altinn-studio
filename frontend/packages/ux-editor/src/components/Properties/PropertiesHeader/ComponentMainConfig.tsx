@@ -5,6 +5,7 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
+import { TextValueMainConfig } from './SpecificMainConfig/TextValueMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -35,6 +36,10 @@ export const ComponentMainConfig = ({
     case ComponentType.Image:
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
+    case ComponentType.Text:
+      return (
+        <TextValueMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
       return null;

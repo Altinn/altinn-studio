@@ -141,13 +141,12 @@ export const FormComponentConfig = ({
       [propertyKey]: !prev[propertyKey],
     }));
   };
-
+  console.log(arrayPropertyKeys);
   return (
     <>
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
-
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
@@ -163,7 +162,6 @@ export const FormComponentConfig = ({
           key={propertyKey}
         />
       ))}
-
       {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
         <>
@@ -191,7 +189,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
       {showOtherComponents &&
         restOfBooleanKeys.map((propertyKey) => (
           <EditBooleanValue
@@ -202,7 +199,6 @@ export const FormComponentConfig = ({
             key={propertyKey}
           />
         ))}
-
       {restOfBooleanKeys.length > 0 && (
         <StudioProperty.Button
           className={classes.button}
@@ -211,7 +207,6 @@ export const FormComponentConfig = ({
           property={rendertext}
         />
       )}
-
       {grid && (
         <>
           {showGrid ? (
@@ -248,7 +243,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
         return (
@@ -268,7 +262,6 @@ export const FormComponentConfig = ({
           </SelectPropertyEditor>
         );
       })}
-
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
         return (
@@ -313,7 +306,6 @@ export const FormComponentConfig = ({
           </SelectPropertyEditor>
         );
       })}
-
       {/** Object properties  */}
       {objectPropertyKeys.map((propertyKey) => {
         const isOpen = openObjectCards[propertyKey] || false;

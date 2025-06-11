@@ -16,6 +16,7 @@ export const ToolbarItem = ({
   componentTitle,
   icon,
 }: ToolbarItemProps) => {
+  console.log(componentTitle);
   return (
     <StudioDragAndDropTree.NewItem<ComponentType | CustomComponentType>
       notDraggable={notDraggable}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
@@ -37,15 +37,15 @@ export const PropertiesHeader = ({
     );
   }
 
-  const { dataModelBindings, textResourceBindings } = schema.properties;
-
+  const { dataModelBindings, textResourceBindings, required } = schema.properties;
+  console.log(required);
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
     : formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
-
+  console.log(formItem);
   return (
     <>
       <StudioSectionHeader

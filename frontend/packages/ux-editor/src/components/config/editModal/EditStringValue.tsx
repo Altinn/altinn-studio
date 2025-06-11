@@ -34,7 +34,7 @@ export const EditStringValue = ({
       [propertyKey]: newValue,
     });
   };
-
+  console.log('yoyoyoy,', enumValues, multiple, propertyKey, component[propertyKey]);
   return (
     <FormField
       id={component.id}
