@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-org-environments: >-
-        [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
+        [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["dev", "staging", "prod"]}]
     outputs:
       orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
     steps:
