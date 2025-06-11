@@ -51,4 +51,17 @@ public interface IStorageService
         string instanceId,
         string dataElementId
     );
+
+    /// <summary>
+    /// Retrieves the process history for an instance.
+    /// </summary>
+    /// <param name="org">The organization identifier.</param>
+    /// <param name="env">The environment identifier.</param>
+    /// <param name="instanceId">The instance ID.</param>
+    /// <returns>The task result contains a list of process history items.</returns>
+    public Task<List<ProcessHistoryItem>> GetProcessHistory(
+        string org,
+        string env,
+        string instanceId
+    );
 }

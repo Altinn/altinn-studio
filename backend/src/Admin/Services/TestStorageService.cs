@@ -155,4 +155,40 @@ class TestStorageService : IStorageService
 
         return (stream, contentType, fileName);
     }
+
+    /// <inheritdoc />
+    public async Task<List<ProcessHistoryItem>> GetProcessHistory(
+        string org,
+        string env,
+        string instanceId
+    )
+    {
+        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
+        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
+
+        await Task.WhenAll(platformBaseUrlTask, tokenTask);
+
+        var platformBaseUrl = await platformBaseUrlTask;
+        var token = await tokenTask;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/process/history"
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        string responseString = await response.Content.ReadAsStringAsync();
+        var processHistoryList =
+            JsonConvert.DeserializeObject<ProcessHistoryList>(responseString)
+            ?? throw new JsonException("Could not deserialize ProcessHistory response");
+
+        if (processHistoryList == null)
+        {
+            throw new Exception("Unexpeced response from storage");
+        }
+
+        return processHistoryList.ProcessHistory;
+    }
 }

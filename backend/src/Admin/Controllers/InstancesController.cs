@@ -18,8 +18,8 @@ public class InstancesController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{org}/{env}/{app}", Name = "Instances")]
-    public async Task<ActionResult<IEnumerable<SimpleInstance>>> Get(
+    [HttpGet("{org}/{env}/{app}")]
+    public async Task<ActionResult<IEnumerable<SimpleInstance>>> GetInstances(
         string org,
         string env,
         string app
@@ -39,8 +39,8 @@ public class InstancesController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/{instanceId}", Name = "Instance")]
-    public async Task<ActionResult<Instance>> Get(
+    [HttpGet("{org}/{env}/{app}/{instanceId}")]
+    public async Task<ActionResult<Instance>> GetInstance(
         string org,
         string env,
         string app,
@@ -67,8 +67,8 @@ public class InstancesController : ControllerBase
         }
     }
 
-    [HttpGet("{org}/{env}/{app}/{instanceId}/data/{dataElementId}", Name = "InstanceData")]
-    public async Task<ActionResult<FileStream>> Get(
+    [HttpGet("{org}/{env}/{app}/{instanceId}/data/{dataElementId}")]
+    public async Task<ActionResult<FileStream>> GetInstanceDataElement(
         string org,
         string env,
         string app,
@@ -95,6 +95,36 @@ public class InstancesController : ControllerBase
             );
 
             return File(stream, contentType, fileName);
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpGet("{org}/{env}/{app}/{instanceId}/process-history")]
+    public async Task<ActionResult<List<ProcessHistoryItem>>> GetProcessHistory(
+        string org,
+        string env,
+        string app,
+        string instanceId
+    )
+    {
+        try
+        {
+            var instance = await _storageService.GetInstance(org, env, instanceId);
+            if (instance.AppId != $"{org}/{app}")
+            {
+                return NotFound();
+            }
+
+            var processHistory = await _storageService.GetProcessHistory(org, env, instanceId);
+
+            return Ok(processHistory);
         }
         catch (HttpRequestException ex)
         {

@@ -20,8 +20,8 @@ public class ApplicationsController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{org}", Name = "Apps")]
-    public async Task<ActionResult<IEnumerable<RunningApplication>>> Get(string org)
+    [HttpGet("{org}")]
+    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetApps(string org)
     {
         try
         {
