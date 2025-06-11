@@ -1,8 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { waitFor } from '@testing-library/react';
-import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import {
   component1IdMock,
@@ -14,11 +11,13 @@ import {
   layout1NameMock,
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { convertExternalLayoutsToInternalFormat } from '@altinn/ux-editor/utils/formLayoutsUtils';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
@@ -111,19 +110,14 @@ describe('useDeleteFormContainerMutation', () => {
 });
 
 const renderDeleteFormContainerMutation = async () => {
-  const getFormLayouts = jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const formLayoutsResult = renderHookWithProviders(
-    () => useFormLayoutsQuery(org, app, selectedLayoutSet),
-    { queries: { getFormLayouts } },
-  ).result;
-  await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+  );
 
-  const formLayoutsSettingsResult = renderHookWithProviders(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).result;
-  await waitFor(() => expect(formLayoutsSettingsResult.current.isSuccess).toBe(true));
-
-  return renderHookWithProviders(() => useDeleteFormContainerMutation(org, app, selectedLayoutSet));
+  return renderHookWithProviders(
+    () => useDeleteFormContainerMutation(org, app, selectedLayoutSet),
+    { queryClient },
+  );
 };

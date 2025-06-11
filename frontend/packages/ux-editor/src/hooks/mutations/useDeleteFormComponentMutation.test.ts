@@ -1,8 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
-import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
@@ -60,7 +58,6 @@ describe('useDeleteFormComponentMutation', () => {
     componentTypes.forEach((componentType) => {
       it(`Should remove ${componentType} data type from signing tasks`, async () => {
         const { result } = await renderDeleteFormComponentsMutation();
-
         const componentIdToDelete = componentMocks[componentType].id;
         await result.current.mutateAsync(componentIdToDelete);
         expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
@@ -97,10 +94,9 @@ const renderDeleteFormComponentsMutation = async () => {
   const getFormLayouts = jest
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const formLayoutsResult = renderHookWithProviders(
-    () => useFormLayoutsQuery(org, app, selectedLayoutSet),
+
+  return renderHookWithProviders(
+    () => useDeleteFormComponentMutation(org, app, selectedLayoutSet),
     { queries: { getFormLayouts } },
-  ).result;
-  await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithProviders(() => useDeleteFormComponentMutation(org, app, selectedLayoutSet));
+  );
 };
