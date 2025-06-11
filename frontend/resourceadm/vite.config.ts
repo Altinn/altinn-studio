@@ -7,6 +7,6 @@ export default mergeConfig(common, {
     port: 2023,
   },
   preview: {
-    port: 2022,
+    port: 2023,
   },
 });
