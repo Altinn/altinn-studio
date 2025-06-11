@@ -10,23 +10,25 @@ import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
-import { useOptionListQuery, useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
 import classes from './LibraryOptionsEditor.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
 export type LibraryOptionsEditorProps = {
   handleDelete: () => void;
   optionListId: string;
+  textResources: ITextResources;
 };
 
 export function LibraryOptionsEditor({
   handleDelete,
   optionListId,
+  textResources,
 }: LibraryOptionsEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionList } = useOptionListQuery(org, app, optionListId);
-  const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { doReloadPreview } = usePreviewContext();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
