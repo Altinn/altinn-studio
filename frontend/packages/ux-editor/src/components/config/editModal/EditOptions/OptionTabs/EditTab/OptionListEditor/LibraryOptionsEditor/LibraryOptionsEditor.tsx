@@ -45,7 +45,7 @@ export function LibraryOptionsEditor({
     }
   };
 
-  const handleClick = () => {
+  const handleEditButtonClick = () => {
     modalRef.current?.showModal();
   };
 
@@ -57,7 +57,7 @@ export function LibraryOptionsEditor({
         textResources={textResourcesForLanguage}
       />
       <OptionListButtons
-        onEditButtonClick={handleClick}
+        onEditButtonClick={handleEditButtonClick}
         onDeleteButtonClick={onDeleteButtonClick}
       />
       <StudioModal.Dialog
