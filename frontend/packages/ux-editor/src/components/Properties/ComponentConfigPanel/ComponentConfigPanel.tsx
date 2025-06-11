@@ -40,6 +40,14 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
 
+  if (isUnknownInternalComponent) {
+    return (
+      <div className={classes.unknownComponentAlert}>
+        <UnknownComponentAlert componentName={formItem.type} />
+      </div>
+    );
+  }
+
   return (
     <>
       <PropertiesHeader
@@ -49,8 +57,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
           debounceSave(formItemId, updatedComponent);
         }}
       />
-      {isUnknownInternalComponent && <UnknownComponentAlert componentName={formItem.type} />}
-      {!isUnknownInternalComponent && isNotSubformOrHasLayoutSet && (
+      {isNotSubformOrHasLayoutSet && (
         <Accordion color='subtle'>
           {formItem.type === ComponentType.Summary2 && (
             <Accordion.Item open={openList.includes('summary2overrides')}>

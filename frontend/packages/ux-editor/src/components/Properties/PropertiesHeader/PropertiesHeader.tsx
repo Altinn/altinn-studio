@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -37,12 +36,9 @@ export const PropertiesHeader = ({
     );
   }
 
-  const { dataModelBindings, textResourceBindings } = schema?.properties ?? {};
+  const { dataModelBindings, textResourceBindings } = schema.properties;
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
-  const Icon = isUnknownInternalComponent
-    ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+  const Icon = formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 
@@ -51,7 +47,7 @@ export const PropertiesHeader = ({
       <StudioSectionHeader
         icon={<Icon />}
         heading={{
-          text: t(`ux_editor.component_title.${formItem.type}`, formItem.type),
+          text: t(`ux_editor.component_title.${formItem.type}`),
           level: 2,
         }}
         helpText={{
