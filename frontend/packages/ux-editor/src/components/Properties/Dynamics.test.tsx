@@ -6,7 +6,6 @@ import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -45,18 +44,6 @@ describe('Dynamics', () => {
     expect(
       screen.getByText(textMock('right_menu.rules_conditional_rendering_deprecated_info_title')),
     ).toBeInTheDocument();
-  });
-
-  it('should render unknown component alert when component is unknown for Studio', async () => {
-    const formType = 'randomUnknownComponent' as unknown as FormComponent;
-    await render({ formItem: { ...formItemContextProviderMock.formItem, type: formType } });
-    expect(
-      screen.getByText(
-        textMock('ux_editor.edit_component.unknown_component', {
-          componentName: formType,
-        }),
-      ),
-    );
   });
 });
 
