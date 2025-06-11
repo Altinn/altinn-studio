@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Create zip
         run: |
           rm -rf /tmp/release
@@ -26,7 +26,7 @@ jobs:
           zip -r ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip .
           sha512sum ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip > ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.sha512sums.txt
       - name: Update release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         with:
           files: |
             /tmp/release/${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip
