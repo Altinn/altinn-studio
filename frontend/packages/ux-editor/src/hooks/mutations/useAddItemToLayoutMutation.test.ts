@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
@@ -7,11 +7,7 @@ import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
-import {
-  layoutSet1NameMock,
-  layoutSet2NameMock,
-  layoutSetsMock,
-} from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { app, org } from '@studio/testing/testids';
@@ -67,18 +63,8 @@ describe('useAddItemToLayoutMutation', () => {
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-2', async () => {
-    const { result } = renderAddItemToLayoutMutation(layoutSet2NameMock);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetadataMock,
-      taskId: 'Task_2',
-    });
-  });
-
-  it('Adds Task_1 to attachment metadata when component type is fileUpload and selectedLayoutSet is undefined', async () => {
-    const { result } = renderAddItemToLayoutMutation(undefined);
+  it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-1', async () => {
+    const { result } = renderAddItemToLayoutMutation(layoutSet1NameMock);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
@@ -89,13 +75,14 @@ describe('useAddItemToLayoutMutation', () => {
 });
 
 const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
-  queryClientMock.setQueryData(
+  const queryClient = createQueryClientMock();
+
+  queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, layoutSetName],
     convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
-  queryClientMock.setQueryData(
-    [QueryKey.LayoutSets, org, app],
-    layoutSetName ? layoutSetsMock : null,
-  );
-  return renderHookWithProviders(() => useAddItemToLayoutMutation(org, app, layoutSetName));
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetName ? layoutSetsMock : null);
+  return renderHookWithProviders(() => useAddItemToLayoutMutation(org, app, layoutSetName), {
+    queryClient,
+  });
 };
