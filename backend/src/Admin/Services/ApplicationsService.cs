@@ -4,17 +4,26 @@ using Altinn.Studio.Admin.Services.Interfaces;
 
 namespace Altinn.Studio.Admin.Services;
 
+/// <summary>
+/// Implementation of the applications service using kuberneteswrapper.
+/// </summary>
 public class ApplicationsService : IApplicationsService
 {
     private readonly HttpClient _httpClient;
     private readonly ICdnConfigService _cdnConfigService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApplicationsService"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client to be used for API requests.</param>
+    /// <param name="cdnConfigService">The CDN configuration service.</param>
     public ApplicationsService(HttpClient httpClient, ICdnConfigService cdnConfigService)
     {
         _httpClient = httpClient;
         _cdnConfigService = cdnConfigService;
     }
 
+    /// <inheritdoc />
     public async Task<List<RunningApplication>> GetRunningApplications(string org)
     {
         var orgEnvironments = await _cdnConfigService.GetOrgEnvironments(org);

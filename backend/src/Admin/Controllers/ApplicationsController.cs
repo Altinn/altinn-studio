@@ -25,7 +25,8 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            return Ok(await _applicationsService.GetRunningApplications(org));
+            var runningApps = await _applicationsService.GetRunningApplications(org);
+            return Ok(runningApps);
         }
         catch (HttpRequestException ex)
         {

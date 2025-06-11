@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Admin.Services;
 
+/// <summary>
+/// Implementation of the cdn config service.
+/// </summary>
 class CdnConfigService : ICdnConfigService
 {
     private readonly HttpClient _httpClient;
@@ -13,6 +16,12 @@ class CdnConfigService : ICdnConfigService
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(15);
     private readonly GeneralSettings _generalSettings;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CdnConfigService"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client used for making requests.</param>
+    /// <param name="cache">The memory cache for storing configuration data.</param>
+    /// <param name="generalSettings">Options containing general settings, including CDN configurations.</param>
     public CdnConfigService(
         HttpClient httpClient,
         IMemoryCache cache,
@@ -24,6 +33,7 @@ class CdnConfigService : ICdnConfigService
         _generalSettings = generalSettings.Value;
     }
 
+    /// <inheritdoc />
     public async Task<List<string>> GetOrgEnvironments(string org)
     {
         var orgsConfig = await GetOrgsConfig();
@@ -36,6 +46,7 @@ class CdnConfigService : ICdnConfigService
         return orgConfig.Environments;
     }
 
+    /// <inheritdoc />
     public async Task<string> GetPlatformBaseUrl(string env)
     {
         var environmentsConfig = await GetEnvironmentsConfig();
@@ -49,6 +60,7 @@ class CdnConfigService : ICdnConfigService
         return environmentConfig.PlatformUrl;
     }
 
+    /// <inheritdoc />
     public async Task<string> GetAppsBaseUrl(string org, string env)
     {
         var environmentsConfig = await GetEnvironmentsConfig();

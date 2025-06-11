@@ -7,12 +7,23 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Admin.Services;
 
+/// <summary>
+/// Service for generating tokens in test environments using AltinnTestTools.
+/// </summary>
 public class TestToolsTokenGeneratorService
 {
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
     private readonly TestToolsTokenGeneratorSettings _tokenGeneratorSettings;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestToolsTokenGeneratorService"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client used for making requests.</param>
+    /// <param name="cache">An implementation of IMemoryCache for caching tokens.</param>
+    /// <param name="tokenGeneratorSettings">
+    /// The settings for the token generator, provided via an IOptions&lt;TestToolsTokenGeneratorSettings&gt; instance.
+    /// </param>
     public TestToolsTokenGeneratorService(
         HttpClient httpClient,
         IMemoryCache cache,
@@ -24,6 +35,13 @@ public class TestToolsTokenGeneratorService
         _tokenGeneratorSettings = tokenGeneratorSettings.Value;
     }
 
+    /// <summary>
+    /// Generates a service owner token with scope instances.read for test environments (not production).
+    /// The result is output in the specified format.
+    /// </summary>
+    /// <param name="org">The organization identifier.</param>
+    /// <param name="env">The environment identifier.</param>
+    /// <returns>The task result contains the token string</returns>
     public async Task<string> GetTestToken(string org, string env)
     {
         if (env == "production")

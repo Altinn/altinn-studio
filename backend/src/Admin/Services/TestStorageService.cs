@@ -6,12 +6,21 @@ using Newtonsoft.Json;
 
 namespace Altinn.Studio.Admin.Services;
 
+/// <summary>
+/// Implementation of the storage service that uses AltinnTestTools to generate tokens for test environments.
+/// </summary>
 class TestStorageService : IStorageService
 {
     private readonly HttpClient _httpClient;
     private readonly ICdnConfigService _cdnConfigService;
     private readonly TestToolsTokenGeneratorService _tokenGeneratorService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestStorageService"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client to use for API requests.</param>
+    /// <param name="cdnConfigService">The CDN configuration service.</param>
+    /// <param name="tokenGeneratorService">The token generator service used for authentication.</param>
     public TestStorageService(
         HttpClient httpClient,
         ICdnConfigService cdnConfigService,
@@ -23,6 +32,7 @@ class TestStorageService : IStorageService
         _tokenGeneratorService = tokenGeneratorService;
     }
 
+    /// <inheritdoc />
     public async Task<List<SimpleInstance>> GetInstances(string org, string env, string app)
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
@@ -81,6 +91,7 @@ class TestStorageService : IStorageService
         return instances;
     }
 
+    /// <inheritdoc />
     public async Task<Instance> GetInstance(string org, string env, string instanceId)
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
@@ -112,6 +123,7 @@ class TestStorageService : IStorageService
         return instance;
     }
 
+    /// <inheritdoc />
     public async Task<(Stream, string, string?)> GetInstanceDataElement(
         string org,
         string env,
