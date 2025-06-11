@@ -65,8 +65,14 @@ export const PageAccordion = ({
     if (confirm(t('ux_editor.page_delete_text'))) {
       if (isUsingGroups) {
         const updatedPageGroups = { ...pages };
-        updatedPageGroups.groups.map((group) => {
-          group.order = group.order.filter((page) => page.id !== pageName);
+        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
+          return { ...group, order: group.order.filter((page) => page.id !== pageName) };
+        });
+        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
+          if (group.order.length === 1 && group.name) {
+            return { ...group, name: group.order[0].id };
+          }
+          return group;
         });
         updatedPageGroups.groups = updatedPageGroups.groups.filter(
           (group) => group.order.length > 0,

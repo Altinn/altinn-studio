@@ -305,7 +305,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             List<string> pageOrder = pages.Order;
             var pagesWithGroups = layoutSettings.Pages.ToPagesWithGroups();
-            Group group = new() { Order = pageOrder };
+            Group group = new()
+            {
+                Order = pageOrder,
+                Name = pageOrder.Count > 1 ? "Gruppe 1" : null,
+            };
             pagesWithGroups.Groups = [group];
             layoutSettings.Pages = pagesWithGroups;
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
