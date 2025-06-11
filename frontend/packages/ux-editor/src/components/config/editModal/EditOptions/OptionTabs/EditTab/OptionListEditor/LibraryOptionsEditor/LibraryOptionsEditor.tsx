@@ -11,7 +11,8 @@ import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
-import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
+import { useHandleUpdateTextResource } from '../../hooks/useHandleUpdateTextResource';
+import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import classes from './LibraryOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 
