@@ -12,10 +12,9 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
     useAppContext();
   const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
 
-  const addPageToGroup = async (groupIndex: number) => {
+  const nextValidPageName = () => {
     const allPageNames = [
-      ...(pagesModel?.pages?.map((page) => page.id) || []),
-      ...(pagesModel?.groups?.flatMap((group) => group?.order?.map((page) => page.id) || []) || []),
+      ...pagesModel.groups.flatMap((group) => group.order?.map((page) => page.id)),
     ];
 
     let nextNum = allPageNames.length + 1;
@@ -25,21 +24,30 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
       nextNum += 1;
       newLayoutName = `${t('ux_editor.page')}${nextNum}`;
     }
+    return newLayoutName;
+  };
 
-    const page: PageModel = { id: newLayoutName };
-    const currentGroups = pagesModel?.groups || [];
+  const nextValidGroupName = () => {
+    const pageGroupPrefix = t('ux_editor.page_layout_group');
+    let i: number = 1;
+    while (pagesModel.groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
+      i++;
+    }
+    return `${pageGroupPrefix} ${i}`;
+  };
+
+  const addPageToGroup = async (groupIndex: number) => {
+    const page: PageModel = { id: nextValidPageName() };
+    const currentGroup = pagesModel.groups[groupIndex];
+    currentGroup.order.push(page);
+    if (currentGroup.order.length > 1 && !currentGroup.name) {
+      currentGroup.name = nextValidGroupName();
+    }
+
     const updatedPages = {
       ...pagesModel,
-      groups: currentGroups.map((group, index) => {
-        if (index === groupIndex) {
-          return {
-            ...group,
-            order: [...(group?.order || []), page],
-          };
-        }
-        return group;
-      }),
     };
+    pagesModel.groups.splice(groupIndex, 1, currentGroup);
 
     await updateGroupsMutation.mutateAsync(updatedPages, {
       onSuccess: () => {
