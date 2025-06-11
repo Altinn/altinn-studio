@@ -191,4 +191,40 @@ class TestStorageService : IStorageService
 
         return processHistoryList.ProcessHistory;
     }
+
+    /// <inheritdoc />
+    public async Task<List<InstanceEvent>> GetInstanceEvents(
+        string org,
+        string env,
+        string instanceId
+    )
+    {
+        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
+        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
+
+        await Task.WhenAll(platformBaseUrlTask, tokenTask);
+
+        var platformBaseUrl = await platformBaseUrlTask;
+        var token = await tokenTask;
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/events"
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
+        string responseString = await response.Content.ReadAsStringAsync();
+        var instanceEventList =
+            JsonConvert.DeserializeObject<InstanceEventList>(responseString)
+            ?? throw new JsonException("Could not deserialize InstanceEvents response");
+
+        if (instanceEventList == null)
+        {
+            throw new Exception("Unexpeced response from storage");
+        }
+
+        return instanceEventList.InstanceEvents;
+    }
 }

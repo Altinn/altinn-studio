@@ -135,4 +135,34 @@ public class InstancesController : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpGet("{org}/{env}/{app}/{instanceId}/events")]
+    public async Task<ActionResult<List<InstanceEvent>>> GetInstanceEvents(
+        string org,
+        string env,
+        string app,
+        string instanceId
+    )
+    {
+        try
+        {
+            var instance = await _storageService.GetInstance(org, env, instanceId);
+            if (instance.AppId != $"{org}/{app}")
+            {
+                return NotFound();
+            }
+
+            var instanceEvents = await _storageService.GetInstanceEvents(org, env, instanceId);
+
+            return Ok(instanceEvents);
+        }
+        catch (HttpRequestException ex)
+        {
+            return StatusCode((int?)ex.StatusCode ?? 500);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }
