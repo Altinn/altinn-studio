@@ -42,7 +42,7 @@ jobs:
           # This will parse the input JSON and construct an array of objects with org and environment
           # Example input: [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
           # Example output: [{"org": "ttd", "environment": "dev"}, {"org": "ttd", "environment": "staging"}, {"org": "ttd", "environment": "prod"}]
-          jsonArray=$(echo $environments | jq '[.[] | .environments[] as $env | {org, environment: $env}]')
+          jsonArray=$(echo "$environments" | jq '[.[] | .environments[] as $env | {org, environment: $env}]')
           echo "orgenvironmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
 
   determine-tag:
