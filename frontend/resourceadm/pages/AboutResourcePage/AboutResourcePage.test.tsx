@@ -56,7 +56,7 @@ const mockResource2: Resource = {
 };
 const mockConsentResource: Resource = {
   ...mockResource1,
-  resourceType: 'ConsentResource',
+  resourceType: 'Consent',
   consentText: {
     nb: 'Du samtykker til å dele dine data med {org}',
     nn: 'consentNn',
@@ -578,13 +578,13 @@ describe('AboutResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display correct fields for resourceType ConsentResource', () => {
+  it('should display correct fields for resourceType consent resource', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
         validationErrors={[]}
         consentTemplates={[]}
-        resourceData={{ ...mockResource1, resourceType: 'ConsentResource' }}
+        resourceData={{ ...mockResource1, resourceType: 'Consent' }}
       />,
     );
 

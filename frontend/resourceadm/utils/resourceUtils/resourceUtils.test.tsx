@@ -214,10 +214,10 @@ describe('deepCompare', () => {
       expect(validationErrors.length).toBe(13);
     });
 
-    it('should return all possible errors for consentResource', () => {
+    it('should return all possible errors for consent resource', () => {
       const resource: Resource = {
         identifier: 'res',
-        resourceType: 'ConsentResource',
+        resourceType: 'Consent',
         title: null,
         description: null,
         delegable: true,
@@ -248,7 +248,7 @@ describe('deepCompare', () => {
       it('should return error for nb consentText field', () => {
         const resource: Resource = {
           identifier: 'res',
-          resourceType: 'ConsentResource',
+          resourceType: 'Consent',
           title: null,
           consentMetadata: {
             org: { optional: false },
@@ -276,7 +276,7 @@ describe('deepCompare', () => {
       it('should return error for nn consentText field', () => {
         const resource: Resource = {
           identifier: 'res',
-          resourceType: 'ConsentResource',
+          resourceType: 'Consent',
           title: null,
           consentMetadata: {
             org: { optional: false },
@@ -313,7 +313,7 @@ describe('deepCompare', () => {
       it('should return errors for nn and en consentText field', () => {
         const resource: Resource = {
           identifier: 'res',
-          resourceType: 'ConsentResource',
+          resourceType: 'Consent',
           title: null,
           consentMetadata: {
             org: { optional: false },
