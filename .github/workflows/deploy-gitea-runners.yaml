@@ -68,6 +68,7 @@ jobs:
 
   test-matrix:
     runs-on: ubuntu-latest
+    needs: construct-org-environments-array
     strategy:
       matrix:
         orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
