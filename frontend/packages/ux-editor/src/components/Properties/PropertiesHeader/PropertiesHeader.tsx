@@ -37,7 +37,7 @@ export const PropertiesHeader = ({
     );
   }
 
-  const { dataModelBindings, textResourceBindings } = schema.properties;
+  const { dataModelBindings, textResourceBindings } = schema?.properties ?? {};
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
   const Icon = isUnknownInternalComponent
@@ -51,7 +51,7 @@ export const PropertiesHeader = ({
       <StudioSectionHeader
         icon={<Icon />}
         heading={{
-          text: t(`ux_editor.component_title.${formItem.type}`),
+          text: t(`ux_editor.component_title.${formItem.type}`, formItem.type),
           level: 2,
         }}
         helpText={{
