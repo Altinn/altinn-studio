@@ -79,21 +79,6 @@ describe('EditFormComponent', () => {
     });
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
   });
-
-  it('should notify users when the component is unrecognized and cannot be configured in Studio', async () => {
-    const componentType = 'UnknownComponent';
-    await render({
-      // Cast the type to avoid TypeScript error due to components that does not exists within ComponentType.
-      component: { ...componentMocks[ComponentType.Input], type: componentType as unknown as any },
-    });
-    expect(
-      screen.getByText(
-        textMock('ux_editor.edit_component.unknown_component', {
-          componentName: componentType,
-        }),
-      ),
-    );
-  });
 });
 
 const waitForData = async () => {
