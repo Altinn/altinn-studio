@@ -13,7 +13,8 @@ import {
 } from '../../../utils/optionsUtils';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
-import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
+import { useHandleUpdateTextResource } from '../../hooks/useHandleUpdateTextResource';
+import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import classes from './ManualOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 
