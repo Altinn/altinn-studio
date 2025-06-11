@@ -1,7 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import axios from 'axios';
 
 jest.mock('@microsoft/applicationinsights-web', () => {
   const mockTrackException = jest.fn();
@@ -14,26 +15,41 @@ jest.mock('@microsoft/applicationinsights-web', () => {
   };
 });
 
+jest.mock('axios');
+const axiosMock = axios as jest.Mocked<typeof axios>;
+
 describe('LoggerContextProvider', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test('does not initialize ApplicationInsights without connectionString', () => {
+  test('does not initialize ApplicationInsights without connectionString', async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    axiosMock.get.mockImplementation(() => Promise.reject());
     const emptyConfig = {};
     renderLoggerContext({ config: emptyConfig });
 
-    expect(ApplicationInsights).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(ApplicationInsights).not.toHaveBeenCalled();
+    });
+    jest.restoreAllMocks();
   });
 
-  test('does initialize ApplicationInsights when connectionString is provided', () => {
+  test('does initialize ApplicationInsights when connectionString is provided', async () => {
+    axiosMock.get.mockImplementation(() =>
+      Promise.resolve({
+        data: { aiConnectionString: 'my-unit-test-connection-string' },
+      }),
+    );
     renderLoggerContext({
       config: {
         connectionString: 'my-unit-test-connection-string',
       },
     });
 
-    expect(ApplicationInsights).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(ApplicationInsights).toHaveBeenCalled();
+    });
   });
 });
 
