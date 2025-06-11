@@ -88,7 +88,7 @@ export function isOptionsIdReferenceId(
 
 export function hasStaticOptionList(
   optionListIds: string[],
-  { optionsId, options }: FormComponent,
+  { optionsId, options }: FormComponent<SelectionComponentType>,
 ): boolean {
   if (options) return true;
   return !!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId);

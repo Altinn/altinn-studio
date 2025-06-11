@@ -2,7 +2,7 @@ import { SelectedOptionsType } from '../../../../../../components/config/editMod
 import type { OptionList } from 'app-shared/types/OptionList';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../../types/FormItem';
-import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
+import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import {
   getSelectedOptionsType,
   hasOptionListChanged,
@@ -142,7 +142,7 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
       const options: OptionList = [{ value: 'value', label: 'label' }];
-      const component: FormComponent = { ...mockedComponent, optionsId, options };
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
       expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
@@ -150,7 +150,7 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = [];
       const optionsId = '';
       const options: OptionList = [];
-      const component: FormComponent = { ...mockedComponent, optionsId, options };
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
       expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
@@ -158,7 +158,7 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionList = undefined;
-      const component: FormComponent = { ...mockedComponent, optionsId, options };
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
       expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
 
@@ -166,7 +166,7 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionList = undefined;
-      const component: FormComponent = { ...mockedComponent, optionsId, options };
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
       expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
   });
