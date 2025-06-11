@@ -19,12 +19,15 @@ import classes from './ManualOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 
 export type ManualOptionsEditorProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
-  ({ component, handleComponentChange, handleDelete, textResources }, ref): React.ReactNode => {
+  (
+    { component, handleComponentChange, onDeleteButtonClick, textResources },
+    ref,
+  ): React.ReactNode => {
     const { t } = useTranslation();
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
@@ -37,7 +40,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
 
-    const handleClick = () => {
+    const handleEditButtonClick = () => {
       modalRef.current?.showModal();
     };
 
@@ -55,7 +58,10 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
           optionList={component.options}
           textResources={textResourcesForLanguage}
         />
-        <OptionListButtons handleDelete={handleDelete} handleClick={handleClick} />
+        <OptionListButtons
+          onDeleteButtonClick={onDeleteButtonClick}
+          onEditButtonClick={handleEditButtonClick}
+        />
         <StudioModal.Dialog
           ref={modalRef}
           className={classes.editOptionTabModal}

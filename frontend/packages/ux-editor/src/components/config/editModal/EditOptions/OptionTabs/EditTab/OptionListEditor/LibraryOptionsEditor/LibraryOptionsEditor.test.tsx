@@ -160,7 +160,7 @@ function getDeleteButton() {
 }
 
 const defaultProps: LibraryOptionsEditorProps = {
-  handleDelete: handleDelete,
+  onDeleteButtonClick: handleDelete,
   optionListId: optionListId,
   textResources,
 };

@@ -17,13 +17,13 @@ import classes from './LibraryOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 
 export type LibraryOptionsEditorProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   optionListId: string;
   textResources: ITextResources;
 };
 
 export function LibraryOptionsEditor({
-  handleDelete,
+  onDeleteButtonClick,
   optionListId,
   textResources,
 }: LibraryOptionsEditorProps): React.ReactNode {
@@ -56,7 +56,10 @@ export function LibraryOptionsEditor({
         optionList={optionList}
         textResources={textResourcesForLanguage}
       />
-      <OptionListButtons handleClick={handleClick} handleDelete={handleDelete} />
+      <OptionListButtons
+        onEditButtonClick={handleClick}
+        onDeleteButtonClick={onDeleteButtonClick}
+      />
       <StudioModal.Dialog
         ref={modalRef}
         className={classes.editOptionTabModal}

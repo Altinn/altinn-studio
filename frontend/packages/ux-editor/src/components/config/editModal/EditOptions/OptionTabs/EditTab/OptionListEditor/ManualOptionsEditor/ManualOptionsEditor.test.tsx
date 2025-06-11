@@ -141,7 +141,7 @@ function getDeleteButton() {
 }
 
 const defaultProps: ManualOptionsEditorProps = {
-  handleDelete: handleDelete,
+  onDeleteButtonClick: handleDelete,
   handleComponentChange: handleComponentChange,
   component: mockComponent,
   textResources,
