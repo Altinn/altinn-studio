@@ -17,7 +17,7 @@ export function ManualOptionsEditor({
   onDeleteButtonClick,
   onEditButtonClick,
   textResources,
-}): React.ReactNode {
+}: ManualOptionsEditorProps): React.ReactNode {
   const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
 
   return (

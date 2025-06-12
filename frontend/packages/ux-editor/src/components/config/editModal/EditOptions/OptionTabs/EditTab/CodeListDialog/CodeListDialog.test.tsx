@@ -1,6 +1,9 @@
-import { RenderResult, waitFor } from '@testing-library/react';
-import { ExtendedRenderOptions, renderWithProviders } from '../../../../../../../testing/mocks';
-import { CodeListDialog, CodeListDialogProps } from './';
+import type { RenderResult } from '@testing-library/react';
+import { waitFor, screen } from '@testing-library/react';
+import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../../testing/mocks';
+import type { CodeListDialogProps } from './';
+import { CodeListDialog } from './';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResources, ITextResourcesObjectFormat } from 'app-shared/types/global';
@@ -12,13 +15,14 @@ import {
   label2TextResource,
   textResourcesMock,
 } from 'app-shared/mocks/textResourcesMock';
-import { screen } from '@testing-library/react';
-import React, { createRef, MutableRefObject } from 'react';
-import { FormItem } from '@altinn/ux-editor/types/FormItem';
+
+import type { MutableRefObject } from 'react';
+import React, { createRef } from 'react';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { userEvent } from '@testing-library/user-event';
-import { IOption } from '@altinn/ux-editor/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { Option } from 'app-shared/types/Option';
 
 // Test data:
 const component = componentMocks[ComponentType.RadioButtons];
@@ -82,7 +86,7 @@ describe('CodeListDialog', () => {
   });
 
   it('Calls upsertTextResource with correct parameters when the user edits a text', async () => {
-    const options: IOption[] = [
+    const options: Option[] = [
       { value: 'value1', label: label1TextResource.id, description: description1TextResource.id },
       { value: 'value2', label: label2TextResource.id, description: description2TextResource.id },
     ];
@@ -107,7 +111,7 @@ describe('CodeListDialog', () => {
 });
 
 type RenderCodeListDialogArgs = {
-  props?: CodeListDialogProps;
+  props?: Partial<CodeListDialogProps>;
   ref?: MutableRefObject<HTMLDialogElement>;
 } & Partial<ExtendedRenderOptions>;
 
@@ -122,12 +126,12 @@ function renderCodeListDialog({
   );
 }
 
-async function renderAndShowCodeListDialog(args: RenderCodeListDialogArgs): Promise<RenderResult> {
+async function renderAndShowCodeListDialog(args?: RenderCodeListDialogArgs): Promise<RenderResult> {
   const ref = createRef<HTMLDialogElement>();
-  const renderResult = renderCodeListDialog({ ...args, ref });
+  const utils = renderCodeListDialog({ ...args, ref });
   ref.current.showModal();
   await waitFor(expect(screen.getByRole('dialog')).toBeVisible);
-  return renderResult;
+  return utils;
 }
 
 function getFirstDescriptionInput(): HTMLElement {

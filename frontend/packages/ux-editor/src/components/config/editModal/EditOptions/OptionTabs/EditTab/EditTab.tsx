@@ -1,4 +1,4 @@
-import React, { createRef, forwardRef } from 'react';
+import React, { createRef } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -29,6 +29,7 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { CodeListDialog } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/CodeListDialog';
+import type { OptionListEditorProps } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/OptionListEditor';
 
 type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -88,8 +89,8 @@ function EditTabWithData({
     <div className={classes.container}>
       <CodeListDialog
         component={component}
-        ref={dialogRef}
         handleComponentChange={handleComponentChange}
+        ref={dialogRef}
         textResources={textResources}
       />
       <OptionListTools
@@ -113,23 +114,28 @@ function EditTabWithData({
   );
 }
 
-type OptionListToolsProps = EditTabWithDataProps;
+type OptionListToolsProps = EditTabWithDataProps & Pick<OptionListEditorProps, 'onEditButtonClick'>;
 
-const OptionListTools = forwardRef<HTMLDialogElement, OptionListToolsProps>(
-  ({ component, handleComponentChange, optionListIds, textResources }, ref) => {
-    if (hasStaticOptionList(optionListIds, component)) {
-      return (
-        <OptionListEditor
-          component={component}
-          handleComponentChange={handleComponentChange}
-          textResources={textResources}
-        />
-      );
-    } else {
-      return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
-    }
-  },
-);
+function OptionListTools({
+  component,
+  handleComponentChange,
+  onEditButtonClick,
+  optionListIds,
+  textResources,
+}: OptionListToolsProps): React.ReactElement {
+  if (hasStaticOptionList(optionListIds, component)) {
+    return (
+      <OptionListEditor
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onEditButtonClick={onEditButtonClick}
+        textResources={textResources}
+      />
+    );
+  } else {
+    return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+  }
+}
 
 OptionListTools.displayName = 'OptionListTools';
 
