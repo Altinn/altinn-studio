@@ -25,7 +25,7 @@ export const RemindChoiceDialog = ({ closeDialog }: RemindChoiceDialogProps) => 
       <StudioPopover
         placement='bottom'
         data-color='info'
-        className={cn(classes.popover, !opened && classes.closed)}
+        className={cn(classes.popover, { [classes.closed]: !opened })}
         onOpen={() => setOpened(!opened)}
         onClose={() => setOpened(false)}
       >
