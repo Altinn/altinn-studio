@@ -145,7 +145,7 @@ export const DesignView = (): ReactNode => {
     );
   });
 
-  const hasGroups = pagesModel?.groups?.length > 0;
+  const hasGroups = !!pagesModel?.groups;
 
   const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
   const handleAddGroup = () => addGroupMutation();
