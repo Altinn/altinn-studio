@@ -72,9 +72,5 @@ public interface IStorageService
     /// <param name="env">The environment identifier.</param>
     /// <param name="instanceId">The unique identifier of the instance.</param>
     /// <returns>The task result contains a list of instance events.</returns>
-    public Task<List<InstanceEvent>> GetInstanceEvents(
-        string org,
-        string env,
-        string instanceId
-    );
+    public Task<List<InstanceEvent>> GetInstanceEvents(string org, string env, string instanceId);
 }
