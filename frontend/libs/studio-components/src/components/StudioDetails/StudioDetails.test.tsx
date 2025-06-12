@@ -6,8 +6,6 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioDetails', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('Appends custom attributes to the details element', () => {
     testCustomAttributes(renderDetails);
   });
