@@ -136,7 +136,7 @@ jobs:
     with:
       tag: ${{ needs.determine-tag.outputs.tag }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: ${{ matrix.environment }}
+      environment: ${{ matrix.orgenvironment.environment }}
       config-chart-name: gitea-org-runner-config
       artifact-name: gitea-runner-${{ matrix.orgenvironment.org }}
       helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runner-${{ matrix.orgenvironment.org }},registrationTokenSecretName=altinn-gitea-runner-${{ matrix.orgenvironment.org }}-secret
