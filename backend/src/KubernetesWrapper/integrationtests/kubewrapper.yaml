@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  name: kuberneteswrapper
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: kuberneteswrapper
+rules:
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  name: kuberneteswrapper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kuberneteswrapper
+subjects:
+  - kind: ServiceAccount
+    name: kuberneteswrapper
+    namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kuberneteswrapper
+    release: kuberneteswrapper
+  name: kuberneteswrapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kuberneteswrapper
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kuberneteswrapper
+        release: kuberneteswrapper
+    spec:
+      serviceAccountName: kuberneteswrapper
+      containers:
+        - image: altinn-kuberneteswrapper:local
+          name: altinn-kuberneteswrapper
+          ports:
+            - containerPort: 80
+          resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kuberneteswrapper
+  name: kuberneteswrapper
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: kuberneteswrapper
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: dummy-deployment
+    release: dummy-deployment
+  name: dummy-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: dummy-deployment
+    spec:
+      containers:
+        - image: nginx:1.23.2-alpine
+          name: nginx
+          ports:
+            - containerPort: 8080
+          resources: {}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: dummy-daemonset
+    release: dummy-daemonset
+  name: dummy-daemonset
+spec:
+  selector:
+    matchLabels:
+      app: dummy-daemonset
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: dummy-daemonset
+    spec:
+      containers:
+        - image: nginx:1.23.2-alpine
+          name: nginx
+          ports:
+            - containerPort: 8080
+          resources: {}

@@ -3,11 +3,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/**'
+      - 'backend/KubernetesWrapper/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
+      - 'backend/KubernetesWrapper/**'
   workflow_dispatch:
 
 jobs:
@@ -25,4 +25,4 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: FormatCheck
         run: |
-           dotnet format backend/Designer.sln --verify-no-changes
+          dotnet format --verify-no-changes
