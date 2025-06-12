@@ -93,7 +93,6 @@ describe('DesignView', () => {
           { id: `${textMock('ux_editor.page')}${1}` },
           { id: `${textMock('ux_editor.page')}${2}` },
         ],
-        groups: [],
       },
     });
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
