@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield, StudioDetails, StudioCard, StudioTag } from '@studio/components';
 import classes from './LanguageTextfield.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
@@ -50,7 +50,7 @@ export function LanguageTextField({
     updateLanguage(newLanguage);
   };
 
-  return (
+  /*return (
     <div className={classes.languageFieldWrapper}>
       <StudioTextfield
         id={`${id}-nb`}
@@ -78,6 +78,39 @@ export function LanguageTextField({
           id={id}
         />
       )}
+    </div>
+  );*/
+  return (
+    <div style={{ width: '513px' }}>
+      <StudioTextfield
+        label={'Navn på appen (Bokmål)'}
+        required
+        tagText='Må fylles ut'
+        style={{ marginBottom: '1rem' }}
+      />
+
+      <StudioCard data-color='neutral' style={{ marginBottom: '2rem' }}>
+        <StudioDetails>
+          <StudioDetails.Summary>
+            Oversettelse av Navn på appen
+            <StudioTag data-color='warning'>Må fylles ut</StudioTag>
+          </StudioDetails.Summary>
+          <StudioDetails.Content>
+            <StudioTextfield
+              label='Navn på appen (Nynorsk)'
+              required
+              tagText='Må fylles ut'
+              style={{ marginBottom: '0.5rem' }}
+            />
+            <StudioTextfield
+              label='Navn på appen (Engelsk)'
+              required
+              tagText='Må fylles ut'
+              style={{ marginBottom: '0.5rem' }}
+            />
+          </StudioDetails.Content>
+        </StudioDetails>
+      </StudioCard>
     </div>
   );
 }

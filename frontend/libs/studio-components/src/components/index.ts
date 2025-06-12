@@ -31,3 +31,5 @@ export { StudioSwitch } from './StudioSwitch';
 export { StudioLink } from './StudioLink';
 export { type StudioCallToActionBarProps, StudioCallToActionBar } from './StudioCallToActionBar';
 export { StudioErrorSummary } from './StudioErrorSummary';
+export { StudioDetails } from './StudioDetails';
+export { StudioCard } from './StudioCard';

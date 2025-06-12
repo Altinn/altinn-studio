@@ -13,7 +13,14 @@ import {
   mapLanguageKeyToLanguageText,
 } from '../../../utils/appResourceLanguageUtils';
 
-type TranslationBoxProps = {
+type SharedFieldProps = {
+  lang: ValidLanguage;
+  label: string;
+  value: string;
+  error: string[];
+};
+
+export type TranslationBoxProps = {
   label: string;
   isTextArea?: boolean;
   value: SupportedLanguage;
@@ -43,6 +50,21 @@ export function TranslationBox({
   const errorMessageNN: string[] | undefined = getErrorMessagesForLanguage(errors, 'nn');
   const errorMessageEN: string[] | undefined = getErrorMessagesForLanguage(errors, 'en');
 
+  const translationFields: SharedFieldProps[] = [
+    {
+      lang: 'nn',
+      label: fieldLabelNN,
+      value: value['nn'],
+      error: errorMessageNN,
+    },
+    {
+      lang: 'en',
+      label: fieldLabelEN,
+      value: value['en'],
+      error: errorMessageEN,
+    },
+  ];
+
   const handleChange = (lang: ValidLanguage, newValue: string): void => {
     onChange({ ...value, [lang]: newValue });
   };
@@ -59,34 +81,23 @@ export function TranslationBox({
         <StudioAlert data-color='info'>
           <StudioParagraph>{t('app_settings.about_tab_translation_box_alert')}</StudioParagraph>
         </StudioAlert>
-        <StudioTextfield
-          label={fieldLabelNN}
-          value={value['nn']}
-          multiple={isTextArea}
-          className={classes.textField}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-            handleChange('nn', e.target.value)
-          }
-          required={required}
-          tagText={tagText}
-          rows={getTextfieldRows(isTextArea)}
-          error={errorMessageNN}
-          id={`${id}-nn`}
-        />
-        <StudioTextfield
-          label={fieldLabelEN}
-          value={value['en']}
-          multiple={isTextArea}
-          className={classes.textField}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-            handleChange('en', e.target.value)
-          }
-          required={required}
-          tagText={tagText}
-          rows={getTextfieldRows(isTextArea)}
-          error={errorMessageEN}
-          id={`${id}-en`}
-        />
+        {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
+          <StudioTextfield
+            key={lang}
+            label={fieldLabel}
+            value={fieldValue}
+            multiple={isTextArea}
+            className={classes.textField}
+            onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+              handleChange(lang, e.target.value)
+            }
+            required={required}
+            tagText={tagText}
+            rows={getTextfieldRows(isTextArea)}
+            error={error}
+            id={`${id}-${lang}`}
+          />
+        ))}
       </div>
     </div>
   );

@@ -2,10 +2,6 @@ import { act, renderHook } from '@testing-library/react';
 import { useBeforeUnload } from './useBeforeUnload';
 
 describe('useBeforeUnload', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('should not set warning when shouldWarn is false', () => {
     const { result } = renderHook(() => useBeforeUnload(false));
 
