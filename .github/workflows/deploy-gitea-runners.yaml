@@ -32,7 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-org-environments: >-
-        [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["dev", "staging", "prod"]}]
+        [{"org": "ttd", "environments": ["dev"]}]
+  # [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["dev", "staging", "prod"]}]
     outputs:
       orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
       orgsjson: ${{ steps.construct-enviornments.outputs.orgsjson }}
@@ -86,65 +87,65 @@ jobs:
   #         echo "Organization: ${{ matrix.orgenvironment.org }}"
   #         echo "Environment: ${{ matrix.orgenvironment.environment }}"
 
-  test-orgs:
-    runs-on: ubuntu-latest
-    needs: construct-org-environments-array
-    strategy:
-      matrix:
-        org: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgsjson) }}
-    steps:
-      - name: echo orgs
-        run: |
-          echo "Organization: ${{ matrix.org }}"
-
-
-  # docker-build-push:
-  #   needs: [get-short-sha, determine-tag]
-  #   uses: ./.github/workflows/template-docker-push.yaml
-  #   with:
-  #     tags: ${{ needs.determine-tag.outputs.tag }},latest
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     repository-name: altinn-gitea-runner
-  #     context: gitea-runner
-  #     dockerfile: gitea-runner/Dockerfile
-  #     environment: dev # dev environment has push access and doesn't require review
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-  #
-  # helm-push:
-  #   needs: [get-short-sha, determine-tag]
-  #   uses: ./.github/workflows/template-helm-push.yaml
-  #   with:
-  #     tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
-  #     chart-name: gitea-runner-ttd
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     environment: dev # dev environment has push access and doesn't require review
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-
-  # flux-config-push:
-  #   needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-org-environments-array]
+  # test-orgs:
+  #   runs-on: ubuntu-latest
+  #   needs: construct-org-environments-array
   #   strategy:
   #     matrix:
-  #       orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
-  #   uses: ./.github/workflows/template-flux-config-push.yaml
-  #   with:
-  #     tag: ${{ needs.determine-tag.outputs.tag }}
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     environment: ${{ matrix.environment }}
-  #     config-chart-name: gitea-runner-ttd-config
-  #     artifact-name: gitea-runner-ttd
-  #     helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }}
-  #     trace-workflow: true
-  #     trace-team-name: 'team-studio'
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-  #     trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
-  #     trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
+  #       org: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgsjson) }}
+  #   steps:
+  #     - name: echo orgs
+  #       run: |
+  #         echo "Organization: ${{ matrix.org }}"
+
+
+  docker-build-push:
+    needs: [get-short-sha, determine-tag]
+    uses: ./.github/workflows/template-docker-push.yaml
+    with:
+      tags: ${{ needs.determine-tag.outputs.tag }},latest
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      repository-name: altinn-gitea-runner
+      context: gitea-runner
+      dockerfile: gitea-runner/Dockerfile
+      environment: dev # dev environment has push access and doesn't require review
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  helm-push:
+    needs: [get-short-sha, determine-tag]
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      chart-name: gitea-org-runner
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: dev # dev environment has push access and doesn't require review
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  flux-config-push:
+    needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-org-environments-array]
+    strategy:
+      matrix:
+        orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.determine-tag.outputs.tag }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: gitea-org-runner-config
+      artifact-name: gitea-runner-${{ matrix.orgenvironment.org }}
+      helm-set-arguments: chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},releaseName=gitea-runner-${{ matrix.orgenvironment.org }},registrationTokenSecretName=altinn-gitea-runner-${{ matrix.orgenvironment.org }}-secret
+      trace-workflow: false
+      trace-team-name: 'team-studio'
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
+      trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
 
