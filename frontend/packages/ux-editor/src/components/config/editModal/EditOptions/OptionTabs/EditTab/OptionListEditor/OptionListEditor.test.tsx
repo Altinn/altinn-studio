@@ -37,6 +37,7 @@ const appRouteParams: AppRouteParams = { org, app };
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
+const onEditButtonClick = jest.fn();
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -125,6 +126,7 @@ function getDeleteButton() {
 
 const defaultProps: OptionListEditorProps = {
   component: mockComponent,
+  onEditButtonClick,
   handleComponentChange,
   textResources,
 };

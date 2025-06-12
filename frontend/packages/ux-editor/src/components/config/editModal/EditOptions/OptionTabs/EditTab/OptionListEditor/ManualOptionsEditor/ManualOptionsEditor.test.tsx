@@ -16,6 +16,7 @@ import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOpti
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const handleDelete = jest.fn();
 const handleComponentChange = jest.fn();
+const onEditButtonClick = jest.fn();
 const textResources: ITextResources = {
   nb: [
     { id: 'some-id', value: 'label 1' },
@@ -32,27 +33,11 @@ describe('ManualOptionEditor', () => {
     expect(getEditButton()).toBeInTheDocument();
   });
 
-  it('should open Dialog', async () => {
+  it('Calls onEditButtonClick when the edit button is clicked', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditor();
-
     await user.click(getEditButton());
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
-    ).toBeInTheDocument();
-  });
-
-  it('should close Dialog', async () => {
-    const user = userEvent.setup();
-    renderManualOptionsEditor();
-
-    await user.click(getEditButton());
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(onEditButtonClick).toHaveBeenCalledTimes(1);
   });
 
   it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
@@ -142,9 +127,9 @@ function getDeleteButton() {
 
 const defaultProps: ManualOptionsEditorProps = {
   handleDelete: handleDelete,
-  handleComponentChange: handleComponentChange,
   component: mockComponent,
   textResources,
+  onEditButtonClick,
 };
 
 function renderManualOptionsEditor({

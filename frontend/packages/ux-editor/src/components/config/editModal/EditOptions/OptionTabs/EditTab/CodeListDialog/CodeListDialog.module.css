@@ -1,4 +1,4 @@
-.editOptionTabModal[open] {
+.dialog[open] {
   --code-list-modal-height: min(50rem, 100%);
 
   width: 80vw;

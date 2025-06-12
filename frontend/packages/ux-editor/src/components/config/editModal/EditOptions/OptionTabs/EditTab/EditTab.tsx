@@ -28,6 +28,7 @@ import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
+import { CodeListDialog } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/CodeListDialog';
 
 type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -85,11 +86,17 @@ function EditTabWithData({
 
   return (
     <div className={classes.container}>
+      <CodeListDialog
+        component={component}
+        ref={dialogRef}
+        handleComponentChange={handleComponentChange}
+        textResources={textResources}
+      />
       {hasStaticOptionList(optionListIds, component.optionsId, component.options) ? (
         <OptionListEditor
-          ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
+          onEditButtonClick={() => dialogRef.current.showModal()}
           textResources={textResources}
         />
       ) : (
