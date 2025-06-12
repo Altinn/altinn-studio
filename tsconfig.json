@@ -20,6 +20,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "paths": {
       "src/*": ["src/*"],
       "test/*": ["test/*"],

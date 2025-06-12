@@ -7,7 +7,7 @@ const enableJestPreview = env.parsed?.JEST_PREVIEW === 'true';
 const config = {
   preset: 'ts-jest',
   transform: {
-    '\\.(js|ts|tsx)$': ['ts-jest', { isolatedModules: true }],
+    '\\.(js|ts|tsx)$': ['ts-jest'],
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/src/test/jestTools/transformFile.js',
 
