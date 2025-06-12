@@ -35,6 +35,7 @@ jobs:
         [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["dev", "staging", "prod"]}]
     outputs:
       orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
+      orgsjson: ${{ steps.construct-enviornments.outputs.orgsjson }}
     steps:
       - name: Construct environment
         id: construct-enviornments
@@ -44,11 +45,18 @@ jobs:
             environments='${{ env.default-org-environments }}'
           fi
           echo "Raw environments input: $environments"
+
+          # Construct array of {org, environment}
           # This will parse the input JSON and construct an array of objects with org and environment
           # Example input: [{"org": "ttd", "environments": ["dev", "staging", "prod"]}]
           # Example output: [{"org": "ttd", "environment": "dev"}, {"org": "ttd", "environment": "staging"}, {"org": "ttd", "environment": "prod"}]
           jsonArray=$(echo "$environments" | jq -c '[.[] | .environments[] as $env | {org, environment: $env}]')
           echo "orgenvironmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
+
+          # Extract unique organizations
+          orgsArray=$(echo "$environments" | jq -c '[.[] | .org]')
+          echo "orgsjson=${orgsArray}" >> $GITHUB_OUTPUT
+
 
   determine-tag:
     needs: get-short-sha
@@ -66,17 +74,28 @@ jobs:
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           fi
 
-  test-matrix:
+  # test-matrix:
+  #   runs-on: ubuntu-latest
+  #   needs: construct-org-environments-array
+  #   strategy:
+  #     matrix:
+  #       orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
+  #   steps:
+  #     - name: echo org and environment
+  #       run: |
+  #         echo "Organization: ${{ matrix.orgenvironment.org }}"
+  #         echo "Environment: ${{ matrix.orgenvironment.environment }}"
+
+  test-orgs:
     runs-on: ubuntu-latest
     needs: construct-org-environments-array
     strategy:
       matrix:
-        orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
+        org: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgsjson) }}
     steps:
-      - name: echo org and environment
+      - name: echo orgs
         run: |
-          echo "Organization: ${{ matrix.orgenvironment.org }}"
-          echo "Environment: ${{ matrix.orgenvironment.environment }}"
+          echo "Organization: ${{ matrix.org }}"
 
 
   # docker-build-push:
@@ -93,7 +112,7 @@ jobs:
   #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
   #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
   #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-
+  #
   # helm-push:
   #   needs: [get-short-sha, determine-tag]
   #   uses: ./.github/workflows/template-helm-push.yaml
