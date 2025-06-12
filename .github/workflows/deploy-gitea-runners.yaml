@@ -1,17 +1,17 @@
-name: Deploy Gitea Runner for organizations
+name: Deploy Gitea Organization Runners
 on:
   pull_request:
     branches: [ main ]
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/deploy-gitea-runner-*.yaml'
+      - '.github/workflows/deploy-gitea-runners.yaml'
       - '.github/workflows/template-docker-push.yaml'
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
-      - 'charts/gitea-runner-*/**'
-      - 'charts/gitea-runner-*-config/**'
+      - 'charts/gitea-org-runner/**'
+      - 'charts/gitea-org-runner-config/**'
 
   workflow_dispatch:
     inputs:
@@ -32,11 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       default-org-environments: >-
-        [{"org": "ttd", "environments": ["dev"]}]
-  # [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["dev", "staging", "prod"]}]
+        [{"org": "ttd", "environments": ["dev", "staging", "prod"]},{"org": "brg", "environments": ["prod"]}]
     outputs:
       orgenvironmentsjson: ${{ steps.construct-enviornments.outputs.orgenvironmentsjson }}
-      orgsjson: ${{ steps.construct-enviornments.outputs.orgsjson }}
     steps:
       - name: Construct environment
         id: construct-enviornments
@@ -54,11 +52,6 @@ jobs:
           jsonArray=$(echo "$environments" | jq -c '[.[] | .environments[] as $env | {org, environment: $env}]')
           echo "orgenvironmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
 
-          # Extract unique organizations
-          orgsArray=$(echo "$environments" | jq -c '[.[] | .org]')
-          echo "orgsjson=${orgsArray}" >> $GITHUB_OUTPUT
-
-
   determine-tag:
     needs: get-short-sha
     runs-on: ubuntu-latest
@@ -74,30 +67,6 @@ jobs:
             sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           fi
-
-  # test-matrix:
-  #   runs-on: ubuntu-latest
-  #   needs: construct-org-environments-array
-  #   strategy:
-  #     matrix:
-  #       orgenvironment: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgenvironmentsjson) }}
-  #   steps:
-  #     - name: echo org and environment
-  #       run: |
-  #         echo "Organization: ${{ matrix.orgenvironment.org }}"
-  #         echo "Environment: ${{ matrix.orgenvironment.environment }}"
-
-  # test-orgs:
-  #   runs-on: ubuntu-latest
-  #   needs: construct-org-environments-array
-  #   strategy:
-  #     matrix:
-  #       org: ${{ fromJSON(needs.construct-org-environments-array.outputs.orgsjson) }}
-  #   steps:
-  #     - name: echo orgs
-  #       run: |
-  #         echo "Organization: ${{ matrix.org }}"
-
 
   docker-build-push:
     needs: [get-short-sha, determine-tag]
