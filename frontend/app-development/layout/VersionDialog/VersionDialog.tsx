@@ -94,6 +94,16 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
 
   const [opened, setOpened] = useState(!hideVersionDialog);
 
+  const handleCloseDialog = (permanentlyDismiss: boolean) => {
+    if (permanentlyDismiss) {
+      setSkippedUpdateVersions({
+        frontendVersion,
+        backendVersion,
+      });
+    }
+    setOpened(false);
+  };
+
   if (hideVersionDialog) {
     return;
   }
@@ -109,15 +119,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
 
   return (
     <StudioDialog data-color='warning' open={opened} className={classes.dialog} closeButton={false}>
-      <RemindChoiceDialog
-        closeDialog={() => setOpened(false)}
-        closeDialogPermanently={() =>
-          setSkippedUpdateVersions({
-            frontendVersion,
-            backendVersion,
-          })
-        }
-      />
+      <RemindChoiceDialog closeDialog={handleCloseDialog} />
       <StudioDialog.Block className={classes.text}>
         <StudioAlert data-color='warning' className={cn(classes.alert, className)}>
           <StudioHeading level={2}>{title}</StudioHeading>

@@ -14,13 +14,12 @@ export const PreviewLimitationsInfo = () => {
     showPreviewLimitationsInfoSession ?? true,
   );
 
-  const handleHidePreviewLimitations = () => {
-    setShowPreviewLimitationsInfo(false);
-  };
+  const handleHidePreviewLimitations = (permanentlyDismiss: boolean) => {
+    if (permanentlyDismiss) {
+      typedLocalStorage.setItem('showPreviewLimitationsInfo', false);
+    }
 
-  const handleRememberChoiceForSession = () => {
-    typedLocalStorage.setItem('showPreviewLimitationsInfo', false);
-    handleHidePreviewLimitations();
+    setShowPreviewLimitationsInfo(false);
   };
 
   if (!showPreviewLimitationsInfo) return null;
@@ -28,10 +27,7 @@ export const PreviewLimitationsInfo = () => {
   return (
     <Alert severity='info' className={classes.alert}>
       {t('preview.limitations_info')}
-      <RemindChoiceDialog
-        closeDialog={handleHidePreviewLimitations}
-        closeDialogPermanently={handleRememberChoiceForSession}
-      />
+      <RemindChoiceDialog closeDialog={handleHidePreviewLimitations} />
     </Alert>
   );
 };

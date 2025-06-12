@@ -6,14 +6,10 @@ import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components
 import cn from 'classnames';
 
 export type RemindChoiceDialogProps = {
-  closeDialog: () => void;
-  closeDialogPermanently: () => void;
+  closeDialog: (permanentlyDismiss: boolean) => void;
 };
 
-export const RemindChoiceDialog = ({
-  closeDialog,
-  closeDialogPermanently,
-}: RemindChoiceDialogProps) => {
+export const RemindChoiceDialog = ({ closeDialog }: RemindChoiceDialogProps) => {
   const { t } = useTranslation();
   const [opened, setOpened] = useState(false);
 
@@ -35,8 +31,10 @@ export const RemindChoiceDialog = ({
       >
         <StudioParagraph>{t('session.reminder')}</StudioParagraph>
         <div className={classes.buttons}>
-          <StudioButton onClick={closeDialog}>{t('session.do_show_again')}</StudioButton>
-          <StudioButton onClick={closeDialogPermanently} variant='secondary'>
+          <StudioButton onClick={() => closeDialog(false)}>
+            {t('session.do_show_again')}
+          </StudioButton>
+          <StudioButton onClick={() => closeDialog(true)} variant='secondary'>
             {t('session.dont_show_again')}
           </StudioButton>
         </div>

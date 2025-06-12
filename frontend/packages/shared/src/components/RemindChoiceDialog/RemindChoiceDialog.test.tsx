@@ -8,7 +8,6 @@ describe('RemindChoiceDialog', () => {
   it('should call closeDialog when the "do show again" button is clicked', async () => {
     const props = {
       closeDialog: jest.fn(),
-      closeDialogPermanently: jest.fn(),
     };
 
     renderRemindChoiceDialog(props);
@@ -26,14 +25,12 @@ describe('RemindChoiceDialog', () => {
 
     await user.click(hidePopoverTemporaryButton);
 
-    expect(props.closeDialog).toHaveBeenCalled();
-    expect(props.closeDialogPermanently).not.toHaveBeenCalled();
+    expect(props.closeDialog).toHaveBeenCalledWith(false);
   });
 
   it('should call closeDialogPermanently when the "do not show again" is clicked', async () => {
     const props = {
       closeDialog: jest.fn(),
-      closeDialogPermanently: jest.fn(),
     };
 
     renderRemindChoiceDialog(props);
@@ -51,8 +48,7 @@ describe('RemindChoiceDialog', () => {
 
     await user.click(hidePopoverForSessionButton);
 
-    expect(props.closeDialog).not.toHaveBeenCalled();
-    expect(props.closeDialogPermanently).toHaveBeenCalled();
+    expect(props.closeDialog).toHaveBeenCalledWith(true);
   });
 });
 
