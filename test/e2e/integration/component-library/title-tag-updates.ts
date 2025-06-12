@@ -26,7 +26,6 @@ describe('Title tag updates', () => {
       },
     ]);
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    // cy.visit('/ttd/component-library/#/instance-selection');
     cy.location('origin').then((origin) => {
       const newUrl = `${origin}/ttd/component-library/#/instance-selection`;
       cy.visit(newUrl);

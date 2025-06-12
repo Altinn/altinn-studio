@@ -4,6 +4,10 @@
   background-color: var(--fds-semantic-surface-neutral-subtle);
 }
 
+.summary2width {
+  width: 100%;
+}
+
 .header {
   border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
   background-color: var(--fds-semantic-surface-neutral-subtle);

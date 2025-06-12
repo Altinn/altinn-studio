@@ -5,8 +5,11 @@ import cn from 'classnames';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
 import { GenericComponentById } from 'src/layout/GenericComponent';
+import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 function getHeadingLevel(headingLevel: number | undefined) {
   switch (headingLevel) {
@@ -46,5 +49,36 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
         ))}
       </div>
     </div>
+  );
+}
+
+export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'>) {
+  const { textResourceBindings, headingLevel, childComponents } = useNodeItem(target);
+  const { langAsString } = useLanguage();
+
+  const hideEmptyFields = useSummaryProp('hideEmptyFields');
+
+  const title = langAsString(textResourceBindings?.title);
+  const Heading = getHeadingLevel(headingLevel);
+
+  return (
+    <SummaryFlexForContainer
+      hideWhen={hideEmptyFields}
+      target={target}
+    >
+      <div className={cn(classes.container, classes.summary2width)}>
+        <div className={classes.header}>
+          <Heading className={classes.paddingSmall}>{title}</Heading>
+        </div>
+        <div className={classes.padding}>
+          {childComponents.map((nodeId) => (
+            <ComponentSummaryById
+              key={nodeId}
+              componentId={nodeId}
+            />
+          ))}
+        </div>
+      </div>
+    </SummaryFlexForContainer>
   );
 }
