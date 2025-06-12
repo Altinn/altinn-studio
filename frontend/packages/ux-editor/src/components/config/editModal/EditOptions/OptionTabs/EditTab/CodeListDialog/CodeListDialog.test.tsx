@@ -67,6 +67,22 @@ describe('CodeListDialog', () => {
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
+  it('Calls handleComponentChange with the updated component when the user changes the code list', async () => {
+    const newCode = 'new-code';
+    const user = userEvent.setup();
+
+    await renderAndShowCodeListDialog();
+    await user.type(getFirstCodeInput(), newCode);
+    await user.tab();
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.arrayContaining([expect.objectContaining({ value: newCode })]),
+      }),
+    );
+  });
+
   it('Calls handleComponentChange with correct parameters when the user closes the dialog and there are no options', async () => {
     const user = userEvent.setup();
     const componentWithoutOptions: FormItem<ComponentType.RadioButtons> = {
@@ -132,6 +148,11 @@ async function renderAndShowCodeListDialog(args?: RenderCodeListDialogArgs): Pro
   ref.current.showModal();
   await waitFor(expect(screen.getByRole('dialog')).toBeVisible);
   return utils;
+}
+
+function getFirstCodeInput(): HTMLElement {
+  const key = 'code_list_editor.value_item';
+  return screen.getByRole('textbox', { name: textMock(key, { number: 1 }) });
 }
 
 function getFirstDescriptionInput(): HTMLElement {

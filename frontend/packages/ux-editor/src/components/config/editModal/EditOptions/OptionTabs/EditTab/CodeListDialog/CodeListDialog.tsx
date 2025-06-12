@@ -26,10 +26,13 @@ export const CodeListDialog = forwardRef<HTMLDialogElement, CodeListDialogProps>
     const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
     const handleUpdateTextResource = useHandleUpdateTextResource(language);
 
-    const handleUpdateCodeList = (options: Option[]) => {
-      const updatedComponent = updateComponentOptions(component, options);
-      handleOptionsChange(updatedComponent, handleComponentChange);
-    };
+    const handleUpdateCodeList = useCallback(
+      (options: Option[]) => {
+        const updatedComponent = updateComponentOptions(component, options);
+        handleOptionsChange(updatedComponent, handleComponentChange);
+      },
+      [component, handleComponentChange],
+    );
 
     const handleBeforeClose = useCallback((): void => {
       if (component.options?.length === 0) {
