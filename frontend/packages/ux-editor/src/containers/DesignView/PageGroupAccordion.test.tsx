@@ -72,7 +72,7 @@ describe('PageGroupAccordion', () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toBeInTheDocument();
-    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    const heading = within(groupHeader).getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Group 1');
   });
 
@@ -89,31 +89,49 @@ describe('PageGroupAccordion', () => {
     await renderPageGroupAccordion({ props: { pages: emptyGroupPagesMock } });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toBeInTheDocument();
-    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    const heading = within(groupHeader).getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Side1');
   });
 
-  it('should mark group as selected when selectedGroupName matches group name', async () => {
+  it('should set selectedItem when group header is clicked', async () => {
+    const user = userEvent.setup();
+    const setSelectedItem = jest.fn();
     await renderPageGroupAccordion({
-      appContextProps: { selectedItem: { type: ItemType.Group, id: 0 } },
+      appContextProps: { setSelectedItem },
     });
+
     const groupHeader = groupAccordionHeader(0);
-    expect(groupHeader).toHaveClass('selected');
-    const heading = within(groupAccordionHeader(0)).getByRole('heading', { level: 3 });
-    expect(heading).toHaveTextContent('Group 1');
+    const heading = within(groupHeader).getByRole('heading', { level: 2 });
+    await user.click(heading);
+    expect(setSelectedItem).toHaveBeenCalledWith({ type: ItemType.Group, id: 0 });
+  });
+
+  it('should set selectedItem to null if group is selected and deleted', async () => {
+    const user = userEvent.setup();
+    const setSelectedItem = jest.fn();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    await renderPageGroupAccordion({
+      appContextProps: { selectedItem: { type: ItemType.Group, id: 0 }, setSelectedItem },
+    });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: 'Group 1' }),
+    });
+    await user.click(deleteButton);
+    expect(setSelectedItem).toHaveBeenCalledWith(null);
   });
 
   it('should display page ID when group has single page', async () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(1);
-    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    const heading = within(groupHeader).getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Side 3');
   });
 
   it('should display group name when group has multiple pages', async () => {
     await renderPageGroupAccordion({});
     const groupHeader = groupAccordionHeader(0);
-    const heading = within(groupHeader).getByRole('heading', { level: 3 });
+    const heading = within(groupHeader).getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Group 1');
   });
 
