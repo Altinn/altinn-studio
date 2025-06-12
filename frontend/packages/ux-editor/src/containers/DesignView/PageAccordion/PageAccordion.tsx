@@ -77,7 +77,10 @@ export const PageAccordion = ({
   const getUpdatedGroupsExcludingPage = (groups: GroupModel[], pageId: string): GroupModel[] => {
     const groupsWithPageRemoved = groups.map((group) => {
       const filteredOrder = group.order.filter((page) => page.id !== pageId);
-      return { ...group, order: filteredOrder };
+      const updatedName =
+        filteredOrder.length === 1 && group.name ? filteredOrder[0].id : group.name;
+
+      return { ...group, order: filteredOrder, name: updatedName };
     });
 
     const nonEmptyGroups = groupsWithPageRemoved.filter((group) => group.order.length > 0);
