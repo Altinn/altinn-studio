@@ -51,13 +51,8 @@ function ErrorListItems({
 
 function getErrorSummaryHref(error: AppResourceFormError): string {
   const isIndexUndefined: boolean = error.index === undefined;
-  const isIndexNumber: boolean = typeof error.index === 'number';
-  const isIndexString: boolean = typeof error.index === 'string';
 
-  if (!isIndexUndefined && isIndexNumber) {
-    return `#${error.field}-${error.index}`;
-  }
-  if (!isIndexUndefined && isIndexString) {
+  if (!isIndexUndefined) {
     return `#${error.field}-${error.index}`;
   }
   return `#${error.field}`;

@@ -38,10 +38,10 @@ describe('ErrorSummary', () => {
   it('uses correct hrefs based on error index presence and type', () => {
     renderErrorSummary();
 
-    const links: HTMLAnchorElement[] = getAllLinks();
-    expect(links[0]).toHaveAttribute('href', '#repositoryName-0');
-    expect(links[1]).toHaveAttribute('href', '#serviceName-en');
-    expect(links[2]).toHaveAttribute('href', '#serviceId');
+    const [repositoryName, serviceName, serviceId]: HTMLAnchorElement[] = getAllLinks();
+    expect(repositoryName).toHaveAttribute('href', '#repositoryName-0');
+    expect(serviceName).toHaveAttribute('href', '#serviceName-en');
+    expect(serviceId).toHaveAttribute('href', '#serviceId');
   });
 });
 
