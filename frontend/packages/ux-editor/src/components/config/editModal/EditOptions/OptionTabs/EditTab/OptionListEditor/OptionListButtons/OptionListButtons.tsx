@@ -5,13 +5,13 @@ import { PencilIcon, TrashIcon } from '@studio/icons';
 import classes from './OptionListButtons.module.css';
 
 type OptionListButtonsProps = {
-  handleDelete: () => void;
-  handleClick: () => void;
+  onDeleteButtonClick: () => void;
+  onEditButtonClick: () => void;
 };
 
 export function OptionListButtons({
-  handleDelete,
-  handleClick,
+  onDeleteButtonClick,
+  onEditButtonClick,
 }: OptionListButtonsProps): React.ReactNode {
   const { t } = useTranslation();
 
@@ -20,7 +20,7 @@ export function OptionListButtons({
       <StudioButton
         icon={<PencilIcon />}
         variant='secondary'
-        onClick={handleClick}
+        onClick={onEditButtonClick}
         title={t('ux_editor.modal_properties_code_list_open_editor')}
       >
         {t('general.edit')}
@@ -29,7 +29,7 @@ export function OptionListButtons({
         color='danger'
         icon={<TrashIcon />}
         variant='secondary'
-        onClick={handleDelete}
+        onClick={onDeleteButtonClick}
         title={t('ux_editor.options.option_remove_text')}
       >
         {t('general.delete')}

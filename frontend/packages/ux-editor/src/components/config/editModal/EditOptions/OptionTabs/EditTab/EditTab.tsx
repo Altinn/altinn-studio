@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { createRef, forwardRef } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -92,16 +92,13 @@ function EditTabWithData({
         handleComponentChange={handleComponentChange}
         textResources={textResources}
       />
-      {hasStaticOptionList(optionListIds, component.optionsId, component.options) ? (
-        <OptionListEditor
-          component={component}
-          handleComponentChange={handleComponentChange}
-          onEditButtonClick={() => dialogRef.current.showModal()}
-          textResources={textResources}
-        />
-      ) : (
-        <AddOptionList component={component} handleComponentChange={handleComponentChange} />
-      )}
+      <OptionListTools
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onEditButtonClick={() => dialogRef.current.showModal()}
+        optionListIds={optionListIds}
+        textResources={textResources}
+      />
       {errorMessage && (
         <StudioErrorMessage className={classes.errorMessage} size='small'>
           {errorMessage}
@@ -115,6 +112,26 @@ function EditTabWithData({
     </div>
   );
 }
+
+type OptionListToolsProps = EditTabWithDataProps;
+
+const OptionListTools = forwardRef<HTMLDialogElement, OptionListToolsProps>(
+  ({ component, handleComponentChange, optionListIds, textResources }, ref) => {
+    if (hasStaticOptionList(optionListIds, component)) {
+      return (
+        <OptionListEditor
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textResources={textResources}
+        />
+      );
+    } else {
+      return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+    }
+  },
+);
+
+OptionListTools.displayName = 'OptionListTools';
 
 type AddOptionListProps = EditTabProps;
 

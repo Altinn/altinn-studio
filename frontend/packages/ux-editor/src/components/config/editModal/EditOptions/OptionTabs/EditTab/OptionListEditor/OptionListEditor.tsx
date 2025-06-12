@@ -25,7 +25,7 @@ export function OptionListEditor({
   onEditButtonClick,
   textResources,
 }: OptionListEditorProps): React.ReactNode {
-  const handleDelete = () => {
+  const handleDeleteButtonClick = () => {
     const updatedComponent = resetComponentOptions(component);
     handleOptionsChange(updatedComponent, handleComponentChange);
   };
@@ -34,7 +34,7 @@ export function OptionListEditor({
     return (
       <ManualOptionsEditor
         component={component}
-        handleDelete={handleDelete}
+        onDeleteButtonClick={handleDeleteButtonClick}
         onEditButtonClick={onEditButtonClick}
         textResources={textResources}
       />
@@ -43,7 +43,7 @@ export function OptionListEditor({
     return (
       <OptionListResolver
         optionsId={component.optionsId}
-        handleDelete={handleDelete}
+        onDeleteButtonClick={handleDeleteButtonClick}
         textResources={textResources}
       />
     );
@@ -51,13 +51,13 @@ export function OptionListEditor({
 }
 
 type OptionsListResolverProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   optionsId: string;
   textResources: ITextResources;
 };
 
 function OptionListResolver({
-  handleDelete,
+  onDeleteButtonClick,
   optionsId,
   textResources,
 }: OptionsListResolverProps): React.ReactNode {
@@ -78,7 +78,7 @@ function OptionListResolver({
           </StudioErrorMessage>
           <StudioDeleteButton
             className={classes.deleteButton}
-            onDelete={handleDelete}
+            onDelete={onDeleteButtonClick}
             title={t('ux_editor.options.option_remove_text')}
           >
             {t('general.delete')}
@@ -88,7 +88,7 @@ function OptionListResolver({
     case 'success': {
       return (
         <LibraryOptionsEditor
-          handleDelete={handleDelete}
+          onDeleteButtonClick={onDeleteButtonClick}
           optionListId={optionsId}
           textResources={textResources}
         />

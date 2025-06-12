@@ -14,7 +14,7 @@ import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOpti
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
-const handleDelete = jest.fn();
+const onDeleteButtonClick = jest.fn();
 const handleComponentChange = jest.fn();
 const onEditButtonClick = jest.fn();
 const textResources: ITextResources = {
@@ -97,13 +97,13 @@ describe('ManualOptionEditor', () => {
     expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
   });
 
-  it('should call handleDelete when removing chosen options', async () => {
+  it('should call onDeleteButtonClick when removing chosen options', async () => {
     const user = userEvent.setup();
     renderManualOptionsEditor();
 
     await user.click(getDeleteButton());
 
-    expect(handleDelete).toHaveBeenCalledTimes(1);
+    expect(onDeleteButtonClick).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -126,7 +126,8 @@ function getDeleteButton() {
 }
 
 const defaultProps: ManualOptionsEditorProps = {
-  handleDelete: handleDelete,
+  onDeleteButtonClick,
+  handleComponentChange: handleComponentChange,
   component: mockComponent,
   textResources,
   onEditButtonClick,

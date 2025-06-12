@@ -7,14 +7,14 @@ import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLang
 import type { ITextResources } from 'app-shared/types/global';
 
 export type ManualOptionsEditorProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   onEditButtonClick: () => void;
   textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
 
 export function ManualOptionsEditor({
   component,
-  handleDelete,
+  onDeleteButtonClick,
   onEditButtonClick,
   textResources,
 }): React.ReactNode {
@@ -27,7 +27,10 @@ export function ManualOptionsEditor({
         optionList={component.options}
         textResources={textResourcesForLanguage}
       />
-      <OptionListButtons handleDelete={handleDelete} handleClick={onEditButtonClick} />
+      <OptionListButtons
+        onDeleteButtonClick={onDeleteButtonClick}
+        onEditButtonClick={onEditButtonClick}
+      />
     </>
   );
 }
