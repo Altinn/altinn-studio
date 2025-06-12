@@ -13,9 +13,11 @@ import {
   isValidSettingsTab,
   navigateToSettingsTab,
 } from './utils';
+import { useRouterNavigationWarningContext } from '../../contexts/RouterNavigationWaringContext';
 
 export function AppSettings(): ReactElement {
   const { t } = useTranslation();
+  const { doPageHasChanges } = useRouterNavigationWarningContext();
   const settingsPageTabs = useAppSettingsMenuTabConfigs();
   const tabIds: SettingsPageTabId[] = getAllSettingsPageTabIds(settingsPageTabs);
 
@@ -23,6 +25,10 @@ export function AppSettings(): ReactElement {
   const [currentTab, setCurrentTab] = useState<SettingsPageTabId>(currentTabFromQueryParam);
 
   const navigateToNewTab = (tabId: SettingsPageTabId): void => {
+    if (doPageHasChanges(tabId)) {
+      alert('Navigation Warning!!!');
+      return;
+    }
     const isValid: boolean = isValidSettingsTab(tabId, tabIds);
 
     if (isValid) {
