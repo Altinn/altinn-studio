@@ -24,8 +24,8 @@ import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/Repeating
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { useDataModelLocationForRow } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -92,10 +92,9 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const { langAsString } = langTools;
   const id = node.id;
   const group = useNodeItem(node);
-  const row = group.rows.find((r) => r && r.uuid === uuid && r.index === index);
   const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, index);
   const isFresh = freshUuid === uuid;
-  const rowExpressions = row?.groupExpressions;
+  const rowExpressions = RepGroupHooks.useRowWithExpressions(node, { uuid });
   const editForRow = rowExpressions?.edit;
   const editForGroup = group.edit;
   const trbForRow = rowExpressions?.textResourceBindings;
@@ -105,10 +104,9 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
 
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const layoutLookups = useLayoutLookups();
-  const dataModelLocation = useDataModelLocationForRow(group.dataModelBindings.group, index);
   const rawTableIds = useTableComponentIds(node);
-  const displayData = useDisplayDataFor(rawTableIds, dataModelLocation);
-  const tableIds = useIndexedComponentIds(rawTableIds, dataModelLocation);
+  const displayData = useDisplayDataFor(rawTableIds);
+  const tableIds = useIndexedComponentIds(rawTableIds);
   const tableItems = rawTableIds.map((baseId, index) => ({
     baseId,
     id: tableIds[index],
@@ -133,10 +131,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
     : getEditButtonText(isEditingRow, langTools, trbForRow);
 
   const deleteButtonText = langAsString('general.delete');
-
-  if (!row) {
-    return null;
-  }
 
   return (
     <Table.Row
@@ -250,7 +244,7 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   aria-controls={isEditingRow ? `group-edit-container-${id}-${uuid}` : undefined}
                   variant='tertiary'
                   color='second'
-                  onClick={() => toggleEditing({ index: row.index, uuid: row.uuid })}
+                  onClick={() => toggleEditing({ index, uuid })}
                   aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                   className={classes.tableButton}
                   disabled={!isFresh}

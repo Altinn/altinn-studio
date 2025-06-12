@@ -3,9 +3,10 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 type FocusableHTMLElement =
@@ -39,7 +40,12 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   const waitingForFocus = useRef<number | null>(null);
 
   const { node, openForEditing, changePageToRow } = useRepeatingGroup();
-  const getNodeItem = NodesInternal.useGetNodeData(node, (d) => d.item);
+  const groupBinding = useNodeItem(node, (i) => i.dataModelBindings.group);
+  const pagination = useNodeItem(node, (i) => i.pagination);
+  const mode = useNodeItem(node, (i) => i.edit?.mode);
+  const tableColumns = useNodeItem(node, (i) => i.tableColumns);
+  const rowsSelector = FD.useDebouncedRowsSelector();
+
   useRegisterNodeNavigationHandler(async (targetNode) => {
     // Figure out if we are a parent of the target component, setting the targetChild to the target
     // component (or a nested repeating group containing the target component).
@@ -62,11 +68,11 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
       return false;
     }
 
-    const item = getNodeItem();
-    const row = item?.rows.find((r) => r?.itemIds?.some((nodeId) => nodeId === targetChild.id));
+    const rows = rowsSelector(groupBinding);
+    const row = rows.find((r) => r.index === targetChild?.rowIndex);
 
     // If pagination is used, navigate to the correct page
-    if (item?.pagination) {
+    if (pagination) {
       if (row) {
         await changePageToRow(row);
       } else {
@@ -74,13 +80,13 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
       }
     }
 
-    if (item?.edit?.mode === 'showAll' || item?.edit?.mode === 'onlyTable') {
+    if (mode === 'showAll' || mode === 'onlyTable') {
       // We're already showing all nodes, so nothing further to do
       return true;
     }
 
     // Check if we need to open the row containing targetChild for editing.
-    const tableColSetup = (item?.tableColumns && targetChild.baseId && item?.tableColumns[targetChild.baseId]) || {};
+    const tableColSetup = (tableColumns && targetChild.baseId && tableColumns[targetChild.baseId]) || {};
 
     if (tableColSetup.editInTable || tableColSetup.showInExpandedEdit === false) {
       // No need to open rows or set editIndex for components that are rendered

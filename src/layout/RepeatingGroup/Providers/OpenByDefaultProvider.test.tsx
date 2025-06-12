@@ -161,6 +161,7 @@ describe('openByDefault', () => {
     expect(mutations?.doPatchFormData.mock).not.toHaveBeenCalled();
 
     if (expectedWarning) {
+      await waitFor(() => expect(window.logWarn).toHaveBeenCalled());
       expect(window.logWarn).toHaveBeenCalledWith(expectedWarning);
     } else {
       expect(window.logWarn).not.toHaveBeenCalled();

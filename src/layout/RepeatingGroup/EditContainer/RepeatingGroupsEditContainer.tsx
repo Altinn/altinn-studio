@@ -6,7 +6,6 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -19,10 +18,12 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
+import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 
 export interface IRepeatingGroupsEditContainer {
   editId: string;
@@ -33,9 +34,9 @@ export interface IRepeatingGroupsEditContainer {
 export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGroupsEditContainer): JSX.Element | null {
   const { node } = useRepeatingGroup();
   const group = useNodeItem(node);
-  const row = group.rows.find((r) => r && r.uuid === editId);
-
-  if (!row || row.groupExpressions?.hiddenRow) {
+  const rows = RepGroupHooks.useVisibleRows(node);
+  const row = rows.find((r) => r && r.uuid === editId);
+  if (!row) {
     return null;
   }
 
@@ -59,10 +60,11 @@ function RepeatingGroupsEditContainerInternal({
   row,
 }: IRepeatingGroupsEditContainer & {
   group: CompInternal<'RepeatingGroup'>;
-  row: CompInternal<'RepeatingGroup'>['rows'][number];
+  row: RepGroupRow;
 }): JSX.Element | null {
   const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting } = useRepeatingGroup();
   const { visibleRows } = useRepeatingGroupRowState();
+  const childIds = RepGroupHooks.useChildIds(node);
 
   const editingRowIndex = visibleRows.find((r) => r.uuid === editId)?.index;
   let moreVisibleRowsAfterEditIndex = false;
@@ -76,17 +78,15 @@ function RepeatingGroupsEditContainerInternal({
   const { multiPageEnabled, multiPageIndex, nextMultiPage, prevMultiPage, hasNextMultiPage, hasPrevMultiPage } =
     useRepeatingGroupEdit();
   const id = node.id;
-  const textsForRow = row?.groupExpressions?.textResourceBindings;
-  const editForRow = row?.groupExpressions?.edit;
+  const rowWithExpressions = RepGroupHooks.useRowWithExpressions(node, { uuid: row.uuid });
+  const textsForRow = rowWithExpressions?.textResourceBindings;
+  const editForRow = rowWithExpressions?.edit;
   const editForGroup = group.edit;
   const { refSetter } = useRepeatingGroupsFocusContext();
   const texts = {
     ...group.textResourceBindings,
     ...textsForRow,
   };
-
-  const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, row?.index);
-  const isFresh = freshUuid === editId;
 
   const isNested = node.parent instanceof LayoutNode;
   let saveButtonVisible =
@@ -154,7 +154,7 @@ function RepeatingGroupsEditContainerInternal({
           style={{ flexBasis: 'auto' }}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
-          {row?.itemIds?.map((nodeId) => (
+          {childIds.map((nodeId) => (
             <ChildComponent
               key={nodeId}
               nodeId={nodeId}
@@ -178,7 +178,6 @@ function RepeatingGroupsEditContainerInternal({
                     variant='tertiary'
                     color='second'
                     onClick={() => prevMultiPage()}
-                    disabled={!isFresh}
                   >
                     <ChevronLeftIcon
                       fontSize='1rem'
@@ -194,7 +193,6 @@ function RepeatingGroupsEditContainerInternal({
                     variant='tertiary'
                     color='second'
                     onClick={() => nextMultiPage()}
-                    disabled={!isFresh}
                   >
                     <Lang id='general.next' />
                     <ChevronRightIcon
@@ -218,7 +216,6 @@ function RepeatingGroupsEditContainerInternal({
                   onClick={() => openNextForEditing()}
                   variant='primary'
                   color='first'
-                  disabled={!isFresh}
                 >
                   <Lang id={texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next'} />
                 </Button>
@@ -231,7 +228,6 @@ function RepeatingGroupsEditContainerInternal({
                   onClick={() => closeForEditing({ index: row.index, uuid: row.uuid })}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
-                  disabled={!isFresh}
                 >
                   <Lang id={texts?.save_button ? texts?.save_button : 'general.save_and_close'} />
                 </Button>

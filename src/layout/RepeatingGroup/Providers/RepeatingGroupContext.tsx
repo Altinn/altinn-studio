@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -7,15 +7,17 @@ import { createStore } from 'zustand';
 import { createContext } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
+import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem, useWaitForNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
 import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
-import type { RepGroupRow, RepGroupRows } from 'src/layout/RepeatingGroup/types';
+import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -74,37 +76,32 @@ const ExtendedStore = createContext<ExtendedContext>({
 
 interface RowState {
   numVisibleRows: number;
-  visibleRows: BaseRow[];
-  hiddenRows: BaseRow[];
-  editableRows: BaseRow[];
-  deletableRows: BaseRow[];
+  visibleRows: RepGroupRowWithButtons[];
+  hiddenRows: RepGroupRowWithButtons[];
+  editableRows: RepGroupRowWithButtons[];
+  deletableRows: RepGroupRowWithButtons[];
 }
 
-function produceStateFromRows(rows: RepGroupRows): RowState {
-  const hidden: BaseRow[] = [];
-  const visible: BaseRow[] = [];
-  const editable: BaseRow[] = [];
-  const deletable: BaseRow[] = [];
+function produceStateFromRows(rows: RepGroupRowWithButtons[]): RowState {
+  const hidden: RepGroupRowWithButtons[] = [];
+  const visible: RepGroupRowWithButtons[] = [];
+  const editable: RepGroupRowWithButtons[] = [];
+  const deletable: RepGroupRowWithButtons[] = [];
   for (const row of rows) {
     if (!row) {
       continue;
     }
-    const rowObj: BaseRow = {
-      index: row.index,
-      uuid: row.uuid,
-    };
-
-    if (row.groupExpressions?.hiddenRow) {
-      hidden.push(rowObj);
+    if (row.hidden) {
+      hidden.push(row);
     } else {
-      visible.push(rowObj);
+      visible.push(row);
 
       // Only the visible rows can be edited or deleted
-      if (row.groupExpressions?.edit?.editButton !== false) {
-        editable.push(rowObj);
+      if (row.editButton) {
+        editable.push(row);
       }
-      if (row.groupExpressions?.edit?.deleteButton !== false) {
-        deletable.push(rowObj);
+      if (row.deleteButton) {
+        deletable.push(row);
       }
     }
   }
@@ -205,14 +202,14 @@ function gotoPageForRow(
 }
 
 interface NewStoreProps {
-  getRows: () => RepGroupRows | undefined;
+  getRows: () => RepGroupRowWithButtons[];
   editMode: IGroupEditProperties['mode'];
   pagination: CompInternal<'RepeatingGroup'>['pagination'];
 }
 
-function newStore({ editMode, pagination, getRows }: NewStoreProps) {
+function newStore({ getRows, editMode, pagination }: NewStoreProps) {
   function produce() {
-    return produceStateFromRows(getRows() ?? []);
+    return produceStateFromRows(getRows());
   }
 
   return createStore<ZustandState>((set) => ({
@@ -323,16 +320,17 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
   const validateOnSaveRow = useNodeItem(node, (i) => i.validateOnSaveRow);
   const groupBinding = useBinding(node);
 
+  const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
+  const waitUntilSaved = FD.useWaitForSave();
+  const waitUntilReady = NodesInternal.useWaitUntilReady();
   const appendToList = FD.useAppendToList();
   const removeFromList = FD.useRemoveFromListCallback();
   const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(node);
   const onGroupCloseValidation = useOnGroupCloseValidation();
   const markNodesNotReady = NodesInternal.useMarkNotReady();
 
-  const waitForItem = useWaitForNodeItem(node);
-
   const pagination = useNodeItem(node, (i) => i.pagination);
-  const getRows = useGetFreshRows(node);
+  const getRows = RepGroupHooks.useGetFreshRowsWithButtons(node);
   const getState = useCallback(() => produceStateFromRows(getRows() ?? []), [getRows]);
   const getPaginationState = useCallback(
     () => producePaginationState(stateRef.current.currentPage, pagination, getState().visibleRows),
@@ -439,7 +437,6 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
       return { result: 'stoppedByValidation', uuid: undefined, index: undefined };
     }
     const uuid = uuidv4();
-
     appendToList({
       reference: groupBinding,
       newValue: { [ALTINN_ROW_ID]: uuid },
@@ -447,32 +444,32 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
 
     markNodesNotReady(); // Doing this early to prevent re-renders when this is added to the data model
     startAddingRow(uuid);
-    let foundRow: RepGroupRow | undefined;
-    await waitForItem((item) => {
-      foundRow = item?.rows.find((row) => row?.uuid === uuid && row.groupExpressions);
-      return !!foundRow;
-    });
-    endAddingRow(uuid);
+    if (autoSaving) {
+      // When auto-saving is on, we can detect if backend datamodel changes will cause this row to be hidden right
+      // after it was added (as the backend can add data to new rows), and thus we'll know to inform the app developer
+      // if they've used openByDefault along with hidden-by-default rows. It's important not to wait for saving when
+      // autosaving is off, as we'd wait forever.
+      await waitUntilSaved();
+    }
 
     // It may take some time until effects run and the row is put into either the visibleRows or hiddenRows state in
     // the ref, so we'll loop this a few times until we find the row.
     let attempts = 5;
-    let foundVisible: boolean | undefined;
-    while (foundVisible === undefined && attempts > 0) {
+    let found: RepGroupRow | undefined;
+    while (found === undefined && attempts > 0) {
       const { visibleRows, hiddenRows } = getState();
-      foundVisible = visibleRows.find((row) => row.uuid === uuid)
-        ? true
-        : hiddenRows.find((row) => row.uuid === uuid)
-          ? false
-          : undefined;
-      if (foundVisible === undefined && attempts > 0) {
+      found = visibleRows.find((row) => row.uuid === uuid) || hiddenRows.find((row) => row.uuid === uuid);
+      if (found === undefined && attempts > 0) {
         attempts--;
         await new Promise((resolve) => setTimeout(resolve, 4));
       }
     }
 
-    const index = foundRow?.index ?? -1;
-    if (foundVisible) {
+    await waitUntilReady();
+    endAddingRow(uuid);
+
+    const index = found?.index ?? -1;
+    if (found && !found.hidden) {
       await openForEditing({ uuid, index });
       return { result: 'addedAndOpened', uuid, index };
     }
@@ -484,7 +481,9 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
     maybeValidateRow,
     appendToList,
     markNodesNotReady,
-    waitForItem,
+    autoSaving,
+    waitUntilReady,
+    waitUntilSaved,
     getState,
     openForEditing,
   ]);
@@ -564,16 +563,6 @@ function EffectPagination() {
   return null;
 }
 
-/**
- * This function filters out rows that are about to be deleted from the rows state
- */
-function filterByFreshRows(rows: RepGroupRows, freshRowsNum: number | undefined): RepGroupRows {
-  if (!freshRowsNum) {
-    return rows;
-  }
-  return rows.slice(0, freshRowsNum);
-}
-
 function ProvideTheRest({ node, children }: PropsWithChildren<Props>) {
   const extended = useExtendedRepeatingGroupState(node);
   return <ExtendedStore.Provider value={extended}>{children}</ExtendedStore.Provider>;
@@ -586,7 +575,7 @@ interface Props {
 export function RepeatingGroupProvider({ node, children }: PropsWithChildren<Props>) {
   const pagination = useNodeItem(node, (i) => i.pagination);
   const editMode = useNodeItem(node, (i) => i.edit?.mode);
-  const getRows = useGetFreshRows(node);
+  const getRows = RepGroupHooks.useGetFreshRowsWithButtons(node);
 
   return (
     <ZStore.Provider
@@ -610,17 +599,10 @@ function useBinding(node: LayoutNode<'RepeatingGroup'>) {
   return NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
 }
 
-function useGetFreshRows(node: LayoutNode<'RepeatingGroup'>) {
-  const getFreshNumRows = FD.useGetFreshNumRows();
-  return NodesInternal.useGetNodeData(node, (d) =>
-    filterByFreshRows(d.item?.rows, getFreshNumRows(d.layout.dataModelBindings.group)),
-  );
-}
-
 export const useRepeatingGroupRowState = () => {
   const node = useRepeatingGroupNode();
-  const numRows = FD.useFreshNumRows(useBinding(node));
-  return useNodeItem(node, (i) => produceStateFromRows(filterByFreshRows(i.rows, numRows)));
+  const rows = RepGroupHooks.useAllRowsWithButtons(node);
+  return useMemo(() => produceStateFromRows(rows), [rows]);
 };
 
 export const useRepeatingGroupPagination = () => {

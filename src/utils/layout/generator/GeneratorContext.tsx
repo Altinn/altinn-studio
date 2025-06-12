@@ -35,7 +35,10 @@ type NodeGeneratorProps = {
   parent: LayoutNode;
 };
 
-type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'recursiveMutators' | 'multiPageMapping'> & {
+type RowGeneratorProps = Pick<
+  GeneratorContext,
+  'idMutators' | 'recursiveMutators' | 'multiPageMapping' | 'forceHidden'
+> & {
   groupBinding: IDataModelReference;
   rowIndex: number;
 };
@@ -48,6 +51,7 @@ interface GeneratorContext {
   page: LayoutPage | undefined;
   parent: LayoutNode | LayoutPage | undefined;
   item: CompIntermediateExact<CompTypes> | undefined;
+  forceHidden: boolean;
   multiPageMapping?: MultiPageMapping;
   row:
     | {
@@ -121,13 +125,14 @@ export function GeneratorPageProvider({ children, ...rest }: PropsWithChildren<P
 /**
  * This provider is meant to be used for rows, i.e. each row in a repeating group, or other repeating components.
  */
-export function GeneratorRowProvider({
+function GeneratorRowProviderInner({
   children,
   rowIndex,
   groupBinding,
   idMutators,
   recursiveMutators,
   multiPageMapping,
+  forceHidden,
 }: PropsWithChildren<RowGeneratorProps>) {
   const parent = useCtx();
   const value: GeneratorContext = useMemo(
@@ -139,16 +144,20 @@ export function GeneratorRowProvider({
         binding: groupBinding,
       },
 
+      forceHidden: forceHidden ? true : parent.forceHidden,
       multiPageMapping,
       idMutators: parent.idMutators ? [...parent.idMutators, ...(idMutators ?? [])] : idMutators,
       recursiveMutators: parent.recursiveMutators
         ? [...parent.recursiveMutators, ...(recursiveMutators ?? [])]
         : recursiveMutators,
     }),
-    [parent, rowIndex, groupBinding, multiPageMapping, idMutators, recursiveMutators],
+    [parent, rowIndex, groupBinding, forceHidden, multiPageMapping, idMutators, recursiveMutators],
   );
   return <Provider value={value}>{children}</Provider>;
 }
+
+export const GeneratorRowProvider = React.memo(GeneratorRowProviderInner);
+GeneratorRowProvider.displayName = 'GeneratorRowProvider';
 
 export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren<GlobalProviderProps>) {
   const value: GeneratorContext = useMemo(
@@ -160,6 +169,7 @@ export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren
       childrenMap: undefined,
       parent: undefined,
       page: undefined,
+      forceHidden: false,
       ...rest,
     }),
     [rest],
@@ -183,4 +193,5 @@ export const GeneratorInternal = {
   useMultiPageIndex: (baseId: string) => useCtx().multiPageMapping?.[baseId] ?? undefined,
   useIntermediateItem: () => useCtx().item,
   useIsValid: () => useCtx().isValid ?? true,
+  useForceHidden: () => useCtx().forceHidden,
 };

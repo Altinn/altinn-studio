@@ -6,6 +6,8 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
+import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -20,7 +22,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const rows = useNodeItem(target, (i) => i.rows);
+  const rows = useLikertRows(target);
   const groupBinding = useNodeItem(target, (i) => i.dataModelBindings.questions);
   const readOnly = useNodeItem(target, (item) => item.readOnly);
 
@@ -68,7 +70,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
             rowIndex={row.index}
           >
             <LikertRowSummary
-              rowNodeId={row?.itemNodeId}
+              rowNodeId={makeLikertChildId(target.id, row.index)}
               emptyFieldText={emptyFieldText}
               readOnly={readOnly}
               isCompact={isCompact}
@@ -97,7 +99,6 @@ type LikertRowSummaryProps = {
 
 function LikertRowSummary(props: LikertRowSummaryProps) {
   const rowNode = useNode(props.rowNodeId) as LayoutNode | undefined;
-
   if (!rowNode || !rowNode.isType('LikertItem')) {
     return null;
   }

@@ -169,24 +169,6 @@ export class GridRowsPlugin<E extends ExternalConfig>
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: number | undefined): string[] {
-    const out: string[] = [];
-    if (restriction !== undefined) {
-      return out;
-    }
-
-    const rows = (state.item?.[this.settings.internalProp] || []) as GridRowsInternal;
-    for (const row of rows) {
-      for (const cell of row.cells) {
-        if (cell && 'nodeId' in cell && cell.nodeId) {
-          out.push(cell.nodeId);
-        }
-      }
-    }
-
-    return out;
-  }
-
   isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {
     // There are no specific rules for hiding components in a Grid (yet). This should be implemented if we
     // add support for hiding a row or a cell (which should also hide the component inside)

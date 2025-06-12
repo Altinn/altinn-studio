@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
@@ -56,6 +57,7 @@ function useSaveToGroup(bindings: Bindings) {
   const appendToList = FD.useAppendToList();
   const removeFromList = FD.useRemoveFromListCallback();
   const checkedPath = toRelativePath(group, checked);
+  const markNodesNotReady = NodesInternal.useMarkNotReady();
 
   function toggle(row: Row): void {
     if (!group) {
@@ -71,6 +73,7 @@ function useSaveToGroup(bindings: Bindings) {
         const field = `${group.field}[${index}].${checkedPath}`;
         setLeafValue({ reference: { ...checked, field }, newValue: false });
       } else if (index !== undefined) {
+        markNodesNotReady();
         removeFromList({
           reference: group,
           startAtIndex: index,
@@ -93,6 +96,9 @@ function useSaveToGroup(bindings: Bindings) {
             dot.str(path, row[key], newRow);
           }
         }
+        // Adding rows may affect repeating groups elsewhere. Marking the nodes context as not ready makes sure any new
+        // nodes get a chance to finalize before the repeating group tries to render again.
+        markNodesNotReady();
         appendToList({ reference: group, newValue: newRow });
       }
     }

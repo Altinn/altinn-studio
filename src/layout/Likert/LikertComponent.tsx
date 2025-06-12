@@ -14,6 +14,8 @@ import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentById } from 'src/layout/GenericComponent';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
+import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
@@ -27,8 +29,9 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
   const groupBinding = useNodeItem(node, (item) => item.dataModelBindings.questions);
   const textResourceBindings = useNodeItem(node, (item) => item.textResourceBindings);
   const mobileView = useIsMobileOrTablet();
-  const rows = useNodeItem(node, (item) => item.rows);
-  const firstLikertNodeId = rows.find((row) => row?.itemNodeId)?.itemNodeId;
+  const rows = useLikertRows(node);
+  const firstRow = rows.find((row) => !!row);
+  const firstLikertNodeId = firstRow && makeLikertChildId(node.id, firstRow.index);
   const firstLikertNode = useNode(firstLikertNodeId) as LayoutNode<'LikertItem'> | undefined;
   const { options: calculatedOptions, isFetching } = useNodeOptions(firstLikertNode);
   const columns = useNodeItem(node, (item) => item.columns);
@@ -71,13 +74,13 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           aria-describedby={textResourceBindings?.description ? getDescriptionId(node.id) : undefined}
         >
           {rows.map((row) =>
-            row && row.itemNodeId ? (
+            row ? (
               <DataModelLocationProvider
                 key={row.index}
                 groupBinding={groupBinding}
                 rowIndex={row.index}
               >
-                <GenericComponentById id={row.itemNodeId} />
+                <GenericComponentById id={makeLikertChildId(node.id, row.index)} />
               </DataModelLocationProvider>
             ) : null,
           )}
@@ -154,14 +157,14 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                 layout: LayoutStyle.Table,
               };
 
-              return row && row.itemNodeId ? (
+              return row ? (
                 <DataModelLocationProvider
                   key={row.index}
                   groupBinding={groupBinding}
                   rowIndex={row.index}
                 >
                   <GenericComponentById
-                    id={row.itemNodeId}
+                    id={makeLikertChildId(node.id, row.index)}
                     overrideDisplay={{ directRender: true }}
                     overrideItemProps={override}
                   />

@@ -149,14 +149,6 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     }
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: number | undefined): string[] {
-    if (restriction !== undefined) {
-      return [];
-    }
-
-    return state.item?.[this.settings.internalProp] || [];
-  }
-
   isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {
     return false;
   }

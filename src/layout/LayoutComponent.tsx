@@ -121,14 +121,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
   abstract stateFactory(props: StateFactoryProps<Type>): unknown;
 
   /**
-   * Picks all direct children of a node, returning an array of node IDs for each child. This must be implemented for
-   * every component type that can adopt children.
-   */
-  public pickDirectChildren(_state: NodeData<Type>, _restriction?: number | undefined): string[] {
-    return [];
-  }
-
-  /**
    * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
    * need custom expression support, set that in your component configuration.
    */
@@ -370,8 +362,6 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
   }
 
   abstract claimChildren(props: ChildClaimerProps<Type>): void;
-
-  abstract pickDirectChildren(state: NodeData<Type>, restriction?: number | undefined): string[];
 }
 
 export type LayoutComponent<Type extends CompTypes = CompTypes> =

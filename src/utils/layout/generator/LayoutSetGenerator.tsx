@@ -303,11 +303,8 @@ function GenerateComponent({ layout, claim, childClaims }: ComponentProps) {
     return null;
   }
 
-  const Generator = def.renderNodeGenerator.bind(def);
-
   if (!GeneratorDebug.displayState) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return <Generator {...(props as any)} />;
+    return def.renderNodeGenerator(props);
   }
 
   return (
@@ -321,8 +318,7 @@ function GenerateComponent({ layout, claim, childClaims }: ComponentProps) {
         {layout.id} ({layout.type})
       </h3>
       <span>{childClaims ? `Children: ${Object.keys(childClaims).join(', ')}` : 'No children'}</span>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Generator {...(props as any)} />
+      {def.renderNodeGenerator(props)}
     </div>
   );
 }

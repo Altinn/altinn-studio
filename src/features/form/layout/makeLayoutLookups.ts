@@ -53,10 +53,10 @@ interface RelationshipLookups {
 
 interface LookupFunctions {
   // Get the component config for a given ID and component type, or crash
-  getComponent<T extends CompTypes | undefined = CompTypes>(
-    id: string,
+  getComponent<ID extends string | undefined, T extends CompTypes | undefined = CompTypes>(
+    id: ID,
     type?: T,
-  ): CompExternal<T extends CompTypes ? T : CompTypes>;
+  ): ID extends undefined ? undefined : CompExternal<T extends CompTypes ? T : CompTypes>;
 }
 
 export type LayoutLookups = PlainLayoutLookups & RelationshipLookups & LookupFunctions;
@@ -163,19 +163,22 @@ export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
 }
 
 function makeLookupFunctions(lookups: PlainLayoutLookups & RelationshipLookups): LayoutLookups {
-  return {
-    ...lookups,
-    getComponent(id, type) {
-      const component = lookups.allComponents[id];
-      if (!component) {
-        throw new Error(`Component '${id}' does not exist`);
-      }
-      if (type && component.type !== type) {
-        throw new Error(`Component '${id}' is of type '${component.type}', not '${type}'`);
-      }
-      return component as CompExternal<typeof type extends CompTypes ? typeof type : CompTypes>;
-    },
-  };
+  const getComponent = ((id, type) => {
+    if (id === undefined) {
+      return undefined;
+    }
+
+    const component = lookups.allComponents[id];
+    if (!component) {
+      throw new Error(`Component '${id}' does not exist`);
+    }
+    if (type && component.type !== type) {
+      throw new Error(`Component '${id}' is of type '${component.type}', not '${type}'`);
+    }
+    return component as CompExternal<typeof type extends CompTypes ? typeof type : CompTypes>;
+  }) as LayoutLookups['getComponent'];
+
+  return { ...lookups, getComponent };
 }
 
 function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLookups, claims: ChildClaimsMap) {

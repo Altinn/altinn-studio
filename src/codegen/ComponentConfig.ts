@@ -517,10 +517,6 @@ export class ComponentConfig {
          });`.trim(),
       );
 
-      const pickDirectChildrenBody = childrenPlugins.map(
-        (plugin) => `...${pluginRef(plugin)}.pickDirectChildren(state as any, restriction)`,
-      );
-
       const isChildHiddenBody = childrenPlugins.map(
         (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childId)`,
       );
@@ -528,9 +524,6 @@ export class ComponentConfig {
       additionalMethods.push(
         `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
           ${claimChildrenBody.join('\n')}
-        }`,
-        `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: number) {
-          return [${pickDirectChildrenBody.join(', ')}];
         }`,
         `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string) {
           return [${isChildHiddenBody.join(', ')}].some((h) => h);

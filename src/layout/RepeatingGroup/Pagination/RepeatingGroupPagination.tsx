@@ -13,6 +13,7 @@ import {
   useRepeatingGroupPagination,
   useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -210,7 +211,7 @@ function PaginationComponent({
  * Returns a list of pagination pages containing errors
  */
 function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'RepeatingGroup'>): number[] {
-  const rows = useNodeItem(node, (i) => i.rows);
+  const rows = RepGroupHooks.useAllRowsWithHidden(node);
   const deepValidations = NodesInternal.useVisibleValidationsDeep(node, 'visible', false, undefined, 'error');
 
   return useMemo(() => {
@@ -225,7 +226,7 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'R
 
     const pagesWithErrors = new Set<number>();
     for (const i of rowsWithErrors) {
-      const isHidden = rows[i]?.groupExpressions?.hiddenRow;
+      const isHidden = rows[i]?.hidden;
       if (isHidden) {
         continue;
       }

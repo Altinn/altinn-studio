@@ -115,21 +115,6 @@ export class TabsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: number | undefined): string[] {
-    const out: string[] = [];
-    if (restriction !== undefined) {
-      return out;
-    }
-
-    for (const tab of state.item?.tabsInternal || []) {
-      for (const child of tab.childIds) {
-        child && out.push(child);
-      }
-    }
-
-    return out;
-  }
-
   isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {
     return false;
   }

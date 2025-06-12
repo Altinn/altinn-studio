@@ -14,12 +14,12 @@ import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useRepeatingGroupRowState } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
 import { RepeatingGroupTableTitle, useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButtonFirstVisible } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummaryById, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -28,16 +28,14 @@ import { DataModelLocationProvider, useDataModelLocationForRow } from 'src/utils
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
-import type { RepGroupRow } from 'src/layout/RepeatingGroup/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ componentNode }: { componentNode: LayoutNode<'RepeatingGroup'> }) => {
   const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
   const isSmall = isMobile && !pdfModeActive;
-  const { visibleRows } = useRepeatingGroupRowState();
-  const rowsToDisplaySet = new Set(visibleRows.map((row) => row.uuid));
-  const rows = useNodeItem(componentNode, (i) => i.rows).filter((row) => row && rowsToDisplaySet.has(row.uuid));
+  const rows = RepGroupHooks.useVisibleRows(componentNode);
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
@@ -119,7 +117,7 @@ function HeaderCell({ nodeId, columnSettings }: { nodeId: string; columnSettings
 }
 
 type DataRowProps = {
-  row: RepGroupRow | undefined;
+  row: BaseRow | undefined;
   node: LayoutNode<'RepeatingGroup'>;
   pdfModeActive: boolean;
   columnSettings: ITableColumnFormatting;

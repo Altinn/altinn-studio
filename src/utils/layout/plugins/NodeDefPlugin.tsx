@@ -255,7 +255,6 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
  */
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-  pickDirectChildren(state: DefPluginState<Config>, restriction?: number | undefined): string[];
   isChildHidden(state: DefPluginState<Config>, childId: string): boolean;
 }
 
@@ -265,8 +264,8 @@ export function isNodeDefChildrenPlugin(plugin: unknown): plugin is NodeDefChild
     !!plugin &&
     typeof plugin === 'object' &&
     'claimChildren' in plugin &&
-    'pickDirectChildren' in plugin &&
     typeof plugin.claimChildren === 'function' &&
-    typeof plugin.pickDirectChildren === 'function'
+    'isChildHidden' in plugin &&
+    typeof plugin.isChildHidden === 'function'
   );
 }

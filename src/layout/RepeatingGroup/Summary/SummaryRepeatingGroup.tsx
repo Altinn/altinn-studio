@@ -8,6 +8,7 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { CompCategory } from 'src/layout/common';
 import { LargeGroupSummaryContainer } from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer';
 import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.module.css';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
@@ -15,32 +16,24 @@ import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { RepGroupRow, RepGroupRows } from 'src/layout/RepeatingGroup/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseRow } from 'src/utils/layout/types';
 
 interface FullProps extends SummaryRendererProps<'RepeatingGroup'> {
-  rows: RepGroupRows;
+  rows: BaseRow[];
   inExcludedChildren: (n: LayoutNode) => boolean;
 }
 
 interface FullRowProps extends Omit<FullProps, 'rows'> {
-  row: RepGroupRow;
+  row: BaseRow;
 }
 
 export function SummaryRepeatingGroup(props: SummaryRendererProps<'RepeatingGroup'>) {
   const { excludedChildren, largeGroup } = useNodeItem(props.summaryNode) ?? {};
-  const { rows: _rows } = useNodeItem(props.targetNode);
+  const rows = RepGroupHooks.useVisibleRows(props.targetNode);
 
   const inExcludedChildren = (n: LayoutNode) =>
     excludedChildren ? excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId) : false;
-
-  const rows: RepGroupRow[] = [];
-  for (const row of _rows) {
-    if (!row || row.groupExpressions?.hiddenRow || row.index === undefined) {
-      continue;
-    }
-    rows.push(row);
-  }
 
   if (largeGroup && props.overrides?.largeGroup !== false && rows.length) {
     return (

@@ -13,7 +13,6 @@ import {
   type SetNodePropRequest,
   type SetPagePropRequest,
 } from 'src/utils/layout/NodesContext';
-import type { RemoveRowRequest, SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
 
 /**
  * Queues for changes that need to be committed to the nodes store.
@@ -21,10 +20,8 @@ import type { RemoveRowRequest, SetRowExtrasRequest } from 'src/utils/layout/plu
 export interface RegistryCommitQueues {
   addNodes: AddNodeRequest[];
   removeNodes: RemoveNodeRequest[];
-  removeRows: RemoveRowRequest[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setNodeProps: SetNodePropRequest<any, any>[];
-  setRowExtras: SetRowExtrasRequest[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setPageProps: SetPagePropRequest<any>[];
 }
@@ -37,9 +34,7 @@ export function useGetAwaitingCommits() {
     return (
       toCommit.addNodes.length +
       toCommit.removeNodes.length +
-      toCommit.removeRows.length +
       toCommit.setNodeProps.length +
-      toCommit.setRowExtras.length +
       toCommit.setPageProps.length
     );
   }, [registry]);
@@ -48,10 +43,8 @@ export function useGetAwaitingCommits() {
 export function useCommit() {
   const addNodes = NodesInternal.useAddNodes();
   const removeNodes = NodesInternal.useRemoveNodes();
-  const removeRows = NodesInternal.useRemoveRows();
   const setNodeProps = NodesInternal.useSetNodeProps();
   const setPageProps = NodesInternal.useSetPageProps();
-  const setRowExtras = NodesInternal.useSetRowExtras();
   const registry = GeneratorInternal.useRegistry();
 
   return useCallback(() => {
@@ -72,13 +65,6 @@ export function useCommit() {
       changes = true;
     }
 
-    if (toCommit.removeRows.length) {
-      generatorLog('logCommits', 'Committing', toCommit.removeRows.length, 'removeRows requests');
-      removeRows(toCommit.removeRows);
-      toCommit.removeRows.length = 0;
-      changes = true;
-    }
-
     if (toCommit.setNodeProps.length) {
       generatorLog('logCommits', 'Committing', toCommit.setNodeProps.length, 'setNodeProps requests:', () => {
         const counts = {};
@@ -94,13 +80,6 @@ export function useCommit() {
       changes = true;
     }
 
-    if (toCommit.setRowExtras.length) {
-      generatorLog('logCommits', 'Committing', toCommit.setRowExtras.length, 'setRowExtras requests');
-      setRowExtras(toCommit.setRowExtras);
-      toCommit.setRowExtras.length = 0;
-      changes = true;
-    }
-
     if (toCommit.setPageProps.length) {
       generatorLog('logCommits', 'Committing', toCommit.setPageProps.length, 'setPageProps requests');
       setPageProps(toCommit.setPageProps);
@@ -110,7 +89,7 @@ export function useCommit() {
 
     updateCommitsPendingInBody(toCommit);
     return changes;
-  }, [addNodes, removeNodes, removeRows, setNodeProps, setRowExtras, setPageProps, registry]);
+  }, [addNodes, removeNodes, setNodeProps, setPageProps, registry]);
 }
 
 export function SetWaitForCommits() {
@@ -147,13 +126,10 @@ export function SetWaitForCommits() {
  */
 export const NodesStateQueue = {
   useAddNode: (req: AddNodeRequest, condition = true) => useAddToQueue('addNodes', false, req, condition),
-  useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useOnUnmount('removeNodes', req),
-  useRemoveRow: (req: Omit<RemoveRowRequest, 'layouts'>) => useOnUnmount('removeRows', req),
+  useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useOnUnmount(req),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSetNodeProp: (req: SetNodePropRequest<any, any>, condition: boolean) =>
     useAddToQueue('setNodeProps', true, req, condition),
-  useSetRowExtras: (req: SetRowExtrasRequest, condition: boolean) =>
-    useAddToQueue('setRowExtras', true, req, condition),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSetPageProp: (req: SetPagePropRequest<any>, condition: boolean) =>
     useAddToQueue('setPageProps', true, req, condition),
@@ -181,10 +157,7 @@ function useAddToQueue<T extends keyof RegistryCommitQueues>(
   }
 }
 
-type QueueRequest<Q extends 'removeNodes' | 'removeRows'> = Q extends 'removeNodes'
-  ? Omit<RemoveNodeRequest, 'layouts'>
-  : Omit<RemoveRowRequest, 'layouts'>;
-function useOnUnmount<Q extends 'removeNodes' | 'removeRows'>(queue: Q, request: QueueRequest<Q>) {
+function useOnUnmount(request: Omit<RemoveNodeRequest, 'layouts'>) {
   // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
   // so that we don't accidentally remove a node with the same ID from a future/different layout.
   const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
@@ -202,11 +175,11 @@ function useOnUnmount<Q extends 'removeNodes' | 'removeRows'>(queue: Q, request:
       reg.toCommitCount += 1;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toCommit[queue].push({ ...request, layouts: layoutsWas } as any);
+      toCommit['removeNodes'].push({ ...request, layouts: layoutsWas } as any);
       updateCommitsPendingInBody(toCommit);
       commit();
     };
-  }, [commit, ref, registry, toCommit, layoutsWas, queue]);
+  }, [commit, ref, registry, toCommit, layoutsWas]);
 }
 
 /**

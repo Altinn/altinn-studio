@@ -235,9 +235,7 @@ export function useRegistry() {
     toCommit: {
       addNodes: [],
       removeNodes: [],
-      removeRows: [],
       setNodeProps: [],
-      setRowExtras: [],
       setPageProps: [],
     },
     commitTimeout: null,

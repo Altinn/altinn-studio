@@ -138,24 +138,6 @@ export class CardsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: number | undefined): string[] {
-    const out: string[] = [];
-    if (restriction !== undefined) {
-      return out;
-    }
-
-    for (const card of Object.values(state.item?.cardsInternal || [])) {
-      if (card.mediaId) {
-        out.push(card.mediaId);
-      }
-      for (const childId of card.childIds ?? []) {
-        childId && out.push(childId);
-      }
-    }
-
-    return out;
-  }
-
   isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {
     return false;
   }

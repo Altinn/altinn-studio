@@ -45,11 +45,10 @@ describe('Group', () => {
         cy.get(appFrontend.group.mainGroup).should('exist');
         cy.get(appFrontend.group.addNewItem).click();
         cy.get(appFrontend.group.mainGroup).should('exist');
-
-        // At this point the button would disappear in v3, as the new rows were empty and simply hallucinated in
-        // app-frontend until they had data. In v4, we keep the button visible, as it is not possible to add more rows
-        // even if they are empty, as empty objects are a thing now.
-        cy.get(appFrontend.group.addNewItem).should('exist');
+        cy.get(appFrontend.group.addNewItem).should('not.exist'); // Max rows reached
+        cy.get(appFrontend.group.saveMainGroup).click();
+        cy.get(appFrontend.group.mainGroup).find('tbody > tr').should('have.length', 2);
+        cy.get(appFrontend.group.addNewItem).should('not.exist');
       } else {
         cy.get(appFrontend.group.addNewItem).click();
         cy.get(appFrontend.group.mainGroup).should('exist');

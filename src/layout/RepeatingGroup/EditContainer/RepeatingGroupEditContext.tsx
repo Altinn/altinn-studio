@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -26,7 +27,7 @@ function useRepeatingGroupEditRowState(
   node: LayoutNode<'RepeatingGroup'>,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
   const edit = useNodeItem(node, (i) => i.edit);
-  const lastPage = useNodeItem(node, (i) => i.internal.lastMultiPageIndex) ?? 0;
+  const lastPage = RepGroupHooks.useLastMultiPageIndex(node) ?? 0;
   const multiPageEnabled = edit?.multiPage ?? false;
   const [multiPageIndex, setMultiPageIndex] = useState(0);
 

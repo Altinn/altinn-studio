@@ -33,18 +33,12 @@ export class Checkboxes extends CheckboxesDef {
   );
 
   useDisplayData(nodeId: string): string {
-    const node = useNode(nodeId);
+    const node = useNode(nodeId) as LayoutNode<'Checkboxes'> | undefined;
     const formData = useNodeFormDataWhenType(nodeId, 'Checkboxes');
     const options = useNodeOptions(nodeId).options;
     const langAsString = useLanguage().langAsString;
 
-    if (!node) {
-      return '';
-    }
-    const dataModelBindings = NodesInternal.useNodeData(
-      node as LayoutNode<'Checkboxes'>,
-      (data) => data.layout.dataModelBindings,
-    );
+    const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings);
 
     const relativeCheckedPath =
       dataModelBindings?.checked && dataModelBindings?.group
@@ -60,7 +54,7 @@ export class Checkboxes extends CheckboxesDef {
       ?.filter((row) => (!relativeCheckedPath ? true : dot.pick(relativeCheckedPath, row) === true))
       .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
-    const data = dataModelBindings.group
+    const data = dataModelBindings?.group
       ? getCommaSeparatedOptionsToText(displayRows?.join(','), options, langAsString)
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 

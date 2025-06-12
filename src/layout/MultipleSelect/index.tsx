@@ -33,19 +33,12 @@ export class MultipleSelect extends MultipleSelectDef {
   );
 
   useDisplayData(nodeId: string): string {
-    const node = useNode(nodeId);
+    const node = useNode(nodeId) as LayoutNode<'MultipleSelect'> | undefined;
     const formData = useNodeFormDataWhenType(nodeId, 'MultipleSelect');
     const options = useNodeOptions(nodeId).options;
     const langAsString = useLanguage().langAsString;
 
-    if (!node) {
-      return '';
-    }
-    const dataModelBindings = NodesInternal.useNodeData(
-      node as LayoutNode<'MultipleSelect'>,
-      (data) => data.layout.dataModelBindings,
-    );
-
+    const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings);
     const relativeCheckedPath =
       dataModelBindings?.checked && dataModelBindings?.group
         ? dataModelBindings.checked.field.replace(`${dataModelBindings.group.field}.`, '')
@@ -60,7 +53,7 @@ export class MultipleSelect extends MultipleSelectDef {
       ?.filter((row) => (!relativeCheckedPath ? true : dot.pick(relativeCheckedPath, row) === true))
       .map((row) => (!relativeSimpleBindingPath ? true : dot.pick(relativeSimpleBindingPath, row)));
 
-    const data = dataModelBindings.group
+    const data = dataModelBindings?.group
       ? displayRows
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 

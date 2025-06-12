@@ -1,10 +1,9 @@
 import { FD } from 'src/features/formData/FormDataWrite';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { typedBoolean } from 'src/utils/typing';
-import type { WaitForState } from 'src/hooks/useWaitForState';
 import type { FormDataSelector } from 'src/layout';
-import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
+import type { CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeData, NodeItemFromNode } from 'src/utils/layout/types';
@@ -47,29 +46,22 @@ export function useNodeItem(node: LayoutNode | undefined, selector: never): unkn
   });
 }
 
-const selectNodeItem = <T extends CompTypes>(data: NodeData<T>): CompInternal<T> | undefined =>
-  data.item as CompInternal<T>;
-export function useWaitForNodeItem<RetVal, N extends LayoutNode | undefined>(
-  node: N,
-): WaitForState<NodeItemFromNode<N> | undefined, RetVal> {
-  return NodesInternal.useWaitForNodeData(node, selectNodeItem) as WaitForState<
-    NodeItemFromNode<N> | undefined,
-    RetVal
-  >;
-}
-
 const emptyArray: LayoutNode[] = [];
 export function useNodeDirectChildren(parent: LayoutNode | undefined, restriction?: number | undefined): LayoutNode[] {
+  const nodes = useNodes();
   return (
-    NodesInternal.useNodeData(parent, (nodeData) => {
+    NodesInternal.useMemoSelector((state) => {
       if (!parent) {
         return emptyArray;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const out = parent.def.pickDirectChildren(nodeData as any, restriction);
-      const nodes = parent.page.layoutSet;
-      return out?.map((id) => nodes.findById(id)).filter(typedBoolean);
+      const out: (LayoutNode | undefined)[] = [];
+      for (const n of Object.values(state.nodeData)) {
+        if (n.parentId === parent.id && (restriction === undefined || restriction === n.rowIndex) && n.item) {
+          out.push(nodes.findById(n.layout.id));
+        }
+      }
+      return out.filter(typedBoolean);
     }) ?? emptyArray
   );
 }

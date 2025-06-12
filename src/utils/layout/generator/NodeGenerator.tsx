@@ -103,12 +103,14 @@ interface CommonProps<T extends CompTypes> {
 }
 
 function MarkAsHidden<T extends CompTypes>({ node, externalItem }: CommonProps<T>) {
-  const hidden =
+  const forceHidden = GeneratorInternal.useForceHidden();
+  const hiddenResult =
     useEvalExpressionInGenerator(externalItem.hidden, {
       returnType: ExprVal.Boolean,
       defaultValue: false,
       errorIntroText: `Invalid hidden expression for node ${node.id}`,
     }) ?? false;
+  const hidden = forceHidden ? true : hiddenResult;
   const isSet = NodesInternal.useNodeData(node, (data) => data.hidden === hidden);
   NodesStateQueue.useSetNodeProp({ node, prop: 'hidden', value: hidden }, !isSet);
 
