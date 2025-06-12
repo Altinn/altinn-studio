@@ -32,3 +32,4 @@ export { StudioLink } from './StudioLink';
 export { type StudioCallToActionBarProps, StudioCallToActionBar } from './StudioCallToActionBar';
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
+export { StudioDetails } from './StudioDetails';
