@@ -41,7 +41,7 @@ export const CodeListDialog = forwardRef<HTMLDialogElement, CodeListDialogProps>
     return (
       <StudioModal.Dialog
         ref={ref}
-        className={classes.dialog}
+        className={classes.editOptionTabModal}
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
         onBeforeClose={handleBeforeClose}
