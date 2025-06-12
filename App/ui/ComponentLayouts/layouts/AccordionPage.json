@@ -12,7 +12,7 @@
         "textResourceBindings": {
           "title": "Sample Accordion Title"
         },
-        "children": ["paragraph-example", "button-example"]
+        "children": ["paragraph-example", "button-example", "AccordionPage-Input"]
       },
       {
         "id": "paragraph-example",
@@ -21,6 +21,19 @@
           "title": "This is a sample paragraph inside the accordion."
         }
       },
+
+
+      {
+        "id": "AccordionPage-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Accordion Test"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        }
+      },
+      
       {
         "id": "TablePage-Summary2",
         "type": "Summary2",

@@ -167,8 +167,7 @@
         "type": "Number",
         "textResourceBindings": {
           "title": "Kredittkort prosent",
-          "description": "",
-          "helpText": ""
+          "description": ""
         },
         "value": ["dataModel","numberPercentage"],
         "direction": "horizontal",
@@ -294,6 +293,23 @@
             "children": ["CardsPage-text1", "CardsPage-text2", "CardsPage-text3", "CardsPage-text4", "CardsPage-text5"]
           }
         ]
+      },
+      {
+        "id": "CardsPage-Summary-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Summary 2"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "CardsPage-Summary2",
+        "type": "Summary2",
+        "hideEmptyFields": true,
+        "target": {
+          "type": "component",
+          "id": "CardsPage-Cards"
+        }
       }
     ]
   }

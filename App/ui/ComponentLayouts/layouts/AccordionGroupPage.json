@@ -21,7 +21,7 @@
           "title": "Accordion 1 Title"
         },
         "children": [
-          "paragraph1",
+          "paragraph1", "AccordionGroupPage-Input1"
         ]
       },
       {
@@ -31,7 +31,7 @@
           "title": "Accordion 2 Title"
         },
         "children": [
-          "paragraph2"
+          "paragraph2", "AccordionGroupPage-Input2"
         ]
       },
       {
@@ -48,6 +48,29 @@
           "title": "This is the second paragraph."
         }
       },
+
+      {
+        "id": "AccordionGroupPage-Input1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Accordion Test 1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        }
+      },
+
+      {
+        "id": "AccordionGroupPage-Input2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Accordion Test 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        }
+      },
+      
       {
         "id": "AccordionGroupPage-Summary2",
         "type": "Summary2",
