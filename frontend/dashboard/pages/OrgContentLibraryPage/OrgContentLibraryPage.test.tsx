@@ -33,6 +33,10 @@ const orgPath = '/' + orgName;
 const defaultProviderData: ProviderData = {
   initialEntries: [orgPath],
 };
+const repositoryName = `${orgName}-content`;
+const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
+const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
+const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -58,13 +62,18 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
-  it('Renders the content library', async () => {
+  it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
-  it('renders a spinner while waiting for code lists', () => {
+  it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('renders a spinner while waiting for code lists', () => {
+    renderOrgContentLibraryWithRepoStatus();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -251,11 +260,9 @@ function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void 
 
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData(
-    [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
-    textResourcesWithLanguage,
-  );
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
@@ -266,8 +273,20 @@ function renderOrgContentLibraryWithMissingTextResources(): void {
 
 function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, null);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  return queryClient;
+}
+
+function renderOrgContentLibraryWithRepoStatus(): void {
+  const queryClient = createQueryClientWithRepoStatus();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function createQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
