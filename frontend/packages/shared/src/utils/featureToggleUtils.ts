@@ -11,7 +11,6 @@ export enum FeatureFlag {
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   TaskNavigationPageGroups = 'taskNavigationPageGroups',
   ConsentResource = 'consentResource',
-  SettingsPage = 'settingsPage',
   AppMetadata = 'appMetadata',
 }
 

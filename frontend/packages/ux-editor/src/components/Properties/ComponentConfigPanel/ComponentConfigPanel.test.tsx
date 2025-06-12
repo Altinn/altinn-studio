@@ -64,6 +64,15 @@ describe('ComponentConfigPanel', () => {
     jest.clearAllMocks();
   });
 
+  it('should render an unknown component alert when the component is unknown', () => {
+    const unknownComponentType = 'UnknownComponent';
+    renderComponentConfig({ formItem: unknownComponentType } as any);
+
+    const alert = screen.getByText(textMock('ux_editor.edit_component.unknown_component', {}));
+
+    expect(alert).toBeInTheDocument();
+  });
+
   describe('Component ID Config', () => {
     it('saves the component when changes are made in the component', async () => {
       const user = userEvent.setup();

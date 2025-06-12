@@ -22,3 +22,6 @@ spec:
         kind: HelmRepository
         name: studio-charts
         namespace: default
+  values:
+    image:
+      tag: "{{ .Values.imageTag }}"

@@ -6,8 +6,6 @@ import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQ
 import { StudioSpinner } from '@studio/components-legacy';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useTranslation } from 'react-i18next';
-import { formItemConfigs } from '../../data/formItemConfig';
-import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
@@ -24,15 +22,7 @@ export const EditFormComponent = ({
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const { t } = useTranslation();
-
-  const formItemConfig = formItemConfigs[component.type];
-
   const { data: schema, isPending } = useComponentSchemaQuery(component.type);
-
-  const isUnknownInternalComponent: boolean = !formItemConfig;
-  if (isUnknownInternalComponent) {
-    return <UnknownComponentAlert componentName={component.type} />;
-  }
 
   return (
     <Fieldset className={classes.root} legend='' size='sm'>

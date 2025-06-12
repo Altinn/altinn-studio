@@ -4,7 +4,6 @@ import { EditFormComponent } from './EditFormComponent';
 import { screen, waitFor } from '@testing-library/react';
 import { renderHookWithProviders, renderWithProviders } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
@@ -78,21 +77,6 @@ describe('EditFormComponent', () => {
       component: { ...componentMocks[ComponentType.Button] },
     });
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
-  });
-
-  it('should notify users when the component is unrecognized and cannot be configured in Studio', async () => {
-    const componentType = 'UnknownComponent';
-    await render({
-      // Cast the type to avoid TypeScript error due to components that does not exists within ComponentType.
-      component: { ...componentMocks[ComponentType.Input], type: componentType as unknown as any },
-    });
-    expect(
-      screen.getByText(
-        textMock('ux_editor.edit_component.unknown_component', {
-          componentName: componentType,
-        }),
-      ),
-    );
   });
 });
 

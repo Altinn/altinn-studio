@@ -21,7 +21,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     { component, handleComponentChange, textResources }: OptionListEditorProps,
     dialogRef,
   ): React.ReactNode => {
-    const handleDelete = () => {
+    const handleDeleteButtonClick = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -32,7 +32,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
-          handleDelete={handleDelete}
+          onDeleteButtonClick={handleDeleteButtonClick}
           textResources={textResources}
         />
       );
@@ -41,7 +41,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     return (
       <OptionListResolver
         optionsId={component.optionsId}
-        handleDelete={handleDelete}
+        onDeleteButtonClick={handleDeleteButtonClick}
         textResources={textResources}
       />
     );
@@ -49,13 +49,13 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
 );
 
 type OptionsListResolverProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   optionsId: string;
   textResources: ITextResources;
 };
 
 function OptionListResolver({
-  handleDelete,
+  onDeleteButtonClick,
   optionsId,
   textResources,
 }: OptionsListResolverProps): React.ReactNode {
@@ -76,7 +76,7 @@ function OptionListResolver({
           </StudioErrorMessage>
           <StudioDeleteButton
             className={classes.deleteButton}
-            onDelete={handleDelete}
+            onDelete={onDeleteButtonClick}
             title={t('ux_editor.options.option_remove_text')}
           >
             {t('general.delete')}
@@ -86,7 +86,7 @@ function OptionListResolver({
     case 'success': {
       return (
         <LibraryOptionsEditor
-          handleDelete={handleDelete}
+          onDeleteButtonClick={onDeleteButtonClick}
           optionListId={optionsId}
           textResources={textResources}
         />
