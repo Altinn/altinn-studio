@@ -1,7 +1,5 @@
 name: Deploy Gitea Organization Runners
 on:
-  pull_request:
-    branches: [ main ]
   push:
     branches: [ main ]
     paths:
