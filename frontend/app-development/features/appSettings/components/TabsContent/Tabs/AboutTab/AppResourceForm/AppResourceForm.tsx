@@ -105,7 +105,6 @@ export function AppResourceForm({
         label={t('app_settings.about_tab_repo_label')}
         description={t('app_settings.about_tab_repo_description')}
         defaultValue={updatedAppResource.repositoryName}
-        className={classes.textField}
         onFocus={hideTranslationFields}
         readOnly
       />
@@ -125,7 +124,6 @@ export function AppResourceForm({
         value={updatedAppResource.serviceId}
         onChange={onChangeServiceId}
         onFocus={hideTranslationFields}
-        className={classes.textField}
         required={false}
         tagText={t('general.optional')}
       />

@@ -1,1 +1,0 @@
-export { TranslationBox } from './TranslationBox';

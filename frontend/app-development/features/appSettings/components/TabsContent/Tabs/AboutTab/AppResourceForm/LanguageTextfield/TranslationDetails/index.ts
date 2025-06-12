@@ -1,0 +1,1 @@
+export { TranslationDetails } from './TranslationDetails';

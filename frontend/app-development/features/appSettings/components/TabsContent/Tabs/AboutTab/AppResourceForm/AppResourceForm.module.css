@@ -5,8 +5,5 @@
   flex-direction: column;
   gap: var(--field-spacing);
   padding-block: var(--field-spacing);
-}
-
-.textField {
-  width: 32rem;
+  width: 40rem;
 }

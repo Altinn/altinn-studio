@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioAlert, StudioHeading, StudioParagraph, StudioTextfield } from '@studio/components';
-import classes from './TranslationBox.module.css';
+import { StudioTextfield, StudioDetails, StudioCard, StudioTag } from '@studio/components';
+import classes from './TranslationDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
-import { GlobeIcon } from '@studio/icons';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
 import {
   getErrorMessagesForLanguage,
   getTextfieldRows,
   mapLanguageKeyToLanguageText,
 } from '../../../utils/appResourceLanguageUtils';
+import cn from 'classnames';
 
 type SharedFieldProps = {
   lang: ValidLanguage;
@@ -20,7 +20,7 @@ type SharedFieldProps = {
   error: string[];
 };
 
-export type TranslationBoxProps = {
+export type TranslationDetailsProps = {
   label: string;
   isTextArea?: boolean;
   value: SupportedLanguage;
@@ -29,9 +29,10 @@ export type TranslationBoxProps = {
   tagText?: string;
   errors: AppResourceFormError[];
   id: string;
+  detailsOpen: boolean;
 };
 
-export function TranslationBox({
+export function TranslationDetails({
   label,
   isTextArea = false,
   value,
@@ -40,8 +41,12 @@ export function TranslationBox({
   tagText,
   errors,
   id,
-}: TranslationBoxProps): ReactElement {
+  detailsOpen,
+}: TranslationDetailsProps): ReactElement {
   const { t } = useTranslation();
+
+  const [open, setOpen] = useState<boolean>(detailsOpen);
+  const hasErrors: boolean = errors.length > 0;
 
   const languageTextNN: string = mapLanguageKeyToLanguageText('nn', t);
   const languageTextEN: string = mapLanguageKeyToLanguageText('en', t);
@@ -70,35 +75,31 @@ export function TranslationBox({
   };
 
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.translationBox}>
-        <div className={classes.headingWrapper}>
-          <GlobeIcon className={classes.icon} />
-          <StudioHeading data-size='xs' level={4}>
-            {t('app_settings.about_tab_language_translation_header')}
-          </StudioHeading>
-        </div>
-        <StudioAlert data-color='info'>
-          <StudioParagraph>{t('app_settings.about_tab_translation_box_alert')}</StudioParagraph>
-        </StudioAlert>
-        {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
-          <StudioTextfield
-            key={lang}
-            label={fieldLabel}
-            value={fieldValue}
-            multiple={isTextArea}
-            className={classes.textField}
-            onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-              handleChange(lang, e.target.value)
-            }
-            required={required}
-            tagText={tagText}
-            rows={getTextfieldRows(isTextArea)}
-            error={error}
-            id={`${id}-${lang}`}
-          />
-        ))}
-      </div>
-    </div>
+    <StudioCard data-color='neutral' className={cn(classes.card, hasErrors && classes.cardError)}>
+      <StudioDetails open={open} onToggle={() => setOpen((prevOpen) => !prevOpen)}>
+        <StudioDetails.Summary>
+          {t('app_settings.about_tab_language_translation_header', { field: label })}
+          <StudioTag data-color='warning'>{tagText}</StudioTag>
+        </StudioDetails.Summary>
+        <StudioDetails.Content className={classes.content}>
+          {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
+            <StudioTextfield
+              key={lang}
+              label={fieldLabel}
+              value={fieldValue}
+              multiple={isTextArea}
+              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                handleChange(lang, e.target.value)
+              }
+              required={required}
+              tagText={tagText}
+              rows={getTextfieldRows(isTextArea)}
+              error={error}
+              id={`${id}-${lang}`}
+            />
+          ))}
+        </StudioDetails.Content>
+      </StudioDetails>
+    </StudioCard>
   );
 }
