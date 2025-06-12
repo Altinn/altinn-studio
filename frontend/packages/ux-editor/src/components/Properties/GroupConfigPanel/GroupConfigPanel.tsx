@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioSpinner, StudioSwitch } from '@studio/components';
+import { StudioAlert, StudioSpinner, StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon } from '@studio/icons';
@@ -58,6 +58,8 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
             checked={selectedGroup.markWhenCompleted || false}
             onChange={onMarkAsCompleted}
           ></StudioSwitch>
+          {/*Remove this studioAlert when config for group is completed*/}
+          <StudioAlert data-color='info'>{t('right_menu.content_group_message')}</StudioAlert>
         </div>
       </div>
     </>
