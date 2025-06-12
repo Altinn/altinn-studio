@@ -59,8 +59,10 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
             onChange={onMarkAsCompleted}
           ></StudioSwitch>
           {/*Remove this studioAlert when config for group is completed*/}
-          <StudioAlert data-color='info'>{t('right_menu.content_group_message')}</StudioAlert>
         </div>
+        <StudioAlert data-color='info' className={classes.alertMessage}>
+          {t('right_menu.content_group_message')}
+        </StudioAlert>
       </div>
     </>
   );
