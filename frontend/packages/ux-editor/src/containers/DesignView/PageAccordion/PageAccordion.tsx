@@ -13,6 +13,7 @@ import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import cn from 'classnames';
+import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -66,17 +67,21 @@ export const PageAccordion = ({
     if (selectedItem?.id === pageName) setSelectedItem(null);
 
     if (isUsingGroups) {
-      const updatedGroups = [];
-      for (const group of pages.groups) {
-        const filteredOrder = group.order.filter((page) => page.id !== pageName);
-        if (filteredOrder.length > 0) {
-          updatedGroups.push({ ...group, order: filteredOrder });
-        }
-      }
+      const updatedGroups = getUpdatedGroupsExcludingPage(pages.groups, pageName);
       changePageGroups({ ...pages, groups: updatedGroups });
     } else {
       deletePage(pageName);
     }
+  };
+
+  const getUpdatedGroupsExcludingPage = (groups: GroupModel[], pageId: string): GroupModel[] => {
+    const groupsWithPageRemoved = groups.map((group) => {
+      const filteredOrder = group.order.filter((page) => page.id !== pageId);
+      return { ...group, order: filteredOrder };
+    });
+
+    const nonEmptyGroups = groupsWithPageRemoved.filter((group) => group.order.length > 0);
+    return nonEmptyGroups;
   };
 
   return (
