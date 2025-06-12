@@ -29,7 +29,7 @@ describe('Self identified user', () => {
 
 function testSelfIdentifiedUser() {
   cy.intercept('**/active', []).as('noActiveInstances');
-  cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'selfIdentified', authenticationLevel: '0' });
+  cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'selfIdentified', authenticationLevel: '0' });
 
   cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');

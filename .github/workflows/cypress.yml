@@ -89,6 +89,8 @@ jobs:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
           PERCY_PARALLEL_TOTAL: 6
           PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
+          PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
+          PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
         uses: cypress-io/github-action@v6
         with:

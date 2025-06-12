@@ -21,12 +21,13 @@ import type {
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { LooseAutocomplete } from 'src/types';
 import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/types/shared';
 
 type SimpleLangParam = string | number | undefined;
 export type ValidLangParam = SimpleLangParam | ReactNode | TextReference;
 export type TextReference = {
-  key: ValidLanguageKey | string | undefined;
+  key: ValidLanguageKey | LooseAutocomplete | undefined;
   params?: ValidLangParam[];
   makeLowerCase?: boolean;
 };
@@ -34,18 +35,22 @@ export type TextReference = {
 export interface IUseLanguage {
   language: FixedLanguageList;
   lang(
-    key: ValidLanguageKey | string | undefined,
+    key: ValidLanguageKey | LooseAutocomplete | undefined,
     params?: ValidLangParam[],
   ): string | JSX.Element | JSX.Element[] | null;
-  langAsString(key: ValidLanguageKey | string | undefined, params?: ValidLangParam[], makeLowerCase?: boolean): string;
+  langAsString(
+    key: ValidLanguageKey | LooseAutocomplete | undefined,
+    params?: ValidLangParam[],
+    makeLowerCase?: boolean,
+  ): string;
   langAsStringUsingPathInDataModel(
     key: ValidLanguageKey | string | undefined,
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
   ): string;
-  langAsNonProcessedString(key: ValidLanguageKey | string | undefined, params?: ValidLangParam[]): string;
+  langAsNonProcessedString(key: ValidLanguageKey | LooseAutocomplete | undefined, params?: ValidLangParam[]): string;
   langAsNonProcessedStringUsingPathInDataModel(
-    key: ValidLanguageKey | string | undefined,
+    key: ValidLanguageKey | LooseAutocomplete | undefined,
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
   ): string;

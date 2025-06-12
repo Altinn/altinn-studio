@@ -58,7 +58,7 @@ export function signingTestLogin(user: CyUser) {
       );
     }
 
-    cy.startAppInstance(appFrontend.apps.signingTest, { user, urlSuffix: instanceSuffix });
+    cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix });
 
     // We need to reload after re-logging in when we already had a session, because the startAppInstance command
     // will not reload the page if we already are visiting the correct URL.

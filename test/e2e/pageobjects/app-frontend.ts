@@ -31,6 +31,9 @@ export class AppFrontend {
 
     /** @see https://dev.altinn.studio/repos/ttd/navigation-test-subform */
     navigationTest: 'navigation-test-subform',
+
+    /** @see https://dev.altinn.studio/repos/ttd/signering-brukerstyrt */
+    signeringBrukerstyrt: 'signering-brukerstyrt',
   };
 
   //Start app instance page

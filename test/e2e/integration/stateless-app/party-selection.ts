@@ -17,7 +17,7 @@ describe('Stateless party selection', () => {
       doNotPromptForParty: false,
     });
 
-    cy.startAppInstance(appFrontend.apps.stateless, { user: 'accountant' });
+    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'accountant' });
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
 
     if (Cypress.env('type') === 'localtest') {

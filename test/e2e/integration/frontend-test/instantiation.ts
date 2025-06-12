@@ -15,7 +15,7 @@ describe('Instantiation', () => {
       doNotPromptForParty: false,
       onEntryShow: 'new-instance',
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'manager' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'manager' });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du kan ikke starte denne tjenesten').should('be.visible');
@@ -31,7 +31,7 @@ describe('Instantiation', () => {
         { id: 'def456', lastChanged: '2023-01-02T00:00:00.000Z', lastChangedBy: 'user' },
       ],
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'manager' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'manager' });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du har allerede startet å fylle ut dette skjemaet.').should('be.visible');

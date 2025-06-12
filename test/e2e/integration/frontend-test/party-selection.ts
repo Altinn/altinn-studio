@@ -205,7 +205,7 @@ describe('Party selection', () => {
         },
       );
 
-      cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'default' });
+      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
       cy.get(appFrontend.appHeader).should('be.visible');
       cy.get('[id^="party-"]').should('not.exist');
 
@@ -223,7 +223,7 @@ describe('Party selection', () => {
         appPromptForPartyOverride,
         allowedToInstantiate: (parties) => [...parties, CyPartyMocks.ExamplePerson1],
       });
-      cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'default' });
+      cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
 
       if (appPromptForPartyOverride === 'always') {
         cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
@@ -251,7 +251,7 @@ describe('Party selection', () => {
       allowedToInstantiate: removeAllButOneOrg,
       doNotPromptForParty: false,
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { user: 'accountant' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'accountant' });
 
     // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)

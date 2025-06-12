@@ -68,7 +68,7 @@ import type { BackendValidationIssue, IExpressionValidationConfig } from 'src/fe
 import type { ILayoutSets, ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { ISimpleInstance } from 'src/types';
+import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
 import type {
   IActionType,
   IAltinnOrgs,
@@ -82,7 +82,7 @@ import type {
 } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
-  putWithoutConfig<'Party successfully updated' | string | null>(getSetSelectedPartyUrl(partyId));
+  putWithoutConfig<'Party successfully updated' | LooseAutocomplete | null>(getSetSelectedPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getInstantiateUrl(language), undefined, data)).data);

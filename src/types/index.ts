@@ -47,3 +47,5 @@ export enum DateFlags {
 export function isProcessTaskType(taskType: string): taskType is ProcessTaskType {
   return Object.values(ProcessTaskType).includes(taskType as ProcessTaskType);
 }
+
+export type LooseAutocomplete = string & {}; // NOSONAR
