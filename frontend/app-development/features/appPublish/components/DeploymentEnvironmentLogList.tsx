@@ -107,7 +107,7 @@ export const DeploymentEnvironmentLogList = ({
                         components={{
                           grafana: (
                             <StudioLink
-                              href={`https://${org}.apps.${envName.toLowerCase() === 'prod' ? '' : `${envName}.`}altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-${org}-${envName}-rg&var-PodName=${org}-${app}-v2&from=${buildStartTime}&to=${buildFinishTime}`}
+                              href={`https://${org}.apps.${isProduction ? '' : `${envName}.`}altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-${org}-${envName}-rg&var-PodName=${org}-${app}-v2&from=${buildStartTime}&to=${buildFinishTime}`}
                               rel='noopener noreferrer'
                               target='_blank'
                               icon={
