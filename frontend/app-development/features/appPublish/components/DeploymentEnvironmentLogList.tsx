@@ -18,6 +18,7 @@ import { StudioLink } from '@studio/components';
 import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
 
 export interface DeploymentEnvironmentLogListProps {
   envName: string;
@@ -107,7 +108,13 @@ export const DeploymentEnvironmentLogList = ({
                         components={{
                           grafana: (
                             <StudioLink
-                              href={`https://${org}.apps.${isProduction ? '' : `${envName}.`}altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-${org}-${envName}-rg&var-PodName=${org}-${app}-v2&from=${buildStartTime}&to=${buildFinishTime}`}
+                              href={grafanaPodLogsUrl({
+                                org,
+                                env: envName,
+                                app,
+                                buildStartTime,
+                                buildFinishTime,
+                              })}
                               rel='noopener noreferrer'
                               target='_blank'
                               icon={
