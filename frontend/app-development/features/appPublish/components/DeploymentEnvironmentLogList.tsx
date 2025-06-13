@@ -103,7 +103,7 @@ export const DeploymentEnvironmentLogList = ({
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       <Trans
-                        i18nKey={t(getStatusTextByDeploymentType(deploy))}
+                        i18nKey={getStatusTextByDeploymentType(deploy)}
                         components={{
                           grafana: (
                             <StudioLink
