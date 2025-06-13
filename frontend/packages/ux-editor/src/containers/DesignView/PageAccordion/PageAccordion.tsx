@@ -13,6 +13,7 @@ import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import cn from 'classnames';
+import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -50,7 +51,7 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
 
   const { mutate: deletePage, isPending } = useDeletePageMutation(
@@ -62,26 +63,28 @@ export const PageAccordion = ({
 
   const isUsingGroups = !!pages.groups;
   const handleConfirmDelete = () => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
-      if (isUsingGroups) {
-        const updatedPageGroups = { ...pages };
-        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
-          return { ...group, order: group.order.filter((page) => page.id !== pageName) };
-        });
-        updatedPageGroups.groups = updatedPageGroups.groups.map((group) => {
-          if (group.order.length === 1 && group.name) {
-            return { ...group, name: group.order[0].id };
-          }
-          return group;
-        });
-        updatedPageGroups.groups = updatedPageGroups.groups.filter(
-          (group) => group.order.length > 0,
-        );
-        changePageGroups(updatedPageGroups);
-      } else {
-        deletePage(pageName);
-      }
+    if (!confirm(t('ux_editor.page_delete_text'))) return;
+    if (selectedItem?.id === pageName) setSelectedItem(null);
+
+    if (isUsingGroups) {
+      const updatedGroups = getUpdatedGroupsExcludingPage(pages.groups, pageName);
+      changePageGroups({ ...pages, groups: updatedGroups });
+    } else {
+      deletePage(pageName);
     }
+  };
+
+  const getUpdatedGroupsExcludingPage = (groups: GroupModel[], pageId: string): GroupModel[] => {
+    const groupsWithPageRemoved = groups.map((group) => {
+      const filteredOrder = group.order.filter((page) => page.id !== pageId);
+      const updatedName =
+        filteredOrder.length === 1 && group.name ? filteredOrder[0].id : group.name;
+
+      return { ...group, order: filteredOrder, name: updatedName };
+    });
+
+    const nonEmptyGroups = groupsWithPageRemoved.filter((group) => group.order.length > 0);
+    return nonEmptyGroups;
   };
 
   return (
