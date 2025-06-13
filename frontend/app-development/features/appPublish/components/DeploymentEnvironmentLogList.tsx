@@ -12,6 +12,7 @@ import {
   ExclamationmarkTriangleFillIcon,
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
+  ExternalLinkIcon,
 } from '@studio/icons';
 import { StudioLink } from '@studio/components';
 import { StudioSpinner } from '@studio/components-legacy';
@@ -107,8 +108,14 @@ export const DeploymentEnvironmentLogList = ({
                           grafana: (
                             <StudioLink
                               href={`https://${org}.apps.${envName.toLowerCase() === 'prod' ? '' : `${envName}.`}altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-${org}-${envName}-rg&var-PodName=${org}-${app}-v2&from=${buildStartTime}&to=${buildFinishTime}`}
+                              rel='noopener noreferrer'
+                              target='_blank'
+                              icon={
+                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                              }
+                              iconPlacement={'right'}
                             >
-                              {' '}
+                              Grafana
                             </StudioLink>
                           ),
                         }}
