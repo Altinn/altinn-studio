@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
@@ -13,8 +13,10 @@ import {
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
 } from '@studio/icons';
+import { StudioLink } from '@studio/components';
 import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface DeploymentEnvironmentLogListProps {
   envName: string;
@@ -28,6 +30,7 @@ export const DeploymentEnvironmentLogList = ({
   isProduction,
   pipelineDeploymentList,
 }: DeploymentEnvironmentLogListProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
   const envTitle = isProduction
@@ -84,6 +87,8 @@ export const DeploymentEnvironmentLogList = ({
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const tableCellStatusClassName = classes[deploy.build.result];
+                const buildStartTime = new Date(deploy.build.started).getTime();
+                const buildFinishTime = new Date(deploy.build.finished).getTime();
                 return (
                   <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
                     <Table.Cell
@@ -96,7 +101,18 @@ export const DeploymentEnvironmentLogList = ({
                       {getIcon(deploy.build.result)}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
-                      {t(getStatusTextByDeploymentType(deploy))}
+                      <Trans
+                        i18nKey={t(getStatusTextByDeploymentType(deploy))}
+                        components={{
+                          grafana: (
+                            <StudioLink
+                              href={`https://${org}.apps.${envName.toLowerCase() === 'prod' ? '' : `${envName}.`}altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-${org}-${envName}-rg&var-PodName=${org}-${app}-v2&from=${buildStartTime}&to=${buildFinishTime}`}
+                            >
+                              {' '}
+                            </StudioLink>
+                          ),
+                        }}
+                      />
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       {deploy.tagName}
