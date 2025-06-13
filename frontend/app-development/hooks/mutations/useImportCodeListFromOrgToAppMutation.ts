@@ -10,6 +10,7 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
   return useMutation({
     mutationFn: async (codeListId: string) => {
       const optionList: OptionList = await importCodeListFromOrgToApp(org, app, codeListId);
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.TextResources, org, app] });
       return optionList;
     },
     onSuccess: () =>

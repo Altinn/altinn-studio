@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -141,7 +142,7 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, bool overrideExistingTextResources, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -151,17 +152,88 @@ public class OptionsService : IOptionsService
             return null;
         }
 
-        return await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
+        List<Option> importedOptionList = await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
+        await ImportTextResourcesFromOrg(org, repo, developer, importedOptionList, overrideExistingTextResources, cancellationToken);
+        return importedOptionList;
     }
 
     private async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
     {
-        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
 
         List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
         string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
         return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
+    }
+
+    private async Task ImportTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overrideExistingTextResources, CancellationToken cancellationToken)
+    {
+        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
+        List<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
+        List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
+
+        foreach (string orgLanguageCode in orgLanguageCodes)
+        {
+            TextResource appTextResources = await RetrieveTextResourcesFromApp(altinnAppGitRepository, orgLanguageCode, cancellationToken);
+            List<string> appTextResourceIds = appTextResources.Resources.Select(textResourceElement => textResourceElement.Id).ToList();
+            TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
+
+            List<TextResourceElement> textResourceElements = ExtractOrgTextResourceElementsToImport(orgTextResources, optionListTextResourceIds, appTextResourceIds, overrideExistingTextResources);
+            appTextResources.Resources.AddRange(textResourceElements);
+
+            await altinnAppGitRepository.SaveText(orgLanguageCode, appTextResources);
+        }
+    }
+
+    private static List<string> RetrieveTextResourceIdsInOptionList(List<Option> optionList)
+    {
+        List<string> textResourceIdsInOptionList = [];
+        foreach (Option option in optionList)
+        {
+            AddIfNotNullOrEmpty(option.Label, textResourceIdsInOptionList);
+            AddIfNotNullOrEmpty(option.Description, textResourceIdsInOptionList);
+            AddIfNotNullOrEmpty(option.HelpText, textResourceIdsInOptionList);
+        }
+        return textResourceIdsInOptionList;
+    }
+
+    private static void AddIfNotNullOrEmpty(string value, List<string> list)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            list.Add(value);
+        }
+    }
+
+    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, string orgLanguageCode, CancellationToken cancellationToken)
+    {
+        List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
+        if (appLanguageCodes.Contains(orgLanguageCode))
+        {
+            return await altinnAppGitRepository.GetText(orgLanguageCode, cancellationToken);
+        }
+
+        return new TextResource
+        {
+            Language = orgLanguageCode,
+            Resources = []
+        };
+    }
+
+    private static List<TextResourceElement> ExtractOrgTextResourceElementsToImport(TextResource orgTextResources, List<string> optionListTextResourceIds, List<string> appTextResourceIds, bool overrideExistingTextResources)
+    {
+        List<TextResourceElement> textResourceElements = [];
+        textResourceElements.AddRange(orgTextResources.Resources
+            .Where(element => optionListTextResourceIds.Contains(element.Id))
+            .Where(element => overrideExistingTextResources || !appTextResourceIds.Contains(element.Id)));
+        return textResourceElements;
+    }
+
+    private (AltinnOrgGitRepository, AltinnAppGitRepository) GetAltinnRepositories(string org, string developer, string repo)
+    {
+        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        return (altinnOrgGitRepository, altinnAppGitRepository);
     }
 
     private AltinnOrgGitRepository GetStaticContentRepo(string org, string developer)
