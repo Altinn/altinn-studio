@@ -1,15 +1,31 @@
 import React from 'react';
+import type { EditTabProps } from './EditTab';
 import { EditTab } from './EditTab';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
+import type { ITextResources } from 'app-shared/types/global';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
+const defaultProps: EditTabProps = {
+  component: mockComponent,
+  handleComponentChange: jest.fn(),
+};
+const defaultOrg = 'org';
+const defaultApp = 'app';
+const defaultAppRouteParams: AppRouteParams = { org: defaultOrg, app: defaultApp };
+
+// Mocks:
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('EditTab', () => {
   afterEach(() => jest.clearAllMocks());
@@ -17,6 +33,11 @@ describe('EditTab', () => {
   it('should render spinner', () => {
     renderEditTab();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('Makes the spinner disappear when the data is loaded', async () => {
+    renderEditTab();
+    await waitForSpinnerToBeRemoved();
   });
 
   it('should render error message when a query fails', async () => {
@@ -30,24 +51,25 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render preview of a custom code list when component has manual options set', async () => {
-    renderEditTab({ componentProps: { optionsId: undefined } });
+  it('should render preview of a custom code list when component has manual options set', () => {
+    renderEditTabWithData({ props: { component: { ...mockComponent, optionsId: undefined } } });
 
-    await waitForSpinnerToBeRemoved();
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
     ).toBeInTheDocument();
   });
 
-  it('should render upload option list button when option list is not defined on component', async () => {
-    renderEditTab({
-      componentProps: {
-        options: undefined,
-        optionsId: undefined,
+  it('should render upload option list button when option list is not defined on component', () => {
+    renderEditTabWithData({
+      props: {
+        component: {
+          ...mockComponent,
+          options: undefined,
+          optionsId: undefined,
+        },
       },
     });
 
-    await waitForSpinnerToBeRemoved();
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.options.upload_title') }),
     ).toBeInTheDocument();
@@ -56,15 +78,17 @@ describe('EditTab', () => {
   it('should call handleComponentChange with empty options array when clicking create new options', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
-    renderEditTab({
-      componentProps: {
-        options: undefined,
-        optionsId: undefined,
+    renderEditTabWithData({
+      props: {
+        component: {
+          ...mockComponent,
+          options: undefined,
+          optionsId: undefined,
+        },
+        handleComponentChange,
       },
-      handleComponentChange,
     });
 
-    await waitForSpinnerToBeRemoved();
     const addManualOptionsButton = screen.getByRole('button', {
       name: textMock('general.create_new'),
     });
@@ -78,15 +102,17 @@ describe('EditTab', () => {
     });
   });
 
-  it('should render alert when options ID is a reference ID', async () => {
-    renderEditTab({
-      componentProps: {
-        options: undefined,
-        optionsId: 'option-id-that-does-not-exist-in-app',
+  it('should render alert when options ID is a reference ID', () => {
+    renderEditTabWithData({
+      props: {
+        component: {
+          ...mockComponent,
+          options: undefined,
+          optionsId: 'option-id-that-does-not-exist-in-app',
+        },
       },
     });
 
-    await waitForSpinnerToBeRemoved();
     expect(
       screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
     ).toBeInTheDocument();
@@ -97,22 +123,30 @@ async function waitForSpinnerToBeRemoved() {
   await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
 }
 
+type RenderEditTabArgs = {
+  props?: Partial<EditTabProps>;
+} & Partial<ExtendedRenderOptions>;
+
 function renderEditTab({
-  componentProps = {},
-  handleComponentChange = jest.fn(),
-  queries = {},
-} = {}) {
-  return renderWithProviders(
-    <EditTab
-      component={{
-        ...mockComponent,
-        ...componentProps,
-      }}
-      handleComponentChange={handleComponentChange}
-    />,
-    {
-      queries,
-      queryClient: createQueryClientMock(),
-    },
-  );
+  props,
+  queryClient = createQueryClientMock(),
+  ...rest
+}: RenderEditTabArgs = {}) {
+  return renderWithProviders(<EditTab {...defaultProps} {...props} />, {
+    queryClient,
+    ...rest,
+  });
+}
+
+function renderEditTabWithData({
+  appRouteParams = defaultAppRouteParams,
+  queryClient = createQueryClientMock(),
+  ...rest
+}: RenderEditTabArgs = {}): void {
+  const { org, app } = appRouteParams;
+  const optionListIds: string[] = [];
+  const textResources: ITextResources = { [DEFAULT_LANGUAGE]: [] };
+  queryClient.setQueryData([QueryKey.OptionListIds, org, app], optionListIds);
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  renderEditTab({ appRouteParams, queryClient, ...rest });
 }
