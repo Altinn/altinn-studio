@@ -21,3 +21,7 @@ export const PREVIEW_MOCK_PARTY_ID = '51001';
 export const PREVIEW_MOCK_INSTANCE_GUID = 'f1e23d45-6789-1bcd-8c34-56789abcdef0';
 export const MEDIA_QUERY_MAX_WIDTH = '(max-width: 1024px)';
 export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+export const MINIMUM_SUPPORTED_FRONTEND_VERSION = 3;
+export const MAXIMUM_SUPPORTED_FRONTEND_VERSION = 4;
+export const MINIMUM_SUPPORTED_BACKEND_VERSION = 7;
+export const MAXIMUM_SUPPORTED_BACKEND_VERSION = 8;

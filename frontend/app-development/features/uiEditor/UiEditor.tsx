@@ -1,6 +1,5 @@
 import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
 import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
@@ -8,10 +7,8 @@ import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-
-const latestFrontendVersion = '4';
-const isLatestFrontendVersion = (version: AppVersion): boolean =>
-  version?.frontendVersion?.startsWith(latestFrontendVersion);
+import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
+import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 
 export const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -40,5 +37,10 @@ export const UiEditor = () => {
     );
   };
 
-  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <UiEditorV3 />;
+  const isLatestFrontendVersion = !isBelowSupportedVersion(
+    version?.frontendVersion,
+    MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  );
+
+  return isLatestFrontendVersion ? renderUiEditorContent() : <UiEditorV3 />;
 };
