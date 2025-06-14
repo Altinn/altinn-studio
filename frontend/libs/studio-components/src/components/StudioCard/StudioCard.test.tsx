@@ -1,4 +1,5 @@
-import React, { ForwardedRef } from 'react';
+import React from 'react';
+import type { ForwardedRef } from 'react';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioCard } from './StudioCard';
