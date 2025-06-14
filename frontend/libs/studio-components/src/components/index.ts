@@ -33,4 +33,3 @@ export { type StudioCallToActionBarProps, StudioCallToActionBar } from './Studio
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
 export { StudioDetails } from './StudioDetails';
-export { StudioCard } from './StudioCard';

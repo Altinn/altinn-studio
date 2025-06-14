@@ -8,8 +8,6 @@ import { ActionButtons } from './ActionButtons';
 import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppResource } from '../utils/appResourceValidationUtils';
-import { NavigationWarningDialog } from './NavigationWarningDialog/NavigationWarningDialog';
-import { useBeforeUnload } from '../hooks/useBeforeUnload';
 import { ErrorSummary } from './ErrorSummary';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
@@ -37,7 +35,6 @@ export function AppResourceForm({
     'serviceName',
   );
 
-  useBeforeUnload(updatedAppResource !== appResource);
   useScrollIntoView(showAppResourceErrors, errorSummaryRef);
 
   const saveAppConfig = (): void => {
@@ -96,7 +93,6 @@ export function AppResourceForm({
           ref={errorSummaryRef}
         />
       )}
-      <NavigationWarningDialog hasContentChanged={updatedAppResource !== appResource} />
       <StudioTextfield
         label={t('app_settings.about_tab_repo_label')}
         description={t('app_settings.about_tab_repo_description')}
