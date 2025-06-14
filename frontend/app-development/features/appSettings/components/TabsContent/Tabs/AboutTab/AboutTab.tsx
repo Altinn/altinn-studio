@@ -25,8 +25,10 @@ export function AboutTab(): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <TabPageWrapper>
-      <TabPageHeader text={t('app_settings.about_tab_heading')} />
+    <TabPageWrapper hasInlineSpacing={false}>
+      <div className={classes.headingWrapper}>
+        <TabPageHeader text={t('app_settings.about_tab_heading')} />
+      </div>
       <AboutTabContent />
     </TabPageWrapper>
   );

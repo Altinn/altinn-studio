@@ -4,9 +4,8 @@
   width: 100%;
   background-color: var(--ds-color-neutral-background-default);
   border-top: 1px solid var(--ds-color-neutral-surface-tinted);
-  /* Added to make sure the divider line positions correctly */
-  margin-left: calc(-1 * var(--ds-size-6));
-  padding: var(--ds-size-6);
+  padding-block: var(--ds-size-6);
+  padding-inline: var(--inline-spacing-size);
   display: flex;
   justify-content: flex-start;
   gap: var(--ds-size-6);

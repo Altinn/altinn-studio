@@ -86,39 +86,41 @@ export function AppResourceForm({
 
   return (
     <div className={classes.wrapper}>
-      {showAppResourceErrors && validationErrors.length > 0 && (
-        <ErrorSummary
-          validationErrors={validationErrors}
-          onClickErrorLink={(field: TranslationType) => setTranslationType(field)}
-          ref={errorSummaryRef}
+      <div className={classes.formWrapper}>
+        {showAppResourceErrors && validationErrors.length > 0 && (
+          <ErrorSummary
+            validationErrors={validationErrors}
+            onClickErrorLink={(field: TranslationType) => setTranslationType(field)}
+            ref={errorSummaryRef}
+          />
+        )}
+        <StudioTextfield
+          label={t('app_settings.about_tab_repo_label')}
+          description={t('app_settings.about_tab_repo_description')}
+          defaultValue={updatedAppResource.repositoryName}
+          onFocus={hideTranslationFields}
+          readOnly
         />
-      )}
-      <StudioTextfield
-        label={t('app_settings.about_tab_repo_label')}
-        description={t('app_settings.about_tab_repo_description')}
-        defaultValue={updatedAppResource.repositoryName}
-        onFocus={hideTranslationFields}
-        readOnly
-      />
-      <LanguageTextfield
-        label={t('app_settings.about_tab_name_label')}
-        id={AppResourceFormFieldIds.ServiceName}
-        value={updatedAppResource.serviceName}
-        updateLanguage={onChangeServiceName}
-        onFocus={showServiceNameFields}
-        isTranslationPanelOpen={translationType === 'serviceName'}
-        errors={serviceNameErrors}
-        required
-      />
-      <StudioTextfield
-        label={t('app_settings.about_tab_alt_id_label')}
-        description={t('app_settings.about_tab_alt_id_description')}
-        value={updatedAppResource.serviceId}
-        onChange={onChangeServiceId}
-        onFocus={hideTranslationFields}
-        required={false}
-        tagText={t('general.optional')}
-      />
+        <LanguageTextfield
+          label={t('app_settings.about_tab_name_label')}
+          id={AppResourceFormFieldIds.ServiceName}
+          value={updatedAppResource.serviceName}
+          updateLanguage={onChangeServiceName}
+          onFocus={showServiceNameFields}
+          isTranslationPanelOpen={translationType === 'serviceName'}
+          errors={serviceNameErrors}
+          required
+        />
+        <StudioTextfield
+          label={t('app_settings.about_tab_alt_id_label')}
+          description={t('app_settings.about_tab_alt_id_description')}
+          value={updatedAppResource.serviceId}
+          onChange={onChangeServiceId}
+          onFocus={hideTranslationFields}
+          required={false}
+          tagText={t('general.optional')}
+        />
+      </div>
       <ActionButtons
         onSave={saveAppConfig}
         onReset={resetAppConfig}
