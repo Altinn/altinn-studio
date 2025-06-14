@@ -74,9 +74,13 @@ export function TranslationDetails({
     onChange({ ...value, [lang]: newValue });
   };
 
+  const handleToggle = (): void => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
   return (
     <StudioCard data-color='neutral' className={cn(classes.card, hasErrors && classes.cardError)}>
-      <StudioDetails open={open} onToggle={() => setOpen((prevOpen) => !prevOpen)}>
+      <StudioDetails open={open} onToggle={handleToggle}>
         <StudioDetails.Summary>
           {t('app_settings.about_tab_language_translation_header', { field: label })}
           <StudioTag data-color='warning'>{tagText}</StudioTag>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { ReactElement } from 'react';
 import classes from './ErrorSummary.module.css';
 import { StudioErrorSummary } from '@studio/components';
@@ -11,23 +11,24 @@ export type ErrorSummaryProps = {
   onClickErrorLink: (field: TranslationType) => void;
 };
 
-export function ErrorSummary({
-  validationErrors,
-  onClickErrorLink,
-}: ErrorSummaryProps): ReactElement {
-  const { t } = useTranslation();
+export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(
+  ({ validationErrors, onClickErrorLink }, ref): ReactElement => {
+    const { t } = useTranslation();
 
-  return (
-    <StudioErrorSummary className={classes.errorSummary}>
-      <StudioErrorSummary.Heading>
-        {t('app_settings.about_tab_error_summary_header')}
-      </StudioErrorSummary.Heading>
-      <StudioErrorSummary.List>
-        <ErrorListItems validationErrors={validationErrors} onClickErrorLink={onClickErrorLink} />
-      </StudioErrorSummary.List>
-    </StudioErrorSummary>
-  );
-}
+    return (
+      <StudioErrorSummary ref={ref} className={classes.errorSummary}>
+        <StudioErrorSummary.Heading>
+          {t('app_settings.about_tab_error_summary_header')}
+        </StudioErrorSummary.Heading>
+        <StudioErrorSummary.List>
+          <ErrorListItems validationErrors={validationErrors} onClickErrorLink={onClickErrorLink} />
+        </StudioErrorSummary.List>
+      </StudioErrorSummary>
+    );
+  },
+);
+
+ErrorSummary.displayName = 'ErrorSummary';
 
 type ErrorListItemsProps = {
   validationErrors: AppResourceFormError[];

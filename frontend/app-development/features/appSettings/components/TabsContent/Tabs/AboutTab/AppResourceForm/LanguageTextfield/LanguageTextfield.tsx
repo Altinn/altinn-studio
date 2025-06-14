@@ -10,7 +10,7 @@ import {
   getTextfieldRows,
 } from '../../utils/appResourceLanguageUtils';
 
-type LanguageTextFieldProps = {
+export type LanguageTextfieldProps = {
   id: string;
   label: string;
   description?: string;
@@ -23,7 +23,7 @@ type LanguageTextFieldProps = {
   errors?: AppResourceFormError[];
 };
 
-export function LanguageTextField({
+export function LanguageTextfield({
   id,
   label,
   description,
@@ -34,7 +34,7 @@ export function LanguageTextField({
   required = false,
   isTranslationPanelOpen,
   errors,
-}: LanguageTextFieldProps): ReactElement {
+}: LanguageTextfieldProps): ReactElement {
   const { t } = useTranslation();
 
   const tagText: string = required ? t('general.required') : t('general.optional');
