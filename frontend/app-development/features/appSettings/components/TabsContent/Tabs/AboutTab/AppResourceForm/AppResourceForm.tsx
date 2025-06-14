@@ -103,6 +103,7 @@ export function AppResourceForm({
         />
         <LanguageTextfield
           label={t('app_settings.about_tab_name_label')}
+          description={t('app_settings.about_tab_name_description')}
           id={AppResourceFormFieldIds.ServiceName}
           value={updatedAppResource.serviceName}
           updateLanguage={onChangeServiceName}
