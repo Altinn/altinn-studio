@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "gitea-runner-ttd.name" -}}
+{{- define "gitea-org-runner.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "gitea-runner-ttd.fullname" -}}
+{{- define "gitea-org-runner.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "gitea-runner-ttd.chart" -}}
+{{- define "gitea-org-runner.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "gitea-runner-ttd.labels" -}}
-helm.sh/chart: {{ include "gitea-runner-ttd.chart" . }}
-{{ include "gitea-runner-ttd.selectorLabels" . }}
+{{- define "gitea-org-runner.labels" -}}
+helm.sh/chart: {{ include "gitea-org-runner.chart" . }}
+{{ include "gitea-org-runner.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "gitea-runner-ttd.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "gitea-runner-ttd.name" . }}
+{{- define "gitea-org-runner.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "gitea-org-runner.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "gitea-runner-ttd.serviceAccountName" -}}
+{{- define "gitea-org-runner.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "gitea-runner-ttd.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "gitea-org-runner.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
