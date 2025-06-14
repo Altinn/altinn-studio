@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ReactElement } from 'react';
+import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -16,13 +17,18 @@ import { TabPageWrapper } from '../../TabPageWrapper';
 import { TabDataError } from '../../TabDataError';
 import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { AppResourceForm } from './AppResourceForm';
+import type { AppResource } from 'app-shared/types/AppResource';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <TabPageWrapper>
-      <TabPageHeader text={t('app_settings.about_tab_heading')} />
+    <TabPageWrapper hasInlineSpacing={false}>
+      <div className={classes.headingWrapper}>
+        <TabPageHeader text={t('app_settings.about_tab_heading')} />
+      </div>
       <AboutTabContent />
     </TabPageWrapper>
   );
@@ -31,6 +37,9 @@ export function AboutTab(): ReactElement {
 function AboutTabContent(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType: RepositoryType = getRepositoryType(org, app);
+
+  // TODO - This is a temporary solution to handle the new app resource structure. Will be replaced with API calls when available.
+  const [appResource, setAppResource] = useState<AppResource>(mockAppResource);
 
   const {
     status: appConfigStatus,
@@ -74,7 +83,21 @@ function AboutTabContent(): ReactElement {
       );
     }
     case 'success': {
-      return (
+      return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
+        <div className={classes.wrapper}>
+          <CreatedFor
+            repositoryType={repositoryType}
+            repository={repositoryData}
+            authorName={applicationMetadataData?.createdBy}
+          />
+          <AppResourceForm
+            appResource={appResource}
+            saveAppResource={(updatedAppResource: AppResource) =>
+              setAppResource(updatedAppResource)
+            }
+          />
+        </div>
+      ) : (
         <>
           <CreatedFor
             repositoryType={repositoryType}
@@ -87,3 +110,9 @@ function AboutTabContent(): ReactElement {
     }
   }
 }
+
+const mockAppResource: AppResource = {
+  repositoryName: 'example-repo',
+  serviceName: { nb: 'test', nn: '', en: '' },
+  serviceId: 'example-service-id',
+};

@@ -8,7 +8,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useNavigateFrom } from './useNavigateFrom';
 
-export const SettingsModalButton = (): ReactElement => {
+export const SettingsPageButton = (): ReactElement => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
 
@@ -18,7 +18,7 @@ export const SettingsModalButton = (): ReactElement => {
   const { navigateFrom, currentRoutePath } = useNavigateFrom();
   const pageNavigateToSettingsFrom: string = navigateFrom || RoutePaths.Overview;
 
-  const isSettingsPage: boolean = currentRoutePath === RoutePaths.AppSettings;
+  const isSettingsPage: boolean = splitKeyFromFullPath(currentRoutePath) === RoutePaths.AppSettings;
   const buttonText: string = t(getButtonTextKey(isSettingsPage, pageNavigateToSettingsFrom));
 
   const handleClick = () => {
@@ -30,7 +30,10 @@ export const SettingsModalButton = (): ReactElement => {
   };
 
   const handleClickSettingsButton = () => {
-    navigate(RoutePaths.AppSettings, { state: { from: currentRoutePath } });
+    navigate(
+      { pathname: RoutePaths.AppSettings, search: 'currentTab=about' },
+      { state: { from: currentRoutePath } },
+    );
   };
 
   const handleClickGoBackButton = () => {
