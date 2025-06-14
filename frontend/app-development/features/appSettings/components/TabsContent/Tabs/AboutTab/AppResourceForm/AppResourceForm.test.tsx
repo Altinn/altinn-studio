@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { AppResourceForm } from './AppResourceForm';
 import type { AppResourceFormProps } from './AppResourceForm';
 import type { AppResource } from 'app-shared/types/AppResource';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';

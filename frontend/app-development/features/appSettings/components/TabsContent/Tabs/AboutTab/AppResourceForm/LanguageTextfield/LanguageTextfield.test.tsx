@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LanguageTextfield } from './LanguageTextfield';
 import type { LanguageTextfieldProps } from './LanguageTextfield';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';

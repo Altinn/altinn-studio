@@ -39,7 +39,7 @@ export function LanguageTextfield({
 
   const tagText: string = required ? t('general.required') : t('general.optional');
   const fieldLabel: string = `${label} (${t('language.nb')})`;
-  const mainFieldError: string[] = getErrorMessagesForLanguage(errors, 'nb');
+  const mainFieldError: string[] | undefined = getErrorMessagesForLanguage(errors, 'nb');
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -71,7 +71,7 @@ export function LanguageTextfield({
         onChange={updateLanguage}
         required={required}
         tagText={tagText}
-        errors={errors}
+        errors={errors ?? []}
         id={id}
         detailsOpen={isTranslationPanelOpen}
       />

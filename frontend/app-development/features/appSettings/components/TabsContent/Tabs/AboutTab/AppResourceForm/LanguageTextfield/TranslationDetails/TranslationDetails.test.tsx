@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { TranslationDetails } from './TranslationDetails';
 import type { TranslationDetailsProps } from './TranslationDetails';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
 

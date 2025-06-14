@@ -26,7 +26,9 @@ export function AppResourceForm({
   const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
   const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
 
-  const errorSummaryRef: MutableRefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+  const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
+    null,
+  );
 
   const validationErrors: AppResourceFormError[] = validateAppResource(updatedAppResource, t);
   const serviceNameErrors: AppResourceFormError[] = getValidationErrorsForField(

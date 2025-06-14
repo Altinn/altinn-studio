@@ -17,7 +17,7 @@ type SharedFieldProps = {
   lang: ValidLanguage;
   label: string;
   value: string;
-  error: string[];
+  error?: string[];
 };
 
 export type TranslationDetailsProps = {
