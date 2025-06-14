@@ -1,3 +1,5 @@
+import { PROD_ENV_TYPE } from './constants';
+
 // Docs
 export const altinnDocsUrl = (props: { relativeUrl?: string; language?: 'nb' | 'en' } = {}) => {
   const { relativeUrl = '', language = 'nb' } = props;
@@ -16,3 +18,34 @@ export const getAppLink = (appPrefix: string, hostname: string, org: string, app
   `https://${org}.${appPrefix}.${hostname}/${org}/${app}/`;
 
 export const gitHubRoadMapUrl = 'https://github.com/orgs/digdir/projects/8/views/2';
+
+export const grafanaPodLogsUrl = ({
+  org,
+  env,
+  app,
+  buildStartTime,
+  buildFinishTime,
+}: {
+  org: string;
+  env: string;
+  app: string;
+  buildStartTime: number;
+  buildFinishTime: number;
+}) => {
+  const isProduction = env.toLowerCase() === PROD_ENV_TYPE;
+
+  const baseDomain = isProduction
+    ? `https://${org}.apps.altinn.no`
+    : `https://${org}.apps.${env}.altinn.no`;
+
+  const path = `/monitor/d/ae1906c2hbjeoe/pod-console-error-logs`;
+
+  const queryParams = new URLSearchParams({
+    'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : env}-rg`,
+    'var-PodName': `${org}-${app}-v2`,
+    from: buildStartTime.toString(),
+    to: buildFinishTime.toString(),
+  }).toString();
+
+  return `${baseDomain}${path}?${queryParams}`;
+};
