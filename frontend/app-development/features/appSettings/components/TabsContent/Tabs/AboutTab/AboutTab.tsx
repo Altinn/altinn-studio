@@ -98,14 +98,14 @@ function AboutTabContent(): ReactElement {
           />
         </div>
       ) : (
-        <>
+        <div className={classes.wrapper}>
           <CreatedFor
             repositoryType={repositoryType}
             repository={repositoryData}
             authorName={applicationMetadataData?.createdBy}
           />
           <InputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
-        </>
+        </div>
       );
     }
   }
