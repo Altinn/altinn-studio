@@ -26,7 +26,7 @@ describe('AppResourceForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(getAlert()).toBeInTheDocument();
     expect(getLink(errorMessageServiceNameMissingNNandEN)).toBeInTheDocument();
     expect(getLink(errorMessageServiceNameNN)).toBeInTheDocument();
     expect(getLink(errorMessageServiceNameEN)).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('AppResourceForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(queryAlert()).not.toBeInTheDocument();
   });
 
   it('displays the "repo" input as readonly', () => {
@@ -122,7 +122,7 @@ describe('AppResourceForm', () => {
     await user.click(saveButton);
 
     expect(saveAppResourceMock).not.toHaveBeenCalled();
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(getAlert()).toBeInTheDocument();
   });
 
   it('calls saveAppResource with correct data when fields are changed and there are no errors', async () => {
@@ -145,6 +145,115 @@ describe('AppResourceForm', () => {
       ...mockAppResourceComplete,
       serviceId: `${mockAppResourceComplete.serviceId}${newText}`,
     });
+  });
+
+  it('should hide the error summary when the cancel button is clicked', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    renderAppResourceForm();
+
+    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const newText: string = 'A';
+    await user.type(altId, newText);
+    await user.tab();
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+    expect(getAlert()).toBeInTheDocument();
+
+    const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
+    await user.click(cancelButton);
+    expect(queryAlert()).not.toBeInTheDocument();
+  });
+
+  it('should not reset the form when the cancel button is clicked without confirmation', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    renderAppResourceForm();
+
+    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const newText: string = 'A';
+    await user.type(altId, newText);
+    await user.tab();
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+    expect(altId).toHaveValue(`${mockAppResource.serviceId}${newText}`);
+
+    const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
+    await user.click(cancelButton);
+    expect(altId).toHaveValue(`${mockAppResource.serviceId}${newText}`);
+  });
+
+  it('should reset the form to the original values when the cancel button is clicked', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+
+    renderAppResourceForm();
+
+    const altId = getOptionalTextbox(textMock('app_settings.about_tab_alt_id_label'));
+    const newText: string = 'A';
+    await user.type(altId, newText);
+    await user.tab();
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(altId).toHaveValue(`${mockAppResource.serviceId}${newText}`);
+
+    const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
+    await user.click(cancelButton);
+
+    expect(altId).toHaveValue(mockAppResource.serviceId);
+  });
+
+  it('should hide the alert when the required fields are filled in correctly', async () => {
+    const user = userEvent.setup();
+    renderAppResourceForm();
+
+    const appName = getRequiredTextbox(
+      `${textMock('app_settings.about_tab_name_label')} (${textMock('language.nb')})`,
+    );
+
+    await user.type(appName, 'Tjeneste');
+    await user.tab();
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(getAlert()).toBeInTheDocument();
+    expect(
+      getLink(textMock('app_settings.about_tab_error_translation_missing_service_name_nn')),
+    ).toBeInTheDocument();
+    expect(
+      getLink(textMock('app_settings.about_tab_error_translation_missing_service_name_en')),
+    ).toBeInTheDocument();
+
+    const detailsButton = getButton(
+      `${textMock('app_settings.about_tab_language_translation_header', {
+        field: textMock('app_settings.about_tab_name_label'),
+      })} ${textMock('general.required')}`,
+    );
+    await user.click(detailsButton);
+
+    const nnInput = getRequiredTextbox(
+      `${textMock('app_settings.about_tab_name_label')} (${textMock('language.nn')})`,
+    );
+    await user.type(nnInput, 'Teneste');
+
+    expect(
+      queryLink(textMock('app_settings.about_tab_error_translation_missing_service_name_nn')),
+    ).not.toBeInTheDocument();
+
+    const enInput = getRequiredTextbox(
+      `${textMock('app_settings.about_tab_name_label')} (${textMock('language.en')})`,
+    );
+    await user.type(enInput, 'Service');
+    expect(
+      queryLink(textMock('app_settings.about_tab_error_translation_missing_service_name_en')),
+    ).not.toBeInTheDocument();
+
+    expect(queryAlert()).not.toBeInTheDocument();
   });
 });
 
@@ -180,7 +289,10 @@ const getOptionalTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${optionalText}`);
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
 const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
+const queryLink = (name: string): HTMLAnchorElement => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const getAlert = () => screen.getByRole('alert');
+const queryAlert = () => screen.queryByRole('alert');
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');

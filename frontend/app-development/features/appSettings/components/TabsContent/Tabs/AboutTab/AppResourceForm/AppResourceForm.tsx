@@ -9,7 +9,6 @@ import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppResource } from '../utils/appResourceValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
-import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 
@@ -23,7 +22,6 @@ export function AppResourceForm({
   saveAppResource,
 }: AppResourceFormProps): ReactElement {
   const { t } = useTranslation();
-  const [translationType, setTranslationType] = useState<TranslationType>('none');
   const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
   const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
 
@@ -41,8 +39,6 @@ export function AppResourceForm({
   useScrollIntoView(showAppResourceErrors, errorSummaryRef);
 
   const saveAppConfig = (): void => {
-    hideTranslationFields();
-
     if (hasValidationErrors()) {
       setShowAppResourceErrors(true);
       return;
@@ -62,16 +58,11 @@ export function AppResourceForm({
   };
 
   const resetAppConfig = (): void => {
-    hideTranslationFields();
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
       setUpdatedAppResource(appResource);
-      saveAppResource(appResource);
       setShowAppResourceErrors(false);
     }
   };
-
-  const showServiceNameFields = (): void => setTranslationType('serviceName');
-  const hideTranslationFields = (): void => setTranslationType('none');
 
   const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
     setUpdatedAppResource((oldVal: AppResource) => ({
@@ -91,17 +82,12 @@ export function AppResourceForm({
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
         {showAppResourceErrors && validationErrors.length > 0 && (
-          <ErrorSummary
-            validationErrors={validationErrors}
-            onClickErrorLink={(field: TranslationType) => setTranslationType(field)}
-            ref={errorSummaryRef}
-          />
+          <ErrorSummary validationErrors={validationErrors} ref={errorSummaryRef} />
         )}
         <StudioTextfield
           label={t('app_settings.about_tab_repo_label')}
           description={t('app_settings.about_tab_repo_description')}
           defaultValue={updatedAppResource.repositoryName}
-          onFocus={hideTranslationFields}
           readOnly
         />
         <LanguageTextfield
@@ -110,8 +96,6 @@ export function AppResourceForm({
           id={AppResourceFormFieldIds.ServiceName}
           value={updatedAppResource.serviceName}
           updateLanguage={onChangeServiceName}
-          onFocus={showServiceNameFields}
-          isTranslationPanelOpen={translationType === 'serviceName'}
           errors={serviceNameErrors}
           required
         />
@@ -120,7 +104,6 @@ export function AppResourceForm({
           description={t('app_settings.about_tab_alt_id_description')}
           value={updatedAppResource.serviceId}
           onChange={onChangeServiceId}
-          onFocus={hideTranslationFields}
           required={false}
           tagText={t('general.optional')}
         />

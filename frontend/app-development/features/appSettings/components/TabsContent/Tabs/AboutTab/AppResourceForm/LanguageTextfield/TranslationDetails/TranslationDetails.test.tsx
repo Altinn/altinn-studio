@@ -56,10 +56,10 @@ describe('TranslationDetails', () => {
       field: label,
     });
     const button = getButton(detailsLabel);
-    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(button);
-    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).toHaveAttribute('aria-expanded', 'true');
   });
 });
 
@@ -71,7 +71,6 @@ const defaultProps: TranslationDetailsProps = {
   onChange: jest.fn(),
   errors: [],
   id: 'test-id',
-  detailsOpen: true,
 };
 
 function renderTranslationDetails(props: Partial<TranslationDetailsProps> = {}) {

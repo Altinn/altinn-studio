@@ -29,7 +29,6 @@ export type TranslationDetailsProps = {
   tagText?: string;
   errors: AppResourceFormError[];
   id: string;
-  detailsOpen: boolean;
 };
 
 export function TranslationDetails({
@@ -41,11 +40,10 @@ export function TranslationDetails({
   tagText,
   errors,
   id,
-  detailsOpen,
 }: TranslationDetailsProps): ReactElement {
   const { t } = useTranslation();
 
-  const [open, setOpen] = useState<boolean>(detailsOpen);
+  const [open, setOpen] = useState<boolean>(false);
   const hasErrors: boolean = errors.length > 0;
 
   const languageTextNN: string = mapLanguageKeyToLanguageText('nn', t);

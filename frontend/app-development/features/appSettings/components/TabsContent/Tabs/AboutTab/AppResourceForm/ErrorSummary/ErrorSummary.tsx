@@ -4,15 +4,13 @@ import classes from './ErrorSummary.module.css';
 import { StudioErrorSummary } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
-import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 
 export type ErrorSummaryProps = {
   validationErrors: AppResourceFormError[];
-  onClickErrorLink: (field: TranslationType) => void;
 };
 
 export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(
-  ({ validationErrors, onClickErrorLink }, ref): ReactElement => {
+  ({ validationErrors }, ref): ReactElement => {
     const { t } = useTranslation();
 
     return (
@@ -21,7 +19,7 @@ export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(
           {t('app_settings.about_tab_error_summary_header')}
         </StudioErrorSummary.Heading>
         <StudioErrorSummary.List>
-          <ErrorListItems validationErrors={validationErrors} onClickErrorLink={onClickErrorLink} />
+          <ErrorListItems validationErrors={validationErrors} />
         </StudioErrorSummary.List>
       </StudioErrorSummary>
     );
@@ -32,19 +30,13 @@ ErrorSummary.displayName = 'ErrorSummary';
 
 type ErrorListItemsProps = {
   validationErrors: AppResourceFormError[];
-  onClickErrorLink: (field: TranslationType) => void;
 };
-function ErrorListItems({
-  validationErrors,
-  onClickErrorLink,
-}: ErrorListItemsProps): ReactElement[] {
+function ErrorListItems({ validationErrors }: ErrorListItemsProps): ReactElement[] {
   return validationErrors.map((error: AppResourceFormError) => {
     const href: string = getErrorSummaryHref(error);
     return (
       <StudioErrorSummary.Item key={JSON.stringify(error)}>
-        <StudioErrorSummary.Link href={href} onClick={() => onClickErrorLink(error.field)}>
-          {error.error}
-        </StudioErrorSummary.Link>
+        <StudioErrorSummary.Link href={href}>{error.error}</StudioErrorSummary.Link>
       </StudioErrorSummary.Item>
     );
   });

@@ -16,10 +16,8 @@ export type LanguageTextfieldProps = {
   description?: string;
   value: SupportedLanguage;
   updateLanguage: (value: SupportedLanguage) => void;
-  onFocus: () => void;
   isTextArea?: boolean;
   required?: boolean;
-  isTranslationPanelOpen: boolean;
   errors?: AppResourceFormError[];
 };
 
@@ -29,10 +27,8 @@ export function LanguageTextfield({
   description,
   value,
   updateLanguage,
-  onFocus,
   isTextArea = false,
   required = false,
-  isTranslationPanelOpen,
   errors,
 }: LanguageTextfieldProps): ReactElement {
   const { t } = useTranslation();
@@ -58,7 +54,6 @@ export function LanguageTextfield({
         value={value['nb']}
         multiple={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
-        onFocus={onFocus}
         required={required}
         tagText={tagText}
         rows={getTextfieldRows(isTextArea)}
@@ -73,7 +68,6 @@ export function LanguageTextfield({
         tagText={tagText}
         errors={errors ?? []}
         id={id}
-        detailsOpen={isTranslationPanelOpen}
       />
     </div>
   );

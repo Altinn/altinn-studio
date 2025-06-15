@@ -4,7 +4,6 @@ import type { RenderResult } from '@testing-library/react';
 import { ErrorSummary } from './ErrorSummary';
 import type { ErrorSummaryProps } from './ErrorSummary';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
-import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ErrorSummary', () => {
@@ -21,18 +20,6 @@ describe('ErrorSummary', () => {
     mockErrors.forEach((error) => {
       expect(getLink(error.error)).toBeInTheDocument();
     });
-  });
-
-  it('calls onClickErrorLink with correct field when a link is clicked', async () => {
-    const user = userEvent.setup();
-    const onClickErrorLink = jest.fn();
-    renderErrorSummary({ onClickErrorLink });
-
-    const link: HTMLAnchorElement = getLink(mockErrors[0].error);
-    await user.click(link);
-
-    expect(onClickErrorLink).toHaveBeenCalledTimes(1);
-    expect(onClickErrorLink).toHaveBeenCalledWith(mockErrors[0].field);
   });
 
   it('uses correct hrefs based on error index presence and type', () => {
@@ -53,7 +40,6 @@ const mockErrors: AppResourceFormError[] = [
 
 const defaultProps: ErrorSummaryProps = {
   validationErrors: mockErrors,
-  onClickErrorLink: jest.fn(),
 };
 
 function renderErrorSummary(props: Partial<ErrorSummaryProps> = {}): RenderResult {
