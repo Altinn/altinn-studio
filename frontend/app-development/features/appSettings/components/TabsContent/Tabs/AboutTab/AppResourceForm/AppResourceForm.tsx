@@ -11,6 +11,7 @@ import { validateAppResource } from '../utils/appResourceValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
 import type { TranslationType } from 'app-development/features/appSettings/types/Translation';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export type AppResourceFormProps = {
   appResource: AppResource;
@@ -127,7 +128,7 @@ export function AppResourceForm({
       <ActionButtons
         onSave={saveAppConfig}
         onReset={resetAppConfig}
-        areButtonsDisabled={updatedAppResource === appResource}
+        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppResource, appResource)}
       />
     </div>
   );
