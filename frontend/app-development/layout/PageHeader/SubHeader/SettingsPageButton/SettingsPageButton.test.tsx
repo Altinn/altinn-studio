@@ -86,9 +86,15 @@ describe('SettingsPageButton', () => {
     const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await user.click(settingsButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.AppSettings, {
-      state: { from: RoutePaths.UIEditor },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      {
+        pathname: RoutePaths.AppSettings,
+        search: 'currentTab=about',
+      },
+      {
+        state: { from: RoutePaths.UIEditor },
+      },
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
