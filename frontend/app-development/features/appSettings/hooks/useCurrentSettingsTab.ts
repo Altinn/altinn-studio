@@ -34,14 +34,11 @@ export function useCurrentSettingsTab(validTabIds?: SettingsPageTabId[]) {
   };
 }
 
-export function isValidSettingsTab(
-  tabId: SettingsPageTabId,
-  tabIds?: SettingsPageTabId[],
-): boolean {
+function isValidSettingsTab(tabId: SettingsPageTabId, tabIds?: SettingsPageTabId[]): boolean {
   if (!tabIds) return true;
   return isTabIdInTabsList(tabId, tabIds);
 }
 
-export function isTabIdInTabsList(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
+function isTabIdInTabsList(tabId: SettingsPageTabId, tabIds: SettingsPageTabId[]): boolean {
   return tabIds?.includes(tabId);
 }
