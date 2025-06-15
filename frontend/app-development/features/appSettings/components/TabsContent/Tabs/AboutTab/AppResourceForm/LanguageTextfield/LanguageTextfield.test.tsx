@@ -40,17 +40,6 @@ describe('LanguageTextfield', () => {
       nb: value.nb + newText,
     });
   });
-
-  it('calls onFocus when NB input is focused', async () => {
-    const user = userEvent.setup();
-    const onFocus = jest.fn();
-    renderLanguageTextfield({ onFocus });
-
-    const input = getTextbox(`${label} (${textMock('language.nb')}) ${required}`);
-    await user.click(input);
-
-    expect(onFocus).toHaveBeenCalledTimes(1);
-  });
 });
 
 const label = textMock('label');
@@ -64,8 +53,6 @@ const defaultProps: LanguageTextfieldProps = {
   description,
   value,
   updateLanguage: jest.fn(),
-  onFocus: jest.fn(),
-  isTranslationPanelOpen: true,
   errors: [],
   isTextArea: false,
   required: true,
