@@ -32,16 +32,17 @@ export const grafanaPodLogsUrl = ({
   buildStartTime: number;
   buildFinishTime: number;
 }) => {
-  const isProduction = env.toLowerCase() === PROD_ENV_TYPE;
+  const envLower = env.toLowerCase();
+  const isProduction = envLower === PROD_ENV_TYPE;
 
   const baseDomain = isProduction
     ? `https://${org}.apps.altinn.no`
-    : `https://${org}.apps.${env}.altinn.no`;
+    : `https://${org}.apps.tt02.altinn.no`; // all test environments (tt02, at22, at23, at24 and yt01) use apps.tt02.altinn.no
 
   const path = `/monitor/d/ae1906c2hbjeoe/pod-console-error-logs`;
 
   const queryParams = new URLSearchParams({
-    'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : env}-rg`,
+    'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : envLower}-rg`,
     'var-PodName': `${org}-${app}-v2`,
     from: buildStartTime.toString(),
     to: buildFinishTime.toString(),
