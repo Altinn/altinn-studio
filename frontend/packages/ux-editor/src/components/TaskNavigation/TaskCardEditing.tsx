@@ -38,7 +38,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
 
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const [id, setId] = React.useState(layoutSetModel.id);
-  const [dataType, setDataType] = React.useState(layoutSetModel.dataType);
+  const [dataType, setDataType] = React.useState(layoutSetModel.dataType || '');
 
   const idChanged = id !== layoutSetModel.id;
   const dataTypeChanged = dataType !== layoutSetModel.dataType;
@@ -100,7 +100,9 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         value={dataType}
         onChange={(event) => setDataType(event.target.value)}
       >
-        <option value=''>{t('ux_editor.task_card.no_datamodel')}</option>
+        <option value='' disabled>
+          {t('ux_editor.task_card.choose_datamodel')}
+        </option>
         {layoutSetModel.dataType && (
           <option value={layoutSetModel.dataType}>{layoutSetModel.dataType}</option>
         )}

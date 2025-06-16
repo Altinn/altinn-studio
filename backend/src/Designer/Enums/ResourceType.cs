@@ -21,4 +21,6 @@ public enum ResourceType
     BrokerService = 1 << 5,
 
     CorrespondenceService = 1 << 6,
+
+    Consent = 1 << 7,
 }

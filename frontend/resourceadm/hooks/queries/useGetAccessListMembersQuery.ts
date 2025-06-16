@@ -20,7 +20,7 @@ export const useGetAccessListMembersQuery = (
 ): UseInfiniteQueryResult<InfiniteData<AccessListMember, string>> => {
   const { getAccessListMembers } = useServicesContext();
   return useInfiniteQuery({
-    queryKey: [QueryKey.AccessListMembers, env, accessListId],
+    queryKey: [QueryKey.AccessListMembers, org, env, accessListId],
     queryFn: ({ pageParam }) => getAccessListMembers(org, accessListId, env, pageParam),
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextPage,

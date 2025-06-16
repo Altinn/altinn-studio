@@ -11,11 +11,12 @@ import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
 import type { TextResource } from '@studio/components-legacy';
 
 export type CodeListsProps = {
-  codeListsData: CodeListData[];
-  onBlurTextResource?: (textResource: TextResource) => void;
+  codeListDataList: CodeListData[];
+  onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListInEditMode: string | undefined;
   codeListNames: string[];
   codeListsUsages: CodeListReference[];
@@ -23,11 +24,11 @@ export type CodeListsProps = {
 };
 
 export function CodeLists({
-  codeListsData,
+  codeListDataList,
   codeListsUsages,
   ...rest
 }: CodeListsProps): React.ReactElement[] {
-  return codeListsData.map((codeListData) => {
+  return codeListDataList.map((codeListData) => {
     const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
     return (
       <CodeList
@@ -40,7 +41,7 @@ export function CodeLists({
   });
 }
 
-type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & {
+type CodeListProps = Omit<CodeListsProps, 'codeListDataList' | 'codeListsUsages'> & {
   codeListData: CodeListData;
   codeListSources: CodeListIdSource[];
 };

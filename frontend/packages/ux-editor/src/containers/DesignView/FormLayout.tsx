@@ -19,12 +19,15 @@ export const FormLayout = ({ layout, isInvalid, duplicateComponents }: FormLayou
   if (isInvalid) {
     return <FormLayoutWarning layout={layout} />;
   }
+
+  const hasNoChildComponents: boolean = Object.entries(layout.components).length === 0;
+
   return (
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
       <FormTree duplicateComponents={duplicateComponents} layout={layout} />
-      {/** The following check and component are added as part of a live user test behind a feature flag. Can be removed if we decide not to use after user test. */}
-      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && (
+      {/** The following check and component are added as part of a live user test behind a feature flag. Can be removed if we decide not to use after user test.*/}
+      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && hasNoChildComponents && (
         <AddItem containerId={BASE_CONTAINER_ID} layout={layout} />
       )}
     </>

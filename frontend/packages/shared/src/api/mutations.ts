@@ -57,6 +57,8 @@ import {
   layoutPageGroupsPath,
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
+  taskNavigationGroupPath,
+  orgCodeListUpdateIdPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -89,6 +91,7 @@ import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { OptionList } from '../types/OptionList';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 
 const headers = {
   Accept: 'application/json',
@@ -144,9 +147,10 @@ export const updateDataType = (org: string, app: string, dataModelName: string, 
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
+export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
 export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string) => post<OptionList>(importCodeListFromOrgPath(org, app, codeListId));
 
-export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
+export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat): Promise<ITextResourcesWithLanguage> => put<ITextResourcesWithLanguage, ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
 export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
@@ -175,7 +179,6 @@ export const migrateDelegations = (org: string, env: string, payload: MigrateDel
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
 
 // ProcessEditor
-
 export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string) => post(processEditorDataTypePath(org, app, dataTypeId, taskId));
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
@@ -192,11 +195,12 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 
 // Organisation library code lists:
-export const createCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
-export const updateCodeListForOrg = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
-export const deleteCodeListForOrg = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
-export const uploadCodeListForOrg = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
+export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
+export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
+export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
 // Organisation text resources:
-export const createTextResourcesForOrg = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
-export const updateTextResourcesForOrg = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
+export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
+export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);

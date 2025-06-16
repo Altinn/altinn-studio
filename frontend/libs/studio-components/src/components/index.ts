@@ -2,6 +2,7 @@
 import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
 
+export { StudioAlert } from './StudioAlert';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
@@ -17,7 +18,18 @@ export { StudioSelect } from './StudioSelect';
 export { StudioTable } from './StudioTable';
 export { StudioTag } from './StudioTag';
 export { StudioValidationMessage } from './StudioValidationMessage';
-export { StudioSpinner } from './StudioSpinner';
-export { StudioTextfield } from './StudioTextfield';
 export { StudioContentMenu } from './StudioContentMenu';
 export type { StudioContentMenuButtonTabProps } from './StudioContentMenu';
+export { StudioTextfield } from './StudioTextfield';
+export { StudioSpinner } from './StudioSpinner';
+export { StudioFieldset } from './StudioFieldset';
+export { StudioFormGroup } from './StudioFormGroup';
+export { StudioCheckbox, useStudioCheckboxGroup } from './StudioCheckbox';
+export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTable';
+export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
+export { StudioSwitch } from './StudioSwitch';
+export { StudioLink } from './StudioLink';
+export { type StudioCallToActionBarProps, StudioCallToActionBar } from './StudioCallToActionBar';
+export { StudioErrorSummary } from './StudioErrorSummary';
+export { StudioCard } from './StudioCard';
+export { StudioDetails } from './StudioDetails';

@@ -6,15 +6,12 @@ const persistFeatureKey = 'persistFeatureFlag';
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
   ComponentConfigBeta = 'componentConfigBeta',
-  ExportForm = 'exportForm',
   Maskinporten = 'maskinporten',
-  MainConfig = 'mainConfig',
-  OptionListEditor = 'optionListEditor',
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  TaskNavigationPageGroups = 'taskNavigationPageGroups',
-  TaskNavigationTabNav = 'taskNavigationTabNav',
+  ConsentResource = 'consentResource',
   SettingsPage = 'settingsPage',
+  AppMetadata = 'appMetadata',
 }
 
 /*

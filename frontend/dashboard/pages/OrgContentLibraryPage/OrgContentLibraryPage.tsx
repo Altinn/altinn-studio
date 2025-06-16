@@ -13,6 +13,7 @@ import {
   StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
+  StudioSpinner,
 } from '@studio/components-legacy';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
@@ -33,11 +34,12 @@ import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMerg
 import { useOrgRepoName } from 'dashboard/hooks/useOrgRepoName';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
-import { useTextResourcesForOrgQuery } from 'app-shared/hooks/queries/useTextResourcesForOrgQuery';
+import { useOrgTextResourcesQuery } from 'app-shared/hooks/queries/useOrgTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { useUpdateTextResourcesForOrgMutation } from 'app-shared/hooks/mutations/useUpdateTextResourcesForOrgMutation';
+import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
+import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -54,9 +56,12 @@ type OrgContentLibraryProps = {
 };
 
 function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
+  const { t } = useTranslation();
   const orgRepoName = useOrgRepoName();
-  const { data: repoStatus } = useRepoStatusQuery(orgName, orgRepoName);
+  const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
+
+  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
 
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
@@ -72,7 +77,7 @@ type MergeableOrgContentLibraryProps = {
 function MergeableOrgContentLibrary({ orgName }: MergeableOrgContentLibraryProps): ReactElement {
   const { t } = useTranslation();
   const { data: codeListDataList, status: codeListDataListStatus } = useOrgCodeListsQuery(orgName);
-  const { data: textResources, status: textResourcesStatus } = useTextResourcesForOrgQuery(
+  const { data: textResources, status: textResourcesStatus } = useOrgTextResourcesQuery(
     orgName,
     DEFAULT_LANGUAGE,
   );
@@ -106,10 +111,11 @@ function OrgContentLibraryWithContextAndData({
   orgName,
   textResources: textResourcesWithLanguage,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
-  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
-  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
   const { mutate: createCodeList } = useCreateOrgCodeListMutation(orgName);
-  const { mutate: updateTextResources } = useUpdateTextResourcesForOrgMutation(orgName);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
+  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
+  const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
+  const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -125,6 +131,10 @@ function OrgContentLibraryWithContextAndData({
     [updateTextResources],
   );
 
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string): void => {
+    updateCodeListId({ codeListId, newCodeListId });
+  };
+
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateCodeList({ title, data: codeList });
   };
@@ -137,10 +147,11 @@ function OrgContentLibraryWithContextAndData({
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListDataList,
+          codeListDataList,
           onCreateCodeList: handleCreate,
+          onCreateTextResource: handleUpdateTextResource,
           onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: () => {},
+          onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,

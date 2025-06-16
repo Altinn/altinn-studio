@@ -37,7 +37,6 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type {
   IFrontEndSettings,
   ILayoutSettings,
-  ITextResourcesObjectFormat,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
@@ -71,11 +70,12 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -84,8 +84,10 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
+  getAvailableResourcesFromOrg: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getCodeListsForOrg: jest.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
   getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDataModelMetadata: jest
     .fn()
@@ -112,20 +114,22 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getLayoutSetsExtended: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<LayoutSetsModel>(layoutSetsExtendedMock)),
+    .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
   getOptionListsReferences: jest
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
-  getAvailableResourcesFromOrg: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
-  importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
+  getOrgCodeLists: jest.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrgTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
+  getOrgTextResources: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
+    ),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -182,6 +186,7 @@ export const queriesMock: ServicesContextProps = {
   getAccessLists: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
+  getAllAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
   getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
   getResourceAccessLists: jest
     .fn()
@@ -205,12 +210,8 @@ export const queriesMock: ServicesContextProps = {
   getSelectedMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
-  getTextResourcesForOrg: jest
-    .fn()
-    .mockImplementation(() =>
-      Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
-    ),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+  getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
   fetchBelongsToGiteaOrg: jest
@@ -229,17 +230,15 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
-  createCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
+  createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  createOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
   createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
   createRepoCommit: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
-  createTextResourcesForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteDataTypeFromAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -247,7 +246,9 @@ export const queriesMock: ServicesContextProps = {
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
+  importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -257,8 +258,10 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),
   updateLayoutSetId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTextId: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -266,16 +269,17 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateTextResourcesForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
-  uploadCodeListForOrg: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
+  uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
-  upsertTextResources: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
+  upsertTextResources: jest.fn().mockImplementation(async (_org, _app, language) => {
+    return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
+  }),
   undeployAppFromEnv: jest.fn().mockImplementation(() => Promise.resolve()),
   deletePage: jest.fn().mockImplementation(() => Promise.resolve()),
   modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),

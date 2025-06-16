@@ -4,6 +4,10 @@ import { SettingsNavigation } from './SettingsNavigation';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSetsExtendedMock, layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
 jest.mock('app-shared/hooks/queries/useTaskNavigationGroupQuery', () => ({
   useTaskNavigationGroupQuery: jest.fn(),
@@ -11,12 +15,8 @@ jest.mock('app-shared/hooks/queries/useTaskNavigationGroupQuery', () => ({
 
 const defaultData = [
   {
-    taskId: '1',
+    taskId: 'Task_1',
     taskType: 'data',
-  },
-  {
-    taskId: '2',
-    taskType: 'receipt',
   },
 ];
 
@@ -39,29 +39,27 @@ describe('SettingsNavigation', () => {
       data: defaultData,
     });
 
-    renderSettingsNavigation();
-
-    const dataTask = screen.getByText(textMock('process_editor.task_type.data'));
-    expect(dataTask).toBeInTheDocument();
-    const receiptTask = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
+    await renderSettingsNavigation();
+    const dataTask = screen.getByText(
+      `${textMock('ux_editor.task_table_type.data')}: ${layoutSet1NameMock}`,
     );
-    expect(receiptTask).toBeInTheDocument();
-    const receiptLockerIcon = screen.getByTestId('lockerIcon');
-    expect(receiptLockerIcon).toBeInTheDocument();
+    expect(dataTask).toBeInTheDocument();
   });
 
-  it('should display a warning message if there are no tasks', () => {
+  it('should display a info message if there are no navigation tasks', () => {
     (useTaskNavigationGroupQuery as jest.Mock).mockReturnValue({
       data: [],
     });
 
     renderSettingsNavigation();
-    const warningMessage = screen.getByText(textMock('ux_editor.settings.navigation_warning'));
+    const warningMessage = screen.getByText(textMock('ux_editor.task_table_alert_title'));
     expect(warningMessage).toBeInTheDocument();
   });
 });
 
-const renderSettingsNavigation = () => {
-  return renderWithProviders(<SettingsNavigation />);
+const renderSettingsNavigation = async () => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+
+  return renderWithProviders(<SettingsNavigation />, { queryClient });
 };

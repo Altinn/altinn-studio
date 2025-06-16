@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
@@ -136,6 +137,70 @@ namespace Altinn.Studio.Designer.Controllers
         {
             HttpStatusCode statusCode = await _resourceRegistry.RemoveResourceAccessList(org, id, listId, env);
             return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/allaccesslists")]
+        public async Task<ActionResult> GetAllAccessLists(string org)
+        {
+            // check that the user is member of at least one Resources-Publish-XXXX team in the given organization to 
+            // call this service. We use the Resources-Publish team instead of the AccessLists team, so users 
+            // publishing resource can also set accesslists in policy (but might not have access to change acceslists)
+            bool hasPublishResourcePermission = await HasPublishResourcePermissionInAnyEnv(org);
+            if (!hasPublishResourcePermission)
+            {
+                return StatusCode(403);
+            }
+
+            List<string> envs = GetEnvironmentsForOrg(org);
+            List<AccessList> allAccessLists = [];
+            foreach (string environment in envs)
+            {
+                List<AccessList> envAccessLists = await GetAllAccessListsForEnv(environment, org);
+                allAccessLists.AddRange(envAccessLists.Where(envAccessList =>
+                {
+                    bool isAlreadyInList = allAccessLists.Any(accessList => accessList.Identifier == envAccessList.Identifier);
+                    return !isAlreadyInList;
+                }));
+            }
+
+            return Ok(allAccessLists);
+        }
+
+        private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
+        {
+            List<Team> teams = await _giteaApi.GetTeams();
+            List<string> envs = GetEnvironmentsForOrg(org);
+
+            bool isTeamMember = teams.Any(team =>
+                team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase) &&
+                envs.Any(env => team.Name.Equals($"Resources-Publish-{env}", StringComparison.OrdinalIgnoreCase))
+            );
+            return isTeamMember;
+        }
+
+        private async Task<List<AccessList>> GetAllAccessListsForEnv(string env, string org)
+        {
+            List<AccessList> accessLists = [];
+            try
+            {
+                PagedAccessListResponse pagedListResponse = await _resourceRegistry.GetAccessLists(org, env, "");
+                accessLists.AddRange(pagedListResponse.Data);
+                string nextPage = pagedListResponse.NextPage;
+
+                while (!string.IsNullOrWhiteSpace(nextPage))
+                {
+                    PagedAccessListResponse nextPagedListResponse = await _resourceRegistry.GetAccessLists(org, env, nextPage);
+                    accessLists.AddRange(nextPagedListResponse.Data);
+                    nextPage = nextPagedListResponse.NextPage;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching access lists for org {org} in env {env}: {ex.Message}");
+            }
+
+            return accessLists;
         }
 
         [HttpGet]
@@ -568,6 +633,18 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
+            if (resource.ResourceType == ResourceType.Consent)
+            {
+                if (string.IsNullOrWhiteSpace(resource.ConsentTemplate))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentTemplate", "resourceerror.missingconsenttemplate");
+                }
+                if (!ResourceAdminHelper.ValidDictionaryAttribute(resource.ConsentText))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.consentText", "resourceerror.missingconsenttext");
+                }
+            }
+
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
@@ -615,6 +692,25 @@ namespace Altinn.Studio.Designer.Controllers
                 Console.WriteLine("Invalid repository for resource");
                 return new StatusCodeResult(400);
             }
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/consenttemplates")]
+        public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
+        {
+            string cacheKey = $"consentTemplates${org}";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<ConsentTemplate> consentTemplates))
+            {
+                consentTemplates = await _resourceRegistry.GetConsentTemplates(org);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, consentTemplates, cacheEntryOptions);
+            }
+
+            return consentTemplates;
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
@@ -698,14 +794,16 @@ namespace Altinn.Studio.Designer.Controllers
             return string.Format("{0}-resources", org);
         }
 
-        private List<string> GetEnvironmentsForOrg(string org)
+        private static List<string> GetEnvironmentsForOrg(string org)
         {
-            List<string> environmentsForOrg = ["prod", "tt02"];
-            if (OrgUtil.IsTestEnv(org) || string.Equals(org, "digdir", StringComparison.OrdinalIgnoreCase))
+            List<string> defaultOrgs = ["prod", "tt02"];
+            return org.ToUpper() switch
             {
-                environmentsForOrg.AddRange(["at22", "at23", "at24", "yt01"]);
-            }
-            return environmentsForOrg;
+                "TTD" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
+                "DIGDIR" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
+                "SKD" => [.. defaultOrgs, "yt01"],
+                _ => defaultOrgs,
+            };
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace Altinn.Studio.Designer.Helpers
 {
@@ -133,15 +132,12 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-        public static void AssertValidXmlContent(string xmlContent)
+
+        public static void AssertValidRepoBranchName(string branchName)
         {
-            try
+            if (string.IsNullOrEmpty(branchName) || !AltinnRegexes.AltinnBranchNameRegex().IsMatch(branchName))
             {
-                _ = XDocument.Parse(xmlContent);
-            }
-            catch (XmlException)
-            {
-                throw new ArgumentException("Invalid xml content.");
+                throw new ArgumentException($"The branch name {branchName} is invalid.");
             }
         }
 

@@ -27,6 +27,7 @@ import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioContentMenu, StudioSpinner } from '@studio/components-legacy';
 import type { StudioContentMenuButtonTabProps } from '@studio/components-legacy';
+import { useGetConsentTemplates } from '../../hooks/queries/useGetConsentTemplates';
 
 /**
  * @component
@@ -65,6 +66,10 @@ export const ResourcePage = (): React.JSX.Element => {
   );
 
   const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
+  const { data: consentTemplates } = useGetConsentTemplates(
+    org,
+    resourceData?.resourceType === 'Consent',
+  );
 
   // Mutation function for editing a resource
   const { mutateAsync: editResource } = useEditResourceMutation(org, app, resourceId);
@@ -160,7 +165,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References;
+    return !!altinn2References && resourceData.resourceType === 'GenericAccessResource';
   };
 
   const aboutPageId = 'about';
@@ -246,6 +251,7 @@ export const ResourcePage = (): React.JSX.Element => {
               resourceData={resourceData}
               validationErrors={showResourceErrors ? validationErrors : []}
               onSaveResource={handleSaveResource}
+              consentTemplates={consentTemplates}
               id='page-content-about'
             />
           )}

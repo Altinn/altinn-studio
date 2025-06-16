@@ -9,9 +9,13 @@ import type {
   Resource,
   ResourceFormError,
   ResourceError,
+  ConsentMetadata,
+  AccessList,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 
 /**
  * The map of resource type
@@ -22,6 +26,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
+  Consent: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -95,6 +100,9 @@ export const getAvailableEnvironments = (org: string): Environment[] => {
       environments['at23'],
       environments['at24'],
     );
+  }
+  if (org === 'skd') {
+    availableEnvs.push(environments['yt01']);
   }
   return availableEnvs;
 };
@@ -376,6 +384,87 @@ export const validateResource = (
     }
   }
 
+  // validate consentTemplate
+  if (resourceData.resourceType === 'Consent') {
+    if (!resourceData.consentTemplate) {
+      errors.push({
+        field: 'consentTemplate',
+        error: t('resourceadm.about_resource_consent_template_missing'),
+      });
+    }
+    const consentTextError = getMissingInputLanguageString(
+      {
+        nb: resourceData.consentText?.nb,
+        nn: resourceData.consentText?.nn,
+        en: resourceData.consentText?.en,
+      },
+      t('resourceadm.about_resource_error_usage_string_consent_text'),
+      t,
+    );
+    if (consentTextError) {
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextError,
+      });
+    }
+    if (!resourceData.consentText?.nn) {
+      errors.push({
+        field: 'consentText',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
+      });
+    }
+    if (!resourceData.consentText?.en) {
+      errors.push({
+        field: 'consentText',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
+      });
+    }
+
+    // validate consentMetadata values used in consentText
+    const unknowMetadataValues = getUnknownMetadataValues(
+      resourceData.consentMetadata,
+      resourceData.consentText,
+    );
+    const errorLanguages: string[] = [];
+    Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
+      if (unknowMetadataValues[language].length) {
+        errors.push({
+          field: 'consentText',
+          index: language,
+          error: t('resourceadm.about_resource_error_unknown_metadata_language', {
+            unknownMetadataValues: unknowMetadataValues[language].join(', '),
+          }),
+        });
+        if (language !== 'nb') {
+          errorLanguages.push(t(`language.${language}`));
+        }
+      }
+    });
+    if (errorLanguages.length) {
+      const lastErrorLanguage = errorLanguages.pop();
+      let consentTextNbError = '';
+      if (errorLanguages.length > 0) {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata_multiple', {
+          lang1: errorLanguages.join(', '),
+          lang2: lastErrorLanguage,
+        });
+      } else {
+        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata', {
+          lang1: lastErrorLanguage,
+        });
+      }
+
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: consentTextNbError,
+      });
+    }
+  }
+
   // validate contactPoints
   // if there are no contactPoints, an empty contactPoint is added in the contactPoints component
   if (!resourceData.contactPoints?.length) {
@@ -451,4 +540,111 @@ export const getMigrationErrorMessage = (
     };
   }
   return null;
+};
+
+export const convertMetadataStringToConsentMetadata = (metadataString: string): ConsentMetadata => {
+  return metadataString.split(',').reduce((acc: ConsentMetadata, key: string) => {
+    const trimmedKey = key.trim();
+    if (trimmedKey.length) {
+      acc[trimmedKey] = { optional: false };
+    }
+    return acc;
+  }, {});
+};
+
+const getConsentMetadataValuesFromText = (text: string | null | undefined): string[] => {
+  return text?.match(/{([^{}]*?)}/g) ?? [];
+};
+const getUnknownMetadataValuesInText = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentText: string | null | undefined,
+) => {
+  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
+  const unknownMetadataValueUsed = metadataKeysInConsentText
+    .map((metadataKey) => metadataKey.slice(1, -1))
+    .filter((metadataKey) => !metadataValues?.[metadataKey]);
+
+  return unknownMetadataValueUsed;
+};
+const getUnknownMetadataValues = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentTexts: SupportedLanguage | null | undefined,
+) => {
+  return {
+    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nb),
+    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
+    en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
+  };
+};
+
+const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [requestConsentRule, acceptConsentRule];
+};
+
+const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
+  return rule.actions.some((action) => action === targetAction);
+};
+const hasConsentRules = (policyData: Policy): boolean => {
+  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasRequestConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, 'requestconsent'),
+  );
+
+  return hasAcceptConsentAction && hasRequestConsentAction;
+};
+
+export const getResourcePolicyRules = (
+  policyData: Policy,
+  resourceId: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource && !hasConsentRules(policyData)) {
+    return {
+      ...policyData,
+      rules: getConsentResourceDefaultRules(resourceId),
+    };
+  } else if (!isConsentResource && hasConsentRules(policyData)) {
+    // remove consent only-rules if resource has consent rules but is not a consent resource
+    return {
+      ...policyData,
+      rules: policyData.rules.filter(
+        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+      ),
+    };
+  }
+  return policyData;
+};
+
+export const getResourceSubjects = (
+  accessLists: AccessList[],
+  subjectData: PolicySubject[],
+  org: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource) {
+    const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
+      return {
+        subjectId: `${accessList.identifier}`,
+        subjectSource: `altinn:accesslist:${org}`,
+        subjectTitle: accessList.name,
+        subjectDescription: accessList.description,
+      };
+    });
+    return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  return subjectData;
 };

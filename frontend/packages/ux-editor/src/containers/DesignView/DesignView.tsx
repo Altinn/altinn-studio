@@ -20,9 +20,9 @@ import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageMutation } from '../../hooks/mutations/useAddPageMutation';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { DesignViewNavigation } from '../DesignViewNavigation';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
+import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -39,6 +39,7 @@ export const DesignView = (): ReactNode => {
   const {
     selectedFormLayoutSetName,
     selectedFormLayoutName,
+    setSelectedItem,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
@@ -71,8 +72,16 @@ export const DesignView = (): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
+      setSelectedItem({
+        type: ItemType.Page,
+        id: pageName,
+      });
     } else {
       setSelectedFormLayoutName(undefined);
+      setSelectedItem({
+        type: ItemType.Page,
+        id: pageName,
+      });
     }
   };
 
@@ -135,23 +144,21 @@ export const DesignView = (): ReactNode => {
     );
   });
 
-  const hasGroups = pagesModel?.groups?.length > 0;
+  const hasGroups = !!pagesModel?.groups;
 
-  const isTaskNavigationPageGroups = shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups);
   const handleAddGroup = () => addGroupMutation();
 
   return (
     <div className={classes.root}>
       <div className={classes.wrapper}>
-        {isTaskNavigationPageGroups && <DesignViewNavigation />}
+        <DesignViewNavigation />
         <div className={classes.accordionWrapper}>
-          {isTaskNavigationPageGroups && hasGroups ? (
+          {hasGroups ? (
             <PageGroupAccordion
               pages={pagesModel}
               layouts={layouts}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={handleClickAccordion}
-              onAddPage={handleAddPage}
               isAddPagePending={isAddPageMutationPending}
             />
           ) : (

@@ -20,26 +20,6 @@ export function getSelectedOptionsType(
     : SelectedOptionsType.CodeList;
 }
 
-// Todo: Remove once featureFlag "optionListEditor" is removed.
-export function getSelectedOptionsTypeWithManualSupport(
-  codeListId: string | undefined,
-  options: OptionList | undefined,
-  optionListIds: string[] = [],
-): SelectedOptionsType {
-  /** It is not permitted for a component to have both options and optionsId set on the same component. */
-  if (options?.length && codeListId) {
-    return SelectedOptionsType.Unknown;
-  }
-
-  if (!!options) {
-    return SelectedOptionsType.Manual;
-  }
-
-  return isOptionsIdReferenceId(optionListIds, codeListId)
-    ? SelectedOptionsType.ReferenceId
-    : SelectedOptionsType.CodeList;
-}
-
 export function hasOptionListChanged(oldOptions: OptionList, newOptions: OptionList): boolean {
   return JSON.stringify(oldOptions) !== JSON.stringify(newOptions);
 }
@@ -108,8 +88,7 @@ export function isOptionsIdReferenceId(
 
 export function hasStaticOptionList(
   optionListIds: string[],
-  optionsId: undefined | string,
-  options: undefined | OptionList,
+  { optionsId, options }: FormComponent<SelectionComponentType>,
 ): boolean {
   if (options) return true;
   return !!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId);

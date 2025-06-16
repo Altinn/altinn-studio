@@ -3,7 +3,7 @@ import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-lib
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -91,7 +91,7 @@ describe('ResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
+  it('displays migrate tab in left navigation bar when resource reference is present in resource and resource is GenericAccessResource', async () => {
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
@@ -106,6 +106,23 @@ describe('ResourcePage', () => {
     ).toBeInTheDocument();
   });
 
+  it('does not display migrate tab in left navigation bar when resource reference is present in resource and resource is not GenericAccessResource', async () => {
+    const getResource = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve<Resource>({ ...mockResource1, resourceType: 'Consent' }),
+      );
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    expect(
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not display migrate tab in left navigation bar when resource reference is not in resource', async () => {
     const getResource = jest
       .fn()
@@ -117,7 +134,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
     ).not.toBeInTheDocument();
   });
 
@@ -254,6 +271,17 @@ describe('ResourcePage', () => {
     await waitFor(() => deployResourceVersionField.blur());
 
     await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
+  });
+
+  it('fetches consent templates when resource is consent resource', async () => {
+    const resource = { ...mockResource1, resourceType: 'Consent' as ResourceTypeOption };
+    const getResource = jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource));
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+    expect(queriesMock.getConsentTemplates).toHaveBeenCalledTimes(1);
   });
 });
 

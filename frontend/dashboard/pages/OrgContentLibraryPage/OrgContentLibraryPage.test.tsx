@@ -33,6 +33,10 @@ const orgPath = '/' + orgName;
 const defaultProviderData: ProviderData = {
   initialEntries: [orgPath],
 };
+const repositoryName = `${orgName}-content`;
+const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
+const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
+const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -58,19 +62,24 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
-  it('Renders the content library', async () => {
+  it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
-  it('renders a spinner while waiting for code lists', () => {
+  it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
+  it('renders a spinner while waiting for code lists', () => {
+    renderOrgContentLibraryWithRepoStatus();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+  });
+
   it('Renders an error message when the code lists query fails', async () => {
-    const getCodeListsForOrg = () => Promise.reject(new Error('Test error'));
-    renderOrgContentLibrary({ queries: { getCodeListsForOrg } });
+    const getOrgCodeLists = () => Promise.reject(new Error('Test error'));
+    renderOrgContentLibrary({ queries: { getOrgCodeLists } });
     await waitFor(expect(screen.queryByTitle(textMock('general.loading'))).not.toBeInTheDocument);
 
     const errorMessage = textMock('dashboard.org_library.fetch_error');
@@ -90,7 +99,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrieveConfig().codeList.props.codeListsData;
+    const renderedList = retrieveConfig().codeList.props.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
@@ -109,93 +118,104 @@ describe('OrgContentLibraryPage', () => {
     expect(textResourcesData).toEqual(expectedTextResources);
   });
 
-  it('calls updateCodeListForOrg with correct data when onUpdateCodeList is triggered', async () => {
-    const updateCodeListForOrg = jest.fn();
-    renderOrgContentLibraryWithData({ queries: { updateCodeListForOrg } });
+  it('calls updateOrgCodeList with correct data when onUpdateCodeList is triggered', async () => {
+    const updateOrgCodeList = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { updateOrgCodeList } });
     const { title, data } = codeList1Data;
 
     retrieveConfig().codeList.props.onUpdateCodeList({ title, codeList: data });
-    await waitFor(expect(updateCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(updateOrgCodeList).toHaveBeenCalled);
 
-    expect(updateCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(updateCodeListForOrg).toHaveBeenCalledWith(orgName, title, data);
+    expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
   });
 
-  it('calls createCodeListForOrg with correct data when onCreateCodeList is triggered', async () => {
-    const createCodeListForOrg = jest.fn();
-    renderOrgContentLibraryWithData({ queries: { createCodeListForOrg } });
+  it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
+    const updateOrgCodeListId = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
+    const codeListId: string = codeList1Data.title;
+    const newCodeListId: string = 'new-id';
+
+    retrieveConfig().codeList.props.onUpdateCodeListId(codeListId, newCodeListId);
+    await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
+
+    expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeListId).toHaveBeenCalledWith(orgName, codeListId, newCodeListId);
+  });
+
+  it('calls createOrgCodeList with correct data when onCreateCodeList is triggered', async () => {
+    const createOrgCodeList = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { createOrgCodeList } });
     const { title, data } = codeList1Data;
 
     retrieveConfig().codeList.props.onCreateCodeList({ title, codeList: data });
-    await waitFor(expect(createCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(createOrgCodeList).toHaveBeenCalled);
 
-    expect(createCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(createCodeListForOrg).toHaveBeenCalledWith(orgName, title, data);
+    expect(createOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(createOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
   });
 
-  it('calls uploadCodeListForOrg with correct data when onUploadCodeList is triggered', async () => {
-    const uploadCodeListForOrg = jest.fn();
+  it('calls uploadOrgCodeList with correct data when onUploadCodeList is triggered', async () => {
+    const uploadOrgCodeList = jest.fn();
     const file = new File([''], 'list.json');
-    renderOrgContentLibraryWithData({ queries: { uploadCodeListForOrg } });
+    renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
-    await waitFor(expect(uploadCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
-    expect(uploadCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(uploadCodeListForOrg).toHaveBeenCalledWith(orgName, expect.any(FormData));
-    const formData: FormData = uploadCodeListForOrg.mock.calls[0][1];
+    expect(uploadOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(uploadOrgCodeList).toHaveBeenCalledWith(orgName, expect.any(FormData));
+    const formData: FormData = uploadOrgCodeList.mock.calls[0][1];
     expect(formData.get('file')).toBe(file);
   });
 
-  it('renders success toast when uploadCodeListForOrg is run successfully', async () => {
-    const uploadCodeListForOrg = jest.fn();
+  it('renders success toast when uploadOrgCodeList is run successfully', async () => {
+    const uploadOrgCodeList = jest.fn();
     const file = new File([''], 'list.json');
-    renderOrgContentLibraryWithData({ queries: { uploadCodeListForOrg } });
+    renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
-    await waitFor(expect(uploadCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const successMessage = textMock('dashboard.org_library.code_list_upload_success');
     expect(screen.getByText(successMessage)).toBeInTheDocument();
   });
 
   it('renders error toast when onUploadCodeList is rejected with unknown error code', async () => {
-    const uploadCodeListForOrg = jest
-      .fn()
-      .mockImplementation(() => Promise.reject({ response: {} }));
+    const uploadOrgCodeList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
-    renderOrgContentLibraryWithData({ queries: { uploadCodeListForOrg } });
+    renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrieveConfig().codeList.props.onUploadCodeList(file);
-    await waitFor(expect(uploadCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const errorMessage = textMock('dashboard.org_library.code_list_upload_generic_error');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('calls deleteCodeListForOrg with correct data when onDeleteCodeList is triggered', async () => {
-    const deleteCodeListForOrg = jest.fn();
-    renderOrgContentLibraryWithData({ queries: { deleteCodeListForOrg } });
+  it('calls deleteOrgCodeList with correct data when onDeleteCodeList is triggered', async () => {
+    const deleteOrgCodeList = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
     retrieveConfig().codeList.props.onDeleteCodeList(codeList1Data.title);
-    await waitFor(expect(deleteCodeListForOrg).toHaveBeenCalled);
+    await waitFor(expect(deleteOrgCodeList).toHaveBeenCalled);
 
-    expect(deleteCodeListForOrg).toHaveBeenCalledTimes(1);
-    expect(deleteCodeListForOrg).toHaveBeenCalledWith(orgName, codeList1Data.title);
+    expect(deleteOrgCodeList).toHaveBeenCalledTimes(1);
+    expect(deleteOrgCodeList).toHaveBeenCalledWith(orgName, codeList1Data.title);
   });
 
-  it('Calls updateTextResourcesForOrg with correct data when onUpdateTextResource is triggered', async () => {
+  it('Calls updateOrgTextResources with correct data when onUpdateTextResource is triggered', async () => {
     const language = 'nb';
     const textResource = label1ResourceNb;
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderOrgContentLibraryWithData();
 
     retrieveConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
-    await waitFor(expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalled);
+    await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
 
-    expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
     const expectedPayload: KeyValuePairs<string> = { [textResource.id]: textResource.value };
-    expect(queriesMock.updateTextResourcesForOrg).toHaveBeenCalledWith(
+    expect(queriesMock.updateOrgTextResources).toHaveBeenCalledWith(
       orgName,
       language,
       expectedPayload,
@@ -240,11 +260,9 @@ function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void 
 
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData(
-    [QueryKey.TextResourcesForOrg, orgName, DEFAULT_LANGUAGE],
-    textResourcesWithLanguage,
-  );
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
@@ -255,8 +273,20 @@ function renderOrgContentLibraryWithMissingTextResources(): void {
 
 function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData([QueryKey.TextResourcesForOrg, orgName, DEFAULT_LANGUAGE], null);
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, null);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  return queryClient;
+}
+
+function renderOrgContentLibraryWithRepoStatus(): void {
+  const queryClient = createQueryClientWithRepoStatus();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function createQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 

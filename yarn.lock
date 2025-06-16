@@ -1938,18 +1938,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@chromatic-com/storybook@npm:3.2.4":
-  version: 3.2.4
-  resolution: "@chromatic-com/storybook@npm:3.2.4"
+"@chromatic-com/storybook@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@chromatic-com/storybook@npm:4.0.0"
   dependencies:
-    chromatic: "npm:^11.15.0"
+    "@neoconfetti/react": "npm:^1.0.0"
+    chromatic: "npm:^12.0.0"
     filesize: "npm:^10.0.12"
     jsonfile: "npm:^6.1.0"
-    react-confetti: "npm:^6.1.0"
     strip-ansi: "npm:^7.1.0"
   peerDependencies:
-    storybook: ^8.2.0 || ^8.3.0-0 || ^8.4.0-0 || ^8.5.0-0 || ^8.6.0-0
-  checksum: 10/2d4c7c66810605c9d4c9eccce1755b8dfa4504f9511b53bc2887f2d25bfc564347a9fad110fdd296e9978dcec7f5351a03547ec544ce5ce7284f52db26ce37fe
+    storybook: ^0.0.0-0 || ^9.0.0 || ^9.1.0-0
+  checksum: 10/326d887e58ff21731d5face900e8d64387a84328ab88e2423eb5d562f6302aff462845997210788d6edfda7689c13713630bb506fe923e78d86e9e28a4e6925d
   languageName: node
   linkType: hard
 
@@ -3141,6 +3141,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@neoconfetti/react@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@neoconfetti/react@npm:1.0.0"
+  checksum: 10/71a623f2df79c773b6693fab3a252ee2d7bb1da4a8986c2d15b5ef25493835c1de64f2e44637faf823970d43d63f32227b09a6605ad23f39bc82c14d810e45cd
+  languageName: node
+  linkType: hard
+
 "@nevware21/ts-async@npm:>= 0.5.2 < 2.x":
   version: 0.5.2
   resolution: "@nevware21/ts-async@npm:0.5.2"
@@ -3486,20 +3493,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:8.5.2":
-  version: 8.5.2
-  resolution: "@storybook/addon-links@npm:8.5.2"
+"@storybook/addon-links@npm:9.0.6":
+  version: 9.0.6
+  resolution: "@storybook/addon-links@npm:9.0.6"
   dependencies:
-    "@storybook/csf": "npm:0.1.12"
     "@storybook/global": "npm:^5.0.0"
-    ts-dedent: "npm:^2.0.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    storybook: ^8.5.2
+    storybook: ^9.0.6
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10/6b38ca9cb30b108260d11c3956725f434ccaa47ad43ebf33726584a7d39728da350e176c5016330132b7541f5c9b6834a523025047198a22ea24f3f2a52bf94c
+  checksum: 10/2c139ec08af3e219bd93be3c2324f2b44085ca3b629c97840a35039ef74acd282f6dbe514e4e535604f641303bf506f68af4b8a71799ee37462e4a5bd188e44b
   languageName: node
   linkType: hard
 
@@ -3874,10 +3879,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/components-legacy@workspace:frontend/libs/studio-components-legacy"
   dependencies:
-    "@chromatic-com/storybook": "npm:3.2.4"
+    "@chromatic-com/storybook": "npm:4.0.0"
     "@storybook/addon-essentials": "npm:8.5.2"
     "@storybook/addon-interactions": "npm:8.5.2"
-    "@storybook/addon-links": "npm:8.5.2"
+    "@storybook/addon-links": "npm:9.0.6"
     "@storybook/addon-webpack5-compiler-swc": "npm:3.0.0"
     "@storybook/blocks": "npm:8.5.2"
     "@storybook/react": "npm:8.5.2"
@@ -3908,13 +3913,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
-    "@chromatic-com/storybook": "npm:3.2.4"
+    "@chromatic-com/storybook": "npm:4.0.0"
     "@digdir/designsystemet-css": "npm:^1.0.2"
     "@digdir/designsystemet-react": "npm:^1.0.2"
     "@digdir/designsystemet-theme": "npm:^1.0.2"
     "@storybook/addon-essentials": "npm:8.5.2"
     "@storybook/addon-interactions": "npm:8.5.2"
-    "@storybook/addon-links": "npm:8.5.2"
+    "@storybook/addon-links": "npm:9.0.6"
     "@storybook/addon-webpack5-compiler-swc": "npm:2.0.0"
     "@storybook/blocks": "npm:8.5.2"
     "@storybook/react": "npm:8.5.2"
@@ -4834,6 +4839,18 @@ __metadata:
     "@types/qs": "npm:*"
     "@types/range-parser": "npm:*"
   checksum: 10/47ee1b46be710ae6451a2e658e2eab75f4affe874b0d156a31e792db0ddb35184ac7b35be926eb23424cc45f6e0d3dbacc86ac5d63a3c988d8235aedb1143841
+  languageName: node
+  linkType: hard
+
+"@types/express-serve-static-core@npm:^4.17.21":
+  version: 4.19.6
+  resolution: "@types/express-serve-static-core@npm:4.19.6"
+  dependencies:
+    "@types/node": "npm:*"
+    "@types/qs": "npm:*"
+    "@types/range-parser": "npm:*"
+    "@types/send": "npm:*"
+  checksum: 10/a2e00b6c5993f0dd63ada2239be81076fe0220314b9e9fde586e8946c9c09ce60f9a2dd0d74410ee2b5fd10af8c3e755a32bb3abf134533e2158142488995455
   languageName: node
   linkType: hard
 
@@ -6182,7 +6199,7 @@ __metadata:
     typescript-plugin-css-modules: "npm:5.1.0"
     webpack: "npm:5.97.1"
     webpack-cli: "npm:5.1.4"
-    webpack-dev-server: "npm:5.2.0"
+    webpack-dev-server: "npm:5.2.1"
     whatwg-fetch: "npm:3.6.20"
   languageName: unknown
   linkType: soft
@@ -6297,7 +6314,7 @@ __metadata:
     react-router-dom: "npm:6.29.0"
     typescript: "npm:5.7.3"
     webpack: "npm:5.97.1"
-    webpack-dev-server: "npm:5.2.0"
+    webpack-dev-server: "npm:5.2.1"
   languageName: unknown
   linkType: soft
 
@@ -6312,7 +6329,7 @@ __metadata:
     react-router-dom: "npm:6.29.0"
     typescript: "npm:5.7.3"
     webpack: "npm:5.97.1"
-    webpack-dev-server: "npm:5.2.0"
+    webpack-dev-server: "npm:5.2.1"
   languageName: unknown
   linkType: soft
 
@@ -7437,9 +7454,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chromatic@npm:^11.15.0":
-  version: 11.19.0
-  resolution: "chromatic@npm:11.19.0"
+"chromatic@npm:^12.0.0":
+  version: 12.1.1
+  resolution: "chromatic@npm:12.1.1"
   peerDependencies:
     "@chromatic-com/cypress": ^0.*.* || ^1.0.0
     "@chromatic-com/playwright": ^0.*.* || ^1.0.0
@@ -7452,7 +7469,7 @@ __metadata:
     chroma: dist/bin.js
     chromatic: dist/bin.js
     chromatic-cli: dist/bin.js
-  checksum: 10/e9e55d3ceeb6b7f7d1b591c123c83b07b3afacfac2deb4f6a48d2edd6664f5da65a3b2ab42002e5269c90894fa029755ad95f8763f5730cbeaa3ecc1de3ab309
+  checksum: 10/ddbe338780c9925472bf47e7aa140e3f93be45450da7cf3e6b719eeea455d2be8903f3203aa36942e851972bbb7dc8b9091f8122923eef9a2b8f6d59ce148eb3
   languageName: node
   linkType: hard
 
@@ -8324,7 +8341,7 @@ __metadata:
     react-router-dom: "npm:6.29.0"
     typescript: "npm:5.7.3"
     webpack: "npm:5.97.1"
-    webpack-dev-server: "npm:5.2.0"
+    webpack-dev-server: "npm:5.2.1"
   languageName: unknown
   linkType: soft
 
@@ -15783,17 +15800,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-confetti@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "react-confetti@npm:6.1.0"
-  dependencies:
-    tween-functions: "npm:^1.2.0"
-  peerDependencies:
-    react: ^16.3.0 || ^17.0.1 || ^18.0.0
-  checksum: 10/33423767c42362b29e0c8fd09f60bcf40d64aeb721fd63564f85c61357706a6080563ec40f33435d210d5b5b1af7277aef4545deccf771d08785a3cb19749470
-  languageName: node
-  linkType: hard
-
 "react-dnd-html5-backend@npm:16.0.1":
   version: 16.0.1
   resolution: "react-dnd-html5-backend@npm:16.0.1"
@@ -16395,7 +16401,7 @@ __metadata:
     react-dom: "npm:18.3.1"
     typescript: "npm:5.7.3"
     webpack: "npm:5.97.1"
-    webpack-dev-server: "npm:5.2.0"
+    webpack-dev-server: "npm:5.2.1"
   languageName: unknown
   linkType: soft
 
@@ -18241,13 +18247,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tween-functions@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "tween-functions@npm:1.2.0"
-  checksum: 10/f145f39187aacfe6e3c6bfe8452be4061a569b8e1e75c28169c55b7cdf519daa1877c79a8a2cdc902b68f49b67b8478f34818ff02529d27ae5aa0545e7fbdc06
-  languageName: node
-  linkType: hard
-
 "tweetnacl@npm:^0.14.3, tweetnacl@npm:~0.14.0":
   version: 0.14.5
   resolution: "tweetnacl@npm:0.14.5"
@@ -18954,13 +18953,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack-dev-server@npm:5.2.0":
-  version: 5.2.0
-  resolution: "webpack-dev-server@npm:5.2.0"
+"webpack-dev-server@npm:5.2.1":
+  version: 5.2.1
+  resolution: "webpack-dev-server@npm:5.2.1"
   dependencies:
     "@types/bonjour": "npm:^3.5.13"
     "@types/connect-history-api-fallback": "npm:^1.5.4"
     "@types/express": "npm:^4.17.21"
+    "@types/express-serve-static-core": "npm:^4.17.21"
     "@types/serve-index": "npm:^1.9.4"
     "@types/serve-static": "npm:^1.15.5"
     "@types/sockjs": "npm:^0.3.36"
@@ -18994,7 +18994,7 @@ __metadata:
       optional: true
   bin:
     webpack-dev-server: bin/webpack-dev-server.js
-  checksum: 10/f93ca46b037e547a9db157db72ef98ab177659ad13a6e63302d87bd77b32e524dd7133f1ad18f5a51ec68712911c59be8d4e06aa7bcbe6f56a9e9ce3774cf7f6
+  checksum: 10/424edfe22b7bbe2301a38b8b519dfeb7643e0ca643be01af3fa48ec18512955c1952246741d7577bdb911ee09dcd6c521ade7d65e0059448ee69ab02bfac4624
   languageName: node
   linkType: hard
 
