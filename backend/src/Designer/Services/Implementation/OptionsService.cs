@@ -169,14 +169,14 @@ public class OptionsService : IOptionsService
     private async Task ImportTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overrideExistingAppTextResources, CancellationToken cancellationToken)
     {
         (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
-        List<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
-        List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
-        List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
+        HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
+        HashSet<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages().ToHashSet();
+        HashSet<string> appLanguageCodes = altinnAppGitRepository.GetLanguages().ToHashSet();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
             TextResource appTextResources = await RetrieveTextResourcesFromApp(altinnAppGitRepository, appLanguageCodes, orgLanguageCode, cancellationToken);
-            List<string> appTextResourceIds = appTextResources.Resources.Select(textResourceElement => textResourceElement.Id).ToList();
+            HashSet<string> appTextResourceIds = appTextResources.Resources.Select(textResourceElement => textResourceElement.Id).ToHashSet();
             TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
 
             List<TextResourceElement> textResourceElements = ExtractOrgTextResourceElementsToImport(orgTextResources, optionListTextResourceIds, appTextResourceIds, overrideExistingAppTextResources);
@@ -186,19 +186,19 @@ public class OptionsService : IOptionsService
         }
     }
 
-    private static List<string> RetrieveTextResourceIdsInOptionList(List<Option> optionList)
+    private static HashSet<string> RetrieveTextResourceIdsInOptionList(List<Option> optionList)
     {
-        List<string> textResourceIdsInOptionList = [];
+        HashSet<string> textResourceIds = [];
         foreach (Option option in optionList)
         {
-            if (!string.IsNullOrEmpty(option.Label)) textResourceIdsInOptionList.Add(option.Label);
-            if (!string.IsNullOrEmpty(option.Description)) textResourceIdsInOptionList.Add(option.Description);
-            if (!string.IsNullOrEmpty(option.HelpText)) textResourceIdsInOptionList.Add(option.HelpText);
+            if (!string.IsNullOrEmpty(option.Label)) { textResourceIds.Add(option.Label); }
+            if (!string.IsNullOrEmpty(option.Description)) { textResourceIds.Add(option.Description); }
+            if (!string.IsNullOrEmpty(option.HelpText)) { textResourceIds.Add(option.HelpText); }
         }
-        return textResourceIdsInOptionList;
+        return textResourceIds;
     }
 
-    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, List<string> appLanguageCodes, string orgLanguageCode, CancellationToken cancellationToken)
+    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, HashSet<string> appLanguageCodes, string orgLanguageCode, CancellationToken cancellationToken)
     {
         if (appLanguageCodes.Contains(orgLanguageCode))
         {
@@ -212,7 +212,7 @@ public class OptionsService : IOptionsService
         };
     }
 
-    private static List<TextResourceElement> ExtractOrgTextResourceElementsToImport(TextResource orgTextResources, List<string> optionListTextResourceIds, List<string> appTextResourceIds, bool overrideExistingAppTextResources)
+    private static List<TextResourceElement> ExtractOrgTextResourceElementsToImport(TextResource orgTextResources, HashSet<string> optionListTextResourceIds, HashSet<string> appTextResourceIds, bool overrideExistingAppTextResources)
     {
         List<TextResourceElement> textResourceElements = [];
         textResourceElements.AddRange(orgTextResources.Resources
