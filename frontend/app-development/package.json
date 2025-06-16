@@ -32,7 +32,6 @@
   "scripts": {
     "build": "vite build",
     "start": "vite serve --host 0.0.0.0",
-    "vitest": "vitest",
     "preview": "vite preview --host 0.0.0.0",
     "test": "jest --maxWorkers=50%",
     "typecheck": "npx tsc --noEmit",
