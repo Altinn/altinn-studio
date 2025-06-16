@@ -79,20 +79,5 @@ describe('appResourceValidationUtils', () => {
         ]),
       );
     });
-
-    it('includes the usage string error if any language is missing', () => {
-      const appResource: AppResource = {
-        serviceName: {
-          nb: '',
-          en: '',
-        },
-      } as AppResource;
-
-      const result: AppResourceFormError[] = validateAppResource(appResource, textMock);
-
-      expect(
-        result.some((e) => e.error.includes('app_settings.about_tab_language_error_missing_2')),
-      ).toBe(true);
-    });
   });
 });

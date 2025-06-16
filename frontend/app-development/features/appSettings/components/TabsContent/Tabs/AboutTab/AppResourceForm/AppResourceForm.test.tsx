@@ -27,9 +27,9 @@ describe('AppResourceForm', () => {
     await user.click(saveButton);
 
     expect(getAlert()).toBeInTheDocument();
-    expect(getLink(errorMessageServiceNameMissingNNandEN)).toBeInTheDocument();
     expect(getLink(errorMessageServiceNameNN)).toBeInTheDocument();
     expect(getLink(errorMessageServiceNameEN)).toBeInTheDocument();
+    expect(getText(errorMessageServiceNameMissingNNandEN)).toBeInTheDocument();
   });
 
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
@@ -293,6 +293,7 @@ const queryLink = (name: string): HTMLAnchorElement => screen.queryByRole('link'
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
 const getAlert = () => screen.getByRole('alert');
 const queryAlert = () => screen.queryByRole('alert');
+const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
@@ -300,8 +301,8 @@ const errorMessageServiceNameMissingNNandEN: string = textMock(
   'app_settings.about_tab_language_error_missing_2',
   {
     usageString: textMock('app_settings.about_tab_error_usage_string_service_name'),
-    lang1: textMock('language.nn'),
-    lang2: textMock('language.en'),
+    lang1: textMock('language.nn').toLowerCase(),
+    lang2: textMock('language.en').toLowerCase(),
   },
 );
 const errorMessageServiceNameNN: string = textMock(
