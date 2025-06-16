@@ -5,6 +5,7 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import axios from 'axios';
+import { envFilePath } from 'app-shared/api/paths';
 
 export type LoggerConfig = IConfiguration & IConfig;
 
@@ -23,9 +24,12 @@ export const LoggerContextProvider = ({
 
   const fetchConfig = async () => {
     const response = await axios
-      .get('/designer/config/env.json')
+      .get(envFilePath())
       .catch((error) =>
-        console.warn('Could not load environment file. This is expected on localhost', error),
+        console.warn(
+          'Could not load environment file. This is expected for local dev environments.',
+          error,
+        ),
       );
     if (response) return response.data as AltinnStudioEnvironment;
   };
