@@ -89,8 +89,13 @@ export const DeploymentEnvironmentLogList = ({
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const tableCellStatusClassName = classes[deploy.build.result];
-                const buildStartTime = new Date(deploy.build.started).getTime();
-                const buildFinishTime = new Date(deploy.build.finished).getTime();
+                const buildStartTime = deploy.build.started
+                  ? new Date(deploy.build.started).getTime()
+                  : undefined;
+                const buildFinishTime = deploy.build.finished
+                  ? new Date(deploy.build.finished).getTime()
+                  : undefined;
+
                 return (
                   <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
                     <Table.Cell
