@@ -10,7 +10,7 @@ on:
       - '.github/workflows/template-short-sha.yaml'
       - 'backend/**'
       - 'frontend/**'
-      - 'Dockefile'
+      - 'Dockerfile'
       - 'package.json'
       - 'charts/altinn-designer/**'
       - 'charts/altinn-designer-config/**'
