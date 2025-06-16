@@ -4,12 +4,17 @@ import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
 export const useAddPageToGroup = (pagesModel: PagesModel) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
+  const {
+    setSelectedItem,
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutName,
+    updateLayoutsForPreview,
+  } = useAppContext();
   const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
 
   const nextValidPageName = () => {
@@ -50,9 +55,10 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
     pagesModel.groups.splice(groupIndex, 1, currentGroup);
 
     await updateGroupsMutation.mutateAsync(updatedPages, {
-      onSuccess: () => {
+      onSuccess: async () => {
         setSelectedFormLayoutName(page.id);
-        updateLayoutsForPreview(selectedFormLayoutSetName);
+        setSelectedItem({ type: ItemType.Page, id: page.id });
+        await updateLayoutsForPreview(selectedFormLayoutSetName);
       },
     });
   };

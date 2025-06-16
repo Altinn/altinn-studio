@@ -102,6 +102,7 @@ export const DesignView = (): ReactNode => {
     addPageMutation(page, {
       onSuccess: async () => {
         setSelectedFormLayoutName(page.id);
+        setSelectedItem({ type: ItemType.Page, id: page.id });
         await updateLayoutsForPreview(selectedFormLayoutSetName);
       },
     });
