@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Microsoft.Extensions.Logging;
 using PolicyAdmin.Models;
 
@@ -14,19 +15,21 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
     {
         private readonly HttpClient _client;
         private readonly ILogger<PolicyOptionsClient> _logger;
+        private readonly PlatformSettings _platformSettings;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, };
 
-        public PolicyOptionsClient(HttpClient httpClient, ILogger<PolicyOptionsClient> logger)
+        public PolicyOptionsClient(HttpClient httpClient, ILogger<PolicyOptionsClient> logger, PlatformSettings platformSettings)
         {
             _client = httpClient;
             _logger = logger;
+            _platformSettings = platformSettings;
         }
 
         public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
+
+            string url = _platformSettings.AccessPackagesUrl;
 
             List<AccessPackageAreaGroup> accessPackageOptions;
 
