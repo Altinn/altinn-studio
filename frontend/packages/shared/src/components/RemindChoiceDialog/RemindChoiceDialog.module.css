@@ -13,10 +13,6 @@
   max-width: unset;
 }
 
-.closed {
-  display: none;
-}
-
 .buttons {
   display: flex;
   gap: var(--ds-size-4);

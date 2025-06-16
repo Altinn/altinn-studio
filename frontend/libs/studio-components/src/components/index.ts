@@ -29,6 +29,7 @@ export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTab
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
 export { StudioLink } from './StudioLink';
+export { StudioLinkButton } from './StudioLinkButton';
 export { type StudioCallToActionBarProps, StudioCallToActionBar } from './StudioCallToActionBar';
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';

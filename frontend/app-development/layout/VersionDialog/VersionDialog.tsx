@@ -5,7 +5,6 @@ import {
   StudioAlert,
   StudioDialog,
   StudioHeading,
-  StudioLink,
   StudioParagraph,
   StudioTable,
 } from '@studio/components';
@@ -24,6 +23,7 @@ import cn from 'classnames';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { RemindChoiceDialog } from 'app-shared/components/RemindChoiceDialog/RemindChoiceDialog';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
+import { VersionDialogTableRow } from './VersionDialogTableRow';
 
 export const VersionDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -139,46 +139,30 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
             </StudioTable.Head>
             <StudioTable.Body>
               {isFrontendVersionOutdated && (
-                <StudioTable.Row>
-                  <StudioTable.HeaderCell>Frontend</StudioTable.HeaderCell>
-                  <StudioTable.Cell>
-                    {frontendVersion ? `v${frontendVersion}` : t('version_dialog.unknown')}
-                  </StudioTable.Cell>
-                  <StudioTable.Cell>v{MAXIMUM_SUPPORTED_FRONTEND_VERSION}</StudioTable.Cell>
-                  <StudioTable.Cell>
-                    <StudioLink
-                      className={classes.linkButton}
-                      href={altinnDocsUrl({
-                        relativeUrl: 'community/changelog/app-frontend/',
-                      })}
-                    >
-                      {t('version_dialog.update_frontend', {
-                        latestVersion: MAXIMUM_SUPPORTED_FRONTEND_VERSION,
-                      })}
-                    </StudioLink>
-                  </StudioTable.Cell>
-                </StudioTable.Row>
+                <VersionDialogTableRow
+                  devTypeLabel='Frontend'
+                  currentVersion={frontendVersion}
+                  latestVersion={MAXIMUM_SUPPORTED_FRONTEND_VERSION}
+                  link={{
+                    href: altinnDocsUrl({
+                      relativeUrl: 'community/changelog/app-frontend/',
+                    }),
+                    text: t('version_dialog.update_frontend'),
+                  }}
+                />
               )}
               {isBackendVersionOutdated && (
-                <StudioTable.Row>
-                  <StudioTable.HeaderCell>Backend</StudioTable.HeaderCell>
-                  <StudioTable.Cell>
-                    {backendVersion ? `v${backendVersion}` : t('version_dialog.unknown')}
-                  </StudioTable.Cell>
-                  <StudioTable.Cell>v{MAXIMUM_SUPPORTED_BACKEND_VERSION}</StudioTable.Cell>
-                  <StudioTable.Cell>
-                    <StudioLink
-                      className={classes.linkButton}
-                      href={altinnDocsUrl({
-                        relativeUrl: 'community/changelog/app-nuget/',
-                      })}
-                    >
-                      {t('version_dialog.update_backend', {
-                        latestVersion: MAXIMUM_SUPPORTED_BACKEND_VERSION,
-                      })}
-                    </StudioLink>
-                  </StudioTable.Cell>
-                </StudioTable.Row>
+                <VersionDialogTableRow
+                  devTypeLabel='Backend'
+                  currentVersion={backendVersion}
+                  latestVersion={MAXIMUM_SUPPORTED_BACKEND_VERSION}
+                  link={{
+                    href: altinnDocsUrl({
+                      relativeUrl: 'community/changelog/app-nuget/',
+                    }),
+                    text: t('version_dialog.update_backend'),
+                  }}
+                />
               )}
             </StudioTable.Body>
           </StudioTable>

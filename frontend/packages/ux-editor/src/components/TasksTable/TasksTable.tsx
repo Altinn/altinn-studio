@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioButton, StudioLink, StudioTable } from '@studio/components';
+import { StudioButton, StudioLinkButton, StudioTable } from '@studio/components';
 import classes from './TasksTable.module.css';
 import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';
@@ -74,14 +74,15 @@ export const TasksTable = ({
         </StudioTable.Foot>
       </StudioTable>
       {isNavigationMode && (
-        <StudioLink
+        <StudioLinkButton
           href={previewLink}
-          className={cn(classes.previewLink, { [classes.disabledPreviewLink]: tasks.length === 0 })}
-          data-color='neutral'
+          className={cn({
+            [classes.disabledPreviewLink]: tasks.length === 0,
+          })}
+          icon={<PlayFillIcon />}
         >
-          <PlayFillIcon />
           {t('ux_editor.task_table_preview')}
-        </StudioLink>
+        </StudioLinkButton>
       )}
     </div>
   );
