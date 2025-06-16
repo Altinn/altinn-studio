@@ -13,7 +13,7 @@ export const ErrorBoundary = (): ReactElement => {
           <Trans
             i18nKey={'general.page_error_message'}
             components={{
-              a: <Link href='/contact'> </Link>,
+              a: <Link href='/info/contact'> </Link>,
             }}
           />
         </StudioParagraph>
