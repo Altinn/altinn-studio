@@ -9,6 +9,7 @@ import '@digdir/designsystemet-theme';
 const preview: Preview = {
   parameters: {
     layout: 'centered',
+    actions: { argTypesRegex: '^on.*' },
     controls: {
       default: 'expanded',
       expanded: true,
