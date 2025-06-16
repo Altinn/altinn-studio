@@ -81,7 +81,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       <Trans
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link href='/contact'> </Link>,
+                          a: <Link href='/info/contact'> </Link>,
                         }}
                       ></Trans>
                     }
@@ -100,7 +100,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         <Trans
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link href='/contact'> </Link>,
+                            a: <Link href='/info/contact'> </Link>,
                           }}
                         ></Trans>
                       }
@@ -119,7 +119,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       <Trans
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link href='/contact'> </Link>,
+                          a: <Link href='/info/contact'> </Link>,
                         }}
                       ></Trans>
                     }
@@ -138,7 +138,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         <Trans
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link href='/contact'> </Link>,
+                            a: <Link href='/info/contact'> </Link>,
                           }}
                         ></Trans>
                       }
