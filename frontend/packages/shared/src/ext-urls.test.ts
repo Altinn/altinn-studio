@@ -33,6 +33,7 @@ describe('grafanaPodLogsUrl', () => {
       org: 'ttd',
       env: 'production',
       app: 'app',
+      isProduction: true,
       buildStartTime: 1,
       buildFinishTime: 2,
     });
@@ -47,12 +48,26 @@ describe('grafanaPodLogsUrl', () => {
       org: 'ttd',
       env: 'tt02',
       app: 'app',
+      isProduction: false,
       buildStartTime: 1,
       buildFinishTime: 2,
     });
 
     expect(result).toBe(
       'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-v2&from=1&to=2',
+    );
+  });
+
+  it('should not return build time when build time are undefined', () => {
+    const result = grafanaPodLogsUrl({
+      org: 'ttd',
+      env: 'tt02',
+      app: 'app',
+      isProduction: false,
+    });
+
+    expect(result).toBe(
+      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-v2',
     );
   });
 });

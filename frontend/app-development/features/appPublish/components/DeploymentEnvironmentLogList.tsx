@@ -117,6 +117,7 @@ export const DeploymentEnvironmentLogList = ({
                                 org,
                                 env: envName,
                                 app,
+                                isProduction,
                                 buildStartTime,
                                 buildFinishTime,
                               })}
