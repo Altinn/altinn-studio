@@ -140,6 +140,14 @@
     {
       "id": "CV.vedlegg-cv.tagTitle",
       "value": "Dokumenttype"
+    },
+    {
+      "id": "test1",
+      "value": "Telefonnummer må starte med "
+    },
+    {
+      "id": "test2",
+      "value": "'9'"
     }
   ]
 }
