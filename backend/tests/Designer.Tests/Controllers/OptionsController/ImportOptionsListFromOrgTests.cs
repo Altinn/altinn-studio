@@ -155,8 +155,6 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
-        WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,

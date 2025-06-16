@@ -171,10 +171,11 @@ public class OptionsService : IOptionsService
         (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
         List<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
         List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
+        List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
-            TextResource appTextResources = await RetrieveTextResourcesFromApp(altinnAppGitRepository, orgLanguageCode, cancellationToken);
+            TextResource appTextResources = await RetrieveTextResourcesFromApp(altinnAppGitRepository, appLanguageCodes, orgLanguageCode, cancellationToken);
             List<string> appTextResourceIds = appTextResources.Resources.Select(textResourceElement => textResourceElement.Id).ToList();
             TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
 
@@ -190,24 +191,15 @@ public class OptionsService : IOptionsService
         List<string> textResourceIdsInOptionList = [];
         foreach (Option option in optionList)
         {
-            AddIfNotNullOrEmpty(option.Label, textResourceIdsInOptionList);
-            AddIfNotNullOrEmpty(option.Description, textResourceIdsInOptionList);
-            AddIfNotNullOrEmpty(option.HelpText, textResourceIdsInOptionList);
+            if (!string.IsNullOrEmpty(option.Label)) textResourceIdsInOptionList.Add(option.Label);
+            if (!string.IsNullOrEmpty(option.Description)) textResourceIdsInOptionList.Add(option.Description);
+            if (!string.IsNullOrEmpty(option.HelpText)) textResourceIdsInOptionList.Add(option.HelpText);
         }
         return textResourceIdsInOptionList;
     }
 
-    private static void AddIfNotNullOrEmpty(string value, List<string> list)
+    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, List<string> appLanguageCodes, string orgLanguageCode, CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrEmpty(value))
-        {
-            list.Add(value);
-        }
-    }
-
-    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, string orgLanguageCode, CancellationToken cancellationToken)
-    {
-        List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
         if (appLanguageCodes.Contains(orgLanguageCode))
         {
             return await altinnAppGitRepository.GetText(orgLanguageCode, cancellationToken);

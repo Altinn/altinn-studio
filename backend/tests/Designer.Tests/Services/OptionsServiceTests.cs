@@ -19,6 +19,7 @@ public class OptionsServiceTests : IDisposable
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
+    private const bool OverrideExistingTextResources = false;
 
     [Fact]
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
@@ -261,7 +262,6 @@ public class OptionsServiceTests : IDisposable
         const string OrgRepo = "org-content";
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
-        const bool OverrideExistingTextResources = false;
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
@@ -296,7 +296,6 @@ public class OptionsServiceTests : IDisposable
         const string OrgRepo = "org-content";
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
-        const bool OverrideExistingTextResources = false;
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);

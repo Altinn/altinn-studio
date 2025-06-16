@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -262,7 +261,7 @@ public class OptionsController : ControllerBase
 
     [HttpPost]
     [Route("import/{optionListId}")]
-    public async Task<ActionResult<List<OptionListData>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, [FromQuery] string overrideTextResources, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, [FromQuery] bool overrideTextResources = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -273,8 +272,7 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        bool overrideAppTextResourcesTranslated = !string.IsNullOrEmpty(overrideTextResources) && overrideTextResources.Equals("true", StringComparison.CurrentCultureIgnoreCase);
-        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, overrideAppTextResourcesTranslated, cancellationToken);
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, overrideTextResources, cancellationToken);
 
         if (importedOptionList is null)
         {
