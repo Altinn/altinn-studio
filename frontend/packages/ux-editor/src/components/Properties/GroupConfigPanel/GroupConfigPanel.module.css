@@ -6,3 +6,7 @@
   place-content: start;
   place-items: start;
 }
+
+.alertMessage {
+  margin-top: var(--fds-spacing-4);
+}

@@ -60,7 +60,7 @@
 
   <ItemGroup Label="Packages used for testing">
     <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.5" />
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <!-- Do not upgrade Moq version from 4.18.4 -->
     <PackageReference Update="Moq" Version="4.18.4" />
     <PackageReference Update="xunit" Version="2.9.3" />
@@ -72,12 +72,12 @@
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
     <PackageReference Update="Microsoft.Extensions.TimeProvider.Testing" Version="9.5.0" />
-    <PackageReference Update="Testcontainers" Version="4.4.0" />
+    <PackageReference Update="Testcontainers" Version="4.5.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.5" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="9.0.5" />
-    <PackageReference Update="WireMock.Net" Version="1.8.7" />
+    <PackageReference Update="WireMock.Net" Version="1.8.10" />
     <PackageReference Update="DistributedLock.FileSystem" Version="1.0.3" />
-    <PackageReference Update="System.Linq.Dynamic.Core" Version="1.6.4" />
+    <PackageReference Update="System.Linq.Dynamic.Core" Version="1.6.5" />
   </ItemGroup>
 </Project>
