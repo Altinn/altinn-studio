@@ -226,10 +226,9 @@ public class OptionsService : IOptionsService
         List<TextResourceElement> textResourceElements = [];
         textResourceElements.AddRange(appTextResourceElements);
 
-        HashSet<string> overrideIds = [.. commonTextResourceElements.Select(e => e.Id)];
-
         if (overrideExisting)
         {
+            HashSet<string> overrideIds = [.. commonTextResourceElements.Select(e => e.Id)];
             textResourceElements.RemoveAll(textResourceElement => overrideIds.Contains(textResourceElement.Id));
         }
         textResourceElements.AddRange(commonTextResourceElements);
