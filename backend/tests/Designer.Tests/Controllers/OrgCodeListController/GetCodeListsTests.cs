@@ -49,7 +49,7 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(9, responseList.Count);
+        Assert.Equal(10, responseList.Count);
         Assert.Single(responseList, e => e.Title == "codeListNumber" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListString" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListBoolean" && e.HasError == false);

@@ -49,7 +49,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(8, contentList.Count);
+        Assert.Equal(9, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.CodeList);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.TextResource);
@@ -80,7 +80,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(6, contentList.Count);
+        Assert.Equal(7, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(
             contentList,

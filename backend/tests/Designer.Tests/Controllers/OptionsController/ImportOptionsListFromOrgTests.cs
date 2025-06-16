@@ -68,7 +68,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string OptionListId = "codeListWithTextResources";
         const string LanguageCode = "nb";
         const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
-        TextResourceElement expectedTextResourceElement = new () { Id = "someId", Value = "someValue" };
+        TextResourceElement expectedTextResourceElement = new() { Id = "someId", Value = "someValue" };
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 

@@ -119,7 +119,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         Assert.NotNull(codeListIds);
-        Assert.Equal(6, codeListIds.Count);
+        Assert.Equal(7, codeListIds.Count);
     }
 
     [Theory]
