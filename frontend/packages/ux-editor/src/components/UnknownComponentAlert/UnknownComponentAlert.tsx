@@ -7,11 +7,10 @@ export type UnknownComponentAlertProps = {
 };
 export const UnknownComponentAlert = ({
   componentName,
-  ...rest
 }: UnknownComponentAlertProps): JSX.Element => {
   const { t } = useTranslation();
   return (
-    <StudioAlert data-color='warning' {...rest}>
+    <StudioAlert data-color='warning'>
       {t('ux_editor.edit_component.unknown_component', {
         componentName,
       })}
