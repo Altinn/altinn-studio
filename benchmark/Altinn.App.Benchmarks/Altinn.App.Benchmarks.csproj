@@ -26,6 +26,8 @@
         <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace"/>
         <PackageReference Include="Buildalyzer.Workspaces"/>
         <PackageReference Include="System.Formats.Asn1"/>
+            <!-- Add explicit reference to patched version to override vulnerable dependency -->
+        <PackageReference Include="Microsoft.Build.Tasks.Core"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
