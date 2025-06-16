@@ -4,9 +4,13 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "private": true,
+  "devDependencies": {
+    "vite": "^6.3.2"
+  },
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
-    "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
+    "build": "vite build",
+    "start": "vite serve --host 0.0.0.0",
+    "preview": "vite preview --host 0.0.0.0",
     "test": "jest --maxWorkers=50%",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"

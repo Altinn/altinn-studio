@@ -30,7 +30,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_contact_label',
     description: 'dashboard.resource_contact_description',
-    url: 'https://altinn.studio/contact',
+    url: 'https://altinn.studio/info/contact',
     icon: <ContactResourceIcon width='60' height='60' />,
   },
   {
