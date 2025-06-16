@@ -6,12 +6,6 @@ import { mapLanguageKeyToLanguageText } from './appResourceLanguageUtils';
 
 const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
 
-function filterOutNbLanguage(): ValidLanguage[] {
-  return supportedLanguages.filter((lang) => lang !== 'nb');
-}
-
-const supportedLanguagesWithoutNb: ValidLanguage[] = filterOutNbLanguage();
-
 function getMissingLanguages(language: SupportedLanguage): ValidLanguage[] {
   return supportedLanguages.filter((lang) => !language[lang]);
 }
@@ -21,9 +15,10 @@ function getSingleMissingLanguageMessage(
   missingLang: ValidLanguage,
   t: TranslationFunction,
 ): string {
+  const lang: string = mapLanguageKeyToLanguageText(missingLang, t).toLowerCase();
   return t('app_settings.about_tab_language_error_missing_1', {
     usageString,
-    lang: mapLanguageKeyToLanguageText(missingLang, t),
+    lang,
   });
 }
 
@@ -32,12 +27,17 @@ function getMultipleMissingLanguagesMessage(
   missingLangs: ValidLanguage[],
   t: TranslationFunction,
 ): string {
-  const lang2 = missingLangs.pop();
-  const lang1 = missingLangs.map((lang) => mapLanguageKeyToLanguageText(lang, t)).join(', ');
+  const lang2Key: ValidLanguage = missingLangs.pop();
+  const lang2: string = mapLanguageKeyToLanguageText(lang2Key! as ValidLanguage, t).toLowerCase();
+  const lang1: string = missingLangs
+    .map((lang) => mapLanguageKeyToLanguageText(lang, t))
+    .join(', ')
+    .toLowerCase();
+
   return t('app_settings.about_tab_language_error_missing_2', {
     usageString,
     lang1,
-    lang2: mapLanguageKeyToLanguageText(lang2!, t),
+    lang2,
   });
 }
 
@@ -68,23 +68,7 @@ export const validateAppResource = (
   }
 
   // validate service name
-  const serviceNameError = getMissingInputLanguageString(
-    {
-      nb: appResource.serviceName?.nb,
-      nn: appResource.serviceName?.nn,
-      en: appResource.serviceName?.en,
-    },
-    t('app_settings.about_tab_error_usage_string_service_name'),
-    t,
-  );
-  if (serviceNameError) {
-    errors.push({
-      field: 'serviceName',
-      index: 'nb',
-      error: serviceNameError,
-    });
-  }
-  supportedLanguagesWithoutNb.forEach((lang: ValidLanguage) => {
+  supportedLanguages.forEach((lang: ValidLanguage) => {
     if (!appResource.serviceName?.[lang]) {
       errors.push({
         field: 'serviceName',

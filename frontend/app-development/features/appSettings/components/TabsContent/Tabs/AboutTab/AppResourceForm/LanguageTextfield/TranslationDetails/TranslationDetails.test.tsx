@@ -5,6 +5,9 @@ import type { TranslationDetailsProps } from './TranslationDetails';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+
+const languagesToTest: ValidLanguage[] = ['nn', 'en'];
 
 describe('TranslationDetails', () => {
   afterEach(jest.clearAllMocks);
@@ -33,7 +36,7 @@ describe('TranslationDetails', () => {
     expect(getText(enError)).toBeInTheDocument();
   });
 
-  it.each(['nn', 'en'])('calls onChange with updated value for %s', async (lang) => {
+  it.each(languagesToTest)('calls onChange with updated value for %s', async (lang) => {
     const user = userEvent.setup();
     const onChange = jest.fn();
 
@@ -61,6 +64,62 @@ describe('TranslationDetails', () => {
     await user.click(button);
     expect(button).toHaveAttribute('aria-expanded', 'true');
   });
+
+  it('opens the details section if there are errors', () => {
+    const validationErrors: AppResourceFormError[] = [
+      { field: 'serviceName', error: 'Error for NN', index: 'nn' },
+      { field: 'serviceName', error: 'Error for EN', index: 'en' },
+    ];
+
+    renderTranslationDetails({ errors: validationErrors });
+
+    const detailsLabel = textMock('app_settings.about_tab_language_translation_header', {
+      field: label,
+    });
+    const button = getButton(detailsLabel);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('displays a validation message for both languages if both has error', () => {
+    const validationErrors: AppResourceFormError[] = [
+      { field: 'serviceName', error: 'Error for NN', index: 'nn' },
+      { field: 'serviceName', error: 'Error for EN', index: 'en' },
+    ];
+
+    renderTranslationDetails({ errors: validationErrors });
+
+    const errorMessage = textMock('app_settings.about_tab_language_error_missing_2', {
+      usageString: textMock('app_settings.about_tab_error_usage_string_service_name'),
+      lang1: textMock('language.nn').toLowerCase(),
+      lang2: textMock('language.en').toLowerCase(),
+    });
+
+    expect(getText(errorMessage)).toBeInTheDocument();
+  });
+
+  it.each(languagesToTest)(
+    'displays a validation message for single language if only %s has error',
+    (lang) => {
+      const validationErrors: AppResourceFormError[] = [
+        { field: 'serviceName', error: `Error for ${lang}`, index: lang },
+      ];
+
+      const value: SupportedLanguage = {
+        nb: 'Tjeneste',
+        nn: lang === 'nn' ? '' : 'Tjeneste NN',
+        en: lang === 'en' ? '' : 'Tjeneste EN',
+      };
+
+      renderTranslationDetails({ value, errors: validationErrors });
+
+      const errorMessage = textMock('app_settings.about_tab_language_error_missing_1', {
+        usageString: textMock('app_settings.about_tab_error_usage_string_service_name'),
+        lang: textMock(`language.${lang}`).toLowerCase(),
+      });
+
+      expect(getText(errorMessage)).toBeInTheDocument();
+    },
+  );
 });
 
 const label = textMock('some_label_translation');
