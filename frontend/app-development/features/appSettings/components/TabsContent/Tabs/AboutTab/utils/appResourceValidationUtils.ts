@@ -5,9 +5,12 @@ import type { TranslationFunction } from 'app-development/features/appSettings/t
 import { mapLanguageKeyToLanguageText } from './appResourceLanguageUtils';
 
 const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
+const supportedLanguagesWithoutNb: ValidLanguage[] = supportedLanguages.filter(
+  (lang: ValidLanguage) => lang !== 'nb',
+);
 
 function getMissingLanguages(language: SupportedLanguage): ValidLanguage[] {
-  return supportedLanguages.filter((lang) => !language[lang]);
+  return supportedLanguagesWithoutNb.filter((lang: ValidLanguage) => !language[lang]);
 }
 
 function getSingleMissingLanguageMessage(

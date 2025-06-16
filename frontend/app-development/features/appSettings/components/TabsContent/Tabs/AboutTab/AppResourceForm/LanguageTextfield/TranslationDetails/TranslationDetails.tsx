@@ -50,11 +50,19 @@ export function TranslationDetails({
 }: TranslationDetailsProps): ReactElement {
   const { t } = useTranslation();
 
-  const hasErrors: boolean = errors.length > 0;
+  const errorMessage: string = getMissingInputLanguageString(
+    { nb: value.nb, nn: value.nn, en: value.en },
+    t('app_settings.about_tab_error_usage_string_service_name'),
+    t,
+  );
+  const hasErrors: boolean = errorMessage && errors.length > 0;
   const [open, setOpen] = useState<boolean>(false);
+
   useEffect(() => {
-    setOpen(hasErrors);
-  }, [hasErrors]);
+    if (hasErrors && !open) {
+      setOpen(true);
+    }
+  }, [hasErrors, open]);
 
   const languageTextNN: string = mapLanguageKeyToLanguageText('nn', t);
   const languageTextEN: string = mapLanguageKeyToLanguageText('en', t);
@@ -86,12 +94,6 @@ export function TranslationDetails({
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const errorMessage: string = getMissingInputLanguageString(
-    { nb: value.nb, nn: value.nn, en: value.en },
-    t('app_settings.about_tab_error_usage_string_service_name'),
-    t,
-  );
-
   return (
     <>
       <StudioCard data-color='neutral' className={cn(classes.card, hasErrors && classes.cardError)}>
@@ -120,7 +122,9 @@ export function TranslationDetails({
           </StudioDetails.Content>
         </StudioDetails>
       </StudioCard>
-      {hasErrors && <StudioValidationMessage>{errorMessage}</StudioValidationMessage>}
+      {errorMessage && hasErrors && (
+        <StudioValidationMessage>{errorMessage}</StudioValidationMessage>
+      )}
     </>
   );
 }
