@@ -261,6 +261,7 @@ public class OptionsServiceTests : IDisposable
         const string OrgRepo = "org-content";
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
+        const bool OverrideExistingTextResources = false;
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
@@ -274,7 +275,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
         // Assert
         Assert.Equal(expectedOptionList.Count, optionList.Count);
@@ -295,6 +296,7 @@ public class OptionsServiceTests : IDisposable
         const string OrgRepo = "org-content";
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
+        const bool OverrideExistingTextResources = false;
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
@@ -310,7 +312,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
         // Assert
         Assert.Null(optionList);

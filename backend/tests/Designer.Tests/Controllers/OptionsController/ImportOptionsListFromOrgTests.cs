@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
@@ -56,6 +57,37 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
             Assert.Equal(expectedOptionList[i].Description, importedOptionList[i].Description);
             Assert.Equal(expectedOptionList[i].HelpText, importedOptionList[i].HelpText);
         }
+    }
+
+    [Fact]
+    public async Task Post_Returns200OK_WhenImportingCodeListFromOrgWithTextResources()
+    {
+        // Arrange
+        const string OrgRepoName = "org-content";
+        const string AppRepoName = "empty-app";
+        const string OptionListId = "codeListWithTextResources";
+        const string LanguageCode = "nb";
+        const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
+        TextResourceElement expectedTextResourceElement = new () { Id = "someId", Value = "someValue" };
+
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
+        using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(message);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string textResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
+        TextResource textResource = JsonSerializer.Deserialize<TextResource>(textResourceFileContent, s_jsonOptions);
+        TextResourceElement actualTextResourceElement = textResource.Resources[0];
+
+        Assert.Equal(LanguageCode, textResource.Language);
+        Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
+        Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
     }
 
     [Fact]
@@ -120,4 +152,13 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     }
 
     private static string ApiUrl(string org, string app, string optionListId) => $"/designer/api/{org}/{app}/options/import/{optionListId}";
+
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
 }

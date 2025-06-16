@@ -273,8 +273,8 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        bool overrideTextResourcesTranslated = !string.IsNullOrEmpty(overrideTextResources) && overrideTextResources.Equals("true", StringComparison.CurrentCultureIgnoreCase);
-        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, overrideTextResourcesTranslated, cancellationToken);
+        bool overrideAppTextResourcesTranslated = !string.IsNullOrEmpty(overrideTextResources) && overrideTextResources.Equals("true", StringComparison.CurrentCultureIgnoreCase);
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, overrideAppTextResourcesTranslated, cancellationToken);
 
         if (importedOptionList is null)
         {
