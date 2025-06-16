@@ -75,7 +75,6 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces foreach -A -p run build",
-    "build-vite": "yarn workspaces foreach -A -p run build-vite",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
     "codestyle:check": "prettier frontend --check",
