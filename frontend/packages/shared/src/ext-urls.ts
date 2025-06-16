@@ -1,5 +1,3 @@
-import { PROD_ENV_TYPE } from './constants';
-
 // Docs
 export const altinnDocsUrl = (props: { relativeUrl?: string; language?: 'nb' | 'en' } = {}) => {
   const { relativeUrl = '', language = 'nb' } = props;
