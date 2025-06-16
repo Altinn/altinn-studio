@@ -1,1 +1,0 @@
-export { SettingsModalButton } from './SettingsModalButton';
