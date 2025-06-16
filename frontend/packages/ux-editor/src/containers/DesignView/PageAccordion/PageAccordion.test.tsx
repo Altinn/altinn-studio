@@ -1,16 +1,11 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import {
-  formLayoutSettingsMock,
-  renderHookWithProviders,
-  renderWithProviders,
-} from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { groupsPagesModelMock, layout1NameMock, pagesModelMock } from '../../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -18,6 +13,8 @@ import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { useAppContext } from '@altinn/ux-editor/hooks';
+import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -26,10 +23,7 @@ jest.mock('../../../hooks/mutations/useDeletePageMutation', () => ({
   __esModule: true,
   ...jest.requireActual('../../../hooks/mutations/useDeletePageMutation'),
 }));
-const useDeletePageMutationSpy = jest.spyOn(
-  require('../../../hooks/mutations/useDeletePageMutation'),
-  'useDeletePageMutation',
-);
+
 const mockChildren: ReactNode = (
   <div>
     <button>Test</button>
@@ -94,7 +88,7 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     await render({ pagesModel: groupsPagesModelMock });
     const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete_item', { item: layout1NameMock }),
+      name: textMock('general.delete_item', { item: mockPageName1 }),
     });
     await user.click(deleteButton);
     const expectedPagesModel = {
@@ -111,13 +105,39 @@ describe('PageAccordion', () => {
     );
   });
 
+  it('should set selectedItem to undefined when deleting the selected page', async () => {
+    const user = userEvent.setup();
+    const setSelectedItem = jest.fn();
+
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+
+    await render({
+      appContextProps: {
+        selectedItem: { id: mockPageName1, type: ItemType.Page },
+        setSelectedItem,
+      },
+    });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: mockPageName1 }),
+    });
+    await user.click(deleteButton);
+    expect(setSelectedItem).toHaveBeenCalledWith(null);
+  });
+
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    const useDeletePageMutationSpy = jest.spyOn(
+      require('../../../hooks/mutations/useDeletePageMutation'),
+      'useDeletePageMutation',
+    );
     useDeletePageMutationSpy.mockImplementation(() => ({
       mutate: queriesMock.deleteFormLayout,
       isPending: true,
     }));
+
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+
     await render();
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
@@ -162,21 +182,10 @@ describe('PageAccordion', () => {
   });
 });
 
-const waitForData = async () => {
-  const getFormLayoutSettings = jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
-    { queries: { getFormLayoutSettings } },
-  ).result;
-
-  await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-};
-
 type renderParams = {
   props?: Partial<PageAccordionProps>;
   pagesModel?: PagesModel;
+  appContextProps?: Partial<ReturnType<typeof useAppContext>>;
 };
 
 const render = async (opts: renderParams = {}) => {
@@ -186,6 +195,9 @@ const render = async (opts: renderParams = {}) => {
     [QueryKey.Pages, org, app, mockSelectedLayoutSet],
     opts.pagesModel ?? pagesModelMock,
   );
-  await waitForData();
-  return renderWithProviders(<PageAccordion {...defaultProps} {...opts.props} />, { queryClient });
+
+  return renderWithProviders(<PageAccordion {...defaultProps} {...opts.props} />, {
+    queryClient,
+    appContextProps: opts.appContextProps,
+  });
 };

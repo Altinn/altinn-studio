@@ -1,10 +1,12 @@
 import React from 'react';
+import type { Ref } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioErrorSummary } from './';
 import type { StudioErrorSummaryProps } from './';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioErrorSummary', () => {
   it('Appends custom attributes', () => {
@@ -26,15 +28,22 @@ describe('StudioErrorSummary', () => {
     expect(screen.getByText(item1)).toBeInTheDocument();
     expect(screen.getByText(item2)).toBeInTheDocument();
   });
+
+  it('should support forwarding the ref', () => {
+    testRefForwarding<HTMLDivElement>((ref) => renderStudioErrorSummary({}, ref));
+  });
 });
 
 const heading: string = 'Test Heading';
 const item1: string = 'Test Item 1';
 const item2: string = 'Test Item 2';
 
-function renderStudioErrorSummary(props: StudioErrorSummaryProps): RenderResult {
+function renderStudioErrorSummary(
+  props: StudioErrorSummaryProps,
+  ref?: Ref<HTMLDivElement>,
+): RenderResult {
   return render(
-    <StudioErrorSummary {...props}>
+    <StudioErrorSummary {...props} ref={ref}>
       <StudioErrorSummary.Heading>{heading}</StudioErrorSummary.Heading>
       <StudioErrorSummary.List>
         <StudioErrorSummary.Item>
