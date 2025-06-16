@@ -180,7 +180,7 @@ public class OptionsService : IOptionsService
             TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
 
             List<TextResourceElement> textResourceElements = ExtractOrgTextResourceElementsToImport(orgTextResources, optionListTextResourceIds, appTextResourceIds, overrideExistingAppTextResources);
-            appTextResources.Resources.AddRange(textResourceElements);
+            appTextResources.Resources = MergeTextResources(appTextResources.Resources, textResourceElements, overrideExistingAppTextResources);
 
             await altinnAppGitRepository.SaveText(orgLanguageCode, appTextResources);
         }
@@ -218,6 +218,19 @@ public class OptionsService : IOptionsService
         textResourceElements.AddRange(orgTextResources.Resources
             .Where(element => optionListTextResourceIds.Contains(element.Id))
             .Where(element => overrideExistingAppTextResources || !appTextResourceIds.Contains(element.Id)));
+        return textResourceElements;
+    }
+
+    private static List<TextResourceElement> MergeTextResources(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> commonTextResourceElements, bool overrideExisting)
+    {
+        List<TextResourceElement> textResourceElements = [];
+        textResourceElements.AddRange(appTextResourceElements);
+
+        if (overrideExisting)
+        {
+            textResourceElements.RemoveAll(textResourceElement => commonTextResourceElements.Any(n => n.Id == textResourceElement.Id));
+        }
+        textResourceElements.AddRange(commonTextResourceElements);
         return textResourceElements;
     }
 
