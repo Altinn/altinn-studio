@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsModalButton } from './SettingsModalButton';
+import { SettingsPageButton } from './SettingsPageButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -33,7 +33,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: jest.fn(),
 }));
 
-describe('SettingsModalButton', () => {
+describe('SettingsPageButton', () => {
   const user = userEvent.setup();
   afterEach(() => {
     typedLocalStorage.removeItem('featureFlags');
@@ -41,7 +41,7 @@ describe('SettingsModalButton', () => {
   });
 
   it('should render the button with text on a large screen', () => {
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     expect(screen.getByText(textMock('sync_header.settings'))).toBeInTheDocument();
     expect(
@@ -51,7 +51,7 @@ describe('SettingsModalButton', () => {
 
   it('should not render the button text on a small screen', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     expect(screen.queryByText(textMock('sync_header.settings'))).not.toBeInTheDocument();
     expect(
@@ -66,7 +66,7 @@ describe('SettingsModalButton', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     const goBackButton = screen.getByRole('button', {
       name: textMock('sync_header.settings_back_to_ui-editor'),
@@ -81,14 +81,20 @@ describe('SettingsModalButton', () => {
       currentRoutePath: RoutePaths.UIEditor,
       navigateFrom: RoutePaths.UIEditor,
     });
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     const settingsButton = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await user.click(settingsButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(RoutePaths.AppSettings, {
-      state: { from: RoutePaths.UIEditor },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      {
+        pathname: RoutePaths.AppSettings,
+        search: 'currentTab=about',
+      },
+      {
+        state: { from: RoutePaths.UIEditor },
+      },
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -99,7 +105,7 @@ describe('SettingsModalButton', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     const goBackButton = screen.getByRole('button', {
       name: textMock('sync_header.settings_back_to_ui-editor'),
@@ -117,7 +123,7 @@ describe('SettingsModalButton', () => {
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: null,
     });
-    renderSettingsModalButton();
+    renderSettingsPageButton();
 
     const goBackButton = screen.getByRole('button', {
       name: textMock('sync_header.settings_back_to_overview'),
@@ -129,7 +135,7 @@ describe('SettingsModalButton', () => {
   });
 });
 
-const renderSettingsModalButton = (
+const renderSettingsPageButton = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -141,7 +147,7 @@ const renderSettingsModalButton = (
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <AppDevelopmentContextProvider>
         <PageHeaderContext.Provider value={{ ...pageHeaderContextMock }}>
-          <SettingsModalButton />
+          <SettingsPageButton />
         </PageHeaderContext.Provider>
       </AppDevelopmentContextProvider>
     </ServicesContextProvider>,
