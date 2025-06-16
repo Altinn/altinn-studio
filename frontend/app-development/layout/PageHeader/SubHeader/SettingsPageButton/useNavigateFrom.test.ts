@@ -16,6 +16,7 @@ jest.mock('react-router-dom', () => ({
 describe('useNavigateFrom', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    typedLocalStorage.removeItem(LocalStorageKey.PreviousRouteBeforeSettings);
   });
 
   it('returns navigateFrom and currentRoutePath when state and pathname are provided', () => {
@@ -76,8 +77,6 @@ describe('useNavigateFrom', () => {
       navigateFrom: RoutePaths.ProcessEditor,
       currentRoutePath: RoutePaths.AppSettings,
     });
-
-    typedLocalStorage.removeItem(LocalStorageKey.PreviousRouteBeforeSettings);
   });
 
   it('returns the state if "from" is set and localstorage is set', () => {
@@ -96,8 +95,6 @@ describe('useNavigateFrom', () => {
       navigateFrom: RoutePaths.UIEditor,
       currentRoutePath: RoutePaths.AppSettings,
     });
-
-    typedLocalStorage.removeItem(LocalStorageKey.PreviousRouteBeforeSettings);
   });
 
   it('returns the correct currentRoutePahth when pathname and search are provided', () => {
