@@ -1969,6 +1969,7 @@
   "ux_editor.page_layout_remove_group_division": "Fjern gruppeinndeling",
   "ux_editor.page_menu_down": "Flytt ned",
   "ux_editor.page_menu_edit": "Gi nytt navn",
+  "ux_editor.page_menu_new_group": "Flytt til en ny gruppe",
   "ux_editor.page_menu_up": "Flytt opp",
   "ux_editor.pages_add": "Legg til ny side",
   "ux_editor.pages_error_empty": "Navnet kan ikke være tomt.",
