@@ -86,13 +86,17 @@ export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {
   return null;
 }
 
+export const appNavigationHeadingId = 'app-navigation-heading';
 export function AppNavigationHeading({
   showClose,
   onClose,
 }: { showClose?: undefined; onClose?: undefined } | { showClose: true; onClose: () => void }) {
   const { langAsString } = useLanguage();
   return (
-    <div className={classes.navigationHeading}>
+    <div
+      id={appNavigationHeadingId}
+      className={classes.navigationHeading}
+    >
       <Heading
         id='app-navigation-heading'
         level={3}
