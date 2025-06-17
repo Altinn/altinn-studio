@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
+import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
 import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponent';
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
@@ -39,7 +40,17 @@ export class SimpleTable extends SimpleTableDef {
     return false;
   }
   renderSummary2(props: Summary2Props<'SimpleTable'>): React.JSX.Element | null {
-    return <SimpleTableSummary componentNode={props.target} />;
+    const item = useNodeItem(props.target);
+
+    if (item.externalApi) {
+      return <ApiTableSummary componentNode={props.target} />;
+    }
+
+    if (item.dataModelBindings) {
+      return <SimpleTableSummary componentNode={props.target} />;
+    }
+
+    return null;
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
