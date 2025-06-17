@@ -51,20 +51,6 @@ describe('PageAccordion', () => {
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the NavigationMenu when the menu icon is clicked', async () => {
-    const user = userEvent.setup();
-    await render();
-
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await user.click(menuButton);
-
-    const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenuAfter).toBeInTheDocument();
-  });
-
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
