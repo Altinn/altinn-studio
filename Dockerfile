@@ -26,4 +26,4 @@ RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
 USER dotnet
 RUN mkdir /tmp/logtelemetry
 
-ENTRYPOINT ["dotnet", "Altinn.App.dll"]
+ENTRYPOINT ["dotnet", "Altinn.Application.dll"]
