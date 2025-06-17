@@ -15,7 +15,7 @@ import { GeneratorCondition, StageAddNodes, StageMarkHidden } from 'src/utils/la
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, NodesInternal, NodesStore, useNodes } from 'src/utils/layout/NodesContext';
-import type { CompExternal, CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
+import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -189,57 +189,14 @@ interface NodeChildrenProps {
 export function GenerateNodeChildren({ claims, pluginKey }: NodeChildrenProps) {
   const layoutMap = useLayoutLookups().allComponents;
   const filteredClaims = useFilteredClaims(claims, pluginKey);
-
-  return (
-    <GeneratorCondition
-      stage={StageAddNodes}
-      mustBeAdded='parent'
-    >
-      <GenerateNodeChildrenInternal
-        claims={filteredClaims}
-        layoutMap={layoutMap}
-      />
-    </GeneratorCondition>
-  );
-}
-
-interface NodeChildrenStaticLayoutProps {
-  staticLayoutMap: Record<string, CompExternal>;
-  claims: ChildClaims;
-  pluginKey?: string;
-}
-
-export function GenerateNodeChildrenWithStaticLayout({
-  claims,
-  pluginKey,
-  staticLayoutMap,
-}: NodeChildrenStaticLayoutProps) {
-  const filteredClaims = useFilteredClaims(claims, pluginKey);
-
-  return (
-    <GeneratorCondition
-      stage={StageAddNodes}
-      mustBeAdded='parent'
-    >
-      <GenerateNodeChildrenInternal
-        claims={filteredClaims}
-        layoutMap={staticLayoutMap}
-      />
-    </GeneratorCondition>
-  );
-}
-
-interface NodeChildrenInternalProps {
-  claims: ChildClaims;
-  layoutMap: Record<string, CompExternal | undefined>;
-}
-
-function GenerateNodeChildrenInternal({ claims, layoutMap }: NodeChildrenInternalProps) {
   const map = useLayoutLookups().childClaims;
 
   return (
-    <>
-      {Object.keys(claims).map((id) => {
+    <GeneratorCondition
+      stage={StageAddNodes}
+      mustBeAdded='parent'
+    >
+      {Object.keys(filteredClaims).map((id) => {
         const layout = layoutMap[id];
         if (!layout) {
           return null;
@@ -249,13 +206,13 @@ function GenerateNodeChildrenInternal({ claims, layoutMap }: NodeChildrenInterna
           <GeneratorErrorBoundary key={id}>
             <GenerateComponent
               layout={layout}
-              claim={claims[id]}
+              claim={filteredClaims[id]}
               childClaims={map[id]}
             />
           </GeneratorErrorBoundary>
         );
       })}
-    </>
+    </GeneratorCondition>
   );
 }
 

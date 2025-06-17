@@ -6,7 +6,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { CompCategory } from 'src/layout/common';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLikertSummaryContainer';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';

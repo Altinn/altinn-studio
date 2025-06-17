@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { IDataModelBindingsLikert } from 'src/layout/common.generated';
@@ -45,7 +46,9 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     return `<${LikertGeneratorChildren} />`;
   }
 
-  claimChildren(_props: DefPluginChildClaimerProps<Config>) {}
+  claimChildren(props: DefPluginChildClaimerProps<Config>) {
+    props.claimChild(makeLikertChildId(props.item.id, undefined));
+  }
 
   isChildHidden(_state: DefPluginState<Config>, _childId: string): boolean {
     return false;

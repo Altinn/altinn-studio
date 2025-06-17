@@ -9,7 +9,7 @@ import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryC
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Likert extends LikertDef {
@@ -55,5 +55,13 @@ export class Likert extends LikertDef {
     }
 
     return errors;
+  }
+
+  evalExpressions(props: ExprResolver<'Likert'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      required: props.evalBool(props.item.required, false),
+      readOnly: props.evalBool(props.item.readOnly, false),
+    };
   }
 }

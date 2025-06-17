@@ -6,11 +6,16 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { makeLikertChildId } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
+import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
-import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
+import {
+  SummaryContains,
+  SummaryFlex,
+  SummaryFlexForContainer,
+} from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
@@ -30,6 +35,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
   const required = useNodeItem(target, (i) => i.required);
+  const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   if (!rows.length || rows.length <= 0) {
     return (
@@ -50,43 +56,45 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   }
 
   return (
-    <SummaryFlex
-      target={target}
-      content={SummaryContains.SomeUserContent}
-    >
-      <div className={classes.summaryItemWrapper}>
-        <div className={classes.summaryItem}>
-          <Heading
-            size='xs'
-            level={4}
-          >
-            <Lang id={title} />
-          </Heading>
+    <EmptyChildrenBoundary>
+      <SummaryFlexForContainer
+        target={target}
+        hideWhen={hideEmptyFields}
+      >
+        <div className={classes.summaryItemWrapper}>
+          <div className={classes.summaryItem}>
+            <Heading
+              size='xs'
+              level={4}
+            >
+              <Lang id={title} />
+            </Heading>
+          </div>
+          {rows.filter(typedBoolean).map((row) => (
+            <DataModelLocationProvider
+              key={row.index}
+              groupBinding={groupBinding}
+              rowIndex={row.index}
+            >
+              <LikertRowSummary
+                rowNodeId={makeLikertChildId(target.id, row.index)}
+                emptyFieldText={emptyFieldText}
+                readOnly={readOnly}
+                isCompact={isCompact}
+              />
+            </DataModelLocationProvider>
+          ))}
+          {errors?.map(({ message }) => (
+            <ErrorMessage key={message.key}>
+              <Lang
+                id={message.key}
+                params={message.params}
+              />
+            </ErrorMessage>
+          ))}
         </div>
-        {rows.filter(typedBoolean).map((row) => (
-          <DataModelLocationProvider
-            key={row.index}
-            groupBinding={groupBinding}
-            rowIndex={row.index}
-          >
-            <LikertRowSummary
-              rowNodeId={makeLikertChildId(target.id, row.index)}
-              emptyFieldText={emptyFieldText}
-              readOnly={readOnly}
-              isCompact={isCompact}
-            />
-          </DataModelLocationProvider>
-        ))}
-        {errors?.map(({ message }) => (
-          <ErrorMessage key={message.key}>
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ErrorMessage>
-        ))}
-      </div>
-    </SummaryFlex>
+      </SummaryFlexForContainer>
+    </EmptyChildrenBoundary>
   );
 }
 
@@ -120,9 +128,18 @@ function LikertRowSummaryInner({
   node: LayoutNode<'LikertItem'>;
 }) {
   const title = useNodeItem(node, (i) => i.textResourceBindings?.title);
+  const required = useNodeItem(node, (i) => i.required);
   const displayData = useDisplayData(node);
   const validations = useUnifiedValidationsForNode(node);
   const errors = validationsOfSeverity(validations, 'error');
+
+  useReportSummaryRender(
+    displayData.trim() === ''
+      ? required
+        ? SummaryContains.EmptyValueRequired
+        : SummaryContains.EmptyValueNotRequired
+      : SummaryContains.SomeUserContent,
+  );
 
   return (
     <SingleValueSummary

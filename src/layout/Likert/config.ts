@@ -4,7 +4,7 @@ import { CompCategory } from 'src/layout/common';
 import { LikertRowsPlugin } from 'src/layout/Likert/Generator/LikertRowsPlugin';
 
 export const Config = new CG.component({
-  category: CompCategory.Form,
+  category: CompCategory.Container,
   directRendering: true,
   capabilities: {
     renderInTable: false,
@@ -16,10 +16,13 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
   functionality: {
-    customExpressions: false,
+    customExpressions: true,
     displayData: false,
   },
 })
+  // Auto-generated LikertItem inside here is a form component, so this is a little bit of both a
+  // container and a form component
+  .extends(CG.common('FormComponentProps'))
   .addPlugin(new LikertRowsPlugin())
   .addTextResource(
     new CG.trb({
