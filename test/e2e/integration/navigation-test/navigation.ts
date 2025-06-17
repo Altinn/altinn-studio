@@ -317,7 +317,7 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'XY98765');
       cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
-      cy.waitForLoad();
+      cy.url().should('not.include', '?focusComponentId=subform&exitSubform=true');
       isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
       cy.gotoNavGroup('Innsending', 'Oppsummering');
@@ -363,7 +363,7 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'AB12345');
       cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
-      cy.waitForLoad();
+      cy.url().should('not.include', '?focusComponentId=subform&exitSubform=true');
       isUsingDialog && cy.showNavGroups();
       cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
       isUsingDialog && cy.hideNavGroups();

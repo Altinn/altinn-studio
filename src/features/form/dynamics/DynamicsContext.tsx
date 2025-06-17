@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -15,28 +15,23 @@ export function useDynamicsQueryDef(layoutSetId?: string): QueryDefinition<{ dat
   const { fetchDynamics } = useAppQueries();
   return {
     queryKey: ['fetchDynamics', layoutSetId],
-    queryFn: layoutSetId ? () => fetchDynamics(layoutSetId) : skipToken,
-    enabled: !!layoutSetId,
+    queryFn: () => (layoutSetId ? fetchDynamics(layoutSetId) : null),
   };
 }
 
 function useDynamicsQuery() {
   const layoutSetId = useCurrentLayoutSetId();
 
-  if (!layoutSetId) {
-    throw new Error('No layoutSet id found');
-  }
-
-  const utils = useQuery({
+  const query = useQuery({
     ...useDynamicsQueryDef(layoutSetId),
     select: (dynamics) => dynamics?.data || null,
   });
 
   useEffect(() => {
-    utils.error && window.logError('Fetching dynamics failed:\n', utils.error);
-  }, [utils.error]);
+    query.error && window.logError('Fetching dynamics failed:\n', query.error);
+  }, [query.error]);
 
-  return utils;
+  return query;
 }
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>

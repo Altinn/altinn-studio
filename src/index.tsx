@@ -71,7 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <LangToolsStoreProvider>
             <ViewportWrapper>
               <UiConfigProvider>
-                <RouterProvider router={router} />
+                <RouterProvider
+                  router={router}
+                  future={{ v7_startTransition: true }}
+                />
               </UiConfigProvider>
             </ViewportWrapper>
           </LangToolsStoreProvider>

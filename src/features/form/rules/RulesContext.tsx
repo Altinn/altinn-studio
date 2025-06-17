@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -15,38 +15,33 @@ export function useRulesQueryDef(layoutSetId?: string): QueryDefinition<string |
   const { fetchRuleHandler } = useAppQueries();
   return {
     queryKey: ['fetchRules', layoutSetId],
-    queryFn: layoutSetId ? () => fetchRuleHandler(layoutSetId) : skipToken,
-    enabled: !!layoutSetId,
+    queryFn: () => (layoutSetId ? fetchRuleHandler(layoutSetId) : null),
   };
 }
 
 const useRulesQuery = () => {
   const layoutSetId = useCurrentLayoutSetId();
 
-  if (!layoutSetId) {
-    throw new Error('No layoutSet id found');
-  }
-
-  const utils = useQuery(useRulesQueryDef(layoutSetId));
+  const query = useQuery(useRulesQueryDef(layoutSetId));
 
   useEffect(() => {
-    if (utils.error) {
+    if (query.error) {
       clearExistingRules();
-      window.logError('Fetching RuleHandler failed:\n', utils.error);
+      window.logError('Fetching RuleHandler failed:\n', query.error);
     }
-  }, [utils.error]);
+  }, [query.error]);
 
   useEffect(() => {
     clearExistingRules();
-    if (utils.data) {
+    if (query.data) {
       const rulesScript = window.document.createElement('script');
-      rulesScript.innerHTML = utils.data;
+      rulesScript.innerHTML = query.data;
       rulesScript.id = RULES_SCRIPT_ID;
       window.document.body.appendChild(rulesScript);
     }
-  }, [utils.data]);
+  }, [query.data]);
 
-  return utils;
+  return query;
 };
 
 function clearExistingRules() {

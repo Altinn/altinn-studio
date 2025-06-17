@@ -225,7 +225,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true }}>
       <Routes>
         <Route
           path='/'

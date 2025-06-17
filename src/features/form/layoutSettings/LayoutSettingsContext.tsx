@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -14,37 +14,40 @@ import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 // Also used for prefetching @see formPrefetcher.ts
-export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ILayoutSettings> {
+export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ILayoutSettings | null> {
   const { fetchLayoutSettings } = useAppQueries();
   return {
     queryKey: ['layoutSettings', layoutSetId],
-    queryFn: layoutSetId ? () => fetchLayoutSettings(layoutSetId) : skipToken,
-    enabled: !!layoutSetId,
+    queryFn: () => (layoutSetId ? fetchLayoutSettings(layoutSetId) : null),
   };
 }
 
 function useLayoutSettingsQuery() {
   const layoutSetId = useLayoutSetId();
-
-  if (!layoutSetId) {
-    throw new Error('No layoutSet id found');
-  }
-
-  const utils = useQuery(useLayoutSettingsQueryDef(layoutSetId));
+  const query = useQuery(useLayoutSettingsQueryDef(layoutSetId));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching layout settings failed:\n', utils.error);
-  }, [utils.error]);
+    query.error && window.logError('Fetching layout settings failed:\n', query.error);
+  }, [query.error]);
 
-  return utils;
+  return query;
 }
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
-  createQueryContext<ILayoutSettings, true, ProcessedLayoutSettings>({
+  createQueryContext<ILayoutSettings | null, true, ProcessedLayoutSettings>({
     name: 'LayoutSettings',
     required: true,
     query: useLayoutSettingsQuery,
     process: (settings) => {
+      if (!settings) {
+        return {
+          order: [],
+          groups: [],
+          pageSettings: {},
+          pdfLayoutName: undefined,
+        };
+      }
+
       if (!('order' in settings.pages) && !('groups' in settings.pages)) {
         window.logError('Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json');
         throw 'Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json';

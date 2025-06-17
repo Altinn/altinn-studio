@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 
 import { useIsFetching } from '@tanstack/react-query';
 
@@ -19,6 +19,7 @@ const readyId: Record<ReadyType, string> = {
  * loading indicators to the user while waiting for content to get ready.
  */
 export function ReadyForPrint({ type }: { type: ReadyType }) {
+  const [isPending] = useTransition();
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
 
   const isFetching = useIsFetching() > 0;
@@ -38,7 +39,7 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
     });
   }, [assetsLoaded]);
 
-  if (!assetsLoaded || numLoaders > 0 || isFetching) {
+  if (!assetsLoaded || numLoaders > 0 || isFetching || isPending) {
     return null;
   }
 
