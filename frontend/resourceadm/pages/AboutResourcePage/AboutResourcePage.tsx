@@ -35,6 +35,7 @@ import { ResourceContactPointFields } from '../../components/ResourceContactPoin
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { ConsentPreview } from '../../components/ConsentPreview';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -243,6 +244,16 @@ export const AboutResourcePage = ({
               }
               toggleTextTranslationKey='resourceadm.about_resource_one_time_consent_show_text'
             />
+            {consentTemplates && resourceData.consentTemplate && (
+              <ConsentPreview
+                consentTemplate={consentTemplates.find(
+                  (template) => template.id === resourceData.consentTemplate,
+                )}
+                resourceName={resourceData.title}
+                consentText={resourceData.consentText}
+                isOneTimeConsent={resourceData.isOneTimeConsent}
+              />
+            )}
           </>
         )}
         <ResourceTextField
