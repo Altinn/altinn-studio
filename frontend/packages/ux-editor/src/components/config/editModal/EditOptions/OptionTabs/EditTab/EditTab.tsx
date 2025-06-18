@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { createRef, forwardRef } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -27,26 +27,18 @@ import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
-type EditTabProps = Pick<
+export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
+export function EditTab(props: EditTabProps): React.ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, status: optionListIdsStatus } = useOptionListIdsQuery(org, app);
-  const { status: textResourcesStatus } = useTextResourcesQuery(org, app);
-  const previousComponent = usePrevious(component);
-  const dialogRef = createRef<HTMLDialogElement>();
-  const errorMessage = useComponentErrorMessage(component);
-
-  useUpdate(() => {
-    if (isInitialOptionsSet(previousComponent.options, component.options)) {
-      dialogRef.current.showModal();
-    }
-  }, [component, previousComponent]);
+  const { data: textResources, status: textResourcesStatus } = useTextResourcesQuery(org, app);
 
   const mergedQueryStatues: QueryStatus = mergeQueryStatuses(
     optionListIdsStatus,
@@ -64,30 +56,76 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
       );
     case 'success':
       return (
-        <div className={classes.container}>
-          {hasStaticOptionList(optionListIds, component.optionsId, component.options) ? (
-            <OptionListEditor
-              ref={dialogRef}
-              component={component}
-              handleComponentChange={handleComponentChange}
-            />
-          ) : (
-            <AddOptionList component={component} handleComponentChange={handleComponentChange} />
-          )}
-          {errorMessage && (
-            <StudioErrorMessage className={classes.errorMessage} size='small'>
-              {errorMessage}
-            </StudioErrorMessage>
-          )}
-          {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
-            <StudioAlert className={classes.alert} severity={'info'} size='sm'>
-              {t('ux_editor.options.tab_option_list_alert_title')}
-            </StudioAlert>
-          )}
-        </div>
+        <EditTabWithData {...props} optionListIds={optionListIds} textResources={textResources} />
       );
   }
 }
+
+type EditTabWithDataProps = EditTabProps & {
+  optionListIds: string[];
+  textResources: ITextResources;
+};
+
+function EditTabWithData({
+  component,
+  handleComponentChange,
+  optionListIds,
+  textResources,
+}: EditTabWithDataProps): React.ReactElement {
+  const { t } = useTranslation();
+  const previousComponent = usePrevious(component);
+  const dialogRef = createRef<HTMLDialogElement>();
+  const errorMessage = useComponentErrorMessage(component);
+
+  useUpdate(() => {
+    if (isInitialOptionsSet(previousComponent.options, component.options)) {
+      dialogRef.current.showModal();
+    }
+  }, [component, previousComponent]);
+
+  return (
+    <div className={classes.container}>
+      <OptionListTools
+        ref={dialogRef}
+        component={component}
+        handleComponentChange={handleComponentChange}
+        optionListIds={optionListIds}
+        textResources={textResources}
+      />
+      {errorMessage && (
+        <StudioErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </StudioErrorMessage>
+      )}
+      {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
+        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+          {t('ux_editor.options.tab_option_list_alert_title')}
+        </StudioAlert>
+      )}
+    </div>
+  );
+}
+
+type OptionListToolsProps = EditTabWithDataProps;
+
+const OptionListTools = forwardRef<HTMLDialogElement, OptionListToolsProps>(
+  ({ component, handleComponentChange, optionListIds, textResources }, ref) => {
+    if (hasStaticOptionList(optionListIds, component)) {
+      return (
+        <OptionListEditor
+          ref={ref}
+          component={component}
+          handleComponentChange={handleComponentChange}
+          textResources={textResources}
+        />
+      );
+    } else {
+      return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+    }
+  },
+);
+
+OptionListTools.displayName = 'OptionListTools';
 
 type AddOptionListProps = EditTabProps;
 

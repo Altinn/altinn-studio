@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:9f3ae04faa4d2188825803bf890792f33cc39033c9241fc6bb201149470436ca AS generate-studio-frontend
+FROM node:lts-alpine@sha256:41e4389f3d988d2ed55392df4db1420ad048ae53324a8e2b7c6d19508288107e AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -62,11 +62,13 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl
 
 COPY --from=generate-studio-backend /app_output .
-COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
-COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
-COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
-COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
-COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
+
+COPY --from=generate-studio-frontend /build/frontend/app-development/dist ./wwwroot/editor/
+COPY --from=generate-studio-frontend /build/frontend/dashboard/dist ./wwwroot/dashboard/
+COPY --from=generate-studio-frontend /build/frontend/studio-root/dist ./wwwroot/info/
+COPY --from=generate-studio-frontend /build/frontend/app-preview/dist ./wwwroot/preview/
+COPY --from=generate-studio-frontend /build/frontend/resourceadm/dist ./wwwroot/resourceadm/
+
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
 ## Copying app template

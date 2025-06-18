@@ -17,6 +17,7 @@ import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaM
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
+import { ItemType } from '../ItemType';
 
 const editFormComponentTestId = 'content';
 const textTestId = 'text';
@@ -61,6 +62,15 @@ const expectToggleAccordion = async (name: string, user: UserEvent) => {
 describe('ComponentConfigPanel', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('should render an unknown component alert when the component is unknown', () => {
+    const unknownComponentType = 'UnknownComponent';
+    renderComponentConfig({ formItem: unknownComponentType } as any);
+
+    const alert = screen.getByText(textMock('ux_editor.edit_component.unknown_component', {}));
+
+    expect(alert).toBeInTheDocument();
   });
 
   describe('Component ID Config', () => {
@@ -323,7 +333,9 @@ const getComponent = (
       ...formItemContextProps,
     }}
   >
-    <ComponentConfigPanel />
+    <ComponentConfigPanel
+      selectedItem={{ type: ItemType.Component, id: componentMocks[ComponentType.Input].id }}
+    />
   </FormItemContext.Provider>
 );
 

@@ -1,3 +1,12 @@
 .configPanel {
   margin: var(--fds-spacing-6);
 }
+
+.fieldSetWrapper {
+  place-content: start;
+  place-items: start;
+}
+
+.alertMessage {
+  margin-top: var(--fds-spacing-4);
+}
