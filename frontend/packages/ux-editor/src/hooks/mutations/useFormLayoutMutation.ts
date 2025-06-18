@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { IFormLayouts, IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
@@ -32,17 +32,14 @@ export const useFormLayoutMutation = (
       await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
       return payload.internalLayout;
     },
-    onSuccess: async (savedLayout) => {
+    onSuccess: async () => {
       if (previewConnection && previewConnection.state === 'Connected') {
         await previewConnection.send('sendMessage', 'reload-layouts').catch(function (err) {
           return console.error(err.toString());
         });
       }
 
-      queryClient.setQueryData(
-        [QueryKey.FormLayouts, org, app, layoutSetName],
-        (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
-      );
+      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
     },
   });
 };

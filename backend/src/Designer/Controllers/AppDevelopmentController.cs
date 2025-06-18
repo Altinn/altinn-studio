@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -34,6 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
+        private readonly ILayoutService _layoutService;
         private readonly IMediator _mediator;
 
 
@@ -44,28 +46,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
+        /// <param name="layoutService">An <see cref="ILayoutService"/></param>
         /// <param name="mediator"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ApplicationInsightsSettings applicationInsightsSettings, ILayoutService layoutService, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
             _applicationInsightsSettings = applicationInsightsSettings;
+            _layoutService = layoutService;
             _mediator = mediator;
-        }
-
-        /// <summary>
-        /// Default action for the designer.
-        /// </summary>
-        /// <returns>default view for the app builder.</returns>
-        [HttpGet]
-        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public async Task<IActionResult> Index(string org, string app)
-        {
-            await _sourceControl.VerifyCloneExists(org, app);
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "app-development";
-            return View();
         }
 
         /// <summary>
@@ -362,13 +352,27 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet("layout-sets/extended")]
         [UseSystemTextJson]
-        public async Task<LayoutSetsModel> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+        public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
             LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
-            return layoutSetsModel;
+
+            IEnumerable<LayoutSetDto> layoutSetDtoList = await Task.WhenAll(layoutSetsModel.Sets.Select(async (layoutSet) =>
+            {
+                LayoutSetDto layoutSetDto = layoutSet.ToDto();
+                string layoutSetId = layoutSet?.Id;
+                LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
+                    editingContext,
+                    layoutSetId
+                );
+                PagesDto pages = PagesDto.From(layoutSettings);
+                layoutSetDto.PageCount = pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages.Count;
+
+                return layoutSetDto;
+            }));
+            return layoutSetDtoList;
         }
 
         /// <summary>

@@ -49,6 +49,11 @@ div[class*='bpmn-icon-signing-task'] {
   mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
 }
 
+div[class*='bpmn-icon-user-controlled-signing-task'] {
+  -webkit-mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
+}
+
 div[class*='bpmn-icon-payment-task'] {
   -webkit-mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
   mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);

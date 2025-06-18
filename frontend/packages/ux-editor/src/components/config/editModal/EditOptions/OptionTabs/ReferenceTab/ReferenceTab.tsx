@@ -46,11 +46,7 @@ export function ReferenceTab({
     );
   }
 
-  const shouldDisplayAlert: boolean = hasStaticOptionList(
-    optionListIds,
-    component.optionsId,
-    component.options,
-  );
+  const shouldDisplayAlert: boolean = hasStaticOptionList(optionListIds, component);
 
   return (
     <div className={classes.container}>

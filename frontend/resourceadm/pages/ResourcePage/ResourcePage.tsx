@@ -68,7 +68,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
   const { data: consentTemplates } = useGetConsentTemplates(
     org,
-    resourceData?.resourceType === 'ConsentResource',
+    resourceData?.resourceType === 'Consent',
   );
 
   // Mutation function for editing a resource
@@ -165,7 +165,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References;
+    return !!altinn2References && resourceData.resourceType === 'GenericAccessResource';
   };
 
   const aboutPageId = 'about';

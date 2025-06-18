@@ -30,6 +30,7 @@ export interface Resource {
   consentTemplate?: string;
   consentText?: SupportedLanguage;
   consentMetadata?: ConsentMetadata;
+  isOneTimeConsent?: boolean;
 }
 
 export type ResourceAccessListMode = 'Disabled' | 'Enabled';
@@ -47,7 +48,7 @@ export type ResourceTypeOption =
   | 'MaskinportenSchema'
   | 'BrokerService'
   | 'CorrespondenceService'
-  | 'ConsentResource';
+  | 'Consent';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 

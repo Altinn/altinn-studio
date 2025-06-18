@@ -16,6 +16,7 @@ import {
   formLayoutsPath,
   frontEndSettingsPath,
   layoutSetsPath,
+  layoutSetsExtendedPath,
   layoutSettingsPath,
   optionListIdsPath,
   optionListsPath,
@@ -68,6 +69,7 @@ import {
   taskNavigationGroupPath,
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
+  allAccessListsPath,
   orgTextLanguagesPath,
 } from './paths';
 
@@ -103,7 +105,7 @@ import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -136,7 +138,7 @@ export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEnd
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
+export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));
@@ -180,6 +182,7 @@ export const getResourcePublishStatus = (org: string, repo: string, id: string) 
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getAccessLists = (org: string, environment: string, page?: string) => get<AccessListsResponse>(accessListsPath(org, environment, page));
+export const getAllAccessLists = (org: string) => get<AccessList[]>(allAccessListsPath(org));
 export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
 export const getAccessListMembers = (org: string, listId: string, environment: string, page?: string) => get<AccessListMembersResponse>(accessListMemberPath(org, listId, environment, page));
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));

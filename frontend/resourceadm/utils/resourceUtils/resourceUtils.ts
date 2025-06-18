@@ -10,9 +10,12 @@ import type {
   ResourceFormError,
   ResourceError,
   ConsentMetadata,
+  AccessList,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 
 /**
  * The map of resource type
@@ -23,7 +26,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
-  ConsentResource: 'resourceadm.about_resource_resource_type_consentresource',
+  Consent: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -382,7 +385,7 @@ export const validateResource = (
   }
 
   // validate consentTemplate
-  if (resourceData.resourceType === 'ConsentResource') {
+  if (resourceData.resourceType === 'Consent') {
     if (!resourceData.consentTemplate) {
       errors.push({
         field: 'consentTemplate',
@@ -572,4 +575,76 @@ const getUnknownMetadataValues = (
     nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
     en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
   };
+};
+
+const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [requestConsentRule, acceptConsentRule];
+};
+
+const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
+  return rule.actions.some((action) => action === targetAction);
+};
+const hasConsentRules = (policyData: Policy): boolean => {
+  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasRequestConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, 'requestconsent'),
+  );
+
+  return hasAcceptConsentAction && hasRequestConsentAction;
+};
+
+export const getResourcePolicyRules = (
+  policyData: Policy,
+  resourceId: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource && !hasConsentRules(policyData)) {
+    return {
+      ...policyData,
+      rules: getConsentResourceDefaultRules(resourceId),
+    };
+  } else if (!isConsentResource && hasConsentRules(policyData)) {
+    // remove consent only-rules if resource has consent rules but is not a consent resource
+    return {
+      ...policyData,
+      rules: policyData.rules.filter(
+        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+      ),
+    };
+  }
+  return policyData;
+};
+
+export const getResourceSubjects = (
+  accessLists: AccessList[],
+  subjectData: PolicySubject[],
+  org: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource) {
+    const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
+      return {
+        subjectId: `${accessList.identifier}`,
+        subjectSource: `altinn:accesslist:${org}`,
+        subjectTitle: accessList.name,
+        subjectDescription: accessList.description,
+      };
+    });
+    return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  return subjectData;
 };
