@@ -100,6 +100,7 @@ export const ResourceLanguageTextField = ({
 
   return (
     <div className={classes.inputWrapper}>
+      {/*@ts-expect-error typescript will complain that aria-labelledby is missing, seems to be caused "multiline" prop since can be both true and false*/}
       <StudioTextfield
         id={id}
         required={required}
