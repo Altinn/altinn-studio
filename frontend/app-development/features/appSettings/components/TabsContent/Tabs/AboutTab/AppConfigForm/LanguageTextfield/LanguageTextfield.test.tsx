@@ -4,7 +4,7 @@ import { LanguageTextfield } from './LanguageTextfield';
 import type { LanguageTextfieldProps } from './LanguageTextfield';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 
 describe('LanguageTextfield', () => {
@@ -19,7 +19,7 @@ describe('LanguageTextfield', () => {
 
   it('displays error for NB field if provided', () => {
     const nbError: string = 'NB Error';
-    const errors: AppResourceFormError[] = [{ field: 'serviceName', error: nbError, index: 'nb' }];
+    const errors: AppConfigFormError[] = [{ field: 'serviceName', error: nbError, index: 'nb' }];
     renderLanguageTextfield({ errors });
 
     expect(getText(nbError)).toBeInTheDocument();

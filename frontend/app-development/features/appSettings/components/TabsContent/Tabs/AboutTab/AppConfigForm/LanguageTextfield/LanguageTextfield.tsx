@@ -4,11 +4,8 @@ import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { TranslationDetails } from './TranslationDetails';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
-import {
-  getErrorMessagesForLanguage,
-  getTextfieldRows,
-} from '../../utils/appResourceLanguageUtils';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import { getErrorMessagesForLanguage, getTextfieldRows } from '../../utils/appConfigLanguageUtils';
 
 export type LanguageTextfieldProps = {
   id: string;
@@ -18,7 +15,7 @@ export type LanguageTextfieldProps = {
   updateLanguage: (value: SupportedLanguage) => void;
   isTextArea?: boolean;
   required?: boolean;
-  errors?: AppResourceFormError[];
+  errors?: AppConfigFormError[];
 };
 
 export function LanguageTextfield({
@@ -29,7 +26,7 @@ export function LanguageTextfield({
   updateLanguage,
   isTextArea = false,
   required = false,
-  errors,
+  errors = [],
 }: LanguageTextfieldProps): ReactElement {
   const { t } = useTranslation();
 
@@ -51,7 +48,7 @@ export function LanguageTextfield({
         id={`${id}-nb`}
         label={fieldLabel}
         description={description}
-        value={value['nb']}
+        value={value?.['nb'] ?? ''}
         multiple={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
         required={required}

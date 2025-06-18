@@ -1,6 +1,8 @@
-export interface AppConfig {
+import type { SupportedLanguage } from './SupportedLanguages';
+
+export type AppConfig = {
   repositoryName: string;
-  serviceName: string;
+  serviceName: SupportedLanguage;
   serviceId: string;
-  serviceDescription: string;
-}
+  description?: SupportedLanguage;
+};

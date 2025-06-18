@@ -3,10 +3,10 @@ import type { ReactElement } from 'react';
 import classes from './ErrorSummary.module.css';
 import { StudioErrorSummary } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 
 export type ErrorSummaryProps = {
-  validationErrors: AppResourceFormError[];
+  validationErrors: AppConfigFormError[];
 };
 
 export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(
@@ -29,10 +29,10 @@ export const ErrorSummary = forwardRef<HTMLDivElement, ErrorSummaryProps>(
 ErrorSummary.displayName = 'ErrorSummary';
 
 type ErrorListItemsProps = {
-  validationErrors: AppResourceFormError[];
+  validationErrors: AppConfigFormError[];
 };
 function ErrorListItems({ validationErrors }: ErrorListItemsProps): ReactElement[] {
-  return validationErrors.map((error: AppResourceFormError) => {
+  return validationErrors.map((error: AppConfigFormError) => {
     const href: string = getErrorSummaryHref(error);
     return (
       <StudioErrorSummary.Item key={JSON.stringify(error)}>
@@ -42,7 +42,7 @@ function ErrorListItems({ validationErrors }: ErrorListItemsProps): ReactElement
   });
 }
 
-function getErrorSummaryHref(error: AppResourceFormError): string {
+function getErrorSummaryHref(error: AppConfigFormError): string {
   const isIndexUndefined: boolean = error.index === undefined;
 
   if (!isIndexUndefined) {
