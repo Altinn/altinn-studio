@@ -88,7 +88,7 @@ export function ReleaseContainer() {
             <Trans
               i18nKey={'app_create_release_errors.fetch_release_failed'}
               components={{
-                a: <Link href='/contact'> </Link>,
+                a: <Link href='/info/contact'> </Link>,
               }}
             ></Trans>
           </StudioParagraph>

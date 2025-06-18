@@ -36,7 +36,7 @@ export const VersionHelpText = (): JSX.Element => {
             <Link href='https://docs.altinn.studio/nb/app/maintainance/dependencies/'>
               lese mer her
             </Link>{' '}
-            eller <Link href='/contact'>ta kontakt med oss</Link>.
+            eller <Link href='/info/contact'>ta kontakt med oss</Link>.
           </Trans>
         </Paragraph> */}
       </StudioHelpText>
