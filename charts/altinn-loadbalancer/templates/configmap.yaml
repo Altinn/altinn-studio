@@ -30,6 +30,11 @@ data:
         server kuberneteswrapper:3000;
       }
 
+      map $uri $spa_path {
+        ~^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ $1;
+        default                                               none;
+      }
+
       server {
         listen 80;
         {{- if not (hasKey $.Values.hosts $.Values.environment) }}
@@ -67,30 +72,16 @@ data:
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-        location / {
+        location = / {
           proxy_pass 			    http://designer/;
           proxy_set_header 	  Host {{ $host }};
           proxy_set_header 	  X-Forwarded-For $remote_addr;
           proxy_set_header    X-Forwarded-Proto $scheme;
         }
 
-        location /editor {
-          proxy_pass         	http://designer/editor;
-          proxy_set_header 	  Host {{ $host }};
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-          proxy_set_header    X-Forwarded-Proto $scheme;
-        }
-
-        location /dashboard {
-          proxy_pass         	http://designer/dashboard;
-          proxy_set_header 	  Host {{ $host }};
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-          proxy_set_header    X-Forwarded-Proto $scheme;
-        }
-
-        location /preview {
-          proxy_pass         	http://designer/preview;
-          proxy_set_header 	  Host {{ $host }};
+        location ~ ^/(designer|designerapi|login|logout|Home|ansattporten-signin-oidc|signin-oidc)/ {
+          proxy_pass 			    http://designer;
+          proxy_set_header 	  Host $host;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
           proxy_set_header    X-Forwarded-Proto $scheme;
         }
@@ -105,27 +96,6 @@ data:
           proxy_set_header      X-Forwarded-Proto $scheme;
         }
 
-        location /Home/  {
-          proxy_pass         	http://designer/Home/;
-          proxy_set_header 	  Host {{ $host }};
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-          proxy_set_header    X-Forwarded-Proto $scheme;
-        }
-
-        location /designer/ {
-          proxy_pass         	http://designer/designer/;
-          proxy_set_header 	  Host {{ $host }};
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-          proxy_set_header    X-Forwarded-Proto $scheme;
-        }
-
-        location /designerapi/ {
-          proxy_pass          http://designer/designerapi/;
-          proxy_set_header  	Host {{ $host }};
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-          proxy_set_header    X-Forwarded-Proto $scheme;
-        }
-
         location /repos/ {
           proxy_pass         	http://repositories/;
           proxy_set_header 	  Host {{ $host }};
@@ -136,6 +106,25 @@ data:
           proxy_pass         	http://kwlocation/;
           proxy_set_header 	  Host {{ $host }};
           proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+
+        location ~ ^/(dashboard|editor|preview|resourceadm|info)/assets(/.*)?$ {
+            proxy_pass http://designer;
+        }
+
+        location ~ ^/(dashboard|editor|preview|resourceadm|info)(/.*)?$ {
+          rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
+          proxy_pass http://designer;
+          proxy_set_header 	  Host $host;
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location / {
+          proxy_pass 			    http://designer/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
         }
       }
     # write the log to syslog so it can be read by the sidecar
