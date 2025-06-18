@@ -1,0 +1,69 @@
+{
+  // ACTION REQUIRED: This file was automatically added to your project, but it
+  // will not take effect until additional steps are taken to enable it. See the
+  // following page for additional information:
+  //
+  // https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/EnableConfiguration.md
+
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "PlaceholderCompany"
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace",
+      "systemUsingDirectivesFirst": true,
+      "blankLinesBetweenUsingGroups": "allow"
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": true,
+      "allowedHungarianPrefixes": [
+        "as",
+        "d",
+        "db",
+        "dn",
+        "do",
+        "dr",
+        "ds",
+        "dt",
+        "e",
+        "e2",
+        "er",
+        "f",
+        "fs",
+        "go",
+        "id",
+        "if",
+        "in",
+        "ip",
+        "is",
+        "js",
+        "li",
+        "my",
+        "no",
+        "ns",
+        "on",
+        "or",
+        "pi",
+        "pv",
+        "sa",
+        "sb",
+        "se",
+        "si",
+        "so",
+        "sp",
+        "tc",
+        "to",
+        "tr",
+        "ui",
+        "un",
+        "wf",
+        "ws",
+        "x",
+        "y",
+        "j",
+        "js"
+      ]
+    }
+  }
+}
