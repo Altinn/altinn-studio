@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
-import { ManualOptionsEditor, type ManualOptionsEditorProps } from './ManualOptionsEditor';
+import { ManualOptionsPanel, type ManualOptionsPanelProps } from './ManualOptionsPanel';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -21,7 +21,7 @@ const textResources: ITextResources = {
   ],
 };
 
-describe('ManualOptionEditor', () => {
+describe('ManualOptionsPanel', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the open Dialog button', () => {
@@ -71,7 +71,7 @@ function getDeleteButton() {
   });
 }
 
-const defaultProps: ManualOptionsEditorProps = {
+const defaultProps: ManualOptionsPanelProps = {
   onDeleteButtonClick,
   component: mockComponent,
   textResources,
@@ -83,7 +83,7 @@ function renderManualOptionsEditor({
   props = {},
   queryClient = createQueryClientMock(),
 } = {}) {
-  renderWithProviders(<ManualOptionsEditor {...defaultProps} {...props} />, {
+  renderWithProviders(<ManualOptionsPanel {...defaultProps} {...props} />, {
     queries,
     queryClient,
   });

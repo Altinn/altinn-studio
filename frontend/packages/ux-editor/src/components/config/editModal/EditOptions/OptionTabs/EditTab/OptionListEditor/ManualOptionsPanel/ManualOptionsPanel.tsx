@@ -6,18 +6,18 @@ import { OptionListButtons } from '../OptionListButtons';
 import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import type { ITextResources } from 'app-shared/types/global';
 
-export type ManualOptionsEditorProps = {
+export type ManualOptionsPanelProps = {
   onDeleteButtonClick: () => void;
   onEditButtonClick: () => void;
   textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
 
-export function ManualOptionsEditor({
+export function ManualOptionsPanel({
   component,
   onDeleteButtonClick,
   onEditButtonClick,
   textResources,
-}: ManualOptionsEditorProps): React.ReactNode {
+}: ManualOptionsPanelProps): React.ReactNode {
   const textResourcesForLanguage = useTextResourcesForLanguage(language, textResources);
 
   return (
@@ -37,4 +37,4 @@ export function ManualOptionsEditor({
 
 const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
 
-ManualOptionsEditor.displayName = 'ManualOptionsEditor';
+ManualOptionsPanel.displayName = 'ManualOptionsEditor';
