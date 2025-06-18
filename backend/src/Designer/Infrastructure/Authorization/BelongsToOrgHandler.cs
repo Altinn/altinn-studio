@@ -22,8 +22,6 @@ public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
             return;
         }
 
-        var organizations = await _giteaService.GetUserOrganizations();
-
         if (await UserBelongsToOrg())
         {
             context.Succeed(requirement);
@@ -36,7 +34,7 @@ public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
 
     private static bool IsNotAuthenticatedUser(AuthorizationHandlerContext context)
     {
-        return context.User?.Identity?.IsAuthenticated == true;
+        return context.User?.Identity?.IsAuthenticated != true;
     }
 
     private async Task<bool> UserBelongsToOrg()

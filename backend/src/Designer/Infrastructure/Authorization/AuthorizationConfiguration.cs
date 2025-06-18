@@ -50,13 +50,17 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     });
 
                 options.AddPolicy(AltinnPolicy.MustBelongToOrganization, policy =>
-                    policy.Requirements.Add(new BelongsToOrgRequirement()));
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new BelongsToOrgRequirement());
+                });
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaDeployPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaPublishResourcePermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, BelongsToOrgHandler>();
 
             return services;
         }

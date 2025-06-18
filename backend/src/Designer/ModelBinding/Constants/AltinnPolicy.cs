@@ -28,6 +28,6 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// <summary>
         /// MustBelongToOrganization
         /// </summary>
-        public const string MustBelongToOrganization = "BelongsToOrganization";
+        public const string MustBelongToOrganization = "MustBelongToOrganization";
     }
 }
