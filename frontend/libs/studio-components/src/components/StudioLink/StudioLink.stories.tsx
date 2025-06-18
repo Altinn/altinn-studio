@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioLink } from './StudioLink';
 import { PencilIcon } from '@studio/icons';
 
