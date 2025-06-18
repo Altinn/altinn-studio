@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { JSX } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
@@ -7,11 +7,12 @@ import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
 import classes from 'src/components/organisms/AltinnReceipt.module.css';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
-import type { IAttachmentGrouping, IDisplayAttachment } from 'src/types/shared';
+import type { IDisplayAttachment } from 'src/types/shared';
 
 export interface IReceiptComponentProps {
-  attachmentGroupings?: IAttachmentGrouping;
+  attachments: IDisplayAttachment[] | undefined;
   body: React.ReactNode;
   collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
@@ -23,88 +24,43 @@ export interface IReceiptComponentProps {
   titleSubmitted: React.ReactNode;
 }
 
-interface ICollapsibleAttacments {
-  attachments: IDisplayAttachment[];
-  title: React.ReactNode;
-  hideCollapsibleCount?: boolean;
-}
-
-/**
- * Watches the print media query and returns true if the page is being printed
- */
-function useIsPrint() {
-  const [isPrint, setIsPrint] = useState(() => window.matchMedia('print').matches);
-
-  useEffect(() => {
-    const mediaQueryList = window.matchMedia('print');
-    const handleChange = (event: MediaQueryListEvent) => setIsPrint(event.matches);
-    mediaQueryList.addEventListener('change', handleChange);
-    return () => {
-      mediaQueryList.removeEventListener('change', handleChange);
-    };
-  }, []);
-
-  return isPrint;
-}
-
-const CollapsibleAttachments = ({ attachments, title, hideCollapsibleCount }: ICollapsibleAttacments) => {
-  const isPrint = useIsPrint() ? false : Boolean(attachments.length > 4);
-
-  return (
-    <AltinnCollapsibleAttachments
-      attachments={attachments}
-      collapsible={isPrint}
-      title={title}
-      hideCount={hideCollapsibleCount}
-    />
-  );
-};
-
 interface IRenderAttachmentGroupings {
-  attachmentGroupings?: IAttachmentGrouping;
+  attachments: IDisplayAttachment[] | undefined;
   collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
 }
 
-const RenderAttachmentGroupings = ({
-  attachmentGroupings,
+const defaultGrouping = 'null'; // Default grouping for attachments without a specific grouping
+
+export const AttachmentGroupings = ({
+  attachments,
   collapsibleTitle,
   hideCollapsibleCount,
 }: IRenderAttachmentGroupings) => {
-  const groupings = attachmentGroupings;
-  const groups: JSX.Element[] = [];
+  const langTools = useLanguage();
+  const groupings = attachments?.reduce<Record<string, IDisplayAttachment[]>>((acc, attachment) => {
+    const grouping = attachment.grouping ?? defaultGrouping;
+    const translatedGrouping = langTools.langAsString(grouping);
+    if (!acc[translatedGrouping]) {
+      acc[translatedGrouping] = [];
+    }
+    acc[translatedGrouping].push(attachment);
+    return acc;
+  }, {});
 
   if (!groupings) {
     return null;
   }
 
-  if (groupings.null) {
-    // we have attachments that does not have a grouping. Render them first with default title
-    groups.push(
-      <CollapsibleAttachments
-        attachments={groupings.null}
-        title={collapsibleTitle}
-        hideCollapsibleCount={hideCollapsibleCount}
-      />,
-    );
-  }
-
-  Object.keys(groupings || {}).forEach((title: string) => {
-    if (title && title !== 'null') {
-      groups.push(
-        <CollapsibleAttachments
-          attachments={groupings[title]}
-          title={title}
-          hideCollapsibleCount={hideCollapsibleCount}
-        />,
-      );
-    }
-  });
-
   return (
     <>
-      {groups.map((element: JSX.Element, index) => (
-        <React.Fragment key={index}>{element}</React.Fragment>
+      {Object.keys(groupings).map((groupTitle, index) => (
+        <AltinnCollapsibleAttachments
+          key={index}
+          attachments={groupings[groupTitle]}
+          title={groupTitle === 'null' ? collapsibleTitle : groupTitle}
+          hideCount={hideCollapsibleCount}
+        />
       ))}
     </>
   );
@@ -112,13 +68,13 @@ const RenderAttachmentGroupings = ({
 
 export function ReceiptComponent({
   title,
+  attachments,
   instanceMetaDataObject,
   subtitle,
   subtitleurl,
   body,
   pdf,
   titleSubmitted,
-  attachmentGroupings,
   collapsibleTitle,
   hideCollapsibleCount,
 }: IReceiptComponentProps) {
@@ -171,9 +127,9 @@ export function ReceiptComponent({
           />
         </>
       )}
-      {attachmentGroupings && (
-        <RenderAttachmentGroupings
-          attachmentGroupings={attachmentGroupings}
+      {attachments && (
+        <AttachmentGroupings
+          attachments={attachments}
           collapsibleTitle={collapsibleTitle}
           hideCollapsibleCount={hideCollapsibleCount}
         />

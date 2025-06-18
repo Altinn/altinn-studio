@@ -21,6 +21,7 @@ export interface IApplicationLogic {
 export interface IDisplayAttachment {
   name?: string;
   iconClass: string;
+  grouping: string | undefined;
   url?: string;
   dataType: string;
   tags?: string[];

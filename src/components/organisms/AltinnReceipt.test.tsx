@@ -2,11 +2,13 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
+import { IReceiptComponentProps, ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { IDisplayAttachment } from 'src/types/shared';
 
-const render = async (props = {}) => {
+const render = async (props: Partial<IReceiptComponentProps> = {}) => {
   const allProps = {
+    attachments: undefined,
     body: 'body',
     collapsibleTitle: 'collapsibleTitle',
     instanceMetaDataObject: {},
@@ -26,13 +28,13 @@ const attachment1 = {
   iconClass: 'attachment1IconClass',
   url: 'attachment1Url',
   dataType: 'attachment1DataType',
-};
+} as IDisplayAttachment;
 const attachment2 = {
   name: 'attachment2Name',
   iconClass: 'attachment2IconClass',
   url: 'attachment2Url',
   dataType: 'attachment2DataType',
-};
+} as IDisplayAttachment;
 
 describe('AltinnReceipt', () => {
   it('should not show titleSubmitted when there are no pdfs', async () => {
@@ -48,7 +50,7 @@ describe('AltinnReceipt', () => {
   });
 
   it('should show titleSubmitted when there are pdfs', async () => {
-    await render({ pdf: [{}] });
+    await render({ pdf: [{} as IDisplayAttachment] });
 
     expect(
       screen.getByRole('heading', {
@@ -95,9 +97,7 @@ describe('AltinnReceipt', () => {
 
   it('should show 2 attachments in default group when group name is not set', async () => {
     await render({
-      attachmentGroupings: {
-        null: [attachment1, attachment2],
-      },
+      attachments: [attachment1, attachment2],
       collapsibleTitle: 'collapsibleTitle',
       hideCollapsibleCount: false,
     });
@@ -109,9 +109,7 @@ describe('AltinnReceipt', () => {
 
   it('should not show collapsible count when hideCollapsibleCount is true', async () => {
     await render({
-      attachmentGroupings: {
-        null: [attachment1, attachment2],
-      },
+      attachments: [attachment1, attachment2],
       collapsibleTitle: 'collapsibleTitle',
       hideCollapsibleCount: true,
     });
@@ -122,10 +120,10 @@ describe('AltinnReceipt', () => {
 
   it('should show attachments in defined groups', async () => {
     await render({
-      attachmentGroupings: {
-        group1: [attachment1],
-        group2: [attachment2],
-      },
+      attachments: [
+        { ...attachment1, grouping: 'group1' },
+        { ...attachment2, grouping: 'group2' },
+      ],
       collapsibleTitle: 'collapsibleTitle',
       hideCollapsibleCount: false,
     });

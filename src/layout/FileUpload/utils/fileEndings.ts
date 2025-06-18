@@ -6,7 +6,7 @@ export function getFileEnding(filename: string | undefined): string {
   if (split.length === 1) {
     return '';
   }
-  const ending: string = `.${split[split.length - 1]}`;
+  const ending: string = `.${split.at(-1)}`;
   return ending.toLowerCase();
 }
 
@@ -18,5 +18,5 @@ export function removeFileEnding(filename: string | undefined): string {
   if (split.length === 1) {
     return filename;
   }
-  return filename.replace(`.${split[split.length - 1]}`, '');
+  return filename.replace(`.${split.at(-1)}`, '');
 }

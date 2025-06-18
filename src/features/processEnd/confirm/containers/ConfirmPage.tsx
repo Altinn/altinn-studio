@@ -12,9 +12,10 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
 import {
-  getAttachmentGroupings,
-  getFilteredDisplayAttachments,
-  getRefAsPdfDisplayAttachments,
+  filterOutDataModelRefDataAsPdfAndAppOwnedDataTypes,
+  getAttachmentsWithDataType,
+  getRefAsPdfAttachments,
+  toDisplayAttachments,
 } from 'src/utils/attachmentsUtils';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -29,8 +30,14 @@ export interface IConfirmPageProps {
 
 export const ConfirmPage = ({ instance, instanceOwnerParty, appName, applicationMetadata }: IConfirmPageProps) => {
   const langTools = useLanguage();
-
   const appOwner = useAppOwner();
+
+  const attachmentWithDataType = getAttachmentsWithDataType({
+    attachments: instance?.data ?? [],
+    appMetadataDataTypes: applicationMetadata?.dataTypes ?? [],
+  });
+  const relevantAttachments = filterOutDataModelRefDataAsPdfAndAppOwnedDataTypes(attachmentWithDataType);
+  const displayAttachments = toDisplayAttachments(relevantAttachments);
 
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
@@ -42,22 +49,13 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
     return {};
   };
 
-  const getAttachments = () => {
-    if (instance?.data && applicationMetadata) {
-      return getFilteredDisplayAttachments({
-        data: instance.data,
-        appMetadataDataTypes: applicationMetadata.dataTypes,
-      });
-    }
-  };
-
   return (
     <>
       <Helmet>
         <title>{`${getPageTitle(appName, langTools.langAsString('confirm.title'), appOwner)}`}</title>
       </Helmet>
       <ReceiptComponent
-        attachmentGroupings={getAttachmentGroupings(getAttachments(), applicationMetadata, langTools)}
+        attachments={displayAttachments}
         body={
           appName && (
             <Lang
@@ -71,7 +69,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
         instanceMetaDataObject={getInstanceMetaObject()}
         title={<Lang id='confirm.title' />}
         titleSubmitted={<Lang id='confirm.answers' />}
-        pdf={getRefAsPdfDisplayAttachments(instance?.data ?? [])}
+        pdf={toDisplayAttachments(getRefAsPdfAttachments(attachmentWithDataType))}
       />
       <ConfirmButton />
       <ReadyForPrint type='load' />

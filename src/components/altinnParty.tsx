@@ -5,7 +5,7 @@ import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { AltinnCollapsableList } from 'src/components/AltinnCollapsable';
+import { AltinnCollapsibleList } from 'src/components/AltinnCollapsable';
 import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -50,7 +50,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
     }
 
     return (
-      <AltinnCollapsableList
+      <AltinnCollapsibleList
         open={subUnitsExpanded}
         onClickExpand={expandSubUnits}
         listHeader={
@@ -124,7 +124,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
             </Flex>
           </Flex>
         ))}
-      </AltinnCollapsableList>
+      </AltinnCollapsibleList>
     );
   }
 

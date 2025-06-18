@@ -5,7 +5,6 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
-import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -16,7 +15,7 @@ import type { IDisplayAttachment } from 'src/types/shared';
 interface IAltinnAttachmentsProps {
   attachments?: IDisplayAttachment[];
   id?: string;
-  title?: string;
+  title?: React.ReactNode;
   links?: boolean;
 }
 
@@ -31,11 +30,7 @@ export function AltinnAttachments({ attachments, id, title, links = true }: IAlt
       id={id}
       data-testid='attachment-list'
     >
-      {title && (
-        <List.Heading>
-          <Lang id={title} />
-        </List.Heading>
-      )}
+      {title && <List.Heading>{title}</List.Heading>}
       <List.Unordered className={classes.attachmentList}>
         {filteredAndSortedAttachments?.map((attachment, index) => (
           <Attachment
