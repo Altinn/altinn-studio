@@ -25,8 +25,7 @@ import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
-import { CodeListDialog } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/CodeListDialog';
-import type { OptionListEditorProps } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/OptionListEditor';
+import { CodeListDialog } from './CodeListDialog';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -86,7 +85,7 @@ function EditTabWithData({
       <OptionListTools
         component={component}
         handleComponentChange={handleComponentChange}
-        onEditButtonClick={() => dialogRef.current.showModal()}
+        openDialog={() => dialogRef.current.showModal()}
         optionListIds={optionListIds}
         textResources={textResources}
       />
@@ -104,12 +103,12 @@ function EditTabWithData({
   );
 }
 
-type OptionListToolsProps = EditTabWithDataProps & Pick<OptionListEditorProps, 'onEditButtonClick'>;
+type OptionListToolsProps = EditTabWithDataProps & { openDialog: () => void };
 
 function OptionListTools({
   component,
   handleComponentChange,
-  onEditButtonClick,
+  openDialog,
   optionListIds,
   textResources,
 }: OptionListToolsProps): React.ReactElement {
@@ -118,30 +117,41 @@ function OptionListTools({
       <OptionListEditor
         component={component}
         handleComponentChange={handleComponentChange}
-        onEditButtonClick={onEditButtonClick}
+        onEditButtonClick={openDialog}
         textResources={textResources}
       />
     );
   } else {
-    return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+    return (
+      <AddOptionList
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onCreateButtonClick={openDialog}
+      />
+    );
   }
 }
 
 OptionListTools.displayName = 'OptionListTools';
 
-type AddOptionListProps = EditTabProps;
+type AddOptionListProps = EditTabProps & { onCreateButtonClick: () => void };
 
-function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
+function AddOptionList({
+  component,
+  handleComponentChange,
+  onCreateButtonClick,
+}: AddOptionListProps) {
   const { t } = useTranslation();
 
-  const handleInitialManualOptionsChange = () => {
+  const handleCreateButtonClick = () => {
     const updatedComponent = updateComponentOptions(component, []);
     handleOptionsChange(updatedComponent, handleComponentChange);
+    onCreateButtonClick();
   };
 
   return (
     <div className={classes.addOptionListContainer}>
-      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
+      <StudioButton variant='secondary' onClick={handleCreateButtonClick}>
         {t('general.create_new')}
       </StudioButton>
       <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
