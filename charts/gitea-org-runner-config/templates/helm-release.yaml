@@ -39,3 +39,9 @@ spec:
           secretKeyRef:
             name: {{ .Values.registrationTokenSecretName }}
             key: token
+    tolerations:
+      - key: "purpose"
+        operator: "Equal"
+        value: "runner"
+        effect: "NoSchedule"
+
