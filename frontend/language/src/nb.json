@@ -922,6 +922,7 @@
   "process_editor.configuration_panel_set_unique_from_signatures_in_data_types": "Samme person kan ikke signere både denne oppgaven og:",
   "process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link": "Bruk unik signatur på denne oppgaven",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
+  "process_editor.configuration_panel_userControlledSigning_task": "Brukerstyrt signering",
   "process_editor.configuration_view_panel_id_label": "ID:",
   "process_editor.configuration_view_panel_name_label": "Navn: ",
   "process_editor.configuration_view_panel_no_task": "Du har ikke valgt noen oppgave",

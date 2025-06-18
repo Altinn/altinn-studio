@@ -20,6 +20,7 @@ import { ConfigContentContainer } from './ConfigContentContainer';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
+import { TaskUtils } from '../../../utils/taskUtils';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -39,7 +40,9 @@ export const ConfigContent = (): React.ReactElement => {
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
   const isFirstSigningTask = tasks
-    .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
+    .filter((item) =>
+      TaskUtils.isSigningTask(item.businessObject.extensionElements?.values[0]?.taskType),
+    )
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
   if (shouldDisplayAction(bpmnDetails.id)) {
