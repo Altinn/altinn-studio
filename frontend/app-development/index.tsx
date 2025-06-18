@@ -7,13 +7,11 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import 'app-shared/design-tokens';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
-import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
 
 const loggerConfig: LoggerConfig = {
-  connectionString: altinnStudioEnvironment.aiConnectionString,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
