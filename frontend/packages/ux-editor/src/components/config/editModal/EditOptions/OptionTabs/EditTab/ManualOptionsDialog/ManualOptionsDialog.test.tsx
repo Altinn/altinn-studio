@@ -2,8 +2,8 @@ import type { RenderResult } from '@testing-library/react';
 import { waitFor, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
-import type { CodeListDialogProps } from './';
-import { CodeListDialog } from './';
+import type { ManualOptionsDialogProps } from './';
+import { ManualOptionsDialog } from './';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResources, ITextResourcesObjectFormat } from 'app-shared/types/global';
@@ -30,7 +30,7 @@ const handleComponentChange = jest.fn();
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
-const defaultProps: CodeListDialogProps = {
+const defaultProps: ManualOptionsDialogProps = {
   component,
   handleComponentChange,
   textResources,
@@ -39,7 +39,7 @@ const defaultProps: CodeListDialogProps = {
 // Mocks:
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
-describe('CodeListDialog', () => {
+describe('ManualOptionsDialog', () => {
   beforeEach(jest.clearAllMocks);
 
   it('Renders a dialog', async () => {
@@ -107,7 +107,7 @@ describe('CodeListDialog', () => {
       { value: 'value2', label: label2TextResource.id, description: description2TextResource.id },
     ];
     const testComponent: FormItem<ComponentType.RadioButtons> = { ...component, options };
-    const props: Partial<CodeListDialogProps> = { component: testComponent };
+    const props: Partial<ManualOptionsDialogProps> = { component: testComponent };
     const org = 'org';
     const app = 'app';
     const appRouteParams = { org, app };
@@ -127,7 +127,7 @@ describe('CodeListDialog', () => {
 });
 
 type RenderCodeListDialogArgs = {
-  props?: Partial<CodeListDialogProps>;
+  props?: Partial<ManualOptionsDialogProps>;
   ref?: MutableRefObject<HTMLDialogElement>;
 } & Partial<ExtendedRenderOptions>;
 
@@ -137,7 +137,7 @@ function renderCodeListDialog({
   ...renderOptions
 }: RenderCodeListDialogArgs = {}): RenderResult {
   return renderWithProviders(
-    <CodeListDialog {...defaultProps} {...props} ref={ref} />,
+    <ManualOptionsDialog {...defaultProps} {...props} ref={ref} />,
     renderOptions,
   );
 }

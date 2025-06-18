@@ -28,8 +28,8 @@ import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
-import { CodeListDialog } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/CodeListDialog';
-import type { OptionListEditorProps } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditTab/OptionListEditor/OptionListEditor';
+import { ManualOptionsDialog } from './ManualOptionsDialog';
+import type { OptionListEditorProps } from './OptionListEditor/OptionListEditor';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -87,7 +87,7 @@ function EditTabWithData({
 
   return (
     <div className={classes.container}>
-      <CodeListDialog
+      <ManualOptionsDialog
         component={component}
         handleComponentChange={handleComponentChange}
         ref={dialogRef}

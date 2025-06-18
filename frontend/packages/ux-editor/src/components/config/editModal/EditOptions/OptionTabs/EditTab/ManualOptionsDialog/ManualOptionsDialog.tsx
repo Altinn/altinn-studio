@@ -15,11 +15,11 @@ import { useTextResourcesForLanguage } from '../hooks/useTextResourcesForLanguag
 import { useHandleUpdateTextResource } from '../hooks/useHandleUpdateTextResource';
 import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 
-export type CodeListDialogProps = {
+export type ManualOptionsDialogProps = {
   textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-export const CodeListDialog = forwardRef<HTMLDialogElement, CodeListDialogProps>(
+export const ManualOptionsDialog = forwardRef<HTMLDialogElement, ManualOptionsDialogProps>(
   ({ component, handleComponentChange, textResources }, ref) => {
     const { t } = useTranslation();
     const editorTexts = useOptionListEditorTexts();
@@ -65,6 +65,6 @@ export const CodeListDialog = forwardRef<HTMLDialogElement, CodeListDialogProps>
   },
 );
 
-CodeListDialog.displayName = 'CodeListDialog';
+ManualOptionsDialog.displayName = 'CodeListDialog';
 
 const language: string = 'nb'; // Todo: Let the user choose the language: https://github.com/Altinn/altinn-studio/issues/14572
