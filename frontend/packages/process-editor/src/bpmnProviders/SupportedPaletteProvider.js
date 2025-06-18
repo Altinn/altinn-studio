@@ -60,7 +60,47 @@ class SupportedPaletteProvider {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
                   dataTypes: [],
                 }),
-                signatureDataType: `signatureInformation-${generateRandomId(4)}`,
+                signatureDataType: `signatures-${generateRandomId(4)}`,
+                runDefaultValidator: true,
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    function createUserControlledSigningTask() {
+      const taskType = 'userControlledSigning';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: [
+                  bpmnFactory.create('altinn:Action', { action: 'sign' }),
+                  bpmnFactory.create('altinn:Action', { action: 'reject' }),
+                ],
+              }),
+              signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
+                dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
+                  dataTypes: [],
+                }),
+                signatureDataType: `user-controlled-signatures-${generateRandomId(4)}`,
+                signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
+                signeeProviderId: '', // No default interface exists in the apps
+                signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
+                correspondenceResource: '', // No default
+                runDefaultValidator: true,
               }),
             }),
           ],
@@ -183,6 +223,15 @@ class SupportedPaletteProvider {
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
+          },
+        },
+        'create.altinn-user-controlled-signing-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
+          title: translate('Create Altinn user-controllerd-signing Task'),
+          action: {
+            click: createUserControlledSigningTask(),
+            dragstart: createUserControlledSigningTask(),
           },
         },
         'create.altinn-confirmation-task': {

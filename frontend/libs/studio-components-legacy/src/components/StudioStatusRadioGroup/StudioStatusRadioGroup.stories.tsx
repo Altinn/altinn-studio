@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioStatusRadioGroup, type StudioStatusRadioGroupProps } from './StudioStatusRadioGroup';
 
 const options: StudioStatusRadioGroupProps['options'] = [

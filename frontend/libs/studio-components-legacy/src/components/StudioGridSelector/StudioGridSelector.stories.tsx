@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioGridSelector } from './StudioGridSelector';
 import { type GridSize } from './types/GridSize';
 
