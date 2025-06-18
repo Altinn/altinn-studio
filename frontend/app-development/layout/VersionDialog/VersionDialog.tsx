@@ -147,7 +147,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                     href: altinnDocsUrl({
                       relativeUrl: 'community/changelog/app-frontend/',
                     }),
-                    text: t('version_dialog.update_frontend'),
+                    text: 'version_dialog.update_frontend',
                   }}
                 />
               )}
@@ -160,7 +160,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
                     href: altinnDocsUrl({
                       relativeUrl: 'community/changelog/app-nuget/',
                     }),
-                    text: t('version_dialog.update_backend'),
+                    text: 'version_dialog.update_backend',
                   }}
                 />
               )}
