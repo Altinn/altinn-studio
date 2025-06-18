@@ -61,7 +61,7 @@ export function TranslationDetails({
     id,
     t,
   );
-  const hasErrors: boolean = errorMessage && errors.length > 0;
+  const hasErrors: boolean = !!errorMessage && errors.length > 0;
   const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {

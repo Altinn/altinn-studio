@@ -5,7 +5,7 @@ import type { TranslationDetailsProps } from './TranslationDetails';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 
 const languagesToTest: ValidLanguage[] = ['nn', 'en'];
 

@@ -73,12 +73,10 @@ export const validateAppConfig = (
 
   supportedLanguages.forEach((lang: ValidLanguage) => {
     // validate service name
-
     if (!appConfig.serviceName?.[lang]) {
       errors.push({
         field: 'serviceName',
         index: lang,
-        // TODO - legg på field
         error: t(`app_settings.about_tab_error_translation_missing_${lang}`, {
           field: t('app_settings.about_tab_error_usage_string_service_name'),
         }),
