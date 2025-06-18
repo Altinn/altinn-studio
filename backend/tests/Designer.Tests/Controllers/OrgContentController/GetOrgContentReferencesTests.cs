@@ -210,12 +210,12 @@ public class GetOrgContentReferencesTests
 
         OrgAndRepoName orgAndRepoName = GenerateOrgAndRepoNames();
         const string Username = "testUser";
-        const string OrgName = "ttd";
-        const string RepoName = "org-content-empty";
+        const string SourceOrgName = "ttd";
+        const string SourceRepoName = "org-content-empty";
         await CopyOrgRepositoryForTest(
             Username,
-            OrgName,
-            RepoName,
+            SourceOrgName,
+            SourceRepoName,
             orgAndRepoName.Org.Name,
             orgAndRepoName.RepoName
         );
