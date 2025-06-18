@@ -61,11 +61,8 @@ export const VersionDialog = () => {
         frontendVersion={data.frontendVersion}
         backendVersion={data.backendVersion}
       >
-        {t('version_dialog.outdated_version_title_content')
-          .split('\n')
-          .map((tr) => (
-            <StudioParagraph key={tr}>{tr}</StudioParagraph>
-          ))}
+        <StudioParagraph>{t('version_dialog.outdated_version_description')}</StudioParagraph>
+        <StudioParagraph>{t('version_dialog.outdated_version_recommendation')}</StudioParagraph>
       </Dialog>
     );
   }

@@ -170,14 +170,19 @@ const assertOutdatedDialogVisible = (shouldBeVisible: boolean) => {
     name: textMock('version_dialog.outdated_version_title'),
     level: 2,
   });
-  const content = screen.queryByText(textMock('version_dialog.outdated_version_title_content'));
+  const description = screen.queryByText(textMock('version_dialog.outdated_version_description'));
+  const recommendation = screen.queryByText(
+    textMock('version_dialog.outdated_version_recommendation'),
+  );
 
   if (shouldBeVisible) {
     expect(title).toBeInTheDocument();
-    expect(content).toBeInTheDocument();
+    expect(description).toBeInTheDocument();
+    expect(recommendation).toBeInTheDocument();
   } else {
     expect(title).not.toBeInTheDocument();
-    expect(content).not.toBeInTheDocument();
+    expect(description).not.toBeInTheDocument();
+    expect(recommendation).not.toBeInTheDocument();
   }
 };
 
