@@ -86,6 +86,30 @@ describe('AppConfigForm', () => {
     expect(altId).toHaveValue(`${mockAppConfig.serviceId}${newText}`);
   });
 
+  it('displays correct value in "description" input field, and updates the value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, description: mockDescription } });
+
+    const description = getOptionalTextbox(
+      `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
+    );
+    expect(description).toHaveValue(mockDescription.nb);
+
+    const newText: string = 'A';
+    await user.type(description, newText);
+
+    expect(description).toHaveValue(`${mockDescription.nb}${newText}`);
+  });
+
+  it('displays description as empty when there is no description set', () => {
+    renderAppConfigForm();
+
+    const description = getOptionalTextbox(
+      `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
+    );
+    expect(description).toHaveValue('');
+  });
+
   it('disables the action buttons when no changes are made', () => {
     renderAppConfigForm();
 
@@ -266,6 +290,11 @@ describe('AppConfigForm', () => {
 });
 
 const mockServiceName: SupportedLanguage = { nb: 'Tjeneste', nn: '', en: '' };
+const mockDescription: SupportedLanguage = {
+  nb: 'Dette er en beskrivelse',
+  nn: 'Dette er ei tenestebeskriving',
+  en: 'This is a description',
+};
 const mockServiceNameComplete: SupportedLanguage = {
   nb: 'Tjeneste',
   nn: 'Teneste',
