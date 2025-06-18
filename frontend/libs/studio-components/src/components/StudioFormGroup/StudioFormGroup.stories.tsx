@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioFormGroup } from '.';
 import { StudioTextfield } from '../StudioTextfield';
 import { StudioCheckbox } from '../StudioCheckbox';

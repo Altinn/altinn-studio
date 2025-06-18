@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 
