@@ -13,7 +13,7 @@ export const selectedMaskinportenScopesPath = (org, app) => `${basePath}/${org}/
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
-1;
+
 // App version
 export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
 
