@@ -7,6 +7,7 @@ const config: StorybookConfig = {
     '@storybook/addon-essentials',
     '@chromatic-com/storybook',
     '@storybook/addon-interactions',
+    '@storybook/addon-docs',
   ],
   features: {
     buildStoriesJson: true,
@@ -14,9 +15,6 @@ const config: StorybookConfig = {
   framework: {
     name: '@storybook/react-vite',
     options: {},
-  },
-  docs: {
-    autodocs: 'tag',
   },
   refs: {
     'studio-components-legacy': {

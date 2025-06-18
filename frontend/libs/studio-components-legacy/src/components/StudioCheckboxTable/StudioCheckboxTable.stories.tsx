@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioCheckboxTable } from './index';
 import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
 

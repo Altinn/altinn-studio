@@ -1,7 +1,7 @@
 import React from 'react';
-import type { Preview } from '@storybook/react';
-import { DocsContainer } from '@storybook/addon-docs';
-import { Unstyled } from '@storybook/blocks';
+import type { Preview } from '@storybook/react-vite';
+import { DocsContainer } from '@storybook/addon-docs/blocks';
+import { Unstyled } from '@storybook/addon-docs/blocks';
 
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import '@digdir/designsystemet-css';

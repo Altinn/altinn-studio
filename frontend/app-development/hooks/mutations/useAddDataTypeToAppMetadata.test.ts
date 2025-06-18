@@ -19,6 +19,12 @@ describe('useAddDataTypeToAppMetadata', () => {
     await waitFor(() => expect(addDataTypeToAppMetadata.current.isSuccess).toBe(true));
 
     expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledWith(org, app, dataTypeId, taskId);
+    expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      dataTypeId,
+      taskId,
+      undefined,
+    );
   });
 });
