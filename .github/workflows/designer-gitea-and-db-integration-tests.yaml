@@ -5,6 +5,8 @@ on:
     paths:
       - 'testdata/**'
       - 'backend/**'
+    paths-ignore:
+      - 'backend/src/KubernetesWrapper/**'
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
@@ -12,6 +14,8 @@ on:
       - 'backend/**'
       - 'testdata/**'
       - 'gitea/**'
+    paths-ignore:
+      - 'backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 jobs:

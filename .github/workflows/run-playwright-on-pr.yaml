@@ -12,6 +12,8 @@ on:
       - 'gitea/**'
       - 'package.json'
       - 'development/**'
+    paths-ignore:
+      - 'backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 concurrency:

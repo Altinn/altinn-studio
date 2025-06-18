@@ -6,14 +6,14 @@ on:
       - 'testdata/**'
       - 'backend/**'
     paths-ignore:
-      - 'backend/KubernetesWrapper/**'
+      - 'backend/src/KubernetesWrapper/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
       - 'testdata/**'
     paths-ignore:
-      - 'backend/KubernetesWrapper/**'
+      - 'backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 jobs:
