@@ -6,6 +6,6 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioDividerProps = WithoutAsChild<DividerProps>;
 
-export function StudioDivider({ children, ...rest }: StudioDividerProps): ReactElement {
-  return <Divider {...rest} />;
+export function StudioDivider(props: StudioDividerProps): ReactElement {
+  return <Divider {...props} />;
 }
