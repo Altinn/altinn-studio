@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class AccessListTests : ResourceAdminControllerTestsBaseClass<AddResourceTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class AccessListTests : ResourceAdminControllerTestsBaseClass<AccessListTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         public AccessListTests(WebApplicationFactory<Program> factory) : base(factory)
         {
@@ -221,6 +221,22 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
         }
+
+        [Fact]
+        public async Task GetAllAccessLists_Ok()
+        {
+            //Arrange
+            string uri = $"{VersionPrefix}/ttd/resources/allaccesslists";
+            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
+
+            //Act
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+            //Assert
+            RepositoryMock.VerifyAll();
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
     }
 }
-

@@ -8,16 +8,17 @@ import { type StudioProfileMenuGroup } from '@studio/components-legacy';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {
-    key: HeaderMenuItemKey.OrgLibrary,
-    link: Subroute.OrgLibrary,
-    name: 'dashboard.header_item_library',
-    group: HeaderMenuGroupKey.Tools,
-  },
-  {
     key: HeaderMenuItemKey.AppDashboard,
     link: Subroute.AppDashboard,
     name: 'dashboard.header_item_dashboard',
     group: HeaderMenuGroupKey.Tools,
+  },
+  {
+    key: HeaderMenuItemKey.OrgLibrary,
+    link: Subroute.OrgLibrary,
+    name: 'dashboard.header_item_library',
+    group: HeaderMenuGroupKey.Tools,
+    isBeta: true,
   },
 ];
 

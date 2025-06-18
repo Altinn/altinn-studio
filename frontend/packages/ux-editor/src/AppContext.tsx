@@ -1,5 +1,5 @@
 import type { MutableRefObject, ReactElement, ReactNode } from 'react';
-import React, { createContext, useCallback, useMemo, useRef } from 'react';
+import React, { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
@@ -8,10 +8,25 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
+import type { ItemType } from './components/Properties/ItemType';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
 }
+
+export type SelectedItem =
+  | {
+      type: ItemType.Group;
+      id: number;
+    }
+  | {
+      type: ItemType.Page;
+      id: string;
+    }
+  | {
+      type: ItemType.Component;
+      id: string;
+    };
 
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
@@ -27,6 +42,8 @@ export interface AppContextProps {
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
+  selectedItem: SelectedItem | null;
+  setSelectedItem: (selectedItem: SelectedItem | null) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -45,7 +62,7 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
 
@@ -116,6 +133,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
+      selectedItem,
+      setSelectedItem,
     }),
     [
       selectedFormLayoutSetName,
@@ -130,6 +149,8 @@ export const AppContextProvider = ({
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
+      selectedItem,
+      setSelectedItem,
     ],
   );
 
