@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon, FolderPlusIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
-import { StudioDivider, StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@studio/components';
 import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
@@ -142,7 +142,9 @@ const PageGroupActions = ({ pageName }: PageGroupActionProps) => {
 
   return (
     <>
-      <StudioDivider />
+      <StudioDropdown.Heading>
+        {t('ux_editor.page_menu_group_movement_heading')}
+      </StudioDropdown.Heading>
       <StudioDropdown.Item>
         <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
           <FolderPlusIcon />
