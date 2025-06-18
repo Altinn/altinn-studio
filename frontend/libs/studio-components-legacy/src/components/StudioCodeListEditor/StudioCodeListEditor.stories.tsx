@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
 import { textResources } from './test-data/textResources';
 import { texts } from './test-data/texts';
