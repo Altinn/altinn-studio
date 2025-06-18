@@ -307,7 +307,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             problemDetails = new ValidationProblemDetails
             {
-                Detail = "Json schema has invalid structure", Status = (int)HttpStatusCode.BadRequest
+                Detail = "Json schema has invalid structure",
+                Status = (int)HttpStatusCode.BadRequest
             };
 
             foreach (var validationIssue in validationResult.ValidationIssues)
