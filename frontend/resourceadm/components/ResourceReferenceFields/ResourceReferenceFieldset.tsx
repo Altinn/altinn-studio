@@ -68,11 +68,6 @@ type ResourceReferenceFieldsetProps = {
    */
   onChangeResourceReferenceField: (resourceReference: ResourceReference) => void;
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * Field error messages
    */
   errors: ResourceFormError[];
@@ -92,7 +87,6 @@ type ResourceReferenceFieldsetProps = {
  *
  * @property {ResourceReference}[resourceReference] - The resourceReference to display in the fieldset
  * @property {function}[onChangeResourceReferenceField] - Function to be executed when resourceReference is changed
- * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {ResourceFormError[]}[errors] - Field error messages
  * @property {boolean}[required] - Whether this field is required or not
  * @property {number}[index] - Index of fieldset
@@ -102,7 +96,6 @@ type ResourceReferenceFieldsetProps = {
 export const ResourceReferenceFieldset = ({
   resourceReference,
   onChangeResourceReferenceField,
-  onFocus,
   errors,
   required,
   index,
@@ -160,7 +153,6 @@ export const ResourceReferenceFieldset = ({
           value={referenceSource}
           label={t('resourceadm.about_resource_reference_source')}
           error={hasError}
-          onFocus={onFocus}
         >
           {referenceSourceOptions.map((opt) => {
             return (
@@ -179,7 +171,6 @@ export const ResourceReferenceFieldset = ({
           value={referenceType}
           label={t('resourceadm.about_resource_reference_type')}
           error={hasError}
-          onFocus={onFocus}
         >
           {referenceTypeOptions.map((opt) => {
             return (
@@ -195,7 +186,6 @@ export const ResourceReferenceFieldset = ({
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           error={hasError}
-          onFocus={onFocus}
           onBlur={handleBlurReference}
         />
       </StudioFieldset>

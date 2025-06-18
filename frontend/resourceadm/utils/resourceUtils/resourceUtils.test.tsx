@@ -195,7 +195,7 @@ describe('deepCompare', () => {
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(13);
+      expect(validationErrors.length).toBe(7);
     });
 
     it('should return all possible errors for genericAccessResource', () => {
@@ -211,7 +211,7 @@ describe('deepCompare', () => {
         contactPoints: null,
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(13);
+      expect(validationErrors.length).toBe(7);
     });
 
     it('should return all possible errors for consent resource', () => {
@@ -227,7 +227,7 @@ describe('deepCompare', () => {
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(16);
+      expect(validationErrors.length).toBe(8);
     });
 
     describe('should return error for consentText field', () => {
@@ -371,7 +371,7 @@ describe('deepCompare', () => {
         contactPoints: [],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(13);
+      expect(validationErrors.length).toBe(7);
     });
   });
 });

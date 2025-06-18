@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioTextarea, StudioTextfield } from '@studio/components-legacy';
-import { RightTranslationBar } from '../RightTranslationBar';
+import { StudioTabs } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
-import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 /**
  * Initial value for languages with empty fields
@@ -25,22 +24,9 @@ type ResourceLanguageTextFieldProps = {
    */
   description: string;
   /**
-   * The description of the translation fields
-   */
-  translationDescription: string;
-  /**
-   * Whether the translation panel is open or not
-   */
-  isTranslationPanelOpen: boolean;
-  /**
    * The value in the field
    */
   value: SupportedLanguage;
-  /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
   /**
    * Function to be executed on blur
    * @returns void
@@ -67,10 +53,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
- * @property {string}[translationDescription] - The description of the translation fields
- * @property {boolean}[isTranslationPanelOpen] - Whether the translation panel is open or not
  * @property {string}[value] - The value in the field
- * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
@@ -82,15 +65,13 @@ export const ResourceLanguageTextField = ({
   id,
   label,
   description,
-  translationDescription,
-  isTranslationPanelOpen,
   value,
-  onFocus,
   onBlur,
   errors,
   useTextArea,
   required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   const getTrimmedTranslations = (): SupportedLanguage => {
@@ -105,65 +86,56 @@ export const ResourceLanguageTextField = ({
     onBlur(getTrimmedTranslations());
   };
 
-  const onChangeNbTextField = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onNbFieldValueChanged(event.target.value);
-  };
-
-  const onChangeNbTextArea = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onNbFieldValueChanged(event.target.value);
-  };
-
-  const onNbFieldValueChanged = (newValue: string) => {
+  const onFieldValueChanged = (language: string, newValue: string) => {
     setTranslations((oldTranslations) => {
-      return { ...oldTranslations, nb: newValue };
+      return { ...oldTranslations, [language]: newValue };
     });
   };
 
-  const mainFieldError = errors
-    .filter((error) => error.index === 'nb')
-    .map((error, index) => <InputFieldErrorMessage key={index} message={error.error} />);
+  const mainFieldError = errors.map((error, index) => (
+    <span key={index} className={classes.translationFieldError}>
+      {error.error}
+    </span>
+  ));
 
   return (
-    <>
-      <div className={classes.inputWrapper}>
-        {useTextArea ? (
-          <StudioTextarea
-            id={id}
-            label={<ResourceFieldHeader label={label} required={required} />}
-            description={description}
-            value={translations['nb']}
-            onChange={onChangeNbTextArea}
-            onFocus={onFocus}
-            error={mainFieldError.length > 0 ? mainFieldError : undefined}
-            onBlur={onBlurField}
-            rows={5}
-            required={required}
-          />
-        ) : (
-          <StudioTextfield
-            id={id}
-            label={<ResourceFieldHeader label={label} required={required} />}
-            description={description}
-            value={translations['nb']}
-            onChange={onChangeNbTextField}
-            onFocus={onFocus}
-            error={mainFieldError.length > 0 ? mainFieldError : undefined}
-            onBlur={onBlurField}
-            required={required}
-          />
-        )}
-      </div>
-      {isTranslationPanelOpen && (
-        <RightTranslationBar
-          title={translationDescription}
-          value={translations}
-          onLanguageChange={setTranslations}
-          usesTextArea={useTextArea}
-          errors={errors}
-          onBlur={onBlurField}
-          required={required}
-        />
-      )}
-    </>
+    <div className={classes.inputWrapper}>
+      <StudioTextfield
+        id={id}
+        required={required}
+        label={<ResourceFieldHeader label={label} required={required} />}
+        description={
+          <>
+            {description}
+            <StudioTabs
+              defaultValue='nb'
+              size='sm'
+              value={selectedLanguage}
+              onChange={setSelectedLanguage}
+            >
+              <StudioTabs.List>
+                <StudioTabs.Tab value='nb' aria-label={`Bokmål ${label}`}>
+                  Bokmål
+                </StudioTabs.Tab>
+                <StudioTabs.Tab value='nn' aria-label={`Nynorsk ${label}`}>
+                  Nynorsk
+                </StudioTabs.Tab>
+                <StudioTabs.Tab value='en' aria-label={`Engelsk ${label}`}>
+                  Engelsk
+                </StudioTabs.Tab>
+              </StudioTabs.List>
+            </StudioTabs>
+          </>
+        }
+        value={translations[selectedLanguage]}
+        onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+          onFieldValueChanged(selectedLanguage, event.target.value)
+        }
+        multiline={useTextArea}
+        error={mainFieldError.length > 0 ? mainFieldError : undefined}
+        onBlur={onBlurField}
+        rows={5}
+      />
+    </div>
   );
 };

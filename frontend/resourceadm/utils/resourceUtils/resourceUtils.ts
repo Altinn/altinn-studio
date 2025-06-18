@@ -253,20 +253,6 @@ export const validateResource = (
       error: titleError,
     });
   }
-  if (!resourceData.title?.nn) {
-    errors.push({
-      field: 'title',
-      index: 'nn',
-      error: t('resourceadm.about_resource_error_translation_missing_title_nn'),
-    });
-  }
-  if (!resourceData.title?.en) {
-    errors.push({
-      field: 'title',
-      index: 'en',
-      error: t('resourceadm.about_resource_error_translation_missing_title_en'),
-    });
-  }
 
   // validate description
   const descriptionError = getMissingInputLanguageString(
@@ -283,20 +269,6 @@ export const validateResource = (
       field: 'description',
       index: 'nb',
       error: descriptionError,
-    });
-  }
-  if (!resourceData.description?.nn) {
-    errors.push({
-      field: 'description',
-      index: 'nn',
-      error: t('resourceadm.about_resource_error_translation_missing_description_nn'),
-    });
-  }
-  if (!resourceData.description?.en) {
-    errors.push({
-      field: 'description',
-      index: 'en',
-      error: t('resourceadm.about_resource_error_translation_missing_description_en'),
     });
   }
 
@@ -316,20 +288,6 @@ export const validateResource = (
         field: 'rightDescription',
         index: 'nb',
         error: rightDescriptionError,
-      });
-    }
-    if (!resourceData.rightDescription?.nn) {
-      errors.push({
-        field: 'rightDescription',
-        index: 'nn',
-        error: t('resourceadm.about_resource_error_translation_missing_rights_description_nn'),
-      });
-    }
-    if (!resourceData.rightDescription?.en) {
-      errors.push({
-        field: 'rightDescription',
-        index: 'en',
-        error: t('resourceadm.about_resource_error_translation_missing_rights_description_en'),
       });
     }
   }
@@ -406,20 +364,6 @@ export const validateResource = (
         field: 'consentText',
         index: 'nb',
         error: consentTextError,
-      });
-    }
-    if (!resourceData.consentText?.nn) {
-      errors.push({
-        field: 'consentText',
-        index: 'nn',
-        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
-      });
-    }
-    if (!resourceData.consentText?.en) {
-      errors.push({
-        field: 'consentText',
-        index: 'en',
-        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
       });
     }
 

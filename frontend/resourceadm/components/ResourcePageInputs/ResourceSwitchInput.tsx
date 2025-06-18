@@ -21,11 +21,6 @@ type ResourceSwitchInputProps = {
    */
   value: boolean;
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * Function to be executed on change
    * @param isChecked the value used in the switch
    * @returns void
@@ -45,7 +40,6 @@ type ResourceSwitchInputProps = {
  * @property {string}[label] - The label of the switch
  * @property {string}[description] - The description of the switch
  * @property {string}[value] - The value in the switch
- * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onChange] - Function to be executed on change
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
  *
@@ -56,7 +50,6 @@ export const ResourceSwitchInput = ({
   label,
   description,
   value,
-  onFocus,
   onChange,
   toggleTextTranslationKey,
 }: ResourceSwitchInputProps): React.JSX.Element => {
@@ -83,7 +76,6 @@ export const ResourceSwitchInput = ({
             onChange(newValue);
           }}
           id={id}
-          onFocus={onFocus}
           aria-description={description}
           aria-label={label}
           size='sm'
