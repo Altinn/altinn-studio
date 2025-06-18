@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Configuration;
 
+namespace Altinn.Studio.Designer.Services.Implementation;
+
 public class ImageUrlPolicyValidator : IImageUrlPolicyValidator
 {
     private readonly ImageUrlValidationSettings _imageUrlValidationSettings;
@@ -14,7 +16,8 @@ public class ImageUrlPolicyValidator : IImageUrlPolicyValidator
 
     public bool IsAllowed(string url)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {
             return false;
         }

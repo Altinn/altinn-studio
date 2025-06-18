@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Implementation;
 using Xunit;
 
 namespace Designer.Tests.Services
@@ -28,7 +29,7 @@ namespace Designer.Tests.Services
                 BlockedList = ["blocked.com"]
             });
 
-            bool isAllowed  = validator.IsAllowed("https://blocked.com/image.png");
+            bool isAllowed = validator.IsAllowed("https://blocked.com/image.png");
 
             Assert.False(isAllowed);
         }

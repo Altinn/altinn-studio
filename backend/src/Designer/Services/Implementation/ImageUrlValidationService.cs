@@ -25,4 +25,3 @@ public class ImageUrlValidationService : IImageUrlValidationService
         return await _imageClient.ValidateUrlAsync(url);
     }
 }
-

@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Configuration;
 
 public class ImageUrlValidationSettings : ISettingsMarker
 {
-    public List<string> AllowedList { get; set; }
-    public List<string> BlockedList { get; set; }
+    public List<string> AllowedList { get; set; } = [];
+    public List<string> BlockedList { get; set; } = [];
 }
