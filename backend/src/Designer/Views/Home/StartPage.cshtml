@@ -1,275 +1,309 @@
-@section styles {
-    <link rel="stylesheet" type="text/css" href="@Url.Content("/designer/css/startpage.css")" />
-}
+<!doctype html>
+<html lang="no">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta property="og:title" content="Altinn Studio" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/designer/img/altinn-studio-social-preview.png" />
+        <meta property="og:site_name" content="Altinn Studio" />
 
-@section scripts {
-    <script src="https://altinncdn.no/toolkits/jquery/3.5.1/jquery-3.5.1.min.js"></script>
-    <script src="https://altinncdn.no/toolkits/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-}
+        <title>Altinn Studio</title>
 
-<header class="an-header">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <nav id="primary-nav" class="a-globalNav">
-                    <a href="/" class="a-globalNav-logo">
-                        <img src="/designer/img/AltinnD-logo.svg" alt="Altinn logo" />
-                        <span class="sr-only">Til forsiden</span>
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </div>
-</header>
-<div class="pt-3"></div>
-<h1 class="sr-only">Altinn Studio</h1>
-<div class="jumbotron jumbotron-fluid a-jumbotron a-jumbotron-header a-jumbotron-header--left a-blueDarkerText"
-    style="background-image: url('/designer/img/Altinn-studio-stor.svg')">
-    <div class="container">
-        <div class="row">
-            <div class=" col-md-12 offset-md-0 col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 text-center">
-                <span class="a-jumbotron-ingress">
-                    <span class="a-fontBold">
-                        Velkommen til Altinn Studio – et verktøy for å utvikle digitale tjenester til innbyggere og næringsliv
-                    </span>
-                </span>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12 pt-5 text-center">
-                <input type="button" class="btn-lg text-center" onclick="location.href='/login'" value="Logg inn" />
-                <span>
-                    <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
-                </span>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="container">
-    <div>
-        <div>
-            <div class="row mb-6 mt-2 align-items-center">
-                <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 order-md-1">
-                    <img class="d-block mx-auto" src="/designer/img/Altinn-studio-2.svg"
-                        alt="Kvinne som sitter med en laptop og en kaffekopp. Illustrasjon." />
-                </div>
-                <div class="col-12 col-md-6 col-lg-5 offset-lg-1">
-                    <h2 class="a-fontBold">Effektiv digitalisering</h2>
-                    <p class="a-fontSizeL mb-0">
-                        Digitalisering av offentlige tjenester blir best når etatene samarbeider og deler data.
-                        Derfor
-                        har vi laget Altinn Studio. Her lager du gode digitale tjenester basert på Altinns sikre
-                        infrastruktur,
-                        og du kan bruke tekniske komponenter og koblinger som allerede eksisterer i Altinn.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="row mb-6 mt-2 align-items-center">
-                <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 offset-lg-1">
-                    <img class="d-block mx-auto" src="/designer/img/Altinn-studio-3.svg"
-                        alt="Mann som leser dokumenter. Illustrasjon." />
-                </div>
-                <div class="col-12 col-md-6 col-lg-5">
-                    <h2 class="a-fontBold">Brukervennlig verktøy</h2>
-                    <p class="a-fontSizeL mb-0">
-                        Det skal være enkelt å lage brukervennlige, universelt utformede tjenester. De aller
-                        enkleste skjemaene
-                        lager du uten teknisk spisskompetanse.
-                        For mer avanserte oppgaver, gir verktøyet utviklere den fleksibiliteten som trengs for å
-                        lage et bredt
-                        spekter digitale tjenester.
-                        Samarbeid i Altinn Studio helt fra tidlige ideer til spesifikasjon og utvikling.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="row mb-6 mt-2 align-items-center">
-                <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 order-md-1">
-                    <img class="d-block mx-auto" src="/designer/img/Altinn-studio-1.svg"
-                        alt="To personer som håndhilser i en trapp. Illustrasjon." />
-                </div>
-                <div class="col-12 col-md-6 col-lg-5 offset-lg-1">
-                    <h2 class="a-fontBold">Deling og gjenbruk</h2>
-                    <p class="a-fontSizeL mb-0">
-                        Få enkel tilgang til registerdata fra blant annet Enhetsregisteret og Folkeregisteret.
-                        Lær av andre
-                        etater ved å utforske deres tjenester.
-                        Du ser både de ferdige tjenestene, og hvordan de er bygget opp med kode og datakilder.
-                        Du har full kontroll over egen tjeneste og hvem du ønsker å dele denne med, men vi
-                        oppfordrer alle til
-                        å dele ideer, løsninger og maler.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-12 col-lg-10 offset-lg-2 mb-6 a-text">
-            <h3>Hvorfor skal du bruke Altinn Studio?</h3>
-            <ul>
-                <li>
-                    Et sikkert, fleksibelt og brukervennlig verktøy for å lage tjenester
-                </li>
-                <li>
-                    Nye, moderne og brukervennlige digitale tjenester presentert til dine sluttbrukere
-                </li>
-                <li>
-                    Altinns sikre tekniske infrastruktur
-                </li>
-                <li>
-                    Selvbetjent utvikling og produksjonssetting
-                </li>
-                <li>
-                    Mulighet til å gjenbruke kode, data, funksjonalitet, logikk og dynamikk som andre har delt
-                </li>
-                <li>
-                    Mulighet til å gjenbruke ferdige GUI-komponenter som er brukertestet og universelt utformet
-                </li>
-                <li>
-                    Et verktøy som tilrettelegger for samarbeid innad og på tvers av organisasjoner
-                </li>
-            </ul>
-            <h3 id="possibilities" style="margin-bottom: -50px; margin-top: 80px;">Slik tar du i bruk Altinn
-                Studio:</h3>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-12 col-lg-8 offset-lg-2 mb-3">
-            <div class="a-accordion-large " id="infoAccordion" role="tablist" aria-multiselectable="true">
-                <div class="card">
-                    <div>
-                        <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem1" role="tab"
-                            aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
-                            <span class="a-dropdownCircleArrow">
-                                <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
-                                        innhold</span></span>
-                            </span>
-                            Hvordan tar jeg det i bruk?
-                        </a>
+        <link rel="manifest" href="/designer/manifest.json" />
+        <link rel="icon" href="/designer/img/favicon.ico" />
+
+        <link rel="apple-touch-icon" href="/designer/img/icon64x64.png" />
+        <link rel="apple-touch-icon" sizes="96x96" href="/designer/img/icon96x96.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/designer/img/icon144x144.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/designer/img/icon192x192.png" />
+
+        <!-- CSS -->
+        <link href="https://altinncdn.no/fonts/roboto/latin/roboto.css" rel="stylesheet" />
+        <link href="https://altinncdn.no/fonts/inter/inter.css" rel="stylesheet" />
+
+        <script type="module" src="index.tsx"></script>
+        <link rel="stylesheet" type="text/css" href="/designer/css/startpage.css">
+
+
+        <!-- Javascript -->
+        <script type="text/javascript">
+            var aiConnectionString = ""
+            window.aiConnectionString = aiConnectionString;
+        </script>
+
+
+        <script src="https://altinncdn.no/toolkits/jquery/3.5.1/jquery-3.5.1.min.js"></script>
+        <script src="https://altinncdn.no/toolkits/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div id="root" class="media-body flex-column d-flex" data-size="sm"></div>
+        <header class="an-header">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <nav id="primary-nav" class="a-globalNav">
+                            <a href="/" class="a-globalNav-logo">
+                                <img src="/designer/img/AltinnD-logo.svg" alt="Altinn logo" />
+                                <span class="sr-only">Til forsiden</span>
+                            </a>
+                        </nav>
                     </div>
-                    <div id="infoItem1" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
-                        <div class="a-collapseContent-inside ">
-                            <div class="mt-1">
-                                <p>For å logge inn må du først lage en bruker. Se mer om hvordan komme i gang i
-                                    <a href="https://docs.altinn.studio/altinn-studio/getting-started/">brukerdokumentasjonen
-                                        til
-                                        Altinn Studio</a>.
-                                </p>
-                                <p>Altinn Studio er under kontinuerlig utvikling,
-                                    så det vil være stadige forbedringer med ny funksjonalitet og feilretting.
-                                </p>
-                                <p>Altinn Studio er tilgjengelig for alle som <a
-                                        href="https://github.com/Altinn/altinn-studio">åpen
-                                        kildekode på Altinns Github</a>.</p>
-                                <p>Ønsker du å publisere tjenestene dine på altinn.no eller benytte deg av
-                                    Altinns infrastruktur?
-                                    Da trenger du
-                                    <a title="Kom i gang med Altinn"
-                                        href="https://altinndigital.no/kom-i-gang/guide-kom-i-gang-med-altinn/">en
-                                        avtale hos oss</a>.
-                                    I tillegg må tjenesteeier
-                                    <a href="https://digdir.apps.altinn.no/digdir/godkjenn-bruksvilkaar/">godta
-                                        bruksvilkår for Altinn
-                                        i skyen</a>.
-                                </p>
-                            </div>
+                </div>
+            </div>
+        </header>
+        <div class="pt-3"></div>
+        <h1 class="sr-only">Altinn Studio</h1>
+        <div class="jumbotron jumbotron-fluid a-jumbotron a-jumbotron-header a-jumbotron-header--left a-blueDarkerText"
+            style="background-image: url('/designer/img/Altinn-studio-stor.svg')">
+            <div class="container">
+                <div class="row">
+                    <div class=" col-md-12 offset-md-0 col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 text-center">
+                        <span class="a-jumbotron-ingress">
+                            <span class="a-fontBold">
+                                Velkommen til Altinn Studio – et verktøy for å utvikle digitale tjenester til innbyggere og næringsliv
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 pt-5 text-center">
+                        <input type="button" class="btn-lg text-center" onclick="location.href='/login'" value="Logg inn" />
+                        <span>
+                            <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div>
+                <div>
+                    <div class="row mb-6 mt-2 align-items-center">
+                        <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 order-md-1">
+                            <img class="d-block mx-auto" src="/designer/img/Altinn-studio-2.svg"
+                                alt="Kvinne som sitter med en laptop og en kaffekopp. Illustrasjon." />
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-5 offset-lg-1">
+                            <h2 class="a-fontBold">Effektiv digitalisering</h2>
+                            <p class="a-fontSizeL mb-0">
+                                Digitalisering av offentlige tjenester blir best når etatene samarbeider og deler data.
+                                Derfor
+                                har vi laget Altinn Studio. Her lager du gode digitale tjenester basert på Altinns sikre
+                                infrastruktur,
+                                og du kan bruke tekniske komponenter og koblinger som allerede eksisterer i Altinn.
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div>
-                        <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem2" role="tab"
-                            aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
-                            <span class="a-dropdownCircleArrow">
-                                <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
-                                        innhold</span></span>
-                            </span>
-                            Når kan jeg ta det i bruk?
-                        </a>
-                    </div>
-                    <div id="infoItem2" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
-                        <div class="a-collapseContent-inside ">
-                            <div class="mt-1">
-                                <p>Altinn Studio er klart til bruk. Bare sett i gang med å opprette, lage og
-                                    teste dine tjenester.
-                                </p>
-                                <p>Av erfaring vet vi at det tar lang tid å finne ut av hvordan en ny tjeneste
-                                    skal være. Derfor
-                                    oppfordrer deg til å allerede nå tenke på hvordan de nye tjenestene skal
-                                    fungere, selv om de ikke
-                                    skal på lufta med det første.</p>
-                                <p>Altinn Studio vil over tid erstatte de tidligere verktøyene InfoPath, TUL og
-                                    SERES domeneklient.
-                                </p>
-                                <p>Gamle verktøy vil være tilgjengelige for endringer i eksisterende tjenester
-                                    frem til 2026.</p>
-                            </div>
+                <div>
+                    <div class="row mb-6 mt-2 align-items-center">
+                        <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 offset-lg-1">
+                            <img class="d-block mx-auto" src="/designer/img/Altinn-studio-3.svg"
+                                alt="Mann som leser dokumenter. Illustrasjon." />
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-5">
+                            <h2 class="a-fontBold">Brukervennlig verktøy</h2>
+                            <p class="a-fontSizeL mb-0">
+                                Det skal være enkelt å lage brukervennlige, universelt utformede tjenester. De aller
+                                enkleste skjemaene
+                                lager du uten teknisk spisskompetanse.
+                                For mer avanserte oppgaver, gir verktøyet utviklere den fleksibiliteten som trengs for å
+                                lage et bredt
+                                spekter digitale tjenester.
+                                Samarbeid i Altinn Studio helt fra tidlige ideer til spesifikasjon og utvikling.
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div>
-                        <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem3" role="tab"
-                            aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
-                            <span class="a-dropdownCircleArrow">
-                                <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
-                                        innhold</span></span>
-                            </span>
-                            Hvordan kan jeg bidra?
-                        </a>
-                    </div>
-                    <div id="infoItem3" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
-                        <div class="a-collapseContent-inside ">
-                            <div class="mt-1">
-                                <p>Du kan bidra på flere måter, herunder direkte med kildekode, siden prosjektet
-                                    ligger åpent
-                                    tilgjengelig på Github. </p>
-                                <p>Du kan følge teamet som jobber med utviklingen og bidra direkte med
-                                    endringsønsker, feil og spørsmål gjennom&nbsp;<a
-                                        href="https://github.com/Altinn/altinn-studio/issues">backlogen i
-                                        Github&nbsp;</a></p>
-                                <p>Se mer <a
-                                        href="https://github.com/Altinn/altinn-studio/blob/master/CONTRIBUTING.md">informasjon
-                                        om hvordan du kan bidra</a> på vårt Github-prosjekt.
-                                </p>
-                            </div>
+                <div>
+                    <div class="row mb-6 mt-2 align-items-center">
+                        <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0 order-md-1">
+                            <img class="d-block mx-auto" src="/designer/img/Altinn-studio-1.svg"
+                                alt="To personer som håndhilser i en trapp. Illustrasjon." />
                         </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div>
-                        <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem4" role="tab"
-                            aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
-                            <span class="a-dropdownCircleArrow">
-                                <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
-                                        innhold</span></span>
-                            </span>
-                            Hvordan får jeg vite mer om Altinn Studio?
-                        </a>
-                    </div>
-                    <div id="infoItem4" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
-                        <div class="a-collapseContent-inside ">
-                            <div class="mt-1">
-                                <p>Prosjektet har kaffe-møter med status, planer og temagjennomganger. Disse vil
-                                    bli
-                                    annonsert fortløpende i <a
-                                        href="https://www.altinndigital.no/arrangementer/">arrangementsoversikten
-                                        på
-                                        Altinn digitalisering</a>. &nbsp;</p>
-                                <p>Du kan følge backlogen til teamet som jobber med utviklingen på
-                                    <a href="https://github.com/Altinn/altinn-studio/issues">Github</a>.
-                                </p>
-                                <p>Du kan lese mer her på sidene for
-                                    <a href="https://docs.altinn.studio/">teknisk dokumentasjon</a>.
-                                </p>
-                            </div>
+                        <div class="col-12 col-md-6 col-lg-5 offset-lg-1">
+                            <h2 class="a-fontBold">Deling og gjenbruk</h2>
+                            <p class="a-fontSizeL mb-0">
+                                Få enkel tilgang til registerdata fra blant annet Enhetsregisteret og Folkeregisteret.
+                                Lær av andre
+                                etater ved å utforske deres tjenester.
+                                Du ser både de ferdige tjenestene, og hvordan de er bygget opp med kode og datakilder.
+                                Du har full kontroll over egen tjeneste og hvem du ønsker å dele denne med, men vi
+                                oppfordrer alle til
+                                å dele ideer, løsninger og maler.
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-12 col-lg-10 offset-lg-2 mb-6 a-text">
+                    <h3>Hvorfor skal du bruke Altinn Studio?</h3>
+                    <ul>
+                        <li>
+                            Et sikkert, fleksibelt og brukervennlig verktøy for å lage tjenester
+                        </li>
+                        <li>
+                            Nye, moderne og brukervennlige digitale tjenester presentert til dine sluttbrukere
+                        </li>
+                        <li>
+                            Altinns sikre tekniske infrastruktur
+                        </li>
+                        <li>
+                            Selvbetjent utvikling og produksjonssetting
+                        </li>
+                        <li>
+                            Mulighet til å gjenbruke kode, data, funksjonalitet, logikk og dynamikk som andre har delt
+                        </li>
+                        <li>
+                            Mulighet til å gjenbruke ferdige GUI-komponenter som er brukertestet og universelt utformet
+                        </li>
+                        <li>
+                            Et verktøy som tilrettelegger for samarbeid innad og på tvers av organisasjoner
+                        </li>
+                    </ul>
+                    <h3 id="possibilities" style="margin-bottom: -50px; margin-top: 80px;">Slik tar du i bruk Altinn
+                        Studio:</h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-lg-8 offset-lg-2 mb-3">
+                    <div class="a-accordion-large " id="infoAccordion" role="tablist" aria-multiselectable="true">
+                        <div class="card">
+                            <div>
+                                <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem1" role="tab"
+                                    aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
+                                    <span class="a-dropdownCircleArrow">
+                                        <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
+                                                innhold</span></span>
+                                    </span>
+                                    Hvordan tar jeg det i bruk?
+                                </a>
+                            </div>
+                            <div id="infoItem1" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
+                                <div class="a-collapseContent-inside ">
+                                    <div class="mt-1">
+                                        <p>For å logge inn må du først lage en bruker. Se mer om hvordan komme i gang i
+                                            <a href="https://docs.altinn.studio/altinn-studio/getting-started/">brukerdokumentasjonen
+                                                til
+                                                Altinn Studio</a>.
+                                        </p>
+                                        <p>Altinn Studio er under kontinuerlig utvikling,
+                                            så det vil være stadige forbedringer med ny funksjonalitet og feilretting.
+                                        </p>
+                                        <p>Altinn Studio er tilgjengelig for alle som <a
+                                                href="https://github.com/Altinn/altinn-studio">åpen
+                                                kildekode på Altinns Github</a>.</p>
+                                        <p>Ønsker du å publisere tjenestene dine på altinn.no eller benytte deg av
+                                            Altinns infrastruktur?
+                                            Da trenger du
+                                            <a title="Kom i gang med Altinn"
+                                                href="https://altinndigital.no/kom-i-gang/guide-kom-i-gang-med-altinn/">en
+                                                avtale hos oss</a>.
+                                            I tillegg må tjenesteeier
+                                            <a href="https://digdir.apps.altinn.no/digdir/godkjenn-bruksvilkaar/">godta
+                                                bruksvilkår for Altinn
+                                                i skyen</a>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div>
+                                <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem2" role="tab"
+                                    aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
+                                    <span class="a-dropdownCircleArrow">
+                                        <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
+                                                innhold</span></span>
+                                    </span>
+                                    Når kan jeg ta det i bruk?
+                                </a>
+                            </div>
+                            <div id="infoItem2" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
+                                <div class="a-collapseContent-inside ">
+                                    <div class="mt-1">
+                                        <p>Altinn Studio er klart til bruk. Bare sett i gang med å opprette, lage og
+                                            teste dine tjenester.
+                                        </p>
+                                        <p>Av erfaring vet vi at det tar lang tid å finne ut av hvordan en ny tjeneste
+                                            skal være. Derfor
+                                            oppfordrer deg til å allerede nå tenke på hvordan de nye tjenestene skal
+                                            fungere, selv om de ikke
+                                            skal på lufta med det første.</p>
+                                        <p>Altinn Studio vil over tid erstatte de tidligere verktøyene InfoPath, TUL og
+                                            SERES domeneklient.
+                                        </p>
+                                        <p>Gamle verktøy vil være tilgjengelige for endringer i eksisterende tjenester
+                                            frem til 2026.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div>
+                                <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem3" role="tab"
+                                    aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
+                                    <span class="a-dropdownCircleArrow">
+                                        <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
+                                                innhold</span></span>
+                                    </span>
+                                    Hvordan kan jeg bidra?
+                                </a>
+                            </div>
+                            <div id="infoItem3" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
+                                <div class="a-collapseContent-inside ">
+                                    <div class="mt-1">
+                                        <p>Du kan bidra på flere måter, herunder direkte med kildekode, siden prosjektet
+                                            ligger åpent
+                                            tilgjengelig på Github. </p>
+                                        <p>Du kan følge teamet som jobber med utviklingen og bidra direkte med
+                                            endringsønsker, feil og spørsmål gjennom&nbsp;<a
+                                                href="https://github.com/Altinn/altinn-studio/issues">backlogen i
+                                                Github&nbsp;</a></p>
+                                        <p>Se mer <a
+                                                href="https://github.com/Altinn/altinn-studio/blob/master/CONTRIBUTING.md">informasjon
+                                                om hvordan du kan bidra</a> på vårt Github-prosjekt.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div>
+                                <a data-toggle="collapse" data-parent="#infoAccordion" href="#infoItem4" role="tab"
+                                    aria-expanded="false" class="a-collapse-title no-decoration a-h3  collapsed">
+                                    <span class="a-dropdownCircleArrow">
+                                        <span class="ai" aria-hidden="true"><span class="sr-only">Vis/skjul
+                                                innhold</span></span>
+                                    </span>
+                                    Hvordan får jeg vite mer om Altinn Studio?
+                                </a>
+                            </div>
+                            <div id="infoItem4" class="a-collapseContent collapse" data-parent="#accordion" role="tabpanel">
+                                <div class="a-collapseContent-inside ">
+                                    <div class="mt-1">
+                                        <p>Prosjektet har kaffe-møter med status, planer og temagjennomganger. Disse vil
+                                            bli
+                                            annonsert fortløpende i <a
+                                                href="https://www.altinndigital.no/arrangementer/">arrangementsoversikten
+                                                på
+                                                Altinn digitalisering</a>. &nbsp;</p>
+                                        <p>Du kan følge backlogen til teamet som jobber med utviklingen på
+                                            <a href="https://github.com/Altinn/altinn-studio/issues">Github</a>.
+                                        </p>
+                                        <p>Du kan lese mer her på sidene for
+                                            <a href="https://docs.altinn.studio/">teknisk dokumentasjon</a>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+    </body>
+</html>

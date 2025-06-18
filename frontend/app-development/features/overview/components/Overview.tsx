@@ -37,7 +37,7 @@ export const Overview = () => {
             </aside>
           </div>
           <footer className={classes.footer}>
-            <Link href='/contact'>{t('general.contact')}</Link>
+            <Link href='/info/contact'>{t('general.contact')}</Link>
           </footer>
         </div>
       </main>
