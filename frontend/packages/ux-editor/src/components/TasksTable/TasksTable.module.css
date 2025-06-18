@@ -16,9 +16,3 @@
   text-align: end;
   border-top: 2px solid var(--ds-color-neutral-border-subtle);
 }
-
-.disabledPreviewLink {
-  pointer-events: none;
-  opacity: 0.5;
-  cursor: not-allowed;
-}

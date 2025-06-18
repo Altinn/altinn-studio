@@ -74,13 +74,7 @@ export const TasksTable = ({
         </StudioTable.Foot>
       </StudioTable>
       {isNavigationMode && (
-        <StudioLinkButton
-          href={previewLink}
-          className={cn({
-            [classes.disabledPreviewLink]: tasks.length === 0,
-          })}
-          icon={<PlayFillIcon />}
-        >
+        <StudioLinkButton href={previewLink} disabled={tasks.length === 0} icon={<PlayFillIcon />}>
           {t('ux_editor.task_table_preview')}
         </StudioLinkButton>
       )}

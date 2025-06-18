@@ -24,3 +24,9 @@
   outline: var(--dsc--focus, var(--dsc-focus-outline));
   outline-offset: var(--dsc--focus, var(--ds-border-width-focus));
 }
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
