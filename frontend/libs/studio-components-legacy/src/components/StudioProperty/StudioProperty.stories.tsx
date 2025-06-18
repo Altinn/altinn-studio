@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { ComposedComponent } from './test-data/ComposedComponent';
 import { buttons } from './test-data/buttons';
 import { Decorator } from './storybook-utils/Decorator';

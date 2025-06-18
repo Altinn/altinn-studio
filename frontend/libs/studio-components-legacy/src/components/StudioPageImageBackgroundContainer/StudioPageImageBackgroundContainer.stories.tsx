@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioPageImageBackgroundContainer } from './StudioPageImageBackgroundContainer';
 
 const ChildrenComponent = (): ReactElement => {
