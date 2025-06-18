@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
+      - '!backend/src/KubernetesWrapper/**'
       - '.github/workflows/dotnet-migrations-ensure-compatibility.yaml'
   workflow_dispatch:
 

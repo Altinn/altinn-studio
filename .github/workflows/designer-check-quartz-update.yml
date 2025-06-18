@@ -1,14 +1,15 @@
 name: Verify Quartz migrations
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/packagegroups/NuGet.props'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
+      - '!backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 jobs:
@@ -66,5 +67,3 @@ jobs:
           else
             echo "Tables file is up to date"
           fi
-
-

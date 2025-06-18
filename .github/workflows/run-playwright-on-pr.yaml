@@ -6,14 +6,13 @@ on:
       - 'frontend/**'
       - '!frontend/stats/**'
       - 'backend/**'
+      - '!backend/src/KubernetesWrapper/**'
       - '.github/workflows/run-playwright-on-pr.yaml'
       - 'compose.yaml'
       - 'Dockerfile'
       - 'gitea/**'
       - 'package.json'
       - 'development/**'
-    paths-ignore:
-      - 'backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 concurrency:

@@ -9,8 +9,6 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
-    paths-ignore:
-      - 'backend/src/KubernetesWrapper/**'
   workflow_dispatch:
 
 concurrency:
