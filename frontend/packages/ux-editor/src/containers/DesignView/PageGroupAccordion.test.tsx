@@ -17,7 +17,6 @@ import { ItemType } from '../../components/Properties/ItemType';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const pagesMock: PagesModel = {
-  pages: null,
   groups: [
     {
       name: 'Group 1',
@@ -78,10 +77,8 @@ describe('PageGroupAccordion', () => {
 
   it('should display page ID as fallback when group name is empty', async () => {
     const emptyGroupPagesMock: PagesModel = {
-      pages: null,
       groups: [
         {
-          name: '',
           order: [{ id: 'Side1' }],
         },
       ],
