@@ -85,7 +85,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
   const [skippedUpdateVersions, setSkippedUpdateVersions] = useLocalStorage<AppVersion>(
     `studio:skippedUpdateVersions:${org}:${app}`,
   );
-  var hideVersionDialog =
+  const hideVersionDialog =
     skippedUpdateVersions?.frontendVersion === frontendVersion &&
     skippedUpdateVersions?.backendVersion === backendVersion;
 
@@ -137,7 +137,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
             <StudioTable.Body>
               {isFrontendVersionOutdated && (
                 <VersionDialogTableRow
-                  devTypeLabel='Frontend'
+                  devTypeLabel={t('version_dialog.frontend')}
                   currentVersion={frontendVersion}
                   latestVersion={MAXIMUM_SUPPORTED_FRONTEND_VERSION}
                   link={{
@@ -150,7 +150,7 @@ const Dialog = ({ title, children, frontendVersion, backendVersion, className }:
               )}
               {isBackendVersionOutdated && (
                 <VersionDialogTableRow
-                  devTypeLabel='Backend'
+                  devTypeLabel={t('version_dialog.backend')}
                   currentVersion={backendVersion}
                   latestVersion={MAXIMUM_SUPPORTED_BACKEND_VERSION}
                   link={{
