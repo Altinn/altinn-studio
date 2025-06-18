@@ -16,7 +16,7 @@ public class ImageClient
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Head, url);
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, cancellationToken: default);
 
             if (!response.IsSuccessStatusCode)
             {

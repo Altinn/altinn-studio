@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class ImageUrlPolicyValidatorWildcardTests
+    public class ImageUrlPolicyValidatorTests
     {
         [Fact]
         public void IsAllowed_WhenBlockedDomainButWildcardAllowListMatches_ShouldReturnTrue()
