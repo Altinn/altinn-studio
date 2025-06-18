@@ -82,7 +82,7 @@ describe('AboutTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const appName = screen.getByLabelText(textMock('app_settings.about_tab_name_label'));
-    expect(appName).toHaveValue(mockAppConfig.serviceName.nb);
+    expect(appName).toHaveValue(mockAppConfig.serviceName);
 
     const mockNewText: string = 'test';
     await user.type(appName, mockNewText);

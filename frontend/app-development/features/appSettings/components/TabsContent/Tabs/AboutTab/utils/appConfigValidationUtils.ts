@@ -1,5 +1,5 @@
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import type { TranslationFunction } from 'app-development/features/appSettings/types/Translation';
@@ -62,7 +62,7 @@ export function getMissingInputLanguageString(
 }
 
 export const validateAppConfig = (
-  appConfig: AppConfig | undefined,
+  appConfig: AppConfigNew | undefined,
   t: (key: string, params?: KeyValuePairs<string>) => string,
 ): AppConfigFormError[] => {
   const errors: AppConfigFormError[] = [];

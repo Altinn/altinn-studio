@@ -1,6 +1,6 @@
 import { getMissingInputLanguageString, validateAppConfig } from './appConfigValidationUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('appConfigValidationUtils', () => {
@@ -40,24 +40,24 @@ describe('appConfigValidationUtils', () => {
     });
 
     it('returns no errors if all serviceName translations are present', () => {
-      const appConfig: AppConfig = {
+      const appConfig: AppConfigNew = {
         serviceName: {
           nb: 'Tjeneste',
           nn: 'Teneste',
           en: 'Service',
         },
-      } as AppConfig;
+      } as AppConfigNew;
 
       const result = validateAppConfig(appConfig, textMock);
       expect(result).toHaveLength(0);
     });
 
     it('returns missing translation errors for nn and en if those fields are empty', () => {
-      const appConfig: AppConfig = {
+      const appConfig: AppConfigNew = {
         serviceName: {
           nb: 'Tjeneste',
         },
-      } as AppConfig;
+      } as AppConfigNew;
 
       const result: AppConfigFormError[] = validateAppConfig(appConfig, textMock);
 

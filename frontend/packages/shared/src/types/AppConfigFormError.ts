@@ -1,8 +1,8 @@
-import type { AppConfig } from './AppConfig';
+import type { AppConfigNew } from './AppConfig';
 import type { SupportedLanguage } from './SupportedLanguages';
 
 export type AppConfigFormError = {
-  field: keyof AppConfig;
+  field: keyof AppConfigNew;
   index?: number | keyof SupportedLanguage;
   error: string;
 };

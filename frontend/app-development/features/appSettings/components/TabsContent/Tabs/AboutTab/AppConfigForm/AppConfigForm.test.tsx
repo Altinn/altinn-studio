@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { AppConfigForm } from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -271,12 +271,12 @@ const mockServiceNameComplete: SupportedLanguage = {
   nn: 'Teneste',
   en: 'Service',
 };
-const mockAppConfig: AppConfig = {
+const mockAppConfig: AppConfigNew = {
   serviceId: 'some-id',
   serviceName: mockServiceName,
   repositoryName: 'my-repo',
 };
-const mockAppConfigComplete: AppConfig = {
+const mockAppConfigComplete: AppConfigNew = {
   serviceId: 'some-id',
   serviceName: mockServiceNameComplete,
   repositoryName: 'my-repo',

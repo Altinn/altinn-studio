@@ -4,7 +4,7 @@ import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -14,13 +14,13 @@ import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 
 export type AppConfigFormProps = {
-  appConfig: AppConfig;
-  saveAppConfig: (appConfig: AppConfig) => void; // Remove prop when endpoint is implemented
+  appConfig: AppConfigNew;
+  saveAppConfig: (appConfig: AppConfigNew) => void; // Remove prop when endpoint is implemented
 };
 
 export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
-  const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfig>(appConfig);
+  const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfigNew>(appConfig);
   const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
@@ -63,21 +63,21 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   };
 
   const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppConfig((oldVal: AppConfig) => ({
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       serviceName: updatedLanguage,
     }));
   };
 
   const onChangeServiceId = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: AppConfig) => ({
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       serviceId: e.target.value,
     }));
   };
 
   const onChangeDescription = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppConfig((oldVal: AppConfig) => ({
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       description: updatedLanguage,
     }));
@@ -138,7 +138,7 @@ enum AppResourceFormFieldIds {
 function getValidationErrorsForField(
   hideErrors: boolean,
   validationErrors: AppConfigFormError[],
-  field: keyof AppConfig,
+  field: keyof AppConfigNew,
 ): AppConfigFormError[] {
   if (hideErrors) return [];
   return validationErrors.filter((error) => error.field === field);
