@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
 using System.Text.Json;
@@ -9,6 +10,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -47,7 +49,8 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition")]
-        public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo, [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo,
+            [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
         {
             Request.EnableBuffering();
 
@@ -71,51 +74,60 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (metadataObject?.TaskIdChange is not null)
             {
-                await _mediator.Publish(new ProcessTaskIdChangedEvent
-                {
-                    OldId = metadataObject.TaskIdChange.OldId,
-                    NewId = metadataObject.TaskIdChange.NewId,
-                    EditingContext = editingContext
-                }, cancellationToken);
+                await _mediator.Publish(
+                    new ProcessTaskIdChangedEvent
+                    {
+                        OldId = metadataObject.TaskIdChange.OldId,
+                        NewId = metadataObject.TaskIdChange.NewId,
+                        EditingContext = editingContext
+                    }, cancellationToken);
             }
 
             return Accepted();
         }
 
         [HttpPut("data-types")]
-        public async Task<IActionResult> ProcessDataTypesChangedNotify(string org, string repo, [FromBody] DataTypesChange dataTypesChange, CancellationToken cancellationToken)
+        public async Task<IActionResult> ProcessDataTypesChangedNotify(string org, string repo,
+            [FromBody] DataTypesChange dataTypesChange, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
             if (dataTypesChange is not null)
             {
-                await _mediator.Publish(new ProcessDataTypesChangedEvent
-                {
-                    NewDataTypes = dataTypesChange.NewDataTypes,
-                    ConnectedTaskId = dataTypesChange.ConnectedTaskId,
-                    EditingContext = editingContext
-                }, cancellationToken);
+                await _mediator.Publish(
+                    new ProcessDataTypesChangedEvent
+                    {
+                        NewDataTypes = dataTypesChange.NewDataTypes,
+                        ConnectedTaskId = dataTypesChange.ConnectedTaskId,
+                        EditingContext = editingContext
+                    }, cancellationToken);
             }
 
             return Accepted();
         }
 
         [HttpPost("data-type/{dataTypeId}")]
-        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromQuery] string taskId, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo,
+            [FromRoute] string dataTypeId, [FromQuery] string taskId,
+            CancellationToken cancellationToken,
+            [FromBody][CanBeNull] List<string> allowedContributers)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, taskId, cancellationToken);
+            await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, taskId,
+                allowedContributers, cancellationToken);
             return Ok();
         }
 
         [HttpDelete("data-type/{dataTypeId}")]
-        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo,
+            [FromRoute] string dataTypeId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
+            await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId,
+                cancellationToken);
             return Ok();
         }
 
@@ -124,7 +136,8 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
+            string taskType =
+                await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
             return taskType;
         }
     }

@@ -24,13 +24,39 @@ enum AvailableBpmnInstances {
   BpmnFactory = 'bpmnFactory',
 }
 
-const bpmnTaskConfig = {
+type PaymentTaskConfig = {
+  configNode: string;
+  dataTypeName: string;
+  receiptPdfDataTypeName: string;
+};
+
+type SigningTaskConfig = {
+  configNode: string;
+  dataTypeName: string;
+};
+
+type UserControlledSigningTaskConfig = {
+  configNode: string;
+  dataTypeName: string;
+};
+
+type BpmnTaskConfig = {
+  payment: PaymentTaskConfig;
+  signing: SigningTaskConfig;
+  userControlledSigning: UserControlledSigningTaskConfig;
+};
+
+const bpmnTaskConfig: BpmnTaskConfig = {
   payment: {
     configNode: 'paymentConfig',
     dataTypeName: 'paymentDataType',
     receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
   },
   signing: {
+    configNode: 'signatureConfig',
+    dataTypeName: 'signatureDataType',
+  },
+  userControlledSigning: {
     configNode: 'signatureConfig',
     dataTypeName: 'signatureDataType',
   },
@@ -101,5 +127,14 @@ export class StudioModeler {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
     const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
     return businessObject.extensionElements?.values[0][configNode][dataTypeName];
+  }
+
+  public getSigneeStatesDataTypeId(
+    bpmnTaskType: BpmnTaskType,
+    businessObject: BpmnBusinessObjectEditor,
+  ): string {
+    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+    const signeeStateKey = 'signeeStatesDataTypeId';
+    return businessObject?.extensionElements?.values[0][configNode][signeeStateKey];
   }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioProperty } from '../index';
 import { StudioButton } from '../../StudioButton';
 import { TrashIcon, FloppydiskIcon, XMarkIcon } from '@studio/icons';
