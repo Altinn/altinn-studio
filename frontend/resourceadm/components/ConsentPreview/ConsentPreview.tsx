@@ -14,7 +14,7 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
 import { useTranslation } from 'react-i18next';
-import Markdown from 'react-markdown';
+import Markdown from 'markdown-to-jsx';
 
 interface ConsentPreviewProps {
   consentTemplate: ConsentTemplate;
