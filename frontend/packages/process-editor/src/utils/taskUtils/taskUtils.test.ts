@@ -1,7 +1,8 @@
 import { TaskUtils } from './taskUtils';
+import type { BpmnTaskType } from '../../types/BpmnTaskType';
 
 type TestCase = {
-  input: string;
+  input: BpmnTaskType;
   output: boolean;
 };
 
@@ -19,7 +20,7 @@ const testCases: Array<TestCase> = [
     output: false,
   },
   {
-    input: '',
+    input: '' as BpmnTaskType,
     output: false,
   },
 ];
