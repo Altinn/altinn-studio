@@ -42,13 +42,13 @@
       "enabledFileValidators": []
     },
     {
-      "id": "Modell2",
+      "id": "Model2",
       "allowedContentTypes": [
         "application/xml"
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Modell2.Modell2",
+        "classRef": "Altinn.App.Models.Model2.Model2",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserCreate": false,
@@ -57,7 +57,7 @@
       },
       "maxCount": 1,
       "minCount": 1,
-      "enablePdfCreation": true,
+      "enablePdfCreation": false,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
