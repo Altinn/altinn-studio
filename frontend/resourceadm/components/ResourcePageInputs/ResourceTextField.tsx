@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTextfield } from '@studio/components';
-import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
-import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceTextFieldProps = {
   /**
@@ -29,10 +27,6 @@ type ResourceTextFieldProps = {
    */
   onBlur: (value: string) => void;
   /**
-   * The errors to be shown
-   */
-  errors?: ResourceFormError[];
-  /**
    * Whether this field is required or not
    */
   required?: boolean;
@@ -50,9 +44,7 @@ type ResourceTextFieldProps = {
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
- * @property {boolean}[isValid] - Flag for if the value is valid
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {string}[errorText] - The text to be shown
  * @property {boolean}[required] - Whether this field is required or not
  * @property {boolean}[readOnly] - Whether this field is read only or not
  *
@@ -64,16 +56,10 @@ export const ResourceTextField = ({
   description,
   value,
   onBlur,
-  errors,
   required,
   readOnly,
 }: ResourceTextFieldProps): React.JSX.Element => {
   const [val, setVal] = useState(value);
-
-  const fieldErrors =
-    errors?.length > 0
-      ? errors.map((error, index) => <InputFieldErrorMessage key={index} message={error.error} />)
-      : undefined;
 
   return (
     <div className={classes.inputWrapper}>
@@ -85,7 +71,6 @@ export const ResourceTextField = ({
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           setVal(e.target.value);
         }}
-        error={fieldErrors}
         onBlur={() => onBlur(val)}
         required={required}
         readOnly={readOnly}
