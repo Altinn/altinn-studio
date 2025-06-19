@@ -72,6 +72,29 @@ describe('TasksTable', () => {
     renderTasksTable({ tasks: [], allTasks: [], isNavigationMode: false });
     expect(getShowAllButton()).toBeDisabled();
   });
+
+  it('should render preview link when in navigation mode', () => {
+    renderTasksTable();
+
+    const previewLink = getPreviewLink();
+    expect(previewLink).toBeInTheDocument();
+    expect(previewLink).toHaveAttribute('href', `/preview/${org}/${app}`);
+  });
+
+  it('should disable preview link when there are no tasks', () => {
+    renderTasksTable({ tasks: [] });
+
+    const previewLink = getPreviewLink();
+    expect(previewLink).toBeInTheDocument();
+    expect(previewLink).toHaveClass('disabledPreviewLink');
+  });
+
+  it('should not render preview link when not in navigation mode', () => {
+    renderTasksTable({ isNavigationMode: false });
+
+    const previewLink = getPreviewLink();
+    expect(previewLink).not.toBeInTheDocument();
+  });
 });
 
 const getHideAllButton = () => {
@@ -82,6 +105,12 @@ const getHideAllButton = () => {
 const getShowAllButton = () => {
   return screen.getByRole('button', {
     name: textMock('ux_editor.task_table_show_all'),
+  });
+};
+
+const getPreviewLink = () => {
+  return screen.queryByRole('link', {
+    name: textMock('ux_editor.task_table_preview'),
   });
 };
 

@@ -6,7 +6,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
-import { ManualOptionsEditor } from './ManualOptionsEditor';
+import { ManualOptionsPanel } from './ManualOptionsPanel';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
@@ -32,7 +32,7 @@ export function OptionListEditor({
 
   if (component.options !== undefined) {
     return (
-      <ManualOptionsEditor
+      <ManualOptionsPanel
         component={component}
         onDeleteButtonClick={handleDeleteButtonClick}
         onEditButtonClick={onEditButtonClick}

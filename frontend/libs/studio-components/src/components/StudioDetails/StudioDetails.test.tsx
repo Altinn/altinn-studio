@@ -4,6 +4,7 @@ import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
+import type { StudioDetailsProps } from './StudioDetails';
 
 describe('StudioDetails', () => {
   it('Appends custom attributes to the details element', () => {
@@ -15,5 +16,5 @@ describe('StudioDetails', () => {
   });
 });
 
-const renderDetails = (props: React.ComponentProps<typeof StudioDetails>): RenderResult =>
+const renderDetails = (props: StudioDetailsProps): RenderResult =>
   render(<StudioDetails {...props} />);

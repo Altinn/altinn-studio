@@ -27,21 +27,9 @@ import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn(),
-  FeatureFlag: {
-    TaskNavigationPageGroups: 'TaskNavigationPageGroups',
-  },
-}));
-
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
-
-const setupFeatureFlag = (enabled: boolean) => {
-  const { shouldDisplayFeature } = require('app-shared/utils/featureToggleUtils');
-  shouldDisplayFeature.mockReturnValue(enabled);
-};
 
 describe('DesignView', () => {
   afterEach(() => {
@@ -77,7 +65,6 @@ describe('DesignView', () => {
 
   it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(false);
     const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
     renderDesignView({
       layoutSettings: {
@@ -93,7 +80,6 @@ describe('DesignView', () => {
           { id: `${textMock('ux_editor.page')}${1}` },
           { id: `${textMock('ux_editor.page')}${2}` },
         ],
-        groups: [],
       },
     });
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
@@ -158,35 +144,13 @@ describe('DesignView', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it('renders DesignViewNavigation when isTaskNavigationPageGroups is true', () => {
-    setupFeatureFlag(true);
-    renderDesignView({});
-    expect(screen.getByTestId('design-view-navigation')).toBeInTheDocument();
-  });
-
-  it('does not render DesignViewNavigation when isTaskNavigationPageGroups is false', () => {
-    setupFeatureFlag(false);
-    renderDesignView({});
-    expect(screen.queryByTestId('design-view-navigation')).not.toBeInTheDocument();
-  });
-
   it('does not render Accordion when pagesModel has no pages', () => {
-    setupFeatureFlag(false);
     renderDesignView({ layoutSettings: { ...formLayoutSettingsMock, pages: { order: [] } } });
     const accordion = screen.queryByRole('group', { name: /accordion/i });
     expect(accordion).not.toBeInTheDocument();
   });
 
-  it('renders page accordions when isTaskNavigationPageGroups is false', () => {
-    setupFeatureFlag(false);
-    renderDesignView({});
-    formLayoutSettingsMock.pages.order.forEach((page) => {
-      expect(screen.getByRole('button', { name: page })).toBeInTheDocument();
-    });
-  });
-
   it('Does not render group accordions when order is empty or undefined', () => {
-    setupFeatureFlag(true);
     renderDesignView({
       layoutSettings: {
         ...formLayoutSettingsMock,
@@ -199,7 +163,6 @@ describe('DesignView', () => {
 
   it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(true);
     const updateLayoutsForPreviewMock = jest.fn().mockResolvedValue(undefined);
     appContextMock.updateLayoutsForPreview = updateLayoutsForPreviewMock;
     renderDesignView({ pagesModel: groupsPagesModelMock });
@@ -211,7 +174,6 @@ describe('DesignView', () => {
 
   it('calls "setSelectedFormLayoutName" with page name when clicking a closed accordion in a group', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(true);
     appContextMock.selectedFormLayoutName = layout2NameMock;
     renderDesignView({ pagesModel: groupsPagesModelMock });
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
@@ -223,7 +185,6 @@ describe('DesignView', () => {
 
   it('calls "setSelectedFormLayoutName" with undefined when clicking an open accordion in a group', async () => {
     const user = userEvent.setup();
-    setupFeatureFlag(true);
     appContextMock.selectedFormLayoutName = layout1NameMock;
     renderDesignView({ pagesModel: groupsPagesModelMock });
     expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();

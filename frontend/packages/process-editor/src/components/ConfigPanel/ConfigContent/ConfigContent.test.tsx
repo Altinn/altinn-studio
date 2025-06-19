@@ -174,6 +174,34 @@ describe('ConfigContent', () => {
     expect(designAccordion).toBeInTheDocument();
   });
 
+  describe('UserControlledSigning task type', () => {
+    it('should render user controlled interface and correspondence resource fields', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'userControlledSigning',
+          },
+        },
+      );
+
+      expect(
+        screen.getByRole('button', {
+          name: textMock(
+            'process_editor.configuration_panel.edit_default_user_controlled_interface',
+          ),
+        }),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByRole('button', {
+          name: textMock('process_editor.configuration_panel.correspondence_resource'),
+        }),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('Unique signature', () => {
     const element = getMockBpmnElementForTask('signing');
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =

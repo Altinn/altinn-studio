@@ -1,11 +1,11 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioModalRoot } from './StudioModalRoot';
 import type { StudioModalDialogProps } from './StudioModalDialog';
 import { StudioModalDialog } from './StudioModalDialog';
 import { StudioModalTrigger } from './StudioModalTrigger';
 import { StudioModal } from './index';
-import { userEvent, within, expect } from '@storybook/test';
+import { userEvent, within, expect } from 'storybook/test';
 import * as icons from '@studio/icons';
 
 type PreviewArgs = Omit<StudioModalDialogProps, 'icon'> & {
