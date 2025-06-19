@@ -326,10 +326,10 @@ const getOptionalTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${optionalText}`);
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
 const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
-const queryLink = (name: string): HTMLAnchorElement => screen.queryByRole('link', { name });
+const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
-const getAlert = () => screen.getByRole('alert');
-const queryAlert = () => screen.queryByRole('alert');
+const getAlert = (): HTMLElement => screen.getByRole('alert');
+const queryAlert = (): HTMLElement | null => screen.queryByRole('alert');
 const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
 
 const optionalText: string = textMock('general.optional');
