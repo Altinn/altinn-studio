@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioList } from './StudioList';
 
 type Story = StoryFn<typeof StudioList.Root>;

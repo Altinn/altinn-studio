@@ -14,7 +14,7 @@ export const NotFoundPage = () => {
           <Trans
             i18nKey='not_found_page.text'
             components={{
-              a: <Link href='/contact'> </Link>,
+              a: <Link href='/info/contact'> </Link>,
             }}
           ></Trans>
         </Paragraph>

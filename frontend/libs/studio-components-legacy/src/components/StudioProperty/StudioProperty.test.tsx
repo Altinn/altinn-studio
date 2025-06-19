@@ -3,7 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { ComposedComponent } from './test-data/ComposedComponent';
 import React from 'react';
 import { buttons } from './test-data/buttons';
-import { userEvent } from '@storybook/test';
+import { userEvent } from 'storybook/test';
 import type { UserEvent } from '@testing-library/user-event';
 
 describe('StudioProperty composition', () => {

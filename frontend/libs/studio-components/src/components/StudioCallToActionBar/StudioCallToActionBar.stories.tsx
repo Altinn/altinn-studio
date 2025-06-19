@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
-import { action } from '@storybook/addon-actions';
+import type { Meta, StoryFn } from '@storybook/react-vite';
+import { action } from 'storybook/actions';
 import { StudioCallToActionBar } from '.';
 
 type Story = StoryFn<typeof StudioCallToActionBar>;

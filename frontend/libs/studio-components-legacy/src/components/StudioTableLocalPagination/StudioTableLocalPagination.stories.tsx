@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
 import type { PaginationTexts } from '../StudioTableRemotePagination';

@@ -1,0 +1,14 @@
+.card {
+  margin-top: var(--ds-size-4);
+  margin-bottom: var(--ds-size-4);
+}
+
+.cardError {
+  border-color: var(--ds-color-danger-border-default);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-6);
+}

@@ -1,3 +1,0 @@
-<Project>
-    <Import Project="packagegroups\NuGet.props" />
-</Project>

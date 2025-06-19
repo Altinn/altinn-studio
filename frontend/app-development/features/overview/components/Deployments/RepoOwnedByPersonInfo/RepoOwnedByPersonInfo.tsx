@@ -14,7 +14,7 @@ export const RepoOwnedByPersonInfo = () => {
           <Paragraph>
             <Trans
               i18nKey={'app_deployment.private_app_owner_help'}
-              components={{ a: <Link href='/contact'> </Link> }}
+              components={{ a: <Link href='/info/contact'> </Link> }}
             />
           </Paragraph>
           <Paragraph>{t('app_deployment.private_app_owner_options')}</Paragraph>

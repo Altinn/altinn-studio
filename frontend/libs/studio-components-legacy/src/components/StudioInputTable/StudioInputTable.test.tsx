@@ -5,7 +5,7 @@ import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { TestTable } from './test-data/TestTable';
 import type { StudioInputTableProps } from './StudioInputTable';
-import { expect } from '@storybook/test';
+import { expect } from 'storybook/test';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';

@@ -74,7 +74,7 @@ export const ConfirmUndeployDialog = ({
               <Trans
                 i18nKey={'app_deployment.error_unknown.message'}
                 components={{
-                  a: <StudioLink href='/contact'> </StudioLink>,
+                  a: <StudioLink href='/info/contact'> </StudioLink>,
                 }}
               />
             </StudioParagraph>
