@@ -35,26 +35,6 @@ export const DeploymentEnvironmentLogList = ({
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
-  const envTitle = isProduction
-    ? t(`general.production_environment_alt`).toLowerCase()
-    : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
-
-  const getIcon = (buildResult: BuildResult) => {
-    const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
-    switch (buildResult) {
-      case BuildResult.failed:
-        return <XMarkOctagonFillIcon className={classnames} />;
-      case BuildResult.canceled:
-      case BuildResult.partiallySucceeded:
-        return <ExclamationmarkTriangleFillIcon className={classnames} />;
-      case BuildResult.succeeded:
-        return <CheckmarkCircleFillIcon className={classnames} />;
-      case BuildResult.none:
-      default:
-        return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
-    }
-  };
-
   return (
     <div className={classes.container}>
       {pipelineDeploymentList.length === 0 ? (
@@ -166,6 +146,26 @@ export const DeploymentEnvironmentLogList = ({
       )}
     </div>
   );
+};
+
+const envTitle = isProduction
+  ? t(`general.production_environment_alt`).toLowerCase()
+  : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
+
+const getIcon = (buildResult: BuildResult) => {
+  const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
+  switch (buildResult) {
+    case BuildResult.failed:
+      return <XMarkOctagonFillIcon className={classnames} />;
+    case BuildResult.canceled:
+    case BuildResult.partiallySucceeded:
+      return <ExclamationmarkTriangleFillIcon className={classnames} />;
+    case BuildResult.succeeded:
+      return <CheckmarkCircleFillIcon className={classnames} />;
+    case BuildResult.none:
+    default:
+      return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
+  }
 };
 
 function getStatusTextByDeploymentType(deployment: PipelineDeployment): string {
