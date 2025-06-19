@@ -222,6 +222,35 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(mutateApplicationPolicyMock).toHaveBeenCalled();
   });
 
+  it('should remove datatype from app metadata and delete layoutSet when the userControlledSigning task is deleted', () => {
+    const layoutSets: LayoutSets = {
+      sets: [
+        { id: 'testLayoutSetId', dataType: 'userControlledSigning', tasks: ['testElementId'] },
+      ],
+    };
+
+    const taskMetadata = createTaskMetadataMock(
+      'userControlledSigning',
+      getMockBpmnElementForTask('userControlledSigning').businessObject,
+    );
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
+      layoutSets,
+    });
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
+      dataTypeId: 'userControlledSigningInformation-1234',
+    });
+
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: 'testLayoutSetId',
+    });
+
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
   it('should remove signature type from tasks when the signing task is deleted', () => {
     const deletedSigningTask = createTaskMetadataMock('signing', signingTasks[0].businessObject);
 
