@@ -1,6 +1,7 @@
 [
     {
         "value": "someCodeValue",
-        "label": "someId"
+        "label": "someId",
+        "description": "Navn"
     }
 ]

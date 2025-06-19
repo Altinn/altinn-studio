@@ -142,7 +142,7 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, bool overrideExistingAppTextResources, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -152,12 +152,12 @@ public class OptionsService : IOptionsService
             return null;
         }
 
-        List<Option> importedOptionList = await ImportOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
-        await ImportTextResourcesFromOrg(org, repo, developer, importedOptionList, overrideExistingAppTextResources, cancellationToken);
+        List<Option> importedOptionList = await CopyOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
+        await CopyTextResourcesFromOrg(org, repo, developer, importedOptionList, overwriteTextResources, cancellationToken);
         return importedOptionList;
     }
 
-    private async Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    private async Task<List<Option>> CopyOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
     {
         (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
 
@@ -166,24 +166,44 @@ public class OptionsService : IOptionsService
         return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
     }
 
-    private async Task ImportTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overrideExistingAppTextResources, CancellationToken cancellationToken)
+    private async Task CopyTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overwriteTextResources, CancellationToken cancellationToken)
     {
         (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
-        HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
-        HashSet<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages().ToHashSet();
-        HashSet<string> appLanguageCodes = altinnAppGitRepository.GetLanguages().ToHashSet();
+        List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
-            TextResource appTextResources = await RetrieveTextResourcesFromApp(altinnAppGitRepository, appLanguageCodes, orgLanguageCode, cancellationToken);
-            HashSet<string> appTextResourceIds = appTextResources.Resources.Select(textResourceElement => textResourceElement.Id).ToHashSet();
-            TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
+            List<TextResourceElement> appTextResourceElements = await RetrieveAppTextResourceElements(altinnAppGitRepository, orgLanguageCode, cancellationToken);
+            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(altinnOrgGitRepository, orgLanguageCode, optionList, cancellationToken);
 
-            List<TextResourceElement> textResourceElements = ExtractOrgTextResourceElementsToImport(orgTextResources, optionListTextResourceIds, appTextResourceIds, overrideExistingAppTextResources);
-            appTextResources.Resources = MergeTextResources(appTextResources.Resources, textResourceElements, overrideExistingAppTextResources);
+            TextResource mergedTextResources = new()
+            {
+                Language = orgLanguageCode,
+                Resources = MergeTextResources(appTextResourceElements, orgTextResourceElements, overwriteTextResources)
+            };
 
-            await altinnAppGitRepository.SaveText(orgLanguageCode, appTextResources);
+            await altinnAppGitRepository.SaveText(orgLanguageCode, mergedTextResources);
         }
+    }
+
+    private static async Task<List<TextResourceElement>> RetrieveAppTextResourceElements(AltinnAppGitRepository altinnAppGitRepository, string orgLanguageCode, CancellationToken cancellationToken)
+    {
+        HashSet<string> appLanguageCodes = altinnAppGitRepository.GetLanguages().ToHashSet();
+
+        if (!appLanguageCodes.Contains(orgLanguageCode))
+        {
+            return [];
+        }
+        TextResource appTextResources = await altinnAppGitRepository.GetText(orgLanguageCode, cancellationToken);
+        return [.. appTextResources.Resources];
+
+    }
+
+    private static async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(AltinnOrgGitRepository altinnOrgGitRepository, string orgLanguageCode, List<Option> optionList, CancellationToken cancellationToken)
+    {
+        TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
+        HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
+        return orgTextResources.Resources.Where(element => optionListTextResourceIds.Contains(element.Id)).ToList();
     }
 
     private static HashSet<string> RetrieveTextResourceIdsInOptionList(List<Option> optionList)
@@ -198,41 +218,26 @@ public class OptionsService : IOptionsService
         return textResourceIds;
     }
 
-    private static async Task<TextResource> RetrieveTextResourcesFromApp(AltinnAppGitRepository altinnAppGitRepository, HashSet<string> appLanguageCodes, string orgLanguageCode, CancellationToken cancellationToken)
+    private static List<TextResourceElement> MergeTextResources(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> orgTextResourceElements, bool overwriteTextResource)
     {
-        if (appLanguageCodes.Contains(orgLanguageCode))
-        {
-            return await altinnAppGitRepository.GetText(orgLanguageCode, cancellationToken);
-        }
+        HashSet<string> commonTextResourceIds = FindCommonTextResourceIds(appTextResourceElements, orgTextResourceElements);
 
-        return new TextResource
+        if (overwriteTextResource)
         {
-            Language = orgLanguageCode,
-            Resources = []
-        };
+            appTextResourceElements.RemoveAll(element => commonTextResourceIds.Contains(element.Id));
+        }
+        else
+        {
+            orgTextResourceElements.RemoveAll(element => commonTextResourceIds.Contains(element.Id));
+        }
+        return appTextResourceElements.Concat(orgTextResourceElements).ToList();
     }
 
-    private static List<TextResourceElement> ExtractOrgTextResourceElementsToImport(TextResource orgTextResources, HashSet<string> optionListTextResourceIds, HashSet<string> appTextResourceIds, bool overrideExistingAppTextResources)
+    private static HashSet<string> FindCommonTextResourceIds(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> orgTextResourceElements)
     {
-        List<TextResourceElement> textResourceElements = [];
-        textResourceElements.AddRange(orgTextResources.Resources
-            .Where(element => optionListTextResourceIds.Contains(element.Id))
-            .Where(element => overrideExistingAppTextResources || !appTextResourceIds.Contains(element.Id)));
-        return textResourceElements;
-    }
-
-    private static List<TextResourceElement> MergeTextResources(List<TextResourceElement> appTextResourceElements, List<TextResourceElement> commonTextResourceElements, bool overrideExisting)
-    {
-        List<TextResourceElement> textResourceElements = [];
-        textResourceElements.AddRange(appTextResourceElements);
-
-        if (overrideExisting)
-        {
-            HashSet<string> overrideIds = [.. commonTextResourceElements.Select(e => e.Id)];
-            textResourceElements.RemoveAll(textResourceElement => overrideIds.Contains(textResourceElement.Id));
-        }
-        textResourceElements.AddRange(commonTextResourceElements);
-        return textResourceElements;
+        IEnumerable<string> appTextResourceIds = appTextResourceElements.Select(textResourceElement => textResourceElement.Id);
+        IEnumerable<string> orgTextResourceIds = orgTextResourceElements.Select(textResourceElement => textResourceElement.Id);
+        return appTextResourceIds.Intersect(orgTextResourceIds).ToHashSet();
     }
 
     private (AltinnOrgGitRepository, AltinnAppGitRepository) GetAltinnRepositories(string org, string developer, string repo)

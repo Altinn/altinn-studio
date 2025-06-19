@@ -261,7 +261,7 @@ public class OptionsController : ControllerBase
 
     [HttpPost]
     [Route("import/{optionListId}")]
-    public async Task<ActionResult<List<Option>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, [FromQuery] bool overrideTextResources = false, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, [FromQuery] bool overwriteTextResources = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -272,7 +272,7 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrgIfIdIsVacant(org, repo, developer, optionListId, overrideTextResources, cancellationToken);
+        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
 
         if (importedOptionList is null)
         {

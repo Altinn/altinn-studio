@@ -91,8 +91,8 @@ public interface IOptionsService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the option list</param>
-    /// <param name="overrideExistingAppTextResources">Override existing text resources</param>
+    /// <param name="overwriteTextResources">Override existing text resources</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The imported option list</returns>
-    public Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, bool overrideExistingAppTextResources, CancellationToken cancellationToken = default);
+    /// <returns>The imported option list, null if option list id already exists</returns>
+    public Task<List<Option>> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default);
 }

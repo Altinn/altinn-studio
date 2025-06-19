@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -64,7 +65,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     {
         // Arrange
         const string OrgRepoName = "org-content";
-        const string AppRepoName = "empty-app";
+        const string AppRepoName = "hvem-er-hvem";
         const string OptionListId = "codeListWithTextResources";
         const string LanguageCode = "nb";
         const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
@@ -81,11 +82,47 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string textResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
-        TextResource textResource = JsonSerializer.Deserialize<TextResource>(textResourceFileContent, s_jsonOptions);
-        TextResourceElement actualTextResourceElement = textResource.Resources[0];
+        string actualTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
+        TextResource actualTextResource = JsonSerializer.Deserialize<TextResource>(actualTextResourceFileContent, s_jsonOptions);
+        Assert.Equal(LanguageCode, actualTextResource.Language);
 
-        Assert.Equal(LanguageCode, textResource.Language);
+        TextResourceElement actualTextResourceElement = actualTextResource.Resources[^1];
+        Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
+        Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
+    }
+
+    [Fact]
+    public async Task Post_Returns200OK_WhenImportingCodeListFromOrgWithTextResources_WithQueryParameter()
+    {
+        // Arrange
+        const string OrgRepoName = "org-content";
+        const string AppRepoName = "hvem-er-hvem";
+        const string OptionListId = "codeListWithTextResources";
+        const string LanguageCode = "nb";
+        const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
+        TextResourceElement expectedTextResourceElement = new() { Id = "Navn", Value = "New name" };
+
+        (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+
+        string sourceTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
+        TextResource sourceTextResource = JsonSerializer.Deserialize<TextResource>(sourceTextResourceFileContent, s_jsonOptions);
+
+        string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
+        apiUrl = $"{apiUrl}?overwriteTextResources=true";
+        using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(message);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        string actualTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
+        TextResource actualTextResource = JsonSerializer.Deserialize<TextResource>(actualTextResourceFileContent, s_jsonOptions);
+        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == expectedTextResourceElement.Id);
+
+        Assert.Equal(LanguageCode, actualTextResource.Language);
+        Assert.Equal(sourceTextResource.Resources.Count + 1, actualTextResource.Resources.Count);
         Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
         Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
     }
