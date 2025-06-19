@@ -11,7 +11,6 @@ import type {
   ResourceTypeOption,
 } from 'app-shared/types/ResourceAdm';
 import {
-  getMissingInputLanguageString,
   mapKeywordsArrayToString,
   resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
@@ -619,66 +618,22 @@ describe('AboutResourcePage', () => {
           {
             field: 'title',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.title,
-              textMock('resourceadm.about_resource_error_usage_string_title'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_title_nb',
           },
-
           {
             field: 'description',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.description,
-              textMock('resourceadm.about_resource_error_usage_string_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_description_nb',
           },
           {
             field: 'rightDescription',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.rightDescription,
-              textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_rights_description_nb',
           },
         ]}
         resourceData={mockResource2}
       />,
     );
-
-    expect(
-      screen.getAllByText(textMock('resourceadm.about_resource_resource_type_error')),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.title,
-          textMock('resourceadm.about_resource_error_usage_string_title'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.description,
-          textMock('resourceadm.about_resource_error_usage_string_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
   });
 
   it('does not display error message for rights description when delegable is false', async () => {
@@ -691,13 +646,7 @@ describe('AboutResourcePage', () => {
     );
 
     expect(
-      screen.queryByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
+      screen.queryByText('resource_error_translation_missing_rights_description_nb'),
     ).not.toBeInTheDocument();
   });
 

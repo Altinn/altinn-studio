@@ -1,6 +1,4 @@
 import {
-  getMissingInputLanguageString,
-  mapLanguageKeyToLanguageText,
   deepCompare,
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
@@ -11,12 +9,7 @@ import {
   getResourceSubjects,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type {
-  Resource,
-  ResourceError,
-  ResourceFormError,
-  SupportedLanguage,
-} from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
@@ -114,7 +107,7 @@ describe('deepCompare', () => {
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(7);
+      expect(validationErrors.length).toBe(13);
     });
 
     it('should return all possible errors for genericAccessResource', () => {
@@ -130,7 +123,7 @@ describe('deepCompare', () => {
         contactPoints: null,
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(7);
+      expect(validationErrors.length).toBe(13);
     });
 
     it('should return all possible errors for consent resource', () => {
@@ -146,7 +139,7 @@ describe('deepCompare', () => {
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(8);
+      expect(validationErrors.length).toBe(16);
     });
 
     describe('should return error for consentText field', () => {
@@ -187,6 +180,7 @@ describe('deepCompare', () => {
             'nb',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
+              lang1: textMock('language.nb'),
             }),
           ),
         ).toBeTruthy();
@@ -215,14 +209,6 @@ describe('deepCompare', () => {
             'nn',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
-            }),
-          ),
-        ).toBeTruthy();
-        expect(
-          hasConsentFieldError(
-            validationErrors,
-            'nb',
-            textMock('resourceadm.about_resource_error_unknown_metadata', {
               lang1: textMock('language.nn'),
             }),
           ),
@@ -251,6 +237,7 @@ describe('deepCompare', () => {
             'nn',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
+              lang1: textMock('language.nn'),
             }),
           ),
         ).toBeTruthy();
@@ -260,16 +247,7 @@ describe('deepCompare', () => {
             'en',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
-            }),
-          ),
-        ).toBeTruthy();
-        expect(
-          hasConsentFieldError(
-            validationErrors,
-            'nb',
-            textMock('resourceadm.about_resource_error_unknown_metadata_multiple', {
-              lang1: textMock('language.nn'),
-              lang2: textMock('language.en'),
+              lang1: textMock('language.en'),
             }),
           ),
         ).toBeTruthy();
@@ -290,7 +268,7 @@ describe('deepCompare', () => {
         contactPoints: [],
       };
       const validationErrors = validateResource(resource, () => 'test');
-      expect(validationErrors.length).toBe(7);
+      expect(validationErrors.length).toBe(13);
     });
   });
 });
