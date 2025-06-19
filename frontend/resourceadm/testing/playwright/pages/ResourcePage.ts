@@ -1,7 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { textMock } from '../helpers/textMock';
-import type { TextKey } from '../helpers/textMock';
 import { url, Routes } from '../helpers/routes';
 import { ResourceEnvironment } from '../helpers/ResourceEnvironment';
 import type { Environment } from '../helpers/ResourceEnvironment';
@@ -9,15 +8,18 @@ import type { Environment } from '../helpers/ResourceEnvironment';
 export class ResourcePage extends ResourceEnvironment {
   private readonly resourceId: string;
   private readonly resourceTypeRadio: Locator;
-  private readonly nameNbTextField: Locator;
-  private readonly nameNnTextField: Locator;
-  private readonly nameEnTextField: Locator;
-  private readonly descriptionNbTextField: Locator;
-  private readonly descriptionNnTextField: Locator;
-  private readonly descriptionEnTextField: Locator;
-  private readonly rightsDecriptionNbTextField: Locator;
-  private readonly rightsDecriptionNnTextField: Locator;
-  private readonly rightsDecriptionEnTextField: Locator;
+  private readonly titleTextField: Locator;
+  private readonly titleNbTab: Locator;
+  private readonly titleNnTab: Locator;
+  private readonly titleEnTab: Locator;
+  private readonly descriptionTextField: Locator;
+  private readonly descriptionNbTab: Locator;
+  private readonly descriptionNnTab: Locator;
+  private readonly descriptionEnTab: Locator;
+  private readonly rightsDescriptionTextField: Locator;
+  private readonly rightsDescriptionNbTab: Locator;
+  private readonly rightsDescriptionNnTab: Locator;
+  private readonly rightsDescriptionEnTab: Locator;
   private readonly statusRadio: Locator;
   private readonly availableForTypeCheckbox: Locator;
   private readonly categoryTextField: Locator;
@@ -43,39 +45,45 @@ export class ResourcePage extends ResourceEnvironment {
     this.resourceTypeRadio = this.page.getByRole('radio', {
       name: textMock('resourceadm.about_resource_resource_type_generic_access_resource'),
     });
-    this.nameNbTextField = this.page.getByLabel(
-      textMock('resourceadm.about_resource_resource_title_label'),
+    this.titleTextField = this.page.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
+    this.titleNbTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
-    this.nameNnTextField = this.page.getByLabel(
-      this.getTranslatedTitle('resourceadm.about_resource_translation_title', 'language.nn'),
+    this.titleNnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
-    this.nameEnTextField = this.page.getByLabel(
-      this.getTranslatedTitle('resourceadm.about_resource_translation_title', 'language.en'),
+    this.titleEnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
-    this.descriptionNbTextField = this.page.getByLabel(
-      textMock('resourceadm.about_resource_resource_description_label'),
+
+    this.descriptionTextField = this.page.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
+    this.descriptionNbTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
-    this.descriptionNnTextField = this.page.getByLabel(
-      this.getTranslatedTitle('resourceadm.about_resource_translation_description', 'language.nn'),
+    this.descriptionNnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
-    this.descriptionEnTextField = this.page.getByLabel(
-      this.getTranslatedTitle('resourceadm.about_resource_translation_description', 'language.en'),
+    this.descriptionEnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
-    this.rightsDecriptionNbTextField = this.page.getByLabel(
-      textMock('resourceadm.about_resource_rights_description_label'),
+
+    this.rightsDescriptionTextField = this.page.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_rights_description_label'),
+    });
+    this.rightsDescriptionNbTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
-    this.rightsDecriptionNnTextField = this.page.getByLabel(
-      this.getTranslatedTitle(
-        'resourceadm.about_resource_translation_right_description',
-        'language.nn',
-      ),
+    this.rightsDescriptionNnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
-    this.rightsDecriptionEnTextField = this.page.getByLabel(
-      this.getTranslatedTitle(
-        'resourceadm.about_resource_translation_right_description',
-        'language.en',
-      ),
+    this.rightsDescriptionEnTab = this.page.getByLabel(
+      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
+
     this.statusRadio = this.page.getByRole('radio', {
       name: textMock('resourceadm.about_resource_status_under_development'),
     });
@@ -112,10 +120,6 @@ export class ResourcePage extends ResourceEnvironment {
     this.publishAlert = this.page.getByText(textMock('resourceadm.deploy_status_card_success'));
   }
 
-  private getTranslatedTitle = (title: TextKey, lang: TextKey): string => {
-    return `${textMock(title)} (${textMock(lang)})`;
-  };
-
   public async goto(): Promise<void> {
     await this.page.goto(
       url(Routes.resourcePage, { org: this.org, repo: this.repo, resourceId: this.resourceId }),
@@ -127,39 +131,48 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async writeNameNbTextField(value: string): Promise<void> {
-    await this.nameNbTextField.fill(value);
+    await this.titleNbTab.click();
+    await this.titleTextField.fill(value);
   }
 
   public async writeNameNnTextField(value: string): Promise<void> {
-    await this.nameNnTextField.fill(value);
+    await this.titleNnTab.click();
+    await this.titleTextField.fill(value);
   }
 
   public async writeNameEnTextField(value: string): Promise<void> {
-    await this.nameEnTextField.fill(value);
+    await this.titleEnTab.click();
+    await this.titleTextField.fill(value);
   }
 
   public async writeDescriptionNbTextField(value: string): Promise<void> {
-    await this.descriptionNbTextField.fill(value);
+    await this.descriptionNbTab.click();
+    await this.descriptionTextField.fill(value);
   }
 
   public async writeDescriptionNnTextField(value: string): Promise<void> {
-    await this.descriptionNnTextField.fill(value);
+    await this.descriptionNnTab.click();
+    await this.descriptionTextField.fill(value);
   }
 
   public async writeDescriptionEnTextField(value: string): Promise<void> {
-    await this.descriptionEnTextField.fill(value);
+    await this.descriptionEnTab.click();
+    await this.descriptionTextField.fill(value);
   }
 
   public async writeRightsDescriptionNbTextField(value: string): Promise<void> {
-    await this.rightsDecriptionNbTextField.fill(value);
+    await this.rightsDescriptionNbTab.click();
+    await this.rightsDescriptionTextField.fill(value);
   }
 
   public async writeRightsDescriptionNnTextField(value: string): Promise<void> {
-    await this.rightsDecriptionNnTextField.fill(value);
+    await this.rightsDescriptionNnTab.click();
+    await this.rightsDescriptionTextField.fill(value);
   }
 
   public async writeRightsDescriptionEnTextField(value: string): Promise<void> {
-    await this.rightsDecriptionEnTextField.fill(value);
+    await this.rightsDescriptionEnTab.click();
+    await this.rightsDescriptionTextField.fill(value);
   }
 
   public async setStatus(): Promise<void> {
