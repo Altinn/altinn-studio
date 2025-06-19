@@ -33,6 +33,12 @@
   color: var(--fds-semantic-text-neutral-subtle);
 }
 
+.translationFieldDescription {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--fds-spacing-4);
+}
 .translationFieldTabError {
   color: var(--ds-color-danger-text-subtle);
 }

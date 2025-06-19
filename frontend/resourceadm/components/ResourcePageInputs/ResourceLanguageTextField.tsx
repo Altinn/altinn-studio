@@ -109,7 +109,7 @@ export const ResourceLanguageTextField = ({
         required={required}
         label={<ResourceFieldHeader label={label} required={required} />}
         description={
-          <>
+          <div className={classes.translationFieldDescription}>
             {description}
             <StudioTabs
               defaultValue='nb'
@@ -141,7 +141,7 @@ export const ResourceLanguageTextField = ({
                 </StudioTabs.Tab>
               </StudioTabs.List>
             </StudioTabs>
-          </>
+          </div>
         }
         value={translations[selectedLanguage]}
         onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
