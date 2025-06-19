@@ -392,3 +392,7 @@ stats.csv
 /playwright/.cache/
 **/playwright/playwright-report/
 .playwright/
+
+
+## Storybook
+**/storybook-static
