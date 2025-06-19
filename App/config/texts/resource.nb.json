@@ -2,6 +2,14 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.NavigationButtons-KJPw0X.next",
+      "value": "Neste"
+    },
+    {
+      "id": "Side1.NavigationButtons-oX9sap.next",
+      "value": "Neste"
+    },
+    {
       "id": "Side1.Input-jIfPYc.title",
       "value": "En tekst i Task_2"
     },

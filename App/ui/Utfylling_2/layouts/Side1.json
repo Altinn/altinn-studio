@@ -15,6 +15,13 @@
           "title": "Side1.Input-jIfPYc.title"
         },
         "required": true
+      },
+      {
+        "id": "NavigationButtons-KJPw0X",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Side1.NavigationButtons-KJPw0X.next"
+        }
       }
     ]
   }

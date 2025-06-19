@@ -16,6 +16,13 @@
           "title": "Side1.Input-cCz5h3.title"
         },
         "required": true
+      },
+      {
+        "id": "NavigationButtons-oX9sap",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Side1.NavigationButtons-oX9sap.next"
+        }
       }
     ]
   }
