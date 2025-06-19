@@ -8,6 +8,7 @@ import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
+import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor/components/Pages/PageGroupMoveDialog';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -31,6 +32,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
     app,
     selectedFormLayoutSetName,
   );
+  const [moveToGroupDialogOpen, setMoveToGroupDialogOpen] = React.useState(false);
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
   const isUsingGroups = !!pagesModel.groups;
   const groupModel = pagesModel.groups?.find((group) =>
@@ -42,6 +44,9 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
   const pageCount = isUsingGroups ? groupModel?.order?.length : pagesModel.pages?.length;
   const disableUp = pageIndex === 0;
   const disableDown = pageIndex === pageCount - 1;
+  const pagesInGroup =
+    pagesModel.groups?.find((group) => group.order.some((page) => page.id === pageName))?.order
+      .length || 0;
 
   const moveLayoutUp = () => {
     if (isUsingGroups) {
@@ -77,8 +82,30 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
     }
   };
 
+  const movePageToNewGroup = () => {
+    const newGroup: GroupModel = {
+      order: [{ id: pageName }],
+    };
+    const updatedPagesModel = {
+      ...pagesModel,
+      groups: [
+        ...pagesModel.groups.map((group) => ({
+          ...group,
+          order: group.order.filter((page) => page.id !== pageName),
+        })),
+        newGroup,
+      ],
+    };
+    changePageGroups(updatedPagesModel);
+  };
+
   return (
     <div>
+      <PageGroupMoveToExistingGroupDialog
+        pageName={pageName}
+        open={moveToGroupDialogOpen}
+        onClose={() => setMoveToGroupDialogOpen(false)}
+      />
       <StudioDropdown icon={<MenuElipsisVerticalIcon />} triggerButtonVariant='tertiary'>
         <StudioDropdown.List>
           <StudioDropdown.Item>
@@ -102,55 +129,22 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>
-        <PageGroupActions pageName={pageName} />
+        <StudioDropdown.Heading>
+          {t('ux_editor.page_menu_group_movement_heading')}
+        </StudioDropdown.Heading>
+        <StudioDropdown.Item>
+          <StudioDropdown.Button onClick={() => setMoveToGroupDialogOpen(true)}>
+            <FolderPlusIcon />
+            {t('ux_editor.page_menu_existing_group')}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
+        <StudioDropdown.Item>
+          <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
+            <FolderPlusIcon />
+            {t('ux_editor.page_menu_new_group')}
+          </StudioDropdown.Button>
+        </StudioDropdown.Item>
       </StudioDropdown>
     </div>
-  );
-};
-
-type PageGroupActionProps = {
-  pageName: string;
-};
-
-const PageGroupActions = ({ pageName }: PageGroupActionProps) => {
-  const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
-
-  const pagesInGroup =
-    pagesModel.groups?.find((group) => group.order.some((page) => page.id === pageName))?.order
-      .length || 0;
-
-  const movePageToNewGroup = () => {
-    const newGroup: GroupModel = {
-      order: [{ id: pageName }],
-    };
-    const updatedPagesModel = {
-      ...pagesModel,
-      groups: [
-        ...pagesModel.groups.map((group) => ({
-          ...group,
-          order: group.order.filter((page) => page.id !== pageName),
-        })),
-        newGroup,
-      ],
-    };
-    changePageGroups(updatedPagesModel);
-  };
-
-  return (
-    <>
-      <StudioDropdown.Heading>
-        {t('ux_editor.page_menu_group_movement_heading')}
-      </StudioDropdown.Heading>
-      <StudioDropdown.Item>
-        <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
-          <FolderPlusIcon />
-          {t('ux_editor.page_menu_new_group')}
-        </StudioDropdown.Button>
-      </StudioDropdown.Item>
-    </>
   );
 };
