@@ -27,5 +27,11 @@ namespace Altinn.App.Models.Model2
     [JsonPropertyName("property3")]
     public string property3 { get; set; }
 
+    [XmlElement("fail", Order = 4)]
+    [JsonProperty("fail")]
+    [JsonPropertyName("fail")]
+    [Required]
+    public bool? fail { get; set; }
+
   }
 }

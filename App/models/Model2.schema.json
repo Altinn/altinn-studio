@@ -1,7 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "http://altinn-repositories:3000/ttd/service-task/App/models/Model2.schema.json",
-  "type": "object",
   "info": {
     "rootNode": ""
   },
@@ -17,6 +16,12 @@
     "FinalDefault": "None"
   },
   "@xsdRootElement": "Model2",
+  "type": "object",
+  "required": [
+    "property1",
+    "property2",
+    "fail"
+  ],
   "properties": {
     "property1": {
       "type": "string"
@@ -26,10 +31,10 @@
     },
     "property3": {
       "type": "string"
+    },
+    "fail": {
+      "type": "boolean",
+      "title": ""
     }
-  },
-  "required": [
-    "property1",
-    "property2"
-  ]
+  }
 }

@@ -25,6 +25,31 @@
         "required": true
       },
       {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "Fail",
+            "dataType": "Model2"
+          },
+          "label": {
+            "field": "Fail",
+            "dataType": "Model2"
+          },
+          "metadata": {
+            "field": "Fail",
+            "dataType": "Model2"
+          }
+        },
+        "id": "Checkboxes-meIWCB",
+        "type": "Checkboxes",
+        "required": true,
+        "options": [
+          {
+            "value": false,
+            "label": "id_KkhTgxxpW2yM"
+          }
+        ]
+      },
+      {
         "id": "Button-wCUmrv",
         "type": "Button",
         "textResourceBindings": {

@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "id_KkhTgxxpW2yM",
+      "value": "Feil neste steg"
+    },
+    {
       "id": "Side1.Header-IIkZPf.title",
       "value": "Task_1"
     },
@@ -47,7 +51,7 @@
     },
     {
       "id": "pdfFileName",
-        "value": "Summary av to tasks.pdf"
+      "value": "Summary av to tasks.pdf"
     }
   ]
 }
