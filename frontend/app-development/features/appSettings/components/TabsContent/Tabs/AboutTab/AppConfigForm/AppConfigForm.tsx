@@ -2,11 +2,11 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components';
+import { StudioSwitch, StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
-import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
+import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
@@ -83,6 +83,20 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
+  const onChangeHomepage = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      homepage: e.target.value,
+    }));
+  };
+
+  const onChangeDelegable = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      isDelegable: e.target.checked,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
@@ -95,7 +109,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           defaultValue={updatedAppConfig.repositoryName}
           readOnly
         />
-        <LanguageTextfield
+        <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}
           id={AppResourceFormFieldIds.ServiceName}
@@ -112,13 +126,32 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        <LanguageTextfield
+        <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
           description={t('app_settings.about_tab_description_field_description')}
           id={AppResourceFormFieldIds.Description}
           value={updatedAppConfig.description}
           updateLanguage={onChangeDescription}
           required={false}
+          isTextArea
+        />
+        <StudioTextfield
+          label={t('app_settings.about_tab_homepage_field_label')}
+          description={t('app_settings.about_tab_homepage_field_description')}
+          value={updatedAppConfig.homepage}
+          onChange={onChangeHomepage}
+          required={false}
+          tagText={t('general.optional')}
+        />
+        <StudioSwitch
+          label={t('app_settings.about_tab_delegable_field_label')}
+          description={t('app_settings.about_tab_delegable_show_text', {
+            shouldText: !updatedAppConfig.isDelegable
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          checked={updatedAppConfig.isDelegable}
+          onChange={onChangeDelegable}
         />
       </div>
       <ActionButtons

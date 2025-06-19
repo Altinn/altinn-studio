@@ -1,7 +1,6 @@
 import {
   mapLanguageKeyToLanguageText,
   getErrorMessagesForLanguage,
-  getTextfieldRows,
 } from './appConfigLanguageUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
@@ -40,16 +39,6 @@ describe('appConfigLanguageUtils', () => {
     it('returns undefined if error array is empty', () => {
       const result = getErrorMessagesForLanguage([], 'nb');
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe('getTextfieldRows', () => {
-    it('returns 5 when isTextArea is true', () => {
-      expect(getTextfieldRows(true)).toBe(5);
-    });
-
-    it('returns undefined when isTextArea is false', () => {
-      expect(getTextfieldRows(false)).toBeUndefined();
     });
   });
 });
