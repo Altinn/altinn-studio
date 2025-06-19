@@ -44,6 +44,10 @@
     {
       "id": "appName",
       "value": "service-task"
+    },
+    {
+      "id": "pdfFileName",
+        "value": "Summary av to tasks.pdf"
     }
   ]
 }
