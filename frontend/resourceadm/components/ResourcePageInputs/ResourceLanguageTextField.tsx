@@ -3,7 +3,11 @@ import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
 import { XMarkOctagonFillIcon } from '@studio/icons';
-import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type {
+  ResourceFormError,
+  SupportedLanguage,
+  ValidLanguage,
+} from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import { useTranslation } from 'react-i18next';
 
@@ -74,7 +78,7 @@ export const ResourceLanguageTextField = ({
   required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('nb');
+  const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   const getTrimmedTranslations = (): SupportedLanguage => {
@@ -89,10 +93,17 @@ export const ResourceLanguageTextField = ({
     onBlur(getTrimmedTranslations());
   };
 
-  const onFieldValueChanged = (language: string, newValue: string) => {
+  const onFieldValueChanged = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const newValue = event.target.value;
     setTranslations((oldTranslations) => {
-      return { ...oldTranslations, [language]: newValue };
+      return { ...oldTranslations, [selectedLanguage]: newValue };
     });
+  };
+
+  const onChangeSelectedLanguage = (newValue: string) => {
+    setSelectedLanguage(newValue as ValidLanguage);
   };
 
   const mainFieldError = errors.map((error, index) => (
@@ -115,28 +126,28 @@ export const ResourceLanguageTextField = ({
               defaultValue='nb'
               size='sm'
               value={selectedLanguage}
-              onChange={setSelectedLanguage}
+              onChange={onChangeSelectedLanguage}
             >
               <StudioTabs.List>
                 <StudioTabs.Tab
                   value='nb'
                   aria-label={`${t('resourceadm.about_resource_translation_nb')} ${label}`}
                 >
-                  {errors.some((error) => error.index == 'nb') && <TranslationTabError />}
+                  {errors.some((error) => error.index === 'nb') && <TranslationTabError />}
                   {t('resourceadm.about_resource_translation_nb')}
                 </StudioTabs.Tab>
                 <StudioTabs.Tab
                   value='nn'
                   aria-label={`${t('resourceadm.about_resource_translation_nn')} ${label}`}
                 >
-                  {errors.some((error) => error.index == 'nn') && <TranslationTabError />}
+                  {errors.some((error) => error.index === 'nn') && <TranslationTabError />}
                   {t('resourceadm.about_resource_translation_nn')}
                 </StudioTabs.Tab>
                 <StudioTabs.Tab
                   value='en'
                   aria-label={`${t('resourceadm.about_resource_translation_en')} ${label}`}
                 >
-                  {errors.some((error) => error.index == 'en') && <TranslationTabError />}
+                  {errors.some((error) => error.index === 'en') && <TranslationTabError />}
                   {t('resourceadm.about_resource_translation_en')}
                 </StudioTabs.Tab>
               </StudioTabs.List>
@@ -144,9 +155,7 @@ export const ResourceLanguageTextField = ({
           </div>
         }
         value={translations[selectedLanguage]}
-        onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-          onFieldValueChanged(selectedLanguage, event.target.value)
-        }
+        onChange={onFieldValueChanged}
         multiline={useTextArea}
         error={mainFieldError.length > 0 ? mainFieldError : undefined}
         onBlur={onBlurField}
