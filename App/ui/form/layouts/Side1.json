@@ -4,6 +4,14 @@
     "hidden": false,
     "layout": [
       {
+        "size": "L",
+        "id": "Header-IIkZPf",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-IIkZPf.title"
+        }
+      },
+      {
         "dataModelBindings": {
           "simpleBinding": {
             "field": "property1",
@@ -18,10 +26,10 @@
         "required": true
       },
       {
-        "id": "NavigationButtons-oX9sap",
-        "type": "NavigationButtons",
+        "id": "Button-BddG51",
+        "type": "Button",
         "textResourceBindings": {
-          "next": "Side1.NavigationButtons-oX9sap.next"
+          "title": "Side1.Button-BddG51.title"
         }
       }
     ]

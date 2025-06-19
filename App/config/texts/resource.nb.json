@@ -2,6 +2,22 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Header-IIkZPf.title",
+      "value": "Task_1"
+    },
+    {
+      "id": "Side1.Button-BddG51.title",
+      "value": "Neste"
+    },
+    {
+      "id": "Side1.Header-8uV9Vw.title",
+      "value": "Task_2"
+    },
+    {
+      "id": "Side1.Button-wCUmrv.title",
+      "value": "Neste"
+    },
+    {
       "id": "Side1.NavigationButtons-KJPw0X.next",
       "value": "Neste"
     },

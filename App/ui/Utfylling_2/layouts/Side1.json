@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "size": "L",
+        "id": "Header-8uV9Vw",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-8uV9Vw.title"
+        }
+      },
+      {
         "dataModelBindings": {
           "simpleBinding": {
             "field": "property1",
@@ -17,10 +25,10 @@
         "required": true
       },
       {
-        "id": "NavigationButtons-KJPw0X",
-        "type": "NavigationButtons",
+        "id": "Button-wCUmrv",
+        "type": "Button",
         "textResourceBindings": {
-          "next": "Side1.NavigationButtons-KJPw0X.next"
+          "title": "Side1.Button-wCUmrv.title"
         }
       }
     ]
