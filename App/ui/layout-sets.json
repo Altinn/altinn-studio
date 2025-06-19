@@ -12,7 +12,14 @@
       "id": "Utfylling_2",
       "dataType": "Model2",
       "tasks": [
-        "Activity_1817osb"
+        "Task_2"
+      ]
+    },
+    {
+      "id": "Pdf",
+      "dataType": "model",
+      "tasks": [
+        "Task_3"
       ]
     }
   ],
