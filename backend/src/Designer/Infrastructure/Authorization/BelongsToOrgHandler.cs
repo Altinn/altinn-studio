@@ -6,11 +6,11 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
 public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
 {
-    private readonly IGitea _giteaService;
+    private readonly IUserOrganizationService _userOrganizationService;
 
-    public BelongsToOrgHandler(IGitea giteaService)
+    public BelongsToOrgHandler(IUserOrganizationService userOrganizationService)
     {
-        _giteaService = giteaService;
+        _userOrganizationService = userOrganizationService;
     }
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
@@ -22,7 +22,8 @@ public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
             return;
         }
 
-        if (await UserBelongsToOrg())
+        bool isMemberOfOrganization = await _userOrganizationService.UserIsMemberOfAnyOrganization();
+        if (isMemberOfOrganization)
         {
             context.Succeed(requirement);
         }
@@ -35,11 +36,5 @@ public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
     private static bool IsNotAuthenticatedUser(AuthorizationHandlerContext context)
     {
         return context.User?.Identity?.IsAuthenticated != true;
-    }
-
-    private async Task<bool> UserBelongsToOrg()
-    {
-        var organizations = await _giteaService.GetUserOrganizations();
-        return organizations.Count > 0;
     }
 }
