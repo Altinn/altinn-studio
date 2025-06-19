@@ -27,27 +27,30 @@
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "Fail",
-            "dataType": "Model2"
-          },
-          "label": {
-            "field": "Fail",
+            "field": "fail",
             "dataType": "Model2"
           },
           "metadata": {
-            "field": "Fail",
+            "field": "fail",
             "dataType": "Model2"
           }
         },
-        "id": "Checkboxes-meIWCB",
-        "type": "Checkboxes",
+        "id": "RadioButtons-aoZwvK",
+        "type": "RadioButtons",
         "required": true,
         "options": [
           {
+            "value": true,
+            "label": "id_B7xyV6j6PmmR"
+          },
+          {
             "value": false,
-            "label": "id_KkhTgxxpW2yM"
+            "label": "id_6SGllQXPgInV"
           }
-        ]
+        ],
+        "textResourceBindings": {
+          "title": "Side1.RadioButtons-aoZwvK.title"
+        }
       },
       {
         "id": "Button-wCUmrv",

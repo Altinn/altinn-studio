@@ -2,6 +2,18 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.RadioButtons-aoZwvK.title",
+      "value": "Kjør feilende servicetask"
+    },
+    {
+      "id": "id_6SGllQXPgInV",
+      "value": "Nei"
+    },
+    {
+      "id": "id_B7xyV6j6PmmR",
+      "value": "Ja"
+    },
+    {
       "id": "id_KkhTgxxpW2yM",
       "value": "Feil neste steg"
     },

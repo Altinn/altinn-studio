@@ -17,17 +17,7 @@ namespace Altinn.App.Models.Model2
     [JsonPropertyName("property1")]
     public string property1 { get; set; }
 
-    [XmlElement("property2", Order = 2)]
-    [JsonProperty("property2")]
-    [JsonPropertyName("property2")]
-    public string property2 { get; set; }
-
-    [XmlElement("property3", Order = 3)]
-    [JsonProperty("property3")]
-    [JsonPropertyName("property3")]
-    public string property3 { get; set; }
-
-    [XmlElement("fail", Order = 4)]
+    [XmlElement("fail", Order = 2)]
     [JsonProperty("fail")]
     [JsonPropertyName("fail")]
     [Required]

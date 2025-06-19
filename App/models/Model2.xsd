@@ -9,8 +9,6 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element name="property1" type="xs:string" />
-        <xs:element name="property2" type="xs:string" />
-        <xs:element minOccurs="0" name="property3" type="xs:string" />
         <xs:element name="fail" type="xs:boolean" />
       </xs:sequence>
     </xs:complexType>
