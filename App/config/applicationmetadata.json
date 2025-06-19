@@ -55,6 +55,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
+      "taskId": "Activity_1817osb",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": false,
