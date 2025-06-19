@@ -26,7 +26,7 @@ describe('AppConfigForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(getAlert()).toBeInTheDocument();
+    expect(getErrorHeader()).toBeInTheDocument();
     expect(
       getLink(errorMessageServiceNameNN('app_settings.about_tab_error_usage_string_service_name')),
     ).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe('AppConfigForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(queryAlert()).not.toBeInTheDocument();
+    expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 
   it('displays the "repo" input as readonly', () => {
@@ -150,7 +150,7 @@ describe('AppConfigForm', () => {
     await user.click(saveButton);
 
     expect(saveAppConfig).not.toHaveBeenCalled();
-    expect(getAlert()).toBeInTheDocument();
+    expect(getErrorHeader()).toBeInTheDocument();
   });
 
   it('calls saveAppConfig with correct data when fields are changed and there are no errors', async () => {
@@ -187,11 +187,11 @@ describe('AppConfigForm', () => {
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
-    expect(getAlert()).toBeInTheDocument();
+    expect(getErrorHeader()).toBeInTheDocument();
 
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
-    expect(queryAlert()).not.toBeInTheDocument();
+    expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 
   it('should not reset the form when the cancel button is clicked without confirmation', async () => {
@@ -249,7 +249,7 @@ describe('AppConfigForm', () => {
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(getAlert()).toBeInTheDocument();
+    expect(getErrorHeader()).toBeInTheDocument();
     expect(
       getLink(errorMessageServiceNameNN('app_settings.about_tab_error_usage_string_service_name')),
     ).toBeInTheDocument();
@@ -285,7 +285,7 @@ describe('AppConfigForm', () => {
       ),
     ).not.toBeInTheDocument();
 
-    expect(queryAlert()).not.toBeInTheDocument();
+    expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 });
 
@@ -328,12 +328,21 @@ const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox
 const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
 const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
-const getAlert = (): HTMLElement => screen.getByRole('alert');
-const queryAlert = (): HTMLElement | null => screen.queryByRole('alert');
+const getErrorHeader = (): HTMLHeadingElement =>
+  screen.getByRole('heading', {
+    name: textMock('app_settings.about_tab_error_summary_header'),
+    level: 2,
+  });
+const queryErrorHeader = (): HTMLHeadingElement | null =>
+  screen.queryByRole('heading', {
+    name: textMock('app_settings.about_tab_error_summary_header'),
+    level: 2,
+  });
 const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
+
 const errorMessageServiceNameMissingNNandEN = (usageString: string): string =>
   textMock('app_settings.about_tab_language_error_missing_2', {
     usageString,
