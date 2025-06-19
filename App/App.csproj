@@ -5,10 +5,8 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.3.7">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="8.3.7" />
+    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <ProjectReference Include="C:/dev/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
