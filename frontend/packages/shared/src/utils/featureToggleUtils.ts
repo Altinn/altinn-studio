@@ -10,7 +10,6 @@ export enum FeatureFlag {
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   ConsentResource = 'consentResource',
-  SettingsPage = 'settingsPage',
   AppMetadata = 'appMetadata',
 }
 
