@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
+import { XMarkOctagonFillIcon } from '@studio/icons';
 import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Initial value for languages with empty fields
@@ -71,6 +73,7 @@ export const ResourceLanguageTextField = ({
   useTextArea,
   required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
+  const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
@@ -115,14 +118,26 @@ export const ResourceLanguageTextField = ({
               onChange={setSelectedLanguage}
             >
               <StudioTabs.List>
-                <StudioTabs.Tab value='nb' aria-label={`Bokmål ${label}`}>
-                  Bokmål
+                <StudioTabs.Tab
+                  value='nb'
+                  aria-label={`${t('resourceadm.about_resource_translation_nb')} ${label}`}
+                >
+                  {errors.some((error) => error.index == 'nb') && <TranslationTabError />}
+                  {t('resourceadm.about_resource_translation_nb')}
                 </StudioTabs.Tab>
-                <StudioTabs.Tab value='nn' aria-label={`Nynorsk ${label}`}>
-                  Nynorsk
+                <StudioTabs.Tab
+                  value='nn'
+                  aria-label={`${t('resourceadm.about_resource_translation_nn')} ${label}`}
+                >
+                  {errors.some((error) => error.index == 'nn') && <TranslationTabError />}
+                  {t('resourceadm.about_resource_translation_nn')}
                 </StudioTabs.Tab>
-                <StudioTabs.Tab value='en' aria-label={`Engelsk ${label}`}>
-                  Engelsk
+                <StudioTabs.Tab
+                  value='en'
+                  aria-label={`${t('resourceadm.about_resource_translation_en')} ${label}`}
+                >
+                  {errors.some((error) => error.index == 'en') && <TranslationTabError />}
+                  {t('resourceadm.about_resource_translation_en')}
                 </StudioTabs.Tab>
               </StudioTabs.List>
             </StudioTabs>
@@ -140,3 +155,7 @@ export const ResourceLanguageTextField = ({
     </div>
   );
 };
+
+const TranslationTabError = () => (
+  <XMarkOctagonFillIcon className={classes.translationFieldTabError} />
+);
