@@ -13,6 +13,15 @@
       <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
     </bpmn:task>
+    <bpmn:task id="Task_2" name="Altinn data task">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+      <bpmn:outgoing>Flow_00nf1k5</bpmn:outgoing>
+    </bpmn:task>
     <bpmn:serviceTask id="Task_3" name="PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -36,40 +45,31 @@
       <bpmn:incoming>SequenceFlow_2asasd1</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Activity_1817osb" />
+    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Task_2" />
     <bpmn:sequenceFlow id="SequenceFlow_5assd2s" sourceRef="Task_3" targetRef="Task_4" />
     <bpmn:sequenceFlow id="SequenceFlow_2asasd1" sourceRef="Task_4" targetRef="EndEvent_1" />
-    <bpmn:task id="Activity_1817osb" name="Altinn data task">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>data</altinn:taskType>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
-      <bpmn:outgoing>Flow_00nf1k5</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_00nf1k5" sourceRef="Activity_1817osb" targetRef="Gateway_1j0oplt" />
+    <bpmn:sequenceFlow id="Flow_00nf1k5" sourceRef="Task_2" targetRef="Gateway_1j0oplt" />
     <bpmn:exclusiveGateway id="Gateway_1j0oplt">
       <bpmn:incoming>Flow_00nf1k5</bpmn:incoming>
       <bpmn:outgoing>Flow_1m9z2mm</bpmn:outgoing>
       <bpmn:outgoing>Flow_1x35hzx</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Activity_13i17aw" name="Fail">
+    <bpmn:serviceTask id="Task_5" name="Fail">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-          <altinn:taskType>pdf</altinn:taskType>
+          <altinn:taskType>fail</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1x35hzx</bpmn:incoming>
       <bpmn:outgoing>Flow_1t5o6za</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1m9z2mm" sourceRef="Gateway_1j0oplt" targetRef="Task_3">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["dataModel","fail"],false]</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["dataModel","fail", "Model2"],false]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1x35hzx" sourceRef="Gateway_1j0oplt" targetRef="Activity_13i17aw">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["dataModel","fail"],true]</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="Flow_1x35hzx" sourceRef="Gateway_1j0oplt" targetRef="Task_5">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["dataModel","fail", "Model2"],true]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1t5o6za" sourceRef="Activity_13i17aw" targetRef="Task_4" />
+    <bpmn:sequenceFlow id="Flow_1t5o6za" sourceRef="Task_5" targetRef="Task_4" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
@@ -94,7 +94,7 @@
       <bpmndi:BPMNShape id="Gateway_1j0oplt_di" bpmnElement="Gateway_1j0oplt" isMarkerVisible="true">
         <dc:Bounds x="655" y="75" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Activity_13i17aw">
+      <bpmndi:BPMNShape id="BPMNShape_0yyd3hy" bpmnElement="Task_5">
         <dc:Bounds x="810" y="220" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
