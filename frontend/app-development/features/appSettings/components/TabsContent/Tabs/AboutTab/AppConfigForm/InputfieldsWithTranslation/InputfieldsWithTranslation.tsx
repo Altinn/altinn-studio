@@ -1,13 +1,13 @@
 import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { TranslationDetails } from './TranslationDetails';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import { getErrorMessagesForLanguage, getTextfieldRows } from '../../utils/appConfigLanguageUtils';
+import { getErrorMessagesForLanguage } from '../../utils/appConfigLanguageUtils';
+import { LanguageInputField } from './LanguageInputField';
 
-export type LanguageTextfieldProps = {
+export type InputfieldsWithTranslationProps = {
   id: string;
   label: string;
   description?: string;
@@ -18,16 +18,16 @@ export type LanguageTextfieldProps = {
   errors?: AppConfigFormError[];
 };
 
-export function LanguageTextfield({
+export function InputfieldsWithTranslation({
   id,
   label,
-  description,
+  description = '',
   value = { nb: '', nn: '', en: '' },
   updateLanguage,
   isTextArea = false,
   required = false,
   errors = [],
-}: LanguageTextfieldProps): ReactElement {
+}: InputfieldsWithTranslationProps): ReactElement {
   const { t } = useTranslation();
 
   const tagText: string = required ? t('general.required') : t('general.optional');
@@ -44,16 +44,15 @@ export function LanguageTextfield({
 
   return (
     <div>
-      <StudioTextfield
+      <LanguageInputField
         id={`${id}-nb`}
         label={fieldLabel}
         description={description}
         value={value['nb']}
-        multiple={isTextArea}
+        isTextArea={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
         required={required}
         tagText={tagText}
-        rows={getTextfieldRows(isTextArea)}
         error={mainFieldError}
       />
       <TranslationDetails

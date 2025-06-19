@@ -6,7 +6,7 @@ import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
-import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
+import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
@@ -95,7 +95,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           defaultValue={updatedAppConfig.repositoryName}
           readOnly
         />
-        <LanguageTextfield
+        <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}
           id={AppResourceFormFieldIds.ServiceName}
@@ -112,13 +112,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        <LanguageTextfield
+        <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
           description={t('app_settings.about_tab_description_field_description')}
           id={AppResourceFormFieldIds.Description}
           value={updatedAppConfig.description}
           updateLanguage={onChangeDescription}
           required={false}
+          isTextArea
         />
       </div>
       <ActionButtons

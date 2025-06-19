@@ -2,8 +2,6 @@ import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import type { TranslationFunction } from 'app-development/features/appSettings/types/Translation';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 
-const NUMBER_OF_ROWS_IN_TEXTAREA: number = 5;
-
 export function mapLanguageKeyToLanguageText(
   val: ValidLanguage,
   translationFunction: TranslationFunction,
@@ -40,8 +38,4 @@ function mapErrorToString(errors: AppConfigFormError[]): string[] {
 
 function getErrorMessagesHasValue(errors: string[]): boolean {
   return errors.length > 0;
-}
-
-export function getTextfieldRows(isTextArea: boolean): number | undefined {
-  return isTextArea ? NUMBER_OF_ROWS_IN_TEXTAREA : undefined;
 }

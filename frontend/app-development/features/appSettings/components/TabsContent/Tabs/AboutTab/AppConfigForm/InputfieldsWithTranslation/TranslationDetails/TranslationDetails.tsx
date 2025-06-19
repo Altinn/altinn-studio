@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import {
-  StudioTextfield,
-  StudioDetails,
-  StudioCard,
-  StudioTag,
-  StudioValidationMessage,
-} from '@studio/components';
+import { StudioDetails, StudioCard, StudioTag, StudioValidationMessage } from '@studio/components';
 import classes from './TranslationDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -14,11 +8,11 @@ import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import {
   getErrorMessagesForLanguage,
-  getTextfieldRows,
   mapLanguageKeyToLanguageText,
 } from '../../../utils/appConfigLanguageUtils';
 import { getMissingInputLanguageString } from '../../../utils/appConfigValidationUtils';
 import cn from 'classnames';
+import { LanguageInputField } from '../LanguageInputField';
 
 type SharedFieldProps = {
   lang: ValidLanguage;
@@ -28,14 +22,14 @@ type SharedFieldProps = {
 };
 
 export type TranslationDetailsProps = {
+  id: string;
   label: string;
-  isTextArea?: boolean;
   value: SupportedLanguage;
   onChange: (value: SupportedLanguage) => void;
+  isTextArea?: boolean;
   required?: boolean;
   tagText?: string;
   errors: AppConfigFormError[];
-  id: string;
 };
 
 export function TranslationDetails({
@@ -105,17 +99,16 @@ export function TranslationDetails({
           </StudioDetails.Summary>
           <StudioDetails.Content className={classes.content}>
             {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
-              <StudioTextfield
+              <LanguageInputField
                 key={lang}
                 label={fieldLabel}
                 value={fieldValue}
-                multiple={isTextArea}
+                isTextArea={isTextArea}
                 onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                   handleChange(lang, e.target.value)
                 }
                 required={required}
                 tagText={tagText}
-                rows={getTextfieldRows(isTextArea)}
                 error={error}
                 id={`${id}-${lang}`}
               />
