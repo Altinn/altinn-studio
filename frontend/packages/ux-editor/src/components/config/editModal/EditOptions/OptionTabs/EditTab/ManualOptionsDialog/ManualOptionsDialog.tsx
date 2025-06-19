@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback } from 'react';
-import classes from './CodeListDialog.module.css';
+import classes from './ManualOptionsDialog.module.css';
 import {
   handleOptionsChange,
   resetComponentOptions,
