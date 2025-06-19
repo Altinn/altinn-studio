@@ -16,33 +16,6 @@
           "title": "Side1.Input-cCz5h3.title"
         },
         "required": true
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "property2",
-            "dataType": "model"
-          }
-        },
-        "id": "Input-fXTmSF",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Side1.Input-fXTmSF.title"
-        },
-        "required": true
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": {
-            "field": "property3",
-            "dataType": "model"
-          }
-        },
-        "id": "Input-RYcotn",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Side1.Input-RYcotn.title"
-        }
       }
     ]
   }

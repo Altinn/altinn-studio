@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Input-jIfPYc.title",
+      "value": "En tekst i Task_2"
+    },
+    {
       "id": "Side1.Input-RYcotn.title",
       "value": "Tekst 3"
     },
@@ -11,7 +15,7 @@
     },
     {
       "id": "Side1.Input-cCz5h3.title",
-      "value": "Tekst 1"
+      "value": "En tekst i Task_1"
     },
     {
       "id": "appName",
