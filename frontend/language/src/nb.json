@@ -108,7 +108,7 @@
   "app_deployment.pipeline_deployment.build_result.failed": "Noe gikk galt under publisering. Se feil i <grafana>Grafana</grafana>",
   "app_deployment.pipeline_deployment.build_result.none": "Publiseringen er i gang...",
   "app_deployment.pipeline_deployment.build_result.partiallySucceeded": "Versjonen er publisert i miljøet, men har noen feil eller mangler.",
-  "app_deployment.pipeline_deployment.build_result.succeeded": "Versjonen er publisert i miljøet.",
+  "app_deployment.pipeline_deployment.build_result.succeeded": "Versjonen er publisert i miljøet. Se i <grafana>Grafana</grafana>",
   "app_deployment.pipeline_undeploy.build_result.failed": "Kunne ikke avpublisere appen. Prøv på nytt nå, eller vent litt og prøv igjen.",
   "app_deployment.pipeline_undeploy.build_result.none": "Avpubliserer …",
   "app_deployment.pipeline_undeploy.build_result.succeeded": "Appen er tatt bort fra miljøet",
