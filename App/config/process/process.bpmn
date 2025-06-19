@@ -13,7 +13,7 @@
       <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:task id="Task_2" name="Altinn data task">
+    <bpmn:task id="Task_2" name="Utfylling 2">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
