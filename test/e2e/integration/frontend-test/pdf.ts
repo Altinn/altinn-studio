@@ -13,6 +13,7 @@ const likertPage = new Likert();
 describe('PDF', () => {
   it('should generate PDF for message step', () => {
     cy.goto('message');
+    cy.get('#finishedLoading').should('exist');
 
     cy.testPdf({
       snapshotName: 'message',
@@ -33,6 +34,7 @@ describe('PDF', () => {
     const cookieOptions: Partial<Cypress.SetCookieOptions> = { domain, sameSite: 'lax' };
 
     cy.goto('message');
+    cy.get('#finishedLoading').should('exist');
 
     cy.testPdf({
       beforeReload: () => {

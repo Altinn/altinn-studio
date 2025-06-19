@@ -635,20 +635,6 @@ Cypress.Commands.add(
     cy.waitUntilSaved();
     cy.waitForNetworkIdle('*', '*', 500);
 
-    // Build PDF url and visit
-    cy.location('href', { log: false }).then((href) => {
-      const regex = getInstanceIdRegExp();
-      const instanceId = regex.exec(href)?.[1];
-      const before = href.split(regex)[0];
-      const visitUrl = `${before}${instanceId}?pdf=1`;
-
-      // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
-      // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
-      // won't know about the task and page, and will load this URL and assume the app will figure out how to display
-      // the current task as a PDF.
-      cy.visit(visitUrl, { log: false });
-    });
-
     beforeReload?.();
 
     // Disable caching, the real PDF generator does not have anything cached as it always runs in a fresh browser context
@@ -656,7 +642,24 @@ Cypress.Commands.add(
     cy.enableResponseFuzzing({ enabled: enableResponseFuzzing }).as('responseFuzzing');
 
     cy.log('Testing PDF');
-    cy.reload({ log: false });
+
+    // Build PDF url and visit
+    cy.window({ log: false }).then((win) => {
+      const href = win.location.href;
+      const regex = getInstanceIdRegExp();
+      const instanceId = regex.exec(href)?.[1];
+      const before = href.split(regex)[0];
+      const visitUrl = `${before}${instanceId}?pdf=1`;
+
+      // Visit this first so that we don't just re-route in the active react app
+      win.location.href = 'about:blank';
+
+      // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+      // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+      // won't know about the task and page, and will load this URL and assume the app will figure out how to display
+      // the current task as a PDF.
+      cy.visit(visitUrl);
+    });
 
     // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
     cy.get('#readyForPrint')
