@@ -3,11 +3,7 @@ import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
 import { XMarkOctagonFillIcon } from '@studio/icons';
-import type {
-  ResourceFormError,
-  SupportedLanguage,
-  ValidLanguage,
-} from 'app-shared/types/ResourceAdm';
+import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import { useTranslation } from 'react-i18next';
 
@@ -78,7 +74,7 @@ export const ResourceLanguageTextField = ({
   required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   const getTrimmedTranslations = (): SupportedLanguage => {
@@ -102,10 +98,6 @@ export const ResourceLanguageTextField = ({
     });
   };
 
-  const onChangeSelectedLanguage = (newValue: string) => {
-    setSelectedLanguage(newValue as ValidLanguage);
-  };
-
   const mainFieldError = errors.map((error, index) => (
     <span key={index} className={classes.translationFieldError}>
       {error.error}
@@ -126,7 +118,7 @@ export const ResourceLanguageTextField = ({
               defaultValue='nb'
               size='sm'
               value={selectedLanguage}
-              onChange={onChangeSelectedLanguage}
+              onChange={setSelectedLanguage}
             >
               <StudioTabs.List>
                 <StudioTabs.Tab
