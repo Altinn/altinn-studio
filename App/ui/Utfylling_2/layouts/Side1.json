@@ -50,7 +50,8 @@
         ],
         "textResourceBindings": {
           "title": "Side1.RadioButtons-aoZwvK.title"
-        }
+        },
+        "preselectedOptionIndex": 1
       },
       {
         "id": "Button-wCUmrv",
