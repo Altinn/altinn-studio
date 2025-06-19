@@ -11,7 +11,7 @@ export type LanguageTextfieldProps = {
   id: string;
   label: string;
   description?: string;
-  value: SupportedLanguage;
+  value?: SupportedLanguage;
   updateLanguage: (value: SupportedLanguage) => void;
   isTextArea?: boolean;
   required?: boolean;
@@ -22,7 +22,7 @@ export function LanguageTextfield({
   id,
   label,
   description,
-  value,
+  value = { nb: '', nn: '', en: '' },
   updateLanguage,
   isTextArea = false,
   required = false,
@@ -48,7 +48,7 @@ export function LanguageTextfield({
         id={`${id}-nb`}
         label={fieldLabel}
         description={description}
-        value={value?.['nb'] ?? ''}
+        value={value['nb']}
         multiple={isTextArea}
         onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e, 'nb')}
         required={required}

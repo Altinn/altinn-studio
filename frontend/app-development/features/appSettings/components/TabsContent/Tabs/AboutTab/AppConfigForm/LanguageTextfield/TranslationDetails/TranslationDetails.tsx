@@ -50,14 +50,8 @@ export function TranslationDetails({
 }: TranslationDetailsProps): ReactElement {
   const { t } = useTranslation();
 
-  const translationValues: SupportedLanguage = {
-    nb: value?.nb ?? '',
-    nn: value?.nn ?? '',
-    en: value?.en ?? '',
-  };
-
   const errorMessage: string = getMissingInputLanguageString(
-    { nb: translationValues.nb, nn: translationValues.nn, en: translationValues.en },
+    { nb: value.nb, nn: value.nn, en: value.en },
     id,
     t,
   );
@@ -82,19 +76,19 @@ export function TranslationDetails({
     {
       lang: 'nn',
       label: fieldLabelNN,
-      value: translationValues['nn'],
+      value: value['nn'],
       error: errorMessageNN,
     },
     {
       lang: 'en',
       label: fieldLabelEN,
-      value: translationValues['en'],
+      value: value['en'],
       error: errorMessageEN,
     },
   ];
 
   const handleChange = (lang: ValidLanguage, newValue: string): void => {
-    onChange({ ...translationValues, [lang]: newValue });
+    onChange({ ...value, [lang]: newValue });
   };
 
   const handleToggle = (): void => {
