@@ -26,7 +26,6 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { ManualOptionsDialog } from './ManualOptionsDialog';
-import type { OptionListEditorProps } from './OptionListEditor/OptionListEditor';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
