@@ -1,1 +1,0 @@
-export { createNavigationTab } from './settingsModalUtils';

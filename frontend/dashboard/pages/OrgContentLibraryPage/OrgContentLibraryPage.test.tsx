@@ -33,6 +33,10 @@ const orgPath = '/' + orgName;
 const defaultProviderData: ProviderData = {
   initialEntries: [orgPath],
 };
+const repositoryName = `${orgName}-content`;
+const repoStatusQueryKey: string[] = [QueryKey.RepoStatus, orgName, repositoryName];
+const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
+const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
@@ -58,13 +62,18 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 describe('OrgContentLibraryPage', () => {
   beforeEach(mockConstructor.mockClear);
 
-  it('Renders the content library', async () => {
+  it('Renders the content library', () => {
     renderOrgContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();
   });
 
-  it('renders a spinner while waiting for code lists', () => {
+  it('renders a spinner while waiting for repo status', () => {
     renderOrgContentLibrary();
+    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+  });
+
+  it('renders a spinner while waiting for code lists', () => {
+    renderOrgContentLibraryWithRepoStatus();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -90,7 +99,7 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrieveConfig().codeList.props.codeListsData;
+    const renderedList = retrieveConfig().codeList.props.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
@@ -119,6 +128,19 @@ describe('OrgContentLibraryPage', () => {
 
     expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
+  });
+
+  it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
+    const updateOrgCodeListId = jest.fn();
+    renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
+    const codeListId: string = codeList1Data.title;
+    const newCodeListId: string = 'new-id';
+
+    retrieveConfig().codeList.props.onUpdateCodeListId(codeListId, newCodeListId);
+    await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
+
+    expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
+    expect(updateOrgCodeListId).toHaveBeenCalledWith(orgName, codeListId, newCodeListId);
   });
 
   it('calls createOrgCodeList with correct data when onCreateCodeList is triggered', async () => {
@@ -238,11 +260,9 @@ function renderOrgContentLibraryWithData(providerData: ProviderData = {}): void 
 
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData(
-    [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE],
-    textResourcesWithLanguage,
-  );
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, textResourcesWithLanguage);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 
@@ -253,8 +273,20 @@ function renderOrgContentLibraryWithMissingTextResources(): void {
 
 function createQueryClientWithMissingTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.OrgCodeLists, orgName], codeListDataList);
-  queryClient.setQueryData([QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE], null);
+  queryClient.setQueryData(orgCodeListsQueryKey, codeListDataList);
+  queryClient.setQueryData(orgTextResourcesQueryKey, null);
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
+  return queryClient;
+}
+
+function renderOrgContentLibraryWithRepoStatus(): void {
+  const queryClient = createQueryClientWithRepoStatus();
+  renderOrgContentLibrary({ queryClient });
+}
+
+function createQueryClientWithRepoStatus(): QueryClient {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(repoStatusQueryKey, repoStatus);
   return queryClient;
 }
 

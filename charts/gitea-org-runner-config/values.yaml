@@ -1,0 +1,5 @@
+chartVersion: ""
+releaseName: ""
+imageTag: ""
+registrationTokenSecretName: ""
+giteaInstanceUrl: "http://altinn-repositories:3000"

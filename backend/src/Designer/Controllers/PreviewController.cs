@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Controllers
     [AutoValidateAntiforgeryToken]
     // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
     // `designer/html/preview.html`, will match on Image-endpoint which is a fetch-all route
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+    [Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController(IHttpContextAccessor httpContextAccessor,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         ISchemaModelService schemaModelService,
@@ -674,6 +674,36 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult ValidationConfig(string org, string app, string modelname)
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// Action for mocking the GET method for organisation lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="organisationNumber">The organisation number to lookup</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("api/v1/lookup/organisation/{organisationNumber}")]
+        public IActionResult OrganisationLookup(string org, string app, string organisationNumber)
+        {
+            string lookupResponse = $"{{\"success\":true,\"organisationDetails\":{{\"orgNr\":\"{organisationNumber}\",\"name\":\"Test AS (preview)\"}}}}";
+            return Ok(lookupResponse);
+        }
+
+        /// <summary>
+        /// Action for mocking the POST method for person lookup for v4 apps
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("api/v1/lookup/person")]
+        public IActionResult PersonLookup(string org, string app)
+        {
+            string mockSsn = "12345678912";
+            string lookupResponse = $"{{\"success\":true,\"personDetails\":{{\"ssn\":\"{mockSsn}\",\"name\":\"Test T. Testesen (preview)\", \"lastName\":\"Testesen (preview)\"}}}}";
+            return Ok(lookupResponse);
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)

@@ -58,6 +58,7 @@ import {
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
+  orgCodeListUpdateIdPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -149,7 +150,7 @@ export const updateOptionListId = (org: string, app: string, optionsListId: stri
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
 export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string) => post<OptionList>(importCodeListFromOrgPath(org, app, codeListId));
 
-export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
+export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat): Promise<ITextResourcesWithLanguage> => put<ITextResourcesWithLanguage, ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
 export const modifyPage = (org: string, app: string, layoutSetName: string, pageName: string, payload: PageModel) => put(layoutPagesPath(org, app, layoutSetName, pageName), payload);
@@ -178,7 +179,8 @@ export const migrateDelegations = (org: string, env: string, payload: MigrateDel
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
 
 // ProcessEditor
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string) => post(processEditorDataTypePath(org, app, dataTypeId, taskId));
+
+export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributers?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributers);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
@@ -196,6 +198,7 @@ export const updateSelectedMaskinportenScopes = (org: string, app: string, appSc
 // Organisation library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 

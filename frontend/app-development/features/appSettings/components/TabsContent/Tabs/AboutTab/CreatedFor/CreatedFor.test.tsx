@@ -6,7 +6,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import {
   mockRepository1,
   mockRepository2,
-} from 'app-development/layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/repositoryMock';
+} from 'app-development/features/appSettings/mocks/repositoryMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
+using LibGit2Sharp;
 using SharedResources.Tests;
 using Xunit;
 
@@ -206,6 +207,58 @@ public class AltinnOrgGitRepositoryTests : IDisposable
     }
 
     [Theory]
+    [InlineData("org-content", "codeListString", "new-id")]
+    public async Task UpdateCodeListId_WithExistingCodeList_ShouldUpdateCodeListId(string repository, string codeListId, string newCodeListId)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act
+        altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId);
+
+        // Assert
+        string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
+        string oldCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
+        string newCodeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(newCodeListId));
+        Assert.False(File.Exists(oldCodeListFilePath));
+        Assert.True(File.Exists(newCodeListFilePath));
+    }
+
+    [Theory]
+    [InlineData("org-content", "codeListString", "codeListNumber")]
+    public async Task UpdateCodeListId_WithExistingCodeList_ShouldThrowInvalidOperationException_WhenTargetCodeListAlreadyExists(
+        string repository,
+        string codeListId,
+        string newCodeListId
+    )
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act and assert
+        Assert.Throws<InvalidOperationException>(() => altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId));
+    }
+
+    [Theory]
+    [InlineData("org-content", "non-existing-code-list-id", "new-id")]
+    public async Task UpdateCodeListId_WithNonExistingCodeList_ShouldThrowNotfoundException(
+        string repository,
+        string codeListId,
+        string newCodeListId
+    )
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act and assert
+        Assert.Throws<NotFoundException>(() => altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId));
+    }
+
+    [Theory]
     [InlineData("org-content", "codeListTrailingComma")]
     public async Task DeleteCodeList_WithExistingCodeList_ShouldDeleteCodeList(string repository, string codeListId)
     {
@@ -219,11 +272,11 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string codeListFilePath = Path.Combine(repositoryDir, RelativePathCodeList(codeListId));
+        string codeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
         Assert.False(File.Exists(codeListFilePath));
     }
 
-    private static string RelativePathCodeList(string codeListId) => $"Codelists/{codeListId}.json";
+    private static string RelativePathCodeList(string codeListId) => $"CodeLists/{codeListId}.json";
 
     private static string RelativePathText(string lang) => $"Texts/resource.{lang}.json";
 

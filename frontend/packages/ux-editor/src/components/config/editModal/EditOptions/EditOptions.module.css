@@ -1,11 +1,10 @@
 .root {
-  margin-top: var(--fds-spacing-5);
-  border-top: 1px solid var(--fds-semantic-border-divider-default);
-  padding: var(--fds-spacing-5) 0 0;
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  gap: var(--fds-spacing-3);
 }
 
 .optionsHeading {
-  padding-left: var(--fds-spacing-5);
+  font-size: medium;
 }
 
 .errorMessage {

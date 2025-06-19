@@ -33,8 +33,7 @@ public class GetTaskNavigationTests(WebApplicationFactory<Program> factory) : De
             {
                 TaskId = "Task_1",
                 TaskType = "data",
-                Name = "tasks.form",
-                PageCount = 12
+                Name = "tasks.form"
             },
             new ()
             {

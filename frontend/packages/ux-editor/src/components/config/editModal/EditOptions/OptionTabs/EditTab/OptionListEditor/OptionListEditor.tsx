@@ -9,15 +9,19 @@ import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
->;
+> & { textResources: ITextResources };
 
 export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
-  ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
-    const handleDelete = () => {
+  (
+    { component, handleComponentChange, textResources }: OptionListEditorProps,
+    dialogRef,
+  ): React.ReactNode => {
+    const handleDeleteButtonClick = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -28,23 +32,32 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
-          handleDelete={handleDelete}
+          onDeleteButtonClick={handleDeleteButtonClick}
+          textResources={textResources}
         />
       );
     }
 
-    return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
+    return (
+      <OptionListResolver
+        optionsId={component.optionsId}
+        onDeleteButtonClick={handleDeleteButtonClick}
+        textResources={textResources}
+      />
+    );
   },
 );
 
 type OptionsListResolverProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
   optionsId: string;
+  textResources: ITextResources;
 };
 
 function OptionListResolver({
-  handleDelete,
+  onDeleteButtonClick,
   optionsId,
+  textResources,
 }: OptionsListResolverProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -63,7 +76,7 @@ function OptionListResolver({
           </StudioErrorMessage>
           <StudioDeleteButton
             className={classes.deleteButton}
-            onDelete={handleDelete}
+            onDelete={onDeleteButtonClick}
             title={t('ux_editor.options.option_remove_text')}
           >
             {t('general.delete')}
@@ -71,7 +84,13 @@ function OptionListResolver({
         </>
       );
     case 'success': {
-      return <LibraryOptionsEditor handleDelete={handleDelete} optionListId={optionsId} />;
+      return (
+        <LibraryOptionsEditor
+          onDeleteButtonClick={onDeleteButtonClick}
+          optionListId={optionsId}
+          textResources={textResources}
+        />
+      );
     }
   }
 }

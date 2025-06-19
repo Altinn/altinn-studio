@@ -126,6 +126,7 @@ function getDeleteButton() {
 const defaultProps: OptionListEditorProps = {
   component: mockComponent,
   handleComponentChange,
+  textResources,
 };
 
 function renderOptionListEditorWithData({
@@ -137,14 +138,8 @@ function renderOptionListEditorWithData({
 }
 
 function createQueryClientWithData(): QueryClient {
-  const queryClient = createQueryClientWithTextResources();
-  queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
-  return queryClient;
-}
-
-function createQueryClientWithTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
   return queryClient;
 }
 
@@ -157,7 +152,7 @@ type RenderOptionListEditorArgs = {
 function renderOptionListEditor({
   queries = {},
   props = {},
-  queryClient = createQueryClientWithTextResources(),
+  queryClient = createQueryClientMock(),
 }: RenderOptionListEditorArgs = {}): void {
   renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries,

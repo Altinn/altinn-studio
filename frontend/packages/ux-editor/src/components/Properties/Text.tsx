@@ -5,12 +5,9 @@ import { Alert, Heading } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components-legacy';
-import { EditOptions } from '../config/editModal/EditOptions';
-import type { FormComponent, FormComponentBase } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../hooks';
-import { EditImage } from '../config/editModal/EditImage';
 import classes from './Text.module.css';
 import { EditSubformTableColumns } from './EditSubformTableColumns';
 import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
@@ -52,27 +49,6 @@ export const Text = () => {
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
           layoutName={selectedFormLayoutName}
         />
-      )}
-      {(schema.properties.options || schema.properties.optionsId) && (
-        <EditOptions
-          component={
-            form as
-              | (FormComponentBase<ComponentType.Checkboxes> &
-                  ComponentSpecificConfig<ComponentType.Checkboxes>)
-              | (FormComponentBase<ComponentType.RadioButtons> &
-                  ComponentSpecificConfig<ComponentType.RadioButtons>)
-          }
-          handleComponentChange={handleComponentChange}
-          layoutName={selectedFormLayoutName}
-        />
-      )}
-      {form.type === ComponentType.Image && (
-        <>
-          <Heading level={2} size='2xs' className={classes.heading}>
-            {t('ux_editor.properties_panel.texts.sub_title_images')}
-          </Heading>
-          <EditImage component={form} handleComponentChange={handleComponentChange} />
-        </>
       )}
       {form.type === ComponentType.Subform && (
         <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />

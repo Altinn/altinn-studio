@@ -1,0 +1,25 @@
+.openDialogButton {
+  color: var(--ds-color-text-subtle);
+  font-weight: var(--ds-font-weight-medium);
+  padding: var(--ds-size-3) var(--ds-size-4);
+  min-height: var(--fds-sizing-11);
+}
+
+.openDialogButton svg {
+  font-size: 1.25em;
+}
+
+.openDialogButton span {
+  gap: var(--ds-size-2);
+}
+
+.openDialogButton:hover {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-default);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--ds-size-3);
+  padding-left: var(--ds-size-3);
+}

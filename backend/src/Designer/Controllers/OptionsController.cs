@@ -26,16 +26,19 @@ namespace Altinn.Studio.Designer.Controllers;
 public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;
+    private readonly IOptionListReferenceService _optionListReferenceService;
     private readonly IOrgCodeListService _orgCodeListService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
+    /// <param name="optionListReferenceService">The option list reference service.</param>
     /// <param name="orgCodeListService">The code list service for organisation level.</param>
-    public OptionsController(IOptionsService optionsService, IOrgCodeListService orgCodeListService)
+    public OptionsController(IOptionsService optionsService, IOptionListReferenceService optionListReferenceService, IOrgCodeListService orgCodeListService)
     {
         _optionsService = optionsService;
+        _optionListReferenceService = optionListReferenceService;
         _orgCodeListService = orgCodeListService;
     }
 
@@ -148,7 +151,7 @@ public class OptionsController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<RefToOptionListSpecifier> optionListReferences = await _optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+        List<RefToOptionListSpecifier> optionListReferences = await _optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
         return Ok(optionListReferences);
     }
 

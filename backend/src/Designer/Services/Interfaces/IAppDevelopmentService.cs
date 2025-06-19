@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces

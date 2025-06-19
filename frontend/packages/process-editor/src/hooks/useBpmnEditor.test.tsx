@@ -50,7 +50,6 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
   mutateLayoutSetId: jest.fn(),
   mutateDataTypes: jest.fn(),
   saveBpmn: jest.fn(),
-  openPolicyEditor: jest.fn(),
   onProcessTaskAdd: jest.fn(),
   onProcessTaskRemove: jest.fn(),
 };

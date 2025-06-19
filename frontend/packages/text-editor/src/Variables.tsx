@@ -1,6 +1,5 @@
 import classes from './Variables.module.css';
-import { HelpText } from '@digdir/designsystemet-react';
-import { StudioParagraph } from '@studio/components';
+import { StudioHelpText } from '@studio/components';
 import React from 'react';
 import type { TextResourceVariable } from './types';
 import { useTranslation, Trans } from 'react-i18next';
@@ -32,13 +31,12 @@ export const Variables = ({ variables }: VariablesProps) => {
           className={classes.infoButton}
           title={t('text_editor.variables_editing_not_supported')}
         >
-          <HelpText
-            size='sm'
+          <StudioHelpText
+            aria-label={t('text_editor.variables_editing_not_supported_title')}
             placement='top'
-            title={t('text_editor.variables_editing_not_supported_title')}
           >
-            <StudioParagraph>{t('text_editor.variables_editing_not_supported')}</StudioParagraph>
-          </HelpText>
+            {t('text_editor.variables_editing_not_supported')}
+          </StudioHelpText>
         </span>
       )}
     </div>

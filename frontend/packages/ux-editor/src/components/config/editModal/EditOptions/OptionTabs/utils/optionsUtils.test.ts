@@ -142,28 +142,32 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
       const options: OptionList = [{ value: 'value', label: 'label' }];
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
     it('should return true if options is set on the component', () => {
       const optionListIds: string[] = [];
       const optionsId = '';
       const options: OptionList = [];
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionList = undefined;
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
 
     it('should return false if options ID is not from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionList = undefined;
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
   });
 

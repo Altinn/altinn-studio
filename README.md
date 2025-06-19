@@ -127,7 +127,7 @@ wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/lates
 
 ## Developing Frontend
 
-Start the webpack dev server for the respective app you want to develop:
+Start the vite dev server for the respective app you want to develop:
 
 ```bash
 yarn run start-app-development

@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   handleOptionsChange,
   resetComponentOptions,
@@ -15,18 +13,22 @@ import {
 } from '../../../utils/optionsUtils';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
-import { useHandleUpdateTextResource, useTextResourcesForLanguage } from '../hooks';
+import { useHandleUpdateTextResource } from '../../hooks/useHandleUpdateTextResource';
+import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import classes from './ManualOptionsEditor.module.css';
+import type { ITextResources } from 'app-shared/types/global';
 
 export type ManualOptionsEditorProps = {
-  handleDelete: () => void;
+  onDeleteButtonClick: () => void;
+  textResources: ITextResources;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
-  ({ component, handleComponentChange, handleDelete }, ref): React.ReactNode => {
+  (
+    { component, handleComponentChange, onDeleteButtonClick, textResources },
+    ref,
+  ): React.ReactNode => {
     const { t } = useTranslation();
-    const { org, app } = useStudioEnvironmentParams();
-    const { data: textResources } = useTextResourcesQuery(org, app);
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
@@ -38,7 +40,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
 
-    const handleClick = () => {
+    const handleEditButtonClick = () => {
       modalRef.current?.showModal();
     };
 
@@ -56,7 +58,10 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
           optionList={component.options}
           textResources={textResourcesForLanguage}
         />
-        <OptionListButtons handleDelete={handleDelete} handleClick={handleClick} />
+        <OptionListButtons
+          onDeleteButtonClick={onDeleteButtonClick}
+          onEditButtonClick={handleEditButtonClick}
+        />
         <StudioModal.Dialog
           ref={modalRef}
           className={classes.editOptionTabModal}

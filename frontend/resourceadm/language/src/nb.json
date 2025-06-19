@@ -22,6 +22,8 @@
   "resourceadm.about_resource_contact_remove_button": "Slett kontakt",
   "resourceadm.about_resource_delegable_label": "Delegerbar ressurs",
   "resourceadm.about_resource_delegable_show_text": "Ressursen er {{shouldText}} delegerbar.",
+  "resourceadm.about_resource_one_time_consent_label": "Engangssamtykke",
+  "resourceadm.about_resource_one_time_consent_show_text": "Samtykket gjelder kun én gang.",
   "resourceadm.about_resource_edit_rrr": "Administrer tilgangslister i {{env}}",
   "resourceadm.about_resource_enterprise_label": "Virksomhetsbruker",
   "resourceadm.about_resource_enterprise_show_text": "Ressursen har {{shouldText}} virksomhetsbruker aktivert.",

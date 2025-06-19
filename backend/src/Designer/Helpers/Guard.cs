@@ -132,6 +132,15 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
+
+        public static void AssertValidRepoBranchName(string branchName)
+        {
+            if (string.IsNullOrEmpty(branchName) || !AltinnRegexes.AltinnBranchNameRegex().IsMatch(branchName))
+            {
+                throw new ArgumentException($"The branch name {branchName} is invalid.");
+            }
+        }
+
         public static async Task AssertValidXmlStreamAndRewindAsync(Stream xmlStream)
         {
             XmlReaderSettings settings = new XmlReaderSettings

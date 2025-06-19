@@ -10,4 +10,4 @@ export const queryClientConfigMock: QueryClientConfig = {
 
 export const createQueryClientMock = () => new QueryClient(queryClientConfigMock);
 
-export const queryClientMock = createQueryClientMock();
+export const queryClientMock = createQueryClientMock(); // Todo: Remove this when all usages are replaced with createQueryClientMock: https://github.com/Altinn/altinn-studio/issues/15513

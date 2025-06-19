@@ -27,16 +27,6 @@ describe('featureToggle localStorage', () => {
   it('should return false if feature is not enabled in the localStorage', () => {
     expect(shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck)).toBeFalsy();
   });
-
-  it('should return true if taskNavigationPageGroups is enabled in the localStorage', () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['taskNavigationPageGroups']);
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeTruthy();
-  });
-
-  it('should return false if taskNavigationPageGroups is not enabled in the localStorage', () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['demo']);
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeFalsy();
-  });
 });
 
 describe('featureToggle url', () => {
@@ -78,16 +68,6 @@ describe('featureToggle url', () => {
       'addComponentModal',
     ]);
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeNull();
-  });
-
-  it('should return true if taskNavigationPageGroups is enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=taskNavigationPageGroups');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeTruthy();
-  });
-
-  it('should return false if taskNavigationPageGroups is not enabled in the url', () => {
-    window.history.pushState({}, 'PageUrl', '/?featureFlags=demo');
-    expect(shouldDisplayFeature(FeatureFlag.TaskNavigationPageGroups)).toBeFalsy();
   });
 });
 

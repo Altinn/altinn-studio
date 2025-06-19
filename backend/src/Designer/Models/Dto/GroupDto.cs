@@ -12,4 +12,12 @@ public class GroupDto
 
     [JsonPropertyName("order")]
     public required List<PageDto> Pages { get; set; }
+
+    [JsonPropertyName("markWhenCompleted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool? MarkWhenCompleted { get; set; }
+
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public GroupType? Type { get; set; }
 }

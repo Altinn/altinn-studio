@@ -56,12 +56,13 @@ const mockResource2: Resource = {
 };
 const mockConsentResource: Resource = {
   ...mockResource1,
-  resourceType: 'ConsentResource',
+  resourceType: 'Consent',
   consentText: {
     nb: 'Du samtykker til å dele dine data med {org}',
     nn: 'consentNn',
     en: 'consentEn',
   },
+  isOneTimeConsent: true,
 };
 
 const mockResourceType: ResourceTypeOption = textMock(
@@ -404,6 +405,23 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles isOneTimeConsent switch changes', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const isOneTimeConsentInput = screen.getByLabelText(
+      textMock('resourceadm.about_resource_one_time_consent_label'),
+    );
+    expect(isOneTimeConsentInput).toBeChecked();
+
+    await user.click(isOneTimeConsentInput);
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      isOneTimeConsent: false,
+    });
+  });
+
   it('displays field errors for consent fields', () => {
     const consentTemplateError = 'CONSENT_TEMPLATE_ERROR';
     const consentTextError = 'CONSENT_TEXT_ERROR';
@@ -560,13 +578,13 @@ describe('AboutResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display correct fields for resourceType ConsentResource', () => {
+  it('should display correct fields for resourceType consent resource', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
         validationErrors={[]}
         consentTemplates={[]}
-        resourceData={{ ...mockResource1, resourceType: 'ConsentResource' }}
+        resourceData={{ ...mockResource1, resourceType: 'Consent' }}
       />,
     );
 
@@ -576,6 +594,10 @@ describe('AboutResourcePage', () => {
 
     expect(
       screen.getByText(textMock('resourceadm.about_resource_consent_template_label')),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_one_time_consent_label')),
     ).toBeInTheDocument();
 
     expect(

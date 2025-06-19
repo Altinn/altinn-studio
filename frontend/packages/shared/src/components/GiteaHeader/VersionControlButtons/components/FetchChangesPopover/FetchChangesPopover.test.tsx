@@ -4,7 +4,6 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
@@ -12,6 +11,8 @@ import {
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
+import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -19,6 +20,28 @@ const mockGetRepoPull = jest.fn();
 
 describe('fetchChanges', () => {
   afterEach(jest.clearAllMocks);
+
+  it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
+    const user = userEvent.setup();
+    const mockInvalidateQueries = jest.fn();
+    mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
+    );
+    renderFetchChangesPopover({
+      queries: { getRepoPull: mockGetRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+      },
+      invalidateQueries: mockInvalidateQueries,
+    });
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+    const predicate = mockInvalidateQueries.mock.calls[0][0].predicate;
+    expect(predicate({ queryKey: [org, app, 'RepoStatus'] })).toBe(true);
+  });
 
   it('should call "getPullRepo"" when clicking sync button', async () => {
     const user = userEvent.setup();
@@ -87,11 +110,14 @@ describe('fetchChanges', () => {
 
   it('should call onPullSuccess when fetching changes', async () => {
     const user = userEvent.setup();
-
+    const mockInvalidateQueries = jest.fn();
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok' }),
     );
-    renderFetchChangesPopover({ queries: { getRepoPull } });
+    renderFetchChangesPopover({
+      queries: { getRepoPull },
+      invalidateQueries: mockInvalidateQueries,
+    });
 
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await user.click(fetchButton);
@@ -143,14 +169,20 @@ describe('fetchChanges', () => {
 });
 
 type Props = {
-  queries: Partial<ServicesContextProps>;
-  versionControlButtonsContextProps: Partial<VersionControlButtonsContextProps>;
+  queries?: Partial<ServicesContextProps>;
+  versionControlButtonsContextProps?: Partial<VersionControlButtonsContextProps>;
+  invalidateQueries?: jest.Mock;
 };
 
 const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
-  const { queries, versionControlButtonsContextProps } = props;
+  const { queries, versionControlButtonsContextProps, invalidateQueries } = props;
+  const queryClient = createQueryClientMock();
+  queryClient.invalidateQueries = invalidateQueries;
 
-  return renderWithProviders({ ...queriesMock, ...queries })(
+  return renderWithProviders(
+    { ...queries },
+    queryClient,
+  )(
     <VersionControlButtonsContext.Provider
       value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
     >

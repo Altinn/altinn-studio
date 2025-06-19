@@ -34,45 +34,50 @@ namespace Designer.Tests.Controllers.TextController
         [MemberData(nameof(Data))]
         public async Task UpdateTextsForKeys_WithValidInput_ReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            string targetRepository = await GenerateTestRepository(org, app, developer);
 
-            string file = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource expectedResource = JsonSerializer.Deserialize<TextResource>(file, s_jsonOptions);
-
+            TextResource expectedResource = GetTextResource(org, app, developer, lang);
             PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
-
-            using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
-
             // Act
-            using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
+            using HttpResponseMessage response = await RunPutRequest(org, targetRepository, lang, updateDictionary);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
+            string actualContent = GetTextResourceFileContent(org, targetRepository, developer, lang);
             Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), actualContent));
+        }
+
+        [Theory]
+        [MemberData(nameof(Data))]
+        public async Task UpdateTextsForKeys_WithValidInput_ReturnsUpdatedData(string orgName, string appName, string username, string language, Dictionary<string, string> updateDictionary)
+        {
+            string targetRepository = await GenerateTestRepository(orgName, appName, username);
+
+            TextResource expectedResource = GetTextResource(orgName, appName, username, language);
+            PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
+
+            // Act
+            using HttpResponseMessage response = await RunPutRequest(orgName, targetRepository, language, updateDictionary);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expectedResource, s_jsonOptions), responseContent));
         }
 
         [Theory]
         [MemberData(nameof(DataForTextWithVariables))]
         public async Task UpdateTextsForKeys_ForTextsThatHaveVariables_MaintainsVariablesAndReturnsOk(string org, string app, string developer, string lang, Dictionary<string, string> updateDictionary)
         {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-
-            string url = $"{VersionPrefix(org, targetRepository)}/language/{lang}";
-
-            using var httpContent = new StringContent(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
+            string targetRepository = await GenerateTestRepository(org, app, developer);
 
             // Act
-            using HttpResponseMessage response = await HttpClient.PutAsync(url, httpContent);
+            using HttpResponseMessage response = await RunPutRequest(org, targetRepository, lang, updateDictionary);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            string actualContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json");
-            TextResource actualResource = JsonSerializer.Deserialize<TextResource>(actualContent, s_jsonOptions);
+            TextResource actualResource = GetTextResource(org, targetRepository, developer, lang);
             Assert.NotNull(actualResource.Resources.Find(el => el.Id == "TextUsingVariables").Variables);
         }
 
@@ -83,8 +88,7 @@ namespace Designer.Tests.Controllers.TextController
                 var textResourceContainsKey = resource.Resources.Find(textResourceElement => textResourceElement.Id == key);
                 if (textResourceContainsKey is null)
                 {
-                    resource.Resources.Insert(0, new TextResourceElement
-                    { Id = key, Value = value });
+                    resource.Resources.Insert(0, new TextResourceElement { Id = key, Value = value });
                     continue;
                 }
 
@@ -111,5 +115,40 @@ namespace Designer.Tests.Controllers.TextController
                     {"TextUsingVariables", "Dette er den nye teksten og variablene {0} og {1} har ikke blitt borte eller endret"},
                 }}
             };
+
+        private async Task<string> GenerateTestRepository(string orgName, string appName, string username)
+        {
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(orgName, appName, username, repoName);
+            return repoName;
+        }
+
+        private static TextResource GetTextResource(string orgName, string appName, string username, string language)
+        {
+            string fileContent = GetTextResourceFileContent(orgName, appName, username, language);
+            return JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+        }
+
+        private static string GetTextResourceFileContent(string orgName, string repositoryName, string username, string language)
+        {
+            string path = GetTextResourceFilePath(language);
+            return TestDataHelper.GetFileFromRepo(orgName, repositoryName, username, path);
+        }
+
+        private static string GetTextResourceFilePath(string language) =>
+            $"App/config/texts/resource.{language}.json";
+
+        private async Task<HttpResponseMessage> RunPutRequest(string orgName, string repositoryName, string language, Dictionary<string, string> updateDictionary)
+        {
+            string url = CreateUrl(orgName, repositoryName, language);
+            using var httpContent = CreateStringContent(updateDictionary);
+            return await HttpClient.PutAsync(url, httpContent);
+        }
+
+        private static string CreateUrl(string orgName, string repositoryName, string language) =>
+            $"{VersionPrefix(orgName, repositoryName)}/language/{language}";
+
+        private static StringContent CreateStringContent(Dictionary<string, string> updateDictionary) =>
+            new(JsonSerializer.Serialize(updateDictionary), Encoding.UTF8, MediaTypeNames.Application.Json);
     }
 }

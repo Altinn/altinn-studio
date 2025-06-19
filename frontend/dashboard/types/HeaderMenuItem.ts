@@ -6,4 +6,5 @@ export type HeaderMenuItem = {
   link: string;
   name: string;
   group: HeaderMenuGroupKey;
+  isBeta?: boolean;
 };

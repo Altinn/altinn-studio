@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +11,6 @@ import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextMainConfig } from './TextMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
@@ -40,13 +38,9 @@ export const PropertiesHeader = ({
 
   const { dataModelBindings, textResourceBindings } = schema.properties;
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
-  const Icon = isUnknownInternalComponent
-    ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+  const Icon = formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
-  const isMainConfigFeatureEnabled = shouldDisplayFeature(FeatureFlag.MainConfig);
 
   return (
     <>
@@ -73,31 +67,27 @@ export const PropertiesHeader = ({
             handleComponentChange={handleComponentUpdate}
           />
         )}
-        {!hideMainConfig && isMainConfigFeatureEnabled && <HeaderMainConfig />}
+        {!hideMainConfig && <HeaderMainConfig />}
         {!hideMainConfig && (
           <>
             <EditComponentIdRow
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            {isMainConfigFeatureEnabled && (
-              <TextMainConfig
-                component={formItem}
-                handleComponentChange={handleComponentUpdate}
-                title={textResourceBindings?.properties?.title}
-              />
-            )}
+            <TextMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}
+            />
+            <DataModelMainConfig
+              component={formItem}
+              handleComponentChange={handleComponentUpdate}
+              requiredDataModelBindings={dataModelBindings?.required || []}
+            />
             <ComponentMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />
-            {isMainConfigFeatureEnabled && (
-              <DataModelMainConfig
-                component={formItem}
-                handleComponentChange={handleComponentUpdate}
-                requiredDataModelBindings={dataModelBindings?.required}
-              />
-            )}
           </>
         )}
       </div>

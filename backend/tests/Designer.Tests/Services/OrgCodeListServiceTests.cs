@@ -141,6 +141,28 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateCodeListId_ShouldRenameCodeListFile_WhenValidParameters()
+    {
+        // Arrange
+        const string CodeListId = "codeListString";
+        const string NewCodeListId = "new-id";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+        var service = GetOrgCodeListService();
+
+        // Act
+        service.UpdateCodeListId(TargetOrg, Developer, CodeListId, NewCodeListId);
+
+        // Assert
+        string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
+        string oldCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{CodeListId}.json");
+        string newCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{NewCodeListId}.json");
+        Assert.False(File.Exists(oldCodeListFilePath));
+        Assert.True(File.Exists(newCodeListFilePath));
+    }
+
+    [Fact]
     public async Task UploadCodeList_ShouldReturnAllCodeListsAfterUploading()
     {
         // Arrange

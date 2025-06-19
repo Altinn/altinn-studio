@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioBlobDownloader } from './StudioBlobDownloader';
 
 type Story = StoryFn<typeof StudioBlobDownloader>;

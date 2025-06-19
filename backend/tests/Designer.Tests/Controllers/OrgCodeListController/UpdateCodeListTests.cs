@@ -42,7 +42,7 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
             { ""label"": ""NumberValue"", ""value"": 1024 },
         ]";
         string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Combine(repoPath, "Codelists", $"{CodeListId}.json"), StringBoolNumbersCodeList);
+        await File.WriteAllTextAsync(Path.Join(repoPath, "CodeLists", $"{CodeListId}.json"), StringBoolNumbersCodeList);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);

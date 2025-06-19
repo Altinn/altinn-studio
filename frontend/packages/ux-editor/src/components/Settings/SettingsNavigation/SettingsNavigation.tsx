@@ -11,12 +11,8 @@ import { getHiddenTasks } from '../SettingsUtils';
 
 export const SettingsNavigation = (): ReactElement => {
   const { t } = useTranslation();
-
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSetsModel, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(
-    org,
-    app,
-  );
+  const { data: layoutSets, isPending: layoutSetsPending } = useLayoutSetsExtendedQuery(org, app);
   const { data: taskNavigationGroups, isPending: tasksIsPending } = useTaskNavigationGroupQuery(
     org,
     app,
@@ -25,7 +21,8 @@ export const SettingsNavigation = (): ReactElement => {
   if (tasksIsPending || layoutSetsPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.settings.navigation_tab_loading')} />;
 
-  const hiddenTasks = getHiddenTasks({ taskNavigationGroups, layoutSetsModel });
+  const hiddenTasks = getHiddenTasks({ taskNavigationGroups, layoutSets });
+  const allTasks = [...taskNavigationGroups, ...hiddenTasks];
 
   return (
     <div className={classes.navigationTabContent}>
@@ -37,14 +34,12 @@ export const SettingsNavigation = (): ReactElement => {
           {t('ux_editor.settings.navigation_tab_description')}
         </StudioParagraph>
       </div>
-      {/*TODO: OnSelectAllTasks - Hide tasks #15250 */}
-      <TasksTable onSelectAllTasks={() => {}} tasks={taskNavigationGroups} />
+      <TasksTable tasks={taskNavigationGroups} />
       <StudioDivider className={classes.divider} />
       <StudioHeading level={4} data-size='2xs'>
         {t('ux_editor.task_table_hidden_tasks')}
       </StudioHeading>
-      {/*TODO: OnSelectTask and OnSelectAllTasks - Display tasks #15252 */}
-      <TasksTable isNavigationMode={false} onSelectAllTasks={() => {}} tasks={hiddenTasks} />
+      <TasksTable isNavigationMode={false} tasks={hiddenTasks} allTasks={allTasks} />
     </div>
   );
 };

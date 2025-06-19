@@ -74,10 +74,6 @@ export class AppDevelopmentHeader extends BasePage {
       .click();
   }
 
-  public async clickOnOpenSettingsModalButton(): Promise<void> {
-    await this.page.getByRole('button', { name: this.textMock('sync_header.settings') }).click();
-  }
-
   public async waitForPushToGiteaSpinnerToDisappear(): Promise<void> {
     const spinner = this.page.getByTestId(DataTestId.PushToGiteaSpinner);
     await expect(spinner).toBeHidden({ timeout: TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH });

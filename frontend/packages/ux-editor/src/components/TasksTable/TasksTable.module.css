@@ -1,6 +1,7 @@
 .tasksTable {
   padding: var(--fds-spacing-2) 0;
   border: 1px solid var(--ds-color-neutral-border-subtle);
+  margin-bottom: var(--fds-spacing-5);
 }
 
 .tasksTable th {
@@ -14,4 +15,31 @@
 .taskFooterContent {
   text-align: end;
   border-top: 2px solid var(--ds-color-neutral-border-subtle);
+}
+
+.previewLink {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  padding: var(--ds-size-3) var(--ds-size-4);
+  color: var(--ds-color-base-contrast-default);
+  background: var(--ds-color-base-default);
+  border-radius: var(--ds-border-radius-default);
+  font-weight: var(--ds-font-weight-medium);
+  gap: var(--ds-size-1);
+}
+
+.previewLink:hover {
+  background: var(--ds-color-base-hover);
+}
+
+.previewLink svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.disabledPreviewLink {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
 }

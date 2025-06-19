@@ -83,9 +83,9 @@ export class ResourcePage extends ResourceEnvironment {
       name: textMock('resourceadm.about_resource_available_for_type_private'),
     });
     this.ruleHeader = this.page.getByLabel(textMock('policy_editor.rule'));
-    this.categoryTextField = this.page.getByLabel(
-      textMock('resourceadm.about_resource_contact_label_category'),
-    );
+    this.categoryTextField = this.page.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_contact_label_category'),
+    });
     this.policyTab = this.page.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });

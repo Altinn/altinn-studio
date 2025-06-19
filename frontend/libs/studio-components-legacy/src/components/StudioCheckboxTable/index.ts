@@ -13,6 +13,9 @@ type StudioCheckboxTableComponent = typeof StudioCheckboxTableParent & {
   Row: typeof StudioCheckboxTableRow;
 };
 
+/**
+ * @deprecated Use `StudioCheckboxTable` from `@studio/components` instead.
+ */
 const StudioCheckboxTable = StudioCheckboxTableParent as StudioCheckboxTableComponent;
 
 StudioCheckboxTable.Header = StudioCheckboxTableHeader;
