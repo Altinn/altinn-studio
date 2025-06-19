@@ -21,6 +21,13 @@
       "tasks": [
         "Task_3"
       ]
+    },
+    {
+      "id": "Fail",
+      "dataType": "model",
+      "tasks": [
+        "Task_5"
+      ]
     }
   ],
   "uiSettings": {}
