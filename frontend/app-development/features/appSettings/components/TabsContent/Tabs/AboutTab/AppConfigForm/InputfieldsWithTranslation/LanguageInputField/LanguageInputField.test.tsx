@@ -22,7 +22,7 @@ describe('LanguageInputField', () => {
     const textbox = getTextbox(`${label} ${tagTextRequired}`);
     expect(textbox).toBeInTheDocument();
     expect(textbox.tagName.toLowerCase()).toBe('textarea');
-    expect(textbox).toHaveAttribute('rows', '5');
+    expect(textbox).toHaveAttribute('rows', '3');
   });
 
   it('calls onChange when typing into the field', async () => {
@@ -31,9 +31,10 @@ describe('LanguageInputField', () => {
     renderLanguageInputField({ onChange, tagText: tagTextRequired });
 
     const input = getTextbox(`${label} ${tagTextRequired}`);
-    await user.type(input, 'abc');
+    const newValue: string = 'abc';
+    await user.type(input, newValue);
 
-    expect(onChange).toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
   });
 
   it('displays error messages if present', () => {
@@ -48,12 +49,13 @@ const label: string = textMock('my_label');
 const description: string = textMock('my_description');
 const tagTextRequired: string = textMock('general.required');
 const tagTextOptional: string = textMock('general.optional');
+const initialValue: string = 'Test value';
 
 const defaultProps = {
   id: 'some-id',
   label,
   description,
-  value: 'Test value',
+  value: initialValue,
   onChange: jest.fn(),
   required: true,
   error: [],
