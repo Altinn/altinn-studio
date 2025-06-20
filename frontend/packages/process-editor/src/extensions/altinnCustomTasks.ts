@@ -79,6 +79,26 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'UniqueFromSignaturesInDataTypes',
         },
+        {
+          name: 'signeeStatesDataTypeId',
+          isMany: false,
+          type: 'String',
+        },
+        {
+          name: 'signeeProviderId',
+          isMany: false,
+          type: 'String',
+        },
+        {
+          name: 'signingPdfDataType',
+          isMany: false,
+          type: 'String',
+        },
+        {
+          name: 'correspondenceResource',
+          isMany: false,
+          type: 'String',
+        },
       ],
     },
     {

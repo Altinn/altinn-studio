@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import {
-  StudioTextfield,
-  StudioDetails,
-  StudioCard,
-  StudioTag,
-  StudioValidationMessage,
-} from '@studio/components';
+import { StudioDetails, StudioCard, StudioTag, StudioValidationMessage } from '@studio/components';
 import classes from './TranslationDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import {
   getErrorMessagesForLanguage,
-  getTextfieldRows,
   mapLanguageKeyToLanguageText,
-} from '../../../utils/appResourceLanguageUtils';
-import { getMissingInputLanguageString } from '../../../utils/appResourceValidationUtils';
+} from '../../../utils/appConfigLanguageUtils';
+import { getMissingInputLanguageString } from '../../../utils/appConfigValidationUtils';
 import cn from 'classnames';
+import { LanguageInputField } from '../LanguageInputField';
 
 type SharedFieldProps = {
   lang: ValidLanguage;
@@ -28,14 +22,14 @@ type SharedFieldProps = {
 };
 
 export type TranslationDetailsProps = {
+  id: string;
   label: string;
-  isTextArea?: boolean;
   value: SupportedLanguage;
   onChange: (value: SupportedLanguage) => void;
+  isTextArea?: boolean;
   required?: boolean;
   tagText?: string;
-  errors: AppResourceFormError[];
-  id: string;
+  errors: AppConfigFormError[];
 };
 
 export function TranslationDetails({
@@ -52,10 +46,10 @@ export function TranslationDetails({
 
   const errorMessage: string = getMissingInputLanguageString(
     { nb: value.nb, nn: value.nn, en: value.en },
-    t('app_settings.about_tab_error_usage_string_service_name'),
+    id,
     t,
   );
-  const hasErrors: boolean = errorMessage && errors.length > 0;
+  const hasErrors: boolean = !!errorMessage && errors.length > 0;
   const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -64,6 +58,7 @@ export function TranslationDetails({
     }
   }, [hasErrors, open]);
 
+  const tagColor: string = required ? 'warning' : 'info';
   const languageTextNN: string = mapLanguageKeyToLanguageText('nn', t);
   const languageTextEN: string = mapLanguageKeyToLanguageText('en', t);
   const fieldLabelNN: string = `${label} (${languageTextNN})`;
@@ -100,21 +95,20 @@ export function TranslationDetails({
         <StudioDetails open={open} onToggle={handleToggle}>
           <StudioDetails.Summary>
             {t('app_settings.about_tab_language_translation_header', { field: label })}
-            <StudioTag data-color='warning'>{tagText}</StudioTag>
+            <StudioTag data-color={tagColor}>{tagText}</StudioTag>
           </StudioDetails.Summary>
           <StudioDetails.Content className={classes.content}>
             {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
-              <StudioTextfield
+              <LanguageInputField
                 key={lang}
                 label={fieldLabel}
                 value={fieldValue}
-                multiple={isTextArea}
+                isTextArea={isTextArea}
                 onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                   handleChange(lang, e.target.value)
                 }
                 required={required}
                 tagText={tagText}
-                rows={getTextfieldRows(isTextArea)}
                 error={error}
                 id={`${id}-${lang}`}
               />
