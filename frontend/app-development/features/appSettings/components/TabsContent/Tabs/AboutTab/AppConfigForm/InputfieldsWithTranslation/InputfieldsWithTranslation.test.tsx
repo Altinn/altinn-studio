@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { LanguageTextfield } from './LanguageTextfield';
-import type { LanguageTextfieldProps } from './LanguageTextfield';
+import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
+import type { InputfieldsWithTranslationProps } from './InputfieldsWithTranslation';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
-import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 
-describe('LanguageTextfield', () => {
+describe('InputfieldsWithTranslation', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders NB field with correct label and description', () => {
-    renderLanguageTextfield();
+    renderInputfieldsWithTranslation();
 
     expect(getTextbox(`${label} (${textMock('language.nb')}) ${required}`)).toBeInTheDocument();
     expect(getText(description)).toBeInTheDocument();
@@ -19,8 +19,8 @@ describe('LanguageTextfield', () => {
 
   it('displays error for NB field if provided', () => {
     const nbError: string = 'NB Error';
-    const errors: AppResourceFormError[] = [{ field: 'serviceName', error: nbError, index: 'nb' }];
-    renderLanguageTextfield({ errors });
+    const errors: AppConfigFormError[] = [{ field: 'serviceName', error: nbError, index: 'nb' }];
+    renderInputfieldsWithTranslation({ errors });
 
     expect(getText(nbError)).toBeInTheDocument();
   });
@@ -28,7 +28,7 @@ describe('LanguageTextfield', () => {
   it('calls updateLanguage when NB field is typed into', async () => {
     const user = userEvent.setup();
     const updateLanguage = jest.fn();
-    renderLanguageTextfield({ updateLanguage });
+    renderInputfieldsWithTranslation({ updateLanguage });
 
     const input = getTextbox(`${label} (${textMock('language.nb')}) ${required}`);
     const newText: string = 'A';
@@ -47,7 +47,7 @@ const description = textMock('some_description_translation');
 const required = textMock('general.required');
 const value: SupportedLanguage = { nb: 'Tjeneste', nn: '', en: '' };
 
-const defaultProps: LanguageTextfieldProps = {
+const defaultProps: InputfieldsWithTranslationProps = {
   id: 'test-id',
   label,
   description,
@@ -58,8 +58,8 @@ const defaultProps: LanguageTextfieldProps = {
   required: true,
 };
 
-function renderLanguageTextfield(props: Partial<LanguageTextfieldProps> = {}) {
-  return render(<LanguageTextfield {...defaultProps} {...props} />);
+function renderInputfieldsWithTranslation(props: Partial<InputfieldsWithTranslationProps> = {}) {
+  return render(<InputfieldsWithTranslation {...defaultProps} {...props} />);
 }
 
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });

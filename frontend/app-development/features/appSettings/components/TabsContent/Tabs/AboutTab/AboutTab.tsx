@@ -7,7 +7,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import type { RepositoryType } from 'app-shared/types/global';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfig, AppConfigNew } from 'app-shared/types/AppConfig';
 import { useAppMetadataQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
@@ -18,8 +18,7 @@ import { TabDataError } from '../../TabDataError';
 import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { AppResourceForm } from './AppResourceForm';
-import type { AppResource } from 'app-shared/types/AppResource';
+import { AppConfigForm } from './AppConfigForm';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -39,7 +38,7 @@ function AboutTabContent(): ReactElement {
   const repositoryType: RepositoryType = getRepositoryType(org, app);
 
   // TODO - This is a temporary solution to handle the new app resource structure. Will be replaced with API calls when available.
-  const [appResource, setAppResource] = useState<AppResource>(mockAppResource);
+  const [appConfigNew, setAppConfigNew] = useState<AppConfigNew>(mockAppConfig);
 
   const {
     status: appConfigStatus,
@@ -59,8 +58,8 @@ function AboutTabContent(): ReactElement {
 
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
-  const handleSaveAppConfig = (appConfig: AppConfig) => {
-    updateAppConfigMutation(appConfig);
+  const handleSaveAppConfig = (updatedConfig: AppConfig) => {
+    updateAppConfigMutation(updatedConfig);
   };
 
   switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, applicationMetadataStatus)) {
@@ -90,11 +89,9 @@ function AboutTabContent(): ReactElement {
             repository={repositoryData}
             authorName={applicationMetadataData?.createdBy}
           />
-          <AppResourceForm
-            appResource={appResource}
-            saveAppResource={(updatedAppResource: AppResource) =>
-              setAppResource(updatedAppResource)
-            }
+          <AppConfigForm
+            appConfig={appConfigNew}
+            saveAppConfig={(updatedAppConfig: AppConfigNew) => setAppConfigNew(updatedAppConfig)}
           />
         </div>
       ) : (
@@ -111,8 +108,9 @@ function AboutTabContent(): ReactElement {
   }
 }
 
-const mockAppResource: AppResource = {
+const mockAppConfig: AppConfigNew = {
   repositoryName: 'example-repo',
   serviceName: { nb: 'test', nn: '', en: '' },
   serviceId: 'example-service-id',
+  description: { nb: 'Test Tjeneste', nn: '', en: '' },
 };
