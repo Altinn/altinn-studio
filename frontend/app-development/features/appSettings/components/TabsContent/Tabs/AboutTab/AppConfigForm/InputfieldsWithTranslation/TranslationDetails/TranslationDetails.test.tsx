@@ -4,8 +4,8 @@ import { TranslationDetails } from './TranslationDetails';
 import type { TranslationDetailsProps } from './TranslationDetails';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
-import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 
 const languagesToTest: ValidLanguage[] = ['nn', 'en'];
 
@@ -25,7 +25,7 @@ describe('TranslationDetails', () => {
   it('displays error messages for both fields when provided', () => {
     const nnError: string = 'NN Error';
     const enError: string = 'EN Error';
-    const validationErrors: AppResourceFormError[] = [
+    const validationErrors: AppConfigFormError[] = [
       { field: 'serviceName', error: nnError, index: 'nn' },
       { field: 'serviceName', error: enError, index: 'en' },
     ];
@@ -66,7 +66,7 @@ describe('TranslationDetails', () => {
   });
 
   it('opens the details section if there are errors', () => {
-    const validationErrors: AppResourceFormError[] = [
+    const validationErrors: AppConfigFormError[] = [
       { field: 'serviceName', error: 'Error for NN', index: 'nn' },
       { field: 'serviceName', error: 'Error for EN', index: 'en' },
     ];
@@ -81,7 +81,7 @@ describe('TranslationDetails', () => {
   });
 
   it('displays a validation message for both languages if both has error', () => {
-    const validationErrors: AppResourceFormError[] = [
+    const validationErrors: AppConfigFormError[] = [
       { field: 'serviceName', error: 'Error for NN', index: 'nn' },
       { field: 'serviceName', error: 'Error for EN', index: 'en' },
     ];
@@ -89,7 +89,7 @@ describe('TranslationDetails', () => {
     renderTranslationDetails({ errors: validationErrors });
 
     const errorMessage = textMock('app_settings.about_tab_language_error_missing_2', {
-      usageString: textMock('app_settings.about_tab_error_usage_string_service_name'),
+      usageString: id,
       lang1: textMock('language.nn').toLowerCase(),
       lang2: textMock('language.en').toLowerCase(),
     });
@@ -100,7 +100,7 @@ describe('TranslationDetails', () => {
   it.each(languagesToTest)(
     'displays a validation message for single language if only %s has error',
     (lang) => {
-      const validationErrors: AppResourceFormError[] = [
+      const validationErrors: AppConfigFormError[] = [
         { field: 'serviceName', error: `Error for ${lang}`, index: lang },
       ];
 
@@ -113,7 +113,7 @@ describe('TranslationDetails', () => {
       renderTranslationDetails({ value, errors: validationErrors });
 
       const errorMessage = textMock('app_settings.about_tab_language_error_missing_1', {
-        usageString: textMock('app_settings.about_tab_error_usage_string_service_name'),
+        usageString: id,
         lang: textMock(`language.${lang}`).toLowerCase(),
       });
 
@@ -122,14 +122,15 @@ describe('TranslationDetails', () => {
   );
 });
 
-const label = textMock('some_label_translation');
+const label: string = textMock('some_label_translation');
+const id: string = 'serviceName';
 
 const defaultProps: TranslationDetailsProps = {
   label,
   value: { nb: 'Tjeneste', nn: '', en: '' },
   onChange: jest.fn(),
   errors: [],
-  id: 'test-id',
+  id,
 };
 
 function renderTranslationDetails(props: Partial<TranslationDetailsProps> = {}) {
