@@ -4,7 +4,6 @@ import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { useIndexedComponentIds } from 'src/features/form/layout/utils/makeIndexedId';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponentById } from 'src/layout/GenericComponent';
@@ -23,9 +22,8 @@ import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/Repeat
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { DataModelLocationProvider, useDataModelLocationForRow } from 'src/utils/layout/DataModelLocation';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { GridCellInternal } from 'src/layout/Grid/types';
@@ -40,8 +38,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const required = !!minCount && minCount > 0;
 
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
-  const location = useDataModelLocationForRow(dataModelBindings.group, 0);
-  const tableIds = useIndexedComponentIds(useTableComponentIds(node), location);
+  const tableIds = useTableComponentIds(node);
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -108,13 +105,18 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         {showTableHeader && !mobileView && (
           <Table.Head id={`group-${id}-table-header`}>
             <Table.Row>
-              {tableIds?.map((id) => (
-                <TitleCell
-                  key={id}
-                  nodeId={id}
-                  columnSettings={columnSettings}
-                />
-              ))}
+              <DataModelLocationProvider
+                groupBinding={dataModelBindings.group}
+                rowIndex={0} // Force the header row to show texts as if it is in the first row
+              >
+                {tableIds?.map((id) => (
+                  <TitleCell
+                    key={id}
+                    baseComponentId={id}
+                    columnSettings={columnSettings}
+                  />
+                ))}
+              </DataModelLocationProvider>
               {displayEditColumn && (
                 <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
                   <span className={classes.visuallyHidden}>
@@ -244,9 +246,14 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   );
 }
 
-function TitleCell({ nodeId, columnSettings }: { nodeId: string; columnSettings: ITableColumnFormatting }) {
-  const node = useNode(nodeId);
-  const style = useColumnStylesRepeatingGroups(node, columnSettings);
+function TitleCell({
+  baseComponentId,
+  columnSettings,
+}: {
+  baseComponentId: string;
+  columnSettings: ITableColumnFormatting;
+}) {
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
 
   return (
     <Table.HeaderCell
@@ -254,7 +261,7 @@ function TitleCell({ nodeId, columnSettings }: { nodeId: string; columnSettings:
       style={style}
     >
       <RepeatingGroupTableTitle
-        node={node}
+        baseComponentId={baseComponentId}
         columnSettings={columnSettings}
       />
     </Table.HeaderCell>

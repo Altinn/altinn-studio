@@ -692,6 +692,10 @@ function NodesLoader() {
  *
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */
+export function useNode<T extends string | LayoutNode>(id: T): LayoutNode;
+// eslint-disable-next-line no-redeclare
+export function useNode<T extends string | undefined | LayoutNode>(id: T): LayoutNode | undefined;
+// eslint-disable-next-line no-redeclare
 export function useNode<T extends string | undefined | LayoutNode>(id: T): LayoutNode | undefined {
   const lastValue = useRef<LayoutNode | undefined | typeof NeverInitialized>(NeverInitialized);
   const nodes = useNodes();

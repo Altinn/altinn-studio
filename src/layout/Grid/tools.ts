@@ -7,7 +7,7 @@ import type { IsHiddenSelector } from 'src/utils/layout/NodesContext';
 
 const emptyArray: never[] = [];
 
-export function useNodeIdsFromGrid(grid: LayoutNode<'Grid'> | undefined, enabled = true) {
+export function useNodeIdsFromGrid(grid: LayoutNode<'Grid'>, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
   const rows = useNodeItem(grid, (item) => item.rowsInternal);
   return enabled && grid && rows ? nodeIdsFromGridRows(rows, isHiddenSelector) : emptyArray;

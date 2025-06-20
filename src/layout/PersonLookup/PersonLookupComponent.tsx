@@ -186,7 +186,10 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
             error={
               (ssnErrors?.length && <Lang id={ssnErrors.join(' ')} />) ||
               (hasValidationErrors(bindingValidations?.person_lookup_ssn) && (
-                <ComponentValidations validations={bindingValidations?.person_lookup_ssn} />
+                <ComponentValidations
+                  validations={bindingValidations?.person_lookup_ssn}
+                  node={node}
+                />
               ))
             }
             onValueChange={(e) => {
@@ -230,7 +233,10 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
             error={
               (nameError && <Lang id={nameError} />) ||
               (hasValidationErrors(bindingValidations?.person_lookup_name) && (
-                <ComponentValidations validations={bindingValidations?.person_lookup_name} />
+                <ComponentValidations
+                  validations={bindingValidations?.person_lookup_name}
+                  node={node}
+                />
               ))
             }
             onChange={(e) => {

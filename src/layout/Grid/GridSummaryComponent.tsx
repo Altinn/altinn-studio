@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useNodeIdsFromGrid } from 'src/layout/Grid/tools';
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { useNode } from 'src/utils/layout/NodesContext';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
@@ -26,7 +26,6 @@ function Child({
   nodeId,
   isLast,
   overrides,
-  summaryNode,
 }: { nodeId: string; isLast: boolean } & Omit<SummaryRendererProps<'Grid'>, 'targetNode'>) {
   const node = useNode(nodeId);
 
@@ -35,11 +34,10 @@ function Child({
   }
 
   return (
-    <SummaryComponent
-      summaryNode={summaryNode}
+    <SummaryComponentFor
+      targetNode={node}
       overrides={{
         ...overrides,
-        targetNode: node,
         display: {
           ...overrides?.display,
           hideBottomBorder: isLast,

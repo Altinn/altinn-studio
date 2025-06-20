@@ -9,7 +9,7 @@ import { CompCategory } from 'src/layout/common';
 import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
@@ -19,14 +19,12 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function SummaryGroupComponent({
   onChangeClick,
   changeText,
-  summaryNode,
   targetNode,
   overrides,
 }: SummaryRendererProps<'Group'>) {
-  const summaryItem = useNodeItem(summaryNode);
   const targetItem = useNodeItem(targetNode);
-  const excludedChildren = summaryItem?.excludedChildren;
-  const display = overrides?.display || summaryItem?.display;
+  const excludedChildren = overrides?.excludedChildren;
+  const display = overrides?.display;
   const { langAsString } = useLanguage();
   const isHidden = Hidden.useIsHiddenSelector();
 
@@ -47,7 +45,7 @@ export function SummaryGroupComponent({
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
   const children = useNodeDirectChildren(targetNode).filter((n) => !inExcludedChildren(n));
 
-  const largeGroup = overrides?.largeGroup ?? summaryItem?.largeGroup ?? false;
+  const largeGroup = overrides?.largeGroup ?? false;
   if (largeGroup) {
     return (
       <GroupComponent
@@ -59,7 +57,6 @@ export function SummaryGroupComponent({
           <SummaryComponentFromNode
             key={node.id}
             targetNode={node}
-            summaryNode={summaryNode}
             overrides={overrides}
             inExcludedChildren={inExcludedChildren}
           />
@@ -80,7 +77,6 @@ export function SummaryGroupComponent({
         changeText={changeText}
         key={child.id}
         targetNode={child}
-        summaryNode={summaryNode}
         overrides={{}}
       />
     );
@@ -130,28 +126,21 @@ export function SummaryGroupComponent({
   );
 }
 
-interface SummaryComponentFromRefProps
-  extends Pick<SummaryRendererProps<CompTypes>, 'targetNode' | 'summaryNode' | 'overrides'> {
+interface SummaryComponentFromRefProps extends Pick<SummaryRendererProps<CompTypes>, 'targetNode' | 'overrides'> {
   inExcludedChildren: (node: LayoutNode) => boolean;
 }
 
-function SummaryComponentFromNode({
-  targetNode,
-  inExcludedChildren,
-  summaryNode,
-  overrides,
-}: SummaryComponentFromRefProps) {
+function SummaryComponentFromNode({ targetNode, inExcludedChildren, overrides }: SummaryComponentFromRefProps) {
   const isHidden = Hidden.useIsHidden(targetNode);
   if (inExcludedChildren(targetNode) || isHidden) {
     return null;
   }
 
   return (
-    <SummaryComponent
-      summaryNode={summaryNode}
+    <SummaryComponentFor
+      targetNode={targetNode}
       overrides={{
         ...overrides,
-        targetNode,
         grid: {},
         largeGroup: true,
       }}

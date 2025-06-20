@@ -123,14 +123,10 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
 };
 
 function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyItemProps) {
-  const node = useNode(nodeId) as LayoutNode<'RepeatingGroup'> | undefined;
+  const node = useNode(nodeId) as LayoutNode<'RepeatingGroup'>;
   const nodeItem = useNodeItem(node);
   const rows = RepGroupHooks.useAllRowsWithHidden(node);
   const childIds = RepGroupHooks.useChildIds(node);
-
-  if (!nodeItem) {
-    return null;
-  }
 
   return (
     <>

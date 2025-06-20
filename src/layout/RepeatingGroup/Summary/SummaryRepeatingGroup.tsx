@@ -10,7 +10,7 @@ import { LargeGroupSummaryContainer } from 'src/layout/RepeatingGroup/Summary/La
 import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -29,7 +29,7 @@ interface FullRowProps extends Omit<FullProps, 'rows'> {
 }
 
 export function SummaryRepeatingGroup(props: SummaryRendererProps<'RepeatingGroup'>) {
-  const { excludedChildren, largeGroup } = useNodeItem(props.summaryNode) ?? {};
+  const { excludedChildren, largeGroup } = props.overrides ?? {};
   const rows = RepGroupHooks.useVisibleRows(props.targetNode);
 
   const inExcludedChildren = (n: LayoutNode) =>
@@ -55,13 +55,10 @@ export function SummaryRepeatingGroup(props: SummaryRendererProps<'RepeatingGrou
 }
 
 function RegularRepeatingGroup(props: FullProps) {
-  const { onChangeClick, changeText, summaryNode, targetNode, overrides, rows: _rows } = props;
+  const { onChangeClick, changeText, targetNode, overrides, rows: _rows } = props;
   const rows = _rows.filter(typedBoolean);
-
-  const { display: summaryDisplay } = useNodeItem(summaryNode) ?? {};
   const { textResourceBindings: trb } = useNodeItem(targetNode);
-
-  const display = overrides?.display || summaryDisplay;
+  const display = overrides?.display;
   const { langAsString } = useLanguage();
 
   const groupValidations = useDeepValidationsForNode(targetNode);
@@ -127,14 +124,7 @@ function RegularRepeatingGroup(props: FullProps) {
   );
 }
 
-function RegularRepeatingGroupRow({
-  targetNode,
-  inExcludedChildren,
-  row,
-  onChangeClick,
-  changeText,
-  summaryNode,
-}: FullRowProps) {
+function RegularRepeatingGroupRow({ targetNode, inExcludedChildren, row, onChangeClick, changeText }: FullRowProps) {
   const isHidden = Hidden.useIsHiddenSelector();
   const children = useNodeDirectChildren(targetNode, row.index);
   const dataModelBindings = useNodeItem(targetNode, (i) => i.dataModelBindings);
@@ -164,7 +154,6 @@ function RegularRepeatingGroupRow({
             changeText={changeText}
             key={child.id}
             targetNode={child as never} // FIXME: Never type
-            summaryNode={summaryNode}
             overrides={{}}
           />
         ))}
@@ -173,7 +162,7 @@ function RegularRepeatingGroupRow({
   );
 }
 
-function LargeRepeatingGroup({ targetNode, summaryNode, overrides, inExcludedChildren, rows }: FullProps) {
+function LargeRepeatingGroup({ targetNode, overrides, inExcludedChildren, rows }: FullProps) {
   const isHidden = Hidden.useIsHiddenSelector();
   const groupBinding = useNodeItem(targetNode, (i) => i.dataModelBindings.group);
 
@@ -195,12 +184,11 @@ function LargeRepeatingGroup({ targetNode, summaryNode, overrides, inExcludedChi
               }
 
               return (
-                <SummaryComponent
+                <SummaryComponentFor
                   key={n.id}
-                  summaryNode={summaryNode}
+                  targetNode={n}
                   overrides={{
                     ...overrides,
-                    targetNode: n,
                     grid: {},
                     largeGroup: false,
                   }}

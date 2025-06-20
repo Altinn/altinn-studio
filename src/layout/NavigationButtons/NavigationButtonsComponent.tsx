@@ -11,24 +11,62 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function NavigationButtonsComponent({ node }: INavigationButtons) {
+type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'node'>;
+
+export function NavigationButtonsComponent({ node }: Props) {
+  const summaryNode = useSummaryNodeOfOrigin();
+
+  if (summaryNode) {
+    return (
+      <WithSummary
+        node={node}
+        summaryNode={summaryNode}
+      />
+    );
+  }
+
+  return (
+    <NavigationButtonsComponentInner
+      node={node}
+      returnToViewText='form_filler.back_to_summary'
+      showNextButtonSummary={false}
+    />
+  );
+}
+
+function WithSummary({ node, summaryNode }: Props & { summaryNode: LayoutNode<'Summary'> }) {
+  const summaryItem = useNodeItem(summaryNode);
+  const returnToViewText =
+    summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
+  const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
+
+  return (
+    <NavigationButtonsComponentInner
+      node={node}
+      returnToViewText={returnToViewText}
+      showNextButtonSummary={showNextButtonSummary}
+    />
+  );
+}
+
+function NavigationButtonsComponentInner({
+  node,
+  returnToViewText,
+  showNextButtonSummary,
+}: Props & { returnToViewText: string; showNextButtonSummary: boolean }) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useNodeItem(node);
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();
   const hasPrevious = !!usePreviousPageKey();
   const returnToView = useReturnToView();
-  const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
   const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'previous' | 'backToSummary'>();
 
   const nextTextKey = textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
-  const returnToViewText =
-    summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
 
   const showBackToSummaryButton = returnToView !== undefined;
-  const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();

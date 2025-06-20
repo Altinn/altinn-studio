@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
@@ -9,21 +9,20 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-type Props = Pick<SummaryRendererProps<'Cards'>, 'targetNode' | 'summaryNode' | 'overrides'>;
+type Props = Pick<SummaryRendererProps<'Cards'>, 'targetNode' | 'overrides'>;
 
-function Child({ id, summaryNode, overrides }: { id: string | undefined } & Pick<Props, 'summaryNode' | 'overrides'>) {
+function Child({ id, overrides }: { id: string | undefined } & Pick<Props, 'overrides'>) {
   const child = useNode(id);
   if (!child) {
     return null;
   }
 
   return (
-    <SummaryComponent
+    <SummaryComponentFor
       key={child.id}
-      summaryNode={summaryNode}
+      targetNode={child}
       overrides={{
         ...overrides,
-        targetNode: child,
         grid: {},
         largeGroup: true,
       }}
@@ -31,7 +30,7 @@ function Child({ id, summaryNode, overrides }: { id: string | undefined } & Pick
   );
 }
 
-export function CardsSummary({ targetNode, summaryNode, overrides }: Props) {
+export function CardsSummary({ targetNode, overrides }: Props) {
   const cardsInternal = useNodeItem(targetNode, (i) => i.cardsInternal);
   const childIds = cardsInternal.map((card) => card.childIds).flat();
 
@@ -41,7 +40,6 @@ export function CardsSummary({ targetNode, summaryNode, overrides }: Props) {
         <Child
           key={childId}
           id={childId}
-          summaryNode={summaryNode}
           overrides={overrides}
         />
       ))}

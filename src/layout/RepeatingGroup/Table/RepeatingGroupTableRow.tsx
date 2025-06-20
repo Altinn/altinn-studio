@@ -13,7 +13,6 @@ import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useIndexedComponentIds } from 'src/features/form/layout/utils/makeIndexedId';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -26,7 +25,7 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -76,7 +75,7 @@ function getEditButtonText(
   return langTools.langAsString(buttonTextKey);
 }
 
-export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow({
+export const RepeatingGroupTableRow = React.memo(function ({
   className,
   uuid,
   index,
@@ -92,8 +91,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const { langAsString } = langTools;
   const id = node.id;
   const group = useNodeItem(node);
-  const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, index);
-  const isFresh = freshUuid === uuid;
   const rowExpressions = RepGroupHooks.useRowWithExpressions(node, { uuid });
   const editForRow = rowExpressions?.edit;
   const editForGroup = group.edit;
@@ -166,8 +163,8 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
             </Table.Cell>
           ) : (
             <NonEditableCell
-              key={item.id}
-              nodeId={item.id}
+              key={item.baseId}
+              baseComponentId={item.baseId}
               isEditingRow={isEditingRow}
               displayData={displayData[item.baseId] ?? ''}
               columnSettings={columnSettings}
@@ -247,7 +244,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   onClick={() => toggleEditing({ index, uuid })}
                   aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                   className={classes.tableButton}
-                  disabled={!isFresh}
                 >
                   {editButtonText}
                   {rowHasErrors ? (
@@ -284,7 +280,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
-                  disabled={!isFresh}
                 >
                   {deleteButtonText}
                 </DeleteElement>
@@ -338,7 +333,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
-                  disabled={!isFresh}
                 >
                   {isEditingRow || !mobileViewSmall ? deleteButtonText : null}
                 </DeleteElement>
@@ -432,18 +426,17 @@ function DeleteElement({
 }
 
 function NonEditableCell({
-  nodeId,
+  baseComponentId,
   columnSettings,
   isEditingRow,
   displayData,
 }: {
-  nodeId: string;
+  baseComponentId: string;
   columnSettings: ITableColumnFormatting | undefined;
   displayData: string;
   isEditingRow: boolean;
 }) {
-  const node = useNode(nodeId);
-  const style = useColumnStylesRepeatingGroups(node, columnSettings);
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
   return (
     <Table.Cell className={classes.tableCell}>
       <span

@@ -137,19 +137,27 @@ const DoSummaryWrapper = ({
   );
 };
 
-export function SubformSummaryComponent2({ target }: Partial<Summary2Props<'Subform'>>) {
-  const displayType = useSummaryOverrides(target)?.display;
-  const allOrOneSubformId = NodesInternal.useShallowSelector((state) =>
+export function AllSubformSummaryComponent2() {
+  const allIds = NodesInternal.useShallowSelector((state) =>
     Object.values(state.nodeData)
       .filter((data) => data.layout.type === 'Subform')
-      .filter((data) => {
-        if (!target?.id) {
-          return data;
-        }
-        return data.layout.id === target.id;
-      })
       .map((data) => data.layout.id),
   );
+
+  return (
+    <>
+      {allIds.map((childId, idx) => (
+        <SummarySubformWrapper
+          key={idx}
+          nodeId={childId}
+        />
+      ))}
+    </>
+  );
+}
+
+export function SubformSummaryComponent2({ target }: Summary2Props<'Subform'>) {
+  const displayType = useSummaryOverrides(target)?.display;
   const layoutSet = useNodeItem(target, (i) => i.layoutSet);
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
@@ -161,32 +169,21 @@ export function SubformSummaryComponent2({ target }: Partial<Summary2Props<'Subf
     displayType === 'table' && target ? (
       <SubformSummaryTable targetNode={target} />
     ) : (
-      <>
-        {allOrOneSubformId.map((childId, idx) => (
-          <SummarySubformWrapper
-            key={idx}
-            nodeId={childId}
-          />
-        ))}
-      </>
+      <SummarySubformWrapper nodeId={target.id} />
     );
 
-  if (target) {
-    return (
-      <SummaryFlex
-        target={target}
-        content={
-          hasElements
-            ? SummaryContains.SomeUserContent
-            : required
-              ? SummaryContains.EmptyValueRequired
-              : SummaryContains.EmptyValueNotRequired
-        }
-      >
-        {inner}
-      </SummaryFlex>
-    );
-  }
-
-  return inner;
+  return (
+    <SummaryFlex
+      target={target}
+      content={
+        hasElements
+          ? SummaryContains.SomeUserContent
+          : required
+            ? SummaryContains.EmptyValueRequired
+            : SummaryContains.EmptyValueNotRequired
+      }
+    >
+      {inner}
+    </SummaryFlex>
+  );
 }

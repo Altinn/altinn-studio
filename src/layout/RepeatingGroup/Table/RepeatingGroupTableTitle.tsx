@@ -1,20 +1,22 @@
 import React from 'react';
 
+import { ExprVal } from 'src/features/expressions/types';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import type { EvalExprOptions } from 'src/features/expressions';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IProps {
-  node: LayoutNode | undefined;
+  baseComponentId: string;
   columnSettings: ITableColumnFormatting;
 }
 
-export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => {
-  const style = useColumnStylesRepeatingGroups(node, columnSettings);
-  const tableTitle = useTableTitle(node);
+export const RepeatingGroupTableTitle = ({ baseComponentId, columnSettings }: IProps) => {
+  const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+  const tableTitle = useTableTitle(baseComponentId);
   return (
     <span
       className={classes.contentFormatting}
@@ -25,18 +27,21 @@ export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => {
   );
 };
 
-export function useTableTitle(node: LayoutNode | undefined) {
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
+export function useTableTitle(baseComponentId: string): string {
+  const textResourceBindings = useLayoutLookups().getComponent(baseComponentId).textResourceBindings;
+  const exprOptions: EvalExprOptions<ExprVal.String> = {
+    returnType: ExprVal.String,
+    defaultValue: '',
+    errorIntroText: `Invalid expression in ${baseComponentId}`,
+  };
+  const tableTitle = useEvalExpression(
+    textResourceBindings && 'tableTitle' in textResourceBindings ? textResourceBindings.tableTitle : '',
+    exprOptions,
+  );
+  const title = useEvalExpression(
+    textResourceBindings && 'title' in textResourceBindings ? textResourceBindings.title : '',
+    exprOptions,
+  );
 
-  if (!textResourceBindings) {
-    return '';
-  }
-
-  if ('tableTitle' in textResourceBindings && textResourceBindings.tableTitle) {
-    return textResourceBindings?.tableTitle;
-  }
-  if ('title' in textResourceBindings && textResourceBindings.title) {
-    return textResourceBindings?.title;
-  }
-  return '';
+  return tableTitle || title || '';
 }

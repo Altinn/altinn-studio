@@ -28,11 +28,10 @@ export class Cards extends CardsDef {
     );
   }
 
-  renderSummary({ summaryNode, targetNode, overrides }: SummaryRendererProps<'Cards'>): JSX.Element | null {
+  renderSummary({ targetNode, overrides }: SummaryRendererProps<'Cards'>): JSX.Element | null {
     return (
       <CardsSummary
         targetNode={targetNode}
-        summaryNode={summaryNode}
         overrides={overrides}
       />
     );

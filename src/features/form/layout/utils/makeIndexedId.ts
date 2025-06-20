@@ -82,10 +82,9 @@ function findRepeatingParents(
   return repeating;
 }
 
-export function useIndexedComponentIds(componentIds: string[], dataModelLocation?: IDataModelReference): string[] {
+export function useIndexedComponentIds(componentIds: string[]): string[] {
   const lookups = useLayoutLookups();
-  const currentDataModelLocation = useCurrentDataModelLocation();
-  const location = dataModelLocation || currentDataModelLocation;
+  const location = useCurrentDataModelLocation();
   return componentIds.map((id) => {
     const indexed = makeIndexedId(id, location, lookups);
     if (indexed === undefined) {

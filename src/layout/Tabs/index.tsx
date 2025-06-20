@@ -17,11 +17,10 @@ export class Tabs extends TabsDef {
     },
   );
 
-  renderSummary({ summaryNode, targetNode, overrides }: SummaryRendererProps<'Tabs'>): JSX.Element | null {
+  renderSummary({ targetNode, overrides }: SummaryRendererProps<'Tabs'>): JSX.Element | null {
     return (
       <TabsSummaryComponent
         targetNode={targetNode}
-        summaryNode={summaryNode}
         overrides={overrides}
       />
     );

@@ -7,7 +7,7 @@ import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/lay
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
@@ -195,16 +195,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
 
   if (renderAsSummary) {
     const RenderSummary = 'renderSummary' in node.def ? node.def.renderSummary.bind(node.def) : null;
-
     if (!RenderSummary) {
       return null;
     }
 
     return (
-      <SummaryComponent
-        summaryNode={undefined}
+      <SummaryComponentFor
+        targetNode={node}
         overrides={{
-          targetNode: node,
           display: { hideChangeButton: true, hideValidationMessages: true },
         }}
       />

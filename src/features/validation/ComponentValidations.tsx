@@ -14,14 +14,22 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
   validations: NodeValidation[] | undefined;
-  node?: LayoutNode;
+  node: LayoutNode;
 }
 
 export function AllComponentValidations({ node: _node }: { node?: LayoutNode }) {
   const currentNode = useCurrentNode();
   const node = _node ?? currentNode;
+  if (!node) {
+    throw new Error('No node provided to AllComponentValidations. Please report this bug.');
+  }
   const validations = useUnifiedValidationsForNode(node);
-  return <ComponentValidations validations={validations} />;
+  return (
+    <ComponentValidations
+      validations={validations}
+      node={node}
+    />
+  );
 }
 
 export function ComponentValidations({ validations, node: _node }: Props) {

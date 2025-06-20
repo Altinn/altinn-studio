@@ -23,43 +23,118 @@ import type { IGrid, IPageBreak } from 'src/layout/common.generated';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface SummaryOverrides {
-  targetNode: LayoutNode;
+/**
+ * These overrides include all props from the Summary component that should be forwarded to underlying component
+ * summaries. This way we only fetch the settings in the SummaryComponent render cycle, and then pass the config
+ * down to the internal summary components, so that all underlying code can work the same regardless if there is an
+ * actual Summary component in the layout or not. Cases when there's not a real Summary component include:
+ * - Automatic PDF layout
+ * - Using the `renderAsSummary` prop on a component
+ */
+export interface LegacySummaryOverrides {
   grid?: IGrid;
   largeGroup?: boolean;
   display?: SummaryDisplayProperties;
   pageBreak?: ExprResolved<IPageBreak>;
+  excludedChildren?: string[];
 }
 
-export interface ISummaryComponent {
-  summaryNode: LayoutNode<'Summary'> | undefined;
-  overrides?: Partial<SummaryOverrides>;
-}
+export const SummaryComponentFor = React.forwardRef(function (
+  { targetNode, overrides }: { targetNode: LayoutNode; overrides?: LegacySummaryOverrides },
+  ref: React.Ref<HTMLDivElement>,
+) {
+  const targetItem = useNodeItem(targetNode);
 
-export const SummaryComponent = React.forwardRef(function SummaryComponent(
-  { summaryNode, overrides }: ISummaryComponent,
+  return (
+    <SummaryComponentInner
+      ref={ref}
+      targetNode={targetNode}
+      summaryTestId={targetNode.id}
+      originNodeId={targetNode.id}
+      componentId={`summary-${targetNode?.id}`}
+      componentBaseId={`summary-${targetNode.id}`}
+      display={overrides?.display}
+      grid={overrides?.display && overrides?.display.useComponentGrid ? overrides?.grid || targetItem?.grid : undefined}
+      pageBreak={overrides?.pageBreak ?? targetItem?.pageBreak}
+      largeGroup={overrides?.largeGroup}
+      excludedChildren={overrides?.excludedChildren}
+    />
+  );
+});
+
+SummaryComponentFor.displayName = 'SummaryComponentFor';
+
+/**
+ * This component renders the alternative where only a `summaryNode` is provided, and the target node is inferred
+ * from that `summaryNode`.
+ */
+export const SummaryComponent = React.forwardRef(function (
+  { summaryNode, overrides }: { summaryNode: LayoutNode<'Summary'>; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
   const summaryItem = useNodeItem(summaryNode);
-  const _targetNode = useNode(summaryItem?.componentRef);
-  const targetNode = overrides?.targetNode ?? _targetNode;
+  const targetNode = useNode(summaryItem.componentRef);
   const targetItem = useNodeItem(targetNode);
 
   if (!targetNode) {
     throw new Error(
-      `No target found for Summary '${summaryNode?.id}'. ` +
+      `No target found for Summary '${summaryNode.id}'. ` +
         `Check the 'componentRef' property and make sure the target component exists.`,
     );
   }
 
-  const display = overrides?.display ?? summaryItem?.display;
-  const pageBreak = overrides?.pageBreak ?? summaryItem?.pageBreak ?? targetItem?.pageBreak;
+  return (
+    <SummaryComponentInner
+      ref={ref}
+      targetNode={targetNode}
+      summaryTestId={summaryNode?.id ?? targetNode?.id ?? 'unknown'}
+      originNodeId={summaryNode?.id ?? targetNode?.id}
+      componentId={summaryNode?.id ?? `summary-${targetNode?.id}`}
+      componentBaseId={summaryNode?.baseId ?? `summary-${targetNode.id}`}
+      display={overrides?.display ?? summaryItem?.display}
+      grid={
+        overrides?.display && overrides?.display.useComponentGrid
+          ? overrides?.grid || targetItem?.grid
+          : overrides?.grid || summaryItem?.grid
+      }
+      pageBreak={overrides?.pageBreak ?? summaryItem?.pageBreak ?? targetItem?.pageBreak}
+      largeGroup={overrides?.largeGroup ?? summaryItem?.largeGroup}
+      excludedChildren={overrides?.excludedChildren ?? summaryItem?.excludedChildren}
+    />
+  );
+});
 
+SummaryComponent.displayName = 'SummaryComponent';
+
+interface ISummaryProps extends LegacySummaryOverrides {
+  originNodeId: string;
+  targetNode: LayoutNode;
+  summaryTestId: string;
+  componentId: string;
+  componentBaseId: string;
+}
+
+const SummaryComponentInner = React.forwardRef(function (
+  {
+    originNodeId,
+    targetNode,
+    display,
+    pageBreak,
+    grid,
+    componentId,
+    componentBaseId,
+    summaryTestId,
+    largeGroup,
+    excludedChildren,
+  }: ISummaryProps,
+  ref: React.Ref<HTMLDivElement>,
+) {
+  const targetItem = useNodeItem(targetNode);
   const { langAsString } = useLanguage();
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');
 
-  const targetView = targetNode?.pageKey;
+  const targetView = targetNode.pageKey;
   const targetIsHidden = Hidden.useIsHidden(targetNode);
 
   const validations = useUnifiedValidationsForNode(targetNode);
@@ -75,7 +150,7 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
     }
 
     setReturnToView?.(currentPageId);
-    setNodeOfOrigin?.(summaryNode?.id ?? targetNode?.id);
+    setNodeOfOrigin?.(originNodeId);
     await navigateTo(targetNode, {
       shouldFocus: true,
       pageNavOptions: {
@@ -84,37 +159,29 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
     });
   };
 
-  if (!targetNode || !targetItem || targetIsHidden || targetItem.type === 'Summary') {
-    // TODO: Show info to developers if target node is not found?
+  if (targetIsHidden || targetNode.type === 'Summary') {
     return null;
   }
 
-  const displayGrid =
-    display && display.useComponentGrid ? overrides?.grid || targetItem?.grid : overrides?.grid || summaryItem?.grid;
   const component = targetNode.def;
   const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
-
-  // This logic is needlessly complex, but our tests depends on it being this way as of now.
-  const summaryTestId = overrides?.targetNode
-    ? overrides.targetNode.id
-    : (summaryNode?.id ?? targetNode?.id ?? 'unknown');
 
   return (
     <Flex
       ref={ref}
       item
       size={{
-        xs: displayGrid?.xs ?? 12,
-        sm: displayGrid?.sm,
-        md: displayGrid?.md,
-        lg: displayGrid?.lg,
-        xl: displayGrid?.xl,
+        xs: grid?.xs ?? 12,
+        sm: grid?.sm,
+        md: grid?.md,
+        lg: grid?.lg,
+        xl: grid?.xl,
       }}
       data-testid={`summary-${summaryTestId}`}
-      data-componentid={summaryNode?.id ?? `summary-${targetNode?.id}`}
-      data-componentbaseid={summaryNode?.baseId ?? `summary-${targetNode.id}`}
+      data-componentid={componentId}
+      data-componentbaseid={componentBaseId}
       className={cn(pageBreakStyles(pageBreak))}
     >
       <Flex
@@ -127,9 +194,8 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
           <SummaryContent
             onChangeClick={onChangeClick}
             changeText={langAsString('form_filler.summary_item_change')}
-            summaryNode={summaryNode}
             targetNode={targetNode}
-            overrides={overrides}
+            overrides={{ largeGroup, display, pageBreak, grid, excludedChildren }}
             RenderSummary={RenderSummary}
           />
         ) : (
@@ -177,3 +243,5 @@ export const SummaryComponent = React.forwardRef(function SummaryComponent(
     </Flex>
   );
 });
+
+SummaryComponentInner.displayName = 'SummaryComponentInner';

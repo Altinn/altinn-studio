@@ -185,7 +185,7 @@ interface CellWithTextProps extends PropsWithChildren, CellProps {
 }
 
 interface CellWithLabelProps extends CellProps {
-  labelFrom?: string;
+  labelFrom: string;
 }
 
 function CellWithComponent({

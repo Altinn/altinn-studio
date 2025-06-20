@@ -32,7 +32,7 @@ import type {
   ITextResourceBindingsExternal,
   NodeValidationProps,
 } from 'src/layout/layout';
-import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -197,11 +197,10 @@ export abstract class PresentationComponent<Type extends CompTypes> extends AnyC
 }
 
 export interface SummaryRendererProps<Type extends CompTypes> {
-  summaryNode: LayoutNode<'Summary'> | undefined;
   targetNode: LayoutNode<Type>;
   onChangeClick: () => void;
   changeText: string | null;
-  overrides?: ISummaryComponent['overrides'];
+  overrides?: LegacySummaryOverrides;
 }
 
 abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type> {

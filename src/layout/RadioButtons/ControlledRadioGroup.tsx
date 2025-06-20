@@ -34,9 +34,13 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
     : null;
   const confirmChangeText = langAsString('form_filler.alert_confirm');
 
-  const leftColumnHeader = useNodeItem(node.parent instanceof LayoutNode ? node.parent : undefined, (i) =>
-    i.type === 'Likert' ? i.textResourceBindings?.leftColumnHeader : undefined,
-  );
+  let leftColumnHeader: string | undefined = undefined;
+  if (node.parent instanceof LayoutNode && node.parent.isType('Likert')) {
+    // The parent node type never changes, so this doesn't break the rule of hooks
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    leftColumnHeader = useNodeItem(node.parent, (i) => i.textResourceBindings?.leftColumnHeader);
+  }
+
   const labelText = (
     <LabelContent
       componentId={id}

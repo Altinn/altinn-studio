@@ -259,36 +259,59 @@ function WrappedEditButton({
   );
 }
 
-function useHeaderText(headerRow: GridRowInternal | undefined, cellIdx: number) {
-  const { langAsString, langAsNonProcessedString } = useLanguage();
-  const cell = headerRow?.cells[cellIdx] ?? undefined;
-  const referencedNode = useNode(cell && 'labelFrom' in cell ? cell.labelFrom : undefined);
-  const referencedNodeIsRequired = useNodeItem(referencedNode, (i) => ('required' in i ? i.required : false));
-  const referencedNodeTitle = useNodeItem(referencedNode, (i) =>
-    i.textResourceBindings && 'title' in i.textResourceBindings ? i.textResourceBindings.title : undefined,
-  );
-  const requiredIndicator = referencedNodeIsRequired
-    ? ` ${langAsNonProcessedString('form_filler.required_label')}`
-    : '';
-
-  let headerText = '';
-  if (cell && 'text' in cell) {
-    headerText = cell.text;
-  } else if (cell && 'labelFrom' in cell) {
-    headerText = referencedNodeTitle ? referencedNodeTitle : '';
-  }
-
-  return `${langAsString(headerText)}${requiredIndicator}`;
-}
-
 interface CellProps extends GridRowProps {
   cell: GridCellInternal;
   idx: number;
   isSmall: boolean;
 }
 
-function SummaryCell({ cell, idx, headerRow, mutableColumnSettings, row, isSmall }: CellProps) {
-  const headerTitle = useHeaderText(headerRow, idx);
+function SummaryCell(props: CellProps) {
+  const cell = props.headerRow?.cells[props.idx];
+  const referencedNode = useNode(cell && 'labelFrom' in cell ? cell.labelFrom : undefined);
+  const { langAsString } = useLanguage();
+
+  if (referencedNode) {
+    return (
+      <SummaryCellInnerWithLabel
+        {...props}
+        labelFrom={referencedNode}
+      />
+    );
+  }
+
+  return (
+    <SummaryCellInner
+      {...props}
+      headerTitle={cell && 'text' in cell ? langAsString(cell.text) : ''}
+    />
+  );
+}
+
+function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: LayoutNode }) {
+  const { langAsString, langAsNonProcessedString } = useLanguage();
+  const required = useNodeItem(props.labelFrom, (i) => ('required' in i ? i.required : false));
+  const title = useNodeItem(props.labelFrom, (i) =>
+    i.textResourceBindings && 'title' in i.textResourceBindings ? i.textResourceBindings.title : undefined,
+  );
+  const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
+  const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
+
+  return (
+    <SummaryCellInner
+      {...props}
+      headerTitle={headerTitle}
+    />
+  );
+}
+
+function SummaryCellInner({
+  cell,
+  idx,
+  headerTitle,
+  mutableColumnSettings,
+  row,
+  isSmall,
+}: CellProps & { headerTitle: string }) {
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
     mutableColumnSettings[idx] = cell.columnOptions;
   }

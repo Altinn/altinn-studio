@@ -228,7 +228,10 @@ export function EditWindowComponent({
             whiteSpace: 'pre-wrap',
           }}
         >
-          <ComponentValidations validations={attachmentValidations} />
+          <ComponentValidations
+            validations={attachmentValidations}
+            node={node}
+          />
         </div>
       ) : undefined}
     </div>
