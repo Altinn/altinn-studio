@@ -1,8 +1,9 @@
-import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import type { TranslationFunction } from 'app-development/features/appSettings/types/Translation';
-import { mapLanguageKeyToLanguageText } from './appResourceLanguageUtils';
+import { mapLanguageKeyToLanguageText } from './appConfigLanguageUtils';
 
 const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
 const supportedLanguagesWithoutNb: ValidLanguage[] = supportedLanguages.filter(
@@ -60,23 +61,25 @@ export function getMissingInputLanguageString(
   return '';
 }
 
-export const validateAppResource = (
-  appResource: AppResource | undefined,
+export const validateAppConfig = (
+  appConfig: AppConfigNew | undefined,
   t: (key: string, params?: KeyValuePairs<string>) => string,
-): AppResourceFormError[] => {
-  const errors: AppResourceFormError[] = [];
+): AppConfigFormError[] => {
+  const errors: AppConfigFormError[] = [];
 
-  if (!appResource) {
+  if (!appConfig) {
     return [];
   }
 
-  // validate service name
   supportedLanguages.forEach((lang: ValidLanguage) => {
-    if (!appResource.serviceName?.[lang]) {
+    // validate service name
+    if (!appConfig.serviceName?.[lang]) {
       errors.push({
         field: 'serviceName',
         index: lang,
-        error: t(`app_settings.about_tab_error_translation_missing_service_name_${lang}`),
+        error: t(`app_settings.about_tab_error_translation_missing_${lang}`, {
+          field: t('app_settings.about_tab_error_usage_string_service_name'),
+        }),
       });
     }
   });
