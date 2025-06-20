@@ -4,12 +4,9 @@
 
 <!--- Describe your changes in detail -->
 
-## Related Issue(s)
-
-- #{issue number}
-
 ## Verification
 
+- [ ] Related issues are connected (if applicable)
 - [ ] **Your** code builds clean without any errors or warnings
 - [ ] Manual testing done (required)
 - [ ] Relevant automated test added (if you find this hard, leave it and we'll help out)
