@@ -57,11 +57,11 @@ export function LanguageInputField({
 }
 
 function LanguageTextfield({ id, ...rest }: LanguageInputProps): ReactElement {
-  return <StudioTextfield id={`${id}-nb`} {...rest} />;
+  return <StudioTextfield id={id} {...rest} />;
 }
 
 const NUMBER_OF_ROWS_IN_TEXTAREA: number = 3;
 
 function LanguageTextArea({ id, ...rest }: LanguageInputProps): ReactElement {
-  return <StudioTextfield id={`${id}-nb`} rows={NUMBER_OF_ROWS_IN_TEXTAREA} multiline {...rest} />;
+  return <StudioTextfield id={id} rows={NUMBER_OF_ROWS_IN_TEXTAREA} multiline {...rest} />;
 }
