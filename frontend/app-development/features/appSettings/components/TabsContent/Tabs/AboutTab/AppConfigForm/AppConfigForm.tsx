@@ -1,46 +1,44 @@
 import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
-import classes from './AppResourceForm.module.css';
+import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
-import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
-import { LanguageTextfield } from './LanguageTextfield/LanguageTextfield';
+import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
-import { validateAppResource } from '../utils/appResourceValidationUtils';
+import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 
-export type AppResourceFormProps = {
-  appResource: AppResource;
-  saveAppResource: (appResource: AppResource) => void; // Remove prop when endpoint is implemented
+export type AppConfigFormProps = {
+  appConfig: AppConfigNew;
+  saveAppConfig: (appConfig: AppConfigNew) => void; // Remove prop when endpoint is implemented
 };
 
-export function AppResourceForm({
-  appResource,
-  saveAppResource,
-}: AppResourceFormProps): ReactElement {
+export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
-  const [updatedAppResource, setUpdatedAppResource] = useState<AppResource>(appResource);
-  const [showAppResourceErrors, setShowAppResourceErrors] = useState<boolean>(false);
+  const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfigNew>(appConfig);
+  const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
   );
 
-  const validationErrors: AppResourceFormError[] = validateAppResource(updatedAppResource, t);
-  const serviceNameErrors: AppResourceFormError[] = getValidationErrorsForField(
-    !showAppResourceErrors,
+  const validationErrors: AppConfigFormError[] = validateAppConfig(updatedAppConfig, t);
+  const serviceNameErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
     validationErrors,
     'serviceName',
   );
 
-  useScrollIntoView(showAppResourceErrors, errorSummaryRef);
+  useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
-  const saveAppConfig = (): void => {
+  const saveUpdatedAppConfig = (): void => {
     if (hasValidationErrors()) {
-      setShowAppResourceErrors(true);
+      setShowAppConfigErrors(true);
       return;
     }
 
@@ -52,49 +50,56 @@ export function AppResourceForm({
   };
 
   const persistAppDetails = (): void => {
-    setShowAppResourceErrors(false);
-    saveAppResource(updatedAppResource);
-    console.log('AppResource saved: ', updatedAppResource); // Will be removed when endpoint is implemented
+    setShowAppConfigErrors(false);
+    saveAppConfig(updatedAppConfig);
+    console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
   const resetAppConfig = (): void => {
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
-      setUpdatedAppResource(appResource);
-      setShowAppResourceErrors(false);
+      setUpdatedAppConfig(appConfig);
+      setShowAppConfigErrors(false);
     }
   };
 
   const onChangeServiceName = (updatedLanguage: SupportedLanguage): void => {
-    setUpdatedAppResource((oldVal: AppResource) => ({
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       serviceName: updatedLanguage,
     }));
   };
 
   const onChangeServiceId = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppResource((oldVal: AppResource) => ({
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       serviceId: e.target.value,
+    }));
+  };
+
+  const onChangeDescription = (updatedLanguage: SupportedLanguage): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      description: updatedLanguage,
     }));
   };
 
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
-        {showAppResourceErrors && validationErrors.length > 0 && (
+        {showAppConfigErrors && validationErrors.length > 0 && (
           <ErrorSummary validationErrors={validationErrors} ref={errorSummaryRef} />
         )}
         <StudioTextfield
           label={t('app_settings.about_tab_repo_label')}
           description={t('app_settings.about_tab_repo_description')}
-          defaultValue={updatedAppResource.repositoryName}
+          defaultValue={updatedAppConfig.repositoryName}
           readOnly
         />
-        <LanguageTextfield
+        <InputfieldsWithTranslation
           label={t('app_settings.about_tab_name_label')}
           description={t('app_settings.about_tab_name_description')}
           id={AppResourceFormFieldIds.ServiceName}
-          value={updatedAppResource.serviceName}
+          value={updatedAppConfig.serviceName}
           updateLanguage={onChangeServiceName}
           errors={serviceNameErrors}
           required
@@ -102,16 +107,25 @@ export function AppResourceForm({
         <StudioTextfield
           label={t('app_settings.about_tab_alt_id_label')}
           description={t('app_settings.about_tab_alt_id_description')}
-          value={updatedAppResource.serviceId}
+          value={updatedAppConfig.serviceId}
           onChange={onChangeServiceId}
           required={false}
           tagText={t('general.optional')}
         />
+        <InputfieldsWithTranslation
+          label={t('app_settings.about_tab_description_field_label')}
+          description={t('app_settings.about_tab_description_field_description')}
+          id={AppResourceFormFieldIds.Description}
+          value={updatedAppConfig.description}
+          updateLanguage={onChangeDescription}
+          required={false}
+          isTextArea
+        />
       </div>
       <ActionButtons
-        onSave={saveAppConfig}
+        onSave={saveUpdatedAppConfig}
         onReset={resetAppConfig}
-        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppResource, appResource)}
+        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig)}
       />
     </div>
   );
@@ -119,13 +133,14 @@ export function AppResourceForm({
 
 enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
+  Description = 'description',
 }
 
 function getValidationErrorsForField(
   hideErrors: boolean,
-  validationErrors: AppResourceFormError[],
-  field: keyof AppResource,
-): AppResourceFormError[] {
+  validationErrors: AppConfigFormError[],
+  field: keyof AppConfigNew,
+): AppConfigFormError[] {
   if (hideErrors) return [];
   return validationErrors.filter((error) => error.field === field);
 }
