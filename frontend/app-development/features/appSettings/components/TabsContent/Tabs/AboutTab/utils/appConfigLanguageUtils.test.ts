@@ -1,14 +1,12 @@
 import {
   mapLanguageKeyToLanguageText,
   getErrorMessagesForLanguage,
-  getTextfieldRows,
-} from './appResourceLanguageUtils';
-
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
+} from './appConfigLanguageUtils';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('appResourceLanguageUtils', () => {
+describe('appConfigLanguageUtils', () => {
   describe('mapLanguageKeyToLanguageText', () => {
     it.each<ValidLanguage>(['nb', 'nn', 'en'])('returns translation key for %s', (lang) => {
       const result = mapLanguageKeyToLanguageText(lang, textMock);
@@ -22,7 +20,7 @@ describe('appResourceLanguageUtils', () => {
   });
 
   describe('getErrorMessagesForLanguage', () => {
-    const errors: AppResourceFormError[] = [
+    const errors: AppConfigFormError[] = [
       { field: 'serviceName', index: 'nb', error: 'Missing title' },
       { field: 'serviceName', index: 'en', error: 'Missing description' },
       { field: 'serviceId', index: 'nb', error: 'Invalid value' },
@@ -41,16 +39,6 @@ describe('appResourceLanguageUtils', () => {
     it('returns undefined if error array is empty', () => {
       const result = getErrorMessagesForLanguage([], 'nb');
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe('getTextfieldRows', () => {
-    it('returns 5 when isTextArea is true', () => {
-      expect(getTextfieldRows(true)).toBe(5);
-    });
-
-    it('returns undefined when isTextArea is false', () => {
-      expect(getTextfieldRows(false)).toBeUndefined();
     });
   });
 });

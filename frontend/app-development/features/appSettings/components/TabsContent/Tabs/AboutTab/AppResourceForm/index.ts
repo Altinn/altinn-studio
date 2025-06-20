@@ -1,1 +1,0 @@
-export { AppResourceForm } from './AppResourceForm';
