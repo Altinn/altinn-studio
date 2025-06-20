@@ -135,8 +135,8 @@ export const ResourceLanguageTextField = ({
 
 type LanguageInputFieldProps = {
   id: string;
-  required: boolean;
-  isTextArea: boolean;
+  required?: boolean;
+  isTextArea?: boolean;
   label: ReactElement;
   description: ReactElement;
   value: string;
