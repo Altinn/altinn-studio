@@ -61,7 +61,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     }
 
     [Fact]
-    public async Task Post_Returns200OK_WhenImportingCodeListFromOrgWithTextResources()
+    public async Task Post_ImportsTextResourcesWithoutOverwriting_WhenOverwriteParameterIsNotGiven()
     {
         // Arrange
         const string OrgRepoName = "org-content";
@@ -69,7 +69,8 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string OptionListId = "codeListWithTextResources";
         const string LanguageCode = "nb";
         const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
-        TextResourceElement expectedTextResourceElement = new() { Id = "someId", Value = "someValue" };
+        TextResourceElement textResourceElementWithCommonId = new() { Id = "Navn", Value = "Navn" };
+        TextResourceElement textResourceElementWithUniqueId = new() { Id = "someId", Value = "someValue" };
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 
@@ -84,15 +85,19 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         string actualTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
         TextResource actualTextResource = JsonSerializer.Deserialize<TextResource>(actualTextResourceFileContent, s_jsonOptions);
-        Assert.Equal(LanguageCode, actualTextResource.Language);
+        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == textResourceElementWithCommonId.Id);
 
-        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == expectedTextResourceElement.Id);
-        Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
-        Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
+        Assert.Equal(LanguageCode, actualTextResource.Language);
+        Assert.Equal(textResourceElementWithCommonId.Id, actualTextResourceElement.Id);
+        Assert.Equal(textResourceElementWithCommonId.Value, actualTextResourceElement.Value);
+
+        actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == textResourceElementWithUniqueId.Id);
+        Assert.Equal(textResourceElementWithUniqueId.Id, actualTextResourceElement.Id);
+        Assert.Equal(textResourceElementWithUniqueId.Value, actualTextResourceElement.Value);
     }
 
     [Fact]
-    public async Task Post_Returns200OK_WhenImportingCodeListFromOrgWithTextResources_WithQueryParameter()
+    public async Task Post_ImportsTextResourcesAndOverwrites_WhenOverwriteParameterIsTrue()
     {
         // Arrange
         const string OrgRepoName = "org-content";
@@ -100,7 +105,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string OptionListId = "codeListWithTextResources";
         const string LanguageCode = "nb";
         const string TextResourceRelativePath = $"App/config/texts/resource.{LanguageCode}.json";
-        TextResourceElement expectedTextResourceElement = new() { Id = "Navn", Value = "New name" };
+        TextResourceElement textResourceElementWithCommonId = new() { Id = "Navn", Value = "New name" };
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
 
@@ -119,12 +124,12 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         string actualTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
         TextResource actualTextResource = JsonSerializer.Deserialize<TextResource>(actualTextResourceFileContent, s_jsonOptions);
-        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == expectedTextResourceElement.Id);
+        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == textResourceElementWithCommonId.Id);
 
         Assert.Equal(LanguageCode, actualTextResource.Language);
         Assert.Equal(sourceTextResource.Resources.Count + 1, actualTextResource.Resources.Count);
-        Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
-        Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
+        Assert.Equal(textResourceElementWithCommonId.Id, actualTextResourceElement.Id);
+        Assert.Equal(textResourceElementWithCommonId.Value, actualTextResourceElement.Value);
     }
 
     [Fact]
