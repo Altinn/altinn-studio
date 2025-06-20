@@ -6,6 +6,10 @@
             "value": "someValue"
         },
         {
+            "id": "Navn",
+            "value": "New name"
+        },
+        {
             "id": "TextUsingVariables",
             "value": "Dette er en tekst som skal oppdateres, men som har variablene {0} og {1} tilknyttet seg, som IKKE skal bli borte eller endret",
             "variables": [
