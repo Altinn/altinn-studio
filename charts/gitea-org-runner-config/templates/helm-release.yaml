@@ -44,4 +44,9 @@ spec:
         operator: "Equal"
         value: "runner"
         effect: "NoSchedule"
-
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchLabels:
+                purpose: runner
