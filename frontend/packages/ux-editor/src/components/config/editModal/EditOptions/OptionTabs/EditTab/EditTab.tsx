@@ -1,4 +1,4 @@
-import React, { createRef, forwardRef } from 'react';
+import React, { createRef } from 'react';
 import {
   StudioAlert,
   StudioButton,
@@ -28,6 +28,8 @@ import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
+import { ManualOptionsDialog } from './ManualOptionsDialog';
+import type { OptionListEditorProps } from './OptionListEditor/OptionListEditor';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -85,10 +87,16 @@ function EditTabWithData({
 
   return (
     <div className={classes.container}>
-      <OptionListTools
-        ref={dialogRef}
+      <ManualOptionsDialog
         component={component}
         handleComponentChange={handleComponentChange}
+        ref={dialogRef}
+        textResources={textResources}
+      />
+      <OptionListTools
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onEditButtonClick={() => dialogRef.current.showModal()}
         optionListIds={optionListIds}
         textResources={textResources}
       />
@@ -106,24 +114,28 @@ function EditTabWithData({
   );
 }
 
-type OptionListToolsProps = EditTabWithDataProps;
+type OptionListToolsProps = EditTabWithDataProps & Pick<OptionListEditorProps, 'onEditButtonClick'>;
 
-const OptionListTools = forwardRef<HTMLDialogElement, OptionListToolsProps>(
-  ({ component, handleComponentChange, optionListIds, textResources }, ref) => {
-    if (hasStaticOptionList(optionListIds, component)) {
-      return (
-        <OptionListEditor
-          ref={ref}
-          component={component}
-          handleComponentChange={handleComponentChange}
-          textResources={textResources}
-        />
-      );
-    } else {
-      return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
-    }
-  },
-);
+function OptionListTools({
+  component,
+  handleComponentChange,
+  onEditButtonClick,
+  optionListIds,
+  textResources,
+}: OptionListToolsProps): React.ReactElement {
+  if (hasStaticOptionList(optionListIds, component)) {
+    return (
+      <OptionListEditor
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onEditButtonClick={onEditButtonClick}
+        textResources={textResources}
+      />
+    );
+  } else {
+    return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+  }
+}
 
 OptionListTools.displayName = 'OptionListTools';
 

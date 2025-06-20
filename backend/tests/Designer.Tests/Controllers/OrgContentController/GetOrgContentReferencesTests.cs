@@ -203,6 +203,38 @@ public class GetOrgContentReferencesTests
     }
 
     [Fact]
+    public async Task GetOrgContentReferences_WhenContentRepoIsEmpty_ShouldReturnEmptyList()
+    {
+        // Arrange
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+
+        OrgAndRepoName orgAndRepoName = GenerateOrgAndRepoNames();
+        const string Username = "testUser";
+        const string SourceOrgName = "ttd";
+        const string SourceRepoName = "org-content-empty";
+        await CopyOrgRepositoryForTest(
+            Username,
+            SourceOrgName,
+            SourceRepoName,
+            orgAndRepoName.Org.Name,
+            orgAndRepoName.RepoName
+        );
+
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        Assert.Empty(contentList);
+
+        _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
+    }
+
+    [Fact]
     public async Task GetOrgContentReferences_GivenInvalidTypeParameter_ShouldReturnBadRequest()
     {
         // Arrange
