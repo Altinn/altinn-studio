@@ -1,6 +1,4 @@
 export {
-  mapLanguageKeyToLanguageText,
-  getMissingInputLanguageString,
   getResourceIdentifierErrorMessage,
   deepCompare,
   getAvailableEnvironments,
