@@ -11,7 +11,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { mapAltinn2LinkServiceToSelectOption } from '../../utils/mapperUtils';
 
 const mockButtonText: string = 'Mock Button';
 const mockAltinn2LinkService: Altinn2LinkService = {

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ErrorSummary } from './ErrorSummary';
 import type { ErrorSummaryProps } from './ErrorSummary';
-import type { AppResourceFormError } from 'app-shared/types/AppResource';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ErrorSummary', () => {
@@ -32,7 +32,7 @@ describe('ErrorSummary', () => {
   });
 });
 
-const mockErrors: AppResourceFormError[] = [
+const mockErrors: AppConfigFormError[] = [
   { field: 'repositoryName', index: 0, error: 'Repository name is required' },
   { field: 'serviceName', index: 'en', error: 'Service name in English is missing' },
   { field: 'serviceId', error: 'Service ID must be unique' },
