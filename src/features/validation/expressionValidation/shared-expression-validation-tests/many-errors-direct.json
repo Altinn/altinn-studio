@@ -14,7 +14,7 @@
       "componentId": "name-input"
     },
     {
-      "message": "email must be real",
+      "message": "The typed email must be real",
       "severity": "error",
       "field": "form.email",
       "componentId": "email-input"
@@ -41,17 +41,13 @@
       "form.email": [
         "none-is-not-allowed",
         {
-          "message": "email must be real",
+          "message": ["text", "email-must-be-real"],
           "severity": "error",
           "condition": ["contains", ["dataModel", "form.email"], "fake"]
         },
         {
           "ref": "str-len",
-          "condition": [
-            "lessThan",
-            ["stringLength", ["dataModel", "form.email"]],
-            20
-          ]
+          "condition": ["lessThan", ["stringLength", ["dataModel", "form.email"]], 20]
         },
         {
           "message": "email must contain @",
@@ -69,11 +65,7 @@
       "str-len": {
         "message": "string is too short",
         "severity": "error",
-        "condition": [
-          "lessThan",
-          ["stringLength", ["dataModel", ["argv", 0]]],
-          5
-        ]
+        "condition": ["lessThan", ["stringLength", ["dataModel", ["argv", 0]]], 5]
       }
     }
   },
@@ -83,6 +75,12 @@
       "email": "fake@email.com"
     }
   },
+  "textResources": [
+    {
+      "id": "email-must-be-real",
+      "value": "The typed email must be real"
+    }
+  ],
   "layouts": {
     "Page": {
       "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",

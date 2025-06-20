@@ -60,6 +60,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
 }: IGenericComponentProps<Type>) {
   const itemExists = useNodeItem(node, (i) => !!i);
   const generatorErrors = NodesInternal.useNodeData(node, (node) => node.errors);
+
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (
       <ErrorList

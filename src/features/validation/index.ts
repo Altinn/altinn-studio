@@ -1,4 +1,4 @@
-import type { Expression, ExprValToActual } from 'src/features/expressions/types';
+import type { Expression, ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -229,7 +229,7 @@ export interface BackendValidationIssue {
  * Expression validation object.
  */
 export type IExpressionValidation = {
-  message: string;
+  message: ExprValToActualOrExpr<ExprVal.String>;
   condition: Expression | ExprValToActual;
   severity: ValidationSeverity;
   showImmediately: boolean;
