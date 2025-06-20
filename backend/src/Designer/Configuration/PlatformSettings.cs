@@ -90,5 +90,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Base Url used in dev
         /// </summary>
         public string ResourceRegistryDefaultBaseUrl { get; set; }
+
+        /// <summary>
+        /// Url used to load access packages
+        /// </summary>
+        public string AccessPackagesUrl { get; set; }
     }
 }
