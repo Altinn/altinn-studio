@@ -117,6 +117,16 @@ describe('EditTab', () => {
       screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
     ).toBeInTheDocument();
   });
+
+  it('Displays the dialog when the user clicks the edit button', async () => {
+    const user = userEvent.setup();
+
+    renderEditTabWithData();
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    await user.click(editButton);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
 });
 
 async function waitForSpinnerToBeRemoved() {

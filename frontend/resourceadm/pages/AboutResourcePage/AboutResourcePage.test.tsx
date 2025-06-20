@@ -5,14 +5,12 @@ import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
-  ConsentTemplate,
   Resource,
   ResourceContactPoint,
   ResourceStatusOption,
   ResourceTypeOption,
 } from 'app-shared/types/ResourceAdm';
 import {
-  getMissingInputLanguageString,
   mapKeywordsArrayToString,
   resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
@@ -64,6 +62,181 @@ const mockConsentResource: Resource = {
   },
   isOneTimeConsent: true,
 };
+const consentTemplateTitle = 'Fullmakt til å utføre en tjeneste';
+const consentTemplates = [
+  {
+    id: 'poa',
+    version: 1,
+    title: consentTemplateTitle,
+    isPoa: true,
+    isMessageSetInRequest: true,
+    restrictedToServiceOwners: null,
+    texts: {
+      title: {
+        person: {
+          nb: 'Fullmakt til å handle på dine vegne',
+          nn: 'Fullmakt til å handla på dine vegne',
+          en: 'Power of attorney to act on your behalf',
+        },
+        org: {
+          nb: 'Fullmakt til å handle på vegne av {OfferedBy}',
+          nn: 'Fullmakt til å handla på vegne av {OfferedBy}',
+          en: 'Power of attorney to act on behalf of {OfferedBy}',
+        },
+      },
+      heading: {
+        person: {
+          nb: '{CoveredBy} ønsker å utføre tjenester på dine vegne',
+          nn: '{CoveredBy} ønsker å utføra tenester på dine vegne',
+          en: '{CoveredBy} requests power of attorney from you',
+        },
+        org: {
+          nb: '{CoveredBy} ønsker å utføre tjenester på vegne av {OfferedBy}',
+          nn: '{CoveredBy} ønsker å utføra tenester på vegne av {OfferedBy}',
+          en: '{CoveredBy} requests power of attorney from {OfferedBy}',
+        },
+      },
+      serviceIntro: {
+        person: {
+          nb: 'Ved at du gir fullmakt, får {CoveredBy} tilgang til følgende tjenester på dine vegne',
+          nn: 'Ved at du gjer fullmakt, får {CoveredBy} tilgang til følgjande tenester på dine vegne',
+          en: 'By granting power of attorney, {CoveredBy} gets access to the following services on your behalf',
+        },
+        org: {
+          nb: 'Ved at du gir fullmakt, får {CoveredBy} tilgang til følgende tjenester på vegne av {OfferedBy}',
+          nn: 'Ved at du gjer fullmakt, får {CoveredBy} tilgang til følgjande tenester på vegne av {OfferedBy}',
+          en: 'By granting power of attorney, {CoveredBy} get access to the following services on behalf of {OfferedBy}',
+        },
+      },
+      overriddenDelegationContext: null,
+      expiration: {
+        nb: 'Fullmakten er tidsavgrenset og vil gå ut {Expiration}',
+        nn: 'Fullmakta er tidsavgrensa og vil gå ut {Expiration}',
+        en: 'The power of attorney is time-limited, and will expire {Expiration}',
+      },
+      expirationOneTime: {
+        nb: 'Fullmakten gjelder én gangs bruk av tjenestene',
+        nn: 'Fullmakta gjeld bruk av tenestene éin gong',
+        en: 'The power of attorney applies for one-time access to the service.',
+      },
+      serviceIntroAccepted: {
+        person: {
+          nb: 'Fullmakten gir {CoveredBy} tilgang til følgende tjenester på dine vegne',
+          nn: 'Fullmakta gjer {CoveredBy} tilgang til følgjande tenester på dine vegne',
+          en: 'The power of attorney gives {CoveredBy} access to the following services on your behalf',
+        },
+        org: {
+          nb: 'Fullmakten gir {CoveredBy} tilgang til følgende tjenester på vegne av {OfferedBy}',
+          nn: 'Fullmakta gjer {CoveredBy} tilgang til følgjande tenester på vegne av {OfferedBy}',
+          en: 'The power of attorney gives {CoveredBy} access to the following services on behalf of {OfferedBy}',
+        },
+      },
+      handledBy: {
+        nb: '{HandledBy} utfører tjenestene på vegne av {CoveredBy}.',
+        nn: '{HandledBy} utfører tenestene på vegne av {CoveredBy}',
+        en: '{HandledBy} utilizes the power of attorney on behalf of {CoveredBy}.',
+      },
+      historyUsedBody: {
+        nb: '{CoveredBy} har handlet på vegne av {OfferedBy}. Fullmakten utløper {Expiration}',
+        nn: '{CoveredBy} har handlet på vegne av {OfferedBy}. Fullmakten utløper {Expiration}',
+        en: '{CoveredBy} has acted on behalf of {OfferedBy}. The authority expires {Expiration}',
+      },
+      historyUsedByHandledByBody: {
+        nb: '{HandledBy} har, på vegne av {CoveredBy}, handlet på vegne av {OfferedBy}. Fullmakten utløper {Expiration}',
+        nn: '{HandledBy} har, på vegne av {CoveredBy}, handla på vegne av {OfferedBy}. Samtykket utløper {Expiration}',
+        en: '{HandledBy} has, on behalf of {CoveredBy}, acted on behalf of {OfferedBy}. The authority expires {Expiration}',
+      },
+    },
+  },
+  {
+    id: 'sblanesoknad',
+    version: 1,
+    title: 'Samtykkebasert lånesøknad',
+    isPoa: false,
+    isMessageSetInRequest: false,
+    restrictedToServiceOwners: ['skd', 'ttd'],
+    texts: {
+      title: {
+        person: {
+          nb: 'Samtykke til bruk av dine data',
+          nn: 'Samtykke til bruk av dine data',
+          en: 'Consent to use of your data',
+        },
+        org: {
+          nb: 'Samtykke til bruk av {OfferedBy} sine data',
+          nn: 'Samtykke til bruk av {OfferedBy} sine data',
+          en: 'Consent to use of the data of {OfferedBy}',
+        },
+      },
+      heading: {
+        person: {
+          nb: '{CoveredBy} ønsker å hente opplysninger om deg',
+          nn: '{CoveredBy} ønskjer å hente opplysningar om deg',
+          en: '{CoveredBy} requests information about you',
+        },
+        org: {
+          nb: '{CoveredBy} ønsker å hente opplysninger om {OfferedBy}',
+          nn: '{CoveredBy} ønskjer å hente opplysningar om  {OfferedBy}',
+          en: '{CoveredBy} requests information about {OfferedBy}',
+        },
+      },
+      serviceIntro: {
+        person: {
+          nb: 'Ved at du samtykker, får {CoveredBy} tilgang til følgende opplysninger om deg',
+          nn: 'Ved at du samtykker, får {CoveredBy} tilgang til følgjande opplysningar om deg',
+          en: 'By giving consent, {CoveredBy} gets access to the following information about you',
+        },
+        org: {
+          nb: 'Ved at du samtykker, får {CoveredBy} tilgang til følgende opplysninger om {OfferedBy}',
+          nn: 'Ved at du samtykker, får {CoveredBy} tilgang til følgjande opplysningar om {OfferedBy}',
+          en: 'By giving consent, {CoveredBy} gets access to the following information about {OfferedBy}',
+        },
+      },
+      overriddenDelegationContext: {
+        nb: 'Ved å samtykke, gir du Skatteetaten rett til å utlevere opplysninger om deg direkte til {CoveredBy}. Banken får opplysningene for å behandle søknaden din om finansiering',
+        nn: 'Ved å samtykka, gir du Skatteetaten rett til å utlevera opplysningar om deg direkte til {CoveredBy}. Banken får opplysningane for å behandla søknaden din om finansiering.',
+        en: 'By consenting you grant the The Norwegian Tax Administration the right to disclose information about you directly to {CoveredBy}. The bank receives the information to process your application for financing',
+      },
+      expiration: {
+        nb: 'Samtykket er tidsavgrenset og vil gå ut {Expiration}',
+        nn: 'Samtykket er tidsavgrensa og vil gå ut {Expiration}',
+        en: 'The consent is time-limited, and will expire {Expiration}',
+      },
+      expirationOneTime: {
+        nb: 'Samtykket gjelder én gangs utlevering av opplysningene.',
+        nn: 'Samtykket gjeld ein gongs utlevering av opplysningane.',
+        en: 'The consent applies for one-time disclosure of information.',
+      },
+      serviceIntroAccepted: {
+        person: {
+          nb: 'Samtykket gir {CoveredBy} tilgang til følgende opplysninger om deg',
+          nn: 'Samtykket gir {CoveredBy} tilgang til følgjande opplysningar om deg',
+          en: 'The consent gives {CoveredBy} access to the following information about you',
+        },
+        org: {
+          nb: 'Samtykket gir {CoveredBy} tilgang til følgende opplysninger om {OfferedBy}',
+          nn: 'Samtykket gir {CoveredBy} tilgang til følgjande opplysningar om {OfferedBy}',
+          en: 'The consent gives {CoveredBy} access to the following information about {OfferedBy}',
+        },
+      },
+      handledBy: {
+        nb: '{HandledBy} foretar dette oppslaget på vegne av {CoveredBy}.',
+        nn: '{HandledBy} gjer dette oppslaget på vegne av {CoveredBy}.',
+        en: '{HandledBy} performs the lookup on behalf of {CoveredBy}.',
+      },
+      historyUsedBody: {
+        nb: '{CoveredBy} har hentet data for {OfferedBy}. Samtykket utløper {Expiration}',
+        nn: '{CoveredBy} har henta data for {OfferedBy}. Samtykket utløper {Expiration}',
+        en: '{CoveredBy} has retrieved data for {OfferedBy}. The consent expires {Expiration}',
+      },
+      historyUsedByHandledByBody: {
+        nb: '{HandledBy} har, på vegne av {CoveredBy}, hentet data om {OfferedBy}. Samtykket utløper {Expiration}',
+        nn: '{HandledBy} har, på vegne av {CoveredBy}, henta data om {OfferedBy}. Samtykket utløper {Expiration}',
+        en: '{HandledBy} has, on behalf of {CoveredBy}, retrieved data about {OfferedBy}. The consent expires {Expiration}',
+      },
+    },
+  },
+];
 
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
@@ -122,10 +295,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const titleNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_title_label'),
-      { exact: false },
-    );
+    const titleNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
     await user.type(titleNbInput, mockNewTitleInput);
@@ -140,21 +312,45 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles title input change for english', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const titleEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+    );
+    await user.click(titleEnTab);
+
+    const titleEnInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
+    expect(titleEnInput).toHaveValue(mockResource1.title.en);
+
+    await user.type(titleEnInput, mockNewTitleInput);
+    await waitFor(() => titleEnInput.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      title: {
+        ...mockResource1.title,
+        en: `${mockResource1.title.en}${mockNewTitleInput}`,
+      },
+    });
+  });
+
   it('calls onSaveResource when going from one input field to another', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const titleNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_title_label'),
-      { exact: false },
-    );
+    const titleNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
     await user.type(titleNbInput, mockNewTitleInput);
     expect(mockOnSaveResource).not.toHaveBeenCalled();
 
-    const descriptionNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_description_label'),
-      { exact: false },
-    );
+    const descriptionNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
     await user.type(descriptionNbInput, mockNewDescriptionInput);
     expect(mockOnSaveResource).toHaveBeenCalled();
   });
@@ -163,10 +359,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const descriptionNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_description_label'),
-      { exact: false },
-    );
+    const descriptionNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
     await user.type(descriptionNbInput, mockNewDescriptionInput);
@@ -240,10 +435,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const rightDescriptionInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_rights_description_label'),
-      { exact: false },
-    );
+    const rightDescriptionInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_rights_description_label'),
+    });
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
     await user.clear(rightDescriptionInput);
@@ -323,10 +517,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
 
-    const consentTextNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_consent_text_label'),
-      { exact: false },
-    );
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
     expect(consentTextNbInput).toHaveValue(mockConsentResource.consentText.nb);
 
     await user.type(consentTextNbInput, mockNewConsentTextInput);
@@ -343,21 +536,12 @@ describe('AboutResourcePage', () => {
 
   it('handles consentTemplate changes', async () => {
     const user = userEvent.setup();
-    const consentTemplateTitle = 'Fullmakt til å utføre en tjeneste';
+
     render(
       <AboutResourcePage
         {...defaultProps}
         resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
-        consentTemplates={[
-          {
-            id: 'poa',
-            title: consentTemplateTitle,
-          } as ConsentTemplate,
-          {
-            id: 'sblanesoknad',
-            title: 'Samtykkebasert lånesøknad',
-          } as ConsentTemplate,
-        ]}
+        consentTemplates={consentTemplates}
       />,
     );
 
@@ -460,66 +644,22 @@ describe('AboutResourcePage', () => {
           {
             field: 'title',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.title,
-              textMock('resourceadm.about_resource_error_usage_string_title'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_title_nb',
           },
-
           {
             field: 'description',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.description,
-              textMock('resourceadm.about_resource_error_usage_string_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_description_nb',
           },
           {
             field: 'rightDescription',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.rightDescription,
-              textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_rights_description_nb',
           },
         ]}
         resourceData={mockResource2}
       />,
     );
-
-    expect(
-      screen.getAllByText(textMock('resourceadm.about_resource_resource_type_error')),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.title,
-          textMock('resourceadm.about_resource_error_usage_string_title'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.description,
-          textMock('resourceadm.about_resource_error_usage_string_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
   });
 
   it('does not display error message for rights description when delegable is false', async () => {
@@ -532,13 +672,7 @@ describe('AboutResourcePage', () => {
     );
 
     expect(
-      screen.queryByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
+      screen.queryByText('resource_error_translation_missing_rights_description_nb'),
     ).not.toBeInTheDocument();
   });
 
