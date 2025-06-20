@@ -7,6 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
 
 const pipelineDeployment: PipelineDeployment = {
   id: '1',
@@ -32,6 +33,10 @@ const defaultProps: DeploymentEnvironmentLogListProps = {
   pipelineDeploymentList: [],
 };
 
+jest.mock('app-shared/ext-urls', () => ({
+  grafanaPodLogsUrl: jest.fn(),
+}));
+
 const render = (
   props?: Partial<DeploymentEnvironmentLogListProps>,
   queries?: Partial<ServicesContextProps>,
@@ -41,6 +46,10 @@ const render = (
   );
 };
 describe('DeploymentEnvironmentLogList', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders with no history', () => {
     render();
     expect(
@@ -228,5 +237,72 @@ describe('DeploymentEnvironmentLogList', () => {
     expect(
       screen.getByText(`${textMock('app_deployment.table.build_log_active_link')}`),
     ).toBeInTheDocument();
+  });
+
+  it('renders grafana link', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            result: BuildResult.failed,
+          },
+        },
+      ],
+    });
+    expect(
+      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.failed')}`),
+    ).toBeInTheDocument();
+  });
+
+  it('renders grafana link', () => {
+    (grafanaPodLogsUrl as jest.Mock).mockReturnValue(jest.fn());
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: '2025-06-16T10:46:23.216Z',
+            finished: '2025-06-16T10:46:23.216Z',
+            result: BuildResult.failed,
+          },
+        },
+      ],
+    });
+    expect(grafanaPodLogsUrl).toHaveBeenCalledWith({
+      app: 'testApp',
+      buildFinishTime: 1750070783216,
+      buildStartTime: 1750070783216,
+      env: 'test',
+      isProduction: false,
+      org: 'testOrg',
+    });
+  });
+
+  it('renders grafana link without times when build times are undefined', () => {
+    (grafanaPodLogsUrl as jest.Mock).mockReturnValue(jest.fn());
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: undefined,
+            finished: undefined,
+            result: BuildResult.failed,
+          },
+        },
+      ],
+    });
+    expect(grafanaPodLogsUrl).toHaveBeenCalledWith({
+      app: 'testApp',
+      buildFinishTime: undefined,
+      buildStartTime: undefined,
+      env: 'test',
+      isProduction: false,
+      org: 'testOrg',
+    });
   });
 });
