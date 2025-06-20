@@ -11053,13 +11053,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"map-or-similar@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "map-or-similar@npm:1.5.0"
-  checksum: 10/3cf43bcd0e7af41d7bade5f8b5be6bb9d021cc47e6008ad545d071cf3a709ba782884002f9eec6ccd51f572fc17841e07bf74628e0bc3694c33f4622b03e4b4c
-  languageName: node
-  linkType: hard
-
 "markdown-to-jsx@npm:7.7.7":
   version: 7.7.7
   resolution: "markdown-to-jsx@npm:7.7.7"
