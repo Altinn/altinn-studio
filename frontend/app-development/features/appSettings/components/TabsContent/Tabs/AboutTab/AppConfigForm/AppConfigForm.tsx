@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioSwitch, StudioTextfield } from '@studio/components';
+import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
@@ -12,6 +12,7 @@ import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
+import { SwitchInput } from './SwitchInput';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -32,6 +33,17 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     !showAppConfigErrors,
     validationErrors,
     'serviceName',
+  );
+  const descriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'description',
+  );
+
+  const rightDescriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'rightDescription',
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -97,6 +109,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
+  const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      rightDescription: updatedLanguage,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
@@ -132,8 +151,9 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           id={AppResourceFormFieldIds.Description}
           value={updatedAppConfig.description}
           updateLanguage={onChangeDescription}
-          required={false}
+          required
           isTextArea
+          errors={descriptionErrors}
         />
         <StudioTextfield
           label={t('app_settings.about_tab_homepage_field_label')}
@@ -143,16 +163,29 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        <StudioSwitch
-          label={t('app_settings.about_tab_delegable_field_label')}
-          description={t('app_settings.about_tab_delegable_show_text', {
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
             shouldText: !updatedAppConfig.isDelegable
               ? t('app_settings.about_tab_switch_should_not')
               : '',
           })}
-          checked={updatedAppConfig.isDelegable}
+          cardHeading={t('app_settings.about_tab_delegable_field_label')}
+          description={t('app_settings.about_tab_delegable_field_description')}
+          checked={updatedAppConfig?.isDelegable ?? false}
           onChange={onChangeDelegable}
         />
+        {updatedAppConfig.isDelegable && (
+          <InputfieldsWithTranslation
+            label={t('app_settings.about_tab_right_description_field_label')}
+            description={t('app_settings.about_tab_right_description_field_description')}
+            id={AppResourceFormFieldIds.RightDescription}
+            value={updatedAppConfig.rightDescription}
+            updateLanguage={onChangeRightDescription}
+            required
+            isTextArea
+            errors={rightDescriptionErrors}
+          />
+        )}
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
@@ -166,6 +199,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
   Description = 'description',
+  RightDescription = 'rightDescription',
 }
 
 function getValidationErrorsForField(

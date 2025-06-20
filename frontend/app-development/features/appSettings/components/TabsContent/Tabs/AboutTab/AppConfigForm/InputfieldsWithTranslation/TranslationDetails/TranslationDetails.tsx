@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioDetails, StudioCard, StudioTag, StudioValidationMessage } from '@studio/components';
+import { StudioDetails, StudioCard, StudioTag } from '@studio/components';
 import classes from './TranslationDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -10,7 +10,6 @@ import {
   getErrorMessagesForLanguage,
   mapLanguageKeyToLanguageText,
 } from '../../../utils/appConfigLanguageUtils';
-import { getMissingInputLanguageString } from '../../../utils/appConfigValidationUtils';
 import cn from 'classnames';
 import { LanguageInputField } from '../LanguageInputField';
 
@@ -44,12 +43,7 @@ export function TranslationDetails({
 }: TranslationDetailsProps): ReactElement {
   const { t } = useTranslation();
 
-  const errorMessage: string = getMissingInputLanguageString(
-    { nb: value.nb, nn: value.nn, en: value.en },
-    id,
-    t,
-  );
-  const hasErrors: boolean = !!errorMessage && errors.length > 0;
+  const hasErrors: boolean = errors.length > 0;
   const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -90,35 +84,30 @@ export function TranslationDetails({
   };
 
   return (
-    <>
-      <StudioCard data-color='neutral' className={cn(classes.card, hasErrors && classes.cardError)}>
-        <StudioDetails open={open} onToggle={handleToggle}>
-          <StudioDetails.Summary>
-            {t('app_settings.about_tab_language_translation_header', { field: label })}
-            <StudioTag data-color={tagColor}>{tagText}</StudioTag>
-          </StudioDetails.Summary>
-          <StudioDetails.Content className={classes.content}>
-            {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
-              <LanguageInputField
-                key={lang}
-                label={fieldLabel}
-                value={fieldValue}
-                isTextArea={isTextArea}
-                onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                  handleChange(lang, e.target.value)
-                }
-                required={required}
-                tagText={tagText}
-                error={error}
-                id={`${id}-${lang}`}
-              />
-            ))}
-          </StudioDetails.Content>
-        </StudioDetails>
-      </StudioCard>
-      {errorMessage && hasErrors && (
-        <StudioValidationMessage>{errorMessage}</StudioValidationMessage>
-      )}
-    </>
+    <StudioCard data-color='neutral' className={cn(classes.card, hasErrors && classes.cardError)}>
+      <StudioDetails open={open} onToggle={handleToggle}>
+        <StudioDetails.Summary>
+          {t('app_settings.about_tab_language_translation_header', { field: label })}
+          <StudioTag data-color={tagColor}>{tagText}</StudioTag>
+        </StudioDetails.Summary>
+        <StudioDetails.Content className={classes.content}>
+          {translationFields.map(({ lang, label: fieldLabel, value: fieldValue, error }) => (
+            <LanguageInputField
+              key={lang}
+              label={fieldLabel}
+              value={fieldValue}
+              isTextArea={isTextArea}
+              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                handleChange(lang, e.target.value)
+              }
+              required={required}
+              tagText={tagText}
+              error={error}
+              id={`${id}-${lang}`}
+            />
+          ))}
+        </StudioDetails.Content>
+      </StudioDetails>
+    </StudioCard>
   );
 }

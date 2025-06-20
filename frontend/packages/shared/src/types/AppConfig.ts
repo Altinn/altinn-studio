@@ -15,4 +15,5 @@ export type AppConfigNew = {
   description?: SupportedLanguage;
   homepage?: string;
   isDelegable?: boolean;
+  rightDescription?: SupportedLanguage;
 };

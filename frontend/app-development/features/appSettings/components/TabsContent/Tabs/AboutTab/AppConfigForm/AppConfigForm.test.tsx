@@ -33,7 +33,6 @@ describe('AppConfigForm', () => {
     expect(
       getLink(errorMessageServiceNameEN('app_settings.about_tab_error_usage_string_service_name')),
     ).toBeInTheDocument();
-    expect(getText(errorMessageServiceNameMissingNNandEN('serviceName'))).toBeInTheDocument();
   });
 
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
@@ -90,7 +89,7 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: { ...mockAppConfig, description: mockDescription } });
 
-    const description = getOptionalTextbox(
+    const description = getRequiredTextbox(
       `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(description).toHaveValue(mockDescription.nb);
@@ -104,10 +103,91 @@ describe('AppConfigForm', () => {
   it('displays description as empty when there is no description set', () => {
     renderAppConfigForm();
 
-    const description = getOptionalTextbox(
+    const description = getRequiredTextbox(
       `${textMock('app_settings.about_tab_description_field_label')} (${textMock('language.nb')})`,
     );
     expect(description).toHaveValue('');
+  });
+
+  it('displays homepage as empty when there is no homepage set', () => {
+    renderAppConfigForm();
+
+    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    expect(homepage).toHaveValue('');
+  });
+
+  it('displays correct value in "homepage" input field, and updates the value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, homepage: mockHomepage } });
+
+    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    expect(homepage).toHaveValue(mockHomepage);
+
+    const newText: string = 'A';
+    await user.type(homepage, newText);
+
+    expect(homepage).toHaveValue(`${mockHomepage}${newText}`);
+  });
+
+  it('displays isDelegable as false when there is no value set', () => {
+    renderAppConfigForm();
+
+    const isDelegable = getSwitch(
+      textMock('app_settings.about_tab_delegable_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(isDelegable).not.toBeChecked();
+  });
+
+  it('displays correct value in "isDelegable", and updates the value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, isDelegable: false } });
+
+    const isDelegable = getSwitch(
+      textMock('app_settings.about_tab_delegable_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(isDelegable).not.toBeChecked();
+
+    await user.click(isDelegable);
+
+    expect(isDelegable).toBeChecked();
+  });
+
+  it('does not show rightDescription when isDelegable is false', () => {
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, isDelegable: false } });
+    const rightDescription = queryRequiredTextbox(
+      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
+    );
+    expect(rightDescription).not.toBeInTheDocument();
+  });
+
+  it('displays correct value in "rightDescription" input field, and updates the value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm({
+      appConfig: { ...mockAppConfig, rightDescription: mockRightDescription, isDelegable: true },
+    });
+
+    const rightDescription = getRequiredTextbox(
+      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
+    );
+    expect(rightDescription).toHaveValue(mockRightDescription.nb);
+
+    const newText: string = 'A';
+    await user.type(rightDescription, newText);
+
+    expect(rightDescription).toHaveValue(`${mockRightDescription.nb}${newText}`);
+  });
+
+  it('displays rightDescription as empty when there is no description set', () => {
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, isDelegable: true } });
+
+    const rightDescription = getRequiredTextbox(
+      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
+    );
+    expect(rightDescription).toHaveValue('');
   });
 
   it('disables the action buttons when no changes are made', () => {
@@ -237,7 +317,7 @@ describe('AppConfigForm', () => {
 
   it('should hide the alert when the required fields are filled in correctly', async () => {
     const user = userEvent.setup();
-    renderAppConfigForm();
+    renderAppConfigForm({ appConfig: { ...mockAppConfig, description: mockDescription } });
 
     const appName = getRequiredTextbox(
       `${textMock('app_settings.about_tab_name_label')} (${textMock('language.nb')})`,
@@ -295,6 +375,12 @@ const mockDescription: SupportedLanguage = {
   nn: 'Dette er ei tenestebeskriving',
   en: 'This is a description',
 };
+const mockRightDescription: SupportedLanguage = {
+  nb: 'Dette er en rettighetsbeskrivelse',
+  nn: 'Dette er ei rettigheitstekst',
+  en: 'This is a right description',
+};
+const mockHomepage: string = 'https://example.com/homepage';
 const mockServiceNameComplete: SupportedLanguage = {
   nb: 'Tjeneste',
   nn: 'Teneste',
@@ -309,6 +395,10 @@ const mockAppConfigComplete: AppConfigNew = {
   serviceId: 'some-id',
   serviceName: mockServiceNameComplete,
   repositoryName: 'my-repo',
+  description: mockDescription,
+  homepage: mockHomepage,
+  isDelegable: false,
+  rightDescription: mockRightDescription,
 };
 
 const defaultProps: AppConfigFormProps = {
@@ -322,9 +412,13 @@ function renderAppConfigForm(props: Partial<AppConfigFormProps> = {}) {
 
 const getRequiredTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${requiredText}`);
+const queryRequiredTextbox = (name: string): HTMLInputElement | null =>
+  queryTextbox(`${name} ${requiredText}`) || null;
 const getOptionalTextbox = (name: string): HTMLInputElement =>
   getTextbox(`${name} ${optionalText}`);
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });
+const queryTextbox = (name: string): HTMLInputElement | null =>
+  screen.queryByRole('textbox', { name });
 const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
 const queryLink = (name: string): HTMLAnchorElement | null => screen.queryByRole('link', { name });
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
@@ -338,17 +432,11 @@ const queryErrorHeader = (): HTMLHeadingElement | null =>
     name: textMock('app_settings.about_tab_error_summary_header'),
     level: 2,
   });
-const getText = (name: string): HTMLParagraphElement => screen.getByText(name);
+const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch', { name });
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
 
-const errorMessageServiceNameMissingNNandEN = (usageString: string): string =>
-  textMock('app_settings.about_tab_language_error_missing_2', {
-    usageString,
-    lang1: textMock('language.nn').toLowerCase(),
-    lang2: textMock('language.en').toLowerCase(),
-  });
 const errorMessageServiceNameNN = (field: string): string =>
   textMock('app_settings.about_tab_error_translation_missing_nn', {
     field: textMock(field),
