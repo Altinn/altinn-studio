@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
+import type { ReactElement } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
 import { XMarkOctagonFillIcon } from '@studio/icons';
-import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type {
+  ResourceFormError,
+  SupportedLanguage,
+  ValidLanguage,
+} from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import { useTranslation } from 'react-i18next';
 
@@ -61,7 +66,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  * @property {boolean}[required] - Whether this field is required or not
  *
- * @returns {React.JSX.Element} - The rendered component
+ * @returns {ReactElement} - The rendered component
  */
 export const ResourceLanguageTextField = ({
   id,
@@ -72,9 +77,8 @@ export const ResourceLanguageTextField = ({
   errors,
   useTextArea,
   required,
-}: ResourceLanguageTextFieldProps): React.JSX.Element => {
-  const { t } = useTranslation();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('nb');
+}: ResourceLanguageTextFieldProps): ReactElement => {
+  const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   const getTrimmedTranslations = (): SupportedLanguage => {
@@ -114,36 +118,12 @@ export const ResourceLanguageTextField = ({
         description={
           <div className={classes.translationFieldDescription}>
             {description}
-            <StudioTabs
-              defaultValue='nb'
-              size='sm'
-              value={selectedLanguage}
-              onChange={setSelectedLanguage}
-            >
-              <StudioTabs.List>
-                <StudioTabs.Tab
-                  value='nb'
-                  aria-label={`${t('resourceadm.about_resource_translation_nb')} ${label}`}
-                >
-                  {errors.some((error) => error.index === 'nb') && <TranslationTabError />}
-                  {t('resourceadm.about_resource_translation_nb')}
-                </StudioTabs.Tab>
-                <StudioTabs.Tab
-                  value='nn'
-                  aria-label={`${t('resourceadm.about_resource_translation_nn')} ${label}`}
-                >
-                  {errors.some((error) => error.index === 'nn') && <TranslationTabError />}
-                  {t('resourceadm.about_resource_translation_nn')}
-                </StudioTabs.Tab>
-                <StudioTabs.Tab
-                  value='en'
-                  aria-label={`${t('resourceadm.about_resource_translation_en')} ${label}`}
-                >
-                  {errors.some((error) => error.index === 'en') && <TranslationTabError />}
-                  {t('resourceadm.about_resource_translation_en')}
-                </StudioTabs.Tab>
-              </StudioTabs.List>
-            </StudioTabs>
+            <LanguageTabs
+              label={label}
+              errors={errors}
+              selectedLanguage={selectedLanguage}
+              onChangeSelectedLanguage={setSelectedLanguage}
+            />
           </div>
         }
         value={translations[selectedLanguage]}
@@ -160,3 +140,38 @@ export const ResourceLanguageTextField = ({
 const TranslationTabError = () => (
   <XMarkOctagonFillIcon className={classes.translationFieldTabError} />
 );
+
+interface LanguageTabsProps {
+  label: string;
+  errors?: ResourceFormError[];
+  selectedLanguage: ValidLanguage;
+  onChangeSelectedLanguage: (newSelectedLanguage: ValidLanguage) => void;
+}
+const LanguageTabs = ({
+  label,
+  errors,
+  selectedLanguage,
+  onChangeSelectedLanguage,
+}: LanguageTabsProps): ReactElement => {
+  const { t } = useTranslation();
+
+  const onLanguageChanged = (newValue: string): void => {
+    onChangeSelectedLanguage(newValue as ValidLanguage);
+  };
+
+  return (
+    <StudioTabs defaultValue='nb' size='sm' value={selectedLanguage} onChange={onLanguageChanged}>
+      <StudioTabs.List>
+        {['nb', 'nn', 'en'].map((language) => {
+          const languageText = t(`language.${language}`);
+          return (
+            <StudioTabs.Tab key={language} value={language} aria-label={`${languageText} ${label}`}>
+              {errors.some((error) => error.index === language) && <TranslationTabError />}
+              {languageText}
+            </StudioTabs.Tab>
+          );
+        })}
+      </StudioTabs.List>
+    </StudioTabs>
+  );
+};

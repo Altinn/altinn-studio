@@ -11,7 +11,7 @@
 }
 
 .warningCardWrapper {
-  margin-top: var(--fds-spacing-1);
+  margin-top: var(--ds-size-1);
 }
 
 .toggleWrapper {
@@ -37,7 +37,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }
 .translationFieldTabError {
   color: var(--ds-color-danger-text-subtle);

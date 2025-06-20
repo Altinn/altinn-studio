@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { ReactElement } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTextfield } from '@studio/components';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
@@ -48,7 +49,7 @@ type ResourceTextFieldProps = {
  * @property {boolean}[required] - Whether this field is required or not
  * @property {boolean}[readOnly] - Whether this field is read only or not
  *
- * @returns {React.JSX.Element} - The rendered component
+ * @returns {ReactElement} - The rendered component
  */
 export const ResourceTextField = ({
   id,
@@ -58,7 +59,7 @@ export const ResourceTextField = ({
   onBlur,
   required,
   readOnly,
-}: ResourceTextFieldProps): React.JSX.Element => {
+}: ResourceTextFieldProps): ReactElement => {
   const [val, setVal] = useState(value);
 
   return (

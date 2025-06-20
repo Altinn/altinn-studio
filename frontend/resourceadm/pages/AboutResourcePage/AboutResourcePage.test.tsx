@@ -312,6 +312,32 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles title input change for english', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const titleEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+    );
+    await user.click(titleEnTab);
+
+    const titleEnInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
+    expect(titleEnInput).toHaveValue(mockResource1.title.en);
+
+    await user.type(titleEnInput, mockNewTitleInput);
+    await waitFor(() => titleEnInput.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      title: {
+        ...mockResource1.title,
+        en: `${mockResource1.title.en}${mockNewTitleInput}`,
+      },
+    });
+  });
+
   it('calls onSaveResource when going from one input field to another', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);

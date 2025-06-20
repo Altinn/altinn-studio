@@ -49,39 +49,39 @@ export class ResourcePage extends ResourceEnvironment {
       name: textMock('resourceadm.about_resource_resource_title_label'),
     });
     this.titleNbTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+      `${textMock('language.nb')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
     this.titleNnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+      `${textMock('language.nn')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
     this.titleEnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
     );
 
     this.descriptionTextField = this.page.getByRole('textbox', {
       name: textMock('resourceadm.about_resource_resource_description_label'),
     });
     this.descriptionNbTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
+      `${textMock('language.nb')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
     this.descriptionNnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
+      `${textMock('language.nn')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
     this.descriptionEnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_description_label')}`,
     );
 
     this.rightsDescriptionTextField = this.page.getByRole('textbox', {
       name: textMock('resourceadm.about_resource_rights_description_label'),
     });
     this.rightsDescriptionNbTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nb')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
+      `${textMock('language.nb')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
     this.rightsDescriptionNnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_nn')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
+      `${textMock('language.nn')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
     this.rightsDescriptionEnTab = this.page.getByLabel(
-      `${textMock('resourceadm.about_resource_translation_en')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_rights_description_label')}`,
     );
 
     this.statusRadio = this.page.getByRole('radio', {
