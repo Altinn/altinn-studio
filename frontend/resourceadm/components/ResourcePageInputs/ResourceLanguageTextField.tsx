@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ReactElement } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
@@ -93,9 +93,7 @@ export const ResourceLanguageTextField = ({
     onBlur(getTrimmedTranslations());
   };
 
-  const onFieldValueChanged = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTranslations((oldTranslations) => {
       return { ...oldTranslations, [selectedLanguage]: newValue };
@@ -110,8 +108,7 @@ export const ResourceLanguageTextField = ({
 
   return (
     <div className={classes.inputWrapper}>
-      {/*@ts-expect-error typescript will complain that aria-labelledby is missing, seems to be caused "multiline" prop since can be both true and false*/}
-      <StudioTextfield
+      <LanguageInputField
         id={id}
         required={required}
         label={<ResourceFieldHeader label={label} required={required} />}
@@ -128,18 +125,31 @@ export const ResourceLanguageTextField = ({
         }
         value={translations[selectedLanguage]}
         onChange={onFieldValueChanged}
-        multiline={useTextArea}
+        isTextArea={useTextArea}
         error={mainFieldError.length > 0 ? mainFieldError : undefined}
         onBlur={onBlurField}
-        rows={5}
       />
     </div>
   );
 };
 
-const TranslationTabError = () => (
-  <XMarkOctagonFillIcon className={classes.translationFieldTabError} />
-);
+type LanguageInputFieldProps = {
+  id: string;
+  required: boolean;
+  isTextArea: boolean;
+  label: ReactElement;
+  description: ReactElement;
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  error?: ReactElement[];
+  onBlur: () => void;
+};
+const LanguageInputField = ({ isTextArea, ...rest }: LanguageInputFieldProps): ReactElement => {
+  if (isTextArea) {
+    return <StudioTextfield multiline rows={5} {...rest} />;
+  }
+  return <StudioTextfield {...rest} />;
+};
 
 interface LanguageTabsProps {
   label: string;
@@ -166,7 +176,9 @@ const LanguageTabs = ({
           const languageText = t(`language.${language}`);
           return (
             <StudioTabs.Tab key={language} value={language} aria-label={`${languageText} ${label}`}>
-              {errors.some((error) => error.index === language) && <TranslationTabError />}
+              {errors.some((error) => error.index === language) && (
+                <XMarkOctagonFillIcon className={classes.translationFieldTabError} />
+              )}
               {languageText}
             </StudioTabs.Tab>
           );
