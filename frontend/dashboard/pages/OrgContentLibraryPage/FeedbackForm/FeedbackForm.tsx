@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { useMemo } from 'react';
 import { type FeedbackFormConfig, FeedbackFormImpl } from '@studio/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
-import { useParams } from 'react-router-dom';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
 
 export function FeedbackForm(): ReactElement {
   const feedbackForm = useFeedbackForm();
@@ -10,11 +10,11 @@ export function FeedbackForm(): ReactElement {
 }
 
 function useFeedbackForm(): FeedbackFormImpl {
-  const { selectedContext } = useParams();
+  const orgName = useSelectedContext();
 
   const config: FeedbackFormConfig = useMemo(() => {
-    const repository = `${selectedContext}-content`;
-    const submitPath = submitFeedbackPath(selectedContext, repository);
+    const repository = `${orgName}-content`;
+    const submitPath = submitFeedbackPath(orgName, repository);
 
     return {
       id: 'organisasjonsbibliotek',
@@ -39,7 +39,7 @@ function useFeedbackForm(): FeedbackFormImpl {
         },
       ],
     };
-  }, [selectedContext]);
+  }, [orgName]);
 
   return useMemo(() => new FeedbackFormImpl(config), [config]);
 }
