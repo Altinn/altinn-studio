@@ -86,7 +86,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         TextResource actualTextResource = JsonSerializer.Deserialize<TextResource>(actualTextResourceFileContent, s_jsonOptions);
         Assert.Equal(LanguageCode, actualTextResource.Language);
 
-        TextResourceElement actualTextResourceElement = actualTextResource.Resources[^1];
+        TextResourceElement actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == expectedTextResourceElement.Id);
         Assert.Equal(expectedTextResourceElement.Id, actualTextResourceElement.Id);
         Assert.Equal(expectedTextResourceElement.Value, actualTextResourceElement.Value);
     }
