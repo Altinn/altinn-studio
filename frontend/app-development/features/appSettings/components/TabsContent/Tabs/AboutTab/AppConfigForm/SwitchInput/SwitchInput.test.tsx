@@ -14,6 +14,9 @@ describe('SwitchInput', () => {
     expect(getText(cardHeading)).toBeInTheDocument();
     expect(getText(description)).toBeInTheDocument();
     expect(getText(required)).toBeInTheDocument();
+
+    const switchElement = getSwitch();
+    expect(switchElement).toHaveAccessibleName(ariaLabel);
   });
 
   it('renders optional tag when required is false', () => {
@@ -27,6 +30,13 @@ describe('SwitchInput', () => {
 
     const toggle: HTMLInputElement = getSwitch();
     expect(toggle).toBeChecked();
+  });
+
+  it('reflects the unchecked state of the switch', () => {
+    renderSwitchInput({ checked: false });
+
+    const toggle: HTMLInputElement = getSwitch();
+    expect(toggle).not.toBeChecked();
   });
 
   it('calls onChange when switch is toggled', async () => {
