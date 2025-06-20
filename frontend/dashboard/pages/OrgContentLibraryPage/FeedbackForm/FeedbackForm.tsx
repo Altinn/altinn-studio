@@ -1,15 +1,24 @@
 import type { ReactElement } from 'react';
+import { useMemo } from 'react';
 import { type FeedbackFormConfig, FeedbackFormImpl } from '@studio/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useParams } from 'react-router-dom';
 
 export function FeedbackForm(): ReactElement {
+  const feedbackForm = useFeedbackForm();
+  return feedbackForm.getFeedbackForm();
+}
+
+function useFeedbackForm(): FeedbackFormImpl {
   const { selectedContext } = useParams();
 
-  const getFormContent = (): FeedbackFormConfig => {
+  const config: FeedbackFormConfig = useMemo(() => {
+    const repository = `${selectedContext}-content`;
+    const submitPath = submitFeedbackPath(selectedContext, repository);
+
     return {
       id: 'organisasjonsbibliotek',
-      submitPath: submitFeedbackPath(selectedContext, 'ttd-content'),
+      submitPath,
       buttonTexts: {
         submit: 'Send',
         trigger: 'Gi tilbakemelding',
@@ -30,9 +39,7 @@ export function FeedbackForm(): ReactElement {
         },
       ],
     };
-  };
+  }, [selectedContext]);
 
-  const feedbackForm = new FeedbackFormImpl(getFormContent());
-
-  return feedbackForm.getFeedbackForm();
+  return useMemo(() => new FeedbackFormImpl(config), [config]);
 }
