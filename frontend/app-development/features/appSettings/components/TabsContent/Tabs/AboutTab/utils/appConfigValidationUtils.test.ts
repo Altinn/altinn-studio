@@ -1,8 +1,9 @@
-import { getMissingInputLanguageString, validateAppResource } from './appResourceValidationUtils';
-import type { AppResource, AppResourceFormError } from 'app-shared/types/AppResource';
+import { getMissingInputLanguageString, validateAppConfig } from './appConfigValidationUtils';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('appResourceValidationUtils', () => {
+describe('appConfigValidationUtils', () => {
   describe('getMissingInputLanguageString', () => {
     it('returns empty string when no languages are missing', () => {
       const result: string = getMissingInputLanguageString(
@@ -32,49 +33,45 @@ describe('appResourceValidationUtils', () => {
     });
   });
 
-  describe('validateAppResource', () => {
-    it('returns empty array if appResource is undefined', () => {
-      const result: AppResourceFormError[] = validateAppResource(undefined, textMock);
+  describe('validateAppConfig', () => {
+    it('returns empty array if appConfig is undefined', () => {
+      const result: AppConfigFormError[] = validateAppConfig(undefined, textMock);
       expect(result).toEqual([]);
     });
 
     it('returns no errors if all serviceName translations are present', () => {
-      const appResource: AppResource = {
+      const appConfig: AppConfigNew = {
         serviceName: {
           nb: 'Tjeneste',
           nn: 'Teneste',
           en: 'Service',
         },
-      } as AppResource;
+      } as AppConfigNew;
 
-      const result = validateAppResource(appResource, textMock);
+      const result = validateAppConfig(appConfig, textMock);
       expect(result).toHaveLength(0);
     });
 
     it('returns missing translation errors for nn and en if those fields are empty', () => {
-      const appResource: AppResource = {
+      const appConfig: AppConfigNew = {
         serviceName: {
           nb: 'Tjeneste',
         },
-      } as AppResource;
+      } as AppConfigNew;
 
-      const result: AppResourceFormError[] = validateAppResource(appResource, textMock);
+      const result: AppConfigFormError[] = validateAppConfig(appConfig, textMock);
 
       expect(result).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             field: 'serviceName',
             index: 'nn',
-            error: expect.stringContaining(
-              'app_settings.about_tab_error_translation_missing_service_name_nn',
-            ),
+            error: expect.stringContaining('app_settings.about_tab_error_translation_missing_nn'),
           }),
           expect.objectContaining({
             field: 'serviceName',
             index: 'en',
-            error: expect.stringContaining(
-              'app_settings.about_tab_error_translation_missing_service_name_en',
-            ),
+            error: expect.stringContaining('app_settings.about_tab_error_translation_missing_en'),
           }),
         ]),
       );
