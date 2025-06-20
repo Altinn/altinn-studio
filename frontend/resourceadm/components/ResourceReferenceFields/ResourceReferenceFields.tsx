@@ -23,11 +23,6 @@ export type ResourceReferenceFieldsProps = {
    */
   onResourceReferenceFieldChanged: (resourceReference: ResourceReference[]) => void;
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * Field error messages
    */
   errors: ResourceFormError[];
@@ -43,7 +38,6 @@ export type ResourceReferenceFieldsProps = {
  *
  * @property {ResourceReference[]}[resourceReferenceList] - The current resource references list
  * @property {function}[onResourceReferenceFieldChanged] - Function to be executed when resource references are changed
- * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {ResourceFormError[]}[errors] - Field error messages
  * @property {boolean}[required] - Whether this field is required or not
  *
@@ -52,7 +46,6 @@ export type ResourceReferenceFieldsProps = {
 export const ResourceReferenceFields = ({
   resourceReferenceList,
   onResourceReferenceFieldChanged,
-  onFocus,
   errors,
   required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
@@ -78,7 +71,6 @@ export const ResourceReferenceFields = ({
             <ResourceReferenceFieldset
               resourceReference={item}
               onChangeResourceReferenceField={onChange}
-              onFocus={onFocus}
               errors={errors}
               required={required}
               index={index}

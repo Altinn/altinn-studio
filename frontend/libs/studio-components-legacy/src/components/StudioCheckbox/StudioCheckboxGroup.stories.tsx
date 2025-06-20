@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { StudioCheckboxGroupProps } from './';
 import { StudioCheckbox } from './';
 

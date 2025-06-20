@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components-legacy';
 import { StudioAlert } from '@studio/components';
-import type { Translation } from '../../types/Translation';
 import type {
   Resource,
   ResourceTypeOption,
@@ -97,9 +96,6 @@ export const AboutResourcePage = ({
     label: template.title,
   }));
 
-  // To handle which translation value is shown in the right menu
-  const [translationType, setTranslationType] = useState<Translation>('none');
-
   /**
    * Saves the resource object passed in
    *
@@ -141,7 +137,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_identifier_description')}
           value={resourceData.identifier}
           readOnly
-          onFocus={() => setTranslationType('none')}
           onBlur={() => {}}
         />
         <ResourceRadioGroup
@@ -150,7 +145,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
           options={resourceTypeOptions}
-          onFocus={() => setTranslationType('none')}
           onChange={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
@@ -161,10 +155,7 @@ export const AboutResourcePage = ({
           id='title'
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
-          translationDescription={t('resourceadm.about_resource_translation_title')}
           value={resourceData.title}
-          onFocus={() => setTranslationType('title')}
-          isTranslationPanelOpen={translationType === 'title'}
           onBlur={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, title: translations })
           }
@@ -175,11 +166,8 @@ export const AboutResourcePage = ({
           id='description'
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
-          translationDescription={t('resourceadm.about_resource_translation_description')}
-          isTranslationPanelOpen={translationType === 'description'}
           useTextArea
           value={resourceData.description}
-          onFocus={() => setTranslationType('description')}
           onBlur={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, description: translations })
           }
@@ -194,7 +182,6 @@ export const AboutResourcePage = ({
               description={t('resourceadm.about_resource_consent_template_text')}
               value={resourceData.consentTemplate}
               options={consentTemplateOptions}
-              onFocus={() => setTranslationType('none')}
               onChange={(selected: string) =>
                 handleSave({ ...resourceData, consentTemplate: selected })
               }
@@ -211,7 +198,6 @@ export const AboutResourcePage = ({
               label={t('resourceadm.about_resource_consent_metadata')}
               description={t('resourceadm.about_resource_consent_metadata_description')}
               value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
-              onFocus={() => setTranslationType('none')}
               onBlur={(val: string) =>
                 handleSave({
                   ...resourceData,
@@ -223,11 +209,8 @@ export const AboutResourcePage = ({
               id='consentText'
               label={t('resourceadm.about_resource_consent_text_label')}
               description={t('resourceadm.about_resource_consent_text_text')}
-              translationDescription='Samtykketekst'
-              isTranslationPanelOpen={translationType === 'consentText'}
               useTextArea
               value={resourceData.consentText}
-              onFocus={() => setTranslationType('consentText')}
               onBlur={(consentTexts: SupportedLanguage) =>
                 handleSave({ ...resourceData, consentText: consentTexts })
               }
@@ -238,7 +221,6 @@ export const AboutResourcePage = ({
               id='isOneTimeConsent'
               label={t('resourceadm.about_resource_one_time_consent_label')}
               value={resourceData.isOneTimeConsent ?? true}
-              onFocus={() => setTranslationType('none')}
               onChange={(isChecked: boolean) =>
                 handleSave({ ...resourceData, isOneTimeConsent: isChecked })
               }
@@ -261,14 +243,12 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
           value={resourceData.homepage ?? ''}
-          onFocus={() => setTranslationType('none')}
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
         <ResourceSwitchInput
           id='delegable'
           label={t('resourceadm.about_resource_delegable_label')}
           value={resourceData.delegable ?? true}
-          onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
         />
@@ -277,11 +257,8 @@ export const AboutResourcePage = ({
             id='rightDescription'
             label={t('resourceadm.about_resource_rights_description_label')}
             description={t('resourceadm.about_resource_rights_description_text')}
-            translationDescription={t('resourceadm.about_resource_translation_right_description')}
-            isTranslationPanelOpen={translationType === 'rightDescription'}
             useTextArea
             value={resourceData.rightDescription}
-            onFocus={() => setTranslationType('rightDescription')}
             onBlur={(translations: SupportedLanguage) =>
               handleSave({ ...resourceData, rightDescription: translations })
             }
@@ -294,7 +271,6 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
           value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
-          onFocus={() => setTranslationType('none')}
           onBlur={(val: string) =>
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }
@@ -304,7 +280,6 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_status_label')}
           value={resourceData.status}
           options={statusOptions}
-          onFocus={() => setTranslationType('none')}
           onChange={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
@@ -317,7 +292,6 @@ export const AboutResourcePage = ({
             label={t('resourceadm.about_resource_self_identified_label')}
             description={t('resourceadm.about_resource_self_identified_text')}
             value={resourceData.selfIdentifiedUserEnabled ?? false}
-            onFocus={() => setTranslationType('none')}
             onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
             }
@@ -330,7 +304,6 @@ export const AboutResourcePage = ({
             label={t('resourceadm.about_resource_enterprise_label')}
             description={t('resourceadm.about_resource_enterprise_text')}
             value={resourceData.enterpriseUserEnabled ?? false}
-            onFocus={() => setTranslationType('none')}
             onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
             }
@@ -344,7 +317,6 @@ export const AboutResourcePage = ({
             legend={t('resourceadm.about_resource_available_for_legend')}
             description={t('resourceadm.about_resource_available_for_description')}
             errors={validationErrors.filter((error) => error.field === 'availableForType')}
-            onFocus={() => setTranslationType('none')}
             onChange={(selected: ResourceAvailableForTypeOption[]) =>
               handleSave({ ...resourceData, availableForType: selected })
             }
@@ -354,7 +326,6 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType === 'MaskinportenSchema' && (
           <ResourceReferenceFields
-            onFocus={() => setTranslationType('none')}
             resourceReferenceList={resourceData.resourceReferences}
             onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
               handleSave({ ...resourceData, resourceReferences: resourceReferences });
@@ -364,7 +335,6 @@ export const AboutResourcePage = ({
           />
         )}
         <ResourceContactPointFields
-          onFocus={() => setTranslationType('none')}
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
@@ -377,7 +347,6 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_visible_label')}
           description={t('resourceadm.about_resource_visible_text')}
           value={resourceData.visible ?? false}
-          onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
@@ -387,7 +356,6 @@ export const AboutResourcePage = ({
             label={t('resourceadm.about_resource_limited_by_rrr_label')}
             description={t('resourceadm.about_resource_limited_by_rrr_description')}
             value={resourceData.accessListMode === 'Enabled'}
-            onFocus={() => setTranslationType('none')}
             onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
             }
