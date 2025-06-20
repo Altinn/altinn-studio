@@ -42,7 +42,7 @@ type ResourceLanguageTextFieldProps = {
   /**
    * The error texts to be shown
    */
-  errors?: ResourceFormError[];
+  errors: ResourceFormError[];
   /**
    * Whether the component should use textarea instead of input
    */
@@ -141,7 +141,7 @@ type LanguageInputFieldProps = {
   description: ReactElement;
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  error?: ReactElement[];
+  error: ReactElement[];
   onBlur: () => void;
 };
 const LanguageInputField = ({ isTextArea, ...rest }: LanguageInputFieldProps): ReactElement => {
