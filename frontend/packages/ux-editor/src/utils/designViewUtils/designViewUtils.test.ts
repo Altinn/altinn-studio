@@ -1,4 +1,3 @@
-import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import {
   getPageNameErrorKey,
   getUpdatedGroupsExcludingPage,
