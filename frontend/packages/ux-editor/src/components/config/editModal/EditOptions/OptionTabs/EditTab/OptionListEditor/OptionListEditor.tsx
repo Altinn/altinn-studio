@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -6,7 +6,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
-import { ManualOptionsEditor } from './ManualOptionsEditor';
+import { ManualOptionsPanel } from './ManualOptionsPanel';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
@@ -14,30 +14,32 @@ import type { ITextResources } from 'app-shared/types/global';
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
-> & { textResources: ITextResources };
+> & {
+  textResources: ITextResources;
+  onEditButtonClick: () => void;
+};
 
-export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
-  (
-    { component, handleComponentChange, textResources }: OptionListEditorProps,
-    dialogRef,
-  ): React.ReactNode => {
-    const handleDeleteButtonClick = () => {
-      const updatedComponent = resetComponentOptions(component);
-      handleOptionsChange(updatedComponent, handleComponentChange);
-    };
+export function OptionListEditor({
+  component,
+  handleComponentChange,
+  onEditButtonClick,
+  textResources,
+}: OptionListEditorProps): React.ReactNode {
+  const handleDeleteButtonClick = () => {
+    const updatedComponent = resetComponentOptions(component);
+    handleOptionsChange(updatedComponent, handleComponentChange);
+  };
 
-    if (component.options !== undefined) {
-      return (
-        <ManualOptionsEditor
-          ref={dialogRef}
-          component={component}
-          handleComponentChange={handleComponentChange}
-          onDeleteButtonClick={handleDeleteButtonClick}
-          textResources={textResources}
-        />
-      );
-    }
-
+  if (component.options !== undefined) {
+    return (
+      <ManualOptionsPanel
+        component={component}
+        onDeleteButtonClick={handleDeleteButtonClick}
+        onEditButtonClick={onEditButtonClick}
+        textResources={textResources}
+      />
+    );
+  } else {
     return (
       <OptionListResolver
         optionsId={component.optionsId}
@@ -45,8 +47,8 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
         textResources={textResources}
       />
     );
-  },
-);
+  }
+}
 
 type OptionsListResolverProps = {
   onDeleteButtonClick: () => void;

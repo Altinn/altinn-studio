@@ -1,1 +1,0 @@
-export { ManualOptionsEditor } from './ManualOptionsEditor';

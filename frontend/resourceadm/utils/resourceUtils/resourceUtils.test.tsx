@@ -1,6 +1,4 @@
 import {
-  getMissingInputLanguageString,
-  mapLanguageKeyToLanguageText,
   deepCompare,
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
@@ -11,12 +9,7 @@ import {
   getResourceSubjects,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type {
-  Resource,
-  ResourceError,
-  ResourceFormError,
-  SupportedLanguage,
-} from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
@@ -31,87 +24,6 @@ describe('mapKeywordStringToKeywordTypeArray', () => {
       { word: 'hei', language: 'nb' },
       { word: 'meh', language: 'nb' },
     ]);
-  });
-});
-
-describe('mapLanguageKeyToLanguageText', () => {
-  it('to return Bokmål for nb', () => {
-    const translationFunctionMock = (key: string) => {
-      if (key === 'language.nb') return 'Bokmål';
-      if (key === 'language.nn') return 'Nynorsk';
-      if (key === 'language.en') return 'Engelsk';
-      return key;
-    };
-
-    const result = mapLanguageKeyToLanguageText('nb', translationFunctionMock);
-    expect(result).toEqual('Bokmål');
-  });
-});
-
-describe('getMissingInputLanguageString', () => {
-  it('to map a language with no empty fields to correct string', () => {
-    const translationFunctionMock = (key: string) => {
-      return key;
-    };
-
-    const languageStringMock: SupportedLanguage = {
-      nb: 'Test tekst',
-      nn: 'Test',
-      en: 'Test',
-    };
-
-    const result = getMissingInputLanguageString(
-      languageStringMock,
-      'test',
-      translationFunctionMock,
-    );
-    expect(result).toEqual('');
-  });
-
-  it('to map a language with 1 non-empty field to correct string', () => {
-    const translationFunctionMock = (key: string) => {
-      if (key === 'resourceadm.about_resource_language_error_missing_1')
-        return 'Du mangler oversettelse for test på Engelsk.';
-      return key;
-    };
-
-    const languageStringMock: SupportedLanguage = {
-      nb: 'Test tekst',
-      nn: 'Test',
-      en: '',
-    };
-    const missingInputLanguageStringTestMock: string =
-      'Du mangler oversettelse for test på Engelsk.';
-
-    const result = getMissingInputLanguageString(
-      languageStringMock,
-      'test',
-      translationFunctionMock,
-    );
-    expect(result).toEqual(missingInputLanguageStringTestMock);
-  });
-
-  it('to map a language with 2 non-empty fields to correct string', () => {
-    const translationFunctionMock = (key: string) => {
-      if (key === 'resourceadm.about_resource_language_error_missing_2')
-        return 'Du mangler oversettelse for test på Nynorsk og Engelsk.';
-      return key;
-    };
-
-    const languageStringMock: SupportedLanguage = {
-      nb: 'Test tekst',
-      nn: '',
-      en: '',
-    };
-    const missingInputLanguageStringTestMock: string =
-      'Du mangler oversettelse for test på Nynorsk og Engelsk.';
-
-    const result = getMissingInputLanguageString(
-      languageStringMock,
-      'test',
-      translationFunctionMock,
-    );
-    expect(result).toEqual(missingInputLanguageStringTestMock);
   });
 });
 
@@ -268,6 +180,7 @@ describe('deepCompare', () => {
             'nb',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
+              lang1: textMock('language.nb'),
             }),
           ),
         ).toBeTruthy();
@@ -296,14 +209,6 @@ describe('deepCompare', () => {
             'nn',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
-            }),
-          ),
-        ).toBeTruthy();
-        expect(
-          hasConsentFieldError(
-            validationErrors,
-            'nb',
-            textMock('resourceadm.about_resource_error_unknown_metadata', {
               lang1: textMock('language.nn'),
             }),
           ),
@@ -332,6 +237,7 @@ describe('deepCompare', () => {
             'nn',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
+              lang1: textMock('language.nn'),
             }),
           ),
         ).toBeTruthy();
@@ -341,16 +247,7 @@ describe('deepCompare', () => {
             'en',
             textMock('resourceadm.about_resource_error_unknown_metadata_language', {
               unknownMetadataValues: 'year',
-            }),
-          ),
-        ).toBeTruthy();
-        expect(
-          hasConsentFieldError(
-            validationErrors,
-            'nb',
-            textMock('resourceadm.about_resource_error_unknown_metadata_multiple', {
-              lang1: textMock('language.nn'),
-              lang2: textMock('language.en'),
+              lang1: textMock('language.en'),
             }),
           ),
         ).toBeTruthy();
