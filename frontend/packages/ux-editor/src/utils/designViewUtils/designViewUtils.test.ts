@@ -112,8 +112,8 @@ describe('designViewUtils', () => {
 
   describe('getUpdatedGroupsExcludingPage', () => {
     const page = (id: string) => ({ id });
-    const group = (order: string[], name?: string) => ({
-      order: order.map(page),
+    const group = (pages: string[], name?: string) => ({
+      order: pages.map(page),
       ...(name ? { name } : {}),
     });
 
