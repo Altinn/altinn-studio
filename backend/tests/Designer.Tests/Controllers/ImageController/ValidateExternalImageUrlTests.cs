@@ -55,8 +55,8 @@ public class ValidateExternalImageUrlTests(
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(ImageUrlValidationResult.NotValidUrl.ToString(), validationResult.Trim('"'));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(ImageUrlValidationResult.NotValidImage.ToString(), validationResult.Trim('"'));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class ValidateExternalImageUrlTests(
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(ImageUrlValidationResult.NotAnImage.ToString(), validationResult.Trim('"'));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(ImageUrlValidationResult.NotValidImage.ToString(), validationResult.Trim('"'));
     }
 }
