@@ -1,4 +1,9 @@
-import { getPageNameErrorKey, pageNameExists } from './designViewUtils';
+import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
+import {
+  getPageNameErrorKey,
+  getUpdatedGroupsExcludingPage,
+  pageNameExists,
+} from './designViewUtils';
 
 const mockNewNameCandidateCorrect: string = 'newPage';
 const mockNewNameCandidateExists: string = 'page2';
@@ -102,6 +107,33 @@ describe('designViewUtils', () => {
         mockLayoutNames,
       );
       expect(nameError).toEqual(null);
+    });
+  });
+
+  describe('getUpdatedGroupsExcludingPage', () => {
+    const mockGroups: GroupModel[] = [
+      { name: 'Group 1', order: [{ id: 'page1' }, { id: 'page2' }] },
+      { order: [{ id: 'page3' }] },
+    ];
+
+    it('should remove the page from the specified group', () => {
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: 'page1',
+        groups: mockGroups,
+        groupIndex: 0,
+      });
+      expect(updatedGroups).toEqual([{ order: [{ id: 'page2' }] }, { order: [{ id: 'page3' }] }]);
+    });
+
+    it('should remove the group if it becomes empty', () => {
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: 'page3',
+        groups: mockGroups,
+        groupIndex: 1,
+      });
+      expect(updatedGroups).toEqual([
+        { name: 'Group 1', order: [{ id: 'page1' }, { id: 'page2' }] },
+      ]);
     });
   });
 });
