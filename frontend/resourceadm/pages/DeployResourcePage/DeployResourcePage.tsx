@@ -25,7 +25,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { UrlConstants } from 'resourceadm/utils/urlUtils';
+import { UrlConstants } from '../../utils/urlUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
