@@ -13,6 +13,7 @@ import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderCo
 import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { VersionDialog } from './VersionDialog/VersionDialog';
 
 /**
  * Displays the layout for the app development pages
@@ -69,9 +70,13 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={org} repoName={app} />;
   }
+
   return (
-    <WebSocketSyncWrapper>
-      <Outlet />
-    </WebSocketSyncWrapper>
+    <>
+      <VersionDialog />
+      <WebSocketSyncWrapper>
+        <Outlet />
+      </WebSocketSyncWrapper>
+    </>
   );
 };
