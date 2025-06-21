@@ -97,10 +97,3 @@ export function hasStaticOptionList(
 function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {
   return optionListIds.some((id: string) => id.toLowerCase() === optionsId?.toLowerCase());
 }
-
-export function isInitialOptionsSet(
-  previousOptions: OptionList,
-  currentOptions: OptionList,
-): boolean {
-  return !previousOptions && !!currentOptions;
-}

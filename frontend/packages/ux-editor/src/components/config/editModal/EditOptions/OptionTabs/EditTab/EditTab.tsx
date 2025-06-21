@@ -1,13 +1,11 @@
-import React, { createRef } from 'react';
+import React, { useRef } from 'react';
 import {
   StudioAlert,
   StudioButton,
   StudioErrorMessage,
   StudioSpinner,
-  usePrevious,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { useComponentErrorMessage } from '../../../../../../hooks';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -16,7 +14,6 @@ import {
   updateComponentOptions,
   hasStaticOptionList,
   isOptionsIdReferenceId,
-  isInitialOptionsSet,
 } from '../utils/optionsUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
@@ -29,7 +26,6 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { ManualOptionsDialog } from './ManualOptionsDialog';
-import type { OptionListEditorProps } from './OptionListEditor/OptionListEditor';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -75,15 +71,8 @@ function EditTabWithData({
   textResources,
 }: EditTabWithDataProps): React.ReactElement {
   const { t } = useTranslation();
-  const previousComponent = usePrevious(component);
-  const dialogRef = createRef<HTMLDialogElement>();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const errorMessage = useComponentErrorMessage(component);
-
-  useUpdate(() => {
-    if (isInitialOptionsSet(previousComponent.options, component.options)) {
-      dialogRef.current.showModal();
-    }
-  }, [component, previousComponent]);
 
   return (
     <div className={classes.container}>
@@ -96,7 +85,7 @@ function EditTabWithData({
       <OptionListTools
         component={component}
         handleComponentChange={handleComponentChange}
-        onEditButtonClick={() => dialogRef.current.showModal()}
+        openDialog={() => dialogRef.current.showModal()}
         optionListIds={optionListIds}
         textResources={textResources}
       />
@@ -114,12 +103,12 @@ function EditTabWithData({
   );
 }
 
-type OptionListToolsProps = EditTabWithDataProps & Pick<OptionListEditorProps, 'onEditButtonClick'>;
+type OptionListToolsProps = EditTabWithDataProps & { openDialog: () => void };
 
 function OptionListTools({
   component,
   handleComponentChange,
-  onEditButtonClick,
+  openDialog,
   optionListIds,
   textResources,
 }: OptionListToolsProps): React.ReactElement {
@@ -128,30 +117,41 @@ function OptionListTools({
       <OptionListEditor
         component={component}
         handleComponentChange={handleComponentChange}
-        onEditButtonClick={onEditButtonClick}
+        onEditButtonClick={openDialog}
         textResources={textResources}
       />
     );
   } else {
-    return <AddOptionList component={component} handleComponentChange={handleComponentChange} />;
+    return (
+      <AddOptionList
+        component={component}
+        handleComponentChange={handleComponentChange}
+        onCreateButtonClick={openDialog}
+      />
+    );
   }
 }
 
 OptionListTools.displayName = 'OptionListTools';
 
-type AddOptionListProps = EditTabProps;
+type AddOptionListProps = EditTabProps & { onCreateButtonClick: () => void };
 
-function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
+function AddOptionList({
+  component,
+  handleComponentChange,
+  onCreateButtonClick,
+}: AddOptionListProps) {
   const { t } = useTranslation();
 
-  const handleInitialManualOptionsChange = () => {
+  const handleCreateButtonClick = () => {
     const updatedComponent = updateComponentOptions(component, []);
     handleOptionsChange(updatedComponent, handleComponentChange);
+    onCreateButtonClick();
   };
 
   return (
     <div className={classes.addOptionListContainer}>
-      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
+      <StudioButton variant='secondary' onClick={handleCreateButtonClick}>
         {t('general.create_new')}
       </StudioButton>
       <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
