@@ -82,14 +82,19 @@ export const ResourceLanguageTextField = ({
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   useEffect(() => {
-    const trimmedTranslations = Object.keys(translations).reduce((acc: SupportedLanguage, key) => {
-      return {
-        ...acc,
-        [key]: translations[key].trim(),
-      };
-    }, {} as SupportedLanguage);
-    onBlur(trimmedTranslations);
-  }, [translations, onBlur]);
+    if (JSON.stringify(value) !== JSON.stringify(translations)) {
+      const trimmedTranslations = Object.keys(translations).reduce(
+        (acc: SupportedLanguage, key) => {
+          return {
+            ...acc,
+            [key]: translations[key].trim(),
+          };
+        },
+        {} as SupportedLanguage,
+      );
+      onBlur(trimmedTranslations);
+    }
+  }, [translations, value, onBlur]);
 
   const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;

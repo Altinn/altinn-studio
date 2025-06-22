@@ -338,7 +338,7 @@ describe('AboutResourcePage', () => {
     });
   });
 
-  it('calls onSaveResource when going from one input field to another', async () => {
+  it('calls onSaveResource when fields are changed', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
@@ -346,7 +346,7 @@ describe('AboutResourcePage', () => {
       name: textMock('resourceadm.about_resource_resource_title_label'),
     });
     await user.type(titleNbInput, mockNewTitleInput);
-    expect(mockOnSaveResource).not.toHaveBeenCalled();
+    expect(mockOnSaveResource).toHaveBeenCalled();
 
     const descriptionNbInput = screen.getByRole('textbox', {
       name: textMock('resourceadm.about_resource_resource_description_label'),
