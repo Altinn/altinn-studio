@@ -30,9 +30,14 @@
   font-size: 1.5rem;
 }
 
+.consentRightContent {
+  flex: 1;
+}
+
 .previewControls {
   display: flex;
-  gap: var(--ds-size-8);
+  align-items: flex-end;
+  gap: var(--ds-size-4);
   margin-bottom: var(--ds-size-4);
 }
 
@@ -54,4 +59,12 @@
   top: 0;
   position: absolute;
   width: 45%;
+}
+
+.mobileView {
+  max-width: 25rem;
+}
+
+.mobileView h1 {
+  font-size: 18px;
 }

@@ -228,11 +228,12 @@ export const AboutResourcePage = ({
             />
             {consentTemplates && resourceData.consentTemplate && (
               <ConsentPreview
-                consentTemplate={consentTemplates.find(
+                template={consentTemplates.find(
                   (template) => template.id === resourceData.consentTemplate,
                 )}
                 resourceName={resourceData.title}
                 consentText={resourceData.consentText}
+                consentMetadata={resourceData.consentMetadata ?? {}}
                 isOneTimeConsent={resourceData.isOneTimeConsent}
               />
             )}

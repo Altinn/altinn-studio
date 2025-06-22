@@ -110,6 +110,8 @@
   "resourceadm.about_resource_consent_preview_language_nb": "Bokmål",
   "resourceadm.about_resource_consent_preview_language_nn": "Nynorsk",
   "resourceadm.about_resource_consent_preview_language_en": "Engelsk",
+  "resourceadm.about_resource_consent_preview_mobile_view": "Mobilvisning",
+  "resourceadm.about_resource_consent_preview_dummy_metadata": "Variabler med eksempeltekst",
   "resourceadm.about_resource_spinner": "Laster inn ressurs",
   "resourceadm.about_resource_status_completed": "Fullført",
   "resourceadm.about_resource_status_deprecated": "Avviklet",

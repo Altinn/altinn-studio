@@ -5,9 +5,11 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioSelect,
+  StudioSwitch,
 } from '@studio/components';
 import { CheckmarkIcon } from '@studio/icons';
 import type {
+  ConsentMetadata,
   ConsentTemplate,
   SupportedLanguage,
   ValidLanguage,
@@ -16,51 +18,89 @@ import classes from './ConsentPreview.module.css';
 import { useTranslation } from 'react-i18next';
 import Markdown from 'markdown-to-jsx';
 
+const buttonText = {
+  nb: {
+    approve: 'resourceadm.about_resource_consent_preview_approve_nb',
+    reject: 'resourceadm.about_resource_consent_preview_reject_nb',
+    approve_poa: 'resourceadm.about_resource_consent_preview_approve_poa_nb',
+    reject_poa: 'resourceadm.about_resource_consent_preview_reject_poa_nb',
+  },
+  nn: {
+    approve: 'resourceadm.about_resource_consent_preview_approve_nn',
+    reject: 'resourceadm.about_resource_consent_preview_reject_nn',
+    approve_poa: 'resourceadm.about_resource_consent_preview_approve_poa_nn',
+    reject_poa: 'resourceadm.about_resource_consent_preview_reject_poa_nn',
+  },
+  en: {
+    approve: 'resourceadm.about_resource_consent_preview_approve_en',
+    reject: 'resourceadm.about_resource_consent_preview_reject_en',
+    approve_poa: 'resourceadm.about_resource_consent_preview_approve_poa_en',
+    reject_poa: 'resourceadm.about_resource_consent_preview_reject_poa_en',
+  },
+};
+
 interface ConsentPreviewProps {
-  consentTemplate: ConsentTemplate;
+  template: ConsentTemplate;
   resourceName: SupportedLanguage;
   consentText: SupportedLanguage;
+  consentMetadata: ConsentMetadata;
   isOneTimeConsent: boolean;
 }
 
 export const ConsentPreview = ({
-  consentTemplate,
+  template,
   resourceName,
   consentText,
+  consentMetadata,
   isOneTimeConsent,
 }: ConsentPreviewProps): React.JSX.Element => {
   const { t } = useTranslation();
   const [language, setLanguage] = React.useState<ValidLanguage>('nb');
   const [reporteeType, setReporteeType] = React.useState<'person' | 'org'>('person');
+  const [isDummyMetadataEnabled, setIsDummyMetadataEnabled] = React.useState<boolean>(false);
+  const [isMobileViewEnabled, setIsMobileViewEnabled] = React.useState<boolean>(false);
 
-  const buttonTexts = {
-    nb: {
-      approve: t('resourceadm.about_resource_consent_preview_approve_nb'),
-      reject: t('resourceadm.about_resource_consent_preview_reject_nb'),
-      approve_poa: t('resourceadm.about_resource_consent_preview_approve_poa_nb'),
-      reject_poa: t('resourceadm.about_resource_consent_preview_reject_poa_nb'),
-    },
-    nn: {
-      approve: t('resourceadm.about_resource_consent_preview_approve_nn'),
-      reject: t('resourceadm.about_resource_consent_preview_reject_nn'),
-      approve_poa: t('resourceadm.about_resource_consent_preview_approve_poa_nn'),
-      reject_poa: t('resourceadm.about_resource_consent_preview_reject_poa_nn'),
-    },
-    en: {
-      approve: t('resourceadm.about_resource_consent_preview_approve_en'),
-      reject: t('resourceadm.about_resource_consent_preview_reject_en'),
-      approve_poa: t('resourceadm.about_resource_consent_preview_approve_poa_en'),
-      reject_poa: t('resourceadm.about_resource_consent_preview_reject_poa_en'),
-    },
-  };
-
-  if (!consentTemplate) {
+  if (!template) {
     return (
       <StudioAlert data-color='danger'>
         {t('resourceadm.about_resource_consent_preview_no_template')}
       </StudioAlert>
     );
   }
+
+  const staticMetadata = isDummyMetadataEnabled
+    ? {
+        CoveredBy: 'BANKEN AS',
+        OfferedBy: 'DIN ORGANISASJON AS',
+        HandledBy: 'BANKEN IT-AVDELING AS',
+        Expiration: new Date().toLocaleDateString('no-NB', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }),
+      }
+    : {};
+
+  const resourceMetadata = isDummyMetadataEnabled ? getDummyResourceMetadata(consentMetadata) : {};
+
+  const texts = {
+    title: replaceMetadata(template.texts.title[reporteeType][language], staticMetadata),
+    heading: replaceMetadata(template.texts.heading[reporteeType][language], staticMetadata),
+    consentMessage: template.texts.overriddenDelegationContext
+      ? replaceMetadata(template.texts.overriddenDelegationContext[language], staticMetadata)
+      : 'Denne teksten settes av banken',
+    serviceIntro: replaceMetadata(
+      template.texts.serviceIntro[reporteeType][language],
+      staticMetadata,
+    ),
+    resourceText: replaceMetadata(consentText[language], resourceMetadata),
+    expiration: isOneTimeConsent
+      ? template.texts.expirationOneTime[language]
+      : replaceMetadata(template.texts.expiration[language], staticMetadata),
+    handledBy: replaceMetadata(template.texts.handledBy[language], staticMetadata),
+    approve: template.isPoa ? t(buttonText[language].approve_poa) : t(buttonText[language].approve),
+    reject: template.isPoa ? t(buttonText[language].reject_poa) : t(buttonText[language].reject),
+  };
 
   return (
     <div className={classes.consentPreviewPanel}>
@@ -96,54 +136,48 @@ export const ConsentPreview = ({
               {t('resourceadm.about_resource_consent_preview_language_en')}
             </StudioSelect.Option>
           </StudioSelect>
+          <div>
+            <StudioSwitch
+              label={t('resourceadm.about_resource_consent_preview_mobile_view')}
+              checked={isMobileViewEnabled}
+              onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
+            />
+            <StudioSwitch
+              label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
+              checked={isDummyMetadataEnabled}
+              onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
+            />
+          </div>
         </div>
-        <div>
+        <div className={isMobileViewEnabled ? classes.mobileView : undefined}>
           <div className={classes.consentBlock}>
             <StudioHeading level={1} data-size='md'>
-              {consentTemplate.texts.title[reporteeType][language]}
+              {texts.title}
             </StudioHeading>
           </div>
           <div className={classes.consentBlock}>
-            <StudioParagraph>
-              {consentTemplate.texts.heading[reporteeType][language]}
-            </StudioParagraph>
-            <StudioParagraph>
-              {consentTemplate.texts.overriddenDelegationContext
-                ? consentTemplate.texts.overriddenDelegationContext[language]
-                : 'Denne teksten settes av banken'}
-            </StudioParagraph>
+            <StudioParagraph>{texts.heading}</StudioParagraph>
+            <StudioParagraph>{texts.consentMessage}</StudioParagraph>
             <StudioHeading level={2} data-size='2xs'>
-              {consentTemplate.texts.serviceIntro[reporteeType][language]}
+              {texts.serviceIntro}
             </StudioHeading>
-            <div>
-              <div className={classes.consentRight}>
-                <CheckmarkIcon className={classes.consentRightIcon} />
-                <div>
-                  <StudioHeading level={2} data-size='2xs'>
-                    {resourceName[language]}
-                  </StudioHeading>
-                  <Markdown>{consentText[language]}</Markdown>
-                </div>
+            <div className={classes.consentRight}>
+              <CheckmarkIcon className={classes.consentRightIcon} />
+              <div className={classes.consentRightContent}>
+                <StudioHeading level={2} data-size='2xs'>
+                  {resourceName[language]}
+                </StudioHeading>
+                <Markdown>{texts.resourceText}</Markdown>
               </div>
             </div>
-            <StudioParagraph className={classes.expiration}>
-              {isOneTimeConsent
-                ? consentTemplate.texts.expirationOneTime[language]
-                : consentTemplate.texts.expiration[language]}
-            </StudioParagraph>
-            {consentTemplate.texts.handledBy && (
-              <StudioParagraph>{consentTemplate.texts.handledBy[language]}</StudioParagraph>
-            )}
+            <StudioParagraph className={classes.expiration}>{texts.expiration}</StudioParagraph>
+            <StudioParagraph>{texts.handledBy}</StudioParagraph>
             <div className={classes.buttonRow}>
               <StudioButton variant='primary' tabIndex={-1}>
-                {consentTemplate.isPoa
-                  ? buttonTexts[language].approve_poa
-                  : buttonTexts[language].approve}
+                {texts.approve}
               </StudioButton>
               <StudioButton variant='tertiary' tabIndex={-1}>
-                {consentTemplate.isPoa
-                  ? buttonTexts[language].reject_poa
-                  : buttonTexts[language].reject}
+                {texts.reject}
               </StudioButton>
             </div>
           </div>
@@ -151,4 +185,24 @@ export const ConsentPreview = ({
       </div>
     </div>
   );
+};
+
+const replaceMetadata = (consentText: string, metadata: { [key: string]: string }): string => {
+  return Object.keys(metadata).reduce((acc, metadataKey) => {
+    return acc.replace(`{${metadataKey}}`, metadata[metadataKey]);
+  }, consentText);
+};
+
+const getDummyResourceMetadata = (consentMetadata: ConsentMetadata) => {
+  const getRandomString = () => Math.random().toString(36).substring(2, 10);
+  return Object.keys(consentMetadata).reduce((acc, key) => {
+    if (key.toLowerCase().indexOf('aar') > -1 || key.toLowerCase().indexOf('year') > -1) {
+      acc[key] = '2025';
+    } else if (key.toLowerCase().indexOf('dato') > -1 || key.toLowerCase().indexOf('date') > -1) {
+      acc[key] = '01.07.2025';
+    } else {
+      acc[key] = getRandomString();
+    }
+    return acc;
+  }, {});
 };
