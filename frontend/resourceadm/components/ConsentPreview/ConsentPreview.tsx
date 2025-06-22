@@ -88,7 +88,7 @@ export const ConsentPreview = ({
     heading: replaceMetadata(template.texts.heading[reporteeType][language], staticMetadata),
     consentMessage: template.texts.overriddenDelegationContext
       ? replaceMetadata(template.texts.overriddenDelegationContext[language], staticMetadata)
-      : 'Denne teksten settes av banken',
+      : 'Denne teksten settes av den som ber om samtykke',
     serviceIntro: replaceMetadata(
       template.texts.serviceIntro[reporteeType][language],
       staticMetadata,

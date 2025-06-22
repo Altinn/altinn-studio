@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
@@ -81,17 +81,15 @@ export const ResourceLanguageTextField = ({
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
-  const getTrimmedTranslations = (): SupportedLanguage => {
-    return Object.keys(translations).reduce((acc: SupportedLanguage, key) => {
+  useEffect(() => {
+    const trimmedTranslations = Object.keys(translations).reduce((acc: SupportedLanguage, key) => {
       return {
         ...acc,
         [key]: translations[key].trim(),
       };
     }, {} as SupportedLanguage);
-  };
-  const onBlurField = () => {
-    onBlur(getTrimmedTranslations());
-  };
+    onBlur(trimmedTranslations);
+  }, [translations, onBlur]);
 
   const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;
@@ -127,7 +125,6 @@ export const ResourceLanguageTextField = ({
         onChange={onFieldValueChanged}
         isTextArea={useTextArea}
         error={mainFieldError.length > 0 ? mainFieldError : undefined}
-        onBlur={onBlurField}
       />
     </div>
   );
@@ -142,7 +139,6 @@ type LanguageInputFieldProps = {
   value: string;
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   error: ReactElement[];
-  onBlur: () => void;
 };
 const LanguageInputField = ({ isTextArea, ...rest }: LanguageInputFieldProps): ReactElement => {
   if (isTextArea) {
