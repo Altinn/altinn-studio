@@ -51,4 +51,35 @@ describe('pageGroupUtils', () => {
       ]);
     });
   });
+
+  describe('updateGroupNames', () => {
+    it('should add name to group with more than 1 page', () => {
+      const groups = [{ order: [{ id: 'test' }] }, { order: [{ id: 'test2' }, { id: 'test3' }] }];
+      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+        { order: [{ id: 'test' }] },
+        { name: 'ux_editor.page_layout_group 1', order: [{ id: 'test2' }, { id: 'test3' }] },
+      ]);
+    });
+
+    it('should remove name from group with 1 page', () => {
+      const groups = [{ order: [{ id: 'test' }] }, { name: 'testname', order: [{ id: 'test2' }] }];
+      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+        { order: [{ id: 'test' }] },
+        { order: [{ id: 'test2' }] },
+      ]);
+    });
+
+    it('should increment group name when adding, to the next available number', () => {
+      const groups = [
+        { name: 'ux_editor.page_layout_group 1', order: [{ id: 'test' }, { id: 'test2' }] },
+        { order: [{ id: 'test3' }, { id: 'test4' }] },
+        { name: 'ux_editor.page_layout_group 3', order: [{ id: 'test5' }, { id: 'test6' }] },
+      ];
+      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+        { name: 'ux_editor.page_layout_group 1', order: [{ id: 'test' }, { id: 'test2' }] },
+        { name: 'ux_editor.page_layout_group 2', order: [{ id: 'test3' }, { id: 'test4' }] },
+        { name: 'ux_editor.page_layout_group 3', order: [{ id: 'test5' }, { id: 'test6' }] },
+      ]);
+    });
+  });
 });
