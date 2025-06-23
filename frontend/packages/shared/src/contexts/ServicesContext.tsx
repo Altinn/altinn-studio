@@ -83,7 +83,7 @@ const renderDefaultToast = () => {
         i18nKey={'general.error_message'}
         components={{
           a: (
-            <Link href='/contact' inverted={true}>
+            <Link href='/info/contact' inverted={true}>
               {' '}
             </Link>
           ),

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCheckbox } from './StudioCheckbox';
 
 type Story = StoryObj<typeof StudioCheckbox>;
