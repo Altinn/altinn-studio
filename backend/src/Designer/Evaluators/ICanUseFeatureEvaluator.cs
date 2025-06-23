@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Evaluators;
 
 public interface ICanUseFeatureEvaluator
 {
-    CanUseFeatureEnum Feature { get;  }
+    CanUseFeatureEnum Feature { get; }
     Task<bool> CanUseFeatureAsync();
 }

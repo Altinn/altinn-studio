@@ -8,10 +8,9 @@ using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
-using Moq;
 using Microsoft.Extensions.DependencyInjection;
-using Altinn.Studio.Designer.Services.Interfaces;
+using Moq;
+using Xunit;
 
 namespace Designer.Tests.Controllers.CanUseFeatureController;
 
