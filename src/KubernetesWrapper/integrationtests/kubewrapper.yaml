@@ -99,7 +99,7 @@ spec:
         app: dummy-deployment
     spec:
       containers:
-        - image: nginx:1.23.2-alpine
+        - image: nginx:alpine
           name: nginx
           ports:
             - containerPort: 8080
@@ -124,7 +124,7 @@ spec:
         app: dummy-daemonset
     spec:
       containers:
-        - image: nginx:1.23.2-alpine
+        - image: nginx:alpine
           name: nginx
           ports:
             - containerPort: 8080
