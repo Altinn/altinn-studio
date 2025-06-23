@@ -23,11 +23,6 @@ export type ResourceContactPointFieldsProps = {
    */
   onContactPointsChanged: (contactPoints: ResourceContactPoint[]) => void;
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * List of error messages
    */
   errors: ResourceFormError[];
@@ -53,7 +48,6 @@ export type ResourceContactPointFieldsProps = {
 export const ResourceContactPointFields = ({
   contactPointList,
   onContactPointsChanged,
-  onFocus,
   errors,
   required,
 }: ResourceContactPointFieldsProps): React.JSX.Element => {
@@ -78,7 +72,6 @@ export const ResourceContactPointFields = ({
           <ResourceContactPointFieldset
             contactPoint={contactPoint}
             onLeaveTextFields={onChange}
-            onFocus={onFocus}
             errors={errors}
             required={required}
             index={index}
