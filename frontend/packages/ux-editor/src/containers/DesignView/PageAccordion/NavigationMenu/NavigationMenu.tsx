@@ -101,11 +101,13 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
 
   return (
     <div>
-      <PageGroupMoveToExistingGroupDialog
-        pageName={pageName}
-        open={moveToGroupDialogOpen}
-        onClose={() => setMoveToGroupDialogOpen(false)}
-      />
+      {isUsingGroups && (
+        <PageGroupMoveToExistingGroupDialog
+          pageName={pageName}
+          open={moveToGroupDialogOpen}
+          onClose={() => setMoveToGroupDialogOpen(false)}
+        />
+      )}
       <StudioDropdown icon={<MenuElipsisVerticalIcon />} triggerButtonVariant='tertiary'>
         <StudioDropdown.List>
           <StudioDropdown.Item>
@@ -129,21 +131,28 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
             </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>
-        <StudioDropdown.Heading>
-          {t('ux_editor.page_menu_group_movement_heading')}
-        </StudioDropdown.Heading>
-        <StudioDropdown.Item>
-          <StudioDropdown.Button onClick={() => setMoveToGroupDialogOpen(true)}>
-            <FolderPlusIcon />
-            {t('ux_editor.page_menu_existing_group')}
-          </StudioDropdown.Button>
-        </StudioDropdown.Item>
-        <StudioDropdown.Item>
-          <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
-            <FolderPlusIcon />
-            {t('ux_editor.page_menu_new_group')}
-          </StudioDropdown.Button>
-        </StudioDropdown.Item>
+        {isUsingGroups && (
+          <>
+            <StudioDropdown.Heading>
+              {t('ux_editor.page_menu_group_movement_heading')}
+            </StudioDropdown.Heading>
+            <StudioDropdown.Item>
+              <StudioDropdown.Button
+                onClick={() => setMoveToGroupDialogOpen(true)}
+                disabled={pagesModel.groups.length <= 1}
+              >
+                <FolderPlusIcon />
+                {t('ux_editor.page_menu_existing_group')}
+              </StudioDropdown.Button>
+            </StudioDropdown.Item>
+            <StudioDropdown.Item>
+              <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
+                <FolderPlusIcon />
+                {t('ux_editor.page_menu_new_group')}
+              </StudioDropdown.Button>
+            </StudioDropdown.Item>
+          </>
+        )}
       </StudioDropdown>
     </div>
   );

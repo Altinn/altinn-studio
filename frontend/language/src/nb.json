@@ -1972,6 +1972,7 @@
   "ux_editor.page_layout_remove_group_division": "Fjern gruppeinndeling",
   "ux_editor.page_menu_down": "Flytt ned",
   "ux_editor.page_menu_edit": "Gi nytt navn",
+  "ux_editor.page_menu_existing_group": "Flytt til en annen gruppe",
   "ux_editor.page_menu_group_movement_heading": "Mellom grupper",
   "ux_editor.page_menu_new_group": "Flytt til en ny gruppe",
   "ux_editor.page_menu_up": "Flytt opp",
