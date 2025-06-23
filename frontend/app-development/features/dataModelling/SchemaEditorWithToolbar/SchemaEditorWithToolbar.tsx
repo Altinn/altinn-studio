@@ -8,7 +8,8 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { FileNameUtils } from '@studio/pure-functions';
-import { FeatureName, useCanUseFeatureQuery } from '../../../hooks/queries/useCanUseFeatureQuery';
+import { useCanUseFeatureQuery } from '../../../hooks/queries/useCanUseFeatureQuery';
+import { FeatureName } from 'app-shared/enums/CanUseFeature';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
