@@ -40,7 +40,7 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(5, responseList.Count);
+        Assert.Equal(6, responseList.Count);
         Assert.DoesNotContain(responseList, e => e.Title == CodeListId);
     }
 
