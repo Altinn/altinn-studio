@@ -61,7 +61,12 @@ export const SchemaEditorWithToolbar = ({
         />
       )}
       <main className={classes.main}>
-        {!dataModels.length && <LandingPagePanel openCreateNew={() => setIsCreateNewOpen(true)} />}
+        {!dataModels.length && (
+          <LandingPagePanel
+            openCreateNew={() => setIsCreateNewOpen(true)}
+            canUseUploadXSDFeature={uploadDataModelFeature?.canUseFeature}
+          />
+        )}
         {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
       </main>
     </div>

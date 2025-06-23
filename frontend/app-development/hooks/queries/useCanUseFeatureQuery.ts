@@ -1,10 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-
-export type CanUseFeature = {
-  canUseFeature: boolean;
-};
+import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 
 export enum FeatureName {
   UploadDataModel = 'UploadDataModel',
