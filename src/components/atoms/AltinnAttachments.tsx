@@ -16,10 +16,10 @@ interface IAltinnAttachmentsProps {
   attachments?: IDisplayAttachment[];
   id?: string;
   title?: React.ReactNode;
-  links?: boolean;
+  showLinks: boolean | undefined;
 }
 
-export function AltinnAttachments({ attachments, id, title, links = true }: IAltinnAttachmentsProps) {
+export function AltinnAttachments({ attachments, id, title, showLinks = true }: IAltinnAttachmentsProps) {
   const selectedLanguage = useCurrentLanguage();
   const filteredAndSortedAttachments = attachments
     ?.filter((attachment) => attachment.name)
@@ -36,7 +36,7 @@ export function AltinnAttachments({ attachments, id, title, links = true }: IAlt
           <Attachment
             key={index}
             attachment={attachment}
-            link={links}
+            showLink={showLinks}
           />
         ))}
       </List.Unordered>
@@ -46,15 +46,15 @@ export function AltinnAttachments({ attachments, id, title, links = true }: IAlt
 
 interface IAltinnAttachmentProps {
   attachment: IDisplayAttachment;
-  link: boolean;
+  showLink: boolean;
 }
 
-function Attachment({ attachment, link }: IAltinnAttachmentProps) {
+function Attachment({ attachment, showLink }: IAltinnAttachmentProps) {
   const { langAsString } = useLanguage();
   return (
     <List.Item>
       <ConditionalWrapper
-        condition={link}
+        condition={showLink}
         wrapper={(children) => (
           <Link
             href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}

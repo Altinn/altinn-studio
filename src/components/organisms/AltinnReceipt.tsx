@@ -4,10 +4,9 @@ import type { JSX } from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
-import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
 import classes from 'src/components/organisms/AltinnReceipt.module.css';
+import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
-import { useLanguage } from 'src/features/language/useLanguage';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IDisplayAttachment } from 'src/types/shared';
 
@@ -23,48 +22,6 @@ export interface IReceiptComponentProps {
   title: React.ReactNode;
   titleSubmitted: React.ReactNode;
 }
-
-interface IRenderAttachmentGroupings {
-  attachments: IDisplayAttachment[] | undefined;
-  collapsibleTitle: React.ReactNode;
-  hideCollapsibleCount?: boolean;
-}
-
-const defaultGrouping = 'null'; // Default grouping for attachments without a specific grouping
-
-export const AttachmentGroupings = ({
-  attachments,
-  collapsibleTitle,
-  hideCollapsibleCount,
-}: IRenderAttachmentGroupings) => {
-  const langTools = useLanguage();
-  const groupings = attachments?.reduce<Record<string, IDisplayAttachment[]>>((acc, attachment) => {
-    const grouping = attachment.grouping ?? defaultGrouping;
-    const translatedGrouping = langTools.langAsString(grouping);
-    if (!acc[translatedGrouping]) {
-      acc[translatedGrouping] = [];
-    }
-    acc[translatedGrouping].push(attachment);
-    return acc;
-  }, {});
-
-  if (!groupings) {
-    return null;
-  }
-
-  return (
-    <>
-      {Object.keys(groupings).map((groupTitle, index) => (
-        <AltinnCollapsibleAttachments
-          key={index}
-          attachments={groupings[groupTitle]}
-          title={groupTitle === 'null' ? collapsibleTitle : groupTitle}
-          hideCount={hideCollapsibleCount}
-        />
-      ))}
-    </>
-  );
-};
 
 export function ReceiptComponent({
   title,
@@ -124,6 +81,7 @@ export function ReceiptComponent({
           <AltinnAttachments
             attachments={pdf}
             id='attachment-list-pdf'
+            showLinks={true}
           />
         </>
       )}
@@ -132,6 +90,7 @@ export function ReceiptComponent({
           attachments={attachments}
           collapsibleTitle={collapsibleTitle}
           hideCollapsibleCount={hideCollapsibleCount}
+          showLinks={true}
         />
       )}
     </div>

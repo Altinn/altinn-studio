@@ -4,9 +4,9 @@ import type { PropsWithChildren } from 'react';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import classes from 'src/components/AltinnCollapsable.module.css';
+import classes from 'src/components/AltinnCollapsible.module.css';
 
-export interface IAltinnCollapsableListProps extends PropsWithChildren {
+export interface IAltinnCollapsibleListProps extends PropsWithChildren {
   open: boolean;
   /** Callback for click on expand/collapse */
   onClickExpand: () => void;
@@ -14,7 +14,7 @@ export interface IAltinnCollapsableListProps extends PropsWithChildren {
   listHeader: React.ReactNode;
 }
 
-export const AltinnCollapsibleList = ({ open, listHeader, onClickExpand, children }: IAltinnCollapsableListProps) => {
+export const AltinnCollapsibleList = ({ open, listHeader, onClickExpand, children }: IAltinnCollapsibleListProps) => {
   function onKeyPress(event: React.KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {
@@ -52,8 +52,8 @@ export const AltinnCollapsibleList = ({ open, listHeader, onClickExpand, childre
 export function AltinnCollapsible({ children, open }: PropsWithChildren<{ open: boolean }>) {
   return (
     <div
-      className={cn(classes.collapsable, {
-        [classes.collapsableClosed]: !open,
+      className={cn(classes.collapsible, {
+        [classes.collapsibleClosed]: !open,
       })}
     >
       {children}

@@ -40,4 +40,10 @@ export const Config = new CG.component({
         .setTitle('Link to each attachment')
         .setDescription('Disable this to remove the link to each attachment'),
     ),
+  )
+  .addProperty(
+    new CG.prop(
+      'groupByDataTypeGrouping',
+      new CG.bool().optional({ default: false }).setDescription('Group attachments by their data type grouping'),
+    ),
   );

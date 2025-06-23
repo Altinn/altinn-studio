@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
+import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -23,8 +24,9 @@ const emptyDataTypeArray: IDataType[] = [];
 
 export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
-  const links = useNodeItem(node, (i) => i.links);
+  const showLinks = useNodeItem(node, (i) => i.links);
   const allowedAttachmentTypes = new Set(useNodeItem(node, (i) => i.dataTypeIds) ?? []);
+  const groupAttachments = useNodeItem(node, (i) => i.groupByDataTypeGrouping) ?? false;
 
   const instanceData = useLaxInstanceData((data) => data.data) ?? [];
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
@@ -67,11 +69,20 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
 
   return (
     <ComponentStructureWrapper node={node}>
-      <AltinnAttachments
-        attachments={displayAttachments}
-        title={<Lang id={textResourceBindings?.title} />}
-        links={links}
-      />
+      {groupAttachments ? (
+        <AttachmentGroupings
+          attachments={displayAttachments}
+          collapsibleTitle={<Lang id={textResourceBindings?.title} />}
+          hideCollapsibleCount={true}
+          showLinks={showLinks}
+        />
+      ) : (
+        <AltinnAttachments
+          attachments={displayAttachments}
+          title={<Lang id={textResourceBindings?.title} />}
+          showLinks={showLinks}
+        />
+      )}
     </ComponentStructureWrapper>
   );
 }

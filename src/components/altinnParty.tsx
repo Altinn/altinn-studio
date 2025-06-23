@@ -5,7 +5,7 @@ import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { AltinnCollapsibleList } from 'src/components/AltinnCollapsable';
+import { AltinnCollapsibleList } from 'src/components/AltinnCollapsible';
 import classes from 'src/components/altinnParty.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

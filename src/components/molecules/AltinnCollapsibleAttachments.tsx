@@ -4,7 +4,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { AltinnCollapsible } from 'src/components/AltinnCollapsable';
+import { AltinnCollapsible } from 'src/components/AltinnCollapsible';
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import classes from 'src/components/molecules/AltinnCollapsibleAttachments.module.css';
 import type { IDisplayAttachment } from 'src/types/shared';
@@ -13,9 +13,15 @@ interface IAltinnCollapsibleAttachmentsProps {
   attachments: IDisplayAttachment[] | undefined;
   title: React.ReactNode | undefined;
   hideCount?: boolean;
+  showLinks: boolean | undefined;
 }
 
-export function AltinnCollapsibleAttachments({ attachments, title, hideCount }: IAltinnCollapsibleAttachmentsProps) {
+export function AltinnCollapsibleAttachments({
+  attachments,
+  title,
+  hideCount,
+  showLinks = true,
+}: IAltinnCollapsibleAttachmentsProps) {
   const isCollapsible = useIsPrint() ? false : Boolean(attachments && attachments.length > 4);
   const [open, setOpen] = React.useState(true);
 
@@ -45,7 +51,10 @@ export function AltinnCollapsibleAttachments({ attachments, title, hideCount }: 
           </Heading>
         </div>
         <AltinnCollapsible open={open}>
-          <AltinnAttachments attachments={attachments} />
+          <AltinnAttachments
+            attachments={attachments}
+            showLinks={showLinks}
+          />
         </AltinnCollapsible>
       </div>
     );
@@ -53,13 +62,14 @@ export function AltinnCollapsibleAttachments({ attachments, title, hideCount }: 
 
   return (
     <AltinnAttachments
-      attachments={attachments}
+      id='attachment-list'
       title={
         <>
           {title} {attachmentCount}
         </>
       }
-      id='attachment-list'
+      attachments={attachments}
+      showLinks={showLinks}
     />
   );
 }
