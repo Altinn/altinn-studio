@@ -19,6 +19,7 @@ public class OptionsServiceTests : IDisposable
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
+    private const bool OverrideExistingTextResources = false;
 
     [Fact]
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
@@ -274,7 +275,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
         // Assert
         Assert.Equal(expectedOptionList.Count, optionList.Count);
@@ -310,7 +311,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrgIfIdIsVacant(TargetOrgName, targetAppRepository, Developer, OptionListId);
+        List<Option> optionList = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
         // Assert
         Assert.Null(optionList);
