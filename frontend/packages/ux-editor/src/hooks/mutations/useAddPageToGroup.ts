@@ -42,25 +42,24 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
   };
 
   const addPageToGroup = async (groupIndex: number) => {
-    const page: PageModel = { id: nextValidPageName() };
-    const currentGroup = pagesModel.groups[groupIndex];
-    currentGroup.order.push(page);
-    if (currentGroup.order.length > 1 && !currentGroup.name) {
-      currentGroup.name = nextValidGroupName();
-    }
-
-    const updatedPages = {
-      ...pagesModel,
+    const newPage: PageModel = { id: nextValidPageName() };
+    const updatedGroups = [...pagesModel.groups];
+    updatedGroups[groupIndex] = {
+      ...updatedGroups[groupIndex],
+      order: [...updatedGroups[groupIndex].order, newPage],
+      name: updatedGroups[groupIndex].name || nextValidGroupName(),
     };
-    pagesModel.groups.splice(groupIndex, 1, currentGroup);
 
-    await updateGroupsMutation.mutateAsync(updatedPages, {
-      onSuccess: async () => {
-        setSelectedFormLayoutName(page.id);
-        setSelectedItem({ type: ItemType.Page, id: page.id });
-        await updateLayoutsForPreview(selectedFormLayoutSetName);
+    await updateGroupsMutation.mutateAsync(
+      { ...pagesModel, groups: updatedGroups },
+      {
+        onSuccess: async () => {
+          setSelectedFormLayoutName(newPage.id);
+          setSelectedItem({ type: ItemType.Page, id: newPage.id });
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
+        },
       },
-    });
+    );
   };
   return { addPageToGroup };
 };
