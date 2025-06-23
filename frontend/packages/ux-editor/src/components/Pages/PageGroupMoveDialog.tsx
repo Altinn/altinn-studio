@@ -18,6 +18,7 @@ import {
   removeEmptyGroups,
   updateGroupNames,
 } from '../../utils/pageGroupUtils';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 type PageGroupMoveToExistingGroupDialogProps = {
   pageName: string;
@@ -39,11 +40,15 @@ export const PageGroupMoveToExistingGroupDialog = ({
     app,
     selectedFormLayoutSetName,
   );
-  const currentGroupIndex = pagesModel.groups.findIndex((group) =>
-    group.order.some((page) => page.id === pageName),
-  );
+
+  const isGroupLayout = isPagesModelWithGroups(pagesModel);
+  const currentGroupIndex =
+    isGroupLayout &&
+    pagesModel.groups.findIndex((group) => group.order.some((page) => page.id === pageName));
   const defaultSelectedGroup = currentGroupIndex === 0 ? 1 : 0;
   const [selectedGroupIndex, setSelectedGroupIndex] = useState<number>(defaultSelectedGroup);
+
+  if (!isGroupLayout) return null;
 
   const moveToGroup = () => {
     const newGroups = updateGroupNames(
