@@ -152,6 +152,7 @@ export const PageGroupAccordion = ({
                 onClick={() => onAccordionClick(page.id)}
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
+                groupIndex={groupIndex}
               >
                 {page.id === selectedFormLayoutName && layout && (
                   <FormLayout
