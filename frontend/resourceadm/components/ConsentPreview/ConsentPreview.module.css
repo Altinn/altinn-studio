@@ -38,13 +38,18 @@
 }
 
 .previewControls {
-  display: flex;
+  display: grid;
   align-items: flex-end;
-  gap: var(--ds-size-4);
+  gap: var(--ds-size-2);
+  align-self: flex-start;
+  align-items: flex-start;
+  grid-template-columns: 1fr 1fr;
   margin-bottom: var(--ds-size-4);
 }
 
 .consentPreviewInner {
+  display: flex;
+  flex-direction: column;
   background-color: var(--ds-color-neutral-background-tinted);
   position: sticky;
   height: 100vh;

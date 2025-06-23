@@ -18,6 +18,7 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 const buttonText = {
   nb: {
@@ -110,45 +111,43 @@ export const ConsentPreview = ({
           {t('resourceadm.about_resource_consent_preview')}
         </StudioHeading>
         <div className={classes.previewControls}>
-          <StudioSelect
-            label={t('resourceadm.about_resource_consent_preview_reportee')}
+          <ToggleGroup
+            size='sm'
             value={reporteeType}
-            onChange={(event) => setReporteeType(event.target.value as 'person' | 'org')}
+            onChange={(newValue: string) => setReporteeType(newValue as 'person' | 'org')}
           >
-            <StudioSelect.Option value='person'>
+            <ToggleGroup.Item value='person'>
               {t('resourceadm.about_resource_consent_preview_person')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='org'>
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value='org'>
               {t('resourceadm.about_resource_consent_preview_org')}
-            </StudioSelect.Option>
-          </StudioSelect>
-          <StudioSelect
-            label={t('resourceadm.about_resource_consent_preview_language')}
+            </ToggleGroup.Item>
+          </ToggleGroup>
+          <ToggleGroup
+            size='sm'
             value={language}
-            onChange={(event) => setLanguage(event.target.value as ValidLanguage)}
+            onChange={(newValue: string) => setLanguage(newValue as ValidLanguage)}
           >
-            <StudioSelect.Option value='nb'>
+            <ToggleGroup.Item value='nb'>
               {t('resourceadm.about_resource_consent_preview_language_nb')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='nn'>
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value='nn'>
               {t('resourceadm.about_resource_consent_preview_language_nn')}
-            </StudioSelect.Option>
-            <StudioSelect.Option value='en'>
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value='en'>
               {t('resourceadm.about_resource_consent_preview_language_en')}
-            </StudioSelect.Option>
-          </StudioSelect>
-          <div>
-            <StudioSwitch
-              label={t('resourceadm.about_resource_consent_preview_mobile_view')}
-              checked={isMobileViewEnabled}
-              onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
-            />
-            <StudioSwitch
-              label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
-              checked={isDummyMetadataEnabled}
-              onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
-            />
-          </div>
+            </ToggleGroup.Item>
+          </ToggleGroup>
+          <StudioSwitch
+            label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
+            checked={isDummyMetadataEnabled}
+            onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
+          />
+          <StudioSwitch
+            label={t('resourceadm.about_resource_consent_preview_mobile_view')}
+            checked={isMobileViewEnabled}
+            onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
+          />
         </div>
         <div className={isMobileViewEnabled ? classes.mobileView : undefined}>
           <div className={classes.consentBlock}>
