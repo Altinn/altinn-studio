@@ -26,10 +26,15 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
   });
 };
 
-function extractTexts(texts: Record<string, ITextResourcesWithLanguage>): ITextResources {
+function extractTexts(
+  texts: Record<string, ITextResourcesWithLanguage> | undefined,
+): ITextResources | null {
+  if (!texts) return null;
   const updatedTextResources = {};
+
   Object.keys(texts).forEach((language: string): void => {
     updatedTextResources[language] = texts[language].resources;
   });
+
   return updatedTextResources;
 }
