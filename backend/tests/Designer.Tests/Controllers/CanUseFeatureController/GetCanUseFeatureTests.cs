@@ -1,0 +1,64 @@
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Evaluators;
+using Altinn.Studio.Designer.Models.Dto;
+using Designer.Tests.Controllers.ApiTests;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
+using Moq;
+using Microsoft.Extensions.DependencyInjection;
+using Altinn.Studio.Designer.Services.Interfaces;
+
+namespace Designer.Tests.Controllers.CanUseFeatureController;
+
+public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeatureTests>,
+    IClassFixture<WebApplicationFactory<Program>>
+{
+    public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
+        : base(factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
+                evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
+                evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+
+                services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
+                services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
+            });
+        }))
+    { }
+
+    [Fact]
+    public async Task CanUseFeature_Returns200Ok_WithTrue()
+    {
+        string apiUrl = "designer/api/CanUseFeature?featureName=UploadDataModel";
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<CanUseFeatureDto>(responseBody,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(result);
+        Assert.True(result.CanUseFeature);
+    }
+
+    [Fact]
+    public async Task CanUseFeature_Returns400BadRequest_ForInvalidFeatureName()
+    {
+        string apiUrl = "designer/api/CanUseFeature?featureName=InvalidFeature";
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("Invalid feature name", responseBody);
+    }
+}

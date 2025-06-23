@@ -71,6 +71,7 @@ import {
   consentTemplatesPath,
   allAccessListsPath,
   orgTextLanguagesPath,
+  canUseFeaturePath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -160,6 +161,7 @@ export const getWidgetSettings = (owner: string, app: string) => get<WidgetSetti
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
+export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
 
 // Layout
 export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
