@@ -85,7 +85,7 @@ export const ConsentPreview = ({
     heading: replaceMetadata(template.texts.heading[reporteeType][language], staticMetadata),
     consentMessage: template.texts.overriddenDelegationContext
       ? replaceMetadata(template.texts.overriddenDelegationContext[language], staticMetadata)
-      : 'Denne teksten settes av den som ber om samtykke',
+      : t('resourceadm.about_resource_consent_preview_message_placeholder'),
     serviceIntro: replaceMetadata(
       template.texts.serviceIntro[reporteeType][language],
       staticMetadata,
