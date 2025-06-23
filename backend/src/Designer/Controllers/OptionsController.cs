@@ -3,7 +3,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -65,41 +64,19 @@ public class OptionsController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of <see cref="OptionListData" /> objects with all option lists belonging to the app with data
     /// set if option list is valid, or hasError set if option list is invalid.</returns>
     [HttpGet]
     [Route("option-lists")]
-    public async Task<ActionResult<List<OptionListData>>> GetOptionLists(string org, string repo)
+    public async Task<ActionResult<List<OptionListData>>> GetOptionLists(string org, string repo, CancellationToken cancellationToken = default)
     {
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string[] optionListIds = _optionsService.GetOptionsListIds(org, repo, developer);
-            List<OptionListData> optionLists = [];
-            foreach (string optionListId in optionListIds)
-            {
-                try
-                {
-                    List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
-                    OptionListData optionListData = new()
-                    {
-                        Title = optionListId,
-                        Data = optionList,
-                        HasError = false
-                    };
-                    optionLists.Add(optionListData);
-                }
-                catch (InvalidOptionsFormatException)
-                {
-                    OptionListData optionListData = new()
-                    {
-                        Title = optionListId,
-                        Data = null,
-                        HasError = true
-                    };
-                    optionLists.Add(optionListData);
-                }
-            }
+
+            List<OptionListData> optionLists = await _optionsService.GetOptionLists(org, repo, developer, cancellationToken);
+
             return Ok(optionLists);
         }
         catch (NotFoundException)
@@ -260,8 +237,16 @@ public class OptionsController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Route("import/{optionListId}")]
-    public async Task<ActionResult<List<Option>>> ImportOptionListFromOrg(string org, string repo, [FromRoute] string optionListId, [FromQuery] bool overwriteTextResources = false, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ImportOptionListResponse>> ImportOptionListFromOrg(
+        string org,
+        string repo,
+        [FromRoute] string optionListId,
+        [FromQuery] bool overwriteTextResources = false,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -272,13 +257,18 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        List<Option> importedOptionList = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
+        (List<OptionListData> importedOptionList, Dictionary<string, TextResource> importedTextResources) = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
 
-        if (importedOptionList is null)
+        if (importedOptionList is null && importedTextResources is null)
         {
             return Conflict($"The options file {optionListId}.json already exists.");
         }
 
-        return Ok(importedOptionList);
+        ImportOptionListResponse importOptionListResponse = new()
+        {
+            OptionList = importedOptionList,
+            TextResources = importedTextResources
+        };
+        return Ok(importOptionListResponse);
     }
 }

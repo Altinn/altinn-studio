@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -45,18 +46,20 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(message);
         string responseContent = await response.Content.ReadAsStringAsync();
-        List<Option> importedOptionList = JsonSerializer.Deserialize<List<Option>>(responseContent);
+        ImportOptionListResponse importedResponse = JsonSerializer.Deserialize<ImportOptionListResponse>(responseContent, s_jsonOptions);
+        List<OptionListData> optionListDataList = importedResponse.OptionList;
+        List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(importedOptionList.Count, expectedOptionList.Count);
+        Assert.Equal(optionList.Count, expectedOptionList.Count);
 
         for (int i = 0; i < expectedOptionList.Count; i++)
         {
-            Assert.Equal(expectedOptionList[i].Value, importedOptionList[i].Value);
-            Assert.Equal(expectedOptionList[i].Label, importedOptionList[i].Label);
-            Assert.Equal(expectedOptionList[i].Description, importedOptionList[i].Description);
-            Assert.Equal(expectedOptionList[i].HelpText, importedOptionList[i].HelpText);
+            Assert.Equal(expectedOptionList[i].Value, optionList[i].Value);
+            Assert.Equal(expectedOptionList[i].Label, optionList[i].Label);
+            Assert.Equal(expectedOptionList[i].Description, optionList[i].Description);
+            Assert.Equal(expectedOptionList[i].HelpText, optionList[i].HelpText);
         }
     }
 
