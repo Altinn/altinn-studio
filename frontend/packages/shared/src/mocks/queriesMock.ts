@@ -159,6 +159,7 @@ export const queriesMock: ServicesContextProps = {
     }),
   ),
   getPages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  canUseFeature: jest.fn().mockImplementation(() => Promise.resolve({ canUseFeature: false })),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),

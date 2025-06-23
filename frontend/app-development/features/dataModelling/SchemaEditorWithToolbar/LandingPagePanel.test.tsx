@@ -8,6 +8,7 @@ import { renderWithProviders } from '../../../test/mocks';
 
 const landingPagePropsMock: LandingPagePanelProps = {
   openCreateNew: jest.fn(),
+  canUseUploadXSDFeature: true,
 };
 
 describe('LandingPagePanel', (): void => {

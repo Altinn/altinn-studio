@@ -115,6 +115,7 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import { FeatureName } from 'app-shared/enums/CanUseFeature';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
