@@ -7,7 +7,6 @@ import {
   StudioButton,
   StudioHeading,
   StudioParagraph,
-  StudioSelect,
   StudioSwitch,
 } from '@studio/components';
 import { CheckmarkIcon } from '@studio/icons';
@@ -75,11 +74,7 @@ export const ConsentPreview = ({
         CoveredBy: 'BANKEN AS',
         OfferedBy: 'DIN ORGANISASJON AS',
         HandledBy: 'BANKEN IT-AVDELING AS',
-        Expiration: new Date().toLocaleDateString('no-NB', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }),
+        Expiration: getDummyDateString(),
       }
     : {};
 
@@ -149,7 +144,10 @@ export const ConsentPreview = ({
             onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
           />
         </div>
-        <div className={isMobileViewEnabled ? classes.mobileView : undefined}>
+        <div
+          data-testid='consentPreviewContainer'
+          className={isMobileViewEnabled ? classes.mobileView : undefined}
+        >
           <div className={classes.consentBlock}>
             <StudioHeading level={1} data-size='md'>
               {texts.title}
@@ -199,12 +197,20 @@ const getDummyResourceMetadata = (consentMetadata: ConsentMetadata) => {
   const getRandomString = () => Math.random().toString(36).substring(2, 10);
   return Object.keys(consentMetadata).reduce((acc, key) => {
     if (key.toLowerCase().indexOf('aar') > -1 || key.toLowerCase().indexOf('year') > -1) {
-      acc[key] = '2025';
+      acc[key] = new Date().getFullYear();
     } else if (key.toLowerCase().indexOf('dato') > -1 || key.toLowerCase().indexOf('date') > -1) {
-      acc[key] = '01.07.2025';
+      acc[key] = getDummyDateString();
     } else {
       acc[key] = getRandomString();
     }
     return acc;
   }, {});
+};
+
+const getDummyDateString = (): string => {
+  return new Date().toLocaleDateString('no-NB', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
 };
