@@ -1,4 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import Markdown from 'markdown-to-jsx';
+import cn from 'classnames';
 import {
   StudioAlert,
   StudioButton,
@@ -15,8 +18,6 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
-import { useTranslation } from 'react-i18next';
-import Markdown from 'markdown-to-jsx';
 
 const buttonText = {
   nb: {
@@ -156,7 +157,7 @@ export const ConsentPreview = ({
             </StudioHeading>
           </div>
           <div className={classes.consentBlock}>
-            <StudioParagraph>{texts.heading}</StudioParagraph>
+            <StudioParagraph className={classes.boldText}>{texts.heading}</StudioParagraph>
             <StudioParagraph>{texts.consentMessage}</StudioParagraph>
             <StudioHeading level={2} data-size='2xs'>
               {texts.serviceIntro}
@@ -164,13 +165,15 @@ export const ConsentPreview = ({
             <div className={classes.consentRight}>
               <CheckmarkIcon className={classes.consentRightIcon} />
               <div className={classes.consentRightContent}>
-                <StudioHeading level={2} data-size='2xs'>
+                <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
                 <Markdown>{texts.resourceText}</Markdown>
               </div>
             </div>
-            <StudioParagraph className={classes.expiration}>{texts.expiration}</StudioParagraph>
+            <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
+              {texts.expiration}
+            </StudioParagraph>
             <StudioParagraph>{texts.handledBy}</StudioParagraph>
             <div className={classes.buttonRow}>
               <StudioButton variant='primary' tabIndex={-1}>

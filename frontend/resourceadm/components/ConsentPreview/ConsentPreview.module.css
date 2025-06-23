@@ -8,8 +8,11 @@
 }
 
 .expiration {
-  font-weight: 500;
   margin-top: var(--ds-size-4);
+}
+
+.boldText {
+  font-weight: 500;
 }
 
 .buttonRow {
@@ -64,7 +67,13 @@
 .mobileView {
   max-width: 25rem;
 }
-
 .mobileView h1 {
   font-size: 18px;
+}
+.mobileView .consentBlock {
+  padding: var(--ds-size-5);
+}
+.mobileView .expiration,
+.mobileView .buttonRow {
+  margin-top: 0;
 }
