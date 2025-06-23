@@ -10,13 +10,12 @@ export class PageGroupUtils {
 
   public movePageToGroup = (pageName: string, newGroupIndex: number): this => {
     this.removePageFromGroups(pageName);
-    (this.groups = this.groups.map((group, index) => {
+    this.groups = this.groups.map((group, index) => {
       if (index === newGroupIndex) {
         return { ...group, order: [...group.order, { id: pageName }] };
       }
       return group;
-    })),
-      this.groups.filter((group) => group?.order?.length > 0);
+    });
     return this;
   };
 
