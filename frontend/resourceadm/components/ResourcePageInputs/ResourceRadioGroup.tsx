@@ -27,11 +27,6 @@ type ResourceRadioGroupProps = {
    */
   options: { value: string; label: string }[];
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * Function to be executed on change
    * @param selected the value selected
    * @returns void
@@ -56,7 +51,6 @@ type ResourceRadioGroupProps = {
  * @property {string}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
  * @property {{value: string, lable: string}[]}[options] - List of the options in the dropdown
- * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onChange] - Function to be executed on change
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[required] - Whether this field is required or not
@@ -69,7 +63,6 @@ export const ResourceRadioGroup = ({
   description,
   value,
   options,
-  onFocus,
   onChange,
   errors,
   required,
@@ -88,7 +81,6 @@ export const ResourceRadioGroup = ({
         value={selected}
         legend={<ResourceFieldHeader label={label} required={required} />}
         description={description}
-        onFocus={onFocus}
         error={
           errors.length > 0
             ? errors.map((error, index) => (
