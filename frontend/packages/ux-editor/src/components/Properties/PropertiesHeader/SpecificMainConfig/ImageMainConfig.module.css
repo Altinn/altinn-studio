@@ -1,0 +1,8 @@
+.root {
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  gap: var(--fds-spacing-3);
+}
+
+.imageHeading {
+  font-size: medium;
+}

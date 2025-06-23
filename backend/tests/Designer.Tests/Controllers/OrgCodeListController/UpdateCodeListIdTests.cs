@@ -86,6 +86,6 @@ public class UpdateCodeListIdTests : DesignerEndpointsTestsBase<UpdateCodeListId
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static string CodeListFilePath(string codeListId) => $"Codelists/{codeListId}.json";
+    private static string CodeListFilePath(string codeListId) => $"CodeLists/{codeListId}.json";
     private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/change-name/{codeListId}";
 }

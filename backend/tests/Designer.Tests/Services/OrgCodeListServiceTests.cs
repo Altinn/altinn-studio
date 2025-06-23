@@ -93,7 +93,7 @@ public class OrgCodeListServiceTests : IDisposable
         List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
         // Assert
-        Assert.Equal(7, codeListData.Count);
+        Assert.Equal(8, codeListData.Count);
         Assert.Equal(newCodeList.Count, codeList?.Count);
 
         for (int i = 0; i < codeList?.Count; i++)
@@ -128,7 +128,7 @@ public class OrgCodeListServiceTests : IDisposable
         List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
         // Assert
-        Assert.Equal(6, codeListData.Count);
+        Assert.Equal(7, codeListData.Count);
         Assert.Equal(newCodeList.Count, codeList?.Count);
 
         for (int i = 0; i < codeList?.Count; i++)
@@ -156,8 +156,8 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         string repositoryDir = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrg, targetRepository, Developer);
-        string oldCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{CodeListId}.json");
-        string newCodeListFilePath = Path.Join(repositoryDir, $"Codelists/{NewCodeListId}.json");
+        string oldCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{CodeListId}.json");
+        string newCodeListFilePath = Path.Join(repositoryDir, $"CodeLists/{NewCodeListId}.json");
         Assert.False(File.Exists(oldCodeListFilePath));
         Assert.True(File.Exists(newCodeListFilePath));
     }
@@ -194,7 +194,7 @@ public class OrgCodeListServiceTests : IDisposable
         List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
         // Assert
-        Assert.Equal(7, codeListData.Count);
+        Assert.Equal(8, codeListData.Count);
         Assert.Equal(expectedCodeList.Count, codeList?.Count);
 
         for (int i = 0; i < codeList?.Count; i++)
@@ -220,7 +220,7 @@ public class OrgCodeListServiceTests : IDisposable
         var codeListData = await service.DeleteCodeList(TargetOrg, Developer, CodeListId);
 
         // Assert
-        Assert.Equal(5, codeListData.Count);
+        Assert.Equal(6, codeListData.Count);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class OrgCodeListServiceTests : IDisposable
         List<string> codeListIds = service.GetCodeListIds(TargetOrg, Developer);
 
         // Assert
-        Assert.Equal(6, codeListIds.Count);
+        Assert.Equal(7, codeListIds.Count);
     }
 
     [Fact]

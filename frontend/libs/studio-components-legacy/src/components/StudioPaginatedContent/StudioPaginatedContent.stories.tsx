@@ -1,5 +1,5 @@
 import React, { type ChangeEvent, useState } from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioPaginatedContent } from './StudioPaginatedContent';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioTextfield } from '../StudioTextfield';

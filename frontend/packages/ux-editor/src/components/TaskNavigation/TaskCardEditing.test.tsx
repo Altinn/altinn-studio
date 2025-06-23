@@ -191,6 +191,12 @@ describe('taskCard', () => {
     expect(layoutSetNameTextbox()).toBeInvalid();
     expect(screen.getByRole('button', { name: /general.save/ })).toBeDisabled();
   });
+
+  it('should show default "choose model" option if layoutset dataType is null', () => {
+    render({ layoutSetModel: { ...dataTaskLayoutSet, dataType: null } });
+
+    expect(dataModelBindingCombobox()).toHaveTextContent('ux_editor.task_card.choose_datamodel');
+  });
 });
 
 const render = (props?: Partial<TaskCardEditingProps>) => {

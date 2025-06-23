@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import './App.css';
-
-import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import type { SchemaEditorAppContextProps } from './contexts/SchemaEditorAppContext';
 import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';

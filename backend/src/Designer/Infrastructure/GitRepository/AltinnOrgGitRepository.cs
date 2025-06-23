@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
 public class AltinnOrgGitRepository : AltinnGitRepository
 {
-    private const string CodeListFolderPath = "Codelists/";
+    private const string CodeListFolderPath = "CodeLists/";
     private const string LanguageResourceFolderName = "Texts/";
     private const string TextResourceFileNamePattern = "resource.??.json";
 
@@ -41,6 +41,11 @@ public class AltinnOrgGitRepository : AltinnGitRepository
 
     public List<string> GetLanguages()
     {
+        if (!DirectoryExistsByRelativePath(LanguageResourceFolderName))
+        {
+            return [];
+        }
+
         string[] languageFilePaths = GetFilesByRelativeDirectory(LanguageResourceFolderName, TextResourceFileNamePattern);
 
         List<string> languages = languageFilePaths
@@ -109,13 +114,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string codeListFolder = Path.Combine(CodeListFolderPath);
-        if (!DirectoryExistsByRelativePath(codeListFolder))
+        if (!DirectoryExistsByRelativePath(CodeListFolderPath))
         {
             return [];
         }
 
-        string[] fileNames = GetFilesByRelativeDirectoryAscSorted(codeListFolder, "*.json");
+        string[] fileNames = GetFilesByRelativeDirectoryAscSorted(CodeListFolderPath, "*.json");
         IEnumerable<string> codeListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
         return codeListIds.ToList();
     }

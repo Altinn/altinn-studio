@@ -16,6 +16,8 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
+          lifecycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
           imagePullPolicy: Always
           ports:

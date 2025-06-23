@@ -9,6 +9,7 @@ export interface TextResourceProps {
   textResourceId: string;
   onReferenceChange: (id: string) => void;
   onSetCurrentValue: (value: string) => void;
+  textResourceValue?: string;
 }
 
 enum TextResourceTab {
@@ -20,6 +21,7 @@ export const TextResourceEditor = ({
   textResourceId,
   onReferenceChange,
   onSetCurrentValue,
+  textResourceValue,
 }: TextResourceProps) => {
   const { t } = useTranslation();
 
@@ -37,6 +39,7 @@ export const TextResourceEditor = ({
         <TextResourceValueEditor
           textResourceId={textResourceId}
           onSetCurrentValue={onSetCurrentValue}
+          textResourceValue={textResourceValue}
         />
       </Tabs.Content>
       <Tabs.Content value={TextResourceTab.Search}>

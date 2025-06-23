@@ -239,7 +239,9 @@ describe('CodeLists', () => {
   });
 
   it('renders error message if option list has format error', () => {
-    renderCodeLists({ codeListsData: [{ ...codeListsDataMock[0], hasError: true, data: null }] });
+    renderCodeLists({
+      codeListDataList: [{ ...codeListsDataMock[0], hasError: true, data: null }],
+    });
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.format_error'));
     expect(errorMessage).toBeInTheDocument();
   });
@@ -294,7 +296,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
 };
 
 const defaultProps: CodeListsProps = {
-  codeListsData: codeListsDataMock,
+  codeListDataList: codeListsDataMock,
   onDeleteCodeList: onDeleteCodeListMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,

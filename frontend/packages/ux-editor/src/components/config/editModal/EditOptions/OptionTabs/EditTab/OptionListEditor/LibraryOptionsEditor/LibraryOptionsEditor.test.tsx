@@ -20,7 +20,7 @@ import { LibraryOptionsEditor, type LibraryOptionsEditorProps } from './LibraryO
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const optionListId = 'someId';
 const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId: optionListId };
-const handleDelete = jest.fn();
+const onDeleteButtonClick = jest.fn();
 const doReloadPreview = jest.fn();
 const optionList: OptionList = [
   { value: 'value 1', label: 'some-id', description: 'description-id', helpText: 'help text' },
@@ -125,13 +125,13 @@ describe('LibraryOptionEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call handleDelete when removing chosen options', async () => {
+  it('should call onDeleteButtonClick when removing chosen options', async () => {
     const user = userEvent.setup();
     renderLibraryOptionsEditorWithData();
 
     await user.click(getDeleteButton());
 
-    expect(handleDelete).toHaveBeenCalledTimes(1);
+    expect(onDeleteButtonClick).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -160,8 +160,9 @@ function getDeleteButton() {
 }
 
 const defaultProps: LibraryOptionsEditorProps = {
-  handleDelete: handleDelete,
+  onDeleteButtonClick,
   optionListId: optionListId,
+  textResources,
 };
 
 function renderLibraryOptionsEditor({
@@ -184,6 +185,5 @@ function renderLibraryOptionsEditorWithData({ queries = {}, props = {} } = {}) {
 function createQueryClientWithData(): QueryClient {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
-  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return queryClient;
 }
