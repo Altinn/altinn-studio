@@ -77,7 +77,7 @@ export const FormComponentConfig = ({
 
       {/** Grid Property */}
       <ConfigGridProperties
-        gridPropertyKeys={schema.properties?.grid}
+        hasGridProperty={Boolean(schema.properties?.grid)}
         component={component}
         handleComponentUpdate={handleComponentUpdate}
       />

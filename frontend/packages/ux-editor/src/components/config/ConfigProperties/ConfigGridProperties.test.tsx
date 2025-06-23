@@ -13,7 +13,7 @@ describe('ConfigGridProperties', () => {
     const user = userEvent.setup();
     render({
       props: {
-        gridPropertyKeys: ['grid'],
+        hasGridProperty: true,
         component: componentMocks.Input,
       },
     });
@@ -33,7 +33,7 @@ describe('ConfigGridProperties', () => {
     const user = userEvent.setup();
     render({
       props: {
-        gridPropertyKeys: ['grid'],
+        hasGridProperty: true,
         component: componentMocks.Input,
       },
     });
@@ -59,7 +59,7 @@ describe('ConfigGridProperties', () => {
     queries?: Partial<ServicesContextProps>;
   }) => {
     const defaultProps: ConfigGridPropertiesProps = {
-      gridPropertyKeys: [],
+      hasGridProperty: false,
       component: componentMocks.Input,
       handleComponentUpdate: jest.fn(),
     };

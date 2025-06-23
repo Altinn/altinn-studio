@@ -8,18 +8,18 @@ import classes from './ConfigGridProperties.module.css';
 import type { BaseConfigProps } from './types';
 
 export interface ConfigGridPropertiesProps extends BaseConfigProps {
-  gridPropertyKeys: string[];
+  hasGridProperty?: boolean;
 }
 
 export const ConfigGridProperties = ({
-  gridPropertyKeys,
+  hasGridProperty,
   component,
   handleComponentUpdate,
 }: ConfigGridPropertiesProps) => {
   const [showGrid, setShowGrid] = useState(false);
   const t = useText();
 
-  if (!gridPropertyKeys) return null;
+  if (!hasGridProperty) return null;
 
   return (
     <>
