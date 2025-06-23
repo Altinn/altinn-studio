@@ -114,8 +114,8 @@ import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
-import { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
-import { FeatureName } from 'app-shared/enums/CanUseFeature';
+import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
