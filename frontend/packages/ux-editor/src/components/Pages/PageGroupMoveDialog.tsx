@@ -13,7 +13,7 @@ import {
 import { StudioSaveIcon, StudioCancelIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
-import { PageGroupUtils } from '../../utils/pageGroupUtils';
+import { movePageToGroup, removeEmptyGroups, updateGroupNames } from '../../utils/pageGroupUtils';
 
 type PageGroupMoveToExistingGroupDialogProps = {
   pageName: string;
@@ -39,15 +39,13 @@ export const PageGroupMoveToExistingGroupDialog = ({
   const currentGroupIndex = pagesModel.groups.findIndex((group) =>
     group.order.some((page) => page.id === pageName),
   );
-  const [selectedGroupIndex, setSelectedGroupIndex] = useState<number>(
-    currentGroupIndex === 0 ? 1 : 0,
-  );
+  const defaultSelectedGroup = currentGroupIndex === 0 ? 1 : 0;
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState<number>(defaultSelectedGroup);
 
   const moveToGroup = () => {
-    const newGroups = new PageGroupUtils(pagesModel.groups)
-      .movePageToGroup(pageName, selectedGroupIndex)
-      .removeEmptyGroups()
-      .updateGroupNames().groups;
+    const newGroups = updateGroupNames(
+      removeEmptyGroups(movePageToGroup(pagesModel.groups, pageName, selectedGroupIndex)),
+    );
     changePages(
       { ...pagesModel, groups: newGroups },
       {

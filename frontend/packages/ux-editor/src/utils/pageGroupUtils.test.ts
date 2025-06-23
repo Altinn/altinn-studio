@@ -1,4 +1,9 @@
-import { PageGroupUtils } from './pageGroupUtils';
+import {
+  movePageToGroup,
+  removePageFromGroups,
+  updateGroupNames,
+  removeEmptyGroups,
+} from './pageGroupUtils';
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
@@ -8,31 +13,30 @@ describe('pageGroupUtils', () => {
   describe('removeEmptyGroups', () => {
     it('should not modify groups with no empty groups', () => {
       const groups = [{ order: [{ id: 'test' }] }, { order: [{ id: 'test2' }] }];
-      expect(new PageGroupUtils(groups).removeEmptyGroups().groups).toEqual(groups);
+      expect(removeEmptyGroups(groups)).toEqual(groups);
     });
+
     it('should remove empty groups', () => {
       const groups = [{ order: [{ id: 'test' }] }, { order: [] }];
-      expect(new PageGroupUtils(groups).removeEmptyGroups().groups).toEqual([
-        { order: [{ id: 'test' }] },
-      ]);
+      expect(removeEmptyGroups(groups)).toEqual([{ order: [{ id: 'test' }] }]);
     });
   });
 
   describe('movePageToGroup', () => {
     it('should move page to new group', () => {
       const groups = [{ order: [{ id: 'test' }] }, { order: [{ id: 'test2' }] }];
-      expect(new PageGroupUtils(groups).movePageToGroup('test2', 0).groups).toEqual([
+      expect(movePageToGroup(groups, 'test2', 0)).toEqual([
         { order: [{ id: 'test' }, { id: 'test2' }] },
         { order: [] },
       ]);
     });
 
-    it('should remove name if group moved from has 2 pages', () => {
+    it('should not automatically update group names', () => {
       const groups = [
         { order: [{ id: 'test' }] },
         { name: 'testname', order: [{ id: 'test2' }, { id: 'test3' }] },
       ];
-      expect(new PageGroupUtils(groups).movePageToGroup('test2', 0).groups).toEqual([
+      expect(movePageToGroup(groups, 'test2', 0)).toEqual([
         { order: [{ id: 'test' }, { id: 'test2' }] },
         { name: 'testname', order: [{ id: 'test3' }] },
       ]);
@@ -45,7 +49,7 @@ describe('pageGroupUtils', () => {
         { name: 'testname', order: [{ id: 'test' }, { id: 'test2' }] },
         { order: [{ id: 'test3' }] },
       ];
-      expect(new PageGroupUtils(groups).removePageFromGroups('test2').groups).toEqual([
+      expect(removePageFromGroups(groups, 'test2')).toEqual([
         { name: 'testname', order: [{ id: 'test' }] },
         { order: [{ id: 'test3' }] },
       ]);
@@ -55,7 +59,7 @@ describe('pageGroupUtils', () => {
   describe('updateGroupNames', () => {
     it('should add name to group with more than 1 page', () => {
       const groups = [{ order: [{ id: 'test' }] }, { order: [{ id: 'test2' }, { id: 'test3' }] }];
-      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+      expect(updateGroupNames(groups)).toEqual([
         { order: [{ id: 'test' }] },
         { name: 'ux_editor.page_layout_group 1', order: [{ id: 'test2' }, { id: 'test3' }] },
       ]);
@@ -63,7 +67,7 @@ describe('pageGroupUtils', () => {
 
     it('should remove name from group with 1 page', () => {
       const groups = [{ order: [{ id: 'test' }] }, { name: 'testname', order: [{ id: 'test2' }] }];
-      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+      expect(updateGroupNames(groups)).toEqual([
         { order: [{ id: 'test' }] },
         { order: [{ id: 'test2' }] },
       ]);
@@ -75,7 +79,7 @@ describe('pageGroupUtils', () => {
         { order: [{ id: 'test3' }, { id: 'test4' }] },
         { name: 'ux_editor.page_layout_group 3', order: [{ id: 'test5' }, { id: 'test6' }] },
       ];
-      expect(new PageGroupUtils(groups).updateGroupNames().groups).toEqual([
+      expect(updateGroupNames(groups)).toEqual([
         { name: 'ux_editor.page_layout_group 1', order: [{ id: 'test' }, { id: 'test2' }] },
         { name: 'ux_editor.page_layout_group 2', order: [{ id: 'test3' }, { id: 'test4' }] },
         { name: 'ux_editor.page_layout_group 3', order: [{ id: 'test5' }, { id: 'test6' }] },

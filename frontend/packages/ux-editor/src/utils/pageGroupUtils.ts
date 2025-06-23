@@ -1,56 +1,44 @@
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { t } from 'i18next';
 
-export class PageGroupUtils {
-  groups: GroupModel[];
+export const movePageToGroup = (
+  groups: GroupModel[],
+  pageName: string,
+  newGroupIndex: number,
+): GroupModel[] => {
+  return removePageFromGroups(groups, pageName).map((group, index) =>
+    index === newGroupIndex ? { ...group, order: [...group.order, { id: pageName }] } : group,
+  );
+};
 
-  public constructor(groups: GroupModel[]) {
-    this.groups = [...groups];
-  }
+export const removePageFromGroups = (groups: GroupModel[], pageName: string): GroupModel[] => {
+  return groups.map((group) => ({
+    ...group,
+    order: group.order.filter((page) => page.id !== pageName),
+  }));
+};
 
-  public movePageToGroup = (pageName: string, newGroupIndex: number): this => {
-    this.removePageFromGroups(pageName);
-    this.groups = this.groups.map((group, index) => {
-      if (index === newGroupIndex) {
-        return { ...group, order: [...group.order, { id: pageName }] };
-      }
-      return group;
-    });
-    return this;
-  };
-
-  public removePageFromGroups = (pageName: string): this => {
-    this.groups = this.groups.map((group) => ({
-      ...group,
-      order: group.order.filter((page) => page.id !== pageName),
-    }));
-    return this;
-  };
-
-  public updateGroupNames = (): this => {
-    this.groups = this.groups.map((group, index) => {
-      if (group.name === undefined && group.order.length > 1) {
-        return { ...group, name: this.getNextValidGroupName() };
-      }
-      if (group.name !== undefined && group.order.length < 2) {
-        return { ...group, name: undefined };
-      }
-      return group;
-    });
-    return this;
-  };
-
-  public removeEmptyGroups = (): this => {
-    this.groups = this.groups.filter((group) => group.order.length > 0);
-    return this;
-  };
-
-  public getNextValidGroupName = (): string => {
-    const pageGroupPrefix = t('ux_editor.page_layout_group');
-    let i: number = 1;
-    while (this.groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
-      i++;
+export const updateGroupNames = (groups: GroupModel[]): GroupModel[] => {
+  return groups.map((group) => {
+    if (group.name === undefined && group.order.length > 1) {
+      return { ...group, name: getNextValidGroupName(groups) };
     }
-    return `${pageGroupPrefix} ${i}`;
-  };
-}
+    if (group.name !== undefined && group.order.length < 2) {
+      return { ...group, name: undefined };
+    }
+    return group;
+  });
+};
+
+export const removeEmptyGroups = (groups: GroupModel[]): GroupModel[] => {
+  return groups.filter((group) => group.order.length > 0);
+};
+
+export const getNextValidGroupName = (groups: GroupModel[]): string => {
+  const pageGroupPrefix = t('ux_editor.page_layout_group');
+  let i = 1;
+  while (groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
+    i++;
+  }
+  return `${pageGroupPrefix} ${i}`;
+};
