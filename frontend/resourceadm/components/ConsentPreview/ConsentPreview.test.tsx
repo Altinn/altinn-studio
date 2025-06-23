@@ -98,7 +98,9 @@ describe('ConsentPreview', () => {
   it('should show text for one time consent', () => {
     render(<ConsentPreview {...defaultProps} />);
 
-    expect(screen.getByText('Denne teksten settes av den som ber om samtykke')).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_consent_preview_message_placeholder')),
+    ).toBeInTheDocument();
   });
 
   it('should show buttons for consent', () => {
