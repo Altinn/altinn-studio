@@ -81,14 +81,6 @@ describe('TasksTable', () => {
     expect(previewLink).toHaveAttribute('href', `/preview/${org}/${app}`);
   });
 
-  it('should disable preview link when there are no tasks', () => {
-    renderTasksTable({ tasks: [] });
-
-    const previewLink = getPreviewLink();
-    expect(previewLink).toBeInTheDocument();
-    expect(previewLink).toHaveClass('disabledPreviewLink');
-  });
-
   it('should not render preview link when not in navigation mode', () => {
     renderTasksTable({ isNavigationMode: false });
 

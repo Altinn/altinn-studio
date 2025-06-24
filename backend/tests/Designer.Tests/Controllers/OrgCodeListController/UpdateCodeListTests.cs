@@ -23,9 +23,9 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
     }
 
     private const string Org = "ttd";
-    private const string Repo = "org-content-empty";
+    private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private const string CodeListId = "test-code-list";
+    private const string CodeListId = "codeListString";
 
     [Fact]
     public async Task Put_Returns_200OK_When_Updating_Code_List()
@@ -34,15 +34,6 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
         string targetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(targetOrg);
         await CopyOrgRepositoryForTest(Developer, Org, Repo, targetOrg, targetRepository);
-
-        const string StringBoolNumbersCodeList = @"[
-            { ""label"": ""StringValue"", ""value"": ""value"" },
-            { ""label"": ""BoolValue"", ""value"": true },
-            { ""label"": ""NumberValue"", ""value"": 3.1415 },
-            { ""label"": ""NumberValue"", ""value"": 1024 },
-        ]";
-        string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Join(repoPath, "CodeLists", $"{CodeListId}.json"), StringBoolNumbersCodeList);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);

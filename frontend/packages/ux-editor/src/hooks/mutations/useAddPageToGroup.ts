@@ -4,12 +4,17 @@ import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
 export const useAddPageToGroup = (pagesModel: PagesModel) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
+  const {
+    setSelectedItem,
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutName,
+    updateLayoutsForPreview,
+  } = useAppContext();
   const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
 
   const nextValidPageName = () => {
@@ -37,24 +42,24 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
   };
 
   const addPageToGroup = async (groupIndex: number) => {
-    const page: PageModel = { id: nextValidPageName() };
-    const currentGroup = pagesModel.groups[groupIndex];
-    currentGroup.order.push(page);
-    if (currentGroup.order.length > 1 && !currentGroup.name) {
-      currentGroup.name = nextValidGroupName();
-    }
-
-    const updatedPages = {
-      ...pagesModel,
+    const newPage: PageModel = { id: nextValidPageName() };
+    const updatedGroups = [...pagesModel.groups];
+    updatedGroups[groupIndex] = {
+      ...updatedGroups[groupIndex],
+      order: [...updatedGroups[groupIndex].order, newPage],
+      name: updatedGroups[groupIndex].name || nextValidGroupName(),
     };
-    pagesModel.groups.splice(groupIndex, 1, currentGroup);
 
-    await updateGroupsMutation.mutateAsync(updatedPages, {
-      onSuccess: () => {
-        setSelectedFormLayoutName(page.id);
-        updateLayoutsForPreview(selectedFormLayoutSetName);
+    await updateGroupsMutation.mutateAsync(
+      { ...pagesModel, groups: updatedGroups },
+      {
+        onSuccess: async () => {
+          setSelectedFormLayoutName(newPage.id);
+          setSelectedItem({ type: ItemType.Page, id: newPage.id });
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
+        },
       },
-    });
+    );
   };
   return { addPageToGroup };
 };
