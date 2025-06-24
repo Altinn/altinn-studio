@@ -1,6 +1,6 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -15,15 +15,22 @@ import type { IMapping, IQueryParameters } from 'src/layout/common.generated';
 
 export const useGetOptionsQuery = (
   url: string | undefined,
-): UseQueryResult<AxiosResponse<IOptionInternal[], AxiosError>> => {
+): UseQueryResult<{ data: IOptionInternal[]; headers: AxiosResponse['headers'] } | null> => {
   const { fetchOptions } = useAppQueries();
   return useQuery({
     queryKey: ['fetchOptions', url],
     queryFn: url
       ? async () => {
           const result = await fetchOptions(url);
-          const converted = castOptionsToStrings(result?.data);
-          return { ...result, data: converted };
+          if (!result) {
+            return null;
+          }
+
+          const returnType = {
+            headers: result.headers,
+            data: castOptionsToStrings(result?.data),
+          };
+          return returnType;
         }
       : skipToken,
     enabled: !!url,
