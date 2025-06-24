@@ -16,3 +16,7 @@
 .loadingSpinner * {
   font-size: inherit !important;
 }
+
+.content {
+  word-break: break-all;
+}
