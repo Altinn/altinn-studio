@@ -156,7 +156,7 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
           value={resourceData.title}
-          onBlur={(translations: SupportedLanguage) =>
+          onChange={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, title: translations })
           }
           required
@@ -168,7 +168,7 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_description_text')}
           useTextArea
           value={resourceData.description}
-          onBlur={(translations: SupportedLanguage) =>
+          onChange={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, description: translations })
           }
           required
@@ -211,7 +211,7 @@ export const AboutResourcePage = ({
               description={t('resourceadm.about_resource_consent_text_text')}
               useTextArea
               value={resourceData.consentText}
-              onBlur={(consentTexts: SupportedLanguage) =>
+              onChange={(consentTexts: SupportedLanguage) =>
                 handleSave({ ...resourceData, consentText: consentTexts })
               }
               required
@@ -260,7 +260,7 @@ export const AboutResourcePage = ({
             description={t('resourceadm.about_resource_rights_description_text')}
             useTextArea
             value={resourceData.rightDescription}
-            onBlur={(translations: SupportedLanguage) =>
+            onChange={(translations: SupportedLanguage) =>
               handleSave({ ...resourceData, rightDescription: translations })
             }
             required

@@ -129,15 +129,16 @@ describe('AboutResourcePage', () => {
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
     await user.type(titleNbInput, mockNewTitleInput);
-    await waitFor(() => titleNbInput.blur());
 
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      title: {
-        ...mockResource1.title,
-        nb: `${mockResource1.title.nb}${mockNewTitleInput}`,
-      },
-    });
+    await waitFor(() =>
+      expect(mockOnSaveResource).toHaveBeenCalledWith({
+        ...mockResource1,
+        title: {
+          ...mockResource1.title,
+          nb: `${mockResource1.title.nb}${mockNewTitleInput}`,
+        },
+      }),
+    );
   });
 
   it('handles title input change for english', async () => {
@@ -155,15 +156,16 @@ describe('AboutResourcePage', () => {
     expect(titleEnInput).toHaveValue(mockResource1.title.en);
 
     await user.type(titleEnInput, mockNewTitleInput);
-    await waitFor(() => titleEnInput.blur());
 
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      title: {
-        ...mockResource1.title,
-        en: `${mockResource1.title.en}${mockNewTitleInput}`,
-      },
-    });
+    await waitFor(() =>
+      expect(mockOnSaveResource).toHaveBeenCalledWith({
+        ...mockResource1,
+        title: {
+          ...mockResource1.title,
+          en: `${mockResource1.title.en}${mockNewTitleInput}`,
+        },
+      }),
+    );
   });
 
   it('calls onSaveResource when fields are changed', async () => {
@@ -174,13 +176,13 @@ describe('AboutResourcePage', () => {
       name: textMock('resourceadm.about_resource_resource_title_label'),
     });
     await user.type(titleNbInput, mockNewTitleInput);
-    expect(mockOnSaveResource).toHaveBeenCalled();
+    await waitFor(() => expect(mockOnSaveResource).toHaveBeenCalled());
 
     const descriptionNbInput = screen.getByRole('textbox', {
       name: textMock('resourceadm.about_resource_resource_description_label'),
     });
     await user.type(descriptionNbInput, mockNewDescriptionInput);
-    expect(mockOnSaveResource).toHaveBeenCalled();
+    await waitFor(() => expect(mockOnSaveResource).toHaveBeenCalled());
   });
 
   it('handles description input change', async () => {
@@ -195,13 +197,15 @@ describe('AboutResourcePage', () => {
     await user.type(descriptionNbInput, mockNewDescriptionInput);
     await waitFor(() => descriptionNbInput.blur());
 
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      description: {
-        ...mockResource1.description,
-        nb: `${mockResource1.description.nb}${mockNewDescriptionInput}`,
-      },
-    });
+    await waitFor(() =>
+      expect(mockOnSaveResource).toHaveBeenCalledWith({
+        ...mockResource1,
+        description: {
+          ...mockResource1.description,
+          nb: `${mockResource1.description.nb}${mockNewDescriptionInput}`,
+        },
+      }),
+    );
   });
 
   it('handles homepage input change', async () => {
@@ -270,15 +274,16 @@ describe('AboutResourcePage', () => {
 
     await user.clear(rightDescriptionInput);
     await user.type(rightDescriptionInput, mockNewRightDescriptionInput);
-    await waitFor(() => rightDescriptionInput.blur());
 
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      rightDescription: {
-        ...mockResource1.rightDescription,
-        nb: `${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`,
-      },
-    });
+    await waitFor(() =>
+      expect(mockOnSaveResource).toHaveBeenCalledWith({
+        ...mockResource1,
+        rightDescription: {
+          ...mockResource1.rightDescription,
+          nb: `${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`,
+        },
+      }),
+    );
   });
 
   it('handles status change', async () => {
@@ -351,15 +356,16 @@ describe('AboutResourcePage', () => {
     expect(consentTextNbInput).toHaveValue(mockConsentResource.consentText.nb);
 
     await user.type(consentTextNbInput, mockNewConsentTextInput);
-    await waitFor(() => consentTextNbInput.blur());
 
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockConsentResource,
-      consentText: {
-        ...mockConsentResource.consentText,
-        nb: `${mockConsentResource.consentText.nb}${mockNewConsentTextInput}`,
-      },
-    });
+    await waitFor(() =>
+      expect(mockOnSaveResource).toHaveBeenCalledWith({
+        ...mockConsentResource,
+        consentText: {
+          ...mockConsentResource.consentText,
+          nb: `${mockConsentResource.consentText.nb}${mockNewConsentTextInput}`,
+        },
+      }),
+    );
   });
 
   it('handles consentTemplate changes', async () => {

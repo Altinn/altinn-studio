@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioTextfield } from '@studio/components';
 import { XMarkOctagonFillIcon } from '@studio/icons';
+import { useDebounce } from '@studio/hooks';
 import type {
   ResourceFormError,
   SupportedLanguage,
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
-import { useTranslation } from 'react-i18next';
 
 /**
  * Initial value for languages with empty fields
@@ -35,10 +36,10 @@ type ResourceLanguageTextFieldProps = {
    */
   value: SupportedLanguage;
   /**
-   * Function to be executed on blur
+   * Function to be executed on change
    * @returns void
    */
-  onBlur: (translations: SupportedLanguage) => void;
+  onChange: (translations: SupportedLanguage) => void;
   /**
    * The error texts to be shown
    */
@@ -61,7 +62,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
- * @property {function}[onBlur] - Function to be executed on blur
+ * @property {function}[onChange] - Function to be executed on change
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  * @property {boolean}[required] - Whether this field is required or not
@@ -73,28 +74,29 @@ export const ResourceLanguageTextField = ({
   label,
   description,
   value,
-  onBlur,
+  onChange,
   errors,
   useTextArea,
   required,
 }: ResourceLanguageTextFieldProps): ReactElement => {
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
+  const { debounce } = useDebounce({ debounceTimeInMs: 750 });
 
+  const getTrimmedTranslations = (trans: SupportedLanguage): SupportedLanguage => {
+    return Object.keys(trans).reduce((acc: SupportedLanguage, key) => {
+      return {
+        ...acc,
+        [key]: trans[key].trim(),
+      };
+    }, {} as SupportedLanguage);
+  };
+
+  // Debounce and call onChange when translations change
   useEffect(() => {
-    if (JSON.stringify(value) !== JSON.stringify(translations)) {
-      const trimmedTranslations = Object.keys(translations).reduce(
-        (acc: SupportedLanguage, key) => {
-          return {
-            ...acc,
-            [key]: translations[key].trim(),
-          };
-        },
-        {} as SupportedLanguage,
-      );
-      onBlur(trimmedTranslations);
-    }
-  }, [translations, value, onBlur]);
+    debounce(() => onChange(getTrimmedTranslations(translations)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [translations]);
 
   const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;

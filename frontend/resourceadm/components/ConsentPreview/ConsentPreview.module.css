@@ -39,7 +39,6 @@
 
 .previewControls {
   display: grid;
-  align-items: flex-end;
   gap: var(--ds-size-2);
   align-self: flex-start;
   align-items: flex-start;
