@@ -41,7 +41,7 @@ const buttonText = {
 };
 
 interface ConsentPreviewProps {
-  template: ConsentTemplate;
+  template?: ConsentTemplate;
   resourceName: SupportedLanguage;
   consentText: SupportedLanguage;
   consentMetadata: ConsentMetadata;
