@@ -29,6 +29,7 @@ namespace KubernetesWrapper.Services.Implementation
             catch (Exception e)
             {
                 _logger.LogError(e, "Unable to initialize KubernetesApiWrapper");
+                throw;
             }
         }
 
@@ -47,16 +48,24 @@ namespace KubernetesWrapper.Services.Implementation
         {
             IList<DeployedResource> mappedResources = new List<DeployedResource>();
 
-            switch (resourceType)
+            try
             {
-                case ResourceType.Deployment:
-                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
-                    mappedResources = MapDeployments(deployments.Items);
-                    break;
-                case ResourceType.DaemonSet:
-                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
-                    mappedResources = MapDaemonSets(deamonSets.Items);
-                    break;
+                switch (resourceType)
+                {
+                    case ResourceType.Deployment:
+                        V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
+                        mappedResources = MapDeployments(deployments.Items);
+                        break;
+                    case ResourceType.DaemonSet:
+                        V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
+                        mappedResources = MapDaemonSets(deamonSets.Items);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get resources of type {ResourceType} from Kubernetes", resourceType);
+                throw;
             }
 
             return mappedResources;
