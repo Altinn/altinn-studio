@@ -4,17 +4,17 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
-public class BelongsToOrgHandler : AuthorizationHandler<BelongsToOrgRequirement>
+public class BelongsToOrganizationHandler : AuthorizationHandler<BelongsToOrganizationRequirement>
 {
     private readonly IUserOrganizationService _userOrganizationService;
 
-    public BelongsToOrgHandler(IUserOrganizationService userOrganizationService)
+    public BelongsToOrganizationHandler(IUserOrganizationService userOrganizationService)
     {
         _userOrganizationService = userOrganizationService;
     }
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
-        BelongsToOrgRequirement requirement)
+        BelongsToOrganizationRequirement requirement)
     {
         if (IsNotAuthenticatedUser(context))
         {
