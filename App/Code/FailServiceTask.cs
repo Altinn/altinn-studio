@@ -20,24 +20,9 @@ public class FailServiceTask : IServiceTask
         _dataClient = dataClient;
     }
     
-    public Task Start(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task End(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task Abandon(string taskId, Instance instance)
-    {
-        return Task.CompletedTask;
-    }
-
     public string Type => "fail";
 
-    public async Task Execute(string taskId, Instance instance, CancellationToken cancellationToken = new CancellationToken())
+    public async Task Execute(string taskId, Instance instance, CancellationToken cancellationToken = default)
     {
         DataElement dataElement = instance.Data.Find(x => x.DataType == "Model2");
 

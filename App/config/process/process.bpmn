@@ -29,6 +29,9 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>pdf</altinn:taskType>
+          <altinn:pdfConfig>
+            <altinn:filename>pdfFileName</altinn:filename>
+          </altinn:pdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0c458hu</bpmn:incoming>
