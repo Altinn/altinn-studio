@@ -8,5 +8,5 @@
 .description {
   font-size: 1.125rem;
   margin: 0;
-  padding-bottom: var(--fds-spacing-3);
+  padding-bottom: var(--ds-size-3);
 }

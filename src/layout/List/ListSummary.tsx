@@ -60,7 +60,7 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
             {title && (
               <caption className={classes.tableCaption}>
                 <Heading
-                  size='xs'
+                  data-size='xs'
                   level={4}
                 >
                   <Lang id={title} />

@@ -36,17 +36,15 @@ Altinn, and making sure they are consistent. */
   padding-top: 12px;
   padding-bottom: 12px;
 }
+
+.table tfoot td {
+  background-color: #f5f5f5;
+  border-top: none;
+}
 /* ==== */
 
 .table tr:hover {
   background-color: unset;
-}
-
-.tableFooter {
-  background-color: #f5f5f5; /* Remove this when upgrading to the new design system component look*/
-}
-tr.tableFooter:hover {
-  background-color: var(--fds-semantic-background-subtle);
 }
 
 .startNewButtonContainer {

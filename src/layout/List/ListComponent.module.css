@@ -4,7 +4,7 @@
 
 .listTable caption {
   text-align: left;
-  padding-bottom: var(--fds-spacing-4);
+  padding-bottom: var(--ds-size-4);
 }
 
 .listTable th:first-of-type {
@@ -12,7 +12,7 @@
 }
 
 .listTable th {
-  background-color: var(--fds-colors-grey-100);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .listTable tr {
@@ -31,7 +31,7 @@
 
 .selectedRow,
 .selectedRowCell {
-  background-color: var(--fds-colors-blue-100);
+  background-color: var(--ds-color-accent-surface-tinted);
 }
 
 .pagination {
@@ -39,30 +39,28 @@
   display: flex;
   justify-content: right;
   align-items: center;
-  background-color: var(--fds-colors-grey-100);
+  background-color: var(--ds-color-neutral-background-tinted);
   width: 100%;
 }
 .paginationMobile {
   justify-content: center;
 }
 
-.mobileGroup > div {
-  display: flex;
-  flex-direction: column;
-}
-
 .mobileGroup > div :hover {
-  background-color: var(--fds-colors-grey-100);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .mobile {
-  border-top: 1px solid var(--fds-colors-grey-200);
-  padding: var(--fds-spacing-4);
-  gap: var(--fds-spacing-8);
+  display: flex;
+  align-items: center;
+  width: auto;
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-4);
+  gap: var(--ds-size-8);
 }
 
 .mobile input:checked:hover {
-  background-color: var(--fds-radio-border-color);
+  background-color: var(--ds-color-accent-base-default);
 }
 
 .mobile label {
@@ -72,19 +70,19 @@
 .mobile span {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }
 
 .mobile label div {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .listContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .headerContainer {

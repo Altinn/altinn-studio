@@ -197,9 +197,8 @@ export function nn() {
     'iframe_component.unsupported_browser_title': 'Nettlesaren din støttas ikkje',
     'iframe_component.unsupported_browser':
       'Nettlesaren di støttar ikkje iframes som brukar srcdoc. Dette kan føre til at du ikkje ser all innhaldet som er meint å visast her. Vi anbefalar deg å prøve ein annan nettlesar.',
-    'input_components.character_limit_sr_label': 'Tekstfeltet kan innehalde maks {0} teikn.',
-    'input_components.remaining_characters': 'Du har {0} av {1} teikn igjen',
-    'input_components.exceeded_max_limit': 'Du har overskride maks teikn med {0}',
+    'input_components.remaining_characters': 'Du har %d teikn igjen',
+    'input_components.exceeded_max_limit': 'Du har overskride maks teikn med %d',
     'instance_selection.changed_by': 'Endra av',
     'instance_selection.continue': 'Hald fram her',
     'instance_selection.description':
@@ -319,7 +318,7 @@ export function nn() {
     'person_lookup.validation_error_name_too_short': 'Etternamn kan ikkje vere tomt.',
     'person_lookup.validation_error_ssn': 'Fødselsnummeret/D-nummeret er ugyldig.',
     'person_lookup.validation_error_not_found':
-      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og namn. Ver venleg og kontroller felta og prøv igjen. \n\nMerk: Etter 5 feilforsøk blir søkemoglegheita mellombels sperra.',
+      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og namn. Ver venleg og kontroller felta og prøv igjen. <br> Merk: Etter 5 feilforsøk blir søkemoglegheita mellombels sperra.',
     'person_lookup.validation_error_too_many_requests': 'Du har gjort for mange søk. Ver venleg, prøv igjen seinare.',
     'person_lookup.validation_error_forbidden':
       'Du har ikkje tilgang til å gjere dette søket. Sikkerheitsnivå 2 eller høgare er påkravd.',

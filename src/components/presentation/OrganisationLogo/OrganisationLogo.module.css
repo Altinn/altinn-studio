@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .small {

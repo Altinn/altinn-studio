@@ -306,8 +306,10 @@ declare global {
 
       getCurrentViewportSize(): Chainable<Size>;
 
-      showNavGroups(): Chainable<null>;
-      hideNavGroups(): Chainable<null>;
+      showNavGroupsTablet(): Chainable<null>;
+      hideNavGroupsTablet(): Chainable<null>;
+      showNavGroupsMobile(): Chainable<null>;
+      hideNavGroupsMobile(): Chainable<null>;
 
       navGroup(
         groupName: string | RegExp,
@@ -315,7 +317,11 @@ declare global {
         subformName?: string | RegExp,
       ): Chainable<JQuery<Element>>;
 
-      gotoNavGroup(groupName: string | RegExp, pageName?: string | RegExp): Chainable<null>;
+      gotoNavGroup(
+        groupName: string | RegExp,
+        device: 'mobile' | 'tablet' | 'desktop',
+        pageName?: string | RegExp,
+      ): Chainable<null>;
 
       openNavGroup(
         groupName: string | RegExp,

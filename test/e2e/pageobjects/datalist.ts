@@ -1,6 +1,6 @@
 export class Datalist {
   public listComponent = '#form-content-listComponent';
-  public selectComponent = '[data-testid^="paginationRowsPerPageDropdown"]';
+  public selectComponent = '#paginationRowsPerPageDropdown';
   public tableBody = '#form-content-listComponent table tbody';
   public navigateNextButton = '[data-testid=paginationNextButton]';
   public navigatePreviousButton = '[data-testid=paginationPreviousButton]';

@@ -121,8 +121,7 @@ const DoSummaryWrapper = ({
               {subformEntryName && (
                 <Heading
                   className='no-visual-testing'
-                  spacing={false}
-                  size='sm'
+                  data-size='sm'
                   level={2}
                 >
                   {subformEntryName}

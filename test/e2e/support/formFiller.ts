@@ -49,7 +49,7 @@ function fillOutChangeName() {
       .check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
-    cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+    cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
     cy.get('button[aria-label*="Today"]').click();
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
@@ -126,7 +126,7 @@ function fillOutLikert() {
 
 function fillOutList() {
   cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
-  cy.findByRole('button', { name: 'Neste' }).click();
+  cy.findAllByRole('button', { name: 'Neste' }).last().click();
 }
 
 const functionMap: { [key in FillableFrontendTasks]: () => void } = {

@@ -1,7 +1,7 @@
 .labelValueWrapper:not(.compact) {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .labelValueWrapper.compact {
@@ -9,7 +9,7 @@
 }
 
 .labelValueWrapper.compact label {
-  margin-right: var(--fds-spacing-2);
+  margin-right: var(--ds-size-2);
 }
 
 .formValue {
@@ -17,12 +17,12 @@
 }
 
 .emptyValue {
-  color: var(--fds-semantic-text-neutral-subtle);
+  color: var(--ds-color-neutral-text-subtle);
   font-style: italic;
 }
 
 .error {
-  border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
 }
 
 .summaryItemWrapper {
@@ -35,7 +35,7 @@
 .summaryItem {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .editButton {

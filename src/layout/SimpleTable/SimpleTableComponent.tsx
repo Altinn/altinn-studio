@@ -130,9 +130,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
             setEditItemIndex(-1);
             setShowEdit(false);
           }}
-          onInteractOutside={() => {
-            setShowEdit(false);
-          }}
+          backdropClose={true}
           DropdownCaption={DropdownCaption}
         />
       )}

@@ -1,16 +1,17 @@
 import React, { createContext, useContext } from 'react';
-import { Link } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import { ErrorSummary } from '@digdir/designsystemet-react';
+
 import { Flex } from 'src/app-components/Flex/Flex';
-import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
-import { Panel } from 'src/app-components/Panel/Panel';
+import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
@@ -36,17 +37,18 @@ const ErrorReportContext = createContext(false);
 
 export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
   const hasErrorReport = useContext(ErrorReportContext);
+  const isMobile = useIsMobile();
   if (errors === undefined || hasErrorReport || !show) {
     return children;
   }
 
   return (
     <ErrorReportContext.Provider value={true}>
-      <div data-testid='ErrorReport'>
-        <Panel
-          title={<Lang id='form_filler.error_report_header' />}
-          variant={PANEL_VARIANT.Error}
-          isOnBottom
+      <FullWidthWrapper isOnBottom={true}>
+        <ErrorSummary
+          data-testid='ErrorReport'
+          className={classes.errorSummary}
+          data-size={isMobile ? 'md' : 'lg'}
         >
           <Flex
             container
@@ -58,18 +60,21 @@ export const ErrorReport = ({ children, errors, show }: IErrorReportProps) => {
               item
               size={{ xs: 12 }}
             >
-              <ul className={classes.errorList}>{errors}</ul>
+              <ErrorSummary.Heading>
+                <Lang id='form_filler.error_report_header' />
+              </ErrorSummary.Heading>
+              <ErrorSummary.List className={classes.errorList}>{errors}</ErrorSummary.List>
             </Flex>
             {children}
           </Flex>
-        </Panel>
-      </div>
+        </ErrorSummary>
+      </FullWidthWrapper>
     </ErrorReportContext.Provider>
   );
 };
 
 function ErrorReportListItem({ children }: PropsWithChildren) {
-  return <li style={{ listStyleImage: listStyleImg }}>{children}</li>;
+  return <ErrorSummary.Item style={{ listStyleImage: listStyleImg }}>{children}</ErrorSummary.Item>;
 }
 
 interface ErrorReportListProps {
@@ -152,9 +157,9 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
             params={[selectedParty?.name]}
           />{' '}
           (
-          <Link to='/party-selection/'>
+          <ErrorSummary.Link href='/party-selection/'>
             <Lang id='party_selection.change_party' />
-          </Link>
+          </ErrorSummary.Link>
           ).
         </span>
       </ErrorReportListItem>

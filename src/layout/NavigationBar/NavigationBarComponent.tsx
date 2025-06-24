@@ -160,7 +160,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
                       {process === pageId && (
                         <Spinner
                           className={classes.spinner}
-                          title={langAsString('general.loading')}
+                          aria-label={langAsString('general.loading')}
                         />
                       )}
                       <span>

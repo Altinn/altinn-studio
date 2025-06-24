@@ -1,3 +1,6 @@
+import { numericFormatter, patternFormatter } from 'react-number-format';
+import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
+
 type FormattingResult = {
   thousandSeparator: string | undefined;
   decimalSeparator: string | undefined;
@@ -55,4 +58,22 @@ export const formatNumber = (
     }
   });
   return intlResult;
+};
+
+export const isPatternFormat = (
+  numberFormat: NumericFormatProps | PatternFormatProps,
+): numberFormat is PatternFormatProps => (numberFormat as PatternFormatProps).format !== undefined;
+
+export const isNumericFormat = (
+  numberFormat: NumericFormatProps | PatternFormatProps,
+): numberFormat is NumericFormatProps => (numberFormat as PatternFormatProps).format === undefined;
+
+export const formatNumericText = (text: string, format?: NumericFormatProps | PatternFormatProps) => {
+  if (format && isNumericFormat(format)) {
+    return numericFormatter(text, format);
+  } else if (format && isPatternFormat(format)) {
+    return patternFormatter(text, format);
+  } else {
+    return text;
+  }
 };

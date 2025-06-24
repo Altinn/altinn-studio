@@ -17,7 +17,7 @@ export function ExpandWidthButton(props: Parameters<typeof Button>[0]) {
       onClick={toggleExpandedWidth}
       variant='tertiary'
       color='first'
-      size='sm'
+      data-size='sm'
       {...props}
       className={cn(classes.expandWidthButton, props.className)}
     >

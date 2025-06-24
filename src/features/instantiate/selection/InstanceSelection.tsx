@@ -77,15 +77,15 @@ function InstanceSelection() {
     selectedIndex !== undefined && rowsPerPageOptions.length - 1 >= selectedIndex && selectedIndex >= 0;
 
   const defaultSelectedOption = doesIndexExist(selectedIndex) ? selectedIndex : 0;
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
   const instances = instanceSelectionOptions?.sortDirection === 'desc' ? [..._instances].reverse() : _instances;
-  const paginatedInstances = instances.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
+  const paginatedInstances = instances.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   function handleRowsPerPageChanged(newRowsPerPage: number) {
     setRowsPerPage(newRowsPerPage);
-    if (instances.length < currentPage * newRowsPerPage) {
+    if (instances.length < (currentPage - 1) * newRowsPerPage) {
       setCurrentPage(Math.floor(instances.length / newRowsPerPage));
     }
   }
@@ -93,7 +93,7 @@ function InstanceSelection() {
   const renderMobileTable = () => (
     <>
       <Heading
-        size='xsmall'
+        data-size='xs'
         level={3}
         className={classes.leftOffHeading}
       >
@@ -153,13 +153,13 @@ function InstanceSelection() {
                     previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
                     rowsPerPageText={langAsString('list_component.rowsPerPage')}
                     size='sm'
-                    currentPage={currentPage}
                     numberOfRows={instances.length}
-                    pageSize={rowsPerPage}
                     showRowsPerPageDropdown={true}
                     rowsPerPageOptions={rowsPerPageOptions}
-                    onPageSizeChange={(value) => handleRowsPerPageChanged(+value)}
-                    onChange={setCurrentPage}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    pageSize={rowsPerPage}
+                    onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
                   />
                 </div>
               </Table.Cell>
@@ -232,7 +232,7 @@ function InstanceSelection() {
                     pageSize={rowsPerPage}
                     rowsPerPageOptions={rowsPerPageOptions}
                     onPageSizeChange={(value) => handleRowsPerPageChanged(+value)}
-                    onChange={setCurrentPage}
+                    setCurrentPage={setCurrentPage}
                   />
                 </div>
               </Table.Cell>
@@ -253,7 +253,7 @@ function InstanceSelection() {
         <div>
           <Heading
             level={2}
-            size='medium'
+            data-size='md'
             id='instance-selection-header'
           >
             <Lang id='instance_selection.header' />

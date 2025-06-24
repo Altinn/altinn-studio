@@ -207,7 +207,7 @@ function PageGroupSymbol({
     return (
       <Spinner
         style={{ width: 28, height: 28 }}
-        title={langAsString('general.loading')}
+        aria-label={langAsString('general.loading')}
       />
     );
   }

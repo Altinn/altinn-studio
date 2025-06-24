@@ -1,7 +1,7 @@
 .container {
   border-radius: 3px;
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .summary2width {
@@ -9,16 +9,16 @@
 }
 
 .header {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .padding {
-  padding: var(--fds-spacing-5);
+  padding: var(--ds-size-5);
 }
 
 .paddingSmall {
-  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+  padding: var(--ds-size-3) var(--ds-spacing-5);
 }
 
 .container .header > h2,

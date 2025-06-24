@@ -361,18 +361,18 @@ describe('Options', () => {
 
     cy.dsReady('[data-componentid="ingredientType-0"]');
     cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();
-    cy.get('[class*="fds-combobox__option"]').should('contain.text', 'Vannmelon');
-    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Blåbær');
-    cy.get('[class*="fds-combobox__option"]').findByText('Vannmelon').click();
+    cy.get('[class*="ds-combobox__option"]').should('contain.text', 'Vannmelon');
+    cy.get('[class*="ds-combobox__option"]').should('not.contain.text', 'Blåbær');
+    cy.get('[class*="ds-combobox__option"]').findByText('Vannmelon').click();
     cy.get('[data-componentid="ingredientId-0"]').should('have.text', '10');
 
     cy.findByRole('button', { name: 'Legg til ny' }).click();
     cy.dsReady('[data-componentid="ingredientType-1"]');
     cy.get('[data-componentid="ingredientType-1"]').findByRole('combobox').click();
-    cy.get('[class*="fds-combobox__option"]').should('contain.text', 'Banan');
-    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Vannmelon');
-    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Blåbær');
-    cy.get('[class*="fds-combobox__option"]').findByText('Banan').click();
+    cy.get('[class*="ds-combobox__option"]').should('contain.text', 'Banan');
+    cy.get('[class*="ds-combobox__option"]').should('not.contain.text', 'Vannmelon');
+    cy.get('[class*="ds-combobox__option"]').should('not.contain.text', 'Blåbær');
+    cy.get('[class*="ds-combobox__option"]').findByText('Banan').click();
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
 
     // Disliking 'vannmelon' will remove the selection and not allow it to be re-selected
@@ -380,7 +380,7 @@ describe('Options', () => {
     cy.get('[data-componentid="ingredientId-0"]').should('have.text', '');
     cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
     cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();
-    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Vannmelon');
+    cy.get('[class*="ds-combobox__option"]').should('not.contain.text', 'Vannmelon');
     cy.get('[data-componentid="ingredientType-0"]').type('{esc}');
 
     // Add two rows with no ingredients selected

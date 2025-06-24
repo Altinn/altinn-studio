@@ -251,7 +251,7 @@ describe('Checkboxes component', () => {
 
     cy.get('div[data-componentbaseid="CheckboxesPage-Header-Summary2-Display-String"]')
       .next()
-      .find('span.fds-paragraph') // Targets the span with the summary text
+      .find('span.ds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for Checkboxes with group and soft deletion', () => {
@@ -289,7 +289,7 @@ describe('Checkboxes component', () => {
 
     cy.get(`div${summary2}`)
       .next()
-      .find('span.fds-paragraph') // Targets the span with the summary text
+      .find('span.ds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for Checkboxes with group and hard deletion', () => {
@@ -333,7 +333,7 @@ describe('Checkboxes component', () => {
 
     cy.get(`div${summary2}`)
       .next()
-      .find('span.fds-paragraph') // Targets the span with the summary text
+      .find('span.ds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for Checkboxes with group, hard deletion, Number and label', () => {
@@ -386,7 +386,7 @@ describe('Checkboxes component', () => {
 
     cy.get(`div${summary2}`)
       .next()
-      .find('span.fds-paragraph') // Targets the span with the summary text
+      .find('span.ds-paragraph') // Targets the span with the summary text
       .should('have.text', expectedText);
   });
 

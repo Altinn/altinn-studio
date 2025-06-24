@@ -11,7 +11,7 @@ describe('TextArea component', () => {
     cy.get('#TextareaPage-Textarea').type(testText);
     cy.get('[data-testid="summary-single-value-component"]')
       .eq(0)
-      .find('span.fds-paragraph')
+      .find('span.ds-paragraph')
       .should('have.text', testText);
 
     cy.snapshot('textarea');

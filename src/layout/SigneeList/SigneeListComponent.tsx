@@ -38,7 +38,7 @@ export function SigneeListComponent({ node }: PropsFromGenericComponent<'SigneeL
             title={<Lang id={textResourceBindings?.title} />}
             description={<Lang id={textResourceBindings?.description} />}
             helpText={textResourceBindings?.help ? { text: textResourceBindings?.help } : undefined}
-            designSystemLabelProps={{ size: 'lg' }}
+            designSystemLabelProps={{ 'data-size': 'lg' }}
           />
         ) : undefined
       }

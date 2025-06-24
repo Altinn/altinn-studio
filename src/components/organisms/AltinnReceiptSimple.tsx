@@ -15,7 +15,7 @@ export function ReceiptComponentSimple({ title, body }: IReceiptComponentProps) 
     <div className={classes.wordBreak}>
       <Heading
         level={2}
-        size='medium'
+        data-size='md'
       >
         {title}
       </Heading>

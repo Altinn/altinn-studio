@@ -197,9 +197,8 @@ export function nb() {
     'iframe_component.unsupported_browser_title': 'Nettleseren din støttes ikke',
     'iframe_component.unsupported_browser':
       'Nettleseren du bruker støtter ikke iframes som benytter seg av srcdoc. Dette kan føre til at du ikke ser all innholdet som er ment å vises her. Vi anbefaler deg å prøve en annen nettleser.',
-    'input_components.character_limit_sr_label': 'Tekstfeltet kan inneholde maks {0} tegn',
-    'input_components.remaining_characters': 'Du har {0} av {1} tegn igjen',
-    'input_components.exceeded_max_limit': 'Du har overskredet maks antall tegn med {0}',
+    'input_components.remaining_characters': 'Du har %d tegn igjen',
+    'input_components.exceeded_max_limit': 'Du har overskredet maks antall tegn med %d',
     'instance_selection.changed_by': 'Endret av',
     'instance_selection.continue': 'Fortsett her',
     'instance_selection.description':
@@ -321,7 +320,7 @@ export function nb() {
     'person_lookup.validation_error_name_too_short': 'Etternavn kan ikke være tomt.',
     'person_lookup.validation_error_ssn': 'Fødselsnummeret/D-nummeret er ugyldig.',
     'person_lookup.validation_error_not_found':
-      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. \n\nMerk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret.',
+      'Ingen person er registrert med denne kombinasjonen av fødselsnummer/D-nummer og navn. Vennligst kontroller feltene og prøv igjen. <br> Merk: Etter 5 feilforsøk blir søkemuligheten midlertidig sperret.',
     'person_lookup.validation_error_too_many_requests':
       'Du har nådd grensen for antall søk. Vennligst prøv igjen senere.',
     'person_lookup.validation_error_forbidden':

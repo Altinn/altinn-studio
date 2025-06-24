@@ -75,7 +75,7 @@ Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
   // It is tempting to just use findByRole('option', { name: value }) here, but that's flakier than using findByText()
   // as it never retries if the element re-renders. More information here:
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
-  cy.get('[class*="fds-combobox__option"]').findByText(value).click();
+  cy.get('[class*="ds-combobox__option"]').findByText(value).click();
   if (debounce) {
     cy.get('body').click();
   }
@@ -180,8 +180,14 @@ const knownWcagViolations: KnownViolation[] = [
   {
     spec: 'frontend-test/hide-row-in-group.ts',
     test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
-    id: 'heading-order',
+    id: 'page-has-heading-one',
     nodeLength: 1,
+  },
+  {
+    spec: 'frontend-test/hide-row-in-group.ts',
+    test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
+    id: 'aria-hidden-focus', // floating-ui marks everything else as aria-hidden, when dropdown from DS is open, swap to suggestion component when it is no longer experimental
+    nodeLength: 18,
   },
   {
     spec: 'frontend-test/likert.ts',
@@ -438,9 +444,9 @@ Cypress.Commands.add(
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
     if (openByDefault || typeof openByDefault === 'undefined') {
-      cy.get(appFrontend.group.addNewItemSubGroup).should('not.exist');
+      cy.findByRole('button', { name: 'Legg til ny' }).should('not.exist');
     } else {
-      cy.get(appFrontend.group.addNewItemSubGroup).click();
+      cy.findByRole('button', { name: 'Legg til ny' }).click({ force: true });
     }
 
     cy.get(appFrontend.group.comments).type(comment);
@@ -872,15 +878,28 @@ Cypress.Commands.add('getCurrentViewportSize', function () {
   }));
 });
 
-Cypress.Commands.add('showNavGroups', () => {
-  cy.findByRole('button', { name: 'Skjemasider' }).click();
-  cy.findByRole('dialog', { name: 'Skjemasider' }).should('be.visible');
-  cy.findByRole('dialog', { name: 'Skjemasider' }).should('have.css', 'opacity', '1');
+Cypress.Commands.add('showNavGroupsTablet', () => {
+  cy.findByRole('button', { name: /Skjemasider/i }).click();
+  cy.get('div[data-testid="page-navigation-dialog"]').should('be.visible');
+  cy.get('div[data-testid="page-navigation-dialog"]').should('have.css', 'opacity', '1');
 });
 
-Cypress.Commands.add('hideNavGroups', () => {
-  cy.findByRole('dialog', { name: 'Skjemasider' }).within(() => cy.findByRole('button', { name: 'Lukk' }).click());
-  cy.findByRole('dialog', { name: 'Skjemasider' }).should('not.exist');
+Cypress.Commands.add('showNavGroupsMobile', () => {
+  cy.findByRole('button', { name: /Skjemasider/i }).click();
+  cy.get('dialog[data-testid="page-navigation-dialog"]').should('be.visible');
+  cy.get('dialog[data-testid="page-navigation-dialog"]').should('have.css', 'opacity', '1');
+});
+
+Cypress.Commands.add('hideNavGroupsTablet', () => {
+  cy.get('div[data-testid="page-navigation-dialog"]').within(() => cy.findByRole('button', { name: 'Lukk' }).click());
+  cy.get('div[data-testid="page-navigation-dialog"]').should('not.be.visible');
+});
+
+Cypress.Commands.add('hideNavGroupsMobile', () => {
+  cy.get('dialog[data-testid="page-navigation-dialog"]').within(() =>
+    cy.findByRole('button', { name: /Lukk dialogvindu/i }).click(),
+  );
+  cy.get('dialog[data-testid="page-navigation-dialog"]').should('not.be.visible');
 });
 
 Cypress.Commands.add('navGroup', (groupName, pageName, subformName) => {
@@ -907,9 +926,11 @@ Cypress.Commands.add('navGroup', (groupName, pageName, subformName) => {
   }
 });
 
-Cypress.Commands.add('gotoNavGroup', (groupName, pageName) => {
+Cypress.Commands.add('gotoNavGroup', (groupName, device, pageName) => {
   cy.get('body').then((body) => {
     const isUsingDialog = !!body.find('[data-testid=page-navigation-trigger]').length;
+    const isMobile = device === 'mobile';
+    const isTablet = device === 'tablet';
     if (pageName) {
       cy.navGroup(groupName).then((group) => {
         if (group[0].getAttribute('aria-expanded') === 'false') {
@@ -918,16 +939,20 @@ Cypress.Commands.add('gotoNavGroup', (groupName, pageName) => {
       });
       cy.navGroup(groupName).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(groupName, pageName).click();
-      if (isUsingDialog) {
-        cy.findByRole('dialog', { name: 'Skjemasider' }).should('not.exist');
+      if (isUsingDialog && isMobile) {
+        cy.findByRole('dialog', { name: /Skjemasider/i }).should('not.exist');
+      } else if (isUsingDialog && isTablet) {
+        cy.get('div[data-testid="page-navigation-dialog"]').should('not.be.visible');
       } else {
         cy.navGroup(groupName, pageName).should('have.attr', 'aria-current', 'page');
       }
     } else {
       cy.navGroup(groupName).should('not.have.attr', 'aria-expanded');
       cy.navGroup(groupName).click();
-      if (isUsingDialog) {
-        cy.findByRole('dialog', { name: 'Skjemasider' }).should('not.exist');
+      if (isUsingDialog && isMobile) {
+        cy.findByRole('dialog', { name: /Skjemasider/i }).should('not.exist');
+      } else if (isUsingDialog && isTablet) {
+        cy.get('div[data-testid="page-navigation-dialog"]').should('not.be.visible');
       } else {
         cy.navGroup(groupName).should('have.attr', 'aria-current', 'page');
       }

@@ -107,7 +107,7 @@ describe('Signing', () => {
 
       // Signing step
       cy.findByRole('table', {
-        name: /personer som skal signere hjelp personer som skal signere beskrivelse/i,
+        name: /personer som skal signere personer som skal signere beskrivelse/i,
       }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(`${sivilisertAvansertIsbjoernSA.name} (venter på signering|varsling mislyktes)`, 'i'),
@@ -140,7 +140,7 @@ describe('Signing', () => {
       cy.findByRole('button', { name: 'Signer' }).click();
 
       cy.findByRole('table', {
-        name: /personer som skal signere hjelp personer som skal signere beskrivelse/i,
+        name: /personer som skal signere personer som skal signere beskrivelse/i,
       }).within(() => {
         cy.findByRole('row', {
           name: new RegExp(

@@ -66,7 +66,7 @@
 }
 
 .map-error {
-  border-color: var(--fds-semantic-border-danger-default);
+  border-color: var(--ds-color-danger-border-default);
   border-width: 2px;
   border-style: solid;
 }

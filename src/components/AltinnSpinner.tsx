@@ -24,7 +24,6 @@ export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
     >
       <Spinner
         role='progressbar'
-        title={spinnerText || langAsString('general.loading')}
         aria-label={spinnerText || langAsString('general.loading')}
         id={id}
       />

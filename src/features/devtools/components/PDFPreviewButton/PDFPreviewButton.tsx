@@ -16,19 +16,19 @@ export const PDFPreviewButton = () => {
   const setPdfPreview = useDevToolsStore((state) => state.actions.setPdfPreview);
 
   return (
-    <Fieldset
-      legend='Forhåndsvis PDF'
-      description={
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !(window as any).chrome ? (
-          <span>
-            Vær oppmerksom på at <code>Forhåndsvis PDF</code> ikke vil se riktig ut i andre nettlesere enn Google
-            Chrome.
-          </span>
-        ) : undefined
-      }
-      className={classes.fieldset}
-    >
+    <Fieldset className={classes.fieldset}>
+      <Fieldset.Legend>Forhåndsvis PDF</Fieldset.Legend>
+      <Fieldset.Description>
+        {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          !(window as any).chrome ? (
+            <span>
+              Vær oppmerksom på at <code>Forhåndsvis PDF</code> ikke vil se riktig ut i andre nettlesere enn Google
+              Chrome.
+            </span>
+          ) : undefined
+        }
+      </Fieldset.Description>
       <Button
         onClick={() => setPdfPreview(true)}
         disabled={taskType !== ProcessTaskType.Data}

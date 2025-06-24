@@ -196,9 +196,8 @@ export function en() {
     'iframe_component.unsupported_browser_title': 'Your browser is unsupported',
     'iframe_component.unsupported_browser':
       'Your browser does not support iframes that use srcdoc. This may result in not being able to see all the content intended to be displayed here. We recommend trying a different browser.',
-    'input_components.character_limit_sr_label': 'Textfield has a maximum length of {0} characters',
-    'input_components.remaining_characters': 'You have {0} of {1} characters left',
-    'input_components.exceeded_max_limit': 'You have exceeded the maximum limit with {0} characters',
+    'input_components.remaining_characters': 'You have %d characters left',
+    'input_components.exceeded_max_limit': 'You have exceeded the maximum limit with %d characters',
     'instance_selection.changed_by': 'Changed by',
     'instance_selection.continue': 'Continue here',
     'instance_selection.description':
@@ -317,7 +316,7 @@ export function en() {
     'person_lookup.validation_error_name_too_short': "The name can't be empty.",
     'person_lookup.validation_error_ssn': 'The national ID number/D-number is invalid.',
     'person_lookup.validation_error_not_found':
-      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. \n\nNote: After 5 failed attempts, the search functionality will be temporarily locked.',
+      'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. <br> Note: After 5 failed attempts, the search functionality will be temporarily locked.',
     'person_lookup.validation_error_too_many_requests': 'Too many requests. Please try again later.',
     'person_lookup.validation_error_forbidden':
       'You do not have permission to perform this action. A security level of minimum 2 is required.',

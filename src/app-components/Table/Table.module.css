@@ -5,7 +5,7 @@
 .buttonContainer {
   display: flex;
   justify-content: end;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 
 .mobileTable {
@@ -34,7 +34,7 @@
   display: flex;
   flex-direction: column;
   border: none;
-  padding: var(--fds-spacing-2) 0;
+  padding: var(--ds-size-2) 0;
 }
 
 .mobileTable td .contentWrapper {
@@ -45,17 +45,17 @@
 }
 
 .mobileTable tbody tr:last-child {
-  border-bottom: 2px solid var(--fds-semantic-border-neutral-default);
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
 }
 
 .mobileTable tbody tr:first-child {
-  border-top: 2px solid var(--fds-semantic-border-neutral-default);
+  border-top: 2px solid var(--ds-color-neutral-border-strong);
 }
 
 .mobileTable tr {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-default);
-  padding-top: var(--fds-spacing-3);
-  padding-bottom: var(--fds-spacing-3);
+  border-bottom: 1px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
 }
 
 .mobileTable tr:hover td {
@@ -72,19 +72,6 @@
 
 .mobileTable td .buttonContainer {
   justify-content: start;
-}
-
-.visuallyHidden {
-  border: none;
-  padding: 0;
-  margin: 0;
-  position: absolute;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px 1px 1px 1px);
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .emptyCell {

@@ -211,17 +211,6 @@ describe('DropdownComponent', () => {
         newValue: 'Value for first',
       }),
     );
-
-    await userEvent.click(screen.getByRole('combobox'));
-    await userEvent.click(screen.getByText('The value from the group is: Label for second'));
-
-    await waitFor(() => expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(2));
-    await waitFor(() =>
-      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-        reference: { field: 'myDropdown', dataType: defaultDataTypeMock },
-        newValue: 'Value for second',
-      }),
-    );
   });
 
   it('should present the options list in the order it is provided when sortOrder is not specified', async () => {

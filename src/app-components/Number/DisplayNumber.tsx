@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { formatNumericText } from '@digdir/design-system-react';
-
 import classes from 'src/app-components/Number/Number.module.css';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
+import { formatNumericText } from 'src/utils/formattingUtils';
 import type { CompInternal } from 'src/layout/layout';
 
 type Formatting = Exclude<CompInternal<'Input'>['formatting'], undefined>;

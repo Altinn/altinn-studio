@@ -1,8 +1,7 @@
 import React, { useCallback } from 'react';
 
-import { Combobox } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_MultiSuggestion, Field } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Label } from 'src/app-components/Label/Label';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { getDescriptionId } from 'src/components/label/Label';
@@ -15,10 +14,10 @@ import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useSaveValueToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import comboboxClasses from 'src/styles/combobox.module.css';
+import utilclasses from 'src/styles/utils.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { optionSearchFilter } from 'src/utils/options';
+import { optionFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
@@ -64,26 +63,20 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
     changeMessageGenerator,
   );
 
+  const [componentKey, setComponentKey] = React.useState(0);
+
+  // This is a workaround to force the component to update its internal state, when the user cancels the alert on change
+  const onCancelClick = () => {
+    cancelChange();
+    setComponentKey((prevKey) => prevKey + 1);
+  };
+
   if (isFetching) {
     return <AltinnSpinner />;
   }
 
   return (
-    <ConditionalWrapper
-      condition={Boolean(alertOnChange)}
-      wrapper={(children) => (
-        <DeleteWarningPopover
-          deleteButtonText={langAsString('form_filler.alert_confirm')}
-          messageText={alertMessage}
-          onCancelClick={cancelChange}
-          onPopoverDeleteClick={confirmChange}
-          open={alertOpen}
-          setOpen={setAlertOpen}
-        >
-          {children}
-        </DeleteWarningPopover>
-      )}
-    >
+    <Field style={{ width: '100%' }}>
       <Label
         htmlFor={id}
         label={labelText}
@@ -95,48 +88,67 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
         description={getDescriptionComponent()}
       >
         <ComponentStructureWrapper node={node}>
-          <Combobox
-            multiple
-            hideLabel
+          <EXPERIMENTAL_MultiSuggestion
+            key={componentKey}
             id={id}
-            filter={optionSearchFilter}
-            size='sm'
+            data-testid='multiple-select-component'
+            filter={optionFilter}
+            data-size='sm'
             value={selectedValues}
-            readOnly={readOnly}
             onValueChange={handleChange}
             onBlur={debounce}
-            error={!isValid}
-            clearButtonLabel={langAsString('form_filler.clear_selection')}
-            aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
-            className={comboboxClasses.container}
-            aria-describedby={
-              overrideDisplay?.renderedInTable !== true &&
-              textResourceBindings?.title &&
-              textResourceBindings?.description
-                ? getDescriptionId(id)
-                : undefined
-            }
-            style={{ width: '100%' }}
           >
-            <Combobox.Empty>
-              <Lang id='form_filler.no_options_found' />
-            </Combobox.Empty>
-            {options.map((option) => (
-              <Combobox.Option
-                key={option.value}
-                value={option.value}
-                description={option.description ? langAsString(option.description) : undefined}
-                displayValue={langAsString(option.label) || '\u200b'} // Workaround to prevent component from crashing due to empty string
+            <EXPERIMENTAL_MultiSuggestion.Chips render={(e) => e.text} />
+            {alertOnChange && (
+              <DeleteWarningPopover
+                deleteButtonText={langAsString('form_filler.alert_confirm')}
+                messageText={alertMessage}
+                onCancelClick={onCancelClick}
+                onPopoverDeleteClick={confirmChange}
+                open={alertOpen}
+                setOpen={setAlertOpen}
               >
-                <span>
-                  <wbr />
-                  <Lang id={option.label} />
+                <span
+                  className={utilclasses.visuallyHidden}
+                  aria-hidden='true'
+                >
+                  Trigger
                 </span>
-              </Combobox.Option>
-            ))}
-          </Combobox>
+              </DeleteWarningPopover>
+            )}
+            <EXPERIMENTAL_MultiSuggestion.Input
+              aria-invalid={!isValid}
+              aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
+              aria-describedby={
+                overrideDisplay?.renderedInTable !== true &&
+                textResourceBindings?.title &&
+                textResourceBindings?.description
+                  ? getDescriptionId(id)
+                  : undefined
+              }
+              readOnly={readOnly}
+            />
+            <EXPERIMENTAL_MultiSuggestion.Clear aria-label={langAsString('form_filler.clear_selection')} />
+            <EXPERIMENTAL_MultiSuggestion.List>
+              <EXPERIMENTAL_MultiSuggestion.Empty>
+                <Lang id='form_filler.no_options_found' />
+              </EXPERIMENTAL_MultiSuggestion.Empty>
+              {options.map((option) => (
+                <EXPERIMENTAL_MultiSuggestion.Option
+                  key={option.value}
+                  value={option.value}
+                >
+                  <span>
+                    <wbr />
+                    <Lang id={option.label} />
+                    {option.description && <Lang id={option.description} />}
+                  </span>
+                </EXPERIMENTAL_MultiSuggestion.Option>
+              ))}
+            </EXPERIMENTAL_MultiSuggestion.List>
+          </EXPERIMENTAL_MultiSuggestion>
         </ComponentStructureWrapper>
       </Label>
-    </ConditionalWrapper>
+    </Field>
   );
 }

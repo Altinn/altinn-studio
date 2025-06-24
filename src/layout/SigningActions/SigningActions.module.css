@@ -10,23 +10,23 @@
 }
 
 .signingPanel {
-  padding-top: var(--fds-spacing-8);
+  padding-top: var(--ds-size-8);
   display: flex;
   flex-direction: column;
 
   .contentContainer {
-    padding: var(--fds-spacing-2);
+    padding: var(--ds-size-2);
     display: flex;
     flex-direction: column;
-    gap: var(--fds-spacing-4);
+    gap: var(--ds-size-4);
   }
 
   .buttonContainer {
-    padding: var(--fds-spacing-4) 0;
+    padding: var(--ds-size-4) 0;
     display: flex;
     flex-direction: row-reverse; /* reversed for correct tab order */
     justify-content: start;
-    gap: var(--fds-spacing-4);
+    gap: var(--ds-size-4);
     flex-wrap: wrap;
   }
 }

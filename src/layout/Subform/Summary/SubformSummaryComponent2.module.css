@@ -1,11 +1,11 @@
 .emptyField {
   font-style: italic;
   line-height: 1.6875;
-  color: var(--fds-semantic-text-neutral-subtle);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .summaryLabelMargin {
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .table {
@@ -17,8 +17,8 @@
 .tableMobile {
   width: 100%;
   table-layout: fixed;
-  margin-top: var(--fds-spacing-2);
-  margin-bottom: var(--fds-spacing-2);
+  margin-top: var(--ds-size-2);
+  margin-bottom: var(--ds-size-2);
   box-shadow: none;
   border-spacing: 0;
 }
@@ -59,7 +59,7 @@
 }
 
 .grayUnderline th {
-  border-bottom: var(--fds-semantic-border-neutral-default);
+  border-bottom: var(--ds-color-neutral-border-strong);
   font-size: 0.875rem;
   padding: 4px 4px 4px 6px;
 }
@@ -74,8 +74,8 @@ tr.noRowSpacing td {
 }
 
 .summaryWrapperMargin {
-  margin-top: var(--fds-spacing-3);
-  margin-bottom: var(--fds-spacing-8);
+  margin-top: var(--ds-size-3);
+  margin-bottom: var(--ds-size-8);
 }
 
 .editColumnHeader {

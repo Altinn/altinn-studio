@@ -7,5 +7,5 @@
 }
 
 .tableRow:hover td {
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-neutral-background-default);
 }

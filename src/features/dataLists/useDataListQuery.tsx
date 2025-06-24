@@ -1,7 +1,6 @@
 import type { AriaAttributes } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import type { SortDirection } from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -12,6 +11,8 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IDataList } from 'src/features/dataLists/index';
 import type { IMapping } from 'src/layout/common.generated';
+
+type SortDirection = 'asc' | 'desc' | 'notSortable' | 'notActive';
 
 export type Filter = {
   pageSize: number;

@@ -15,8 +15,8 @@ import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
+import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
-import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -55,7 +55,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           >
             <Heading
               level={2}
-              size='sm'
+              data-size='sm'
             >
               <Lang id={title} />
             </Heading>
@@ -100,6 +100,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
       ) : (
         <Table
           id={id}
+          border
           className={classes.likertTable}
           aria-describedby={textResourceBindings?.description ? getDescriptionId(id) : undefined}
         >
@@ -110,7 +111,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             >
               <Heading
                 level={2}
-                size='sm'
+                data-size='sm'
               >
                 <Lang id={title} />
               </Heading>

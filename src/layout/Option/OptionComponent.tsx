@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { HelpText } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

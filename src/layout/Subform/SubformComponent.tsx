@@ -22,6 +22,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/SubformComponent.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
+import utilClasses from 'src/styles/utils.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
@@ -110,13 +111,13 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
                     </Table.HeaderCell>
                   )}
                   <Table.HeaderCell>
-                    <span className={classes.visuallyHidden}>
+                    <span className={utilClasses.visuallyHidden}>
                       <Lang id='general.edit' />
                     </span>
                   </Table.HeaderCell>
                   {showDeleteButton && (
                     <Table.HeaderCell>
-                      <span className={classes.visuallyHidden}>
+                      <span className={utilClasses.visuallyHidden}>
                         <Lang id='general.delete' />
                       </span>
                     </Table.HeaderCell>
@@ -209,7 +210,7 @@ function SubformTableRow({
     return (
       <Table.Row>
         <Table.Cell colSpan={actualColumns}>
-          <Spinner title={langAsString('general.loading')} />
+          <Spinner aria-label={langAsString('general.loading')} />
         </Table.Cell>
       </Table.Row>
     );

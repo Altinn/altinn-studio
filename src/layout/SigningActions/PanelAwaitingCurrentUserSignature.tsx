@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Checkbox, ErrorMessage, Heading, Spinner } from '@digdir/designsystemet-react';
+import { Checkbox, Heading, Spinner, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Panel } from 'src/app-components/Panel/Panel';
@@ -112,7 +112,7 @@ export function AwaitingCurrentUserSignaturePanel({
         isOnBottom
       >
         <div className={classes.loadingContainer}>
-          <Spinner title={langAsString('signing.loading')} />
+          <Spinner aria-label={langAsString('signing.loading')} />
         </div>
       </Panel>
     );
@@ -154,7 +154,7 @@ export function AwaitingCurrentUserSignaturePanel({
       {unsignedUserSigneeParties.length === 1 && unsignedUserSigneeParties.at(0)?.organization && (
         <Heading
           level={1}
-          size='2xs'
+          data-size='2xs'
         >
           <Lang
             id='signing.submit_panel_single_org_choice'
@@ -177,13 +177,12 @@ export function AwaitingCurrentUserSignaturePanel({
             }
           }}
           className={classes.checkbox}
-        >
-          <Lang id={checkboxLabel} />
-        </Checkbox>
+          label={<Lang id={checkboxLabel} />}
+        />
         {confirmReadDocumentsError && (
-          <ErrorMessage size='small'>
+          <ValidationMessage data-size='sm'>
             <Lang id='signing.error_signing_not_confirmed_documents' />
-          </ErrorMessage>
+          </ValidationMessage>
         )}
       </div>
     </SigningPanel>

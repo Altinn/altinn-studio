@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Card } from '@digdir/designsystemet-react';
+
 import { AccordionGroupProvider } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentById } from 'src/layout/GenericComponent';
@@ -14,12 +16,14 @@ export const AccordionGroup = ({ node }: IAccordionGroupProps) => {
   return (
     <AccordionGroupProvider>
       <ComponentStructureWrapper node={node}>
-        {childComponents.map((id) => (
-          <GenericComponentById
-            key={id}
-            id={id}
-          />
-        ))}
+        <Card data-color='neutral'>
+          {childComponents.map((id) => (
+            <GenericComponentById
+              key={id}
+              id={id}
+            />
+          ))}
+        </Card>
       </ComponentStructureWrapper>
     </AccordionGroupProvider>
   );

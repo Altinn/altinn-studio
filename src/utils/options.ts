@@ -1,6 +1,11 @@
-import type { Option } from '@digdir/designsystemet-react/dist/types/components/form/Combobox/useCombobox';
-
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+
+type Option = {
+  value: string;
+  label: string;
+  displayValue?: string;
+  description?: string;
+};
 
 const emptyArray: IOptionInternal[] = [];
 export function verifyAndDeduplicateOptions(options: IOptionInternal[] | undefined, multi: boolean): IOptionInternal[] {
@@ -111,6 +116,21 @@ export function optionSearchFilter(inputValue: string, option: Option): boolean 
   const search = inputValue.toLowerCase();
   const label = option.label.toLowerCase();
   const desc = option.description?.toLowerCase();
+
+  return label.includes(search) || (!!desc && desc.includes(search));
+}
+
+export function optionFilter(args: {
+  index: number;
+  text: string;
+  value: string;
+  optionElement: HTMLOptionElement;
+  input: HTMLInputElement;
+}): boolean {
+  const { value, optionElement, input } = args;
+  const search = input.value.toLowerCase();
+  const label = value.toLowerCase();
+  const desc = optionElement.getAttribute('aria-description')?.toLowerCase();
 
   return label.includes(search) || (!!desc && desc.includes(search));
 }

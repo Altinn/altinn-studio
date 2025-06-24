@@ -16,7 +16,7 @@
   font-family: var(--font-family);
   font-size: 16px;
   font-weight: normal;
-  color: var(--fds-colors-grey-800);
+  color: var(--ds-color-neutral-text-default);
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -26,7 +26,7 @@
   align-items: start;
   text-align: left;
 
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   overflow-wrap: anywhere;
   padding: 2px 6px 2px 2px;
   margin: -2px -6px -2px -2px;
@@ -47,14 +47,14 @@
 }
 
 .group-button-single {
-  color: var(--fds-colors-blue-700);
+  color: var(--ds-color-accent-text-subtle);
   grid-template-columns: auto auto;
 }
 
 .group-chevron {
   margin-top: 6px;
   margin-right: -4px; /* The icon has some internal padding, this makes the edge line up better */
-  color: var(--fds-colors-grey-700);
+  color: var(--ds-color-neutral-text-default);
   font-size: 16px;
 }
 
@@ -69,7 +69,7 @@
   font-size: 20px;
   border-width: 2px;
   border-style: solid;
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -84,32 +84,32 @@
 }
 
 .group-symbol-error {
-  color: var(--fds-colors-red-700);
-  border-color: var(--fds-colors-red-500);
-  background-color: var(--fds-colors-red-100);
+  color: var(--ds-color-danger-text-default);
+  border-color: var(--ds-color-danger-border-default);
+  background-color: var(--ds-color-danger-surface-tinted);
 }
 
 .group-symbol-complete {
-  color: var(--fds-colors-grey-100);
-  border-color: var(--fds-colors-blue-700);
-  background-color: var(--fds-colors-blue-700);
+  color: var(--ds-color-neutral-background-tinted);
+  border-color: var(--ds-color-accent-base-default);
+  background-color: var(--ds-color-accent-base-default);
 }
 
 .group-symbol-active {
-  color: var(--fds-colors-grey-100);
-  border-color: var(--fds-colors-blue-900);
-  background-color: var(--fds-colors-blue-900);
+  color: var(--ds-color-neutral-background-tinted);
+  border-color: var(--ds-color-accent-base-active);
+  background-color: var(--ds-color-accent-base-active);
 }
 
 .group-symbol-active.group-symbol-single:not(.group-symbol-info) {
-  outline: 2px solid var(--fds-colors-grey-100);
+  outline: 2px solid var(--ds-color-neutral-background-tinted);
   outline-offset: -4px;
 }
 
 .group-symbol-default {
-  color: var(--fds-colors-blue-900);
-  border-color: var(--fds-colors-blue-400);
-  background-color: var(--fds-colors-grey-100);
+  color: var(--ds-color-accent-text-default);
+  border-color: var(--ds-color-accent-border-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
 }
 
 .page-list {
@@ -123,7 +123,7 @@
   position: absolute;
   box-sizing: border-box;
   width: 0;
-  border-left: 2px solid var(--fds-colors-grey-700);
+  border-left: 2px solid var(--ds-color-neutral-base-default);
   height: calc(100% - 21px);
   top: 33px;
   left: 15px;

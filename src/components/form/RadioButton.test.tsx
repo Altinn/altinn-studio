@@ -52,7 +52,10 @@ describe('RadioButton', () => {
     const helpTextButton = screen.getByRole('button', { name: /Hjelpetekst: trykk på knappen/i });
     expect(helpTextButton).toBeVisible();
     await userEvent.click(helpTextButton);
-    expect(await screen.findByRole('dialog')).toHaveTextContent('Hjelpetekst: trykk på knappen');
+    expect(screen.getByRole('button', { name: 'Hjelpetekst: trykk på knappen' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
   });
   it('should render with hidden label', async () => {
     await render({ label: 'Dette er en knapp', hideLabel: true });

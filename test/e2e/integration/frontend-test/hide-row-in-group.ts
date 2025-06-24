@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 it('should be possible to hide rows when "Endre fra" is greater or equals to [...]', () => {
   cy.goto('group');
   for (const prefill of Object.values(appFrontend.group.prefill)) {
-    cy.get(prefill).check();
+    cy.findByRole('checkbox', { name: prefill }).check();
     cy.waitUntilSaved();
   }
   const headerRow = 1;
@@ -157,7 +157,7 @@ it('"save and next"-button should open row 3 when row 2 is hidden', () => {
 it('rowsAfter should align with the cells in the table above', () => {
   cy.goto('group');
   for (const prefill of Object.values(appFrontend.group.prefill)) {
-    cy.get(prefill).check();
+    cy.findByRole('checkbox', { name: prefill }).check();
     cy.waitUntilSaved();
   }
   cy.findByRole('button', { name: /Neste/ }).click();

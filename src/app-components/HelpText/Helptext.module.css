@@ -19,11 +19,11 @@
 }
 
 .helpText-icon {
-  color: var(--fds-semantic-text-action-default);
-  width: var(--fds-sizing-7);
-  height: var(--fds-sizing-7);
-  min-width: var(--fds-sizing-7);
-  min-height: var(--fds-sizing-7);
+  color: var(--ds-color-accent-base-default);
+  width: var(--ds-size-9);
+  height: var(--ds-size-9);
+  min-width: var(--ds-size-9);
+  min-height: var(--ds-size-9);
 }
 
 .helpTextButton:where(:hover, :focus, [data-state^='open']) > .helpText-icon {
@@ -35,31 +35,30 @@
 }
 
 .helpTextContent {
-  font: var(--fds-typography-paragraph-medium);
+  font: var(--ds-typography-paragraph-md);
   font-family: inherit;
-  width: fit-content;
+  width: moz-fit-content;
   max-width: 700px;
 }
 
 .helpText-sm .helpText-icon {
-  width: var(--fds-sizing-6);
-  height: var(--fds-sizing-6);
+  width: var(--ds-size-6);
+  height: var(--ds-size-6);
 }
 
 .helpText-md .helpText-icon {
-  width: var(--fds-sizing-7);
-  height: var(--fds-sizing-7);
+  width: var(--ds-size-7);
+  height: var(--ds-size-7);
 }
 
 .helpText-lg .helpText-icon {
-  width: var(--fds-sizing-8);
-  height: var(--fds-sizing-8);
+  width: var(--ds-size-8);
+  height: var(--ds-size-8);
 }
 .helpText-focus:focus-visible {
-  --fds-focus-border-width: 3px;
-  outline: var(--fds-focus-border-width) solid var(--fds-semantic-border-focus-outline);
-  outline-offset: var(--fds-focus-border-width);
-  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-focus-boxshadow);
+  outline: var(--ds-border-width-focus) solid var(--ds-color-neutral-text-default);
+  outline-offset: var(--ds-border-width-focus);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-neutral-background-default);
 }
 .screenReaderOnly {
   border: 0;

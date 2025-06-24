@@ -50,7 +50,7 @@ export function SigningActionsComponent({ node }: PropsFromGenericComponent<'Sig
         isOnBottom
       >
         <div className={classes.loadingContainer}>
-          <Spinner title={langAsString('signing.loading')} />
+          <Spinner aria-label={langAsString('signing.loading')} />
         </div>
       </Panel>
     );

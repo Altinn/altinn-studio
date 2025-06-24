@@ -1,8 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { formatNumericText } from '@digdir/design-system-react';
-
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
@@ -11,6 +9,7 @@ import { evalFormatting } from 'src/layout/Input/formatting';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { formatNumericText } from 'src/utils/formattingUtils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';

@@ -18,7 +18,7 @@
 }
 
 .close-button {
-  color: var(--fds-semantic-text-neutral-default);
+  color: var(--ds-color-neutral-text-default);
   margin: -16px -16px 0 0;
   padding: 8px;
   min-width: 20px;

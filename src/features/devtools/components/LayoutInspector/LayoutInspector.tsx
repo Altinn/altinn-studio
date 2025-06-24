@@ -142,7 +142,7 @@ export const LayoutInspector = () => {
             {validationErrorsForPage[selectedComponent] && validationErrorsForPage[selectedComponent].length > 0 && (
               <Alert
                 className={classes.errorAlert}
-                severity='warning'
+                data-color='warning'
               >
                 <div className={classes.errorList}>
                   <ul>

@@ -9,27 +9,23 @@ describe('Accordion', () => {
   it('should display text from textResourceBindings', async () => {
     await render({ title: 'Accordion title' });
 
-    expect(await screen.findByRole('heading', { name: /accordion title/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /accordion title/i })).toBeInTheDocument();
   });
 
   it('should display text from textResourceBindings if an ID to a text resource is used as title', async () => {
     await render({ title: 'accordion.title' });
 
-    expect(await screen.findByRole('heading', { name: /this is a title/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /this is a title/i })).toBeInTheDocument();
   });
 
   it('should open accordion by default if openByDefault is set to true', async () => {
-    const { container } = await render({ openByDefault: true });
-    const element = container.querySelector('.fds-animate-height') as HTMLElement;
-    expect(element).toHaveClass('fds-animate-height--open');
-    expect(element).not.toHaveClass('fds-animate-height--closed');
+    await render({ openByDefault: true, title: 'accordion.title' });
+    expect(await screen.findByRole('button', { name: /this is a title/i })).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('accordion should be closed by default if openByDefault is set to false', async () => {
-    const { container } = await render({ openByDefault: false });
-    const element = container.querySelector('.fds-animate-height') as HTMLElement;
-    expect(element).toHaveClass('fds-animate-height--closed');
-    expect(element).not.toHaveClass('fds-animate-height--open');
+    await render({ openByDefault: false, title: 'accordion.title' });
+    expect(await screen.findByRole('button', { name: /this is a title/i })).toHaveAttribute('aria-expanded', 'false');
   });
 });
 

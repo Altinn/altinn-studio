@@ -44,8 +44,8 @@ function InfectedFileMessage({ filename }: { filename: string }) {
 
   return (
     <Alert
-      size='sm'
-      severity='warning'
+      data-size='sm'
+      data-color='warning'
       role='alert'
       aria-live='assertive'
       aria-label={langAsString('form_filler.file_uploader_infected_file_alert', [filename])}

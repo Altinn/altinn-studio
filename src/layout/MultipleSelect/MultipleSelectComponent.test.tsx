@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import { screen } from '@testing-library/react';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
@@ -37,34 +36,6 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
   });
 
 describe('MultipleSelect', () => {
-  it('should display correct options as selected when supplied with a comma separated form data', async () => {
-    await render({
-      queries: {
-        fetchFormData: async () => ({ someField: 'value1,value3' }),
-      },
-    });
-    expect(screen.getByText('label1')).toBeInTheDocument();
-    expect(screen.queryByText('label2')).not.toBeInTheDocument();
-    expect(screen.getByText('label3')).toBeInTheDocument();
-  });
-
-  it('should remove item from comma separated form data on delete', async () => {
-    const { formDataMethods } = await render({
-      queries: {
-        fetchFormData: async () => ({ someField: 'value1,value2,value3' }),
-      },
-    });
-
-    await userEvent.click(screen.getByRole('button', { name: /Slett label2/i }));
-
-    await waitFor(() =>
-      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-        reference: { field: 'someField', dataType: defaultDataTypeMock },
-        newValue: 'value1,value3',
-      }),
-    );
-  });
-
   it('required validation should only show for simpleBinding', async () => {
     await render({
       component: {

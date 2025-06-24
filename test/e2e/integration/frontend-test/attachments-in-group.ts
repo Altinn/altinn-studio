@@ -226,7 +226,9 @@ describe('Repeating group attachments', () => {
       }
     });
 
-    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.findAllByRole('button', { name: /lagre og lukk/i })
+      .last()
+      .click({ force: true });
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     addNewRow();
     gotoSecondPage();
@@ -252,7 +254,7 @@ describe('Repeating group attachments', () => {
         cy.get(appFrontend.group.row(1).uploadMulti.addMoreBtn).click();
       }
     });
-    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.group.saveMainGroup).click({ force: true });
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
     [0, 1].forEach((row) => {

@@ -88,42 +88,42 @@ const parserOptions: HTMLReactParserOptions = {
     if (isElement(domNode) && domNode.name === 'h1') {
       return React.createElement(
         Heading,
-        { level: 1, size: 'large' },
+        { level: 1, 'data-size': 'lg' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h2') {
       return React.createElement(
         Heading,
-        { level: 2, size: 'medium' },
+        { level: 2, 'data-size': 'md' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h3') {
       return React.createElement(
         Heading,
-        { level: 3, size: 'small' },
+        { level: 3, 'data-size': 'sm' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h4') {
       return React.createElement(
         Heading,
-        { level: 4, size: 'xsmall' },
+        { level: 4, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h5') {
       return React.createElement(
         Heading,
-        { level: 5, size: 'xsmall' },
+        { level: 5, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h6') {
       return React.createElement(
         Heading,
-        { level: 6, size: 'xsmall' },
+        { level: 6, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }

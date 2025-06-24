@@ -40,11 +40,11 @@ function testChangeName() {
 
 function testGroup(mode: Mode) {
   cy.wait('@getLayoutGroup');
-  cy.get(appFrontend.group.prefill.liten).check();
-  cy.get(appFrontend.group.prefill.middels).check();
-  cy.get(appFrontend.group.prefill.stor).check();
-  cy.get(appFrontend.group.prefill.svaer).check();
-  cy.get(appFrontend.group.prefill.enorm).check();
+  cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
+  cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
+  cy.findByRole('checkbox', { name: appFrontend.group.prefill.stor }).check();
+  cy.findByRole('checkbox', { name: appFrontend.group.prefill.svaer }).check();
+  cy.findByRole('checkbox', { name: appFrontend.group.prefill.enorm }).check();
 
   cy.navPage('repeating').click();
   cy.get(appFrontend.group.showGroupToContinue).find('input').check();
@@ -106,7 +106,7 @@ function testLikert() {
 }
 
 function testListMobile() {
-  cy.findByRole('radiogroup').within(() => {
+  cy.findByRole('group', { name: /Hvem gjelder saken? */ }).within(() => {
     cy.findByRole('radio', { name: /caroline/i }).check();
     cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
   });
@@ -119,7 +119,7 @@ function testListTablet() {
     cy.findByRole('row', { name: /caroline/i }).click();
     cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
   });
-  cy.findByRole('button', { name: 'Neste' }).click();
+  cy.findAllByRole('button', { name: 'Neste' }).eq(1).click();
   sendIn();
 }
 

@@ -3,7 +3,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--fds-semantic-surface-action-default);
+  background-color: var(--ds-color-accent-base-default);
   width: calc(var(--icon-size) * 0.75);
   height: calc(var(--icon-size) * 0.75);
   padding: calc(var(--icon-size) * 0.25);

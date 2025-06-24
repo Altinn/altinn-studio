@@ -106,7 +106,7 @@ describe('On Entry', () => {
       .eq(1)
       .should('have.text', 'Ola Nordmann');
 
-    cy.get(appFrontend.selectInstance.nexPageButton).click();
+    cy.findByRole('button', { name: /neste/i }).click();
 
     cy.get(appFrontend.selectInstance.tableBody)
       .find('tr')

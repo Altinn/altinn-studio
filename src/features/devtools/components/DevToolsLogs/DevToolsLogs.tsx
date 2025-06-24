@@ -71,6 +71,7 @@ export const DevToolsLogs = () => {
         </Button>
         <div className={classes.filterField}>
           <Input
+            aria-label='Filtrer logger'
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder='Filtrer logger'

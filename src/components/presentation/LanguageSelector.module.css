@@ -15,6 +15,6 @@
 }
 
 .button-active {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-active);
-  color: var(--fds-semantic-text-action-first-active);
+  background-color: var(--ds-color-accent-surface-hover);
+  color: var(--ds-color-accent-base-active);
 }

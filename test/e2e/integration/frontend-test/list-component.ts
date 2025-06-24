@@ -61,12 +61,10 @@ describe('List component', () => {
 
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', '5');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 5);
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
-    cy.findByRole('option', { name: '10' }).click();
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', 10);
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
-    cy.findByRole('option', { name: '5' }).click();
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('5');
   });
 
   it('Sorting should work as expected', () => {
@@ -81,19 +79,22 @@ describe('List component', () => {
   it('Navigation in pagination should work as expected', () => {
     cy.goto('datalist');
 
-    cy.get(dataListPage.navigateNextButton).should('not.be.disabled');
+    cy.findAllByRole('button', { name: /neste/i }).first().should('not.be.disabled');
     cy.get(dataListPage.tableBody).first().first().contains('Caroline');
-    cy.get(dataListPage.navigateNextButton).click();
-    cy.get(dataListPage.navigateNextButton).get(dataListPage.tableBody).first().first().contains('Hans');
-    cy.get(dataListPage.navigatePreviousButton).click();
-    cy.get(dataListPage.navigatePreviousButton).get(dataListPage.tableBody).first().first().contains('Caroline');
+    cy.findAllByRole('button', { name: /neste/i }).first().click();
+    cy.findAllByRole('button', { name: /neste/i }).first().get(dataListPage.tableBody).first().first().contains('Hans');
+    cy.findByRole('button', { name: /forrige/i }).click();
+    cy.findByRole('button', { name: /forrige/i })
+      .get(dataListPage.tableBody)
+      .first()
+      .first()
+      .contains('Caroline');
   });
 
   it('Should expand to 10 rows and take a snapshot', () => {
     cy.goto('datalist');
 
-    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).click();
-    cy.findByRole('option', { name: '10' }).click();
+    cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
 
     cy.snapshot('list-component');

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Accordion as DesignSystemAccordion } from '@digdir/designsystemet-react';
+import { Card } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -15,7 +15,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 type IAccordionProps = PropsFromGenericComponent<'Accordion'>;
 
 export const Accordion = ({ node }: IAccordionProps) => {
-  const { textResourceBindings, headingLevel, childComponents, openByDefault } = useNodeItem(node);
+  const { textResourceBindings, childComponents, openByDefault } = useNodeItem(node);
   const { langAsString } = useLanguage();
   const renderAsAccordionItem = useIsInAccordionGroup();
 
@@ -25,7 +25,6 @@ export const Accordion = ({ node }: IAccordionProps) => {
     <AltinnAcordionItem
       title={title}
       className={className}
-      headingLevel={headingLevel}
       open={openByDefault}
     >
       <Flex
@@ -49,13 +48,9 @@ export const Accordion = ({ node }: IAccordionProps) => {
       {renderAsAccordionItem ? (
         <AccordionItem className={classes.container} />
       ) : (
-        <DesignSystemAccordion
-          color='subtle'
-          border
-          className={classes.container}
-        >
-          <AccordionItem />
-        </DesignSystemAccordion>
+        <Card data-color='neutral'>
+          <AccordionItem className={classes.container} />
+        </Card>
       )}
     </ComponentStructureWrapper>
   );

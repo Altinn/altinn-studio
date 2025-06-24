@@ -12,10 +12,9 @@ import { HelpTextIcon } from 'src/app-components/HelpText/HelpTextIcon';
 export type HelpTextProps = {
   id?: string;
   title?: string;
-  size?: PopoverProps['size'];
+  size?: PopoverProps['data-size'];
   placement?: 'right' | 'bottom' | 'left' | 'top';
-  portal?: boolean;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'>;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function getSize(size: string) {
   switch (size) {
@@ -45,27 +44,19 @@ export function getSize(size: string) {
 }
 
 export const HelpText = forwardRef<HTMLButtonElement, HelpTextProps>(function HelpText(
-  { id, title, placement = 'right', portal, className, children, ...rest },
+  { id, title, placement = 'right', className, children, ...rest },
   ref,
 ) {
   const uuid = uuidv4();
   const [open, setOpen] = useState(false);
 
-  const size = getSize(rest.size || 'md') as PopoverProps['size'];
+  const size = getSize(rest.size || 'md') as PopoverProps['data-size'];
 
   const helpTextSize = size ? classes[`helpText-${size}`] : '';
   return (
-    <Popover
-      variant='info'
-      placement={placement}
-      size={size}
-      portal={portal}
-      open={open}
-      onClose={() => setOpen(false)}
-    >
+    <Popover.TriggerContext>
       <Popover.Trigger
         asChild
-        variant='tertiary'
         ref={ref}
         aria-label={title}
         id={id ?? uuid}
@@ -84,10 +75,19 @@ export const HelpText = forwardRef<HTMLButtonElement, HelpTextProps>(function He
             className={cl(classes['helpText-icon'])}
             openState={open}
           />
-          <span className={classes.screenReaderOnly}>{title}</span>
         </button>
       </Popover.Trigger>
-      <Popover.Content className={classes.helpTextContent}>{children}</Popover.Content>
-    </Popover>
+      <Popover
+        data-testid='helptext'
+        className={classes.helpTextContent}
+        data-color='info'
+        placement={placement}
+        data-size={size}
+        open={open}
+        onClose={() => setOpen(false)}
+      >
+        {children}
+      </Popover>
+    </Popover.TriggerContext>
   );
 });

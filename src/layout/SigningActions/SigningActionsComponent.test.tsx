@@ -153,7 +153,7 @@ describe('SigningActionsComponent', () => {
       />,
     );
 
-    expect(screen.getByText('signing.loading')).toBeInTheDocument();
+    expect(screen.getByLabelText('signing.loading')).toBeInTheDocument();
   });
 
   it('should render ErrorPanel on API error', () => {

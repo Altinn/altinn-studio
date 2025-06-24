@@ -6,7 +6,6 @@ import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 
 export const DevLanguageSelector = () => (
   <Fieldset
-    legend='Språk'
     style={{
       width: 250,
       display: 'flex',
@@ -15,6 +14,7 @@ export const DevLanguageSelector = () => (
       justifyContent: 'space-between',
     }}
   >
+    <Fieldset.Legend>Språk</Fieldset.Legend>
     <LanguageSelector />
   </Fieldset>
 );

@@ -19,7 +19,7 @@
 
 .attachmentLink:hover {
   border-bottom: none;
-  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  background-color: var(--ds-color-accent-surface-default);
 }
 
 .attachmentIcon {

@@ -175,23 +175,21 @@ export const PartySelection = () => {
             >
               <Flex item>
                 <Checkbox
-                  size='sm'
+                  data-size='sm'
                   value='showDeleted'
                   checked={showDeleted}
                   onChange={toggleShowDeleted}
-                >
-                  <Lang id='party_selection.show_deleted' />
-                </Checkbox>
+                  label={<Lang id='party_selection.show_deleted' />}
+                />
               </Flex>
               <Flex item>
                 <Checkbox
-                  size='sm'
+                  data-size='sm'
                   value='showSubUnits'
                   checked={showSubUnits}
                   onChange={toggleShowSubUnits}
-                >
-                  <Lang id='party_selection.show_sub_unit' />
-                </Checkbox>
+                  label={<Lang id='party_selection.show_sub_unit' />}
+                />
               </Flex>
             </Flex>
           </Flex>
@@ -201,7 +199,7 @@ export const PartySelection = () => {
           <Flex style={{ padding: 12 }}>
             <Heading
               level={2}
-              size='medium'
+              data-size='md'
               style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: 12 }}
             >
               <Lang id='party_selection.why_seeing_this' />

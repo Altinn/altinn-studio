@@ -14,8 +14,14 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
+const sizeMap: Record<string, 'sm' | 'md' | 'lg'> = {
+  small: 'sm',
+  medium: 'md',
+  large: 'lg',
+};
+
 export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
-  const size = useNodeItem(node, (i) => i.size);
+  const size = useNodeItem(node, (i) => i.size) ?? 'medium';
   const defaultTab = useNodeItem(node, (i) => i.defaultTab);
   const tabs = useNodeItem(node, (i) => i.tabsInternal);
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
@@ -40,7 +46,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
         defaultValue={activeTab}
         value={activeTab}
         onChange={(tabId) => setActiveTab(tabId)}
-        size={size}
+        data-size={sizeMap[size]}
       >
         <DesignsystemetTabs.List>
           {tabs.map((tab) => (
@@ -54,7 +60,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
           ))}
         </DesignsystemetTabs.List>
         {tabs.map((tab) => (
-          <DesignsystemetTabs.Content
+          <DesignsystemetTabs.Panel
             key={tab.id}
             value={tab.id}
             role='tabpanel'
@@ -72,24 +78,14 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
                 />
               ))}
             </Flex>
-          </DesignsystemetTabs.Content>
+          </DesignsystemetTabs.Panel>
         ))}
       </DesignsystemetTabs>
     </ComponentStructureWrapper>
   );
 };
 
-function TabHeader({
-  id,
-  title,
-  icon,
-  isActive,
-}: {
-  id: string;
-  title: string;
-  icon: string | undefined;
-  isActive?: boolean;
-}) {
+function TabHeader({ id, title, icon }: { id: string; title: string; icon: string | undefined; isActive?: boolean }) {
   const { langAsString } = useLanguage();
   const translatedTitle = langAsString(title);
 
@@ -108,10 +104,8 @@ function TabHeader({
     <DesignsystemetTabs.Tab
       key={id}
       value={id}
-      style={{
-        backgroundColor: isActive ? 'white' : 'transparent',
-      }}
       tabIndex={0}
+      className={classes.tabHeader}
     >
       {!!icon && (
         <img

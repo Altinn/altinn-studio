@@ -2,25 +2,24 @@
   No longer supported with horizontal layout in design system.
   Possible breaking change if we remove this option of styling.
   */
-.horizontal > div {
+.horizontal {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
-  gap: var(--fds-spacing-2);
-}
-
-.checkboxGroup div label {
-  display: inline-flex;
-  padding-left: 3px;
+  gap: var(--ds-size-2);
 }
 
 .checkboxLabelContainer {
   display: flex;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
   align-items: center;
 }
 
 .labelContent {
   font-size: 1rem;
   word-break: break-word;
+}
+
+.legend {
+  display: inline-flex;
 }

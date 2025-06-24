@@ -4,6 +4,9 @@ import '@testing-library/jest-dom';
 import '@testing-library/jest-dom/jest-globals';
 import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issues/3363
 import 'jest';
+// Importing CSS for jest-preview to look nicer
+import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css';
 
 import { jest } from '@jest/globals';
 import { configure as testingLibraryConfigure } from '@testing-library/dom';
@@ -17,7 +20,6 @@ import type { fetchApplicationMetadata, fetchProcessState } from 'src/queries/qu
 import type { AppQueries } from 'src/queries/types';
 
 // Importing CSS for jest-preview to look nicer
-import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
 

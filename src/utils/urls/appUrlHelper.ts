@@ -1,5 +1,3 @@
-import type { SortDirection } from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
-
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
@@ -222,6 +220,9 @@ export const getOptionsUrl = ({ optionsId, queryParameters, language, secure, in
 
   return url.toString();
 };
+
+type SortDirection = 'asc' | 'desc' | 'notSortable' | 'notActive';
+
 interface IGetDataListsUrlParams {
   dataListId: string;
   queryParameters?: Record<string, ParamValue>;

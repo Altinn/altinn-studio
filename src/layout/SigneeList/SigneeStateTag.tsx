@@ -52,7 +52,7 @@ export function SigneeStateTag({ state }: { state: SigneeState }) {
   return (
     <Tag
       color={color}
-      size='sm'
+      data-size='sm'
     >
       <Lang id={SIGNEE_STATUS[status]} />
     </Tag>

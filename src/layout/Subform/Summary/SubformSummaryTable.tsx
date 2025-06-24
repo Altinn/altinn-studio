@@ -20,6 +20,7 @@ import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import utilClasses from 'src/styles/utils.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ISubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSummaryComponent';
 import type { IData } from 'src/types/shared';
@@ -53,7 +54,7 @@ function SubformTableRow({
     return (
       <Table.Row>
         <Table.Cell colSpan={numColumns}>
-          <Spinner title={langAsString('general.loading')} />
+          <Spinner aria-label={langAsString('general.loading')} />
         </Table.Cell>
       </Table.Row>
     );
@@ -180,7 +181,7 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
               )}
               {!pdfModeActive && (
                 <Table.HeaderCell className={classNames(classes2.editColumnHeader, classes2.noRightPad)}>
-                  <span className={classes1.visuallyHidden}>
+                  <span className={utilClasses.visuallyHidden}>
                     <Lang id='general.edit' />
                   </span>
                 </Table.HeaderCell>

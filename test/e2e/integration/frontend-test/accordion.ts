@@ -4,7 +4,7 @@ describe('Accordion', () => {
 
     const accordionContent = /in horas tendebat resumptis/i;
 
-    cy.findByText(accordionContent).should('not.be.visible');
+    cy.findByText(accordionContent).should('not.exist');
     cy.findByRole('button', { name: /mer informasjon vedrørende navneendring/i }).click();
     cy.findByText(accordionContent).should('be.visible');
   });

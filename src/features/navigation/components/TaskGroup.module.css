@@ -10,7 +10,7 @@
   align-items: start;
   text-align: left;
 
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   overflow-wrap: anywhere;
   padding: 2px 6px 2px 2px;
   margin: -2px -6px -2px -2px;
@@ -37,20 +37,20 @@
   font-size: 20px;
   border-width: 2px;
   border-style: solid;
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .task-symbol-locked {
-  color: var(--fds-colors-grey-800);
-  border-color: var(--fds-colors-grey-600);
-  background-color: var(--fds-colors-grey-100);
+  color: var(--ds-color-neutral-text-default);
+  border-color: var(--ds-color-neutral-border-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
 }
 
 .task-symbol-active {
-  color: var(--fds-colors-grey-100);
-  border-color: var(--fds-colors-blue-900);
-  background-color: var(--fds-colors-blue-900);
+  color: var(--ds-color-accent-text-default);
+  border-color: var(--ds-color-accent-border-default);
+  background-color: var(--ds-color-neutral-surface-tinted);
 }

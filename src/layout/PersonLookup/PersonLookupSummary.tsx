@@ -43,7 +43,7 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
     >
       <div className={classes.personSummaryWrapper}>
         <Heading
-          size='sm'
+          data-size='sm'
           level={2}
         >
           <Lang id={title} />

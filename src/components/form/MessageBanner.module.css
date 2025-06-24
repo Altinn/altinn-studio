@@ -7,9 +7,9 @@
 }
 
 .default {
-  background-color: var(--fds-colors-grey-200);
+  background-color: var(--ds-color-neutral-surface-tinted);
 }
 
 .error {
-  background-color: var(--fds-colors-red-200);
+  background-color: var(--ds-color-danger-surface-active);
 }

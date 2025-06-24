@@ -7,7 +7,6 @@ import { getLocale } from 'src/app-components/Datepicker/utils/dateHelpers';
 
 export interface CalendarDialogProps {
   id: string;
-  isOpen?: boolean;
   selectedDate: Date | undefined;
   onSelect: (value: Date) => void;
   maxDate?: Date;

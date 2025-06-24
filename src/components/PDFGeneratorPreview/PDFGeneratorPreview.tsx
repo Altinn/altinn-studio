@@ -1,12 +1,11 @@
 import React from 'react';
 
-import { Modal, Spinner } from '@digdir/designsystemet-react';
+import { Dialog, Heading, Spinner } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getPdfPreviewUrl } from 'src/utils/urls/appUrlHelper';
@@ -73,10 +72,10 @@ export function PDFGeneratorPreview({
         />
         {buttonTitle ? langAsString(buttonTitle) : langAsString('pdfPreview.defaultButtonText')}
       </Button>
-      <Modal
+      <Dialog
         ref={modalRef}
         onClose={() => abortRef.current?.abort()}
-        onInteractOutside={() => modalRef.current?.close()}
+        closedby='any'
         className={classes.modal}
       >
         {blobUrl ? (
@@ -87,28 +86,24 @@ export function PDFGeneratorPreview({
           />
         ) : errorText ? (
           <div style={{ textAlign: 'center' }}>
-            <Modal.Header>
-              <Lang id='pdfPreview.error' />
-            </Modal.Header>
-            <Modal.Content>
-              {showErrorDetails &&
-                errorText.split('\n').map((line) => (
-                  <React.Fragment key={line}>
-                    {line}
-                    <br />
-                  </React.Fragment>
-                ))}
-            </Modal.Content>
+            <Heading id='pdfPreview.error' />
+            {showErrorDetails &&
+              errorText.split('\n').map((line) => (
+                <React.Fragment key={line}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
           </div>
         ) : (
           <div className={classes.loading}>
             <Spinner
-              title={langAsString('general.loading')}
-              size='xlarge'
+              aria-label={langAsString('general.loading')}
+              data-size='xl'
             />
           </div>
         )}
-      </Modal>
+      </Dialog>
     </>
   );
 }

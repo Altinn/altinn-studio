@@ -17,11 +17,11 @@
 }
 
 .header-link a {
-  color: var(--fds-semantic-surface-action-default);
+  color: var(--ds-color-accent-base-default);
   border-bottom: 0;
 }
 .header-link a:hover {
-  border-bottom: 3px solid var(--fds-semantic-surface-action-default);
+  border-bottom: 3px solid var(--ds-color-accent-base-default);
 }
 
 .header-link-list {

@@ -1,27 +1,27 @@
 /* breakpoints-xs */
 @media only screen and (min-width: 0) {
   .panel {
-    --y-padding: var(--fds-spacing-6);
-    --x-padding: var(--fds-spacing-6);
-    --content-gap: var(--fds-spacing-3);
+    --y-padding: var(--ds-size-6);
+    --x-padding: var(--ds-size-6);
+    --content-gap: var(--ds-size-3);
   }
 }
 
 /* breakpoints-sm */
 @media only screen and (min-width: 540px) {
   .panel:not(.panelMobileLayout) {
-    --y-padding: var(--fds-spacing-9);
-    --x-padding: var(--fds-spacing-22);
-    --content-gap: var(--fds-spacing-3);
+    --y-padding: var(--ds-size-9);
+    --x-padding: var(--ds-size-22);
+    --content-gap: var(--ds-size-3);
   }
 }
 
 /* print style */
 @media print {
   .panel {
-    --y-padding: var(--fds-spacing-6);
-    --x-padding: var(--fds-spacing-6);
-    --content-gap: var(--fds-spacing-3);
+    --y-padding: var(--ds-size-6);
+    --x-padding: var(--ds-size-6);
+    --content-gap: var(--ds-size-3);
   }
 }
 
@@ -36,19 +36,19 @@
 }
 
 .panelContentWrapper_info {
-  background-color: var(--fds-semantic-surface-info-subtle);
+  background-color: var(--ds-color-info-surface-tinted);
 }
 
 .panelContentWrapper_success {
-  background-color: var(--fds-semantic-surface-success-subtle);
+  background-color: var(--ds-color-success-surface-tinted);
 }
 
 .panelContentWrapper_warning {
-  background-color: var(--fds-semantic-surface-warning-subtle);
+  background-color: var(--ds-color-warning-surface-tinted);
 }
 
 .panelContentWrapper_error {
-  background-color: var(--fds-semantic-surface-danger-subtle);
+  background-color: var(--ds-color-danger-surface-tinted);
 }
 
 .panelIconWrapper {
@@ -57,25 +57,25 @@
 }
 
 .panelIconWrapper_success svg {
-  color: var(--fds-semantic-surface-success-default);
+  color: var(--ds-color-success-base-default);
 }
 
 .panelIconWrapper_info svg {
-  color: var(--fds-semantic-border-info-default);
+  color: var(--ds-color-info-border-strong);
 }
 
 .panelIconWrapper_error svg {
-  color: var(--fds-semantic-surface-danger-default);
+  color: var(--ds-color-danger-base-default);
 }
 
 .panelIconWrapper_warning svg {
-  color: var(--fds-semantic-border-warning-default);
+  color: var(--ds-color-warning-border-default);
 }
 
 .panelContent {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
   width: 100%;
 }
 

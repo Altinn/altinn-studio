@@ -98,7 +98,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
       <Heading
         level={1}
-        size='lg'
+        data-size='lg'
       >
         {isPayment ? `${appName} - ${langAsString('payment.receipt.title')}` : appName}
       </Heading>

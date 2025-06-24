@@ -18,8 +18,8 @@
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: var(--fds-colors-red-600);
-  border: 3px solid var(--fds-colors-red-600);
+  color: var(--ds-color-danger-text-subtle);
+  border: 3px solid var(--ds-color-danger-border-strong);
 }
 
 .panel {

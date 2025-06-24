@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
-import { ErrorMessage, Heading, Modal, Paragraph } from '@digdir/designsystemet-react';
+import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
@@ -43,7 +43,7 @@ export function SigningPanel({
       <div className={classes.contentContainer}>
         <Heading
           level={4}
-          size='xs'
+          data-size='xs'
         >
           {heading}
         </Heading>
@@ -55,7 +55,7 @@ export function SigningPanel({
             {actionButton}
             {canReject && <RejectButton node={node} />}
           </div>
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+          {errorMessage && <ValidationMessage>{errorMessage}</ValidationMessage>}
         </div>
       </div>
     </Panel>
@@ -94,8 +94,8 @@ function RejectButton({ node }: RejectTextProps) {
   });
 
   return (
-    <Modal.Root>
-      <Modal.Trigger asChild>
+    <Dialog.TriggerContext>
+      <Dialog.Trigger asChild>
         <Button
           color='danger'
           variant='secondary'
@@ -103,17 +103,22 @@ function RejectButton({ node }: RejectTextProps) {
         >
           <Lang id={modalTriggerButton} />
         </Button>
-      </Modal.Trigger>
-      <Modal.Dialog ref={modalRef}>
-        <Modal.Header>
-          <Lang id={modalTitle} />
-        </Modal.Header>
-        <Modal.Content>
+      </Dialog.Trigger>
+      <Dialog
+        modal
+        ref={modalRef}
+      >
+        <Dialog.Block>
+          <Heading>
+            <Lang id={modalTitle} />
+          </Heading>
+        </Dialog.Block>
+        <Dialog.Block>
           <Paragraph>
             <Lang id={modalDescription} />
           </Paragraph>
-        </Modal.Content>
-        <Modal.Footer>
+        </Dialog.Block>
+        <Dialog.Block>
           <Button
             color='danger'
             disabled={isAnyProcessing}
@@ -131,8 +136,8 @@ function RejectButton({ node }: RejectTextProps) {
           >
             <Lang id='general.close' />
           </Button>
-        </Modal.Footer>
-      </Modal.Dialog>
-    </Modal.Root>
+        </Dialog.Block>
+      </Dialog>
+    </Dialog.TriggerContext>
   );
 }

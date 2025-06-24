@@ -14,12 +14,12 @@
 
 .divider {
   width: 100%;
-  border-top: 1px dashed var(--fds-semantic-border-divider-default);
+  border-top: 1px dashed var(--ds-color-neutral-border-subtle);
   margin-top: 0;
-  margin-bottom: var(--fds-spacing-1);
+  margin-bottom: var(--ds-size-1);
 }
 
 .signeeDescription {
-  color: var(--fds-colors-grey-600);
+  color: var(--ds-color-neutral-text-subtle);
   font-style: italic;
 }

@@ -68,6 +68,7 @@ export function AddressComponent({ node }: IAddressProps) {
     >
       <div>
         <Label
+          id={`address_address_label_${id}`}
           htmlFor={`address_address_${id}`}
           label={langAsString(textResourceBindings?.title ?? 'address_component.address')}
           required={required}
@@ -88,6 +89,7 @@ export function AddressComponent({ node }: IAddressProps) {
             <Input
               id={`address_address_${id}`}
               data-bindingkey={bindingKeys.address}
+              aria-labelledby={`address_address_label_${id}`}
               error={hasValidationErrors(bindingValidations?.address)}
               value={address}
               onChange={(ev) => setValue('address', ev.target.value)}
@@ -107,6 +109,7 @@ export function AddressComponent({ node }: IAddressProps) {
       {!simplified && (
         <div>
           <Label
+            id={`address_care_of_label_${id}`}
             htmlFor={`address_care_of_${id}`}
             label={langAsString(textResourceBindings?.careOfTitle ?? 'address_component.care_of')}
             required={required}
@@ -127,6 +130,7 @@ export function AddressComponent({ node }: IAddressProps) {
               <Input
                 id={`address_care_of_${id}`}
                 data-bindingkey={bindingKeys.careOf}
+                aria-labelledby={`address_care_of_label_${id}`}
                 error={hasValidationErrors(bindingValidations?.careOf)}
                 value={careOf}
                 onChange={(ev) => setValue('careOf', ev.target.value)}
@@ -152,6 +156,7 @@ export function AddressComponent({ node }: IAddressProps) {
           className={`${classes.addressComponentZipCode} ${classes.addressComponentSmallInputs}`}
         >
           <Label
+            id={`address_zip_code_label_${id}`}
             htmlFor={`address_zip_code_${id}`}
             label={langAsString(textResourceBindings?.zipCodeTitle ?? 'address_component.zip_code')}
             required={required}
@@ -172,6 +177,7 @@ export function AddressComponent({ node }: IAddressProps) {
               <Input
                 id={`address_zip_code_${id}`}
                 data-bindingkey={bindingKeys.zipCode}
+                aria-labelledby={`address_zip_code_label_${id}`}
                 error={hasValidationErrors(bindingValidations?.zipCode)}
                 value={zipCode}
                 onChange={(ev) => setValue('zipCode', ev.target.value)}
@@ -193,6 +199,7 @@ export function AddressComponent({ node }: IAddressProps) {
           className={classes.addressComponentPostplace}
         >
           <Label
+            id={`address_post_place_label_${id}`}
             htmlFor={`address_post_place_${id}`}
             label={langAsString(textResourceBindings?.postPlaceTitle ?? 'address_component.post_place')}
             required={required}
@@ -213,6 +220,7 @@ export function AddressComponent({ node }: IAddressProps) {
               <Input
                 id={`address_post_place_${id}`}
                 data-bindingkey={bindingKeys.postPlace}
+                aria-labelledby={`address_post_place_label_${id}`}
                 value={postPlace}
                 readOnly={true}
                 required={required}
@@ -226,6 +234,7 @@ export function AddressComponent({ node }: IAddressProps) {
       {!simplified && (
         <div>
           <Label
+            id={`address_house_number_label_${id}`}
             htmlFor={`address_house_number_${id}`}
             required={required}
             label={langAsString(textResourceBindings?.houseNumberTitle ?? 'address_component.house_number')}
@@ -254,6 +263,7 @@ export function AddressComponent({ node }: IAddressProps) {
                 <Input
                   id={`address_house_number_${id}`}
                   data-bindingkey={bindingKeys.houseNumber}
+                  aria-labelledby={`address_house_number_label_${id}`}
                   error={hasValidationErrors(bindingValidations?.houseNumber)}
                   value={houseNumber}
                   onChange={(ev) => setValue('houseNumber', ev.target.value)}

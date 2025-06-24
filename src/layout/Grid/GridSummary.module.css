@@ -1,7 +1,7 @@
 .rowReadOnly,
 .rowReadOnly td,
 .rowReadOnly th {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 tr > .fullWidthCellFirst {
@@ -18,11 +18,11 @@ tr > .fullWidthCellLast {
 
 .table th {
   font-weight: 500;
-  border-bottom: 2px solid var(--fds-semantic-border-neutral-strong);
+  border-bottom: 2px solid var(--ds-color-neutral-base-default);
 }
 
 .table td {
-  border-bottom: 1px dashed var(--fds-semantic-border-neutral-default);
+  border-bottom: 1px dashed var(--ds-color-neutral-border-strong);
 }
 
 .table tr:hover td {
@@ -92,11 +92,11 @@ tr > .fullWidthCellLast {
 }
 
 .validationError {
-  border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
 }
 
 .errorMessage {
-  padding-bottom: var(--fds-spacing-2);
+  padding-bottom: var(--ds-size-2);
 }
 
 .mobileFieldset {
@@ -131,7 +131,7 @@ tr > .fullWidthCellLast {
   display: flex;
   flex-direction: column;
   border: none;
-  padding: var(--fds-spacing-2) 0;
+  padding: var(--ds-size-2) 0;
 }
 
 .responsiveTable td .contentWrapper {
@@ -146,9 +146,9 @@ tr > .fullWidthCellLast {
 }
 
 .responsiveTable tr {
-  border-bottom: 2px solid var(--fds-semantic-border-neutral-default);
-  padding-top: var(--fds-spacing-3);
-  padding-bottom: var(--fds-spacing-3);
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
 }
 
 .responsiveTable td[data-header-title]:not([data-header-title=''])::before,
@@ -157,17 +157,4 @@ tr > .fullWidthCellLast {
   display: block;
   text-align: left;
   font-weight: 500;
-}
-
-.visuallyHidden {
-  border: none;
-  padding: 0;
-  margin: 0;
-  position: absolute;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px 1px 1px 1px);
-  clip-path: inset(50%);
-  white-space: nowrap;
 }

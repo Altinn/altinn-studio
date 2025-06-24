@@ -19,11 +19,11 @@ tr.blueUnderlineDotted td {
 }
 
 tr.grayUnderlineDotted td {
-  border-bottom: 1px dotted var(--fds-semantic-border-neutral-default);
+  border-bottom: 1px dotted var(--ds-color-neutral-border-strong);
 }
 
 tr.grayUnderline td {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-default);
+  border-bottom: 1px solid var(--ds-color-neutral-border-strong);
 }
 
 .altinnLoader {

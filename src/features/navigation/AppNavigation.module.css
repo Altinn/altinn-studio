@@ -16,3 +16,8 @@
 .group-list > li:not(:last-child) {
   margin-bottom: 28px;
 }
+
+.closeButton {
+  margin-left: auto;
+  width: min-content;
+}

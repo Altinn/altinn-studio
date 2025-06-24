@@ -9,7 +9,7 @@
 
 .row,
 .row td {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .hidden {

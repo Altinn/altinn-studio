@@ -18,7 +18,7 @@ describe('Auto save behavior', () => {
       }).as('saveFormData');
     });
 
-    cy.get(appFrontend.group.prefill.liten).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
     cy.wait('@saveFormData');
     cy.get<ReqCounter>('@formDataReq').then(({ count }) => {
       expect(count).to.be.eq(1);
@@ -48,7 +48,7 @@ describe('Auto save behavior', () => {
         formDataReq.count++;
       }).as('saveFormData');
     });
-    cy.get(appFrontend.group.prefill.liten).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
@@ -67,7 +67,7 @@ describe('Auto save behavior', () => {
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
 
     cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.group.prefill.liten).should('be.visible');
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).should('be.visible');
 
     // Go forward again, change something and then observe the back button saves
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
@@ -82,7 +82,7 @@ describe('Auto save behavior', () => {
     });
 
     // NavigationBar
-    cy.get(appFrontend.group.prefill.middels).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
     cy.gotoNavPage('repeating');
     cy.get<ReqCounter>('@formDataReq').then(({ count }) => {
       expect(count).to.be.eq(3);
@@ -131,7 +131,7 @@ describe('Auto save behavior', () => {
         .check();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
-      cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+      cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
       cy.get('button[aria-label*="Today"]').click();
 
       cy.findByRole('button', { name: /Neste/ }).click();
@@ -206,7 +206,7 @@ describe('Auto save behavior', () => {
       cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
-      cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+      cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
       cy.get('button[aria-label*="Today"]').click();
 
       cy.findByRole('button', { name: /Neste/ }).click();

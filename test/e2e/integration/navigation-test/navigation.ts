@@ -17,13 +17,15 @@ describe('navigation', () => {
   ['desktop', 'tablet', 'mobile'].forEach((device: keyof typeof viewportSizes) =>
     it(`navigation component on ${device}`, () => {
       const { width, height } = viewportSizes[device];
-      const isUsingDialog = device === 'mobile' || device === 'tablet';
+      const isUsingMobile = device === 'mobile';
+      const isUsingTablet = device === 'tablet';
       cy.viewport(width, height);
       cy.startAppInstance(appFrontend.apps.navigationTest);
       cy.waitForLoad();
 
       // Check initial conditions
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('have.attr', 'aria-current', 'page');
@@ -43,20 +45,24 @@ describe('navigation', () => {
 
       cy.navGroup('Kvittering').should('be.disabled');
       cy.navGroup('Kvittering').should('not.have.attr', 'aria-current');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('not.have.attr', 'aria-current');
       cy.navGroup(/^Informasjon/, 'Litt mer info').should('have.attr', 'aria-current', 'page');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'false');
       cy.navGroup(/^Informasjon/).should('not.have.attr', 'aria-current');
 
@@ -67,68 +73,81 @@ describe('navigation', () => {
       cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('textbox', { name: /Fornavn/ }).type('Donald');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('textbox', { name: /Etternavn/ }).type('Duck');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling').should('have.attr', 'aria-expanded', 'true');
       cy.navGroup('Utfylling').should('have.attr', 'aria-current', 'step');
       cy.navGroup('Utfylling', 'Fornavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Alder').should('have.attr', 'aria-current', 'page');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('textbox', { name: /Alder/ }).type('123');
       cy.get(appFrontend.errorReport).should('be.visible');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Fødselsdag').should('have.attr', 'aria-current', 'page');
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('be.visible');
       cy.readFile('test/percy.css').then((percyCSS) => {
         cy.testWcag();
-        cy.percySnapshot(`navigation:page-states (${device})`, { percyCSS, widths: [width] });
+        if (device === 'mobile') {
+          cy.percySnapshot(`navigation:page-states (${device})`, { percyCSS, widths: [width] });
+        }
       });
-      cy.gotoNavGroup(/^Informasjon/, 'Generell info');
+      cy.gotoNavGroup(/^Informasjon/, device, 'Generell info');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/^Informasjon/).should('have.attr', 'aria-current', 'step');
       cy.navGroup(/^Informasjon/, 'Generell info').should('have.attr', 'aria-current', 'page');
       cy.navGroup('Utfylling').should('have.attr', 'aria-expanded', 'false');
       cy.navGroup('Utfylling').should('not.have.attr', 'aria-current');
       cy.navGroup('Utfylling').find(ICON_ERROR).should('be.visible');
-      cy.gotoNavGroup('Utfylling', 'Alder');
+      cy.gotoNavGroup('Utfylling', device, 'Alder');
 
       cy.findByRole('textbox', { name: /Alder/ }).clear();
       cy.findByRole('textbox', { name: /Alder/ }).type('42');
       cy.get(appFrontend.errorReport).should('not.exist');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_ERROR).should('not.exist');
-      cy.gotoNavGroup('Utfylling', 'Kjøretøy');
+      cy.gotoNavGroup('Utfylling', device, 'Kjøretøy');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Alder').find(ICON_ERROR).should('not.exist');
-      cy.gotoNavGroup('Utfylling', 'Fødselsdag');
+      cy.gotoNavGroup('Utfylling', device, 'Fødselsdag');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_COMPLETE).should('not.exist');
       cy.navGroup('Utfylling', 'Kjøretøy').find(ICON_ERROR).should('not.exist');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('textbox', { name: /Fødselsdag/ }).type('09061934');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
@@ -143,7 +162,8 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('be.visible');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Registreringsnummer').should('have.attr', 'aria-current', 'page');
       cy.navGroup('Registreringsnummer').should('not.have.attr', 'aria-expanded');
       cy.navGroup('Informasjon').should('have.attr', 'aria-expanded', 'false');
@@ -153,7 +173,8 @@ describe('navigation', () => {
       cy.navGroup('Informasjon', 'Årsmodell').should('not.have.attr', 'aria-current');
       cy.navGroup('Bekreftelse').should('not.exist');
       cy.navGroup('Kvittering').should('not.exist');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
       cy.waitForLoad();
@@ -162,26 +183,31 @@ describe('navigation', () => {
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling').should('have.attr', 'aria-expanded', 'false');
       cy.navGroup('Utfylling').should('not.have.attr', 'aria-current');
       cy.navGroup('Utfylling').find(ICON_COMPLETE).should('be.visible');
       cy.openNavGroup('Innsending');
       cy.navGroup('Innsending', 'Tilbakemelding').should('be.visible');
       cy.navGroup('Innsending', 'Oppsummering').should('be.visible');
-      cy.gotoNavGroup('Utfylling', 'Ekstra');
+      cy.gotoNavGroup('Utfylling', device, 'Ekstra');
 
       cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).dsCheck();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.openNavGroup('Innsending');
       cy.navGroup('Innsending', 'Tilbakemelding').should('not.exist');
       cy.navGroup('Innsending', 'Oppsummering').should('be.visible');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('checkbox', { name: 'Skjul oppsummering' }).dsCheck();
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Innsending').should('not.exist');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('heading', { name: 'Viktig informasjon' }).should('be.visible');
@@ -194,14 +220,16 @@ describe('navigation', () => {
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
       cy.findByRole('heading', { name: 'Se over svarene dine før du sender inn' }).should('be.visible');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Personopplysninger').should('be.disabled');
       cy.navGroup('Personopplysninger').should('not.have.attr', 'aria-current');
       cy.navGroup('Bekreftelse').should('be.disabled');
       cy.navGroup('Bekreftelse').should('have.attr', 'aria-current', 'step');
       cy.navGroup('Kvittering').should('be.disabled');
       cy.navGroup('Kvittering').should('not.have.attr', 'aria-current');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
 
@@ -214,13 +242,15 @@ describe('navigation', () => {
   ['desktop', 'tablet', 'mobile'].forEach((device: keyof typeof viewportSizes) =>
     it(`navigation with subform on ${device}`, () => {
       const { width, height } = viewportSizes[device];
-      const isUsingDialog = device === 'mobile' || device === 'tablet';
+      const isUsingMobile = device === 'mobile';
+      const isUsingTablet = device === 'tablet';
       cy.viewport(width, height);
       cy.startAppInstance(appFrontend.apps.navigationTest);
       cy.waitForLoad();
 
-      isUsingDialog && cy.showNavGroups();
-      cy.gotoNavGroup('Utfylling', 'Fornavn');
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
+      cy.gotoNavGroup('Utfylling', device, 'Fornavn');
       cy.findByRole('textbox', { name: /Fornavn/ }).type('Skrue');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('textbox', { name: /Etternavn/ }).type('McDuck');
@@ -237,13 +267,15 @@ describe('navigation', () => {
         .type('skrue.mcduck@digdir.no');
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Fornavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Etternavn').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Alder').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'Fødselsdag').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Utfylling', 'E-post').find(ICON_COMPLETE).should('be.visible');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
 
       cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
       cy.waitForLoad();
@@ -253,15 +285,17 @@ describe('navigation', () => {
       cy.findByRole('button', { name: 'Neste' }).clickAndGone();
       cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Registreringsnummer').find(ICON_COMPLETE).should('be.visible');
-      cy.gotoNavGroup('Registreringsnummer');
-      isUsingDialog && cy.showNavGroups();
+      cy.gotoNavGroup('Registreringsnummer', device);
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Informasjon').find(ICON_COMPLETE).should('be.visible');
       cy.openNavGroup('Informasjon');
       cy.navGroup('Informasjon', 'Merke').find(ICON_COMPLETE).should('be.visible');
       cy.navGroup('Informasjon', 'Årsmodell').find(ICON_COMPLETE).should('be.visible');
-      cy.gotoNavGroup('Informasjon', 'Årsmodell');
+      cy.gotoNavGroup('Informasjon', device, 'Årsmodell');
       cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
       cy.waitForLoad();
 
@@ -291,7 +325,8 @@ describe('navigation', () => {
           cy.get('td').eq(2).should('have.text', '2010');
         });
 
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.openNavGroup('Utfylling', 'Kjøretøy', /Biler/);
       cy.navGroup('Utfylling', 'Kjøretøy', /Biler/)
         .parent()
@@ -300,8 +335,9 @@ describe('navigation', () => {
           cy.findByRole('button', { name: 'En fet Lamborghini fra 2010', container }).should('be.visible');
         });
 
-      cy.gotoNavGroup(/Informasjon/, 'Generell info');
-      isUsingDialog && cy.showNavGroups();
+      cy.gotoNavGroup(/Informasjon/, device, 'Generell info');
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.openNavGroup('Utfylling', 'Kjøretøy', /Biler/);
 
       cy.readFile('test/percy.css').then((percyCSS) => {
@@ -317,10 +353,12 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'XY98765');
       cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+      cy.waitForLoad();
       cy.url().should('not.include', '?focusComponentId=subform&exitSubform=true');
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
-      cy.gotoNavGroup('Innsending', 'Oppsummering');
+      cy.gotoNavGroup('Innsending', device, 'Oppsummering');
 
       cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
       cy.findByRole('heading', { name: 'En fet Lamborghini fra 2010' }).should('be.visible');
@@ -350,9 +388,11 @@ describe('navigation', () => {
       cy.findByTestId('summary-Summary-subform')
         .then((container) => cy.findByRole('button', { name: /Endre/, container }))
         .clickAndGone();
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
 
       cy.get('#subform-subform-table tbody tr')
@@ -363,10 +403,13 @@ describe('navigation', () => {
       cy.waitForLoad();
       cy.findByRole('textbox', { name: /Registreringsnummer/ }).should('have.value', 'AB12345');
       cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+      cy.waitForLoad();
       cy.url().should('not.include', '?focusComponentId=subform&exitSubform=true');
-      isUsingDialog && cy.showNavGroups();
+      isUsingMobile && cy.showNavGroupsMobile();
+      isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup('Utfylling', 'Kjøretøy').should('have.attr', 'aria-current', 'page');
-      isUsingDialog && cy.hideNavGroups();
+      isUsingMobile && cy.hideNavGroupsMobile();
+      isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
 
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
@@ -379,7 +422,7 @@ describe('navigation', () => {
   it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
     cy.startAppInstance(appFrontend.apps.navigationTest);
     cy.waitForLoad();
-    cy.gotoNavGroup('Utfylling', 'Fødselsdag');
+    cy.gotoNavGroup('Utfylling', 'desktop', 'Fødselsdag');
     // Typing invalid data into the date-picker and immediately clicking next
     // causes us to first wait for saving, then when the validation fails
     // the error report causes the next-button to unmount before

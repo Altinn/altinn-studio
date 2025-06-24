@@ -70,7 +70,8 @@ const InnerDownloadXMLButton = () => {
     }
   };
   return (
-    <Fieldset legend='Skjemadata'>
+    <Fieldset>
+      <Fieldset.Legend>Skejmadata</Fieldset.Legend>
       {writableDataTypes?.length > 1 && (
         <Combobox
           size='sm'

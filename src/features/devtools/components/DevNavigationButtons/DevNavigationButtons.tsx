@@ -71,26 +71,25 @@ const InnerDevNavigationButtons = () => {
   const compactView = allPages.length > 8;
 
   return (
-    <Fieldset legend='Navigasjon'>
+    <Fieldset
+      data-size='sm'
+      className={classes.chipGroup}
+    >
+      <Fieldset.Legend>Navigasjon</Fieldset.Legend>
       <div className={compactView ? classes.hidden : classes.responsiveButtons}>
-        <Chip.Group
-          size='small'
-          className={classes.chipGroup}
-        >
-          {orderedPages.map((page) => (
-            <Chip.Toggle
-              key={page}
-              className={isHidden(page) ? classes.hiddenPage : undefined}
-              title={hiddenText(page)}
-              // TODO(DevTools): Navigate to hidden pages is not working
-              disabled={isHidden(page)}
-              onClick={() => handleChange([page])}
-              selected={pageKey == page}
-            >
-              {page}
-            </Chip.Toggle>
-          ))}
-        </Chip.Group>
+        {orderedPages.map((page) => (
+          <Chip.Radio
+            key={page}
+            className={isHidden(page) ? classes.hiddenPage : undefined}
+            title={hiddenText(page)}
+            // TODO(DevTools): Navigate to hidden pages is not working
+            disabled={isHidden(page)}
+            onClick={() => handleChange([page])}
+            checked={pageKey == page}
+          >
+            {page}
+          </Chip.Radio>
+        ))}
       </div>
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Combobox

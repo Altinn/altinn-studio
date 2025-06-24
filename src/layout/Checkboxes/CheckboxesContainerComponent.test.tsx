@@ -216,7 +216,7 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')?.className).toContain('horizontal');
+    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', async () => {
@@ -229,7 +229,7 @@ describe('CheckboxesContainerComponent', () => {
       options: twoOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')?.className).toContain('horizontal');
+    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', async () => {
@@ -242,7 +242,7 @@ describe('CheckboxesContainerComponent', () => {
       options: twoOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')).not.toHaveClass('horizontal');
+    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
   });
 
   it('should show items in a columns when layout is not defined, and options count is 3', async () => {
@@ -253,7 +253,7 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    expect(screen.queryByTestId('checkboxes-fieldset')).not.toHaveClass('horizontal');
+    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
   });
 
   it('should present replaced label if using data model source and trigger setLeafValue with replaced values', async () => {
@@ -276,17 +276,19 @@ describe('CheckboxesContainerComponent', () => {
     expect(screen.getByText(/Description: The value from the group is: Label for first/)).toBeInTheDocument();
     expect(screen.getByText(/Description: The value from the group is: Label for second/)).toBeInTheDocument();
 
-    expect(screen.getByText(/Help Text: The value from the group is: Label for first/)).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole('button', { name: /Help Text: The value from the group is: Label for first/ }),
     );
-    expect(screen.getAllByText(/Help Text: The value from the group is: Label for first/)).toHaveLength(2);
+    expect(
+      screen.getByRole('button', { name: /Help Text: The value from the group is: Label for first/ }),
+    ).toHaveAttribute('aria-expanded', 'true');
 
-    expect(screen.getByText(/Help Text: The value from the group is: Label for second/)).toBeInTheDocument();
     await userEvent.click(
       screen.getByRole('button', { name: /Help Text: The value from the group is: Label for second/ }),
     );
-    expect(screen.getAllByText(/Help Text: The value from the group is: Label for second/)).toHaveLength(2);
+    expect(
+      screen.getByRole('button', { name: /Help Text: The value from the group is: Label for second/ }),
+    ).toHaveAttribute('aria-expanded', 'true');
 
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(getCheckbox({ name: /The value from the group is: Label for second/ }));

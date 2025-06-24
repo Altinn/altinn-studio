@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -18,11 +17,9 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
 interface RepeatingGroupPaginationProps {
   inTable?: boolean;
 }
-
 /**
  * Simple wrapper to prevent running any hooks unless pagination is actually going to be used
  * Specifically, usePagesWithErrors and useRowStructure would be doing unecessary work
@@ -30,14 +27,11 @@ interface RepeatingGroupPaginationProps {
 export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
   const { visibleRows } = useRepeatingGroupRowState();
   const { hasPagination, rowsPerPage } = useRepeatingGroupPagination();
-
   if (!hasPagination || visibleRows.length <= rowsPerPage) {
     return null;
   }
-
   return <RGPagination {...props} />;
 }
-
 function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const { changePage, node } = useRepeatingGroup();
   const { hasPagination, rowsPerPage, currentPage, totalPages } = useRepeatingGroupPagination();
@@ -46,28 +40,28 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const isMobile = useIsMobile();
   const isMini = useIsMini();
   const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings || {});
-
   const getScrollPosition = useCallback(
     () => document.querySelector(`[data-pagination-id="${node.id}"]`)?.getClientRects().item(0)?.y,
     [node],
   );
-
   /**
    * The last page can have fewer items than the other pages,
    * navigating to or from the last page will cause everything to move.
    * This resets the scroll position so that the buttons are in the same place.
    */
   const resetScrollPosition = useResetScrollPosition(getScrollPosition);
-
   // Should never be true, but leaving it for type inference
   if (!hasPagination) {
     return null;
   }
 
-  const onChange = async (pageNumber: number) => {
+  const onChange = async () => {
     const prevScrollPosition = getScrollPosition();
-    await changePage(pageNumber - 1);
     resetScrollPosition(prevScrollPosition);
+  };
+
+  const setCurrentPage = (pagenumber: number) => {
+    changePage(pagenumber - 1);
   };
 
   return (
@@ -89,49 +83,43 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
         currentPage={currentPage + 1}
         totalPages={totalPages}
         pagesWithErrors={pagesWithErrors}
-        onChange={onChange}
-        compact={isTablet}
+        onChange={() => onChange}
+        setCurrentPage={setCurrentPage}
         hideLabels={isMobile}
-        size={isMini ? 'small' : 'medium'}
+        size={isMini ? 'sm' : 'md'}
       />
     </ConditionalWrapper>
   );
 }
-
 type PaginationComponentProps = {
   nextTextKey: string;
   backTextKey: string;
-  size: NonNullable<Parameters<typeof Pagination>[0]['size']>;
-  compact: boolean;
+  size: NonNullable<Parameters<typeof Pagination>[0]['data-size']>;
   hideLabels: boolean;
   currentPage: number;
   totalPages: number;
   pagesWithErrors: number[];
+  setCurrentPage: (pageNumber: number) => void;
   onChange: Parameters<typeof Pagination>[0]['onChange'];
 } & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>;
-
-const iconSize = {
-  small: '1rem',
-  medium: '1.5rem',
-  large: '2rem',
-};
 
 function PaginationComponent({
   nextTextKey,
   backTextKey,
   size,
-  compact,
   hideLabels,
   currentPage,
   totalPages,
   pagesWithErrors,
+  setCurrentPage,
   onChange,
   ...rest
 }: PaginationComponentProps) {
-  const { pages, showNextPage, showPreviousPage } = usePagination({
-    compact,
+  const { pages, prevButtonProps, nextButtonProps, hasPrev, hasNext } = usePagination({
+    setCurrentPage,
     currentPage,
     totalPages,
+    onChange,
   });
   const { langAsString } = useLanguage();
 
@@ -139,71 +127,51 @@ function PaginationComponent({
   const previousLabel = langAsString(backTextKey);
 
   return (
-    <Pagination.Root
+    <Pagination
       aria-label='Pagination'
-      size={size}
-      compact={compact}
+      data-size={size}
       {...rest}
     >
-      <Pagination.Content>
+      <Pagination.List>
         <Pagination.Item>
-          <Pagination.Previous
-            className={!showPreviousPage ? classes.hidden : undefined}
-            onClick={() => {
-              onChange(currentPage - 1);
-            }}
+          <Pagination.Button
+            className={!hasPrev ? classes.hidden : undefined}
             aria-label={previousLabel}
+            {...prevButtonProps}
           >
-            <ChevronLeftIcon
-              aria-hidden
-              fontSize={iconSize[size]}
-            />
             {!hideLabels && previousLabel}
-          </Pagination.Previous>
+          </Pagination.Button>
         </Pagination.Item>
-        {pages.map((page, i) => {
+        {pages.map(({ page, buttonProps, itemKey }) => {
           const hasErrors = typeof page === 'number' && pagesWithErrors.includes(page - 1);
           const label = hasErrors
             ? `${langAsString('general.edit_alt_error')}: ${langAsString('general.page_number', [page])}`
             : langAsString('general.page_number', [page]);
 
           return (
-            <Pagination.Item key={`${page}${i}`}>
-              {page === 'ellipsis' ? (
-                <Pagination.Ellipsis />
-              ) : (
-                <Pagination.Button
-                  color={hasErrors ? 'danger' : 'first'}
-                  aria-current={currentPage === page}
-                  isActive={currentPage === page}
-                  aria-label={label}
-                  onClick={() => {
-                    onChange(page);
-                  }}
-                >
-                  {page}
-                </Pagination.Button>
-              )}
+            <Pagination.Item key={itemKey}>
+              <Pagination.Button
+                color={hasErrors ? 'danger' : 'accent'}
+                aria-current={currentPage === page}
+                aria-label={label}
+                {...buttonProps}
+              >
+                {page}
+              </Pagination.Button>
             </Pagination.Item>
           );
         })}
         <Pagination.Item>
-          <Pagination.Next
+          <Pagination.Button
             aria-label={nextLabel}
-            onClick={() => {
-              onChange(currentPage + 1);
-            }}
-            className={!showNextPage ? classes.hidden : undefined}
+            className={!hasNext ? classes.hidden : undefined}
+            {...nextButtonProps}
           >
             {!hideLabels && nextLabel}
-            <ChevronRightIcon
-              aria-hidden
-              fontSize={iconSize[size]}
-            />
-          </Pagination.Next>
+          </Pagination.Button>
         </Pagination.Item>
-      </Pagination.Content>
-    </Pagination.Root>
+      </Pagination.List>
+    </Pagination>
   );
 }
 

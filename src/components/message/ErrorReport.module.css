@@ -1,5 +1,5 @@
-.errorReport {
-  width: 100%;
+.errorSummary {
+  padding: var(--ds-size-4) var(--modal-padding-x);
 }
 
 .errorList {
@@ -8,12 +8,10 @@
   padding: 0;
 }
 
-.errorList li {
-  margin-bottom: 8px;
-}
 .errorList span {
   font-size: 1rem;
 }
+
 .errorList button {
   text-align: left;
   border-bottom: 2px solid transparent;

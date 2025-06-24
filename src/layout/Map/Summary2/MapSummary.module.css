@@ -7,7 +7,7 @@
 .summaryItemWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
   break-inside: avoid;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .error {
-  border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
 }
 
 .editButton {

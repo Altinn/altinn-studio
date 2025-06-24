@@ -34,11 +34,11 @@ describe('HelpText', () => {
     render();
     const helpTextTrigger = screen.getByRole('button');
 
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'false');
     await act(async () => {
       await user.click(helpTextTrigger);
     });
-    expect(screen.queryByText('Help')).toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('should close HelpText on trigger-click when open', async () => {
@@ -48,23 +48,23 @@ describe('HelpText', () => {
     await act(async () => {
       await user.click(helpTextTrigger);
     });
-    expect(screen.queryByText('Help')).toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'true');
     await act(async () => {
       await user.click(helpTextTrigger);
     });
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should open HelpText on SPACE pressed when closed', async () => {
     render();
     const helpTextTrigger = screen.getByRole('button');
 
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'false');
     helpTextTrigger.focus();
     await act(async () => {
       await user.keyboard('[Space]');
     });
-    expect(screen.queryByText('Help')).toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('should close HelpText on ESC pressed when open', async () => {
@@ -75,11 +75,11 @@ describe('HelpText', () => {
     await act(async () => {
       await user.click(helpTextTrigger);
     });
-    expect(screen.queryByText('Help')).toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'true');
     await act(async () => {
       await user.keyboard('[Escape]');
     });
-    expect(screen.queryByText('Help')).not.toBeInTheDocument();
+    expect(helpTextTrigger).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should have `aria-expanded` set to `false` when closed', () => {

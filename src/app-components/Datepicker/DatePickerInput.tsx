@@ -57,6 +57,7 @@ function DatePickerInputRef(
       getInputRef={ref}
       format={getFormatAsPatternFormat(datepickerFormat)}
       customInput={Textfield}
+      data-size='sm'
       mask='_'
       className={styles.calendarInput}
       type='text'

@@ -1,8 +1,8 @@
 .description {
   word-break: break-word;
-  line-height: var(--fds-sizing-6);
+  line-height: var(--ds-size-6);
   color: var(--semantic-text-neutral-subtle);
   display: inline-block;
   font-weight: normal;
-  font-size: var(--fds-sizing-4);
+  font-size: var(--ds-size-4);
 }

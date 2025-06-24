@@ -28,7 +28,7 @@
 
 .separator {
   margin: 36px 0;
-  background-color: var(--fds-semantic-surface-neutral-dark);
+  background-color: var(----ds-color-neutral-base-default);
   height: 1px;
   width: 100%;
 }

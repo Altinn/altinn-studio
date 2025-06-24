@@ -23,16 +23,16 @@ const PaymentInfoTableRow = ({ labelId, value }: PaymentInfoTableRowProps) => (
   <tr>
     <th>
       <Paragraph
-        size='small'
-        spacing={false}
+        data-size='sm'
+        data-spacing={false}
       >
         <Lang id={labelId} />
       </Paragraph>
     </th>
     <td>
       <Label
-        size='small'
-        spacing={false}
+        data-size='sm'
+        data-spacing={false}
         asChild
       >
         <span>{value}</span>
@@ -138,32 +138,32 @@ export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDeta
       <div className={classes.infoDetailsContainer}>
         {paymentInfo?.paymentDetails?.paymentId && (
           <Paragraph
-            size='small'
-            spacing={false}
+            data-size='sm'
+            data-spacing={false}
           >
             <Lang id='payment.receipt.payment_id' />: <b>{paymentInfo.paymentDetails.paymentId}</b>
           </Paragraph>
         )}
         {instanceId && (
           <Paragraph
-            size='small'
-            spacing={false}
+            data-size='sm'
+            data-spacing={false}
           >
             <Lang id='payment.receipt.altinn_ref' />: <b>{getInstanceReferenceNumber(instanceId)}</b>
           </Paragraph>
         )}
         {paymentInfo?.paymentDetails?.chargedDate && (
           <Paragraph
-            size='small'
-            spacing={false}
+            data-size='sm'
+            data-spacing={false}
           >
             <Lang id='payment.receipt.payment_date' />:{' '}
             <b>{formatDateLocale(selectedLanguage, new Date(paymentInfo?.paymentDetails?.chargedDate))}</b>
           </Paragraph>
         )}
         <Paragraph
-          size='small'
-          spacing={false}
+          data-size='sm'
+          data-spacing={false}
         >
           <Lang id='payment.receipt.total_amount' />:{' '}
           <b>

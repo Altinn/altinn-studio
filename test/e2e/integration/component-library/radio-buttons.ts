@@ -11,7 +11,7 @@ describe('RadioButtons component', () => {
     cy.contains('label', testText).click();
     cy.get('[data-testid="summary-single-value-component"]')
       .eq(0)
-      .find('span.fds-paragraph')
+      .find('span.ds-paragraph')
       .should('have.text', testText);
   });
 });

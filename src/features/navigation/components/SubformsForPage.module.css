@@ -7,7 +7,7 @@
   font-family: var(--font-family);
   font-size: 16px;
   font-weight: normal;
-  color: var(--fds-colors-grey-700);
+  color: var(--ds-color-neutral-text-subtle);
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -17,7 +17,7 @@
   align-items: start;
   text-align: left;
 
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   overflow-wrap: anywhere;
   padding: 2px 6px;
   margin: -2px -6px -2px -2px;
@@ -33,7 +33,7 @@
 .subform-expand-chevron {
   margin-top: 1px;
   margin-right: -4px; /* The icon has some internal padding, this makes the edge line up better */
-  color: var(--fds-colors-grey-700);
+  color: var(--ds-color-neutral-text-subtle);
   font-size: 16px;
 }
 
@@ -59,13 +59,13 @@
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: normal;
-  color: var(--fds-colors-blue-700);
+  color: var(--ds-color-accent-text-subtle);
   background-color: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
 
-  border-radius: var(--fds-border_radius-interactive);
+  border-radius: var(--ds-border-radius-md);
   overflow-wrap: anywhere;
   padding: 2px 6px;
   margin: -2px -6px -2px -2px;

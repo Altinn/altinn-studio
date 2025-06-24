@@ -32,9 +32,9 @@ export function BackNavigationButton(props: Parameters<typeof Button>[0]) {
   if (isFetchingReturnUrl) {
     return (
       <Spinner
-        size='sm'
+        data-size='sm'
         className={classes.spinner}
-        title={langAsString('general.loading')}
+        aria-label={langAsString('general.loading')}
       />
     );
   }

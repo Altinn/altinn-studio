@@ -12,7 +12,7 @@ import type { IGridStyling } from 'src/layout/common.generated';
 export type FieldsetProps = {
   id?: string;
   legend: string | ReactElement | undefined;
-  legendSize?: Extract<DesignsystemetLabelProps['size'], 'sm' | 'md' | 'lg' | 'xl'>;
+  legendSize?: Extract<DesignsystemetLabelProps['data-size'], 'sm' | 'md' | 'lg' | 'xl'>;
   className?: string;
   grid?: IGridStyling;
   optionalIndicator?: ReactElement;
@@ -21,7 +21,7 @@ export type FieldsetProps = {
   required?: boolean;
   requiredIndicator?: JSX.Element;
   style?: DesignsystemetLabelProps['style'];
-  size?: Extract<DesignsystemetLabelProps['size'], 'sm' | 'md' | 'lg' | 'xl'>;
+  size?: Extract<DesignsystemetLabelProps['data-size'], 'sm' | 'md' | 'lg' | 'xl'>;
 };
 
 export function Fieldset({
@@ -69,12 +69,13 @@ export function Fieldset({
       >
         <DesignsystemetFieldset
           className={cn(className)}
-          size={size}
-          legend={
+          data-size={size}
+        >
+          <DesignsystemetFieldset.Legend className={labelClasses.legend}>
             <span className={cn(labelClasses.labelAndHelpWrapper)}>
               <DesignsystemetLabel
                 weight='medium'
-                size={legendSize}
+                data-size={legendSize}
                 style={style}
                 asChild
               >
@@ -86,10 +87,8 @@ export function Fieldset({
               </DesignsystemetLabel>
               {help}
             </span>
-          }
-          // FIXME: find a way to use classnames for setting font size. Not working currently
-          description={description}
-        >
+          </DesignsystemetFieldset.Legend>
+          <DesignsystemetFieldset.Description>{description}</DesignsystemetFieldset.Description>
           {children}
         </DesignsystemetFieldset>
       </Flex>

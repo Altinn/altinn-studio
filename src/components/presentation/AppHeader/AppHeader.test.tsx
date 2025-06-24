@@ -77,7 +77,7 @@ describe('presentation/AppHeader', () => {
       ),
     );
     expect(
-      screen.getByRole('menuitem', {
+      screen.getByRole('link', {
         name: /logg ut/i,
         hidden: true,
       }),

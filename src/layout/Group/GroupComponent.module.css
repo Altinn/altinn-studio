@@ -1,16 +1,16 @@
 .groupWrapper {
-  padding-top: var(--fds-spacing-3);
-  padding-bottom: var(--fds-spacing-9);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-9);
   width: 100%;
 
   .legend,
   .description {
-    padding: 0 var(--fds-spacing-3);
+    padding: 0 var(--ds-size-3);
   }
 }
 
 .panelWrapper {
-  padding: var(--fds-spacing-3);
+  padding: var(--ds-size-3);
   padding-bottom: 0;
   width: 100%;
 
@@ -24,22 +24,22 @@
   flex-wrap: wrap;
 
   > * {
-    padding: var(--fds-spacing-3);
+    padding: var(--ds-size-3);
   }
 }
 
 .indented {
   border-left: 2px solid #949494;
-  padding: var(--fds-spacing-3);
+  padding: var(--ds-size-3);
   padding-right: 0;
-  margin-left: var(--fds-spacing-3);
+  margin-left: var(--ds-size-3);
 }
 
 .summary {
   width: 100%;
 
   .groupContainer > * {
-    padding: var(--fds-spacing-3) 0;
+    padding: var(--ds-size-3) 0;
   }
 
   .legend,

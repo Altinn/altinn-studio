@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { DropdownMenu } from '@digdir/designsystemet-react';
+import { Dropdown } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -33,13 +33,9 @@ export const LanguageSelector = () => {
   }
 
   return (
-    <DropdownMenu
-      size='sm'
-      open={isOpen}
-      onClose={() => setIsOpen(false)}
-    >
-      <DropdownMenu.Trigger
-        size='sm'
+    <Dropdown.TriggerContext>
+      <Dropdown.Trigger
+        data-size='sm'
         variant='tertiary'
         onClick={() => setIsOpen((o) => !o)}
         aria-label={langAsString('language.language_selection')}
@@ -54,30 +50,41 @@ export const LanguageSelector = () => {
           className={cn(classes.icon, { [classes.flipVertical]: isOpen })}
           aria-hidden
         />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content role='menu'>
-        <DropdownMenu.Group heading={isMobile ? <Lang id='language.language_selection' /> : undefined}>
+      </Dropdown.Trigger>
+      <Dropdown
+        role='menu'
+        data-size='sm'
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+      >
+        {isMobile && (
+          <Dropdown.Heading>
+            <Lang id='language.language_selection' />
+          </Dropdown.Heading>
+        )}
+        <Dropdown.List>
           {appLanguages?.map((lang) => {
             const selected = currentLanguage === lang;
 
             return (
-              <DropdownMenu.Item
-                role='menuitemradio'
-                aria-checked={selected}
-                key={lang}
-                onClick={() => updateLanguage(lang)}
-              >
-                <CheckmarkIcon
-                  style={{ opacity: selected ? 1 : 0 }}
-                  className={cn(classes.icon, classes.checkmark)}
-                  aria-hidden
-                />
-                <Lang id={`language.full_name.${lang}`} />
-              </DropdownMenu.Item>
+              <Dropdown.Item key={lang}>
+                <Dropdown.Button
+                  onClick={() => updateLanguage(lang)}
+                  aria-checked={selected}
+                  role='menuitemradio'
+                >
+                  <CheckmarkIcon
+                    style={{ opacity: selected ? 1 : 0 }}
+                    className={cn(classes.icon, classes.checkmark)}
+                    aria-hidden
+                  />
+                  <Lang id={`language.full_name.${lang}`} />
+                </Dropdown.Button>
+              </Dropdown.Item>
             );
           })}
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+        </Dropdown.List>
+      </Dropdown>
+    </Dropdown.TriggerContext>
   );
 };

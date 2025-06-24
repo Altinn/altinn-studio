@@ -102,7 +102,7 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(213, 32, 59)');
         cy.wrap(summaryDate).contains(common.altinnFlex, texts.requiredFieldDateFrom).should('be.visible');
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
-        cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+        cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
         cy.get('button[aria-label*="Today"]').click();
         cy.get(appFrontend.errorReport).should('not.exist');
         cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
@@ -217,9 +217,9 @@ describe('Summary', () => {
     groupElements().eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
 
     cy.gotoNavPage('prefill');
-    cy.get(appFrontend.group.prefill.liten).check();
-    cy.get(appFrontend.group.prefill.middels).check();
-    cy.get(appFrontend.group.prefill.svaer).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.svaer }).check();
     cy.gotoNavPage('summary');
 
     function assertSummaryItem(groupRow: number, items: { [key: string]: boolean }) {
@@ -337,7 +337,7 @@ describe('Summary', () => {
     });
     cy.goto('group');
 
-    cy.get(appFrontend.group.prefill['liten']).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     // Add data

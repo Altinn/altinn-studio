@@ -23,7 +23,7 @@ export type AlertBaseComponentProps = {
 export const AlertBaseComponent = ({ title, children, useAsAlert, severity, ariaLabel }: AlertBaseComponentProps) => (
   <AlertDesignSystem
     className={styles.container}
-    severity={severity}
+    data-color={severity}
     role={useAsAlert ? 'alert' : undefined}
     aria-live={useAsAlert ? calculateAriaLive(severity) : undefined}
     aria-label={useAsAlert ? (ariaLabel ?? title) : undefined}

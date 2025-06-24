@@ -8,21 +8,7 @@
   font-weight: normal;
   line-height: 1.5;
   text-align: left;
-  color: var(--fds-semantic-text-neutral-default);
-}
-
-/* Workaround for the design-system aggressively setting the font to 'Inter' */
-[class^='fds-'] {
-  font-family: var(--font-family);
-}
-
-/* Override design system variables */
-* {
-  --component-panel-font_size-header-breakpoint_sm: 1.4rem;
-  --component-panel-font_size-header-breakpoint_md: 1.6rem;
-  --component-panel-font_size-header-breakpoint_lg: 1.75rem;
-  --component-panel-font_size-body-breakpoint_md: 1rem;
-  --component-panel-font_weight-heading: 500;
+  color: var(--ds-color-neutral-text-default);
 }
 
 /* Global variables */
@@ -54,14 +40,9 @@
   --table-input-margin: 15px; /* From design-system, move to figma-tokens? */
 
   --repeating-group-edit-surface-color: #f1fbff;
-  --repeating-group-edit-border-color: var(--fds-colors-blue-400);
-  --repeating-group-edit-divider-color: var(--fds-colors-blue-200);
-  --repeating-group-error-color: var(--fds-colors-red-200);
-
-  /* Focus styles */
-  --fds-inner-focus-border-color: #1e2b3c;
-  --fds-outer-focus-border-color: #fadf4b;
-  --fds-focus-border-width: 3px;
+  --repeating-group-edit-border-color: var(--ds-color-accent-border-default);
+  --repeating-group-edit-divider-color: var(--ds-color-accent-border-subtle);
+  --repeating-group-error-color: var(--ds-color-danger-surface-tinted);
 
   /*Border styles*/
   --border-color-primary: var(--colors-primary-blueMedium);
@@ -73,16 +54,16 @@
   --button-gap: 0.75rem;
 
   /* Toast styles */
-  --toastify-color-info: var(--fds-semantic-surface-action-primary-default);
-  --toastify-color-success: var(--fds-semantic-surface-success-default);
-  --toastify-color-warning: var(--fds-semantic-surface-warning-default);
-  --toastify-color-error: var(--fds-semantic-surface-danger-default);
+  --toastify-color-info: var(--ds-color-accent-base-default);
+  --toastify-color-success: var(--ds-color-success-base-default);
+  --toastify-color-warning: var(--ds-color-warning-surface-default);
+  --toastify-color-error: var(--ds-color-danger-base-default);
   --toastify-toast-width: 400px;
 }
 
 .Toastify__toast {
   line-height: 1.5rem;
-  padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-4) var(--fds-spacing-3);
+  padding: var(--ds-size-3) var(--ds-size-3) var(--ds-size-4) var(--ds-size-3);
 }
 
 /* Custom CSS for all app */
@@ -154,10 +135,7 @@ dl {
 }
 
 /* Workaround: The above style affects DropdownMenu from the design system */
-ul.fds-dropdownmenu {
-  padding: 8px;
-}
-ul.fds-dropdownmenu__section {
+.ds-dropdown ul {
   padding: 0;
 }
 

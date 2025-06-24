@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox } from '@digdir/designsystemet-react';
+import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -25,12 +25,10 @@ export const PermissionsEditor = () => {
   }
 
   return (
-    <Checkbox.Group
-      legend='Policy'
-      className={classes.checkboxWrapper}
-    >
+    <Fieldset className={classes.checkboxWrapper}>
+      <Fieldset.Legend>Policy</Fieldset.Legend>
       <Checkbox
-        size='small'
+        data-size='sm'
         checked={Boolean(write)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -39,11 +37,10 @@ export const PermissionsEditor = () => {
           })
         }
         value='nothing'
-      >
-        Write
-      </Checkbox>
+        label='Write'
+      />
       <Checkbox
-        size='small'
+        data-size='sm'
         checked={Boolean(actions?.confirm)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -52,11 +49,10 @@ export const PermissionsEditor = () => {
           })
         }
         value='nothing'
-      >
-        Confirm
-      </Checkbox>
+        label='Confirm'
+      />
       <Checkbox
-        size='small'
+        data-size='sm'
         checked={Boolean(actions?.sign)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -65,11 +61,10 @@ export const PermissionsEditor = () => {
           })
         }
         value='nothing'
-      >
-        Sign
-      </Checkbox>
+        label='Sign'
+      />
       <Checkbox
-        size='small'
+        data-size='sm'
         checked={Boolean(actions?.reject)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -78,9 +73,8 @@ export const PermissionsEditor = () => {
           })
         }
         value='nothing'
-      >
-        Reject
-      </Checkbox>
-    </Checkbox.Group>
+        label='Reject'
+      />
+    </Fieldset>
   );
 };

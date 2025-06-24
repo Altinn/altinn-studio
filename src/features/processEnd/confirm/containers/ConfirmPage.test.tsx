@@ -100,7 +100,7 @@ describe('ConfirmPage', () => {
     expect(screen.getByRole('button', { name: submitBtnText })).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText(loadingText)).toBeInTheDocument();
+      expect(screen.getByLabelText(loadingText)).toBeInTheDocument();
     });
   });
 });

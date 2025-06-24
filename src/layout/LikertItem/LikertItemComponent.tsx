@@ -59,7 +59,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
       >
         <Label
           asChild
-          size='sm'
+          data-size='sm'
           weight='regular'
         >
           <span>
@@ -87,15 +87,16 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
               [classes.likertCellDividerBoth]: divider === 'both',
             })}
           >
-            <Radio
-              checked={isChecked}
-              readOnly={readOnly}
-              onChange={handleChange}
-              value={option.value}
-              className={classes.likertRadioButton}
-              name={rowLabelId}
-              aria-labelledby={labelledby}
-            />
+            <div className={classes.likertRadioButton}>
+              <Radio
+                checked={isChecked}
+                readOnly={readOnly}
+                onChange={handleChange}
+                value={option.value}
+                name={rowLabelId}
+                aria-labelledby={labelledby}
+              />
+            </div>
           </Table.Cell>
         );
       })}

@@ -1,8 +1,8 @@
 /*
  * Workaround to make the combobox shrink on narrow screens
  */
-.container [class*='fds-combobox__input__wrapper'],
-.container [class*='fds-combobox__chip-and-input'],
+.container [class*='ds-combobox__input__wrapper'],
+.container [class*='ds-combobox__chip-and-input'],
 .container input {
   min-width: 0;
 }

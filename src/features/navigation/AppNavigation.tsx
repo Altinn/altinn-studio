@@ -90,7 +90,7 @@ export const appNavigationHeadingId = 'app-navigation-heading';
 export function AppNavigationHeading({
   showClose,
   onClose,
-}: { showClose?: undefined; onClose?: undefined } | { showClose: true; onClose: () => void }) {
+}: { showClose?: undefined; onClose?: undefined } | { showClose: boolean; onClose: () => void }) {
   const { langAsString } = useLanguage();
   return (
     <div
@@ -100,7 +100,7 @@ export function AppNavigationHeading({
       <Heading
         id='app-navigation-heading'
         level={3}
-        size='xs'
+        data-size='xs'
       >
         <Lang id='navigation.form_pages' />
       </Heading>
@@ -109,9 +109,10 @@ export function AppNavigationHeading({
           variant='tertiary'
           color='second'
           size='sm'
-          icon={true}
+          icon
           onClick={onClose}
           aria-label={langAsString('general.close')}
+          className={classes.closeButton}
         >
           <XMarkIcon aria-hidden />
         </Button>

@@ -31,7 +31,7 @@ const TestComplexAsString = () => {
     '<strong>hello world</strong>',
     <span key={0}>
       <Lang
-        id='input_components.character_limit_sr_label'
+        id='form_filler.error_required'
         params={[
           <div key={0}>
             {'et hundre og '}
@@ -43,7 +43,7 @@ const TestComplexAsString = () => {
     </span>,
   ];
 
-  const langId = 'input_components.remaining_characters';
+  const langId = 'general.progress';
 
   return (
     <>
@@ -99,7 +99,7 @@ describe('useLanguage', () => {
       renderer: () => <TestComplexAsString />,
     });
 
-    const expected = 'Du har hello world av Tekstfeltet kan inneholde maks et hundre og Hjelp tegn tegn igjen';
+    const expected = 'Side hello world av Du må fylle ut et hundre og Hjelp';
 
     expect(screen.getByTestId('subject1')).toHaveTextContent(expected);
     expect(screen.getByTestId('subject2')).toHaveTextContent(expected);
@@ -131,17 +131,23 @@ describe('useLanguage', () => {
 
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(
+      /<h1 class="[a-z0-9- ]*" data-size="[a-z]{2}">This is my message<\/h1>/,
+    );
 
     rerender(<TestSimple input='simpleHtml' />);
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(
+      /<h1 class="[a-z0-9- ]*" data-size="[a-z]{2}">This is my message<\/h1>/,
+    );
 
     rerender(<TestSimple input='simpleMarkdown' />);
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(
+      /<h1 class="[a-z0-9- ]*" data-size="[a-z]{2}">This is my message<\/h1>/,
+    );
   });
 
   it('langAsString() should work with complex lookups and arrays', async () => {

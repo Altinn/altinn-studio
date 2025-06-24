@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ChangeEvent } from 'react';
 
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { RadioButton } from 'src/components/form/RadioButton';
@@ -57,9 +57,9 @@ export const OnBehalfOfChooser = ({
         />
       ))}
       {error && (
-        <ErrorMessage size='small'>
+        <ValidationMessage data-size='sm'>
           <Lang id='signing.error_signing_no_on_behalf_of' />
-        </ErrorMessage>
+        </ValidationMessage>
       )}
     </Fieldset>
   );

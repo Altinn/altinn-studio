@@ -104,11 +104,12 @@ describe('HeaderComponent', () => {
     });
 
     const helpButton = screen.getByRole('button', { name: /Hjelp/i });
-    expect(screen.queryByText(helpText)).not.toBeInTheDocument();
+    expect(helpButton).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(helpButton);
     expect(screen.getByText(helpText)).toBeInTheDocument();
+    expect(helpButton).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(helpButton);
 
-    expect(screen.queryByText(helpText)).not.toBeInTheDocument();
+    expect(helpButton).toHaveAttribute('aria-expanded', 'false');
   });
 });

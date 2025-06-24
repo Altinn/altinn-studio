@@ -7,10 +7,11 @@ export const groupCheckboxMultiSelectListAndVerify = (checkboxText = '', multiSe
   cy.gotoNavPage('Flervalg');
   const multiselect = '#form-content-MultipleSelectPage-Checkboxes2';
   const repGroup = '[data-componentid=MultipleSelectPage-RepeatingGroup]';
-  const multiselectList = 'div[role="listbox"]';
+  const multiselectList = 'u-datalist[role="listbox"]';
   cy.get(multiselect).click();
   cy.get(multiselectList).contains('span', multiSelectText).click();
   cy.get(multiselect).contains('span', multiSelectText).should('exist');
+  cy.findByRole('button', { name: new RegExp(`${multiSelectText}, Press to remove, 1 of 1`) }).should('exist');
   cy.get(repGroup).click({ force: true });
 
   cy.gotoNavPage('Liste (tabell)');

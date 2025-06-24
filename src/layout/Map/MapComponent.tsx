@@ -59,7 +59,7 @@ export function MapComponent({ node }: IMapComponentProps) {
         />
       </div>
       <Paragraph
-        size='sm'
+        data-size='sm'
         className={classes.footer}
       >
         {markerBinding ? (

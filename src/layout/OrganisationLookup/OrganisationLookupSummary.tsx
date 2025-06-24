@@ -43,7 +43,7 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
     >
       <div className={classes.organisationSummaryWrapper}>
         <Heading
-          size='sm'
+          data-size='sm'
           level={2}
         >
           <Lang id={title} />

@@ -1,8 +1,8 @@
 .infoContainer {
   display: flex;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-3);
   flex-direction: row;
-  padding: var(--fds-spacing-3) 0;
+  padding: var(--ds-size-3) 0;
 }
 
 .infoDetailsContainer {
@@ -13,7 +13,7 @@
 .senderReceiverInfoContainer {
   display: flex;
   width: 100%;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 
   table {
     width: 100%;
@@ -27,5 +27,5 @@
 .paymentSummaryContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }

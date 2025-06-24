@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Link, List } from '@digdir/designsystemet-react';
+import { Heading, Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
@@ -33,12 +33,22 @@ export function AltinnAttachments({
     .sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name, selectedLanguage, { numeric: true }) : 0));
 
   return (
-    <List.Root
+    <div
       id={id}
       data-testid='attachment-list'
     >
-      {title && <List.Heading>{title}</List.Heading>}
-      <List.Unordered className={classes.attachmentList}>
+      {title && (
+        <Heading
+          level={2}
+          data-size='xs'
+        >
+          {title}
+        </Heading>
+      )}
+      <List.Unordered
+        className={classes.attachmentList}
+        data-size='sm'
+      >
         {filteredAndSortedAttachments?.map((attachment, index) => (
           <Attachment
             key={index}
@@ -48,7 +58,7 @@ export function AltinnAttachments({
           />
         ))}
       </List.Unordered>
-    </List.Root>
+    </div>
   );
 }
 

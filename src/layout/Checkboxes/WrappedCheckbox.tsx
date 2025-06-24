@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { CheckboxProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
@@ -12,16 +13,18 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-interface IWrappedCheckboxProps {
+type IWrappedCheckboxProps = {
   id: string;
   option: IOptionInternal;
   hideLabel?: boolean;
   alertOnChange?: boolean;
-  checked: boolean;
   setChecked: (checked: boolean) => void;
-}
+} & Omit<CheckboxProps, 'label' | 'aria-label' | 'aria-labelledby'>;
 
-export function WrappedCheckbox({ id, option, hideLabel, alertOnChange, checked, setChecked }: IWrappedCheckboxProps) {
+export const WrappedCheckbox = forwardRef<HTMLInputElement, IWrappedCheckboxProps>(function WrappedCheckbox(
+  { id, option, hideLabel, alertOnChange, checked, setChecked, readOnly, ...rest }: IWrappedCheckboxProps,
+  ref,
+) {
   const { langAsString, elementAsString } = useLanguage();
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
@@ -50,25 +53,28 @@ export function WrappedCheckbox({ id, option, hideLabel, alertOnChange, checked,
     >
       <Checkbox
         id={`${id}-${option.label.replace(/\s/g, '-')}`}
-        name={option.value}
         description={option.description && <Lang id={option.description} />}
         value={option.value}
+        readOnly={readOnly}
+        label={
+          <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
+            {langAsString(option.label)}
+            {option.helpText && (
+              <HelpText
+                id={id}
+                title={elementAsString(option.helpText)}
+              >
+                <Lang id={option.helpText} />
+              </HelpText>
+            )}
+          </span>
+        }
+        {...rest}
         checked={checked}
-        size='small'
+        data-size='sm'
         onChange={(e) => handleChange(e.target.checked)}
-      >
-        <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
-          {langAsString(option.label)}
-          {option.helpText && (
-            <HelpText
-              id={id}
-              title={elementAsString(option.helpText)}
-            >
-              <Lang id={option.helpText} />
-            </HelpText>
-          )}
-        </span>
-      </Checkbox>
+        ref={ref}
+      />
     </ConditionalWrapper>
   );
-}
+});

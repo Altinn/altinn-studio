@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Checkbox } from '@digdir/designsystemet-react';
-import cn from 'classnames';
+import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
 
+import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
@@ -61,6 +61,13 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxC
     }
   };
 
+  const { getCheckboxProps } = useCheckboxGroup({
+    name: id,
+    readOnly,
+    value: selectedValues,
+    error: !isValid,
+  });
+
   const labelTextGroup = (
     <LabelContent
       componentId={id}
@@ -81,28 +88,44 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxC
           id={id}
           key={`checkboxes_group_${id}`}
         >
-          <Checkbox.Group
-            className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
-            legend={labelTextGroup}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-            readOnly={readOnly}
-            hideLegend={overrideDisplay?.renderLegend === false}
-            error={!isValid}
+          <Fieldset
+            className={classes.checkboxGroup}
             aria-label={ariaLabel}
-            data-testid='checkboxes-fieldset'
           >
-            {calculatedOptions.map((option) => (
-              <WrappedCheckbox
-                key={option.value}
-                id={id}
-                option={option}
-                hideLabel={hideLabel}
-                alertOnChange={alertOnChange}
-                checked={selectedValues.includes(option.value)}
-                setChecked={(isChecked) => setChecked(isChecked, option)}
-              />
-            ))}
-          </Checkbox.Group>
+            {overrideDisplay?.renderLegend !== false && (
+              <Fieldset.Legend className={classes.legend}>{labelTextGroup}</Fieldset.Legend>
+            )}
+            {textResourceBindings?.description && (
+              <Fieldset.Description>
+                <Lang id={textResourceBindings?.description} />
+              </Fieldset.Description>
+            )}
+            <ConditionalWrapper
+              condition={horizontal}
+              wrapper={(children) => (
+                <div
+                  data-testid='horizontalWrapper'
+                  className={classes.horizontal}
+                >
+                  {children}
+                </div>
+              )}
+            >
+              {calculatedOptions.map((option) => (
+                <WrappedCheckbox
+                  // Force remount to ensure checkbox reflects correct checked state
+                  key={`checkbox-${option.value}-${selectedValues.includes(option.value)}`}
+                  id={id}
+                  option={option}
+                  hideLabel={hideLabel}
+                  alertOnChange={alertOnChange}
+                  {...getCheckboxProps(option.value)}
+                  checked={selectedValues.includes(option.value)}
+                  setChecked={(isChecked) => setChecked(isChecked, option)}
+                />
+              ))}
+            </ConditionalWrapper>
+          </Fieldset>
         </div>
       )}
     </ComponentStructureWrapper>

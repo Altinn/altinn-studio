@@ -37,12 +37,12 @@ export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>)
         />
         <div className={classes.alertContainer}>
           {(paymentInfo?.status === PaymentStatus.Failed || paymentError) && (
-            <Alert severity='warning'>
+            <Alert data-color='warning'>
               <Lang id='payment.alert.failed' />
             </Alert>
           )}
           {paymentInfo?.status === PaymentStatus.Paid && (
-            <Alert severity='info'>
+            <Alert data-color='info'>
               <Lang id='payment.alert.paid' />
             </Alert>
           )}

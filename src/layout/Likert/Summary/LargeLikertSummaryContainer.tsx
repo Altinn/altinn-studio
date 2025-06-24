@@ -19,12 +19,12 @@ export interface IDisplayLikertContainer {
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
-const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size'] } = {
-  [2]: 'medium',
-  [3]: 'small',
-  [4]: 'xsmall',
-  [5]: 'xsmall',
-  [6]: 'xsmall',
+const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-size'] } = {
+  [2]: 'md',
+  [3]: 'sm',
+  [4]: 'xs',
+  [5]: 'xs',
+  [6]: 'xs',
 };
 
 export function LargeLikertSummaryContainer({
@@ -54,7 +54,7 @@ export function LargeLikertSummaryContainer({
         legend && (
           <Heading
             level={headingLevel}
-            size={headingSize}
+            data-size={headingSize}
           >
             <Lang id={legend} />
           </Heading>

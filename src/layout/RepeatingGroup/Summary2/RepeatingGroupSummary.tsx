@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
-import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
+import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -81,7 +80,7 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
         data-testid='summary-repeating-group-component'
       >
         <Heading
-          size='xs'
+          data-size='xs'
           level={4}
         >
           <Lang id={title} />
@@ -117,16 +116,15 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
           })}
         </div>
         {errors?.map(({ message }) => (
-          <ErrorMessage
+          <ValidationMessage
             key={message.key}
             className={classes.errorMessage}
           >
-            <ExclamationmarkTriangleIcon fontSize='1.5rem' />
             <Lang
               id={message.key}
               params={message.params}
             />
-          </ErrorMessage>
+          </ValidationMessage>
         ))}
       </div>
     </SummaryFlexForContainer>

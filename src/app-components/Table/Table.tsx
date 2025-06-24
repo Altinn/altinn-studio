@@ -8,6 +8,7 @@ import { pick } from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
 import classes from 'src/app-components/Table/Table.module.css';
+import utilClasses from 'src/styles/utils.module.css';
 import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
 
 interface Column<T> {
@@ -87,7 +88,7 @@ export function AppTable<T>({
   const defaultButtonVariant = mobile ? 'secondary' : 'tertiary';
   return (
     <Table
-      size={size ?? 'sm'}
+      data-size={size ?? 'sm'}
       className={cn(classes.table, tableClassName, { [classes.mobileTable]: mobile })}
       zebra={zebra}
       stickyHeader={stickyHeader}
@@ -107,7 +108,7 @@ export function AppTable<T>({
           ))}
           {actionButtons && actionButtons.length > 0 && (
             <Table.HeaderCell>
-              <span className={classes.visuallyHidden}>{actionButtonHeader}</span>
+              <span className={utilClasses.visuallyHidden}>{actionButtonHeader}</span>
             </Table.HeaderCell>
           )}
         </Table.Row>
@@ -120,9 +121,8 @@ export function AppTable<T>({
               style={{ textAlign: 'center' }}
             >
               <Spinner
-                title='Loading data...'
-                variant='default'
-                size='md'
+                aria-label='Loading data...'
+                data-size='md'
               />
             </Table.Cell>
           </Table.Row>
@@ -196,7 +196,7 @@ export function AppTable<T>({
                       <Button
                         key={idx}
                         onClick={() => button.onClick(rowIndex, rowData)}
-                        size='sm'
+                        data-size='sm'
                         variant={button.variant ? button.variant : defaultButtonVariant}
                         color={button.color ? button.color : 'second'}
                       >

@@ -185,16 +185,16 @@ describe('RadioButtonsContainerComponent', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for first' }),
     );
-    expect(await screen.findByRole('dialog')).toHaveTextContent(
-      'Help Text: The value from the group is: Label for first',
-    );
+    expect(
+      screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for first' }),
+    ).toHaveAttribute('aria-expanded', 'true');
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for second' }),
     );
-    expect(await screen.findByRole('dialog')).toHaveTextContent(
-      'Help Text: The value from the group is: Label for second',
-    );
+    expect(
+      screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for second' }),
+    ).toHaveAttribute('aria-expanded', 'true');
 
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(getRadio({ name: /The value from the group is: Label for first/ }));

@@ -67,7 +67,7 @@ describe('Payment', () => {
         },
       ).as('paymentInfoRequest');
       cy.wait('@paymentInfoRequest').then((_) => {
-        cy.get('div.fds-alert--warning')
+        cy.get('div.ds-alert')
           .should('exist')
           .and('be.visible')
           .within(() => {

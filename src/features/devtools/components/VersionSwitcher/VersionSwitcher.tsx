@@ -47,7 +47,7 @@ export const VersionSwitcher = () => {
   };
 
   if (isVersionsLoading || isHtmlLoading || !versions) {
-    return <Spinner title='Laster...' />;
+    return <Spinner aria-label='Laster...' />;
   }
 
   if (isVersionsError || isHtmlError) {
@@ -55,10 +55,8 @@ export const VersionSwitcher = () => {
   }
 
   return (
-    <Fieldset
-      legend='Frontend versjon'
-      style={{ width: 250 }}
-    >
+    <Fieldset style={{ width: 250 }}>
+      <Fieldset.Legend>Frontend versjon</Fieldset.Legend>
       <Combobox
         size='sm'
         value={selectedVersion ? [selectedVersion] : []}

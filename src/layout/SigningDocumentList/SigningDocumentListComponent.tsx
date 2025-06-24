@@ -43,7 +43,7 @@ export function SigningDocumentListComponent({
             title={<Lang id={textResourceBindings?.title} />}
             description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
             helpText={textResourceBindings?.help ? { text: textResourceBindings?.help } : undefined}
-            designSystemLabelProps={{ size: 'lg' }}
+            designSystemLabelProps={{ 'data-size': 'lg' }}
           />
         ) : undefined
       }

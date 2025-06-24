@@ -83,7 +83,7 @@ function PageSymbol({
     return (
       <Spinner
         style={{ width: 20, height: 20 }}
-        title={langAsString('general.loading')}
+        aria-label={langAsString('general.loading')}
       />
     );
   }

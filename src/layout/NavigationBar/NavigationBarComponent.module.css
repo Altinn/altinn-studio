@@ -49,9 +49,9 @@
 }
 
 .buttonBase:focus-within {
-  outline: var(--fds-focus-border-width) solid var(--fds-outer-focus-border-color);
-  outline-offset: var(--fds-focus-border-width);
-  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-inner-focus-border-color);
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: var(--ds-border-width-focus);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-focus-inner);
 }
 
 .buttonBase:disabled {

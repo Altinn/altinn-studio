@@ -19,12 +19,12 @@ export interface IDisplayRepAsLargeGroup {
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
-const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size'] } = {
-  [2]: 'medium',
-  [3]: 'small',
-  [4]: 'xsmall',
-  [5]: 'xsmall',
-  [6]: 'xsmall',
+const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-size'] } = {
+  [2]: 'md',
+  [3]: 'sm',
+  [4]: 'xs',
+  [5]: 'xs',
+  [6]: 'xs',
 };
 
 export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderLayoutNode }: IDisplayRepAsLargeGroup) {
@@ -44,20 +44,18 @@ export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderL
 
   return (
     <Fieldset
-      legend={
-        legend && (
-          <Heading
-            level={headingLevel}
-            size={headingSize}
-          >
-            <Lang id={legend} />
-          </Heading>
-        )
-      }
       className={cn(pageBreakStyles(item.pageBreak), classes.summary, {
         [classes.largeGroupContainer]: !isNested,
       })}
     >
+      <Fieldset.Legend>
+        <Heading
+          level={headingLevel}
+          data-size={headingSize}
+        >
+          <Lang id={legend} />
+        </Heading>
+      </Fieldset.Legend>
       <div
         id={id || item.id}
         className={classes.largeGroupContainer}

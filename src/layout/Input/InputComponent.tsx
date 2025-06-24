@@ -13,7 +13,6 @@ import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
-import { useCharacterLimit } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { InputProps } from 'src/app-components/Input/Input';
@@ -121,7 +120,6 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const { langAsString } = useLanguage();
-  const characterLimit = useCharacterLimit(maxLength);
 
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
@@ -131,7 +129,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
 
   const inputProps: InputProps = {
     id,
-    'aria-label': overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined,
+    'aria-label': langAsString(textResourceBindings?.title),
     'aria-describedby':
       textResourceBindings?.title && textResourceBindings?.description ? getDescriptionId(id) : undefined,
     autoComplete: autocomplete,
@@ -143,7 +141,6 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     error: !useIsValid(node),
     prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
-    characterLimit: !readOnly ? characterLimit : undefined,
     style: { width: '100%' },
     inputMode,
     pattern,
@@ -160,6 +157,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
           onChange={(event) => {
             setValue('simpleBinding', event.target.value);
           }}
+          maxLength={maxLength}
         />
       );
     case 'pattern':
@@ -175,6 +173,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
             }
             setValue('simpleBinding', values.value);
           }}
+          maxLength={maxLength}
         />
       );
     case 'number':
@@ -229,6 +228,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
               setValue('simpleBinding', pastedText);
             }
           }}
+          maxLength={maxLength}
         />
       );
   }

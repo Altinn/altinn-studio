@@ -34,8 +34,8 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
   const { langAsString } = useLanguage();
   return (
     <Alert
-      size='sm'
-      severity='danger'
+      data-size='sm'
+      data-color='danger'
       role='alert'
       aria-live='assertive'
       aria-label={langAsString('form_filler.file_uploader_failed_to_upload_file', [attachment.data.filename])}
@@ -111,7 +111,7 @@ function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAtta
             <Button
               id={buttonId}
               style={{ marginTop: '0.5rem' }}
-              size='sm'
+              data-size='sm'
               variant='tertiary'
               color='second'
               onClick={() => {

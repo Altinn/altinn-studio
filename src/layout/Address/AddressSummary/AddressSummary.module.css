@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }
 
 .addressSummaryComponentPostplaceZipCode {
@@ -49,5 +49,5 @@
 }
 
 .addressComponentZipCode {
-  margin-right: var(--fds-spacing-4);
+  margin-right: var(--ds-size-4);
 }

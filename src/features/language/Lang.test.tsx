@@ -45,7 +45,7 @@ describe('Lang', () => {
         <LanguageProvider>
           <div data-testid='test-subject'>
             <Lang
-              id='input_components.remaining_characters'
+              id='general.progress'
               params={[
                 <Lang
                   key={0}
@@ -63,7 +63,7 @@ describe('Lang', () => {
     });
 
     expect(console.error).not.toHaveBeenCalled();
-    expect(screen.getByTestId('test-subject')).toHaveTextContent('Du har innboks av profil tegn igjen');
+    expect(screen.getByTestId('test-subject')).toHaveTextContent('Side innboks av profil');
   });
 
   it('should fallback if Language is not provided', async () => {

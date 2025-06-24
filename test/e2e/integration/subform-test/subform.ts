@@ -20,8 +20,7 @@ describe('Subform test', () => {
     cy.get('#Input-Name').should('be.visible').type(name);
 
     // Test process next when required subform is missing
-    cy.get('[data-testid="NavigationButtons"] button.fds-btn--primary').contains('Neste').scrollIntoView();
-    cy.get('[data-testid="NavigationButtons"] button.fds-btn--primary').should('be.visible').click();
+    cy.findByRole('button', { name: /Neste/i }).click();
     cy.get('[data-testid="ErrorReport"]').should('be.visible');
 
     // Navigate to the subform page
@@ -107,7 +106,7 @@ describe('Subform test', () => {
     cy.get('#subform-subform-mopeder-table tbody tr').should('have.length', 2);
     cy.get('#subform-subform-mopeder-table tbody tr').eq(1).findByText('Slett').clickAndGone();
     cy.get('#subform-subform-mopeder-table tbody tr').should('have.length', 1);
-    cy.get('[data-testid="NavigationButtons"] button.fds-btn--primary').clickAndGone();
+    cy.findByRole('button', { name: /Neste/i }).clickAndGone();
 
     // Verify summary fields
     cy.get('[data-testid=summary-single-value-component]').eq(0).should('contain.text', name);
@@ -127,7 +126,7 @@ describe('Subform test', () => {
 
     cy.findByRole('button', { name: 'Vis Summary2 for hele steget' }).clickAndGone();
 
-    cy.get('.fds-paragraph')
+    cy.get('.ds-paragraph')
       .eq(0)
       .should(
         'contain.text',

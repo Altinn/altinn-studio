@@ -1,59 +1,7 @@
-.likertTable {
-  width: 100%;
-}
-
-/* ====
-TODO(1779): Remove these styles after going through all the different Table styles in
-Altinn, and making sure they are consistent. */
-.likertTable {
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.12),
-    0 2px 2px rgba(0, 0, 0, 0.12);
-}
-
-.likertTable th {
-  border-bottom: 1px solid #dde3e5;
-  padding-top: 15px;
-  padding-bottom: 15px;
-}
-
-.likertTable thead th {
-  background-color: var(--fds-colors-grey-100);
-}
-
-.likertTable tr:not(:last-of-type) td {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #dde3e5;
-}
-
-.likertTable tr:last-of-type td {
-  border-bottom: none;
-}
-
-/* ==== */
-
-.likertTable thead th:not(:first-of-type) {
-  width: 100px;
-  text-align: center;
-  box-sizing: border-box;
-}
-
 .likertRadioButton {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.likertHeading {
-  text-align: left;
-  padding-bottom: var(--fds-spacing-4);
-}
-
-.likertMobileGroup {
-  gap: 12px;
-  display: flex;
-  flex-direction: column;
 }
 
 /*

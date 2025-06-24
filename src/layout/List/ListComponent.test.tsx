@@ -198,7 +198,7 @@ describe('ListComponent', () => {
     ]);
   });
 
-  it('should save all field values in when in mobile', async () => {
+  it('should save all field values when in mobile', async () => {
     jest.useFakeTimers();
     jest.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
 
