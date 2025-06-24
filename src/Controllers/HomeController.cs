@@ -107,7 +107,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("1");
+            return Ok("2");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

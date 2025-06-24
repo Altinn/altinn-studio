@@ -179,6 +179,10 @@ public class AuthenticationService : IAuthentication
             )
         );
         claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
+        if (!claims.Any(c => c.Type == "scope"))
+        {
+            claims.Add(new Claim("scope", "altinn:portal/enduser", ClaimValueTypes.String, issuer));
+        }
 
         ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
         identity.AddClaims(claims);
