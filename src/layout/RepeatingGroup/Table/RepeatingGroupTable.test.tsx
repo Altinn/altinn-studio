@@ -130,8 +130,8 @@ describe('RepeatingGroupTable', () => {
       await screen.findByText('test row 1');
       await userEvent.click(screen.getAllByRole('button', { name: /slett/i })[0]);
 
-      expect(formDataMethods.removeFromListCallback).toBeCalledTimes(1);
-      expect(formDataMethods.removeFromListCallback).toBeCalledWith({
+      expect(formDataMethods.removeFromListCallback).toHaveBeenCalledTimes(1);
+      expect(formDataMethods.removeFromListCallback).toHaveBeenCalledWith({
         reference: { field: 'some-group', dataType: defaultDataTypeMock },
         startAtIndex: 0,
         callback: expect.any(Function),

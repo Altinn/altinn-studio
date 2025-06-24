@@ -88,10 +88,7 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxC
           id={id}
           key={`checkboxes_group_${id}`}
         >
-          <Fieldset
-            className={classes.checkboxGroup}
-            aria-label={ariaLabel}
-          >
+          <Fieldset aria-label={ariaLabel}>
             {overrideDisplay?.renderLegend !== false && (
               <Fieldset.Legend className={classes.legend}>{labelTextGroup}</Fieldset.Legend>
             )}

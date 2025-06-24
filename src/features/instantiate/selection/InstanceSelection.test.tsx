@@ -72,7 +72,7 @@ describe('InstanceSelection', () => {
   it('pressing "Start på nytt" should trigger callback', async () => {
     const { mutations } = await render();
     await userEvent.click(screen.getByText(/start på nytt/i));
-    expect(mutations.doInstantiate.mock).toBeCalledTimes(1);
+    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger openInstance on editButton click', async () => {
@@ -88,7 +88,7 @@ describe('InstanceSelection', () => {
 
     await userEvent.click(button);
     expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
-    expect(mutations.doInstantiate.mock).toBeCalledTimes(0);
+    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
@@ -107,6 +107,6 @@ describe('InstanceSelection', () => {
 
     await userEvent.click(button);
     expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-other-id');
-    expect(mutations.doInstantiate.mock).toBeCalledTimes(0);
+    expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 });

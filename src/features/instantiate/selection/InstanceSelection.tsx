@@ -143,7 +143,7 @@ function InstanceSelection() {
         </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
-            <Table.Row className={classes.tableFooter}>
+            <Table.Row>
               <Table.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
@@ -215,7 +215,7 @@ function InstanceSelection() {
         </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
-            <Table.Row className={classes.tableFooter}>
+            <Table.Row>
               <Table.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
