@@ -33,6 +33,32 @@ describe('ConfigCustomFileEnding', () => {
     );
   });
 
+  it('should clear validFileEndings when hasCustomFileEndings is toggled to false', async () => {
+    const handleComponentUpdateMock = jest.fn();
+    renderConfigCustomFileEnding({
+      props: {
+        component: {
+          ...componentMocks.Input,
+          hasCustomFileEndings: true,
+          validFileEndings: ['.txt'],
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const user = userEvent.setup();
+    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
+    });
+    expect(hasCustomFileEndingsSwitch).toBeChecked();
+    await user.click(hasCustomFileEndingsSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hasCustomFileEndings: false,
+        validFileEndings: undefined,
+      }),
+    );
+  });
+
   const renderConfigCustomFileEnding = ({
     props = {},
     queries = {},
