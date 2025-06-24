@@ -30,7 +30,7 @@
   gap: var(--ds-size-4);
 }
 .consentRightIcon {
-  font-size: 1.5rem;
+  font-size: var(--ds-size-7);
 }
 
 .consentRightContent {
@@ -55,8 +55,7 @@
   height: 100vh;
   top: 0;
   right: 0;
-  border: 1px solid var(--fds-semantic-border-divider-default);
-  border-top: none;
+  border-left: 1px solid var(--fds-semantic-border-divider-default);
   padding: var(--fds-spacing-5);
   overflow: auto;
 }
@@ -73,7 +72,7 @@
   max-width: 25rem;
 }
 .mobileView h1 {
-  font-size: 18px;
+  font-size: var(--ds-heading-2xs-font-size);
 }
 .mobileView .consentBlock {
   padding: var(--ds-size-5);
