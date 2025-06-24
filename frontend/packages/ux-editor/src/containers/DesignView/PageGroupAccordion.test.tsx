@@ -23,7 +23,6 @@ const pagesMock: PagesModel = {
       order: [{ id: 'Side 1' }, { id: 'Side 2' }],
     },
     {
-      name: 'Group 2',
       order: [{ id: 'Side 3' }],
     },
   ],
