@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
+using Altinn.App.Core.Features.Signing.Enums;
 using Altinn.App.Models.Skjemadata;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -33,7 +34,7 @@ public class FounderSigneesProvider : ISigneeProvider
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
                 CommunicationConfig = new CommunicationConfig
                 {
-                                        InboxMessage = new InboxMessage
+                    InboxMessage = new InboxMessage
                     {
                         TitleTextResourceKey = "signing.correspondence_title_common",
                         SummaryTextResourceKey = "signing.correspondence_summary_stifter_person",
@@ -58,7 +59,8 @@ public class FounderSigneesProvider : ISigneeProvider
                                 stifterPerson.Fornavn
                             ),
                         }
-                    }
+                    },
+                    NotificationChoice = NotificationChoice.Email,
                 }
             };
 
@@ -100,7 +102,8 @@ public class FounderSigneesProvider : ISigneeProvider
                                 stifterVirksomhet.Navn
                             ),
                         }
-                    }
+                    },
+                    NotificationChoice = NotificationChoice.EmailPreferred,
                 }
             };
 
