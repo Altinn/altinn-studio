@@ -5170,7 +5170,7 @@ __metadata:
     ajv-formats-draft2019: "npm:1.6.1"
     axe-core: "npm:4.10.3"
     axios: "npm:1.10.0"
-    babel-jest: "npm:29.7.0"
+    babel-jest: "npm:30.0.2"
     babel-loader: "npm:10.0.0"
     caniuse-lite: "npm:1.0.30001724"
     classnames: "npm:2.5.1"
@@ -5597,23 +5597,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-jest@npm:29.7.0, babel-jest@npm:^29.7.0":
-  version: 29.7.0
-  resolution: "babel-jest@npm:29.7.0"
-  dependencies:
-    "@jest/transform": "npm:^29.7.0"
-    "@types/babel__core": "npm:^7.1.14"
-    babel-plugin-istanbul: "npm:^6.1.1"
-    babel-preset-jest: "npm:^29.6.3"
-    chalk: "npm:^4.0.0"
-    graceful-fs: "npm:^4.2.9"
-    slash: "npm:^3.0.0"
-  peerDependencies:
-    "@babel/core": ^7.8.0
-  checksum: 10c0/2eda9c1391e51936ca573dd1aedfee07b14c59b33dbe16ef347873ddd777bcf6e2fc739681e9e9661ab54ef84a3109a03725be2ac32cd2124c07ea4401cbe8c1
-  languageName: node
-  linkType: hard
-
 "babel-jest@npm:30.0.2":
   version: 30.0.2
   resolution: "babel-jest@npm:30.0.2"
@@ -5628,6 +5611,23 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.11.0
   checksum: 10c0/416deec120eea3f870b45166abc8a30ea29b9235d1acb4a2e50a3b7d623f401589621fa6502dcd4abfffbfaa506eccf20dbbef2c5d0eeac1df9344ec8d8de272
+  languageName: node
+  linkType: hard
+
+"babel-jest@npm:^29.7.0":
+  version: 29.7.0
+  resolution: "babel-jest@npm:29.7.0"
+  dependencies:
+    "@jest/transform": "npm:^29.7.0"
+    "@types/babel__core": "npm:^7.1.14"
+    babel-plugin-istanbul: "npm:^6.1.1"
+    babel-preset-jest: "npm:^29.6.3"
+    chalk: "npm:^4.0.0"
+    graceful-fs: "npm:^4.2.9"
+    slash: "npm:^3.0.0"
+  peerDependencies:
+    "@babel/core": ^7.8.0
+  checksum: 10c0/2eda9c1391e51936ca573dd1aedfee07b14c59b33dbe16ef347873ddd777bcf6e2fc739681e9e9661ab54ef84a3109a03725be2ac32cd2124c07ea4401cbe8c1
   languageName: node
   linkType: hard
 

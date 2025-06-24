@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "8.34.1",
     "@typescript-eslint/parser": "8.34.1",
     "axe-core": "4.10.3",
-    "babel-jest": "29.7.0",
+    "babel-jest": "30.0.2",
     "babel-loader": "10.0.0",
     "caniuse-lite": "1.0.30001724",
     "core-js": "3.43.0",
