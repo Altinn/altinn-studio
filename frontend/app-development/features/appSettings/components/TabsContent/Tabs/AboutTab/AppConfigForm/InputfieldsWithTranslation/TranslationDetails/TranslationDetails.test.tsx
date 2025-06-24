@@ -5,7 +5,7 @@ import type { TranslationDetailsProps } from './TranslationDetails';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/SupportedLanguages';
+import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
 
 const languagesToTest: ValidLanguage[] = ['nn', 'en'];
 
@@ -79,47 +79,6 @@ describe('TranslationDetails', () => {
     const button = getButton(detailsLabel);
     expect(button).toHaveAttribute('aria-expanded', 'true');
   });
-
-  it('displays a validation message for both languages if both has error', () => {
-    const validationErrors: AppConfigFormError[] = [
-      { field: 'serviceName', error: 'Error for NN', index: 'nn' },
-      { field: 'serviceName', error: 'Error for EN', index: 'en' },
-    ];
-
-    renderTranslationDetails({ errors: validationErrors });
-
-    const errorMessage = textMock('app_settings.about_tab_language_error_missing_2', {
-      usageString: id,
-      lang1: textMock('language.nn').toLowerCase(),
-      lang2: textMock('language.en').toLowerCase(),
-    });
-
-    expect(getText(errorMessage)).toBeInTheDocument();
-  });
-
-  it.each(languagesToTest)(
-    'displays a validation message for single language if only %s has error',
-    (lang) => {
-      const validationErrors: AppConfigFormError[] = [
-        { field: 'serviceName', error: `Error for ${lang}`, index: lang },
-      ];
-
-      const value: SupportedLanguage = {
-        nb: 'Tjeneste',
-        nn: lang === 'nn' ? '' : 'Tjeneste NN',
-        en: lang === 'en' ? '' : 'Tjeneste EN',
-      };
-
-      renderTranslationDetails({ value, errors: validationErrors });
-
-      const errorMessage = textMock('app_settings.about_tab_language_error_missing_1', {
-        usageString: id,
-        lang: textMock(`language.${lang}`).toLowerCase(),
-      });
-
-      expect(getText(errorMessage)).toBeInTheDocument();
-    },
-  );
 });
 
 const label: string = textMock('some_label_translation');

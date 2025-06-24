@@ -13,6 +13,7 @@ import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import type { ITextResources } from 'app-shared/types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import type { FormItem } from '../../../../../../types/FormItem';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -116,6 +117,31 @@ describe('EditTab', () => {
     expect(
       screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
     ).toBeInTheDocument();
+  });
+
+  it('Displays the dialog when the user clicks the edit button', async () => {
+    const user = userEvent.setup();
+
+    renderEditTabWithData();
+    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    await user.click(editButton);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('Displays the dialog when the user clicks the create button', async () => {
+    const user = userEvent.setup();
+    const component: FormItem<ComponentType.RadioButtons> = {
+      ...mockComponent,
+      options: undefined,
+      optionsId: undefined,
+    };
+
+    renderEditTabWithData({ props: { component } });
+    const editButton = screen.getByRole('button', { name: textMock('general.create_new') });
+    await user.click(editButton);
+
+    expect(screen.getByRole('dialog')).toBeVisible();
   });
 });
 

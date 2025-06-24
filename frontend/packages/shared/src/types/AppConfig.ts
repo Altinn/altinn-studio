@@ -13,4 +13,7 @@ export type AppConfigNew = {
   serviceName: SupportedLanguage;
   serviceId: string;
   description?: SupportedLanguage;
+  homepage?: string;
+  isDelegable?: boolean;
+  rightDescription?: SupportedLanguage;
 };

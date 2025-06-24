@@ -12,7 +12,6 @@ import {
   updateComponentOptions,
   isOptionsIdReferenceId,
   hasStaticOptionList,
-  isInitialOptionsSet,
 } from './optionsUtils';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 
@@ -168,27 +167,6 @@ describe('optionsUtils', () => {
       const options: OptionList = undefined;
       const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
       expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
-    });
-  });
-
-  describe('isInitialOptionsSet', () => {
-    it('should return true if previousOptions is false and currentOptions is truthy', () => {
-      const previousOptions = undefined;
-      const currentOptions: OptionList = [];
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(true);
-    });
-
-    it('should return false if previousOptions is truthy', () => {
-      const previousOptions = [];
-      const currentOptions: OptionList = [{ value: 'value', label: 'label' }];
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(false);
-    });
-
-    it('should return false if currentOptions is undefined', () => {
-      const previousOptions = [];
-      const currentOptions = undefined;
-
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(false);
     });
   });
 });
