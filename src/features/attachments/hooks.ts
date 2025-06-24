@@ -16,4 +16,5 @@ export const useFailedAttachmentsFor = (node: FileUploaderNode | string) =>
 export const useAttachmentsSelector = () => NodesInternal.useAttachmentsSelector();
 
 export const useHasPendingAttachments = () => NodesInternal.useHasPendingAttachments();
+export const useAttachmentState = () => NodesInternal.useAttachmentState();
 export const useAllAttachments = () => NodesInternal.useAllAttachments();

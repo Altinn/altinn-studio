@@ -11,6 +11,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useHasPendingScans } from 'src/features/attachments/useHasPendingScans';
 import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
@@ -122,8 +123,22 @@ export function useInstanceDataQueryDef(
   };
 }
 
-function useGetInstanceDataQuery(hasResultFromInstantiation: boolean, partyId: string, instanceGuid: string) {
-  const utils = useQuery(useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid));
+function useGetInstanceDataQuery(
+  hasResultFromInstantiation: boolean,
+  partyId: string,
+  instanceGuid: string,
+  enablePolling: boolean = false,
+) {
+  const queryDef = useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid);
+
+  const utils = useQuery({
+    ...queryDef,
+    refetchInterval: enablePolling ? 5000 : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: enablePolling,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
   useEffect(() => {
     utils.error && window.logError('Fetching instance data failed:\n', utils.error);
@@ -150,13 +165,17 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
   const changeData = useSelector((state) => state.changeData);
   const setReFetch = useSelector((state) => state.setReFetch);
   const instantiation = useInstantiation();
+  const isDataSet = useSelector((state) => state.data !== undefined);
+
+  const hasPendingScans = useHasPendingScans();
+  const enablePolling = isDataSet && hasPendingScans;
+
   const {
     error: queryError,
     isLoading,
     data: queryData,
     refetch,
-  } = useGetInstanceDataQuery(!!instantiation.lastResult, instanceOwnerPartyId, instanceGuid);
-  const isDataSet = useSelector((state) => state.data !== undefined);
+  } = useGetInstanceDataQuery(!!instantiation.lastResult, instanceOwnerPartyId, instanceGuid, enablePolling);
 
   const error = instantiation.error ?? queryError;
   const data = instantiation.lastResult ?? queryData;

@@ -34,3 +34,15 @@ tr.grayUnderline td {
 .marginLeftAuto {
   margin-left: auto;
 }
+
+.statusInfected {
+  color: var(--fds-semantic-text-danger-default);
+  font-weight: 500;
+}
+
+.statusScanning {
+  color: var(--fds-semantic-text-info-default);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

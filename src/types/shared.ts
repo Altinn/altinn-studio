@@ -1,3 +1,4 @@
+import type { FileScanResult } from 'src/features/attachments/types';
 import type { LooseAutocomplete } from 'src/types';
 
 export interface IAltinnOrg {
@@ -48,6 +49,8 @@ export interface IData {
   lastChanged: string;
   lastChangedBy: string;
   contentHash?: unknown;
+  fileScanResult?: FileScanResult;
+  fileScanDetails?: string;
 }
 
 export interface IDataType {

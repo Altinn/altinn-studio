@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
-import { useHasPendingAttachments } from 'src/features/attachments/hooks';
+import { useAttachmentState, useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
@@ -31,6 +31,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useLaxProcessData()?.currentTask || {};
   const attachmentsPending = useHasPendingAttachments();
+  const attachmentState = useAttachmentState();
   const processNext = useProcessNext();
   const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
   const setReturnToView = useSetReturnToView();
@@ -42,6 +43,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const disabled =
     isAnyProcessing ||
     attachmentsPending ||
+    attachmentState.state === 'Infected' ||
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
@@ -83,8 +85,11 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
       >
         <Lang id={item.textResourceBindings?.title} />
       </Button>
-      {attachmentsPending && (
-        <span style={{ position: 'absolute' }}>{langAsString('general.wait_for_attachments')}</span>
+      {attachmentState.hasPending && attachmentState.state !== 'Infected' && (
+        <span style={{ position: 'absolute' }}>
+          {attachmentState.state === 'Pending' && langAsString('general.wait_for_attachments_scanning')}
+          {attachmentState.state === 'uploading' && langAsString('general.wait_for_attachments')}
+        </span>
       )}
     </ComponentStructureWrapper>
   );

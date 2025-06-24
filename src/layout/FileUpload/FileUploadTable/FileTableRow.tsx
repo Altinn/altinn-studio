@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { FileScanResults } from 'src/features/attachments/types';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -18,7 +19,7 @@ import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-class IFileUploadTableRowProps {
+interface IFileUploadTableRowProps {
   attachment: IAttachment;
   mobileView: boolean;
   node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
@@ -38,9 +39,26 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
 
   const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
-  const status = attachment.uploaded
-    ? langAsString('form_filler.file_uploader_list_status_done')
-    : langAsString('general.loading');
+  const getStatusFromScanResult = () => {
+    if (!attachment.uploaded) {
+      return langAsString('general.loading');
+    }
+
+    const scanResult = attachment.data.fileScanResult;
+
+    switch (scanResult) {
+      case FileScanResults.Pending:
+        return langAsString('form_filler.file_uploader_status_scanning');
+      case FileScanResults.Infected:
+        return langAsString('form_filler.file_uploader_status_infected');
+      case FileScanResults.Clean:
+      case FileScanResults.NotApplicable:
+      default:
+        return langAsString('form_filler.file_uploader_list_status_done');
+    }
+  };
+
+  const status = getStatusFromScanResult();
 
   const rowStyle =
     isSummary || pdfModeActive
@@ -67,8 +85,8 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
       {!(hasTag && mobileView) && !pdfModeActive && !mobileView && (
         <StatusCellContent
           status={status}
-          mobileView={mobileView}
           uploaded={attachment.uploaded}
+          scanResult={attachment.uploaded ? attachment.data.fileScanResult : undefined}
         />
       )}
 
@@ -160,19 +178,60 @@ const FileTypeCell = ({ tagLabel }: { tagLabel: string | undefined }) => {
   return <td key={`attachment-tag-${index}`}>{tagLabel && langAsString(tagLabel)}</td>;
 };
 
-const StatusCellContent = ({ uploaded, mobileView, status }) => (
-  <td>
-    {uploaded ? (
-      <div data-testid='status-success'>{mobileView ? null : status}</div>
-    ) : (
-      <AltinnLoader
-        id='loader-upload'
-        className={classes.altinnLoader}
-        srContent={status}
-      />
-    )}
-  </td>
-);
+const StatusCellContent = ({
+  uploaded,
+  status,
+  scanResult,
+}: {
+  uploaded: boolean;
+  status: string;
+  scanResult?: string;
+}) => {
+  const getStatusElement = () => {
+    if (!uploaded) {
+      return (
+        <AltinnLoader
+          id='loader-upload'
+          className={classes.altinnLoader}
+          srContent={status}
+        />
+      );
+    }
+
+    const getTestId = () => {
+      switch (scanResult) {
+        case FileScanResults.Infected:
+          return 'status-infected';
+        case FileScanResults.Pending:
+          return 'status-scanning';
+        default:
+          return 'status-success';
+      }
+    };
+
+    const getClassName = () => {
+      switch (scanResult) {
+        case FileScanResults.Infected:
+          return classes.statusInfected;
+        case FileScanResults.Pending:
+          return classes.statusScanning;
+        default:
+          return '';
+      }
+    };
+
+    return (
+      <div
+        data-testid={getTestId()}
+        className={getClassName()}
+      >
+        {status}
+      </div>
+    );
+  };
+
+  return <td>{getStatusElement()}</td>;
+};
 
 interface IButtonCellContentProps {
   deleting: boolean;

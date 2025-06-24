@@ -9,6 +9,8 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useAllAttachments } from 'src/features/attachments/hooks';
+import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
@@ -54,6 +56,13 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
   const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
+  const allAttachments = useAllAttachments();
+
+  const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
+    (attachments || []).some(
+      (attachment) => attachment.uploaded && attachment.data.fileScanResult === FileScanResults.Infected,
+    ),
+  );
 
   useRedirectToStoredPage();
   useSetExpandedWidth();
@@ -120,7 +129,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           className={classes.errorReport}
         >
           <ErrorReport
-            show={formErrors.length > 0 || taskErrors.length > 0}
+            show={formErrors.length > 0 || taskErrors.length > 0 || hasInfectedFiles}
             errors={
               <ErrorReportList
                 formErrors={formErrors}

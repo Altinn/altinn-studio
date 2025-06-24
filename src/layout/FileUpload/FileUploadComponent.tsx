@@ -14,6 +14,7 @@ import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
+import { InfectedFileAlert } from 'src/layout/FileUpload/Error/InfectedFileAlert';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
@@ -159,6 +160,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
           </button>
         )}
         <FailedAttachments node={node} />
+        <InfectedFileAlert node={node} />
       </div>
     </ComponentStructureWrapper>
   );

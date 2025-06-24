@@ -7,6 +7,7 @@ import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useDisplayError } from 'src/core/errorHandling/DisplayErrorProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useHasPendingScans } from 'src/features/attachments/useHasPendingScans';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instance/InstanceContext';
 import { useReFetchProcessData } from 'src/features/instance/ProcessContext';
@@ -42,6 +43,7 @@ export function useProcessNext() {
   const applicationMetadata = useApplicationMetadata();
   const displayError = useDisplayError();
   const queryClient = useQueryClient();
+  const hasPendingScans = useHasPendingScans();
 
   const { mutateAsync } = useMutation({
     mutationFn: async ({ action }: ProcessNextProps = {}) => {
@@ -90,6 +92,10 @@ export function useProcessNext() {
   });
 
   return useEffectEvent(async (props?: ProcessNextProps) => {
+    if (hasPendingScans) {
+      await reFetchInstanceData();
+    }
+
     const hasErrors = await onFormSubmitValidation();
     if (hasErrors) {
       return;
