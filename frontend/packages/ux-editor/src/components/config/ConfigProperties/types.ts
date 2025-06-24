@@ -1,5 +1,6 @@
 import type { FormItem } from '../../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../../containers/FormItemContext';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface BaseConfigProps {
   component: FormItem;
@@ -7,5 +8,5 @@ export interface BaseConfigProps {
 }
 
 export interface SchemaConfigProps extends BaseConfigProps {
-  schema: any;
+  schema: JsonSchema;
 }

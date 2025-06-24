@@ -1,22 +1,15 @@
 import React from 'react';
-import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigGridProperties, type ConfigGridPropertiesProps } from './ConfigGridProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('ConfigGridProperties', () => {
   it('should toggle close button and grid width text when the open and close buttons are clicked', async () => {
     const user = userEvent.setup();
-    render({
-      props: {
-        hasGridProperty: true,
-        component: componentMocks.Input,
-      },
-    });
+    renderConfigGridProperties({});
     const openGridButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.grid'),
     });
@@ -31,12 +24,7 @@ describe('ConfigGridProperties', () => {
 
   it('should not render grid width text if grid button is not clicked', async () => {
     const user = userEvent.setup();
-    render({
-      props: {
-        hasGridProperty: true,
-        component: componentMocks.Input,
-      },
-    });
+    renderConfigGridProperties({});
     expect(screen.queryByText(textMock('ux_editor.modal_properties_grid'))).not.toBeInTheDocument();
     const openGridButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.grid'),
@@ -51,21 +39,17 @@ describe('ConfigGridProperties', () => {
     expect(widthText).not.toBeInTheDocument();
   });
 
-  const render = ({
+  const renderConfigGridProperties = ({
     props = {},
-    queries = {},
   }: {
     props?: Partial<ConfigGridPropertiesProps>;
-    queries?: Partial<ServicesContextProps>;
   }) => {
     const defaultProps: ConfigGridPropertiesProps = {
-      hasGridProperty: false,
+      hasGridProperty: true,
       component: componentMocks.Input,
       handleComponentUpdate: jest.fn(),
     };
-    return renderWithProviders(<ConfigGridProperties {...defaultProps} {...props} />, {
-      queries,
-    });
+    return render(<ConfigGridProperties {...defaultProps} {...props} />);
   };
 });
 

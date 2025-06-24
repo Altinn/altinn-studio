@@ -5,64 +5,36 @@ import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
-const somePropertyName = 'somePropertyName';
-const customTextMockToHandleUndefined = (
-  keys: string | string[],
-  variables?: KeyValuePairs<string>,
-) => {
-  const key = Array.isArray(keys) ? keys[0] : keys;
-  if (key === `ux_editor.component_properties_description.${somePropertyName}`) return key;
-  return variables
-    ? '[mockedText(' + key + ', ' + JSON.stringify(variables) + ')]'
-    : '[mockedText(' + key + ')]';
-};
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: customTextMockToHandleUndefined,
-  }),
-}));
-
-jest.mock('../../hooks/useComponentPropertyDescription', () => ({
-  useComponentPropertyDescription: () => (propertyKey) =>
-    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
-}));
-
 describe('FormComponentConfig', () => {
-  it('should render nothing if schema is undefined', () => {
-    render({
-      props: {
-        schema: undefined,
-      },
-    });
+  it('should render nothing when schema is undefined, has no properties, or has undefined properties', () => {
+    const schemaConfigs = [
+      { schema: undefined },
+      { schema: { properties: undefined } },
+      { schema: { properties: {} } },
+    ];
 
-    expect(
-      screen.queryByText(textMock('ux_editor.component_properties.grid')),
-    ).not.toBeInTheDocument();
-  });
-
-  it('should render nothing if schema properties are undefined', () => {
-    render({
-      props: {
-        schema: {
-          properties: undefined,
-        },
-      },
+    schemaConfigs.forEach((props) => {
+      renderFormComponentConfig({ props });
+      const properties = ['grid', 'readOnly', 'required', 'hidden'];
+      properties.forEach((property) => {
+        expect(
+          screen.queryByText(textMock(`ux_editor.component_properties.${property}`)),
+        ).not.toBeInTheDocument();
+      });
+      expect(
+        screen.queryByText('ux_editor.component_propertiesDescription.somePropertyName'),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Some description')).not.toBeInTheDocument();
     });
-    expect(
-      screen.queryByText(textMock('ux_editor.component_properties.grid')),
-    ).not.toBeInTheDocument();
   });
 
   it('should render expected default components', async () => {
-    render({});
+    renderFormComponentConfig({});
     const properties = ['readOnly', 'required', 'hidden'];
     for (const property of properties) {
       expect(
@@ -71,26 +43,9 @@ describe('FormComponentConfig', () => {
     }
   });
 
-  it('should render nothing when schema has no properties', () => {
-    render({
-      props: {
-        schema: {
-          properties: {},
-        },
-      },
-    });
-    expect(screen.queryByText('ux_editor.component_properties.readOnly')).not.toBeInTheDocument();
-    expect(screen.queryByText('ux_editor.component_properties.required')).not.toBeInTheDocument();
-    expect(screen.queryByText('ux_editor.component_properties.hidden')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('ux_editor.component_propertiesDescription.somePropertyName'),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText('Some description')).not.toBeInTheDocument();
-  });
-
   it('should render the hide-button after clikcing on show-button', async () => {
     const user = userEvent.setup();
-    render({});
+    renderFormComponentConfig({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -105,7 +60,7 @@ describe('FormComponentConfig', () => {
 
   it('Should render the rest of the components when show-button is clicked and show hide-button', async () => {
     const user = userEvent.setup();
-    render({});
+    renderFormComponentConfig({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -132,7 +87,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should render "RedirectToLayoutSet"', () => {
-    render({
+    renderFormComponentConfig({
       props: {
         component: {
           id: 'subform-unit-test-id',
@@ -152,7 +107,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should render list of unsupported properties', () => {
-    render({
+    renderFormComponentConfig({
       props: {
         hideUnsupported: false,
         schema: {
@@ -176,7 +131,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should not render list of unsupported properties if hideUnsupported is true', () => {
-    render({
+    renderFormComponentConfig({
       props: {
         hideUnsupported: true,
         schema: {
@@ -201,7 +156,7 @@ describe('FormComponentConfig', () => {
 
   it('should render property text for the "sortOrder" property', async () => {
     const user = userEvent.setup();
-    render({
+    renderFormComponentConfig({
       props: {
         schema: {
           ...InputSchema,
@@ -227,7 +182,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should render property text for the "showValidations" property', () => {
-    render({
+    renderFormComponentConfig({
       props: {
         schema: {
           ...InputSchema,
@@ -257,7 +212,7 @@ describe('FormComponentConfig', () => {
   });
 
   it('should not render property if it is null', () => {
-    render({
+    renderFormComponentConfig({
       props: {
         hideUnsupported: true,
         schema: {
@@ -275,8 +230,7 @@ describe('FormComponentConfig', () => {
   it('should call updateComponent with false value when checking a default true property switch', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
-    //const { component: datePickerComponent } = componentMocks;
-    render({
+    renderFormComponentConfig({
       props: {
         schema: DatepickerSchema,
         handleComponentUpdate: handleComponentUpdateMock,
@@ -296,12 +250,10 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  const render = ({
+  const renderFormComponentConfig = ({
     props = {},
-    queries = {},
   }: {
     props?: Partial<FormComponentConfigProps>;
-    queries?: Partial<ServicesContextProps>;
   }) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: FormComponentConfigProps = {
@@ -311,6 +263,6 @@ describe('FormComponentConfig', () => {
       handleComponentUpdate: jest.fn(),
       hideUnsupported: false,
     };
-    return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />, { queries });
+    return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />);
   };
 });

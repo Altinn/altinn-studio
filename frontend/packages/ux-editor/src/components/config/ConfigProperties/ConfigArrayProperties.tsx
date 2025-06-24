@@ -21,7 +21,7 @@ export const ConfigArrayProperties = ({
 
   const memoizedGetSelectedValuesDisplay = useMemo(
     () => (propertyKey: string) => {
-      if (!component[propertyKey] || component[propertyKey].length === 0) return undefined;
+      if (!component[propertyKey]?.length) return undefined;
       return component[propertyKey].map((dataType: string) => (
         <div key={dataType}>{selectedDataType(dataType)}</div>
       ));

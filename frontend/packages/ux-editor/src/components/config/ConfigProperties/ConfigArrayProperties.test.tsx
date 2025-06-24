@@ -7,39 +7,15 @@ import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
-const somePropertyName = 'somePropertyName';
-const customTextMockToHandleUndefined = (
-  keys: string | string[],
-  variables?: Record<string, string>,
-) => {
-  const key = Array.isArray(keys) ? keys[0] : keys;
-  if (key === `ux_editor.component_properties_description.${somePropertyName}`) return key;
-  return variables
-    ? '[mockedText(' + key + ', ' + JSON.stringify(variables) + ')]'
-    : '[mockedText(' + key + ')]';
-};
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: customTextMockToHandleUndefined,
-  }),
-}));
-
-jest.mock('../../../hooks/useComponentPropertyDescription', () => ({
-  useComponentPropertyDescription: () => (propertyKey) =>
-    propertyKey === 'somePropertyName' ? 'Some description' : undefined,
-}));
-
 describe('ConfigArrayProperties', () => {
   it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
-    const propertyKey = 'supportedArrayProperty';
-    renderWithProviders(
-      <ConfigArrayProperties
-        schema={{
+    renderConfigArrayProperties({
+      props: {
+        schema: {
           properties: {
-            [propertyKey]: {
+            [supportedKey]: {
               type: 'array',
               items: {
                 type: 'string',
@@ -47,34 +23,34 @@ describe('ConfigArrayProperties', () => {
               },
             },
           },
-        }}
-        component={componentMocks.Input}
-        handleComponentUpdate={handleComponentUpdateMock}
-        arrayPropertyKeys={[propertyKey]}
-      />,
-    );
+        },
+        component: {
+          ...componentMocks.Input,
+          [supportedKey]: [],
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+        arrayPropertyKeys: [supportedKey],
+      },
+    });
     const arrayPropertyButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      name: textMock(`ux_editor.component_properties.${supportedKey}`),
     });
     await user.click(arrayPropertyButton);
     const combobox = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      name: textMock(`ux_editor.component_properties.${supportedKey}`),
     });
     await user.click(combobox);
-
     const option1 = screen.getByRole('option', {
       name: textMock('ux_editor.component_properties.enum_option1'),
     });
     await user.click(option1);
-
     await waitFor(() => {
       expect(handleComponentUpdateMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          [propertyKey]: ['option1'],
+          [supportedKey]: ['option1'],
         }),
       );
     });
-
     const selectedValueDisplay = screen.getByRole('option', {
       name: textMock('ux_editor.component_properties.enum_option1'),
     });
@@ -83,47 +59,38 @@ describe('ConfigArrayProperties', () => {
 
   it('should only render array properties with items of type string AND enum values', async () => {
     const user = userEvent.setup();
-    render({
+    renderConfigArrayProperties({
       props: {
         schema: {
           properties: {
-            supportedArrayProperty: {
+            [supportedKey]: {
               type: 'array',
               items: {
                 type: 'string',
                 enum: ['option1', 'option2'],
               },
             },
-            unsupportedArrayProperty: {
-              type: 'array',
-              items: {
-                type: 'string',
-              },
-            },
           },
         },
-        arrayPropertyKeys: ['supportedArrayProperty', 'unsupportedArrayProperty'],
+        arrayPropertyKeys: [supportedKey],
       },
     });
-    await user.click(
-      screen.getByText(textMock('ux_editor.component_properties.supportedArrayProperty')),
-    );
+    await user.click(screen.getByText(textMock(`ux_editor.component_properties.${supportedKey}`)));
     expect(
       screen.getByRole('combobox', {
-        name: textMock('ux_editor.component_properties.supportedArrayProperty'),
+        name: textMock(`ux_editor.component_properties.${supportedKey}`),
       }),
     ).toBeInTheDocument();
   });
 
   it('should render array properties with enum values correctly', async () => {
     const user = userEvent.setup();
-    const propertyKey = 'supportedArrayProperty';
     const enumValues = ['option1', 'option2'];
-    render({
+    renderConfigArrayProperties({
       props: {
         schema: {
           properties: {
-            [propertyKey]: {
+            [supportedKey]: {
               type: 'array',
               items: {
                 type: 'string',
@@ -134,13 +101,13 @@ describe('ConfigArrayProperties', () => {
         },
         component: {
           ...componentMocks.Input,
-          [propertyKey]: enumValues,
+          [supportedKey]: enumValues,
         },
-        arrayPropertyKeys: [propertyKey],
+        arrayPropertyKeys: [supportedKey],
       },
     });
     const arrayPropertyButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_properties.${propertyKey}`),
+      name: textMock(`ux_editor.component_properties.${supportedKey}`),
     });
     await user.click(arrayPropertyButton);
     for (const dataType of enumValues) {
@@ -150,13 +117,18 @@ describe('ConfigArrayProperties', () => {
     }
   });
 
-  const render = ({ props = {} }: { props?: Partial<ConfigArrayPropertiesProps> }) => {
-    const { Input: inputComponent } = componentMocks;
+  const supportedKey = 'supportedArrayProperty';
+
+  const renderConfigArrayProperties = ({
+    props = {},
+  }: {
+    props?: Partial<ConfigArrayPropertiesProps>;
+  }) => {
     const defaultProps: ConfigArrayPropertiesProps = {
       schema: InputSchema,
-      component: inputComponent,
+      component: componentMocks.Input,
       handleComponentUpdate: jest.fn(),
-      arrayPropertyKeys: [],
+      arrayPropertyKeys: [supportedKey],
     };
     return renderWithProviders(<ConfigArrayProperties {...defaultProps} {...props} />);
   };

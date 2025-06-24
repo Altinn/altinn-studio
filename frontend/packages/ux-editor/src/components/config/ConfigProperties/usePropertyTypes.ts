@@ -49,7 +49,7 @@ export const usePropertyTypes = (schema, customProperties) => {
       ...customProperties,
     ];
 
-    const unSupportedKeys = allPropertyKeys.filter(
+    const unsupportedKeys = allPropertyKeys.filter(
       (key) =>
         !supportedKeys.includes(key) && !propertyKeysToExcludeFromComponentConfig.includes(key),
     );
@@ -60,7 +60,7 @@ export const usePropertyTypes = (schema, customProperties) => {
       numberKeys,
       arrayKeys,
       objectKeys,
-      unSupportedKeys,
+      unsupportedKeys,
     };
   }, [schema?.properties, customProperties, allPropertyKeys]);
 };

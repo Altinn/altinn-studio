@@ -48,7 +48,7 @@ export const FormComponentConfig = ({
     'overrides',
   ];
 
-  const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys, unSupportedKeys } =
+  const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys, unsupportedKeys } =
     usePropertyTypes(schema, customProperties);
 
   if (!schema?.properties) return null;
@@ -76,11 +76,15 @@ export const FormComponentConfig = ({
       />
 
       {/** Grid Property */}
-      <ConfigGridProperties
-        hasGridProperty={Boolean(schema.properties?.grid)}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      {properties?.grid && (
+        <ConfigGridProperties
+          hasGridProperty={Boolean(schema.properties?.grid)}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      )}
+
+      {/** LayoutSet Property */}
 
       {/** String properties */}
       <ConfigStringProperties
@@ -116,12 +120,13 @@ export const FormComponentConfig = ({
       />
 
       {/* Show information about unsupported properties if there are any */}
-      {unSupportedKeys.length > 0 && !hideUnsupported && (
+      {unsupportedKeys.length > 0 && !hideUnsupported && (
         <Alert severity='info'>
           {t('ux_editor.edit_component.unsupported_properties_message')}
           <ul>
-            {unSupportedKeys.length > 0 &&
-              unSupportedKeys.map((propertyKey) => <li key={propertyKey}>{propertyKey}</li>)}
+            {unsupportedKeys.map((propertyKey) => (
+              <li key={propertyKey}>{propertyKey}</li>
+            ))}
           </ul>
         </Alert>
       )}

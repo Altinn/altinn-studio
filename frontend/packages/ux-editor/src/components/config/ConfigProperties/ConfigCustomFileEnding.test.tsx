@@ -9,34 +9,9 @@ import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('ConfigCustomFileEnding', () => {
-  it('should call handleComponentUpdate with validFileEndings undefined when hasCustomFileEndings is false', async () => {
+  it('should call handleComponentUpdate with updated component', async () => {
     const handleComponentUpdateMock = jest.fn();
-    render({
-      props: {
-        component: {
-          ...componentMocks.Input,
-          hasCustomFileEndings: true,
-        },
-        handleComponentUpdate: handleComponentUpdateMock,
-      },
-    });
-    const user = userEvent.setup();
-    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
-    });
-    expect(hasCustomFileEndingsSwitch).toBeChecked();
-    await user.click(hasCustomFileEndingsSwitch);
-    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hasCustomFileEndings: false,
-        validFileEndings: undefined,
-      }),
-    );
-  });
-
-  it('should call handleComponentUpdate with updated component when hasCustomFileEndings is true', async () => {
-    const handleComponentUpdateMock = jest.fn();
-    render({
+    renderConfigCustomFileEnding({
       props: {
         component: {
           ...componentMocks.Input,
@@ -58,7 +33,7 @@ describe('ConfigCustomFileEnding', () => {
     );
   });
 
-  const render = ({
+  const renderConfigCustomFileEnding = ({
     props = {},
     queries = {},
   }: {
@@ -68,10 +43,6 @@ describe('ConfigCustomFileEnding', () => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigCustomFileEndingProps = {
       component: inputComponent,
-      hasCustomFileEndings: {
-        default: true,
-        description: 'hasCustomFileEndings',
-      },
       handleComponentUpdate: jest.fn(),
     };
     return renderWithProviders(<ConfigCustomFileEnding {...defaultProps} {...props} />, {

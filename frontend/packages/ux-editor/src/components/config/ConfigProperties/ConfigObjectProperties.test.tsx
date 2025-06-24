@@ -7,25 +7,8 @@ import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const somePropertyName = 'somePropertyName';
-const customTextMockToHandleUndefined = (
-  keys: string | string[],
-  variables?: Record<string, string>,
-) => {
-  const key = Array.isArray(keys) ? keys[0] : keys;
-  if (key === `ux_editor.component_properties_description.${somePropertyName}`) return key;
-  return variables
-    ? '[mockedText(' + key + ', ' + JSON.stringify(variables) + ')]'
-    : '[mockedText(' + key + ')]';
-};
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: customTextMockToHandleUndefined,
-  }),
-}));
 
 jest.mock('../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
@@ -35,7 +18,7 @@ jest.mock('../../../hooks/useComponentPropertyDescription', () => ({
 describe('ConfigObjectProperties', () => {
   it('should show description from schema for objects if key is not defined', async () => {
     const user = userEvent.setup();
-    render({
+    renderConfigObjectProperties({
       props: {
         objectPropertyKeys: [somePropertyName],
         schema: {
@@ -59,7 +42,7 @@ describe('ConfigObjectProperties', () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
     const propertyKey = 'testObjectProperty';
-    render({
+    renderConfigObjectProperties({
       props: {
         objectPropertyKeys: [propertyKey],
         schema: {
@@ -98,7 +81,7 @@ describe('ConfigObjectProperties', () => {
   it('should toggle object card when object property button is clicked and close button is clicked', async () => {
     const user = userEvent.setup();
     const propertyKey = 'testObjectProperty';
-    render({
+    renderConfigObjectProperties({
       props: {
         objectPropertyKeys: [propertyKey],
         schema: {
@@ -127,7 +110,7 @@ describe('ConfigObjectProperties', () => {
   it('should handle toggle when property is undefined', async () => {
     const user = userEvent.setup();
     const propertyKey = 'undefinedProperty';
-    render({
+    renderConfigObjectProperties({
       props: {
         objectPropertyKeys: [propertyKey],
         schema: {
@@ -148,7 +131,7 @@ describe('ConfigObjectProperties', () => {
   });
 
   it('should not render property if it is unsupported', () => {
-    render({
+    renderConfigObjectProperties({
       props: {
         objectPropertyKeys: [],
         schema: {
@@ -171,12 +154,10 @@ describe('ConfigObjectProperties', () => {
     ).not.toBeInTheDocument();
   });
 
-  const render = ({
+  const renderConfigObjectProperties = ({
     props = {},
-    queries = {},
   }: {
     props?: Partial<ConfigObjectPropertiesProps>;
-    queries?: Partial<ServicesContextProps>;
   }) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigObjectPropertiesProps = {
@@ -186,9 +167,7 @@ describe('ConfigObjectProperties', () => {
       handleComponentUpdate: jest.fn(),
       editFormId: 'test-form',
     };
-    return renderWithProviders(<ConfigObjectProperties {...defaultProps} {...props} />, {
-      queries,
-    });
+    return renderWithProviders(<ConfigObjectProperties {...defaultProps} {...props} />);
   };
 });
 

@@ -14,10 +14,9 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('ConfigBooleanProperties', () => {
   it('should render expected default boolean components', async () => {
-    render({
+    renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden'],
-        schema: InputSchema,
       },
     });
     const properties = ['readOnly', 'required', 'hidden'];
@@ -29,22 +28,7 @@ describe('ConfigBooleanProperties', () => {
   });
 
   it('should render the show-button', async () => {
-    render({
-      props: {
-        booleanPropertyKeys: [
-          'readOnly',
-          'required',
-          'hidden',
-          'renderAsSummary',
-          'variant',
-          'autocomplete',
-          'maxLength',
-          'pageBreak',
-          'formatting',
-        ],
-        schema: InputSchema,
-      },
-    });
+    renderConfigBooleanProperties({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -53,22 +37,7 @@ describe('ConfigBooleanProperties', () => {
 
   it('should render the hide-button after clicking on show-button', async () => {
     const user = userEvent.setup();
-    render({
-      props: {
-        booleanPropertyKeys: [
-          'readOnly',
-          'required',
-          'hidden',
-          'renderAsSummary',
-          'variant',
-          'autocomplete',
-          'maxLength',
-          'pageBreak',
-          'formatting',
-        ],
-        schema: InputSchema,
-      },
-    });
+    renderConfigBooleanProperties({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -83,22 +52,7 @@ describe('ConfigBooleanProperties', () => {
 
   it('should render additional boolean properties when show-button is clicked', async () => {
     const user = userEvent.setup();
-    render({
-      props: {
-        booleanPropertyKeys: [
-          'readOnly',
-          'required',
-          'hidden',
-          'renderAsSummary',
-          'variant',
-          'autocomplete',
-          'maxLength',
-          'pageBreak',
-          'formatting',
-        ],
-        schema: InputSchema,
-      },
-    });
+    renderConfigBooleanProperties({});
     const button = screen.getByRole('button', {
       name: textMock('ux_editor.component_other_properties_show_many_settings'),
     });
@@ -121,7 +75,7 @@ describe('ConfigBooleanProperties', () => {
 
   it('should render default boolean values if defined', async () => {
     const user = userEvent.setup();
-    render({
+    renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden', 'timeStamp'],
         schema: DatepickerSchema,
@@ -141,7 +95,7 @@ describe('ConfigBooleanProperties', () => {
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
-    render({
+    renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden'],
         schema: DatepickerSchema,
@@ -157,8 +111,19 @@ describe('ConfigBooleanProperties', () => {
     );
   });
 
-  const render = ({
-    props = {},
+  const booleanPropertiesKeys = [
+    'readOnly',
+    'required',
+    'hidden',
+    'renderAsSummary',
+    'variant',
+    'autocomplete',
+    'maxLength',
+    'pageBreak',
+    'formatting',
+  ];
+  const renderConfigBooleanProperties = ({
+    props = { booleanPropertyKeys: booleanPropertiesKeys },
     queries = {},
   }: {
     props?: Partial<ConfigBooleanPropertiesProps>;

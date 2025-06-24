@@ -19,8 +19,6 @@ export const ConfigGridProperties = ({
   const [showGrid, setShowGrid] = useState(false);
   const t = useText();
 
-  if (!hasGridProperty) return null;
-
   return (
     <>
       {showGrid ? (

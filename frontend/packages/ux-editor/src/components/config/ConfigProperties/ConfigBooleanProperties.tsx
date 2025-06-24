@@ -53,7 +53,6 @@ export const ConfigBooleanProperties = ({
         <ConfigCustomFileEnding
           component={component}
           handleComponentUpdate={handleComponentUpdate}
-          hasCustomFileEndings={schema.properties.hasCustomFileEndings}
         />
       )}
 

@@ -4,37 +4,30 @@ import { EditStringValue } from '../editModal/EditStringValue';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { BaseConfigProps } from './types';
 
-export interface ConfigCustomFileEndingProps extends BaseConfigProps {
-  hasCustomFileEndings: {
-    default: boolean;
-    description: string;
-    tyep?: string;
-  };
-}
+export interface ConfigCustomFileEndingProps extends BaseConfigProps {}
 
 export const ConfigCustomFileEnding = ({
   component,
   handleComponentUpdate,
-  hasCustomFileEndings,
 }: ConfigCustomFileEndingProps) => {
-  if (!hasCustomFileEndings) return null;
+  const handleChange = (updatedComponent: FormComponent) => {
+    if (!updatedComponent.hasCustomFileEndings) {
+      handleComponentUpdate({
+        ...updatedComponent,
+        validFileEndings: undefined,
+      });
+      return;
+    }
+    handleComponentUpdate(updatedComponent);
+  };
 
   return (
     <>
       <EditBooleanValue
         propertyKey='hasCustomFileEndings'
         component={component}
-        defaultValue={hasCustomFileEndings.default}
-        handleComponentChange={(updatedComponent: FormComponent) => {
-          if (!updatedComponent.hasCustomFileEndings) {
-            handleComponentUpdate({
-              ...updatedComponent,
-              validFileEndings: undefined,
-            });
-            return;
-          }
-          handleComponentUpdate(updatedComponent);
-        }}
+        defaultValue={component['hasCustomFileEndings'] ?? false}
+        handleComponentChange={handleChange}
       />
       {component['hasCustomFileEndings'] && (
         <EditStringValue
