@@ -32,7 +32,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
     app,
     selectedFormLayoutSetName,
   );
-  const [moveToGroupDialogOpen, setMoveToGroupDialogOpen] = React.useState(false);
+  const [isMoveToGroupDialogOpen, setIsMoveToGroupDialogOpen] = React.useState(false);
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
   const isUsingGroups = !!pagesModel.groups;
   const groupModel = pagesModel.groups?.find((group) =>
@@ -104,8 +104,8 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
       {isUsingGroups && (
         <PageGroupMoveToExistingGroupDialog
           pageName={pageName}
-          open={moveToGroupDialogOpen}
-          onClose={() => setMoveToGroupDialogOpen(false)}
+          open={isMoveToGroupDialogOpen}
+          onClose={() => setIsMoveToGroupDialogOpen(false)}
         />
       )}
       <StudioDropdown icon={<MenuElipsisVerticalIcon />} triggerButtonVariant='tertiary'>
@@ -138,7 +138,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
             </StudioDropdown.Heading>
             <StudioDropdown.Item>
               <StudioDropdown.Button
-                onClick={() => setMoveToGroupDialogOpen(true)}
+                onClick={() => setIsMoveToGroupDialogOpen(true)}
                 disabled={pagesModel.groups.length <= 1}
               >
                 <FolderPlusIcon />

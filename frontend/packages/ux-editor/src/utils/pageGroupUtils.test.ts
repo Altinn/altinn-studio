@@ -3,6 +3,7 @@ import {
   removePageFromGroups,
   updateGroupNames,
   removeEmptyGroups,
+  pageGroupDisplayName,
 } from './pageGroupUtils';
 
 jest.mock('i18next', () => ({
@@ -84,6 +85,23 @@ describe('pageGroupUtils', () => {
         { name: 'ux_editor.page_layout_group 2', order: [{ id: 'test3' }, { id: 'test4' }] },
         { name: 'ux_editor.page_layout_group 3', order: [{ id: 'test5' }, { id: 'test6' }] },
       ]);
+    });
+  });
+
+  describe('pageGroupDisplayName', () => {
+    it('should return the group name if it exists', () => {
+      const groupName = pageGroupDisplayName({
+        name: 'Group 1',
+        order: [{ id: 'page1' }, { id: 'page2' }],
+      });
+      expect(groupName).toBe('Group 1');
+    });
+
+    it('should return name of page if group has only one page', () => {
+      const groupName = pageGroupDisplayName({
+        order: [{ id: 'page1' }],
+      });
+      expect(groupName).toBe('page1');
     });
   });
 });

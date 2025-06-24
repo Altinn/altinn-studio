@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
-import { usePageGroupName } from '../../hooks/usePageGroupName';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   StudioHeading,
@@ -13,7 +12,12 @@ import {
 import { StudioSaveIcon, StudioCancelIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
-import { movePageToGroup, removeEmptyGroups, updateGroupNames } from '../../utils/pageGroupUtils';
+import {
+  movePageToGroup,
+  pageGroupDisplayName,
+  removeEmptyGroups,
+  updateGroupNames,
+} from '../../utils/pageGroupUtils';
 
 type PageGroupMoveToExistingGroupDialogProps = {
   pageName: string;
@@ -27,7 +31,6 @@ export const PageGroupMoveToExistingGroupDialog = ({
   onClose,
 }: PageGroupMoveToExistingGroupDialogProps) => {
   const { t } = useTranslation();
-  const pageGroupName = usePageGroupName();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
@@ -66,7 +69,7 @@ export const PageGroupMoveToExistingGroupDialog = ({
         >
           {pagesModel.groups.map((group, index) => (
             <StudioSelect.Option key={index} value={index} disabled={currentGroupIndex === index}>
-              {pageGroupName(group)}
+              {pageGroupDisplayName(group)}
             </StudioSelect.Option>
           ))}
         </StudioSelect>

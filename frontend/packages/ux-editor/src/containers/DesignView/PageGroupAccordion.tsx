@@ -23,6 +23,7 @@ import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
+import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
@@ -87,7 +88,7 @@ export const PageGroupAccordion = ({
       }
     };
 
-    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    const groupDisplayName = pageGroupDisplayName(group);
     const selectedGroup = selectedItem?.type === ItemType.Group && selectedItem.id === groupIndex;
 
     return (

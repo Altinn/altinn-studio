@@ -42,3 +42,9 @@ export const getNextValidGroupName = (groups: GroupModel[]): string => {
   }
   return `${pageGroupPrefix} ${i}`;
 };
+
+export const pageGroupDisplayName = (groupModel: GroupModel): string => {
+  if (groupModel.name) return groupModel.name;
+  if (groupModel.order.length === 1) return groupModel.order[0].id;
+  return undefined;
+};
