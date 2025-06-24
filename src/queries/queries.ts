@@ -82,7 +82,7 @@ import type {
 } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
-  putWithoutConfig<'Party successfully updated' | LooseAutocomplete | null>(getSetSelectedPartyUrl(partyId));
+  putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getInstantiateUrl(language), undefined, data)).data);

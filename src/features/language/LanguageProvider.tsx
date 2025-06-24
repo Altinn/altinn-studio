@@ -76,7 +76,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
         setWithLanguageSelector,
       }}
     >
-      {children}
+      <div lang={current}>{children}</div>
     </Provider>
   );
 };

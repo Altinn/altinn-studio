@@ -14,6 +14,7 @@ interface IAltinnCollapsibleAttachmentsProps {
   title: React.ReactNode | undefined;
   hideCount?: boolean;
   showLinks: boolean | undefined;
+  showDescription: boolean;
 }
 
 export function AltinnCollapsibleAttachments({
@@ -21,6 +22,7 @@ export function AltinnCollapsibleAttachments({
   title,
   hideCount,
   showLinks = true,
+  showDescription,
 }: IAltinnCollapsibleAttachmentsProps) {
   const isCollapsible = useIsPrint() ? false : Boolean(attachments && attachments.length > 4);
   const [open, setOpen] = React.useState(true);
@@ -54,6 +56,7 @@ export function AltinnCollapsibleAttachments({
           <AltinnAttachments
             attachments={attachments}
             showLinks={showLinks}
+            showDescription={showDescription}
           />
         </AltinnCollapsible>
       </div>
@@ -70,6 +73,7 @@ export function AltinnCollapsibleAttachments({
       }
       attachments={attachments}
       showLinks={showLinks}
+      showDescription={showDescription}
     />
   );
 }

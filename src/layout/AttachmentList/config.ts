@@ -46,4 +46,12 @@ export const Config = new CG.component({
       'groupByDataTypeGrouping',
       new CG.bool().optional({ default: false }).setDescription('Group attachments by their data type grouping'),
     ),
+  )
+  .addProperty(
+    new CG.prop(
+      'showDataTypeDescriptions',
+      new CG.bool()
+        .optional({ default: false })
+        .setDescription('Show the corresponding data type description for each attachment'),
+    ),
   );

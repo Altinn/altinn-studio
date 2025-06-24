@@ -146,7 +146,7 @@ declare global {
        * Must be called in the beginning of your test.
        */
       interceptLayout(
-        taskName: FrontendTestTask | LooseAutocomplete,
+        taskName: LooseAutocomplete<FrontendTestTask>,
         mutator?: (component: CompExternal) => void,
         wholeLayoutMutator?: (layoutSet: ILayoutCollection) => void,
         options?: { times?: number },

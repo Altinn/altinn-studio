@@ -12,14 +12,23 @@ const mockAttachments = [
   {
     name: 'file1.pdf',
     url: 'https://example.com/file1.pdf',
+    description: {
+      nb: 'Beskrivelse av fil 1',
+      en: 'Description of file 1',
+    },
   },
   {
     name: 'file2.docx',
     url: 'https://example.com/file2.docx',
+    description: {
+      nb: 'Beskrivelse av fil 2',
+      en: 'Description of file 2',
+    },
   },
   {
     name: 'file3.xlsx',
     url: 'https://example.com/file3.xlsx',
+    description: undefined,
   },
 ] as unknown as IDisplayAttachment[];
 
@@ -245,5 +254,55 @@ describe('AltinnAttachments', () => {
     );
 
     expect(screen.getByTestId('attachment-list')).toHaveAttribute('id', id);
+  });
+
+  it('should show descriptions when showDescription is true and attachment has a description', () => {
+    mockUseCurrentLanguage.mockReturnValue('nb');
+
+    render(
+      <AltinnAttachments
+        attachments={mockAttachments}
+        showLinks={true}
+        showDescription={true}
+      />,
+    );
+
+    expect(screen.getByText('Beskrivelse av fil 1')).toBeInTheDocument();
+    expect(screen.getByText('Beskrivelse av fil 2')).toBeInTheDocument();
+    // File 3 doesn't have a description, so it shouldn't be shown
+    expect(screen.queryByText('Beskrivelse av fil 3')).not.toBeInTheDocument();
+  });
+
+  it('should not show descriptions when showDescription is false', () => {
+    mockUseCurrentLanguage.mockReturnValue('nb');
+
+    render(
+      <AltinnAttachments
+        attachments={mockAttachments}
+        showLinks={true}
+        showDescription={false}
+      />,
+    );
+
+    expect(screen.queryByText('Beskrivelse av fil 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Beskrivelse av fil 2')).not.toBeInTheDocument();
+  });
+
+  it('should show descriptions in the correct language', () => {
+    // Set language to English
+    mockUseCurrentLanguage.mockReturnValue('en');
+
+    render(
+      <AltinnAttachments
+        attachments={mockAttachments}
+        showLinks={true}
+        showDescription={true}
+      />,
+    );
+
+    expect(screen.getByText('Description of file 1')).toBeInTheDocument();
+    expect(screen.getByText('Description of file 2')).toBeInTheDocument();
+    expect(screen.queryByText('Beskrivelse av fil 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Beskrivelse av fil 2')).not.toBeInTheDocument();
   });
 });

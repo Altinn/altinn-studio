@@ -27,7 +27,7 @@ import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/
 type SimpleLangParam = string | number | undefined;
 export type ValidLangParam = SimpleLangParam | ReactNode | TextReference;
 export type TextReference = {
-  key: ValidLanguageKey | LooseAutocomplete | undefined;
+  key: LooseAutocomplete<ValidLanguageKey> | undefined;
   params?: ValidLangParam[];
   makeLowerCase?: boolean;
 };
@@ -35,11 +35,11 @@ export type TextReference = {
 export interface IUseLanguage {
   language: FixedLanguageList;
   lang(
-    key: ValidLanguageKey | LooseAutocomplete | undefined,
+    key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
   ): string | JSX.Element | JSX.Element[] | null;
   langAsString(
-    key: ValidLanguageKey | LooseAutocomplete | undefined,
+    key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
     makeLowerCase?: boolean,
   ): string;
@@ -48,9 +48,9 @@ export interface IUseLanguage {
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
   ): string;
-  langAsNonProcessedString(key: ValidLanguageKey | LooseAutocomplete | undefined, params?: ValidLangParam[]): string;
+  langAsNonProcessedString(key: LooseAutocomplete<ValidLanguageKey> | undefined, params?: ValidLangParam[]): string;
   langAsNonProcessedStringUsingPathInDataModel(
-    key: ValidLanguageKey | LooseAutocomplete | undefined,
+    key: LooseAutocomplete<ValidLanguageKey> | undefined,
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
   ): string;

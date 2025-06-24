@@ -3,79 +3,83 @@
 exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
 <DocumentFragment>
   <div
-    style="display: none;"
-  >
-     
-  </div>
-  <div
-    data-testid="summary-group-component"
-    style="width: 100%;"
+    lang="nb"
   >
     <div
-      class="container"
+      style="display: none;"
     >
-      <span
-        class="label"
-      >
-        <span>
-          Mock group
-        </span>
-      </span>
-      <button
-        aria-label="Change: Mock group"
-        class="fds-btn fds-focus fds-btn--sm fds-btn--tertiary fds-btn--second editButton"
-        type="button"
-      >
-        Change
-        <svg
-          aria-hidden="true"
-          fill="none"
-          focusable="false"
-          font-size="1rem"
-          height="1em"
-          role="img"
-          viewBox="0 0 24 24"
-          width="1em"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            clip-rule="evenodd"
-            d="M19.638 4.417a3.25 3.25 0 0 0-4.608-.008l-9.378 9.379a.75.75 0 0 0-.191.324l-1.414 4.95a.75.75 0 0 0 .925.927l4.94-1.398a.75.75 0 0 0 .327-.191l9.39-9.391a3.25 3.25 0 0 0 .01-4.592M16.091 5.47a1.752 1.752 0 1 1 2.478 2.478l-.23.23-2.477-2.479zM14.8 6.76 6.85 14.71l-.991 3.47 3.457-.979 7.963-7.963z"
-            fill="currentColor"
-            fill-rule="evenodd"
-          />
-        </svg>
-      </button>
+       
     </div>
     <div
+      data-testid="summary-group-component"
       style="width: 100%;"
     >
       <div
-        class="border"
+        class="container"
+      >
+        <span
+          class="label"
+        >
+          <span>
+            Mock group
+          </span>
+        </span>
+        <button
+          aria-label="Change: Mock group"
+          class="fds-btn fds-focus fds-btn--sm fds-btn--tertiary fds-btn--second editButton"
+          type="button"
+        >
+          Change
+          <svg
+            aria-hidden="true"
+            fill="none"
+            focusable="false"
+            font-size="1rem"
+            height="1em"
+            role="img"
+            viewBox="0 0 24 24"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              clip-rule="evenodd"
+              d="M19.638 4.417a3.25 3.25 0 0 0-4.608-.008l-9.378 9.379a.75.75 0 0 0-.191.324l-1.414 4.95a.75.75 0 0 0 .925.927l4.94-1.398a.75.75 0 0 0 .327-.191l9.39-9.391a3.25 3.25 0 0 0 .01-4.592M16.091 5.47a1.752 1.752 0 1 1 2.478 2.478l-.23.23-2.477-2.479zM14.8 6.76 6.85 14.71l-.991 3.47 3.457-.979 7.963-7.963z"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        style="width: 100%;"
       >
         <div
-          data-testid="summary-item-compact"
+          class="border"
         >
-          <span>
-            Mock field 1 : 
-          </span>
-          <span
-            class="data"
+          <div
+            data-testid="summary-item-compact"
           >
-            1
-          </span>
-        </div>
-        <div
-          data-testid="summary-item-compact"
-        >
-          <span>
-            Mock field 2 : 
-          </span>
-          <span
-            class="data"
+            <span>
+              Mock field 1 : 
+            </span>
+            <span
+              class="data"
+            >
+              1
+            </span>
+          </div>
+          <div
+            data-testid="summary-item-compact"
           >
-            2
-          </span>
+            <span>
+              Mock field 2 : 
+            </span>
+            <span
+              class="data"
+            >
+              2
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@ export interface IOnEntry {
   instanceSelection?: IInstanceSelection;
 }
 
-export type ShowTypes = 'new-instance' | 'select-instance' | LooseAutocomplete;
+export type ShowTypes = LooseAutocomplete<'new-instance' | 'select-instance'>;
 
 export type IInstanceSelection = {
   rowsPerPageOptions: number[];

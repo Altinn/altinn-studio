@@ -27,6 +27,7 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const showLinks = useNodeItem(node, (i) => i.links);
   const allowedAttachmentTypes = new Set(useNodeItem(node, (i) => i.dataTypeIds) ?? []);
   const groupAttachments = useNodeItem(node, (i) => i.groupByDataTypeGrouping) ?? false;
+  const showDescription = useNodeItem(node, (i) => i.showDataTypeDescriptions) ?? false;
 
   const instanceData = useLaxInstanceData((data) => data.data) ?? [];
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
@@ -75,12 +76,14 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
           collapsibleTitle={<Lang id={textResourceBindings?.title} />}
           hideCollapsibleCount={true}
           showLinks={showLinks}
+          showDescription={showDescription}
         />
       ) : (
         <AltinnAttachments
           attachments={displayAttachments}
           title={<Lang id={textResourceBindings?.title} />}
           showLinks={showLinks}
+          showDescription={showDescription}
         />
       )}
     </ComponentStructureWrapper>

@@ -9,6 +9,7 @@ interface IRenderAttachmentGroupings {
   collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
   showLinks: boolean | undefined;
+  showDescription?: boolean;
 }
 
 const defaultGroupingKey = 'null';
@@ -18,6 +19,7 @@ export const AttachmentGroupings = ({
   collapsibleTitle,
   hideCollapsibleCount,
   showLinks = true,
+  showDescription = false,
 }: IRenderAttachmentGroupings) => {
   const langTools = useLanguage();
 
@@ -56,6 +58,7 @@ export const AttachmentGroupings = ({
             title={groupTitle === 'null' ? collapsibleTitle : groupTitle}
             hideCount={hideCollapsibleCount}
             showLinks={showLinks}
+            showDescription={showDescription}
           />
         ))}
     </>

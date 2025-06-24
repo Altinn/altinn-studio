@@ -85,13 +85,11 @@ describe('DatepickerComponent', () => {
     await render();
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    screen.debug();
     await userEvent.click(
       screen.getByRole('button', {
         name: /Åpne datovelger/i,
       }),
     );
-    screen.debug();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
       'data-today',

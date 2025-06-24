@@ -273,8 +273,6 @@ describe('SigningActionsComponent', () => {
       />,
     );
 
-    screen.debug();
-
     expect(screen.getByTestId('awaiting-other-signatures-panel')).toBeInTheDocument();
     expect(screen.getByTestId('has-signed')).toBeInTheDocument();
   });

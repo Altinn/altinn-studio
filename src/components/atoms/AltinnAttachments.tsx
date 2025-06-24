@@ -1,9 +1,9 @@
 import React from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -17,9 +17,16 @@ interface IAltinnAttachmentsProps {
   id?: string;
   title?: React.ReactNode;
   showLinks: boolean | undefined;
+  showDescription?: boolean;
 }
 
-export function AltinnAttachments({ attachments, id, title, showLinks = true }: IAltinnAttachmentsProps) {
+export function AltinnAttachments({
+  attachments,
+  id,
+  title,
+  showLinks = true,
+  showDescription = false,
+}: IAltinnAttachmentsProps) {
   const selectedLanguage = useCurrentLanguage();
   const filteredAndSortedAttachments = attachments
     ?.filter((attachment) => attachment.name)
@@ -37,6 +44,7 @@ export function AltinnAttachments({ attachments, id, title, showLinks = true }: 
             key={index}
             attachment={attachment}
             showLink={showLinks}
+            showDescription={showDescription}
           />
         ))}
       </List.Unordered>
@@ -47,32 +55,61 @@ export function AltinnAttachments({ attachments, id, title, showLinks = true }: 
 interface IAltinnAttachmentProps {
   attachment: IDisplayAttachment;
   showLink: boolean;
+  showDescription: boolean;
 }
 
-function Attachment({ attachment, showLink }: IAltinnAttachmentProps) {
-  const { langAsString } = useLanguage();
+function Attachment({ attachment, showLink, showDescription }: IAltinnAttachmentProps) {
+  const currentLanguage = useCurrentLanguage();
+
   return (
     <List.Item>
-      <ConditionalWrapper
-        condition={showLink}
-        wrapper={(children) => (
-          <Link
-            href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
-            className={cn(classes.attachment, classes.attachmentLink)}
-            aria-label={langAsString('general.download', [`${attachment.name}`])}
-          >
-            {children}
-          </Link>
-        )}
-        otherwise={(children) => <span className={classes.attachment}>{children}</span>}
+      <AttachmentFileName
+        attachment={attachment}
+        showLink={showLink}
       >
-        <FileExtensionIcon
-          fileEnding={getFileEnding(attachment.name)}
-          className={classes.attachmentIcon}
-        />
-        <span className={classes.truncate}>{removeFileEnding(attachment.name)}</span>
-        <span className={classes.extension}>{getFileEnding(attachment.name)}</span>
-      </ConditionalWrapper>
+        <div className={classes.attachmentContent}>
+          <FileExtensionIcon
+            fileEnding={getFileEnding(attachment.name)}
+            className={classes.attachmentIcon}
+          />
+          <div className={classes.attachmentText}>
+            {showDescription && attachment.description?.[currentLanguage] && (
+              <div className={classes.description}>
+                {attachment.description[currentLanguage]}
+                <span>&nbsp;&ndash;&ndash;&nbsp;</span>
+              </div>
+            )}
+            <div className={classes.filename}>
+              <span className={classes.truncate}>{removeFileEnding(attachment.name)}</span>
+              <span className={classes.extension}>{getFileEnding(attachment.name)}</span>
+            </div>
+          </div>
+        </div>
+      </AttachmentFileName>
     </List.Item>
   );
+}
+
+function AttachmentFileName({
+  attachment,
+  showLink,
+  children,
+}: PropsWithChildren<{ attachment: IDisplayAttachment; showLink: boolean }>) {
+  const { langAsString } = useLanguage();
+  const currentLanguage = useCurrentLanguage();
+
+  if (showLink) {
+    return (
+      <Link
+        href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
+        className={cn(classes.attachment, classes.attachmentLink)}
+        aria-label={langAsString('general.download', [`${attachment.name}`])}
+        aria-description={attachment.description?.[currentLanguage]}
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  return <span className={classes.attachment}>{children}</span>;
 }
