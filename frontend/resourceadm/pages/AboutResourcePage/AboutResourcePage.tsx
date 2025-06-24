@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components-legacy';
@@ -62,6 +62,9 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
+    resourceData.consentText,
+  );
 
   /**
    * Resource type options
@@ -214,6 +217,7 @@ export const AboutResourcePage = ({
               onBlur={(consentTexts: SupportedLanguage) =>
                 handleSave({ ...resourceData, consentText: consentTexts })
               }
+              onChange={setConsentPreviewText}
               required
               errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
@@ -232,7 +236,7 @@ export const AboutResourcePage = ({
                   (template) => template.id === resourceData.consentTemplate,
                 )}
                 resourceName={resourceData.title}
-                consentText={resourceData.consentText}
+                consentText={consentPreviewText}
                 consentMetadata={resourceData.consentMetadata ?? {}}
                 isOneTimeConsent={resourceData.isOneTimeConsent}
               />
