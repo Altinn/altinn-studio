@@ -375,11 +375,6 @@ export class ComponentConfig {
       from: 'src/utils/layout/generator/NodeGenerator',
     });
 
-    const CompInternal = new CG.import({
-      import: 'CompInternal',
-      from: 'src/layout/layout',
-    });
-
     const NodeData = new CG.import({
       import: 'NodeData',
       from: 'src/utils/layout/types',
@@ -431,15 +426,6 @@ export class ComponentConfig {
       .map((plugin) => `...${pluginRef(plugin)}.stateFactory(props as any),`)
       .join('\n');
 
-    const pluginItemFactories = this.plugins
-      .filter((plugin) => plugin.itemFactory !== NodeDefPlugin.prototype.itemFactory)
-      .map((plugin) => `...${pluginRef(plugin)}.itemFactory(props as any)`)
-      .join(',\n');
-
-    const itemDef = pluginItemFactories
-      ? `const item = { ${pluginItemFactories} } as ${CompInternal}<'${this.type}'>;`
-      : '';
-
     const pluginGeneratorChildren = this.plugins
       .filter((plugin) => plugin.extraNodeGeneratorChildren !== NodeDefPlugin.prototype.extraNodeGeneratorChildren)
       .map((plugin) => plugin.extraNodeGeneratorChildren())
@@ -483,9 +469,6 @@ export class ComponentConfig {
     for (const plugin of this.plugins) {
       const extraMethodsFromPlugin = plugin.extraMethodsInDef();
       additionalMethods.push(...extraMethodsFromPlugin);
-
-      const extraInEval = plugin.extraInEvalExpressions();
-      extraInEval && evalLines.push(extraInEval);
 
       readyCheckers.push(`${pluginRef(plugin)}.stateIsReady(state as any, fullState)`);
     }
@@ -553,15 +536,13 @@ export class ComponentConfig {
           parentId: props.parentId,
           depth: props.depth,
           isValid: props.isValid,
-          item: undefined,
           layout: props.item,
           hidden: undefined,
           rowIndex: props.rowIndex,
           errors: undefined,
         };
-        ${itemDef}
 
-        return { ...baseState, ${pluginStateFactories} ${itemDef ? 'item' : ''} };
+        return { ...baseState, ${pluginStateFactories} };
       }
 
       // Do not override this one, set functionality.customExpressions to true instead

@@ -48,7 +48,6 @@ export interface NodeGeneratorProps {
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
-  rowIndex?: number;
   formDataSelector: FormDataSelector;
   evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
   evalFormProps: () => ExprResolved<FormComponentProps>;
@@ -106,7 +105,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * additional checks for any component.
    */
   public stateIsReady(state: NodeData<Type>): boolean {
-    return state.item !== undefined && state.hidden !== undefined;
+    return state.hidden !== undefined;
   }
 
   /**
@@ -134,14 +133,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
   abstract evalExpressions(props: ExprResolver<Type>): unknown;
 
   /**
-   * This needs to be implemented for components that supports repeating rows
-   * @see RepeatingChildrenPlugin
-   */
-  evalExpressionsForRow(_props: ExprResolver<Type>): unknown {
-    throw new Error('Component does not support evalExpressionsForRow');
-  }
-
-  /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
    */
   renderDevToolsInspector(node: LayoutNode<Type>): JSX.Element | null {
@@ -157,7 +148,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
   }
 
   shouldRenderInAutomaticPDF(data: NodeData<Type>): boolean {
-    const item = data.item;
+    const item = data.layout;
     return !(item && 'renderAsSummary' in item ? item.renderAsSummary : false);
   }
 

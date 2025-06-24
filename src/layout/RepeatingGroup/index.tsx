@@ -115,8 +115,8 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     }
 
     const { baseComponentId } = splitDashedKey(childId);
-    const tableColSetup = state.item?.tableColumns?.[baseComponentId];
-    const mode = state.item?.edit?.mode;
+    const tableColSetup = state.layout?.tableColumns?.[baseComponentId];
+    const mode = state.layout?.edit?.mode;
 
     // This specific configuration hides the component fully, without having set hidden=true on the component itself.
     // It's most likely done by mistake, but we still need to respect it when checking if the component is hidden,

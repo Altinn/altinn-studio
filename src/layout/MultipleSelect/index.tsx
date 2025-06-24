@@ -19,7 +19,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -58,6 +58,13 @@ export class MultipleSelect extends MultipleSelectDef {
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 
     return Object.values(data).join(', ');
+  }
+
+  evalExpressions(props: ExprResolver<'MultipleSelect'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      alertOnChange: props.evalBool(props.item.alertOnChange, false),
+    };
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {

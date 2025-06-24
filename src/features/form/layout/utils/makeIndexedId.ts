@@ -99,11 +99,9 @@ export function useIndexedComponentIds(componentIds: string[]): string[] {
 
 export function useMakeIndexedId<Throwing extends boolean = true>(
   throwOnUndefined?: Throwing,
-  dataModelLocation?: IDataModelReference,
 ): Throwing extends true ? (id: string) => string : (id: string) => string | undefined {
   const lookups = useLayoutLookups();
-  const currentDataModelLocation = useCurrentDataModelLocation();
-  const location = dataModelLocation || currentDataModelLocation;
+  const location = useCurrentDataModelLocation();
 
   return (id: string) => {
     const indexed = makeIndexedId(id, location, lookups);

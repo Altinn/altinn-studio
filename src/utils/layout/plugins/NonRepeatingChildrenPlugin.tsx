@@ -6,9 +6,7 @@ import type { CompCapabilities } from 'src/codegen/Config';
 import type { TypesFromCategory } from 'src/layout/layout';
 import type {
   DefPluginChildClaimerProps,
-  DefPluginExtraInItem,
   DefPluginState,
-  DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
 
@@ -102,31 +100,6 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
       from: 'src/utils/layout/generator/LayoutSetGenerator',
     });
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
-  }
-
-  itemFactory({ idMutators, item, layoutMap, getCapabilities }: DefPluginStateFactoryProps<ToInternal<E>>) {
-    const raw = (item[this.settings.externalProp] ?? []) as string[];
-    const children: string[] = [];
-    for (const childId of raw) {
-      if (this.settings.onlyWithCapability) {
-        const rawLayout = layoutMap[childId];
-        if (!rawLayout) {
-          continue;
-        }
-        const capabilities = getCapabilities(rawLayout.type);
-        if (!capabilities[this.settings.onlyWithCapability]) {
-          // No need to log again, we already do that in claimChildren
-          continue;
-        }
-      }
-      const id = idMutators.reduce((id, mutator) => mutator(id), childId);
-      children.push(id);
-    }
-
-    return {
-      [this.settings.externalProp]: undefined,
-      [this.settings.internalProp]: children,
-    } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
   claimChildren({ item, claimChild, getType, getCapabilities }: DefPluginChildClaimerProps<ToInternal<E>>): void {

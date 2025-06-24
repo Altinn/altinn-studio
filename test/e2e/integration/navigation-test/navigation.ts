@@ -336,9 +336,11 @@ describe('navigation', () => {
         });
 
       cy.gotoNavGroup(/Informasjon/, device, 'Generell info');
+      cy.findByText(/Punkt to er ikke like viktig/).should('be.visible');
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.openNavGroup('Utfylling', 'Kjøretøy', /Biler/);
+      cy.findByRole('button', { name: 'En fet Toyota fra 1998' }).should('be.visible');
 
       cy.readFile('test/percy.css').then((percyCSS) => {
         cy.testWcag();
@@ -394,6 +396,7 @@ describe('navigation', () => {
       isUsingMobile && cy.hideNavGroupsMobile();
       isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
+      cy.findByText('skrue.mcduck@altinn.no').should('be.visible');
 
       cy.get('#subform-subform-table tbody tr')
         .eq(0)

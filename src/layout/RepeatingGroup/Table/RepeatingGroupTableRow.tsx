@@ -24,8 +24,7 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeItem, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
@@ -98,7 +97,6 @@ export const RepeatingGroupTableRow = React.memo(function ({
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
-  const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const layoutLookups = useLayoutLookups();
   const rawTableIds = useTableComponentIds(node);
   const displayData = useDisplayDataFor(rawTableIds);
@@ -200,13 +198,9 @@ export const RepeatingGroupTableRow = React.memo(function ({
                     key={item.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      <Lang
-                        id={getTableTitle(
-                          nodeDataSelector(
-                            (picker) => picker(item.id, item.type)?.item?.textResourceBindings ?? {},
-                            [item],
-                          ),
-                        )}
+                      <TableTitle
+                        nodeId={item.id}
+                        nodeType={item.type}
                       />
                       :
                     </b>
@@ -444,4 +438,9 @@ function NonEditableCell({
       </span>
     </Table.Cell>
   );
+}
+
+function TableTitle({ nodeId, nodeType }: { nodeId: string; nodeType: CompTypes }) {
+  const item = useNodeItemWhenType(nodeId, nodeType);
+  return <Lang id={getTableTitle(item?.textResourceBindings ?? {})} />;
 }

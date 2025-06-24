@@ -48,7 +48,6 @@ export interface BaseNodeData<T extends CompTypes> {
   isValid: boolean; // False when page is not in the page order, and not a pdf page
   depth: number;
   layout: CompIntermediate<T>;
-  item: CompInternal<T> | undefined;
   hidden: boolean | undefined;
   rowIndex: number | undefined;
   errors: GeneratorErrors | undefined;

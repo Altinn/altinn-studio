@@ -8,15 +8,17 @@ import classes from 'src/layout/Accordion/Accordion.module.css';
 import { AccordionItem as AltinnAcordionItem } from 'src/layout/Accordion/AccordionItem';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponentById } from 'src/layout/GenericComponent';
+import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type IAccordionProps = PropsFromGenericComponent<'Accordion'>;
 
 export const Accordion = ({ node }: IAccordionProps) => {
-  const { textResourceBindings, childComponents, openByDefault } = useNodeItem(node);
+  const { textResourceBindings, children, openByDefault } = useNodeItem(node);
   const { langAsString } = useLanguage();
+  const canRender = useHasCapability('renderInAccordion');
   const renderAsAccordionItem = useIsInAccordionGroup();
 
   const title = langAsString(textResourceBindings?.title ?? '');
@@ -33,8 +35,8 @@ export const Accordion = ({ node }: IAccordionProps) => {
         spacing={6}
         alignItems='flex-start'
       >
-        {childComponents.map((id) => (
-          <GenericComponentById
+        {children.filter(canRender).map((id) => (
+          <GenericComponentByBaseId
             key={id}
             id={id}
           />

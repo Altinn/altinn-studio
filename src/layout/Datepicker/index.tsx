@@ -10,8 +10,7 @@ import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { useDatepickerValidation } from 'src/layout/Datepicker/useDatepickerValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -35,7 +34,8 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   useDisplayData(nodeId: string): string {
     const formData = useNodeFormDataWhenType(nodeId, 'Datepicker');
     const currentLanguage = useCurrentLanguage();
-    const format = NodesInternal.useNodeDataWhenType(nodeId, 'Datepicker', (data) => data.item?.format);
+    const item = useNodeItemWhenType(nodeId, 'Datepicker');
+    const format = item?.format;
     const data = formData?.simpleBinding ?? '';
     if (!data) {
       return '';

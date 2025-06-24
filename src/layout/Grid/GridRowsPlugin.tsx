@@ -3,41 +3,30 @@ import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GridRows } from 'src/layout/common.generated';
-import type { GridCellInternal, GridRowsInternal } from 'src/layout/Grid/types';
 import type { CompTypes, TypesFromCategory } from 'src/layout/layout';
 import type {
   DefPluginChildClaimerProps,
-  DefPluginExprResolver,
-  DefPluginExtraInItem,
   DefPluginState,
-  DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
 
 interface ExternalConfig {
   componentType?: TypesFromCategory<CompCategory.Container>;
   externalProp?: string;
-  internalProp?: string;
   optional?: boolean;
 }
 
-interface Config<Type extends CompTypes, ExternalProp extends string, InternalProp extends string> {
+interface Config<Type extends CompTypes, ExternalProp extends string> {
   componentType: Type;
   expectedFromExternal: {
     [key in ExternalProp]?: GridRows;
   };
   extraState: undefined;
-  extraInItem: {
-    [key in ExternalProp]: undefined;
-  } & {
-    [key in InternalProp]: GridRowsInternal;
-  };
 }
 
 const defaultConfig = {
   componentType: 'unknown' as TypesFromCategory<CompCategory.Container>,
   externalProp: 'rows' as const,
-  internalProp: 'rowsInternal' as const,
   optional: false as const,
 };
 
@@ -47,11 +36,7 @@ type Combined<E extends ExternalConfig> = {
 };
 type Setting<E extends ExternalConfig, P extends keyof ExternalConfig> = Combined<E>[P];
 
-type ToInternal<E extends ExternalConfig> = Config<
-  Setting<E, 'componentType'>,
-  Setting<E, 'externalProp'>,
-  Setting<E, 'internalProp'>
->;
+type ToInternal<E extends ExternalConfig> = Config<Setting<E, 'componentType'>, Setting<E, 'externalProp'>>;
 
 export class GridRowsPlugin<E extends ExternalConfig>
   extends NodeDefPlugin<ToInternal<E>>
@@ -132,41 +117,6 @@ export class GridRowsPlugin<E extends ExternalConfig>
       from: 'src/utils/layout/generator/LayoutSetGenerator',
     });
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
-  }
-
-  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<ToInternal<E>>) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const external = ((item as any)[this.settings.externalProp] ?? []) as GridRows;
-    const internal: GridRowsInternal = [];
-
-    for (const row of external.values()) {
-      const cells: GridCellInternal[] = [];
-      for (const cell of row.cells.values()) {
-        if (cell && 'component' in cell && cell.component) {
-          const { component, ...rest } = cell;
-          cells.push({
-            ...rest,
-            nodeId: idMutators.reduce((id, mutator) => mutator(id), component),
-          });
-        } else {
-          cells.push(cell as GridCellInternal);
-        }
-      }
-      internal.push({ ...row, cells });
-    }
-
-    return {
-      [this.settings.externalProp]: undefined,
-      [this.settings.internalProp]: internal,
-    } as DefPluginExtraInItem<ToInternal<E>>;
-  }
-
-  evalDefaultExpressions(_props: DefPluginExprResolver<ToInternal<E>>): DefPluginExtraInItem<ToInternal<E>> {
-    // If we don't set this to undefined, we run the risk that the regular evalExpressions() run will set
-    // the external prop back to its original state.
-    return {
-      [this.settings.externalProp]: undefined,
-    } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
   isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {

@@ -7,6 +7,8 @@ import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
@@ -25,7 +27,7 @@ const colorVariantMap: Record<string, 'tinted' | 'default'> = {
 };
 
 export const Cards = ({ node }: ICardsProps) => {
-  const { cardsInternal, minMediaHeight, minWidth, color, mediaPosition: _mediaPosition } = useNodeItem(node);
+  const { cards, minMediaHeight, minWidth, color, mediaPosition: _mediaPosition } = useNodeItem(node);
   const processedMinWidth = parseSize(minWidth, '250px');
   const processedMinMediaHeight = parseSize(minMediaHeight, '150px');
   const mediaPosition = _mediaPosition ?? 'top';
@@ -37,7 +39,7 @@ export const Cards = ({ node }: ICardsProps) => {
   return (
     <ComponentStructureWrapper node={node}>
       <div style={cardContainer}>
-        {cardsInternal.map((card, idx) => (
+        {cards.map((card, idx) => (
           <AppCard
             key={idx}
             title={card.title && <Lang id={card.title} />}
@@ -46,10 +48,10 @@ export const Cards = ({ node }: ICardsProps) => {
             variant={colorVariantMap[color]}
             mediaPosition={mediaPosition}
             media={
-              card.mediaId && (
+              card.media && (
                 <CardItem
                   key={idx}
-                  nodeId={card.mediaId}
+                  baseComponentId={card.media}
                   parentNode={node}
                   isMedia={true}
                   minMediaHeight={processedMinMediaHeight}
@@ -69,12 +71,12 @@ export const Cards = ({ node }: ICardsProps) => {
                 spacing={6}
                 item
               >
-                {card?.childIds &&
-                  card.childIds?.length > 0 &&
-                  card.childIds?.filter(typedBoolean).map((childId, idx) => (
+                {card?.children &&
+                  card.children?.length > 0 &&
+                  card.children?.filter(typedBoolean).map((childId, idx) => (
                     <CardItem
                       key={idx}
-                      nodeId={childId}
+                      baseComponentId={childId}
                       parentNode={node}
                       isMedia={false}
                     />
@@ -89,15 +91,18 @@ export const Cards = ({ node }: ICardsProps) => {
 };
 
 type CardItemProps = {
-  nodeId: string;
+  baseComponentId: string;
   parentNode: LayoutNode<'Cards'>;
   isMedia: boolean;
   minMediaHeight?: string;
 };
 
-function CardItem({ nodeId, parentNode, isMedia, minMediaHeight }: CardItemProps) {
-  const itemNode = useNode(nodeId);
-  if (!itemNode) {
+function CardItem({ baseComponentId, parentNode, isMedia, minMediaHeight }: CardItemProps) {
+  const id = useIndexedId(baseComponentId);
+  const itemNode = useNode(id);
+  const canRenderInMedia = useHasCapability('renderInCardsMedia');
+  const canRenderInCard = useHasCapability('renderInCards');
+  if (!itemNode || (isMedia && !canRenderInMedia(baseComponentId)) || (!isMedia && !canRenderInCard(baseComponentId))) {
     return null;
   }
 
@@ -109,8 +114,8 @@ function CardItem({ nodeId, parentNode, isMedia, minMediaHeight }: CardItemProps
     >
       {isMedia ? (
         <div
-          data-componentid={nodeId}
-          data-componentbaseid={itemNode.baseId}
+          data-componentid={id}
+          data-componentbaseid={baseComponentId}
         >
           <GenericComponent
             node={itemNode}

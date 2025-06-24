@@ -1,4 +1,3 @@
-import { CG } from 'src/codegen/CG';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { SerializableSetting } from 'src/codegen/SerializableSetting';
@@ -21,25 +20,14 @@ interface DefPluginConfig {
 
 interface DefPluginBaseNodeData<Config extends DefPluginConfig>
   extends Omit<BaseNodeData<DefPluginCompType<Config>>, 'layout' | 'item'> {
-  item: (DefPluginCompInternal<Config> & DefPluginExtraInItem<Config>) | undefined;
+  item: DefPluginCompInternal<Config> | undefined;
   layout: DefPluginCompExternal<Config>;
 }
-
-// If the key 'extraInItem' exists in the plugin config, return the type of that key,
-// otherwise return 'undefined'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DefPluginExtraInItemFromPlugin<Plugin extends NodeDefPlugin<any>> =
-  Plugin extends NodeDefPlugin<infer Config>
-    ? DefPluginExtraInItem<Config> extends object
-      ? DefPluginExtraInItem<Config>
-      : Record<string, never>
-    : never;
 
 type DefPluginCompType<Config extends DefPluginConfig> = Config['componentType'];
 export type DefPluginExtraState<Config extends DefPluginConfig> = Config['extraState'] extends undefined
   ? unknown
   : Config['extraState'];
-export type DefPluginExtraInItem<Config extends DefPluginConfig> = Config['extraInItem'];
 type DefPluginCompInternal<Config extends DefPluginConfig> = CompInternal<DefPluginCompType<Config>>;
 export type DefPluginState<Config extends DefPluginConfig> = DefPluginBaseNodeData<Config> &
   DefPluginExtraState<Config>;
@@ -194,22 +182,6 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
   }
 
   /**
-   * Returns initial state for the item object. This may be needed if your plugin has to initialize the item object
-   * with some state, and stateFactory() won't work properly since multiple plugins will overwrite each others item
-   * object.
-   */
-  itemFactory(_props: DefPluginStateFactoryProps<Config>): DefPluginExtraInItem<Config> {
-    return {} as DefPluginExtraInItem<Config>;
-  }
-
-  /**
-   * Evaluates some expressions for the component. This can be used to add custom expressions to the component.
-   */
-  evalDefaultExpressions(_props: DefPluginExprResolver<Config>): DefPluginExtraInItem<Config> {
-    return {} as DefPluginExtraInItem<Config>;
-  }
-
-  /**
    * Outputs the code to render any child components that are needed for this plugin to work.
    * The reason this expects a string instead of JSX is because the code generator will run this function
    * and insert the output into the generated code. If we just output a reference to this function, the code
@@ -226,27 +198,6 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
    */
   extraMethodsInDef(): string[] {
     return [];
-  }
-
-  /**
-   * Outputs any extra code that should be output in the evalExpressions method. If you implement
-   * evalDefaultExpressions(). This aids in indicating extra state that is placed in the item object by your
-   * plugin (such as state added by addChild(), etc).
-   */
-  extraInEvalExpressions(): string {
-    const implementsExpressions = this.evalDefaultExpressions !== NodeDefPlugin.prototype.evalDefaultExpressions;
-    if (implementsExpressions) {
-      return `...this.plugins['${this.getKey()}'].evalDefaultExpressions(props as any),`;
-    }
-
-    const DefPluginExtraInItemFromPlugin = new CG.import({
-      import: 'DefPluginExtraInItemFromPlugin',
-      from: 'src/utils/layout/plugins/NodeDefPlugin',
-    });
-
-    // Fakes the state to make sure inferred types catch our additions to the state (even if the state is created
-    // somewhere else).
-    return `...({} as ${DefPluginExtraInItemFromPlugin}<(typeof this.plugins)['${this.getKey()}']>),`;
   }
 }
 

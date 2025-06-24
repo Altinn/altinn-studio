@@ -10,6 +10,7 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -37,7 +38,8 @@ interface ChildComponentProps extends Pick<GroupComponentSummaryProps, 'hierarch
   id: string;
 }
 
-function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
+function ChildComponent({ id: _id, hierarchyLevel }: ChildComponentProps) {
+  const id = useIndexedId(_id);
   const child = useNode(id);
   if (!child) {
     return null;
@@ -64,7 +66,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
   const isNestedGroup = hierarchyLevel > 0;
 
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
-  const childComponents = useNodeItem(componentNode, (i) => i.childComponents);
+  const children = useNodeItem(componentNode, (i) => i.children);
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   return (
@@ -96,7 +98,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
           spacing={6}
           alignItems='flex-start'
         >
-          {childComponents.map((childId) => (
+          {children.map((childId) => (
             <ChildComponent
               key={childId}
               id={childId}

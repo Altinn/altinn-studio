@@ -1,5 +1,5 @@
 import { CG } from 'src/codegen/CG';
-import { AlertOnChangePlugin } from 'src/features/alertOnChange/AlertOnChangePlugin';
+import { ExprVal } from 'src/features/expressions/types';
 import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 
@@ -15,18 +15,20 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
   },
   functionality: {
-    customExpressions: false,
+    customExpressions: true,
   },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
   .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
-  .addPlugin(
-    new AlertOnChangePlugin({
-      propName: 'alertOnChange',
-      title: 'Alert on change',
-      description: 'Boolean value indicating if the component should alert on change',
-    }),
+  .addProperty(
+    new CG.prop(
+      'alertOnChange',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Alert on change')
+        .setDescription('Boolean value indicating if the component should alert on change'),
+    ),
   )
   .addProperty(
     new CG.prop(

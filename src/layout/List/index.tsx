@@ -12,8 +12,7 @@ import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -31,15 +30,12 @@ export class List extends ListDef {
   );
 
   useDisplayData(nodeId: string): string {
-    const dmBindings = NodesInternal.useNodeDataWhenType(nodeId, 'List', (data) => data.layout.dataModelBindings);
+    const item = useNodeItemWhenType(nodeId, 'List');
+    const dmBindings = item?.dataModelBindings;
     const groupBinding = dmBindings?.group;
     const checkedBinding = dmBindings?.checked;
-    const summaryBinding = NodesInternal.useNodeDataWhenType(nodeId, 'List', (data) => data.item?.summaryBinding);
-    const legacySummaryBinding = NodesInternal.useNodeDataWhenType(
-      nodeId,
-      'List',
-      (data) => data.item?.bindingToShowInSummary,
-    );
+    const summaryBinding = item?.summaryBinding;
+    const legacySummaryBinding = item?.bindingToShowInSummary;
     const formData = useNodeFormDataWhenType(nodeId, 'List');
 
     if (groupBinding) {

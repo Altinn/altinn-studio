@@ -23,18 +23,18 @@ import {
   useNodeIdsFromGrid,
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
+import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
-import type { GridRowInternal } from 'src/layout/Grid/types';
+import type { GridRow, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
-  const { rowsInternal, textResourceBindings, labelSettings } = useNodeItem(node);
+  const { rows, textResourceBindings, labelSettings } = useNodeItem(node);
   const { title, description, help } = textResourceBindings ?? {};
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
@@ -65,7 +65,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             labelSettings={labelSettings}
           />
         )}
-        {rowsInternal.map((row, rowIdx) => (
+        {rows.map((row, rowIdx) => (
           <GridRowRenderer
             key={rowIdx}
             row={row}
@@ -79,14 +79,15 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
 }
 
 interface GridRowProps {
-  row: GridRowInternal;
+  row: GridRow;
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
 }
 
 export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
-  if (isGridRowHidden(row, isHiddenSelector)) {
+  const idMutator = useComponentIdMutator();
+  if (isGridRowHidden(row, isHiddenSelector, idMutator)) {
     return null;
   }
 
@@ -137,7 +138,8 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
             />
           );
         }
-        const componentId = isGridCellNode(cell) ? cell.nodeId : undefined;
+        const baseComponentId = isGridCellNode(cell) ? cell.component : undefined;
+        const componentId = baseComponentId && idMutator ? idMutator(baseComponentId) : baseComponentId;
         return (
           <CellWithComponent
             rowReadOnly={row.readOnly}
@@ -153,7 +155,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
   );
 }
 
-type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
+type InternalRowProps = PropsWithChildren<Pick<GridRow, 'header' | 'readOnly'>>;
 
 function InternalRow({ header, readOnly, children }: InternalRowProps) {
   const className = readOnly ? css.rowReadOnly : undefined;

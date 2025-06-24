@@ -25,14 +25,12 @@ export const Config = new CG.component({
   .addPlugin(
     new GridRowsPlugin({
       externalProp: 'rowsBefore',
-      internalProp: 'rowsBeforeInternal',
       optional: true,
     }),
   )
   .addPlugin(
     new GridRowsPlugin({
       externalProp: 'rowsAfter',
-      internalProp: 'rowsAfterInternal',
       optional: true,
     }),
   )

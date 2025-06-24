@@ -7,12 +7,14 @@ import { Fieldset } from 'src/app-components/Label/Fieldset';
 import classes from 'src/layout/ButtonGroup/ButtonGroupComponent.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
-  const { grid, childComponents } = useNodeItem(node);
+  const { grid, children } = useNodeItem(node);
 
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
 
@@ -30,10 +32,10 @@ export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGeneric
           alignItems='center'
           className={classes.container}
         >
-          {childComponents.map((id) => (
+          {children.map((id) => (
             <Child
               key={id}
-              id={id}
+              baseId={id}
             />
           ))}
         </Flex>
@@ -42,9 +44,11 @@ export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGeneric
   );
 }
 
-function Child({ id }: { id: string }) {
+function Child({ baseId }: { baseId: string }) {
+  const id = useIndexedId(baseId);
   const node = useNode(id);
-  if (!node) {
+  const canRender = useHasCapability('renderInButtonGroup');
+  if (!node || !canRender(baseId)) {
     return null;
   }
 

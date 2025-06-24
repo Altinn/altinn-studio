@@ -102,8 +102,6 @@ export interface SetNodePropRequest<T extends CompTypes, K extends keyof NodeDat
   node: LayoutNode<T>;
   prop: K;
   value: NodeData<T>[K];
-  partial?: boolean;
-  force?: boolean;
 }
 
 export interface SetPagePropRequest<K extends keyof PageData> {
@@ -237,24 +235,17 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
       set((state) => {
         let changes = false;
         const nodeData = { ...state.nodeData };
-        for (const { node, prop, value, partial, force } of requests) {
+        for (const { node, prop, value } of requests) {
           if (!nodeData[node.id]) {
             continue;
           }
 
           const thisNode = { ...nodeData[node.id] };
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const prev = thisNode[prop as any];
+          thisNode[prop as any] = value;
 
-          if (partial && value && prev && typeof prev === 'object' && typeof value === 'object') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            thisNode[prop as any] = { ...thisNode[prop as any], ...value };
-          } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            thisNode[prop as any] = value;
-          }
-
-          if (force || !deepEqual(nodeData[node.id][prop], thisNode[prop])) {
+          if (!deepEqual(nodeData[node.id][prop], thisNode[prop])) {
             changes = true;
             nodeData[node.id] = thisNode;
           }
@@ -957,7 +948,7 @@ function selectNodeData<T extends CompTypes = CompTypes>(
   const data =
     state.readiness === NodesReadiness.Ready
       ? state.nodeData[id] // Always use fresh data when ready
-      : preferFreshData && state.nodeData[id]?.item?.id // Only allow getting fresh data when not ready if item is set
+      : preferFreshData && state.nodeData[id]
         ? state.nodeData[id]
         : state.prevNodeData?.[id]
           ? state.prevNodeData[id]

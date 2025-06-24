@@ -4,9 +4,11 @@ import cn from 'classnames';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
-import { GenericComponentById } from 'src/layout/GenericComponent';
+import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -29,7 +31,7 @@ function getHeadingLevel(headingLevel: number | undefined) {
 }
 
 export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'Accordion'>) {
-  const { textResourceBindings, headingLevel, childComponents } = useNodeItem(targetNode);
+  const { textResourceBindings, headingLevel, children } = useNodeItem(targetNode);
   const { langAsString } = useLanguage();
 
   const title = langAsString(textResourceBindings?.title);
@@ -41,10 +43,10 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
         <Heading className={classes.paddingSmall}>{title}</Heading>
       </div>
       <div className={classes.padding}>
-        {childComponents.map((nodeId) => (
-          <GenericComponentById
-            key={nodeId}
-            id={nodeId}
+        {children.map((baseId) => (
+          <GenericComponentByBaseId
+            key={baseId}
+            id={baseId}
           />
         ))}
       </div>
@@ -53,7 +55,9 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
 }
 
 export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'>) {
-  const { textResourceBindings, headingLevel, childComponents } = useNodeItem(target);
+  const idMutator = useComponentIdMutator();
+  const canRenderInAccordion = useHasCapability('renderInAccordion');
+  const { textResourceBindings, headingLevel, children } = useNodeItem(target);
   const { langAsString } = useLanguage();
 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
@@ -71,10 +75,10 @@ export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'
           <Heading className={classes.paddingSmall}>{title}</Heading>
         </div>
         <div className={classes.padding}>
-          {childComponents.map((nodeId) => (
+          {children.filter(canRenderInAccordion).map((baseId) => (
             <ComponentSummaryById
-              key={nodeId}
-              componentId={nodeId}
+              key={baseId}
+              componentId={idMutator?.(baseId) ?? baseId}
             />
           ))}
         </div>

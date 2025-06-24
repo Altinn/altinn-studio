@@ -9,10 +9,10 @@ import classes from 'src/features/devtools/components/LayoutInspector/LayoutInsp
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
 import { nodeIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { GridRowsInternal } from 'src/layout/Grid/types';
+import type { GridRows } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Common {
@@ -29,34 +29,37 @@ interface INodeHierarchyProps extends Common {
 }
 
 interface IGridRowsRenderer extends Common {
-  rows: GridRowsInternal;
+  rows: GridRows;
   text: string;
 }
 
-const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
-  <>
-    {rows.map((row, idx) => {
-      const nodeIds = nodeIdsFromGridRow(row);
-      return (
-        <li
-          className={classes.repGroupRow}
-          key={idx}
-        >
-          <span className={classes.componentMetadata}>{text}</span>
-          {nodeIds.length > 0 ? (
-            <NodeHierarchy
-              nodeIds={nodeIds}
-              selected={selected}
-              onClick={onClick}
-            />
-          ) : (
-            <li className={cn(classes.componentMetadata, classes.list)}>Ingen komponenter å vise her</li>
-          )}
-        </li>
-      );
-    })}
-  </>
-);
+const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => {
+  const idMutator = useComponentIdMutator();
+  return (
+    <>
+      {rows.map((row, idx) => {
+        const nodeIds = nodeIdsFromGridRow(row, idMutator);
+        return (
+          <li
+            className={classes.repGroupRow}
+            key={idx}
+          >
+            <span className={classes.componentMetadata}>{text}</span>
+            {nodeIds.length > 0 ? (
+              <NodeHierarchy
+                nodeIds={nodeIds}
+                selected={selected}
+                onClick={onClick}
+              />
+            ) : (
+              <li className={cn(classes.componentMetadata, classes.list)}>Ingen komponenter å vise her</li>
+            )}
+          </li>
+        );
+      })}
+    </>
+  );
+};
 
 const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProps) => {
   const node = useNode(nodeId);
@@ -130,9 +133,9 @@ function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyI
 
   return (
     <>
-      {nodeItem.rowsBeforeInternal && (
+      {nodeItem.rowsBefore && (
         <GridRowList
-          rows={nodeItem.rowsBeforeInternal}
+          rows={nodeItem.rowsBefore}
           text='rowsBefore'
           selected={selected}
           onClick={onClick}
@@ -158,9 +161,9 @@ function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyI
           </DataModelLocationProvider>
         </li>
       ))}
-      {nodeItem.rowsAfterInternal && (
+      {nodeItem.rowsAfter && (
         <GridRowList
-          rows={nodeItem.rowsAfterInternal}
+          rows={nodeItem.rowsAfter}
           text='rowsAfter'
           selected={selected}
           onClick={onClick}

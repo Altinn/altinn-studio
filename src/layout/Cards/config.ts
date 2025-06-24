@@ -88,7 +88,7 @@ export const Config = new CG.component({
               .setDescription('Child component IDs to show inside the card')
               .optional(),
           ),
-        ).exportAs('CardConfigExternal'),
+        ).exportAs('CardConfig'),
       ),
     ),
   );

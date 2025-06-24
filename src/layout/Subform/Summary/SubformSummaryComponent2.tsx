@@ -3,7 +3,7 @@ import React, { type PropsWithChildren } from 'react';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { Label } from 'src/components/label/Label';
+import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -87,6 +87,7 @@ const DoSummaryWrapper = ({
   title: string | undefined;
   node: LayoutNode<'Subform'>;
 }>) => {
+  const item = useNodeItem(node);
   const isDone = useDoOverrideSummary(dataElement.id, layoutSet, dataElement.dataType);
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
@@ -111,8 +112,9 @@ const DoSummaryWrapper = ({
         >
           <Flex item>
             <div className={classes_singlevaluesummary.labelValueWrapper}>
-              <Label
-                node={node}
+              <LabelInner
+                item={item}
+                nodeId={node.id}
                 id={`subform-summary2-${dataElement.id}`}
                 renderLabelAs='span'
                 weight='regular'

@@ -13,7 +13,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -31,6 +31,13 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   useDisplayData(nodeId: string): string {
     const attachments = useAttachmentsFor(nodeId);
     return attachments.map((a) => a.data.filename).join(', ');
+  }
+
+  evalExpressions(props: ExprResolver<'FileUpload'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      alertOnDelete: props.evalBool(props.item.alertOnDelete, false),
+    };
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {

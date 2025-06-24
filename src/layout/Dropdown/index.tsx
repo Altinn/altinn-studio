@@ -14,7 +14,7 @@ import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -35,6 +35,13 @@ export class Dropdown extends DropdownDef {
     }
 
     return getSelectedValueToText(value, langTools, options) || '';
+  }
+
+  evalExpressions(props: ExprResolver<'Dropdown'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      alertOnChange: props.evalBool(props.item.alertOnChange, false),
+    };
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Dropdown'>): JSX.Element | null {

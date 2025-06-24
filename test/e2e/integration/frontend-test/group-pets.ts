@@ -175,6 +175,10 @@ describe('Group (Pets)', () => {
     cy.get(appFrontend.pets.group(true).tableRow(0).editButton).click();
     cy.dsSelect(appFrontend.pets.group().editContainer.species, 'Katt');
     cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should('contain.text', 'Katt');
+
+    // Prevents wcag test from running before this element is ready (needs to re-render after changing to cat)
+    cy.get('label[for="hiddenPets-Katt-med-navn-Preben-Potet-\\(15-år\\)"]').should('exist');
+
     cy.testWcag();
     cy.gotoNavPage('option-comp');
     cy.get('#header-collection1').should('be.visible');

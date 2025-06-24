@@ -1,5 +1,5 @@
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { GridRowsInternal } from 'src/layout/Grid/types';
+import type { GridRows } from 'src/layout/common.generated';
 import type { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
 
 type Comp = ReturnType<RepeatingGroupDef['evalDefaultExpressions']>;
@@ -16,25 +16,13 @@ export type GroupExpressions = ExprResolved<{
 }>;
 
 // This then, by its definition, is the opposite of the above types. It's the properties that are resolved for the
-// entire repeating group component at once, including the 'rows' property.
+// entire repeating group component at once.
 type RepGroupBase = ExprResolved<
-  Omit<
-    Comp,
-    | 'hiddenRow'
-    | 'textResourceBindings'
-    | 'edit'
-    | 'rows'
-    | 'rowsAfter'
-    | 'rowsBefore'
-    | 'rowsAfterInternal'
-    | 'rowsBeforeInternal'
-  >
+  Omit<Comp, 'hiddenRow' | 'textResourceBindings' | 'edit' | 'rowsAfter' | 'rowsBefore'>
 >;
 export type RepGroupInternal = RepGroupBase & {
   textResourceBindings?: Omit<RepGroupTrb, PerRowTrb>;
   edit?: Omit<RepGroupEdit, PerRowEdit>;
-  rowsBefore: undefined;
-  rowsAfter: undefined;
-  rowsBeforeInternal?: GridRowsInternal;
-  rowsAfterInternal?: GridRowsInternal;
+  rowsBefore?: GridRows;
+  rowsAfter?: GridRows;
 };

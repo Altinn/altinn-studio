@@ -2,6 +2,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, CompWithBinding } from 'src/layout/layout';
@@ -16,10 +17,9 @@ export function useEmptyFieldValidationAllBindings<Type extends CompTypes>(
   defaultText: ValidLanguageKey = 'form_filler.error_required',
 ): ComponentValidation[] {
   const dataModelBindings = NodesInternal.useNodeData(node, (state) => state.layout.dataModelBindings);
-  const required = NodesInternal.useNodeData(node, (state) =>
-    state.item && 'required' in state.item ? state.item.required : false,
-  );
-  const trb = NodesInternal.useNodeData(node, (state) => state.item?.textResourceBindings);
+  const item = useNodeItem(node);
+  const required = 'required' in item ? item.required : false;
+  const trb = item.textResourceBindings;
   const formDataSelector = FD.useDebouncedSelector();
   const invalidDataSelector = FD.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {
@@ -59,11 +59,10 @@ export function useEmptyFieldValidationOnlyOneBinding<Binding extends string>(
   binding: Binding,
   defaultText: ValidLanguageKey = 'form_filler.error_required',
 ): ComponentValidation[] {
-  const required = NodesInternal.useNodeData(node, (state) =>
-    state.item && 'required' in state.item ? state.item.required : false,
-  );
+  const item = useNodeItem(node);
+  const required = 'required' in item ? item.required : false;
   const reference = NodesInternal.useNodeData(node, (state) => state.layout.dataModelBindings?.[binding as string]);
-  const trb = NodesInternal.useNodeData(node, (state) => state.item?.textResourceBindings);
+  const trb = item.textResourceBindings;
   const validData = FD.useDebouncedPick(reference);
   const invalidData = FD.useInvalidDebouncedPick(reference);
   const data = validData ?? invalidData;

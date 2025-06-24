@@ -13,6 +13,7 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
+import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LabelType = 'span' | 'plainLabel';
@@ -27,10 +28,23 @@ export type LabelProps = PropsWithChildren<{
 }> &
   DesignsystemetLabelProps;
 
+type LabelInnerProps = Omit<LabelProps, 'node'> & { item: CompInternal; nodeId: string };
+
 export function Label(props: LabelProps) {
+  const _item = useNodeItem(props.node);
+  return (
+    <LabelInner
+      item={_item}
+      nodeId={props.node.id}
+      {...props}
+    />
+  );
+}
+
+export function LabelInner(props: LabelInnerProps) {
   const { children } = props;
   const {
-    node,
+    item: _item,
     overrideId,
     renderLabelAs,
     className,
@@ -39,7 +53,6 @@ export function Label(props: LabelProps) {
   } = props;
 
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const _item = useNodeItem(node);
   const item = { ..._item, ...overrideItemProps };
   const { grid, textResourceBindings: _trb } = item;
   const required = 'required' in item && item.required;
@@ -47,7 +60,7 @@ export function Label(props: LabelProps) {
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 
   // These can be overridden by props, but are otherwise retrieved from the node item
-  const id = overrideId ?? node.id;
+  const id = overrideId ?? props.nodeId;
   const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
 
   if (!textResourceBindings?.title) {
@@ -97,7 +110,7 @@ export function Label(props: LabelProps) {
             >
               <LabelContent
                 {...labelContentProps}
-                componentId={node.id}
+                componentId={id}
               />
             </DesignsystemetLabel>
           </LabelGridItemWrapper>

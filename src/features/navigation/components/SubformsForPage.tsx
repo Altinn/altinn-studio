@@ -5,6 +5,7 @@ import cn from 'classnames';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { ExprVal } from 'src/features/expressions/types';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -17,9 +18,10 @@ import {
   useExpressionDataSourcesForSubform,
   useSubformFormData,
 } from 'src/layout/Subform/utils';
+import { useIntermediateItem } from 'src/utils/layout/DataModelLocation';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey }: { pageKey: string }) {
@@ -49,7 +51,12 @@ function SubformGroup({ nodeId }: { nodeId: string }) {
     throw new Error(`Navigation expected component: "${nodeId}" to exist and be of type: "Subform"`);
   }
   const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
-  const { layoutSet, textResourceBindings, entryDisplayName } = useNodeItem(node);
+  const { layoutSet, textResourceBindings, entryDisplayName } = useIntermediateItem(node.baseId, 'Subform') ?? {};
+  const title = useEvalExpression(textResourceBindings?.title, {
+    returnType: ExprVal.String,
+    defaultValue: '',
+    errorIntroText: `Invalid expression for Subform title in ${node.baseId}`,
+  });
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${nodeId}`);
@@ -73,7 +80,7 @@ function SubformGroup({ nodeId }: { nodeId: string }) {
         className={cn(classes.subformExpandButton, 'fds-focus')}
       >
         <span className={classes.subformGroupName}>
-          <Lang id={textResourceBindings?.title} />
+          <Lang id={title} />
           &nbsp;({dataElements.length})
         </span>
         <ChevronDownIcon

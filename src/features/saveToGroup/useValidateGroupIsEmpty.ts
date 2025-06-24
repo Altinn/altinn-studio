@@ -4,17 +4,17 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function useValidateGroupIsEmpty(
   node: LayoutNode<'Checkboxes' | 'MultipleSelect' | 'List'>,
 ): ComponentValidation[] {
-  const required = NodesInternal.useNodeData(node, (d) => (d.item && 'required' in d.item ? d.item.required : false));
-  const dataModelBindings = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings);
-  const textResourceBindings = NodesInternal.useNodeData(node, (d) => d.item?.textResourceBindings);
+  const item = useNodeItem(node);
+  const required = item && 'required' in item ? item.required : false;
+  const dataModelBindings = item.dataModelBindings;
+  const textResourceBindings = item.textResourceBindings;
   const formData = useNodeFormDataWhenType<'Checkboxes' | 'MultipleSelect' | 'List'>(node.id, node.type);
 
   const invalidDataSelector = FD.useInvalidDebouncedSelector();

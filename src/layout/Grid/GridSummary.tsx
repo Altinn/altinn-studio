@@ -33,16 +33,20 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
+import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type {
+  GridCell,
   GridCellLabelFrom,
   GridCellText,
+  GridComponentRef,
+  GridRow,
   ITableColumnFormatting,
   ITableColumnProperties,
 } from 'src/layout/common.generated';
-import type { GridCellInternal, GridCellNode, GridRowInternal } from 'src/layout/Grid/types';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { EditButtonProps } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -52,7 +56,7 @@ type GridSummaryProps = Readonly<{
 }>;
 
 export const GridSummary = ({ componentNode }: GridSummaryProps) => {
-  const { rowsInternal, textResourceBindings } = useNodeItem(componentNode);
+  const { rows, textResourceBindings } = useNodeItem(componentNode);
   const { title } = textResourceBindings ?? {};
 
   const columnSettings: ITableColumnFormatting = {};
@@ -63,10 +67,10 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
   const isSmall = isMobile && !pdfModeActive;
 
   const tableSections: JSX.Element[] = [];
-  let currentHeaderRow: GridRowInternal | undefined = undefined;
-  let currentBodyRows: GridRowInternal[] = [];
+  let currentHeaderRow: GridRow | undefined = undefined;
+  let currentBodyRows: GridRow[] = [];
 
-  rowsInternal.forEach((row, index) => {
+  rows.forEach((row, index) => {
     if (row.header) {
       // If there are accumulated body rows, push them into a tbody
       if (currentBodyRows.length > 0) {
@@ -114,7 +118,7 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
   // Push remaining body rows if any
   if (currentBodyRows.length > 0) {
     tableSections.push(
-      <tbody key={`tbody-${rowsInternal.length}`}>
+      <tbody key={`tbody-${rows.length}`}>
         {currentBodyRows.map((bodyRow, bodyIndex) => (
           <EmptyChildrenBoundary
             key={bodyIndex}
@@ -159,10 +163,10 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
 };
 
 interface GridRowProps {
-  row: GridRowInternal;
+  row: GridRow;
   mutableColumnSettings: ITableColumnFormatting;
   node: LayoutNode<'Grid'>;
-  headerRow?: GridRowInternal;
+  headerRow?: GridRow;
 }
 
 function SummaryGridRowRenderer(props: GridRowProps) {
@@ -173,8 +177,9 @@ function SummaryGridRowRenderer(props: GridRowProps) {
   const isSmall = isMobile && !pdfModeActive;
   const firstNodeId = useFirstFormNodeId(row);
 
+  const idMutator = useComponentIdMutator();
   const onlyEmptyChildren = useHasOnlyEmptyChildren();
-  const isHeaderWithoutComponents = row.header === true && !row.cells.some((cell) => cell && 'nodeId' in cell);
+  const isHeaderWithoutComponents = row.header === true && !row.cells.some((cell) => cell && 'component' in cell);
   const hideEmptyRows = useSummaryOverrides(props.node)?.hideEmptyRows;
 
   useReportSummaryRenderToParent(
@@ -185,7 +190,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
         : SummaryContains.SomeUserContent,
   );
 
-  if (isGridRowHidden(row, isHiddenSelector)) {
+  if (isGridRowHidden(row, isHiddenSelector, idMutator)) {
     return null;
   }
 
@@ -228,11 +233,14 @@ function SummaryGridRowRenderer(props: GridRowProps) {
   );
 }
 
-function useFirstFormNodeId(row: GridRowInternal): string | undefined {
+function useFirstFormNodeId(row: GridRow): string | undefined {
+  const idMutator = useComponentIdMutator();
+  const canRender = useHasCapability('renderInTable');
   return NodesInternal.useSelector((state) => {
     for (const cell of row.cells) {
-      if (cell && 'nodeId' in cell && cell.nodeId) {
-        const nodeData = state.nodeData?.[cell.nodeId];
+      if (cell && 'component' in cell && cell.component && canRender(cell.component)) {
+        const nodeId = idMutator(cell.component);
+        const nodeData = state.nodeData?.[nodeId];
         const def = nodeData && getComponentDef(nodeData.layout.type);
         if (def && def.category === CompCategory.Form) {
           return nodeData.layout.id;
@@ -261,7 +269,7 @@ function WrappedEditButton({
 }
 
 interface CellProps extends GridRowProps {
-  cell: GridCellInternal;
+  cell: GridCell;
   idx: number;
   isSmall: boolean;
 }
@@ -356,10 +364,10 @@ function SummaryCellInner({
     }
   }
 
-  if (cell && 'nodeId' in cell) {
+  if (cell && 'component' in cell) {
     return (
       <SummaryCellWithComponentNodeCheck
-        key={`${cell.nodeId}/${idx}`}
+        key={`${cell.component}/${idx}`}
         cell={cell}
         columnStyleOptions={mutableColumnSettings[idx]}
         headerTitle={headerTitle}
@@ -381,7 +389,7 @@ interface BaseCellProps {
 }
 
 interface CellWithComponentProps extends BaseCellProps {
-  cell: GridCellNode;
+  cell: GridComponentRef;
 }
 
 interface CellWithTextProps extends PropsWithChildren, BaseCellProps {
@@ -393,8 +401,10 @@ interface CellWithLabelProps extends BaseCellProps {
 }
 
 function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
-  const node = useNode(props.cell.nodeId);
-  if (!node) {
+  const nodeId = useIndexedId(props.cell.component ?? '');
+  const node = useNode(nodeId);
+  const canRender = useHasCapability('renderInTable');
+  if (!node || !canRender(props.cell.component)) {
     return <Table.Cell />;
   }
 

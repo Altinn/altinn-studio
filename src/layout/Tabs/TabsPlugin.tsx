@@ -6,15 +6,9 @@ import type { CompTypes } from 'src/layout/layout';
 import type { TabConfig } from 'src/layout/Tabs/config.generated';
 import type {
   DefPluginChildClaimerProps,
-  DefPluginExtraInItem,
   DefPluginState,
-  DefPluginStateFactoryProps,
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
-
-export interface TabConfigInternal extends Omit<TabConfig, 'children'> {
-  childIds: string[];
-}
 
 interface Config<Type extends CompTypes> {
   componentType: Type;
@@ -22,10 +16,6 @@ interface Config<Type extends CompTypes> {
     tabs: TabConfig[];
   };
   extraState: undefined;
-  extraInItem: {
-    tabs: undefined;
-    tabsInternal: TabConfigInternal[];
-  };
 }
 
 export class TabsPlugin<Type extends CompTypes>
@@ -82,37 +72,6 @@ export class TabsPlugin<Type extends CompTypes>
       from: 'src/utils/layout/generator/LayoutSetGenerator',
     });
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
-  }
-
-  itemFactory({ item, idMutators, getCapabilities, layoutMap }: DefPluginStateFactoryProps<Config<Type>>) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tabsInternal = structuredClone((item as any).tabs || []) as TabConfigInternal[];
-
-    // Remove all children, as they will be added as nodes later:
-    for (const tab of tabsInternal) {
-      const children = (tab as unknown as TabConfig).children ?? [];
-      const mutatedIds: string[] = [];
-      for (const childId of children) {
-        const rawLayout = layoutMap[childId];
-        const capabilities = rawLayout && getCapabilities(rawLayout.type);
-        if (!capabilities?.renderInTabs) {
-          continue;
-        }
-
-        let id = childId;
-        for (const mutator of idMutators) {
-          id = mutator(id);
-        }
-        mutatedIds.push(id);
-      }
-      tab.childIds = mutatedIds;
-      (tab as unknown as TabConfig).children = [];
-    }
-
-    return {
-      tabs: undefined,
-      tabsInternal,
-    } as DefPluginExtraInItem<Config<Type>>;
   }
 
   isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {

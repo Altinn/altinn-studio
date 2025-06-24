@@ -1,6 +1,6 @@
 import { CG } from 'src/codegen/CG';
-import { AlertOnChangePlugin } from 'src/features/alertOnChange/AlertOnChangePlugin';
 import { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
+import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 
@@ -17,7 +17,7 @@ export const Config = asUploaderComponent(
       renderInTabs: true,
     },
     functionality: {
-      customExpressions: false,
+      customExpressions: true,
     },
   }),
 );
@@ -69,13 +69,16 @@ export function asUploaderComponent(config: ComponentConfig) {
           .addExample('.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'),
       ),
     )
-    .addPlugin(
-      new AlertOnChangePlugin({
-        propName: 'alertOnDelete',
-        title: 'Alert on delete',
-        description:
-          'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
-      }),
+    .addProperty(
+      new CG.prop(
+        'alertOnDelete',
+        new CG.expr(ExprVal.Boolean)
+          .optional({ default: false })
+          .setTitle('Alert on delete')
+          .setDescription(
+            'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
+          ),
+      ),
     )
     .extends(CG.common('LabeledComponentProps'))
     .extendTextResources(CG.common('TRBLabel'));
