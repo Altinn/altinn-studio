@@ -1,6 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon, FolderPlusIcon } from '@studio/icons';
+import {
+  MenuElipsisVerticalIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  FolderPlusIcon,
+  FolderIcon,
+} from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
 import { StudioDropdown } from '@studio/components';
@@ -141,7 +147,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
                 onClick={() => setIsMoveToGroupDialogOpen(true)}
                 disabled={pagesModel.groups.length <= 1}
               >
-                <FolderPlusIcon />
+                <FolderIcon />
                 {t('ux_editor.page_menu_existing_group')}
               </StudioDropdown.Button>
             </StudioDropdown.Item>
