@@ -85,6 +85,23 @@ describe('NavigationMenu', () => {
         updatedPagesModel,
       );
     });
+
+    it('should be able to move a page to new group', async () => {
+      const user = userEvent.setup();
+      await render({
+        pagesModel: pageGroupsMultiplePagesMock,
+      });
+      await user.click(contextMenuTriggerButton());
+      await user.click(movePageToNewGroupButton());
+
+      expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
+        org,
+        app,
+        mockSelectedLayoutSet,
+        expect.objectContaining({ groups: [expect.anything(), expect.anything()] }),
+      );
+    });
   });
 });
 
@@ -93,6 +110,8 @@ const movePageDownButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_down') });
 const movePageUpButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_up') });
+const movePageToNewGroupButton = () =>
+  screen.getByRole('button', { name: textMock('ux_editor.page_menu_new_group') });
 
 type renderParams = {
   props?: Partial<NavigationMenuProps>;
