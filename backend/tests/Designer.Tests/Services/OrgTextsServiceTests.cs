@@ -218,7 +218,7 @@ public class OrgTextsServiceTests : IDisposable
         List<string> textIds = await service.GetTextIds(TargetOrg, Developer);
 
         // Assert
-        Assert.Equal(2, textIds.Count);
+        Assert.Equal(3, textIds.Count);
         Assert.NotEqual(textIds[0], textIds[1]);
     }
 

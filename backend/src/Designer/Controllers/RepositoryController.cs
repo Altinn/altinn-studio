@@ -219,6 +219,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
+            await _sourceControl.VerifyCloneExists(org, repository);
             await _sourceControl.FetchRemoteChanges(org, repository);
             return _sourceControl.RepositoryStatus(org, repository);
         }

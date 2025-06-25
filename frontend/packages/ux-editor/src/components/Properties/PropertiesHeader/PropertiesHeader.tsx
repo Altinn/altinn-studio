@@ -1,7 +1,6 @@
-import React, { Component } from 'react';
+import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -37,12 +36,9 @@ export const PropertiesHeader = ({
     );
   }
 
-  const { dataModelBindings, textResourceBindings, required } = schema.properties;
-  console.log(required);
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
-  const Icon = isUnknownInternalComponent
-    ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+  const { dataModelBindings, textResourceBindings } = schema.properties;
+
+  const Icon = formItemConfigs[formItem.type]?.icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
   console.log(formItem);

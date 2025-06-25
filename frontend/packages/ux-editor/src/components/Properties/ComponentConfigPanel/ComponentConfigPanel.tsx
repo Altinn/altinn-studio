@@ -12,9 +12,11 @@ import { Dynamics } from '../Dynamics';
 import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
+import { formItemConfigs } from '../../../data/formItemConfig';
 
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
+import { UnknownComponentAlert } from '../../UnknownComponentAlert';
 
 type ComponentConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Component }>;
@@ -35,6 +37,16 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   }
 
   const isNotSubformOrHasLayoutSet = formItem.type !== 'Subform' || !!formItem.layoutSet;
+
+  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+
+  if (isUnknownInternalComponent) {
+    return (
+      <div className={classes.unknownComponentAlert}>
+        <UnknownComponentAlert componentName={formItem.type} />
+      </div>
+    );
+  }
 
   return (
     <>
