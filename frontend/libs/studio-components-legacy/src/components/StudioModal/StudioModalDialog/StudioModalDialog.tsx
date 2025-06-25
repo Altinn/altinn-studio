@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import React, { useId, forwardRef, useCallback } from 'react';
-
 import { Modal } from '@digdir/designsystemet-react';
 import type { ModalDialogProps } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -53,13 +52,13 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
         ref={dialogRef}
         {...rest}
       >
-        <Modal.Header className={classes.heading} id={headerId}>
+        <Modal.Header className={classes.heading}>
           {icon && (
             <span className={classes.icon} aria-hidden>
               {icon}
             </span>
           )}
-          <span>{heading}</span>
+          <span id={headerId}>{heading}</span>
         </Modal.Header>
         <Modal.Content className={cn(classes.content, contentClassName)}>{children}</Modal.Content>
         {footer && <Modal.Footer className={classes.footer}>{footer}</Modal.Footer>}
