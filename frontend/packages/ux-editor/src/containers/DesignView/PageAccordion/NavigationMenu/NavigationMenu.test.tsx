@@ -1,6 +1,8 @@
 import {
+  groupsPagesModelMock,
   layout1NameMock,
   layout2NameMock,
+  layout3NameMock,
   pageGroupsMultiplePagesMock,
   pagesModelMock,
 } from '../../../../testing/layoutMock';
@@ -85,6 +87,46 @@ describe('NavigationMenu', () => {
         updatedPagesModel,
       );
     });
+
+    it('should be able to move a page to new group', async () => {
+      const user = userEvent.setup();
+      await render({
+        pagesModel: pageGroupsMultiplePagesMock,
+      });
+      await user.click(contextMenuTriggerButton());
+      await user.click(movePageToNewGroupButton());
+
+      expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
+        org,
+        app,
+        mockSelectedLayoutSet,
+        expect.objectContaining({ groups: [expect.anything(), expect.anything()] }),
+      );
+    });
+
+    it('should be able to move pages to other group', async () => {
+      const user = userEvent.setup();
+      await render({
+        pagesModel: groupsPagesModelMock,
+      });
+      await user.click(contextMenuTriggerButton());
+      await user.click(movePageToExistingGroupButton());
+      await user.selectOptions(movePageGroupDialogPageGroupSelect(), layout3NameMock);
+      await user.click(movePageGroupDialogSaveButton());
+
+      expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+        groups: [
+          expect.objectContaining({ name: undefined, order: [expect.anything()] }),
+          expect.objectContaining({
+            name: expect.stringContaining('ux_editor.page_layout_group'),
+            markWhenCompleted: true,
+            order: [expect.anything(), expect.anything()],
+          }),
+        ],
+      });
+    });
   });
 });
 
@@ -93,6 +135,16 @@ const movePageDownButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_down') });
 const movePageUpButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_up') });
+const movePageToNewGroupButton = () =>
+  screen.getByRole('button', { name: textMock('ux_editor.page_menu_new_group') });
+const movePageToExistingGroupButton = () =>
+  screen.getByRole('button', { name: textMock('ux_editor.page_menu_existing_group') });
+const movePageGroupDialogPageGroupSelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.page_group_move_dialog.select_group_label'),
+  });
+const movePageGroupDialogSaveButton = () =>
+  screen.getByRole('button', { name: textMock('general.save') });
 
 type renderParams = {
   props?: Partial<NavigationMenuProps>;
