@@ -58,7 +58,7 @@ export const PageGroupMoveToExistingGroupDialog = ({
   };
 
   return (
-    <StudioDialog open={open} onClose={onClose}>
+    <StudioDialog open={open} onClose={onClose} closeButton={false}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
         <StudioHeading>{t('ux_editor.page_group_move_dialog.select_group')}</StudioHeading>
         <StudioParagraph>{t('ux_editor.page_group_move_dialog.description')}</StudioParagraph>
