@@ -19,6 +19,7 @@ public class OptionListReferenceService : IOptionListReferenceService
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private AltinnAppGitRepository _altinnAppGitRepository;
+    private HashSet<string> _repoOptionListIds;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionListReferenceService"/> class.
@@ -37,6 +38,7 @@ public class OptionListReferenceService : IOptionListReferenceService
     {
         cancellationToken.ThrowIfCancellationRequested();
         _altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(editingContext.Org, editingContext.Repo, editingContext.Developer);
+        _repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds().ToHashSet();
 
         await AddLayoutSetReferences(cancellationToken);
         await AddTaskReferences(editingContext, cancellationToken);
@@ -44,10 +46,8 @@ public class OptionListReferenceService : IOptionListReferenceService
         return _optionListReferences;
     }
 
-    private async Task AddLayoutSetReferences(CancellationToken cancellationToken = default)
+    private async Task AddLayoutSetReferences(CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         string[] layoutSetNames = _altinnAppGitRepository.GetLayoutSetNames();
         foreach (string layoutSetName in layoutSetNames)
         {
@@ -55,10 +55,8 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
     }
 
-    private async Task FindOptionListReferencesInLayoutSet(string layoutSetName, CancellationToken cancellationToken = default)
+    private async Task FindOptionListReferencesInLayoutSet(string layoutSetName, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         string[] layoutNames = _altinnAppGitRepository.GetLayoutNames(layoutSetName);
         foreach (string layoutName in layoutNames)
         {
@@ -66,25 +64,24 @@ public class OptionListReferenceService : IOptionListReferenceService
         }
     }
 
-    private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken = default)
+    private async Task FindOptionListReferencesInLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken)
     {
-        string[] repoOptionListIds = _altinnAppGitRepository.GetOptionsListIds();
         var layout = await _altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
         var components = GetComponentArray(layout);
-        if (repoOptionListIds.Length > 0 && components?.Count > 0)
+        if (_repoOptionListIds.Count > 0 && components?.Count > 0)
         {
-            FindOptionListReferencesInComponents(layoutSetName, layoutName, components, repoOptionListIds);
+            FindOptionListReferencesInComponents(layoutSetName, layoutName, components);
         }
     }
 
-    private void FindOptionListReferencesInComponents(string layoutSetName, string layoutName, JsonArray components, string[] repoOptionListIds)
+    private void FindOptionListReferencesInComponents(string layoutSetName, string layoutName, JsonArray components)
     {
         foreach (var component in components)
         {
             string componentId = GetComponentId(component);
             string optionListId = GetComponentOptionsId(component);
 
-            if (ComponentReferencesOptionList(component) && OptionListIdExistsInRepo(optionListId, repoOptionListIds))
+            if (ComponentReferencesOptionList(optionListId) && OptionListIdExistsInRepo(optionListId))
             {
                 AddComponentReference(layoutSetName, layoutName, componentId, optionListId);
             }
@@ -93,26 +90,22 @@ public class OptionListReferenceService : IOptionListReferenceService
 
     private void AddComponentReference(string layoutSetName, string layoutName, string componentId, string optionListId)
     {
-        if (OptionListIdAlreadyReferenced(optionListId, out var existingRef))
-        {
-            AppendOptionListReference(existingRef, layoutSetName, layoutName, componentId);
-        }
-        else
+        var existingReference = RetrieveOptionListReference(optionListId);
+        if (existingReference is null)
         {
             AddNewOptionListReference(optionListId, layoutSetName, layoutName, componentId);
+            return;
         }
-    }
 
-    private static void AppendOptionListReference(OptionListReference existingRef, string layoutSetName, string layoutName, string componentId)
-    {
-        if (OptionListIdAlreadyReferencedInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
+        var existingSource = RetrieveOptionListIdSource(existingReference, layoutSetName, layoutName);
+        if (existingSource is null)
         {
-            AddComponentIdToExistingSource(componentId, existingSource);
+            var source = CreateOptionListIdSource(layoutSetName, layoutName, componentId);
+            existingReference.OptionListIdSources.Add(source);
+            return;
         }
-        else
-        {
-            AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, componentId);
-        }
+
+        existingSource.ComponentIds.Add(componentId);
     }
 
     private static JsonArray GetComponentArray(JsonNode layout)
@@ -130,54 +123,44 @@ public class OptionListReferenceService : IOptionListReferenceService
         return component["optionsId"]?.ToString();
     }
 
-    private static bool ComponentReferencesOptionList(JsonNode component)
+    private static bool ComponentReferencesOptionList(string optionListId)
     {
-        string optionListId = GetComponentOptionsId(component);
         return !string.IsNullOrEmpty(optionListId);
     }
 
-    private static bool OptionListIdExistsInRepo(string optionListId, string[] repoOptionListIds)
+    private bool OptionListIdExistsInRepo(string optionListId)
     {
-        return repoOptionListIds.Contains(optionListId);
+        return _repoOptionListIds.Contains(optionListId);
     }
 
-    private bool OptionListIdAlreadyReferenced(string optionListId, out OptionListReference existingRef)
+    private OptionListReference RetrieveOptionListReference(string optionListId)
     {
-        existingRef = _optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
-        return existingRef != null;
+        return _optionListReferences.FirstOrDefault(reference => reference.OptionListId == optionListId);
     }
 
-    private static bool OptionListIdAlreadyReferencedInLayout(OptionListReference optionListReference, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
+    private static OptionListIdSource RetrieveOptionListIdSource(OptionListReference existingReference, string layoutSetName, string layoutName)
     {
-        existingSource = optionListReference.OptionListIdSources.FirstOrDefault(
+        return existingReference.OptionListIdSources.FirstOrDefault(
             optionListIdSource =>
                 optionListIdSource.LayoutSetId == layoutSetName
                 && optionListIdSource.LayoutName == layoutName
         );
-        return existingSource != null;
     }
 
-    private static void AddComponentIdToExistingSource(string componentId, OptionListIdSource existingSource)
+    private static OptionListIdSource CreateOptionListIdSource(string layoutSetName, string layoutName, string componentId)
     {
-        existingSource.ComponentIds.Add(componentId);
-    }
-
-    private static void AddNewOptionListIdSource(OptionListReference optionListReference, string layoutSetName, string layoutName, string componentId)
-    {
-        optionListReference.OptionListIdSources.Add(
-            new OptionListIdSource
-            {
-                LayoutSetId = layoutSetName,
-                LayoutName = layoutName,
-                ComponentIds = [componentId],
-            }
-        );
+        return new OptionListIdSource
+        {
+            LayoutSetId = layoutSetName,
+            LayoutName = layoutName,
+            ComponentIds = [componentId]
+        };
     }
 
     private void AddNewOptionListReference(string optionListId, string layoutSetName, string layoutName, string componentId)
     {
         _optionListReferences.Add(
-            new()
+            new OptionListReference
             {
                 OptionListId = optionListId,
                 OptionListIdSources =
@@ -187,52 +170,33 @@ public class OptionListReferenceService : IOptionListReferenceService
                         LayoutSetId = layoutSetName,
                         LayoutName = layoutName,
                         ComponentIds = [componentId],
-                    },
-                ],
+                    }
+                ]
             }
         );
     }
 
-    private async Task AddTaskReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default)
+    private async Task AddTaskReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         if (_optionListReferences.Count > 0)
         {
-            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
-            AddTaskDataToOptionListReferences(_optionListReferences, layoutSetsModel);
+            var layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            AddTaskDataToOptionListReferences(layoutSetsModel);
         }
     }
 
-    private static void AddTaskDataToOptionListReferences(List<OptionListReference> optionListReferences, LayoutSetsModel layoutSetsModel)
+    private void AddTaskDataToOptionListReferences(LayoutSetsModel layoutSetsModel)
     {
-        foreach (var reference in optionListReferences)
+        foreach (var optionListIdSource in _optionListReferences.SelectMany(reference => reference.OptionListIdSources))
         {
-            AddTaskDataToOptionListReference(reference, layoutSetsModel);
+            var layoutSetModel = layoutSetsModel.Sets.FirstOrDefault(set => set.Id == optionListIdSource.LayoutSetId);
+            AddTaskDataToSourceFromLayoutSetModel(optionListIdSource, layoutSetModel);
         }
     }
 
-    private static void AddTaskDataToOptionListReference(OptionListReference reference, LayoutSetsModel layoutSetsModel)
+    private static void AddTaskDataToSourceFromLayoutSetModel(OptionListIdSource optionListIdSource, LayoutSetModel layoutSetModel)
     {
-        foreach (var source in reference.OptionListIdSources)
-        {
-            AddTaskDataToSourceFromLayoutSetModels(source, layoutSetsModel);
-        }
-    }
-
-    private static void AddTaskDataToSourceFromLayoutSetModels(OptionListIdSource source, LayoutSetsModel layoutSetsModel)
-    {
-        var layoutSetModel = FindLayoutSetModelBySourceId(layoutSetsModel, source.LayoutSetId);
-        AddTaskDataToSource(source, layoutSetModel);
-    }
-
-    private static LayoutSetModel FindLayoutSetModelBySourceId(LayoutSetsModel layoutSetsModels, string sourceId)
-    {
-        return layoutSetsModels.Sets.FirstOrDefault(set => set.Id == sourceId);
-    }
-
-    private static void AddTaskDataToSource(OptionListIdSource source, LayoutSetModel layoutSetModel)
-    {
-        source.TaskId = layoutSetModel?.Task.Id;
-        source.TaskType = layoutSetModel?.Task.Type;
+        optionListIdSource.TaskId = layoutSetModel?.Task.Id;
+        optionListIdSource.TaskType = layoutSetModel?.Task.Type;
     }
 }
