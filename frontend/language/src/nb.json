@@ -1212,7 +1212,7 @@
   "schema_editor.uniqueItems": "Bare unike elementer",
   "session.do_show_again": "Ja, takk",
   "session.dont_show_again": "Nei, ikke vis meldingen igjen",
-  "session.reminder": "Ønsker du en påminnelse neste gang du logger på?",
+  "session.reminder": "Vil du ha en påminnelse neste gang du logger på?",
   "shared.header_all": "Alle",
   "shared.header_button": "Altinn profilmeny",
   "shared.header_button_alt": "Altinn profilmeny",
@@ -2129,5 +2129,17 @@
   "validation_errors.required": "Feltet må fylles ut.",
   "validation_errors.upload_file_name_occupied": "Opplastning feilet. Du prøvde å laste opp en fil som finnes fra før.",
   "validation_errors.upload_file_name_required": "Opplastning feilet. Filnavnet kan ikke være tomt.",
-  "validation_errors.value_as_url": "Ugyldig lenke."
+  "validation_errors.value_as_url": "Ugyldig lenke.",
+  "version_dialog.backend": "Backend",
+  "version_dialog.current_version": "Gjeldende versjon",
+  "version_dialog.frontend": "Frontend",
+  "version_dialog.latest_version": "Siste versjon",
+  "version_dialog.outdated_version_description": "Du har en eldre versjon av repoet. Det gjør at du kan oppleve noen problemer i Studio.",
+  "version_dialog.outdated_version_recommendation": "Vi anbefaler at du oppdaterer til nyeste versjon av repoet og starter Studio på nytt, for å få en bedre brukeropplevelse.",
+  "version_dialog.outdated_version_title": "Versjonen er utdatert",
+  "version_dialog.unknown": "Ukjent",
+  "version_dialog.unsupported_version_content": "Du har en versjon av repoet som Studio ikke støtter lenger. Oppdater versjonen din og start Studio på nytt.",
+  "version_dialog.unsupported_version_title": "Versjonen støttes ikke",
+  "version_dialog.update_backend": "Oppdater backend til v{{latestVersion}}",
+  "version_dialog.update_frontend": "Oppdater frontend til v{{latestVersion}}"
 }

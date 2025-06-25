@@ -157,3 +157,50 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
     </div>
   );
 };
+
+type PageGroupActionProps = {
+  pageName: string;
+};
+
+const PageGroupActions = ({ pageName }: PageGroupActionProps) => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
+
+  const pagesInGroup =
+    pagesModel.groups?.find((group) => group.order.some((page) => page.id === pageName))?.order
+      .length || 0;
+
+  const movePageToNewGroup = () => {
+    const newGroup: GroupModel = {
+      order: [{ id: pageName }],
+    };
+    const updatedPagesModel = {
+      ...pagesModel,
+      groups: [
+        ...pagesModel.groups.map((group) => ({
+          ...group,
+          order: group.order.filter((page) => page.id !== pageName),
+        })),
+        newGroup,
+      ],
+    };
+    changePageGroups(updatedPagesModel);
+  };
+
+  return (
+    <>
+      <StudioDropdown.Heading>
+        {t('ux_editor.page_menu_group_movement_heading')}
+      </StudioDropdown.Heading>
+      <StudioDropdown.Item>
+        <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
+          <FolderPlusIcon />
+          {t('ux_editor.page_menu_new_group')}
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
+    </>
+  );
+};
