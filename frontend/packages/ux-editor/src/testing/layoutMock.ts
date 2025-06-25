@@ -12,6 +12,7 @@ import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
+export const layout3NameMock = 'Side3';
 export const pagelayout1NameMock = 'Sideoppsett 1';
 export const pagelayout2NameMock = 'Sideoppsett 2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
@@ -189,9 +190,8 @@ export const groupsPagesModelMock: PagesModel = {
       order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
     {
-      name: layout2NameMock,
       markWhenCompleted: true,
-      order: [{ id: layout2NameMock }],
+      order: [{ id: layout3NameMock }],
     },
   ],
 };
