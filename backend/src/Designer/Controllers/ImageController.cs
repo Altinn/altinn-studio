@@ -31,9 +31,8 @@ public class ImageController : ControllerBase
     /// Initializes a new instance of the <see cref="ImageController"/> class.
     /// </summary>
     /// <param name="imagesService">The images service.</param>
-    /// <param name="imageClient">A http client to validate external image url</param>
     /// <param name="imageUrlValidationService"></param>
-    public ImageController(IImagesService imagesService, ImageClient imageClient,
+    public ImageController(IImagesService imagesService,
         IImageUrlValidationService imageUrlValidationService)
     {
         _imagesService = imagesService;
@@ -85,7 +84,8 @@ public class ImageController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string url)
     {
-        ImageUrlValidationResult imageUrlValidationResult = await _imageUrlValidationService.ValidateUrlFullyAsync(url);
+        ImageUrlValidationResult imageUrlValidationResult =
+            await _imageUrlValidationService.ValidateRequestResponseAsync(url);
 
         if (imageUrlValidationResult == ImageUrlValidationResult.NotValidImage)
         {

@@ -3,7 +3,7 @@ using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Configuration;
 
-public class ImageUrlValidationSettings : ISettingsMarker
+public class UrlValidationSettings : ISettingsMarker
 {
     public List<string> AllowedList { get; set; } = [];
     public List<string> BlockedList { get; set; } = [];

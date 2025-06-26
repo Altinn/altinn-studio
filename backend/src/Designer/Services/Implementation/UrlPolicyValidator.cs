@@ -2,16 +2,17 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class ImageUrlPolicyValidator : IImageUrlPolicyValidator
+public class UrlPolicyValidator : IUrlPolicyValidator
 {
-    private readonly ImageUrlValidationSettings _imageUrlValidationSettings;
+    private readonly UrlValidationSettings _urlValidationSettings;
 
-    public ImageUrlPolicyValidator(ImageUrlValidationSettings imageUrlValidationSettings)
+    public UrlPolicyValidator(UrlValidationSettings urlValidationSettings)
     {
-        _imageUrlValidationSettings = imageUrlValidationSettings;
+        _urlValidationSettings = urlValidationSettings;
     }
 
     public bool IsAllowed(string url)
@@ -30,12 +31,12 @@ public class ImageUrlPolicyValidator : IImageUrlPolicyValidator
 
     private bool IsBlocked(string host)
     {
-        return _imageUrlValidationSettings.BlockedList.Any(blockedDomain => IsDomainMatch(blockedDomain, host));
+        return _urlValidationSettings.BlockedList.Any(blockedDomain => IsDomainMatch(blockedDomain, host));
     }
 
     private bool IsBlockedButWhitelisted(string host, string path)
     {
-        return _imageUrlValidationSettings.AllowedList.Any(allowEntry => IsAllowEntryMatch(allowEntry, host, path));
+        return _urlValidationSettings.AllowedList.Any(allowEntry => IsAllowEntryMatch(allowEntry, host, path));
     }
 
     private bool IsAllowEntryMatch(string allowEntry, string host, string path)

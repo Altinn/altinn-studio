@@ -1,23 +1,24 @@
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ImageUrlValidationService : IImageUrlValidationService
 {
-    private readonly IImageUrlPolicyValidator _imageUrlPolicyValidator;
+    private readonly IUrlPolicyValidator _urlPolicyValidator;
     private readonly ImageClient _imageClient;
 
-    public ImageUrlValidationService(IImageUrlPolicyValidator imageUrlPolicyValidator, ImageClient imageClient)
+    public ImageUrlValidationService(IUrlPolicyValidator urlPolicyValidator, ImageClient imageClient)
     {
-        _imageUrlPolicyValidator = imageUrlPolicyValidator;
+        _urlPolicyValidator = urlPolicyValidator;
         _imageClient = imageClient;
     }
 
-    public async Task<ImageUrlValidationResult> ValidateUrlFullyAsync(string url)
+    public async Task<ImageUrlValidationResult> ValidateRequestResponseAsync(string url)
     {
-        if (!_imageUrlPolicyValidator.IsAllowed(url))
+        if (!_urlPolicyValidator.IsAllowed(url))
         {
             return ImageUrlValidationResult.NotValidImage;
         }

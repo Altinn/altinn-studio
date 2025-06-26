@@ -4,12 +4,12 @@ using Xunit;
 
 namespace Designer.Tests.Services
 {
-    public class ImageUrlPolicyValidatorTests
+    public class UrlPolicyValidatorTests
     {
         [Fact]
         public void IsAllowed_WhenBlockedDomainButWildcardAllowListMatches_ShouldReturnTrue()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = ["example.com/repos/*/wwwroot/*"],
                 BlockedList = ["example.com"]
@@ -23,7 +23,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenBlockedDomainAndNoAllowList_ShouldReturnFalse()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = [],
                 BlockedList = ["blocked.com"]
@@ -37,7 +37,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenBlockedDomainButExplicitPathAllowed_ShouldReturnTrue()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = ["blocked.com/allowedpath"],
                 BlockedList = ["blocked.com"]
@@ -51,7 +51,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenDomainIsNotBlocked_ShouldReturnTrue()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = [],
                 BlockedList = ["blocked.com"]
@@ -65,7 +65,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenNoBlockedOrAllowedDomains_ShouldReturnTrueForAnyDomain()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = [],
                 BlockedList = []
@@ -79,7 +79,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenWildcardAllowListMatchesPath_ShouldRespectWildcard()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = ["example.com/wwwroot*"],
                 BlockedList = ["example.com"]
@@ -95,7 +95,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenSubdomainOfBlockedDomain_ShouldBeBlocked()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = [],
                 BlockedList = ["example.com"]
@@ -109,7 +109,7 @@ namespace Designer.Tests.Services
         [Fact]
         public void IsAllowed_WhenSubdomainIsExplicitlyAllowed_ShouldReturnTrue()
         {
-            var validator = new ImageUrlPolicyValidator(new ImageUrlValidationSettings
+            var validator = new UrlPolicyValidator(new UrlValidationSettings
             {
                 AllowedList = ["sub.example.com/allowedpath*"],
                 BlockedList = ["example.com"]
