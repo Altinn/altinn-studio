@@ -1962,7 +1962,7 @@
   "ux_editor.page_config_pdf_exclude_components_from_default_pdf": "Velg hvilke komponenter fra siden som skal skjules i standard PDF",
   "ux_editor.page_config_pdf_exclude_page_from_default_pdf": "Ekskluder siden fra standard PDF",
   "ux_editor.page_delete_text": "Er du sikker på at du vil slette siden?\nAlle avhengigheter til den blir også slettet.",
-  "ux_editor.page_group.markAsCompleted_switch": "Vis status “ferdig” når alle sider er fylt ut",
+  "ux_editor.page_group.markAsCompleted_switch": "Vis status “ferdig utfylt” på gruppen når alle obligatoriske felt er fylt ut eller sidene er lest",
   "ux_editor.page_group.one_page_in_group_info_message": "En gruppe må ha minst to sider. Hvis det bare er én side, vises den som en enkeltside i navigasjonsmenyen.",
   "ux_editor.page_group_move_dialog.description": "Velg hvilken gruppe du vil flytte siden til.",
   "ux_editor.page_group_move_dialog.select_group": "Velg gruppe",
