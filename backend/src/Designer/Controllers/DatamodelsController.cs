@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -159,6 +160,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The name of the repository to which the file is being added.</param>
         /// <param name="theFile">The XSD file being uploaded.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
         [HttpPost]
         [Route("upload")]
         public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile theFile, CancellationToken cancellationToken)
@@ -170,7 +172,6 @@ namespace Altinn.Studio.Designer.Controllers
             Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             var fileStream = theFile.OpenReadStream();
             await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileNameWithExtension, editingContext);
@@ -267,7 +268,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
+        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName,
+            [FromBody] DataType dataType)
         {
             if (!Equals(modelName, dataType.Id))
             {
@@ -281,7 +283,8 @@ namespace Altinn.Studio.Designer.Controllers
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
-            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName
+                .ToString();
         }
 
         private bool TryValidateSchema(string schema, out ValidationProblemDetails problemDetails)
@@ -317,10 +320,8 @@ namespace Altinn.Studio.Designer.Controllers
                     continue;
                 }
 
-                problemDetails.Errors[validationIssue.IssuePointer] = new List<string>(errorCodes)
-                {
-                    validationIssue.ErrorCode,
-                }.ToArray();
+                problemDetails.Errors[validationIssue.IssuePointer] =
+                    new List<string>(errorCodes) { validationIssue.ErrorCode, }.ToArray();
             }
 
             return validationResult.IsValid;
