@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
 import { PageGroupAccordion, type PageGroupAccordionProps } from './PageGroupAccordion';
@@ -31,6 +31,10 @@ const pagesMock: PagesModel = {
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
+};
+
+const singlePageGroupMock: PagesModel = {
+  groups: [{ order: [{ id: 'Side1' }] }],
 };
 
 describe('PageGroupAccordion', () => {
@@ -75,14 +79,7 @@ describe('PageGroupAccordion', () => {
   });
 
   it('should display page ID as fallback when group name is empty', async () => {
-    const emptyGroupPagesMock: PagesModel = {
-      groups: [
-        {
-          order: [{ id: 'Side1' }],
-        },
-      ],
-    };
-    await renderPageGroupAccordion({ props: { pages: emptyGroupPagesMock } });
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
     const groupHeader = groupAccordionHeader(0);
     expect(groupHeader).toBeInTheDocument();
     const heading = within(groupHeader).getByRole('heading', { level: 2 });
@@ -122,6 +119,16 @@ describe('PageGroupAccordion', () => {
     const groupHeader = groupAccordionHeader(1);
     const heading = within(groupHeader).getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('Side 3');
+  });
+
+  it('should display info message when group has just one page', async () => {
+    await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
+    await waitFor(() => {
+      const infoMessage = screen.getByText(
+        textMock('ux_editor.page_group.one_page_in_group_info_message'),
+      );
+      expect(infoMessage).toBeInTheDocument();
+    });
   });
 
   it('should display group name when group has multiple pages', async () => {

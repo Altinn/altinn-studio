@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
 import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioAlert, StudioButton, StudioPopover } from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
@@ -175,6 +175,11 @@ export const PageGroupAccordion = ({
             </Accordion>
           );
         })}
+        {group.order.length === 1 && (
+          <StudioAlert data-color='info' className={classes.alertMessage}>
+            {t('ux_editor.page_group.one_page_in_group_info_message')}
+          </StudioAlert>
+        )}
         <StudioButton
           icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPageInsideGroup(groupIndex)}
