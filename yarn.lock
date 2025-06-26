@@ -2773,9 +2773,9 @@ __metadata:
   linkType: hard
 
 "@navikt/aksel-icons@npm:^7.17.4, @navikt/aksel-icons@npm:^7.21.0":
-  version: 7.22.0
-  resolution: "@navikt/aksel-icons@npm:7.22.0"
-  checksum: 10c0/a644ad2a3920729d7bbbfcd6a309fba7121063a78d1dc485efb3d385e6987ab68d3e61554dfcab6f026227d219a09ba473d500ea989e8bbb7752507964455540
+  version: 7.24.0
+  resolution: "@navikt/aksel-icons@npm:7.24.0"
+  checksum: 10c0/8b3dbdae7152d83f6159d8eb4d61cf2ddbbed299a7d998724a03552751b0ad97474d570bdb74715d2a8b289cb09b7d8260e78bb6650ed196ea9bd4ed8c4833f6
   languageName: node
   linkType: hard
 
@@ -3505,40 +3505,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.80.10":
-  version: 5.80.10
-  resolution: "@tanstack/query-core@npm:5.80.10"
-  checksum: 10c0/6391f4439f1f4676f5efeb07271e6b0b1418bd1192779f55cac537f0b35ec31c729eb43a30e0269534328c259c3ed6dd2f31555c42c68b6dd0c9ede410d46eb1
+"@tanstack/query-core@npm:5.81.2":
+  version: 5.81.2
+  resolution: "@tanstack/query-core@npm:5.81.2"
+  checksum: 10c0/36a6bddec2e7512015bcfbb0d7b0876fab418de9e0ef21ad403598276960e0b7d53efd62832ce462738ad22d9883e31cb5403eafc65dfd9b2f6744c22a9d8e42
   languageName: node
   linkType: hard
 
-"@tanstack/query-devtools@npm:5.80.0":
-  version: 5.80.0
-  resolution: "@tanstack/query-devtools@npm:5.80.0"
-  checksum: 10c0/2210bd390a769f1cfaf0343e66c7ec9c0a8fca982fa7853428c3c7f7da438c3380b841e8e065603f4e8449d52237a80d4877fc5299995e76e18bd44d5143acfc
+"@tanstack/query-devtools@npm:5.81.2":
+  version: 5.81.2
+  resolution: "@tanstack/query-devtools@npm:5.81.2"
+  checksum: 10c0/f942cba7bd3ecb471063cd472eeebb2ec76005feeb7e0f357b191da5ab9f769aa767bc88d4da82b2b39c4fcbb16dfed38ce3c77b6eea4d4c30405368c1120207
   languageName: node
   linkType: hard
 
-"@tanstack/react-query-devtools@npm:5.80.10":
-  version: 5.80.10
-  resolution: "@tanstack/react-query-devtools@npm:5.80.10"
+"@tanstack/react-query-devtools@npm:5.81.2":
+  version: 5.81.2
+  resolution: "@tanstack/react-query-devtools@npm:5.81.2"
   dependencies:
-    "@tanstack/query-devtools": "npm:5.80.0"
+    "@tanstack/query-devtools": "npm:5.81.2"
   peerDependencies:
-    "@tanstack/react-query": ^5.80.10
+    "@tanstack/react-query": ^5.81.2
     react: ^18 || ^19
-  checksum: 10c0/272a737caee2eb5ea44b65e773552b8ed281dce94cee980835d72ede8f91a111854081a5d007046fe8889f18f0e97fd448d15b9078460246dd7052638c06f54f
+  checksum: 10c0/69ccd39a202b9e029e44f1bd1afb46673620c23990f20612f617979548afebb7943ba51f32acfca73564cd71ccc7e848cdc0be6ee9441885b0e1c43b87c73a14
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:5.80.10":
-  version: 5.80.10
-  resolution: "@tanstack/react-query@npm:5.80.10"
+"@tanstack/react-query@npm:5.81.2":
+  version: 5.81.2
+  resolution: "@tanstack/react-query@npm:5.81.2"
   dependencies:
-    "@tanstack/query-core": "npm:5.80.10"
+    "@tanstack/query-core": "npm:5.81.2"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10c0/1a759b264cc94b389f802f1183183a3fbe1669ec1bb354951cfab6b6cf175276885c5f5c9b3fc00340a87140fdff4b9cf0c688fb7af103d34fb3b209d33a0a95
+  checksum: 10c0/a80a2e7401a02bfc8d7a926c9e48b0a108cae21a2c47691632e754de44ca08838c105fb0c30804f4ccbf173bee04ad9a3e45a8bebdfc1d1a32468bbb9d960e19
   languageName: node
   linkType: hard
 
@@ -5152,8 +5152,8 @@ __metadata:
     "@percy/cli": "npm:1.31.0"
     "@percy/cypress": "npm:3.1.6"
     "@pmmmwh/react-refresh-webpack-plugin": "npm:0.6.0"
-    "@tanstack/react-query": "npm:5.80.10"
-    "@tanstack/react-query-devtools": "npm:5.80.10"
+    "@tanstack/react-query": "npm:5.81.2"
+    "@tanstack/react-query-devtools": "npm:5.81.2"
     "@testing-library/cypress": "npm:10.0.3"
     "@testing-library/dom": "npm:10.4.0"
     "@testing-library/jest-dom": "npm:6.6.3"
@@ -5241,7 +5241,7 @@ __metadata:
     mini-css-extract-plugin: "npm:2.9.2"
     node-polyfill-webpack-plugin: "npm:4.1.0"
     postcss-modules: "npm:6.0.1"
-    prettier: "npm:3.5.3"
+    prettier: "npm:3.6.0"
     react: "npm:18.3.1"
     react-content-loader: "npm:7.0.2"
     react-day-picker: "npm:9.7.0"
@@ -14194,12 +14194,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.5.3":
-  version: 3.5.3
-  resolution: "prettier@npm:3.5.3"
+"prettier@npm:3.6.0":
+  version: 3.6.0
+  resolution: "prettier@npm:3.6.0"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/3880cb90b9dc0635819ab52ff571518c35bd7f15a6e80a2054c05dbc8a3aa6e74f135519e91197de63705bcb38388ded7e7230e2178432a1468005406238b877
+  checksum: 10c0/636897c8084b71ef1f740a46199df0d8f6ed896aa497212cc8cc229d3026b9dca82fa92f61e55924c4708cea11e39a88478e2d93c4818741c55b7408a9ac6d91
   languageName: node
   linkType: hard
 
@@ -17979,9 +17979,9 @@ __metadata:
   linkType: hard
 
 "zod@npm:^3.23.8":
-  version: 3.25.56
-  resolution: "zod@npm:3.25.56"
-  checksum: 10c0/3800f01d4b1df932b91354eb1e648f69cc7e5561549e6d2bf83827d930a5f33bbf92926099445f6fc1ebb64ca9c6513ef9ae5e5409cfef6325f354bcf6fc9a24
+  version: 3.25.67
+  resolution: "zod@npm:3.25.67"
+  checksum: 10c0/80a0cab3033272c4ab9312198081f0c4ea88e9673c059aa36dc32024906363729db54bdb78f3dc9d5529bd1601f74974d5a56c0a23e40c6f04a9270c9ff22336
   languageName: node
   linkType: hard
 
