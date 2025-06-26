@@ -51,20 +51,6 @@ describe('PageAccordion', () => {
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the NavigationMenu when the menu icon is clicked', async () => {
-    const user = userEvent.setup();
-    await render();
-
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await user.click(menuButton);
-
-    const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenuAfter).toBeInTheDocument();
-  });
-
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
@@ -86,7 +72,7 @@ describe('PageAccordion', () => {
 
   it('calls page group mutation when deleting a page in a group', async () => {
     const user = userEvent.setup();
-    await render({ pagesModel: groupsPagesModelMock });
+    await render({ props: { groupIndex: 0 }, pagesModel: groupsPagesModelMock });
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
@@ -95,7 +81,7 @@ describe('PageAccordion', () => {
       ...groupsPagesModelMock,
     };
     expectedPagesModel.groups[0].order.splice(0, 1);
-    expectedPagesModel.groups[0].name = expectedPagesModel.groups[0].order[0].id;
+    expectedPagesModel.groups[0].name = undefined;
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
       org,

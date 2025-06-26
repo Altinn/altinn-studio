@@ -8,3 +8,10 @@ export const alphabeticalCompareFunction: CompareFunction<string> = (a, b) => {
   if (a > b) return 1;
   return 0;
 };
+
+export const isBelowSupportedVersion = (currentVersion: string, supportedVersion: number) => {
+  if (!currentVersion || !supportedVersion) return true;
+
+  const majorVersion = parseInt(currentVersion.split('.')[0]);
+  return majorVersion < supportedVersion;
+};

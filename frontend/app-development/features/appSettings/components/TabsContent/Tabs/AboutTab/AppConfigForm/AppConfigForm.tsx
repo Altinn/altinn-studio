@@ -12,6 +12,7 @@ import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
+import { SwitchInput } from './SwitchInput';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -32,6 +33,17 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     !showAppConfigErrors,
     validationErrors,
     'serviceName',
+  );
+  const descriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'description',
+  );
+
+  const rightDescriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'rightDescription',
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -83,6 +95,27 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
+  const onChangeHomepage = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      homepage: e.target.value,
+    }));
+  };
+
+  const onChangeDelegable = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      isDelegable: e.target.checked,
+    }));
+  };
+
+  const onChangeRightDescription = (updatedLanguage: SupportedLanguage): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      rightDescription: updatedLanguage,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
@@ -118,9 +151,41 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           id={AppResourceFormFieldIds.Description}
           value={updatedAppConfig.description}
           updateLanguage={onChangeDescription}
-          required={false}
+          required
           isTextArea
+          errors={descriptionErrors}
         />
+        <StudioTextfield
+          label={t('app_settings.about_tab_homepage_field_label')}
+          description={t('app_settings.about_tab_homepage_field_description')}
+          value={updatedAppConfig.homepage}
+          onChange={onChangeHomepage}
+          required={false}
+          tagText={t('general.optional')}
+        />
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
+            shouldText: !updatedAppConfig.isDelegable
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          cardHeading={t('app_settings.about_tab_delegable_field_label')}
+          description={t('app_settings.about_tab_delegable_field_description')}
+          checked={updatedAppConfig?.isDelegable ?? false}
+          onChange={onChangeDelegable}
+        />
+        {updatedAppConfig.isDelegable && (
+          <InputfieldsWithTranslation
+            label={t('app_settings.about_tab_right_description_field_label')}
+            description={t('app_settings.about_tab_right_description_field_description')}
+            id={AppResourceFormFieldIds.RightDescription}
+            value={updatedAppConfig.rightDescription}
+            updateLanguage={onChangeRightDescription}
+            required
+            isTextArea
+            errors={rightDescriptionErrors}
+          />
+        )}
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
@@ -134,6 +199,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
   Description = 'description',
+  RightDescription = 'rightDescription',
 }
 
 function getValidationErrorsForField(

@@ -44,4 +44,5 @@ spec:
         operator: "Equal"
         value: "runner"
         effect: "NoSchedule"
-
+    nodeSelector:
+      purpose: runner

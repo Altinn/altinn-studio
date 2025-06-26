@@ -1,38 +1,9 @@
-import { getMissingInputLanguageString, validateAppConfig } from './appConfigValidationUtils';
+import { validateAppConfig } from './appConfigValidationUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('appConfigValidationUtils', () => {
-  describe('getMissingInputLanguageString', () => {
-    it('returns empty string when no languages are missing', () => {
-      const result: string = getMissingInputLanguageString(
-        { nb: 't1', nn: 't2', en: 't3' },
-        'usage',
-        textMock,
-      );
-      expect(result).toBe('');
-    });
-
-    it('returns single missing language message', () => {
-      const result: string = getMissingInputLanguageString(
-        { nb: 'value', nn: '', en: 'value' },
-        'usage',
-        textMock,
-      );
-      expect(result).toContain('app_settings.about_tab_language_error_missing_1');
-    });
-
-    it('returns multiple missing languages message', () => {
-      const result: string = getMissingInputLanguageString(
-        { nb: '', nn: '', en: '' },
-        'usage',
-        textMock,
-      );
-      expect(result).toContain('app_settings.about_tab_language_error_missing_2');
-    });
-  });
-
   describe('validateAppConfig', () => {
     it('returns empty array if appConfig is undefined', () => {
       const result: AppConfigFormError[] = validateAppConfig(undefined, textMock);
@@ -40,15 +11,7 @@ describe('appConfigValidationUtils', () => {
     });
 
     it('returns no errors if all serviceName translations are present', () => {
-      const appConfig: AppConfigNew = {
-        serviceName: {
-          nb: 'Tjeneste',
-          nn: 'Teneste',
-          en: 'Service',
-        },
-      } as AppConfigNew;
-
-      const result = validateAppConfig(appConfig, textMock);
+      const result = validateAppConfig(appConfigComplete, textMock);
       expect(result).toHaveLength(0);
     });
 
@@ -78,3 +41,24 @@ describe('appConfigValidationUtils', () => {
     });
   });
 });
+
+const appConfigComplete: AppConfigNew = {
+  repositoryName: 'test-repo',
+  serviceId: 'id',
+  serviceName: {
+    nb: 'Tjeneste',
+    nn: 'Teneste',
+    en: 'Service',
+  },
+  description: {
+    nb: 'Beskrivelse',
+    nn: 'Skildring',
+    en: 'Description',
+  },
+  isDelegable: true,
+  rightDescription: {
+    nb: 'test rd nb',
+    nn: 'test rd nn',
+    en: 'test rd en',
+  },
+};
