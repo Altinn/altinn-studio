@@ -24,5 +24,10 @@ namespace Altinn.Studio.Designer.ModelBinding.Constants
         /// MustHaveGiteaResourceAccessListPermission
         /// </summary>
         public const string MustHaveGiteaResourceAccessListPermission = "MustHaveGiteaResourceAccessListPermission";
+
+        /// <summary>
+        /// MustBelongToOrganization
+        /// </summary>
+        public const string MustBelongToOrganization = "MustBelongToOrganization";
     }
 }
