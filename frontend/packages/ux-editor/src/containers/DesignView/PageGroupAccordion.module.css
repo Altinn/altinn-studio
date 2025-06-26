@@ -52,5 +52,5 @@
 }
 
 .alertMessage {
-  margin: var(--fds-spacing-1) var(--fds-spacing-5);
+  margin: var(--fds-spacing-1) var(--fds-spacing-8);
 }
