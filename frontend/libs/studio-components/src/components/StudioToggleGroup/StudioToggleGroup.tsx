@@ -13,6 +13,9 @@ export function StudioToggleGroup({
   return <ToggleGroup {...rest}>{children}</ToggleGroup>;
 }
 
-export function StudioToggleGroupItem({ children, ...rest }: ToggleGroupItemProps): ReactElement {
+export function StudioToggleGroupItem({
+  children,
+  ...rest
+}: StudioToggleGroupItemProps): ReactElement<StudioToggleGroupItemProps> {
   return <ToggleGroup.Item {...rest}>{children}</ToggleGroup.Item>;
 }
