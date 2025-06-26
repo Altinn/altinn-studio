@@ -6,7 +6,14 @@ import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
 import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
 import { StudioButton, StudioPopover } from '@studio/components';
-import { MenuElipsisVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
+import {
+  MenuElipsisVerticalIcon,
+  FolderIcon,
+  PlusIcon,
+  TrashIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,
@@ -23,6 +30,7 @@ import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
+import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
@@ -87,7 +95,7 @@ export const PageGroupAccordion = ({
       }
     };
 
-    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    const groupDisplayName = pageGroupDisplayName(group);
     const selectedGroup = selectedItem?.type === ItemType.Group && selectedItem.id === groupIndex;
 
     return (
@@ -115,6 +123,7 @@ export const PageGroupAccordion = ({
               <StudioPopover placement='bottom'>
                 <div className={classes.ellipsisMenuContent}>
                   <StudioButton
+                    icon={<ArrowUpIcon aria-hidden />}
                     variant='tertiary'
                     onClick={() => moveGroupUp(groupIndex)}
                     disabled={groupIndex === 0}
@@ -122,6 +131,7 @@ export const PageGroupAccordion = ({
                     {t('ux_editor.page_menu_up')}
                   </StudioButton>
                   <StudioButton
+                    icon={<ArrowDownIcon aria-hidden />}
                     variant='tertiary'
                     onClick={() => moveGroupDown(groupIndex)}
                     disabled={groupIndex === pages.groups.length - 1}
