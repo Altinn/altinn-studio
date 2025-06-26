@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -23,6 +24,13 @@ public class ImageUrlValidationService : IImageUrlValidationService
             return ImageUrlValidationResult.NotValidImage;
         }
 
-        return await _imageClient.ValidateRequestResponseAsync(url);
+        try
+        {
+            return await _imageClient.ValidateRequestResponseAsync(url);
+        }
+        catch
+        {
+            return ImageUrlValidationResult.NotValidImage;
+        }
     }
 }
