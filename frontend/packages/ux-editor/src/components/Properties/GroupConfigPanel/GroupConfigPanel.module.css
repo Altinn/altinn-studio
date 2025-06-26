@@ -15,6 +15,7 @@
 
 .radio {
   width: 80%;
+  align-items: center;
 }
 
 .radioLabel {
