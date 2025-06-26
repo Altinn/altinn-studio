@@ -7,12 +7,9 @@ import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';
 import type { BaseConfigProps } from './types';
 
-export interface ConfigGridPropertiesProps extends BaseConfigProps {
-  hasGridProperty?: boolean;
-}
+export interface ConfigGridPropertiesProps extends BaseConfigProps {}
 
 export const ConfigGridProperties = ({
-  hasGridProperty,
   component,
   handleComponentUpdate,
 }: ConfigGridPropertiesProps) => {

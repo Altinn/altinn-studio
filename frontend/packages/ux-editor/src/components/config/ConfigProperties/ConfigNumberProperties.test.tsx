@@ -29,14 +29,6 @@ describe('ConfigNumberProperties', () => {
     const user = userEvent.setup();
     renderConfigNumberProperties({
       numberPropertyKeys: ['someNumberProperty'],
-      schema: {
-        properties: {
-          someNumberProperty: {
-            type: 'number',
-            enum: [1, 2, 3],
-          },
-        },
-      },
     });
     const propertyButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.someNumberProperty'),
@@ -55,7 +47,6 @@ describe('ConfigNumberProperties', () => {
       schema: {
         properties: {
           someNumberProperty: {
-            type: 'number',
             description: 'A sample number property',
           },
         },

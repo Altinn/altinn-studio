@@ -26,7 +26,6 @@ export const ConfigCustomFileEnding = ({
       <EditBooleanValue
         propertyKey='hasCustomFileEndings'
         component={component}
-        defaultValue={component['hasCustomFileEndings'] ?? false}
         handleComponentChange={handleChange}
       />
       {component['hasCustomFileEndings'] && (

@@ -26,8 +26,6 @@ export const ConfigObjectProperties = ({
   const [openObjectCards, setOpenObjectCards] = useState<Record<string, boolean>>({});
   const t = useText();
 
-  if (!objectPropertyKeys.length) return null;
-
   const toggleObjectCard = (propertyKey: string) => {
     setOpenObjectCards((prev) => ({
       ...prev,

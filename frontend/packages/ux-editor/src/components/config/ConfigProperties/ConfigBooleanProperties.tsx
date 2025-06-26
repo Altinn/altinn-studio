@@ -24,8 +24,6 @@ export const ConfigBooleanProperties = ({
   const defaultDisplayedKeys = booleanPropertyKeys.slice(0, defaultDisplayCount);
   const additionalKeys = booleanPropertyKeys.slice(defaultDisplayCount);
 
-  if (!booleanPropertyKeys.length) return null;
-
   const renderIcon = showAll ? (
     <ChevronUpIcon className={classes.upIcon} />
   ) : (

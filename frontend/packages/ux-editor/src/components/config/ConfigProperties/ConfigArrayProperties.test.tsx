@@ -2,7 +2,6 @@ import React from 'react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigArrayProperties, type ConfigArrayPropertiesProps } from './ConfigArrayProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -13,17 +12,7 @@ describe('ConfigArrayProperties', () => {
     const handleComponentUpdateMock = jest.fn();
     renderConfigArrayProperties({
       props: {
-        schema: {
-          properties: {
-            [supportedKey]: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['option1', 'option2'],
-              },
-            },
-          },
-        },
+        schema: defaultArraySchema,
         component: {
           ...componentMocks.Input,
           [supportedKey]: [],
@@ -61,17 +50,7 @@ describe('ConfigArrayProperties', () => {
     const user = userEvent.setup();
     renderConfigArrayProperties({
       props: {
-        schema: {
-          properties: {
-            [supportedKey]: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['option1', 'option2'],
-              },
-            },
-          },
-        },
+        schema: defaultArraySchema,
         arrayPropertyKeys: [supportedKey],
       },
     });
@@ -88,17 +67,7 @@ describe('ConfigArrayProperties', () => {
     const enumValues = ['option1', 'option2'];
     renderConfigArrayProperties({
       props: {
-        schema: {
-          properties: {
-            [supportedKey]: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: enumValues,
-              },
-            },
-          },
-        },
+        schema: defaultArraySchema,
         component: {
           ...componentMocks.Input,
           [supportedKey]: enumValues,
@@ -118,6 +87,17 @@ describe('ConfigArrayProperties', () => {
   });
 
   const supportedKey = 'supportedArrayProperty';
+  const defaultArraySchema = {
+    properties: {
+      [supportedKey]: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['option1', 'option2'],
+        },
+      },
+    },
+  };
 
   const renderConfigArrayProperties = ({
     props = {},
@@ -125,7 +105,7 @@ describe('ConfigArrayProperties', () => {
     props?: Partial<ConfigArrayPropertiesProps>;
   }) => {
     const defaultProps: ConfigArrayPropertiesProps = {
-      schema: InputSchema,
+      schema: defaultArraySchema,
       component: componentMocks.Input,
       handleComponentUpdate: jest.fn(),
       arrayPropertyKeys: [supportedKey],

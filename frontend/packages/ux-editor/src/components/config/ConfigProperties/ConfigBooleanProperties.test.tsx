@@ -123,7 +123,7 @@ describe('ConfigBooleanProperties', () => {
     'formatting',
   ];
   const renderConfigBooleanProperties = ({
-    props = { booleanPropertyKeys: booleanPropertiesKeys },
+    props = {},
     queries = {},
   }: {
     props?: Partial<ConfigBooleanPropertiesProps>;
@@ -131,7 +131,7 @@ describe('ConfigBooleanProperties', () => {
   }) => {
     const { Input: inputComponent } = componentMocks;
     const defaultProps: ConfigBooleanPropertiesProps = {
-      booleanPropertyKeys: [],
+      booleanPropertyKeys: booleanPropertiesKeys,
       schema: InputSchema,
       component: inputComponent,
       handleComponentUpdate: jest.fn(),

@@ -15,7 +15,6 @@ export const ConfigNumberProperties = ({
   handleComponentUpdate,
 }: ConfigNumberPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
-  if (!numberPropertyKeys.length) return null;
 
   return (
     <>

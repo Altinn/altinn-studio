@@ -29,8 +29,6 @@ export const ConfigArrayProperties = ({
     [component, selectedDataType],
   );
 
-  if (!arrayPropertyKeys.length) return null;
-
   return (
     <>
       {arrayPropertyKeys.map((propertyKey) => {

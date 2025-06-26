@@ -27,8 +27,6 @@ export const ConfigStringProperties = ({
     [component, selectedDataType],
   );
 
-  if (!stringPropertyKeys.length) return null;
-
   return (
     <>
       {stringPropertyKeys.map((propertyKey) => (

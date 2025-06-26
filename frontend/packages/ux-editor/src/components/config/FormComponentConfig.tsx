@@ -58,6 +58,8 @@ export const FormComponentConfig = ({
 
   return (
     <>
+      {/** LayoutSet Property */}
+      {/** Redirect to layout set if the component has a layoutSet property */}
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
@@ -68,56 +70,60 @@ export const FormComponentConfig = ({
       )}
 
       {/** Boolean fields, incl. expression type */}
-      <ConfigBooleanProperties
-        booleanPropertyKeys={booleanKeys}
-        schema={schema}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
-
-      {/** Grid Property */}
-      {properties?.grid && (
-        <ConfigGridProperties
-          hasGridProperty={Boolean(schema.properties?.grid)}
+      {booleanKeys.length && (
+        <ConfigBooleanProperties
+          booleanPropertyKeys={booleanKeys}
+          schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
         />
       )}
 
-      {/** LayoutSet Property */}
+      {/** Grid Property */}
+      {properties?.grid && (
+        <ConfigGridProperties component={component} handleComponentUpdate={handleComponentUpdate} />
+      )}
 
       {/** String properties */}
-      <ConfigStringProperties
-        stringPropertyKeys={stringKeys}
-        schema={schema}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      {stringKeys.length && (
+        <ConfigStringProperties
+          stringPropertyKeys={stringKeys}
+          schema={schema}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      )}
 
       {/** Number properties */}
-      <ConfigNumberProperties
-        numberPropertyKeys={numberKeys}
-        schema={schema}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      {numberKeys.length > 0 && (
+        <ConfigNumberProperties
+          numberPropertyKeys={numberKeys}
+          schema={schema}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      )}
 
       {/** Array properties with enum values) */}
-      <ConfigArrayProperties
-        arrayPropertyKeys={arrayKeys}
-        schema={schema}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      {arrayKeys.length > 0 && (
+        <ConfigArrayProperties
+          arrayPropertyKeys={arrayKeys}
+          schema={schema}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      )}
 
       {/** Object properties  */}
-      <ConfigObjectProperties
-        editFormId={editFormId}
-        objectPropertyKeys={objectKeys}
-        schema={schema}
-        component={component}
-        handleComponentUpdate={handleComponentUpdate}
-      />
+      {objectKeys.length && (
+        <ConfigObjectProperties
+          editFormId={editFormId}
+          objectPropertyKeys={objectKeys}
+          schema={schema}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      )}
 
       {/* Show information about unsupported properties if there are any */}
       {unsupportedKeys.length > 0 && !hideUnsupported && (
