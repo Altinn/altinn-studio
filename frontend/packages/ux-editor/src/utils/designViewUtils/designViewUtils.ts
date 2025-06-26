@@ -1,5 +1,6 @@
 import type { TranslationKey } from 'language/type';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
+import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 
 /**
  * Checks if the new written page name already exists
@@ -35,4 +36,43 @@ export const getPageNameErrorKey = (
     return 'ux_editor.pages_error_unique';
   if (!validateLayoutNameAndLayoutSetName(candidateName)) return 'validation_errors.name_invalid';
   return null;
+};
+
+type GetUpdatedGroupsExcludingPageProps = {
+  pageId: string;
+  groups: GroupModel[];
+  groupIndex: number;
+};
+
+export const getUpdatedGroupsExcludingPage = ({
+  pageId,
+  groups,
+  groupIndex,
+}: GetUpdatedGroupsExcludingPageProps): GroupModel[] => {
+  const updatedGroup = excludePageFromGroup({ group: groups[groupIndex], pageId });
+
+  return updatedGroup
+    ? groups.map((group, index) => (index === groupIndex ? updatedGroup : group))
+    : groups.filter((_, index) => index !== groupIndex);
+};
+
+type GetUpdatedGroupExludingPageProps = {
+  group: GroupModel;
+  pageId: string;
+};
+
+const excludePageFromGroup = ({
+  group,
+  pageId,
+}: GetUpdatedGroupExludingPageProps): GroupModel | undefined => {
+  const filteredOrder = group.order.filter((page) => page.id !== pageId);
+
+  if (filteredOrder.length === 0) return undefined;
+
+  const updatedName = filteredOrder.length === 1 ? undefined : group.name;
+  return {
+    ...group,
+    order: filteredOrder,
+    name: updatedName,
+  };
 };
