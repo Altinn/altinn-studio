@@ -45,7 +45,6 @@ describe('ConfigGridProperties', () => {
     props?: Partial<ConfigGridPropertiesProps>;
   }) => {
     const defaultProps: ConfigGridPropertiesProps = {
-      hasGridProperty: true,
       component: componentMocks.Input,
       handleComponentUpdate: jest.fn(),
     };
