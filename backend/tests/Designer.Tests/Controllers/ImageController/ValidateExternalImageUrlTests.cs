@@ -48,7 +48,7 @@ public class ValidateExternalImageUrlTests(
     }
 
     [Fact]
-    public async Task ValidateExternalImageUrl_WhenUrlIsNotFound_ReturnsNotFound()
+    public async Task ValidateExternalImageUrl_WhenUrlIsNotFound_ReturnsNotValidIm()
     {
         string path =
             $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url=http://localhost:38929/notvalidurl";
@@ -61,7 +61,7 @@ public class ValidateExternalImageUrlTests(
 
     [Fact]
     [UseSystemTextJson]
-    public async Task ValidateExternalImageUrl_WhenUrlIsNotPointingToAnImage_ReturnsUnsupportedMediaType()
+    public async Task ValidateExternalImageUrl_WhenUrlIsNotPointingToAnImage_ReturnsNotValidImage()
     {
         IRequestBuilder validNonImageRequest = Request.Create().UsingHead();
         IResponseBuilder validNonImageResponse = Response
