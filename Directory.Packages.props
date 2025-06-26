@@ -51,12 +51,13 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="8.1.4" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.6" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
-    <PackageVersion Include="Verify.Xunit" Version="29.5.0" />
+    <PackageVersion Include="Verify.Xunit" Version="30.4.0" />
     <PackageVersion Include="Verify.Http" Version="6.6.0" />
     <PackageVersion Include="WireMock.Net" Version="1.8.13" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
+    <PackageVersion Include="System.IO.Hashing" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>

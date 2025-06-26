@@ -36,6 +36,7 @@
     </PackageReference>
     <PackageReference Include="WireMock.Net"/>
     <PackageReference Include="System.Linq.Async"/>
+    <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 
   <ItemGroup>
