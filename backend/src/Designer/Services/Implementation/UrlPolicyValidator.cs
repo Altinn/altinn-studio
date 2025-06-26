@@ -17,6 +17,11 @@ public class UrlPolicyValidator : IUrlPolicyValidator
 
     public bool IsAllowed(string url)
     {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {

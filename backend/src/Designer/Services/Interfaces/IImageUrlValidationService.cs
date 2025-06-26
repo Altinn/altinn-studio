@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 {
     public interface IImageUrlValidationService
     {
-        Task<ImageUrlValidationResult> ValidateRequestResponseAsync(string url);
+        Task<ImageUrlValidationResult> ValidateUrlAsync(string url);
     }
 }

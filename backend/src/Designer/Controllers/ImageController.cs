@@ -85,7 +85,7 @@ public class ImageController : ControllerBase
     public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string url)
     {
         ImageUrlValidationResult imageUrlValidationResult =
-            await _imageUrlValidationService.ValidateRequestResponseAsync(url);
+            await _imageUrlValidationService.ValidateUrlAsync(url);
 
         if (imageUrlValidationResult == ImageUrlValidationResult.NotValidImage)
         {

@@ -16,13 +16,13 @@ public class ImageUrlValidationService : IImageUrlValidationService
         _imageClient = imageClient;
     }
 
-    public async Task<ImageUrlValidationResult> ValidateRequestResponseAsync(string url)
+    public async Task<ImageUrlValidationResult> ValidateUrlAsync(string url)
     {
         if (!_urlPolicyValidator.IsAllowed(url))
         {
             return ImageUrlValidationResult.NotValidImage;
         }
 
-        return await _imageClient.ValidateUrlAsync(url);
+        return await _imageClient.ValidateRequestResponseAsync(url);
     }
 }

@@ -13,7 +13,7 @@ public class ImageClient
         _httpClient = httpClient;
     }
 
-    public async Task<ImageUrlValidationResult> ValidateUrlAsync(string url)
+    public async Task<ImageUrlValidationResult> ValidateRequestResponseAsync(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Head, url);
         var response = await _httpClient.SendAsync(request, cancellationToken: default);
@@ -29,6 +29,6 @@ public class ImageClient
     private static bool IsImageContentType(HttpResponseMessage response)
     {
         string contentType = response.Content.Headers.ContentType?.MediaType;
-        return contentType != null && (!string.IsNullOrEmpty(contentType) || contentType.StartsWith("image/"));
+        return !string.IsNullOrEmpty(contentType) && contentType.StartsWith("image/");
     }
 }
