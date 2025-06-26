@@ -2,9 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import type { ErrorObject } from 'ajv';
-import type { JSONSchema7 } from 'json-schema';
 
-import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
@@ -13,22 +11,17 @@ import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { ComponentValidation } from 'src/features/validation';
-import type {
-  ComponentBase,
-  FormComponentProps,
-  IDataModelReference,
-  SummarizableComponentProps,
-} from 'src/layout/common.generated';
+import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type { FormDataSelector, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
 import type {
   CompExternal,
   CompExternalExact,
   CompIntermediateExact,
   CompTypes,
+  IDataModelBindings,
   ITextResourceBindingsExternal,
   NodeValidationProps,
 } from 'src/layout/layout';
@@ -233,87 +226,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
   /**
    * Runs validation on data model bindings. Returns an array of error messages.
    */
-  public validateDataModelBindings(_ctx: LayoutValidationCtx<Type>): string[] {
-    return [];
-  }
-
-  public validateDataModelBindingsAny(
-    ctx: LayoutValidationCtx<Type>,
-    key: string,
-    validTypes: string[],
-    isRequired = this.isDataModelBindingsRequired(ctx.node),
-    name = key,
-  ): [string[], undefined] | [undefined, JSONSchema7] {
-    const { item, lookupBinding } = ctx;
-    const value: IDataModelReference = (item.dataModelBindings ?? {})[key] ?? undefined;
-
-    if (!value) {
-      if (isRequired) {
-        return [
-          [`En ${name} datamodell-binding er påkrevd for denne komponenten, men mangler i layout-konfigurasjonen.`],
-          undefined,
-        ];
-      }
-      return [[], undefined];
-    }
-
-    const [result, error] = lookupBinding(value);
-    if (error) {
-      return [[lookupErrorAsText(error)], undefined];
-    }
-
-    const { type } = result;
-    if (typeof type !== 'string') {
-      return [[`${name}-datamodellbindingen peker mot en ukjent type i datamodellen`], undefined];
-    }
-
-    if (!validTypes.includes(type)) {
-      return [
-        [
-          `${name}-datamodellbindingen peker mot en type definert som ${type} i datamodellen, ` +
-            `men burde være en av ${validTypes.join(', ')}`,
-        ],
-        undefined,
-      ];
-    }
-
-    return [undefined, result];
-  }
-
-  public validateDataModelBindingsSimple(
-    ctx: LayoutValidationCtx<Type>,
-    isRequired = this.isDataModelBindingsRequired(ctx.node),
-  ): string[] {
-    const [errors] = this.validateDataModelBindingsAny(
-      ctx,
-      'simpleBinding',
-      ['string', 'number', 'integer', 'boolean'],
-      isRequired,
-      'simple',
-    );
-
-    return errors || [];
-  }
-
-  protected validateDataModelBindingsList(
-    ctx: LayoutValidationCtx<Type>,
-    isRequired = this.isDataModelBindingsRequired(ctx.node),
-  ): string[] {
-    const [errors, result] = this.validateDataModelBindingsAny(ctx, 'list', ['array'], isRequired);
-    if (errors) {
-      return errors;
-    }
-
-    if (
-      !result.items ||
-      typeof result.items !== 'object' ||
-      Array.isArray(result.items) ||
-      !result.items.type ||
-      result.items.type !== 'string'
-    ) {
-      return [`list-datamodellbindingen peker mot en ukjent type i datamodellen`];
-    }
-
+  public useDataModelBindingValidation(_node: LayoutNode<Type>, _bindings: IDataModelBindings<Type>): string[] {
     return [];
   }
 }

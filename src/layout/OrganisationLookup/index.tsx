@@ -7,9 +7,10 @@ import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/n
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
 import { OrganisationLookupSummary } from 'src/layout/OrganisationLookup/OrganisationLookupSummary';
+import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -42,7 +43,10 @@ export class OrganisationLookup extends OrganisationLookupDef {
     );
   }
 
-  validateDataModelBindings(_ctx: LayoutValidationCtx<'OrganisationLookup'>): string[] {
-    return this.validateDataModelBindingsAny(_ctx, 'organisation_lookup_orgnr', ['string'])[0] ?? [];
+  useDataModelBindingValidation(
+    node: LayoutNode<'OrganisationLookup'>,
+    bindings: IDataModelBindings<'OrganisationLookup'>,
+  ): string[] {
+    return useValidateDataModelBindingsAny(node, bindings, 'organisation_lookup_orgnr', ['string'])[0] ?? [];
   }
 }

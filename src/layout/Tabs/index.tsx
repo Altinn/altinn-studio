@@ -37,8 +37,4 @@ export class Tabs extends TabsDef {
   renderSummaryBoilerplate(): boolean {
     return false;
   }
-
-  public validateDataModelBindings(): string[] {
-    return [];
-  }
 }

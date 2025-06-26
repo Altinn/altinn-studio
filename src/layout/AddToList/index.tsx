@@ -4,13 +4,13 @@ import type { JSX } from 'react';
 import { AddToListComponent } from 'src/layout/AddToList/AddToList';
 import { AddToListFeatureFlagLayoutValidator } from 'src/layout/AddToList/AddToListFeatureFlagLayoutValidator';
 import { AddToListDef } from 'src/layout/AddToList/config.def.generated';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class AddToList extends AddToListDef {
-  validateDataModelBindings(_: LayoutValidationCtx<'AddToList'>): string[] {
+  useDataModelBindingValidation(_node: LayoutNode<'AddToList'>, _bindings: IDataModelBindings<'AddToList'>): string[] {
     return [];
   }
   renderLayoutValidators(props: NodeValidationProps<'AddToList'>): React.JSX.Element | null {

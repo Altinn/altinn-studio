@@ -1,21 +1,27 @@
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { FormComponent } from 'src/layout/LayoutComponent';
+import {
+  useValidateDataModelBindingsAny,
+  useValidateDataModelBindingsSimple,
+} from 'src/utils/layout/generator/validation/hooks';
+import type { IDataModelBindings } from 'src/layout/layout';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
-  def: FormComponent<T>,
-  ctx: LayoutValidationCtx<T>,
+export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
+  node: LayoutNode<T>,
+  bindings: IDataModelBindings<T>,
 ) {
   const errors: string[] = [];
   const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
-  const dataModelBindings = ctx.item.dataModelBindings ?? {};
-  const groupBinding = dataModelBindings?.group;
-  const simpleBinding = dataModelBindings?.simpleBinding;
-  const labelBinding = dataModelBindings?.label;
-  const metadataBinding = dataModelBindings?.metadata;
+  const groupBinding = bindings?.group;
+  const simpleBinding = bindings?.simpleBinding;
+  const labelBinding = bindings?.label;
+  const metadataBinding = bindings?.metadata;
+  const lookupBinding = DataModels.useLookupBinding();
 
   if (groupBinding) {
-    const [groupErrors] = def.validateDataModelBindingsAny(ctx, 'group', ['array'], false);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [groupErrors] = useValidateDataModelBindingsAny(node, bindings, 'group', ['array'], false);
     errors.push(...(groupErrors || []));
 
     if (!simpleBinding.field.startsWith(`${groupBinding.field}.`)) {
@@ -30,10 +36,11 @@ export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 
 
     const simpleBindingsWithoutGroup = simpleBinding.field.replace(`${groupBinding.field}.`, '');
     const fieldWithIndex = `${groupBinding.field}[0].${simpleBindingsWithoutGroup}`;
-    const [schema, err] = ctx.lookupBinding({
-      field: fieldWithIndex,
-      dataType: simpleBinding.dataType,
-    });
+    const [schema, err] =
+      lookupBinding?.({
+        field: fieldWithIndex,
+        dataType: simpleBinding.dataType,
+      }) ?? [];
 
     if (err) {
       errors.push(lookupErrorAsText(err));
@@ -41,7 +48,8 @@ export function validateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 
       errors.push(`Field ${simpleBinding} in group must be one of types ${allowedLeafTypes.join(', ')}`);
     }
   } else {
-    const [newErrors] = def.validateDataModelBindingsSimple(ctx);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [newErrors] = useValidateDataModelBindingsSimple(node, bindings);
     errors.push(...(newErrors || []));
   }
 

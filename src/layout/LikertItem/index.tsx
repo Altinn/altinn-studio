@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
@@ -9,11 +10,12 @@ import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/n
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export class LikertItem extends LikertItemDef {
@@ -49,19 +51,19 @@ export class LikertItem extends LikertItemDef {
     return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
   }
 
-  validateDataModelBindings(ctx: LayoutValidationCtx<'LikertItem'>): string[] {
-    const [answerErr] = this.validateDataModelBindingsAny(ctx, 'simpleBinding', ['string', 'number', 'boolean']);
+  useDataModelBindingValidation(node: LayoutNode<'LikertItem'>, bindings: IDataModelBindings<'LikertItem'>): string[] {
+    const [answerErr] = useValidateDataModelBindingsAny(node, bindings, 'simpleBinding', [
+      'string',
+      'number',
+      'boolean',
+    ]);
     const errors: string[] = [...(answerErr ?? [])];
 
-    if (!(ctx.node.parent instanceof LayoutNode) || !ctx.node.parent.isType('Likert')) {
+    if (!(node.parent instanceof LayoutNode) || !node.parent.isType('Likert')) {
       throw new Error('LikertItem must have a parent of type "Likert"');
     }
-    const parentId = ctx.node.parent.id;
-    const parentBindings = ctx.nodeDataSelector(
-      (picker) => picker(parentId, 'Likert')?.layout?.dataModelBindings,
-      [parentId],
-    );
-    const bindings = ctx.item.dataModelBindings;
+    const parentId = node.parent.baseId;
+    const parentBindings = useLayoutLookups().getComponent(parentId, 'Likert').dataModelBindings;
 
     if (parentBindings?.questions.dataType && bindings.simpleBinding.dataType !== parentBindings.questions.dataType) {
       errors.push('answer-datamodellbindingen må peke på samme datatype som questions-datamodellbindingen');

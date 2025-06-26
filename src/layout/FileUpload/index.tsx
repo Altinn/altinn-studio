@@ -8,11 +8,11 @@ import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { FileUploadLayoutValidator } from 'src/layout/FileUpload/FileUploadLayoutValidator';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { useValidateMinNumberOfAttachments } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
+import { useFileUploaderDataBindingsValidation } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -70,34 +70,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return !(node.parent instanceof LayoutPage) && node.parent.isType('RepeatingGroup');
   }
 
-  validateDataModelBindings(ctx: LayoutValidationCtx<'FileUpload'>): string[] {
-    const { node, item } = ctx;
-    const { dataModelBindings } = item;
-    const isRequired = this.isDataModelBindingsRequired(node);
-    const hasBinding = dataModelBindings && ('simpleBinding' in dataModelBindings || 'list' in dataModelBindings);
-
-    if (!isRequired && !hasBinding) {
-      return [];
-    }
-    if (isRequired && !hasBinding) {
-      return [
-        `En simpleBinding, eller list-datamodellbinding, er påkrevd for denne komponenten når den brukes ` +
-          `i en repeterende gruppe, men dette mangler i layout-konfigurasjonen.`,
-      ];
-    }
-
-    const simpleBinding =
-      dataModelBindings && 'simpleBinding' in dataModelBindings ? dataModelBindings.simpleBinding : undefined;
-    const listBinding = dataModelBindings && 'list' in dataModelBindings ? dataModelBindings.list : undefined;
-
-    if (simpleBinding) {
-      return this.validateDataModelBindingsSimple(ctx);
-    }
-
-    if (listBinding) {
-      return this.validateDataModelBindingsList(ctx);
-    }
-
-    return [];
+  useDataModelBindingValidation(node: LayoutNode<'FileUpload'>, bindings: IDataModelBindings<'FileUpload'>): string[] {
+    return useFileUploaderDataBindingsValidation(node, bindings);
   }
 }

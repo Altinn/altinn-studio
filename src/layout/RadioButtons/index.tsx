@@ -10,10 +10,11 @@ import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -53,7 +54,7 @@ export class RadioButtons extends RadioButtonsDef {
     return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
   }
 
-  validateDataModelBindings(ctx: LayoutValidationCtx<'RadioButtons'>): string[] {
-    return this.validateDataModelBindingsSimple(ctx);
+  useDataModelBindingValidation(node: LayoutNode<'RadioButtons'>, dmb: IDataModelBindings<'RadioButtons'>): string[] {
+    return useValidateDataModelBindingsSimple(node, dmb);
   }
 }

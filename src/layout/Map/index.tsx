@@ -6,11 +6,13 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
+import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Map extends MapDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Map'>>(
@@ -33,13 +35,19 @@ export class Map extends MapDef {
     return <MapSummary {...props} />;
   }
 
-  validateDataModelBindings(ctx: LayoutValidationCtx<'Map'>): string[] {
+  useDataModelBindingValidation(node: LayoutNode<'Map'>, bindings: IDataModelBindings<'Map'>): string[] {
     const errors: string[] = [];
 
-    const [simpleBindingErrors] = this.validateDataModelBindingsAny(ctx, 'simpleBinding', ['string'], false);
+    const [simpleBindingErrors] = useValidateDataModelBindingsAny(node, bindings, 'simpleBinding', ['string'], false);
     simpleBindingErrors && errors.push(...simpleBindingErrors);
 
-    const [geometriesErrors, geometriesResult] = this.validateDataModelBindingsAny(ctx, 'geometries', ['array'], false);
+    const [geometriesErrors, geometriesResult] = useValidateDataModelBindingsAny(
+      node,
+      bindings,
+      'geometries',
+      ['array'],
+      false,
+    );
     geometriesErrors && errors.push(...geometriesErrors);
 
     if (

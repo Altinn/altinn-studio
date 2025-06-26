@@ -390,6 +390,16 @@ export class ComponentConfig {
       from: 'src/features/displayData/index',
     });
 
+    const LayoutNode = new GenerateImportedSymbol({
+      import: 'LayoutNode',
+      from: 'src/utils/layout/LayoutNode',
+    });
+
+    const IDataModelBindings = new CG.import({
+      import: 'IDataModelBindings',
+      from: 'src/layout/layout',
+    });
+
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
 
@@ -443,13 +453,9 @@ export class ComponentConfig {
     }
 
     if (this.hasDataModelBindings()) {
-      const LayoutValidationCtx = new CG.import({
-        import: 'LayoutValidationCtx',
-        from: 'src/features/devtools/layoutValidation/types',
-      });
       additionalMethods.push(
         `// You must implement this because the component has data model bindings defined
-        abstract validateDataModelBindings(ctx: ${LayoutValidationCtx}<'${this.type}'>): string[];`,
+        abstract useDataModelBindingValidation(node: ${LayoutNode}<'${this.type}'>, bindings: ${IDataModelBindings}<'${this.type}'>): string[];`,
       );
     }
 
