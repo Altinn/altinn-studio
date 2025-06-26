@@ -8,6 +8,7 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioSwitch,
+  StudioToggleGroup,
 } from '@studio/components';
 import { CheckmarkIcon } from '@studio/icons';
 import type {
@@ -17,7 +18,6 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
-import { ToggleGroup } from '@digdir/designsystemet-react';
 
 const buttonText = {
   nb: {
@@ -106,33 +106,33 @@ export const ConsentPreview = ({
           {t('resourceadm.about_resource_consent_preview')}
         </StudioHeading>
         <div className={classes.previewControls}>
-          <ToggleGroup
-            size='sm'
+          <StudioToggleGroup
+            data-size='sm'
             value={reporteeType}
             onChange={(newValue: string) => setReporteeType(newValue as 'person' | 'org')}
           >
-            <ToggleGroup.Item value='person'>
+            <StudioToggleGroup.Item value='person'>
               {t('resourceadm.about_resource_consent_preview_person')}
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='org'>
+            </StudioToggleGroup.Item>
+            <StudioToggleGroup.Item value='org'>
               {t('resourceadm.about_resource_consent_preview_org')}
-            </ToggleGroup.Item>
-          </ToggleGroup>
-          <ToggleGroup
-            size='sm'
+            </StudioToggleGroup.Item>
+          </StudioToggleGroup>
+          <StudioToggleGroup
+            data-size='sm'
             value={language}
             onChange={(newValue: string) => setLanguage(newValue as ValidLanguage)}
           >
-            <ToggleGroup.Item value='nb'>
+            <StudioToggleGroup.Item value='nb'>
               {t('resourceadm.about_resource_consent_preview_language_nb')}
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='nn'>
+            </StudioToggleGroup.Item>
+            <StudioToggleGroup.Item value='nn'>
               {t('resourceadm.about_resource_consent_preview_language_nn')}
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='en'>
+            </StudioToggleGroup.Item>
+            <StudioToggleGroup.Item value='en'>
               {t('resourceadm.about_resource_consent_preview_language_en')}
-            </ToggleGroup.Item>
-          </ToggleGroup>
+            </StudioToggleGroup.Item>
+          </StudioToggleGroup>
           <StudioSwitch
             label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
             checked={isDummyMetadataEnabled}

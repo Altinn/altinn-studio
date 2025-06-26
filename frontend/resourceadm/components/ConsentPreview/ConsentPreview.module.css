@@ -12,7 +12,7 @@
 }
 
 .boldText {
-  font-weight: 500;
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .buttonRow {
