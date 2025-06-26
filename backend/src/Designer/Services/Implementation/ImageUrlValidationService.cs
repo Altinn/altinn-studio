@@ -1,4 +1,3 @@
-using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Services.Interfaces;
