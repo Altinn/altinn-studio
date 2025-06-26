@@ -6,11 +6,13 @@ on:
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/StudioAdmin/**'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/StudioAdmin/**'
   schedule:
     - cron: "55 4 * * 6"
 
