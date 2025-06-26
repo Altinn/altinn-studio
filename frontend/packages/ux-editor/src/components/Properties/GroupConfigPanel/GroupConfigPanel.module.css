@@ -3,10 +3,33 @@
 }
 
 .fieldSetWrapper {
-  place-content: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-7);
   place-items: start;
 }
 
 .alertMessage {
   margin-top: var(--fds-spacing-4);
+}
+
+.radio {
+  width: 80%;
+}
+
+.radioLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.radioLabelIcon {
+  color: #3582c8;
+  width: var(--fds-sizing-5);
+  height: var(--fds-sizing-5);
+  padding: var(--fds-spacing-1);
+  flex-shrink: 0;
+  border: 1px solid #3582c8;
+  border-radius: 4px;
+  background: #fff;
 }

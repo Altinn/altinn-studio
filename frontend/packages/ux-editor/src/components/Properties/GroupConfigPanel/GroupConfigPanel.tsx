@@ -1,8 +1,14 @@
 import React from 'react';
-import { StudioAlert, StudioSpinner, StudioSwitch } from '@studio/components';
+import {
+  StudioAlert,
+  StudioFieldset,
+  StudioSpinner,
+  StudioSwitch,
+  StudioRadio,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
-import { FileIcon } from '@studio/icons';
+import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { useAppContext } from '../../../hooks';
@@ -14,6 +20,11 @@ import classes from './GroupConfigPanel.module.css';
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
 };
+
+export enum GroupType {
+  Data = undefined,
+  Info = 'info',
+}
 
 export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
@@ -34,9 +45,17 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const selectedGroup = pages.groups[selectedItem.id];
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
-    selectedGroup.markWhenCompleted = event.target.checked;
-    pages.groups[selectedItem.id] = selectedGroup;
-    changePageGroup(pages);
+    const updatedPages = { ...pages };
+    updatedPages.groups[selectedItem.id].markWhenCompleted = event.target.checked;
+    changePageGroup(updatedPages);
+  };
+
+  const onChangeGroupType = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const typeValue = event.target.value || undefined;
+    const updatedPages = { ...pages };
+    updatedPages.groups[selectedItem.id].type = typeValue;
+
+    changePageGroup(updatedPages);
   };
 
   return (
@@ -58,11 +77,44 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
             checked={selectedGroup.markWhenCompleted || false}
             onChange={onMarkAsCompleted}
           ></StudioSwitch>
+          <StudioFieldset>
+            <StudioFieldset.Legend>
+              {t('ux_editor.page_group.select_type_title')}
+            </StudioFieldset.Legend>
+            <StudioRadio
+              label={
+                <div className={classes.radioLabel}>
+                  <span className={classes.radioLabelText}>
+                    {t('ux_editor.page_group.select_data_type')}
+                  </span>
+                  <TasklistIcon className={classes.radioLabelIcon} />
+                </div>
+              }
+              className={classes.radio}
+              value={GroupType.Data}
+              checked={!selectedGroup.type}
+              onChange={onChangeGroupType}
+            />
+            <StudioRadio
+              label={
+                <div className={classes.radioLabel}>
+                  <span className={classes.radioLabelText}>
+                    {t('ux_editor.page_group.select_info_type')}
+                  </span>
+                  <InformationIcon className={classes.radioLabelIcon} />
+                </div>
+              }
+              className={classes.radio}
+              value={GroupType.Info}
+              checked={selectedGroup.type === GroupType.Info}
+              onChange={onChangeGroupType}
+            />
+          </StudioFieldset>
+          {/*Remove this studioAlert when config for group is completed*/}
+          <StudioAlert data-color='info' className={classes.alertMessage}>
+            {t('right_menu.content_group_message')}
+          </StudioAlert>
         </div>
-        {/*Remove this studioAlert when config for group is completed*/}
-        <StudioAlert data-color='info' className={classes.alertMessage}>
-          {t('right_menu.content_group_message')}
-        </StudioAlert>
       </div>
     </>
   );
