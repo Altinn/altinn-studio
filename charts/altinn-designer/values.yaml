@@ -64,6 +64,11 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AI_CONNECTION_STRING
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: aiConnectionString
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -107,6 +112,11 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AI_CONNECTION_STRING
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: aiConnectionString
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -148,6 +158,11 @@ environmentVariables:
       value: "true"
     - name: SchedulingSettings__AddHostedService
       value: "true"
+    - name: AI_CONNECTION_STRING
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-env-secret
+          key: aiConnectionString
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 
@@ -201,3 +216,14 @@ ingress:
         traefik.frontend.priority: "600"
     paths:
       - path: /designerapi/
+
+
+lifecycle:
+  postStart:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - >
+          mkdir -p wwwroot/designer/config &&
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\"}" > wwwroot/designer/config/env.json

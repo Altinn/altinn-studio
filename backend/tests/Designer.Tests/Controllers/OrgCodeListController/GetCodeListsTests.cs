@@ -34,10 +34,10 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
         string repoPath = TestDataHelper.GetOrgRepositoryDirectory(Developer, targetOrg, targetRepository);
-        string filePath = Path.Combine(repoPath, "Codelists/");
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
-        await File.WriteAllTextAsync(Path.Combine(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
+        string filePath = Path.Join(repoPath, "CodeLists/");
+        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithObject.json"), codeListLabelWithObject);
+        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithNumber.json"), codeListLabelWithNumber);
+        await File.WriteAllTextAsync(Path.Join(filePath, "codeListLabelWithBool.json"), codeListLabelWithBool);
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -49,7 +49,7 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(9, responseList.Count);
+        Assert.Equal(10, responseList.Count);
         Assert.Single(responseList, e => e.Title == "codeListNumber" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListString" && e.HasError == false);
         Assert.Single(responseList, e => e.Title == "codeListBoolean" && e.HasError == false);

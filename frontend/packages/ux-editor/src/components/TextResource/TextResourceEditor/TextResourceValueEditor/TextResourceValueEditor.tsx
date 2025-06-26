@@ -13,6 +13,7 @@ import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 export type TextResourceValueEditorProps = {
   textResourceId: string;
   onSetCurrentValue: (value: string) => void;
+  textResourceValue?: string;
 };
 
 const language = DEFAULT_LANGUAGE;
@@ -21,11 +22,12 @@ const findTextResource = (textResources: ITextResources, id: string) =>
   textResources?.[language]?.find((resource) => resource.id === id);
 
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
-  findTextResource(textResources, id)?.value || '';
+  findTextResource(textResources, id)?.value;
 
 export const TextResourceValueEditor = ({
   textResourceId,
   onSetCurrentValue,
+  textResourceValue,
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
@@ -54,7 +56,7 @@ export const TextResourceValueEditor = ({
 
   const handleBlur = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onSetCurrentValue(event.target.value);
-    handleChange(event);
+    if (!textResourceValue) handleChange(event);
   };
 
   return (
@@ -62,7 +64,7 @@ export const TextResourceValueEditor = ({
       <StudioTextarea
         label={t('ux_editor.text_resource_binding_text')}
         onBlur={handleBlur}
-        value={valueState}
+        value={textResourceValue ?? valueState}
         onChange={handleTextEntryChange}
         ref={textareaRef}
       />

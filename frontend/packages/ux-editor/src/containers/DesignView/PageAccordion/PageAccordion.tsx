@@ -13,6 +13,7 @@ import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import cn from 'classnames';
+import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -23,6 +24,7 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
+  groupIndex?: number;
 };
 
 /**
@@ -47,10 +49,11 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
+  groupIndex,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
   const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
 
   const { mutate: deletePage, isPending } = useDeletePageMutation(
@@ -62,19 +65,18 @@ export const PageAccordion = ({
 
   const isUsingGroups = !!pages.groups;
   const handleConfirmDelete = () => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
-      if (isUsingGroups) {
-        const updatedPageGroups = { ...pages };
-        updatedPageGroups.groups.map((group) => {
-          group.order = group.order.filter((page) => page.id !== pageName);
-        });
-        updatedPageGroups.groups = updatedPageGroups.groups.filter(
-          (group) => group.order.length > 0,
-        );
-        changePageGroups(updatedPageGroups);
-      } else {
-        deletePage(pageName);
-      }
+    if (!confirm(t('ux_editor.page_delete_text'))) return;
+    if (selectedItem?.id === pageName) setSelectedItem(null);
+
+    if (isUsingGroups) {
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: pageName,
+        groups: pages.groups,
+        groupIndex,
+      });
+      changePageGroups({ ...pages, groups: updatedGroups });
+    } else {
+      deletePage(pageName);
     }
   };
 

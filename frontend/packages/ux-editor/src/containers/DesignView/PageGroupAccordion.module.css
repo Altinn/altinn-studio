@@ -1,63 +1,56 @@
 .groupWrapper {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-subtle);
 }
 .groupHeaderWrapper {
   display: flex;
-  margin: var(--fds-spacing-3);
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
-}
-
-.groupHeaderWrapper:hover {
-  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
 }
 
 .selected {
   background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
 }
 
-.customSize {
-  font-size: var(--fds-sizing-4);
-}
-
-.liftIcon {
-  padding-right: var(--fds-spacing-3);
-}
-
 .container {
   display: flex;
+  gap: var(--fds-spacing-2);
   align-items: center;
+  padding: var(--fds-spacing-3);
+  flex: 1;
+  align-self: stretch;
+  cursor: pointer;
+}
+
+.container:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
 }
 
 .rightIconsContainer {
   display: flex;
   align-items: center;
+  padding: var(--fds-spacing-3) var(--fds-spacing-2);
+  background-color: var(--background-color);
 }
 
-.rightIcon {
-  margin-right: var(--fds-spacing-2);
-  font-size: var(--fds-sizing-5);
+.elipsisIcon {
+  font-size: 0.8em;
 }
 
 .groupAccordionWrapper {
-  margin-left: var(--fds-spacing-8);
-  margin-right: var(--fds-spacing-8);
+  margin: auto;
+  width: 90%;
 }
 
-.buttonContainer {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--fds-spacing-5);
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  padding-bottom: var(--fds-spacing-4);
-}
-
-.button {
-  height: max-content;
+.addPagebutton {
+  display: block;
+  margin: var(--fds-spacing-5) auto;
 }
 
 .ellipsisMenuContent {
   display: flex;
   flex-direction: column;
+}
+
+.alertMessage {
+  margin: var(--fds-spacing-1) var(--fds-spacing-8);
 }

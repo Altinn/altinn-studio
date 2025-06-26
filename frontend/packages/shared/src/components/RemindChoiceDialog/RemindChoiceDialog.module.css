@@ -1,0 +1,23 @@
+.closeButton {
+  margin: var(--ds-size-3);
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.popover {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  max-width: unset;
+}
+
+.closed {
+  display: none;
+}
+
+.buttons {
+  display: flex;
+  gap: var(--ds-size-4);
+}

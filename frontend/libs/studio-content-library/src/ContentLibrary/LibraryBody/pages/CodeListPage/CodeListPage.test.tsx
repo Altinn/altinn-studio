@@ -22,7 +22,7 @@ const onUpdateCodeListId = jest.fn();
 const onUpdateCodeList = jest.fn();
 const onUploadCodeList = jest.fn();
 const defaultCodeListPageProps: CodeListPageProps = {
-  codeListsData: codeListDataList,
+  codeListDataList,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
@@ -106,12 +106,12 @@ describe('CodeListPage', () => {
       data: [{ value: 'value', label: 'label' }],
     };
     const newCodeListDataList: CodeListData[] = [
-      ...defaultCodeListPageProps.codeListsData,
+      ...defaultCodeListPageProps.codeListDataList,
       newCodeListData,
     ];
 
     await uploadCodeList(user, newCodeListData.title);
-    rerender(<CodeListPage {...defaultCodeListPageProps} codeListsData={newCodeListDataList} />);
+    rerender(<CodeListPage {...defaultCodeListPageProps} codeListDataList={newCodeListDataList} />);
 
     const openItem = screen.getByRole('button', { name: newCodeListData.title, expanded: true });
     expect(openItem).toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('CodeListPage', () => {
 
   it('Renders with text resources in the input fields when given', async () => {
     const user = userEvent.setup();
-    renderCodeListPage({ textResources, codeListsData: codeListDataList });
+    renderCodeListPage({ textResources, codeListDataList: codeListDataList });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     expect(labelField).toHaveValue(label1ResourceNb.value);
   });
@@ -174,7 +174,7 @@ describe('CodeListPage', () => {
     const onUpdateTextResource = jest.fn();
     const newLabel = 'Ny ledetekst';
 
-    renderCodeListPage({ textResources, codeListsData: codeListDataList, onUpdateTextResource });
+    renderCodeListPage({ textResources, codeListDataList: codeListDataList, onUpdateTextResource });
     const labelField = await openAndGetFirstLabelField(user, codeList1Data.title);
     await user.type(labelField, newLabel);
     await user.tab();
@@ -193,7 +193,7 @@ describe('CodeListPage', () => {
     const onCreateTextResource = jest.fn();
     const newDescription = 'Ny beskrivelse';
 
-    renderCodeListPage({ textResources, codeListsData: codeListDataList, onCreateTextResource });
+    renderCodeListPage({ textResources, codeListDataList: codeListDataList, onCreateTextResource });
     const emptyDescriptionField = await openAndGetFirstDescriptionField(user, codeList2Data.title);
     await user.type(emptyDescriptionField, newDescription);
     await user.tab();
@@ -264,7 +264,7 @@ describe('CodeListPage', () => {
   });
 
   it('renders an info box when no code lists are passed', () => {
-    renderCodeListPage({ codeListsData: [] });
+    renderCodeListPage({ codeListDataList: [] });
     const alert = screen.getByText(textMock('app_content_library.code_lists.info_box.title'));
     expect(alert).toBeInTheDocument();
   });

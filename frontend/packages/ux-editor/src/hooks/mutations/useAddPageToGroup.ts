@@ -4,18 +4,22 @@ import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
+import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
 export const useAddPageToGroup = (pagesModel: PagesModel) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName, updateLayoutsForPreview } =
-    useAppContext();
+  const {
+    setSelectedItem,
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutName,
+    updateLayoutsForPreview,
+  } = useAppContext();
   const updateGroupsMutation = useUpdateGroupsMutation(org, app, selectedFormLayoutSetName);
 
-  const addPageToGroup = async (groupIndex: number) => {
+  const nextValidPageName = () => {
     const allPageNames = [
-      ...(pagesModel?.pages?.map((page) => page.id) || []),
-      ...(pagesModel?.groups?.flatMap((group) => group?.order?.map((page) => page.id) || []) || []),
+      ...pagesModel.groups.flatMap((group) => group.order?.map((page) => page.id)),
     ];
 
     let nextNum = allPageNames.length + 1;
@@ -25,28 +29,37 @@ export const useAddPageToGroup = (pagesModel: PagesModel) => {
       nextNum += 1;
       newLayoutName = `${t('ux_editor.page')}${nextNum}`;
     }
+    return newLayoutName;
+  };
 
-    const page: PageModel = { id: newLayoutName };
-    const currentGroups = pagesModel?.groups || [];
-    const updatedPages = {
-      ...pagesModel,
-      groups: currentGroups.map((group, index) => {
-        if (index === groupIndex) {
-          return {
-            ...group,
-            order: [...(group?.order || []), page],
-          };
-        }
-        return group;
-      }),
+  const nextValidGroupName = () => {
+    const pageGroupPrefix = t('ux_editor.page_layout_group');
+    let i: number = 1;
+    while (pagesModel.groups.some((group) => group.name === `${pageGroupPrefix} ${i}`)) {
+      i++;
+    }
+    return `${pageGroupPrefix} ${i}`;
+  };
+
+  const addPageToGroup = async (groupIndex: number) => {
+    const newPage: PageModel = { id: nextValidPageName() };
+    const updatedGroups = [...pagesModel.groups];
+    updatedGroups[groupIndex] = {
+      ...updatedGroups[groupIndex],
+      order: [...updatedGroups[groupIndex].order, newPage],
+      name: updatedGroups[groupIndex].name || nextValidGroupName(),
     };
 
-    await updateGroupsMutation.mutateAsync(updatedPages, {
-      onSuccess: () => {
-        setSelectedFormLayoutName(page.id);
-        updateLayoutsForPreview(selectedFormLayoutSetName);
+    await updateGroupsMutation.mutateAsync(
+      { ...pagesModel, groups: updatedGroups },
+      {
+        onSuccess: async () => {
+          setSelectedFormLayoutName(newPage.id);
+          setSelectedItem({ type: ItemType.Page, id: newPage.id });
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
+        },
       },
-    });
+    );
   };
   return { addPageToGroup };
 };

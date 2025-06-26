@@ -6,9 +6,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from 'app-shared/hooks/useSelectedFormLayoutSetName.test';
 
-const mockSetSelectedFormLayoutName = jest.fn();
-const mockUpdateLayoutsForPreview = jest.fn();
-
 describe('useAddPageToGroup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -16,21 +13,26 @@ describe('useAddPageToGroup', () => {
 
   it('should add a page to the group and call the mutation', async () => {
     const mockPagesModel: PagesModel = {
-      pages: [],
-      groups: [{ order: [] }],
+      groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],
     };
-    const { result } = render(mockPagesModel);
+    const { result } = renderUseAddPageToGroup(mockPagesModel);
     await result.current.addPageToGroup(0);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],
-      pages: [],
+      groups: [
+        {
+          name: textMock('ux_editor.page_layout_group') + ' 1',
+          order: [
+            { id: textMock('ux_editor.page') + '1' },
+            { id: textMock('ux_editor.page') + '2' },
+          ],
+        },
+      ],
     });
   });
 
   it('should generate a unique page name', async () => {
     const mockPagesModel: PagesModel = {
-      pages: [],
       groups: [
         {
           order: [
@@ -40,12 +42,13 @@ describe('useAddPageToGroup', () => {
         },
       ],
     };
-    const { result } = render(mockPagesModel);
+    const { result } = renderUseAddPageToGroup(mockPagesModel);
     await result.current.addPageToGroup(0);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
       groups: [
         {
+          name: textMock('ux_editor.page_layout_group') + ' 1',
           order: [
             { id: textMock('ux_editor.page') + '1' },
             { id: textMock('ux_editor.page') + '2' },
@@ -53,64 +56,6 @@ describe('useAddPageToGroup', () => {
           ],
         },
       ],
-      pages: [],
-    });
-  });
-
-  it('should handle undefined pagesModel', async () => {
-    const { result } = renderHookWithProviders(() => useAddPageToGroup(undefined));
-    await result.current.addPageToGroup(0);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      groups: [],
-    });
-  });
-
-  it('should handle undefined pagesModel.groups', async () => {
-    const mockPagesModel: PagesModel = {
-      pages: [],
-      groups: undefined,
-    };
-    const { result } = render(mockPagesModel);
-    await result.current.addPageToGroup(0);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      groups: [],
-      pages: [],
-    });
-  });
-
-  it('should handle undefined group.order', async () => {
-    const mockPagesModel: PagesModel = {
-      pages: [],
-      groups: [
-        {
-          order: undefined,
-        },
-      ],
-    };
-    const { result } = render(mockPagesModel);
-    await result.current.addPageToGroup(0);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],
-      pages: [],
-    });
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(textMock('ux_editor.page') + '1');
-    expect(mockUpdateLayoutsForPreview).toHaveBeenCalledWith(layoutSet1NameMock);
-  });
-
-  it('should handle empty groups', async () => {
-    const mockPagesModel: PagesModel = {
-      pages: [],
-      groups: [{ order: [] }],
-    };
-    const { result } = render(mockPagesModel);
-    await result.current.addPageToGroup(0);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-      groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],
-      pages: [],
     });
   });
 
@@ -120,6 +65,7 @@ describe('useAddPageToGroup', () => {
         pages: [{ id: textMock('ux_editor.page') + '1' }, { id: textMock('ux_editor.page') + '2' }],
         groups: [
           {
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '3' },
               { id: textMock('ux_editor.page') + '4' },
@@ -127,12 +73,13 @@ describe('useAddPageToGroup', () => {
           },
         ],
       };
-      const { result } = render(mockPagesModel);
+      const { result } = renderUseAddPageToGroup(mockPagesModel);
       await result.current.addPageToGroup(0);
       expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
       expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
         groups: [
           {
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '3' },
               { id: textMock('ux_editor.page') + '4' },
@@ -146,58 +93,60 @@ describe('useAddPageToGroup', () => {
 
     it('should increment exactly once when first attempt is taken', async () => {
       const mockPagesModel: PagesModel = {
-        pages: [],
         groups: [
           {
             order: [{ id: textMock('ux_editor.page') + '1' }],
           },
         ],
       };
-      const { result } = render(mockPagesModel);
+      const { result } = renderUseAddPageToGroup(mockPagesModel);
       await result.current.addPageToGroup(0);
       expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
       expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
         groups: [
           {
+            name: textMock('ux_editor.page_layout_group') + ' 1',
             order: [
               { id: textMock('ux_editor.page') + '1' },
               { id: textMock('ux_editor.page') + '2' },
             ],
           },
         ],
-        pages: [],
       });
     });
 
-    it('should increment multiple times with gap in numbering', async () => {
+    it('should add incremented name to group when adding page to group without name', async () => {
       const mockPagesModel: PagesModel = {
-        pages: [
-          { id: textMock('ux_editor.page') + '1' },
-          { id: textMock('ux_editor.page') + '3' },
-          { id: textMock('ux_editor.page') + '4' },
+        groups: [
+          {
+            name: textMock('ux_editor.page_layout_group') + ' 1',
+            order: [
+              { id: textMock('ux_editor.page') + '1' },
+              { id: textMock('ux_editor.page') + '2' },
+            ],
+          },
+          {
+            order: [{ id: textMock('ux_editor.page') + '3' }],
+          },
         ],
-        groups: [{ order: [] }],
       };
-      const { result } = render(mockPagesModel);
-      await result.current.addPageToGroup(0);
+      const { result } = renderUseAddPageToGroup(mockPagesModel);
+      await result.current.addPageToGroup(1);
       expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
-        groups: [{ order: [{ id: textMock('ux_editor.page') + '5' }] }],
-        pages: [
-          { id: textMock('ux_editor.page') + '1' },
-          { id: textMock('ux_editor.page') + '3' },
-          { id: textMock('ux_editor.page') + '4' },
-        ],
-      });
+      expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
+        org,
+        app,
+        layoutSet1NameMock,
+        expect.objectContaining({
+          groups: expect.arrayContaining([
+            expect.objectContaining({ name: textMock('ux_editor.page_layout_group') + ' 2' }),
+          ]),
+        }),
+      );
     });
   });
 });
 
-const render = (pagesModel: PagesModel) => {
-  return renderHookWithProviders(() => useAddPageToGroup(pagesModel), {
-    appContextProps: {
-      setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
-      updateLayoutsForPreview: mockUpdateLayoutsForPreview,
-    },
-  });
+const renderUseAddPageToGroup = (pagesModel: PagesModel) => {
+  return renderHookWithProviders(() => useAddPageToGroup(pagesModel));
 };

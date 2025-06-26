@@ -5,8 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
 import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
-import { StudioButton, StudioPopover } from '@studio/components';
-import { MenuElipsisVerticalIcon, FolderIcon, PlusIcon, TrashIcon } from '@studio/icons';
+import { StudioAlert, StudioButton, StudioPopover } from '@studio/components';
+import {
+  MenuElipsisVerticalIcon,
+  FolderIcon,
+  PlusIcon,
+  TrashIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,
@@ -23,6 +30,7 @@ import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
+import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
 
 export interface PageGroupAccordionProps {
   pages: PagesModel;
@@ -83,10 +91,11 @@ export const PageGroupAccordion = ({
         deletePageGroup({
           groups: updatedGroups,
         });
+        if (selectedItem?.id === groupIndex) setSelectedItem(null);
       }
     };
 
-    const groupDisplayName = group.order.length === 1 ? group.order[0].id : group.name;
+    const groupDisplayName = pageGroupDisplayName(group);
     const selectedGroup = selectedItem?.type === ItemType.Group && selectedItem.id === groupIndex;
 
     return (
@@ -96,22 +105,25 @@ export const PageGroupAccordion = ({
             [classes.selected]: selectedGroup,
           })}
           data-testid={pageGroupAccordionHeader(groupIndex)}
-          onClick={() => setSelectedItem({ type: ItemType.Group, id: groupIndex })}
         >
-          <div className={classes.container}>
-            <FolderIcon aria-hidden className={cn(classes.liftIcon, classes.customSize)} />
-            <StudioHeading level={3} className={cn(classes.groupHeader, classes.customSize)}>
+          <div
+            className={classes.container}
+            onClick={() => setSelectedItem({ type: ItemType.Group, id: groupIndex })}
+          >
+            <FolderIcon aria-hidden />
+            <StudioHeading size='2xs' level={2}>
               {groupDisplayName}
             </StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
-              <StudioPopover.Trigger variant='tertiary'>
+              <StudioPopover.Trigger variant='tertiary' className={classes.elipsisIcon}>
                 <MenuElipsisVerticalIcon />
               </StudioPopover.Trigger>
               <StudioPopover placement='bottom'>
                 <div className={classes.ellipsisMenuContent}>
                   <StudioButton
+                    icon={<ArrowUpIcon aria-hidden />}
                     variant='tertiary'
                     onClick={() => moveGroupUp(groupIndex)}
                     disabled={groupIndex === 0}
@@ -119,6 +131,7 @@ export const PageGroupAccordion = ({
                     {t('ux_editor.page_menu_up')}
                   </StudioButton>
                   <StudioButton
+                    icon={<ArrowDownIcon aria-hidden />}
                     variant='tertiary'
                     onClick={() => moveGroupDown(groupIndex)}
                     disabled={groupIndex === pages.groups.length - 1}
@@ -149,6 +162,7 @@ export const PageGroupAccordion = ({
                 onClick={() => onAccordionClick(page.id)}
                 isInvalid={isInvalidLayout}
                 hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(page.id)}
+                groupIndex={groupIndex}
               >
                 {page.id === selectedFormLayoutName && layout && (
                   <FormLayout
@@ -161,16 +175,19 @@ export const PageGroupAccordion = ({
             </Accordion>
           );
         })}
-        <div className={classes.buttonContainer}>
-          <StudioButton
-            icon={<PlusIcon aria-hidden />}
-            onClick={() => handleAddPageInsideGroup(groupIndex)}
-            className={classes.button}
-            disabled={isAddPagePending}
-          >
-            {t('ux_editor.pages_add')}
-          </StudioButton>
-        </div>
+        {group.order.length === 1 && (
+          <StudioAlert data-color='info' className={classes.alertMessage}>
+            {t('ux_editor.page_group.one_page_in_group_info_message')}
+          </StudioAlert>
+        )}
+        <StudioButton
+          icon={<PlusIcon aria-hidden />}
+          onClick={() => handleAddPageInsideGroup(groupIndex)}
+          className={classes.addPagebutton}
+          disabled={isAddPagePending}
+        >
+          {t('ux_editor.pages_add')}
+        </StudioButton>
       </div>
     );
   });
