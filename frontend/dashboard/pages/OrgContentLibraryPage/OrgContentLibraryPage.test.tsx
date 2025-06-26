@@ -26,6 +26,7 @@ import {
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const orgName: string = 'org';
@@ -250,6 +251,19 @@ describe('OrgContentLibraryPage', () => {
       level: 1,
     });
     expect(mergeConflictWarning).not.toBeInTheDocument();
+  });
+
+  it('Displays the feedback button', () => {
+    renderOrgContentLibraryWithData();
+    const feedbackButton = screen.getByRole('button', { name: /Gi tilbakemelding/ });
+    expect(feedbackButton).toBeInTheDocument();
+  });
+
+  it('Displays a dialog when the feedback button is clicked', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithData();
+    await user.click(screen.getByRole('button', { name: /Gi tilbakemelding/ }));
+    expect(screen.getByRole('dialog', { name: /Gi tilbakemelding om biblioteket/ })).toBeVisible();
   });
 });
 
