@@ -176,7 +176,6 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     appContextMock.selectedFormLayoutName = layout2NameMock;
     renderDesignView({ pagesModel: groupsPagesModelMock });
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     const accordionButton = screen.getByRole('button', { name: layout1NameMock });
     await user.click(accordionButton);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
@@ -187,7 +186,6 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     appContextMock.selectedFormLayoutName = layout1NameMock;
     renderDesignView({ pagesModel: groupsPagesModelMock });
-    expect(screen.getByText('Sideoppsett 1')).toBeInTheDocument();
     const accordionButton = screen.getByRole('button', { name: layout1NameMock });
     await user.click(accordionButton);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);

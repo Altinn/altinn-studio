@@ -33,31 +33,15 @@ describe('DesignViewNavigation', () => {
     expect(menuButton).toHaveAttribute('aria-haspopup', 'menu');
   });
 
-  it('should open dropdown menu when clicking the menu button', async () => {
+  it('should be possible to toggle dropdown menu', async () => {
     const user = userEvent.setup();
     renderDesignViewNavigation({});
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
-    ).not.toBeInTheDocument();
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
     await user.click(menuButton);
-    expect(
-      await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
-    ).toBeInTheDocument();
-  });
-
-  it('should close dropdown menu when clicking outside', async () => {
-    const user = userEvent.setup();
-    renderDesignViewNavigation({});
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await user.click(menuButton);
-    expect(
-      await screen.findByText(textMock('ux_editor.page_layout_perform_another_task')),
-    ).toBeInTheDocument();
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
     await user.click(document.body);
-    expect(
-      screen.queryByText(textMock('ux_editor.page_layout_perform_another_task')),
-    ).not.toBeInTheDocument();
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should show button to convert to page groups if layout is using page order', async () => {
