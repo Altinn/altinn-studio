@@ -58,6 +58,7 @@ const defaultProps: DeployResourcePageProps = {
   resourceVersionText: mockResourceVersionText,
   onSaveVersion: mockOnSaveVersion,
   id: mockId,
+  isSavingResource: false,
 };
 
 describe('DeployResourcePage', () => {
