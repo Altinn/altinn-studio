@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
 import { PageGroupAccordion, type PageGroupAccordionProps } from './PageGroupAccordion';
@@ -123,12 +123,10 @@ describe('PageGroupAccordion', () => {
 
   it('should display info message when group has just one page', async () => {
     await renderPageGroupAccordion({ props: { pages: singlePageGroupMock } });
-    await waitFor(() => {
-      const infoMessage = screen.getByText(
-        textMock('ux_editor.page_group.one_page_in_group_info_message'),
-      );
-      expect(infoMessage).toBeInTheDocument();
-    });
+    const infoMessage = screen.getByText(
+      textMock('ux_editor.page_group.one_page_in_group_info_message'),
+    );
+    expect(infoMessage).toBeInTheDocument();
   });
 
   it('should display group name when group has multiple pages', async () => {
