@@ -55,6 +55,7 @@ describe('DesignViewNavigation', () => {
   });
 
   it('should call convertToPageGroups when clicking convertion button', async () => {
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const convertToPageGroups = jest.fn();
     renderDesignViewNavigation({ queries: { convertToPageGroups } });
@@ -65,6 +66,7 @@ describe('DesignViewNavigation', () => {
     );
     expect(convertToPageGroups).toHaveBeenCalledTimes(1);
     expect(convertToPageGroups).toHaveBeenCalledWith(org, app, layoutSet1NameMock);
+    confirmSpy.mockRestore();
   });
 
   it('should show button to convert to page order if layout is using page groups', async () => {
@@ -84,6 +86,7 @@ describe('DesignViewNavigation', () => {
   });
 
   it('should call convertToPageOrder when clicking convertion button', async () => {
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.Pages, org, app, layoutSet1NameMock], {
@@ -100,6 +103,7 @@ describe('DesignViewNavigation', () => {
     );
     expect(convertToPageOrder).toHaveBeenCalledTimes(1);
     expect(convertToPageOrder).toHaveBeenCalledWith(org, app, layoutSet1NameMock);
+    confirmSpy.mockRestore();
   });
 });
 
