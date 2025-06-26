@@ -31,36 +31,32 @@ public sealed record CorrespondenceNotificationRecipient : MultipartCorresponden
     /// <summary>
     /// Boolean indicating if the recipient is reserved.
     /// </summary>
+    [Obsolete(
+        "This property is deprecated and will be removed in a future version. Use Correspondence.IgnoreReservation instead."
+    )]
     public bool IsReserved { get; init; }
 
-    internal override void Serialise(MultipartFormDataContent content, int index) => Serialise(content, index, 0);
+    internal override void Serialise(MultipartFormDataContent content, int index) => Serialise(content);
 
-    internal void Serialise(MultipartFormDataContent content, int index, int parentIndex)
+    internal void Serialise(MultipartFormDataContent content)
     {
-        AddIfNotNull(
-            content,
-            EmailAddress,
-            $"Correspondence.Notification.CustomNotificationRecipients[{parentIndex}].Recipients[{index}].EmailAddress"
-        );
-        AddIfNotNull(
-            content,
-            MobileNumber,
-            $"Correspondence.Notification.CustomNotificationRecipients[{parentIndex}].Recipients[{index}].MobileNumber"
-        );
-        AddRequired(
-            content,
-            IsReserved.ToString(),
-            $"Correspondence.Notification.CustomNotificationRecipients[{parentIndex}].Recipients[{index}].IsReserved"
-        );
+        AddIfNotNull(content, EmailAddress, $"Correspondence.Notification.CustomRecipient.EmailAddress");
+        AddIfNotNull(content, MobileNumber, $"Correspondence.Notification.CustomRecipient.MobileNumber");
         AddIfNotNull(
             content,
             OrganizationNumber?.ToUrnFormattedString(),
-            $"Correspondence.Notification.CustomNotificationRecipients[{parentIndex}].Recipients[{index}].OrganizationNumber"
+            $"Correspondence.Notification.CustomRecipient.OrganizationNumber"
         );
         AddIfNotNull(
             content,
             NationalIdentityNumber?.ToUrnFormattedString(),
-            $"Correspondence.Notification.CustomNotificationRecipients[{parentIndex}].Recipients[{index}].NationalIdentityNumber"
+            $"Correspondence.Notification.CustomRecipient.NationalIdentityNumber"
         );
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (IsReserved)
+        {
+            OverrideIfAlreadyExists(content, IsReserved.ToString(), $"Correspondence.IgnoreReservation");
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

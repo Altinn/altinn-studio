@@ -8,4 +8,7 @@ internal sealed record DefaultTexts
     internal string? SmsBody { get; init; }
     internal string? EmailSubject { get; init; }
     internal string? EmailBody { get; init; }
+    internal string? ReminderSmsBody { get; init; }
+    internal string? ReminderEmailSubject { get; init; }
+    internal string? ReminderEmailBody { get; init; }
 }

@@ -88,6 +88,13 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <summary>
     /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
     /// </summary>
+    public CorrespondenceNotificationRecipient? CustomRecipient { get; init; }
+
+    /// <summary>
+    /// A list of recipients for the notification. If not set, the notification will be sent to the recipient of the Correspondence
+    /// </summary>
+    /// <remarks> Only the first recipient in the list will be used for sending the notification. </remarks>
+    [Obsolete("This property is deprecated and will be removed in a future version. Use CustomRecipient instead.")]
     public IReadOnlyList<CorrespondenceNotificationRecipientWrapper>? CustomNotificationRecipients { get; init; }
 
     internal void Serialise(MultipartFormDataContent content)
@@ -105,7 +112,14 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
         AddIfNotNull(content, NotificationChannel.ToString(), "Correspondence.Notification.NotificationChannel");
         AddIfNotNull(content, SendersReference, "Correspondence.Notification.SendersReference");
         AddIfNotNull(content, RequestedSendTime, "Correspondence.Notification.RequestedSendTime");
-        SerializeListItems(content, CustomNotificationRecipients);
+        CustomRecipient?.Serialise(content);
+        if (CustomRecipient is null)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            CustomNotificationRecipients?[0]?.Serialise(content, 0);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         AddIfNotNull(
             content,
             ReminderNotificationChannel.ToString(),

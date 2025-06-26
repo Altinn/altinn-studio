@@ -47,6 +47,14 @@ public abstract record MultipartCorrespondenceItem
             content.Add(new StringContent(value), name);
     }
 
+    internal static void OverrideIfAlreadyExists(MultipartFormDataContent content, string? value, string name)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            content.ReplaceByName(new StringContent(value), name);
+        }
+    }
+
     internal static void AddIfNotNull(MultipartFormDataContent content, DateTimeOffset? value, string name)
     {
         if (value is null)
@@ -88,19 +96,23 @@ public abstract record MultipartCorrespondenceItem
         }
     }
 
+    internal static void SerializeOverrideNotificationRecipient(
+        MultipartFormDataContent content,
+        CorrespondenceNotificationRecipient notificationRecipient
+    )
+    {
+        notificationRecipient.Serialise(content);
+    }
+
     internal static void SerializeOverrideNotificationRecipients(
         MultipartFormDataContent content,
-        IReadOnlyList<CorrespondenceNotificationRecipient>? notificationRecipients,
-        int parentIndex
+        IReadOnlyList<CorrespondenceNotificationRecipient>? notificationRecipients
     )
     {
         if (IsEmptyCollection(notificationRecipients))
             return;
 
-        for (int i = 0; i < notificationRecipients.Count; i++)
-        {
-            notificationRecipients[i].Serialise(content, i, parentIndex);
-        }
+        notificationRecipients[0].Serialise(content);
     }
 
     internal static void SerializeAttachmentItems(

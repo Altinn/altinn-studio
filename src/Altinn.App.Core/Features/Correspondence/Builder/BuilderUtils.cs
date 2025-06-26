@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
 
 namespace Altinn.App.Core.Features.Correspondence.Builder;
@@ -23,6 +24,36 @@ internal static class BuilderUtils
         )
         {
             throw new CorrespondenceArgumentException(errorMessage);
+        }
+    }
+
+    internal static void RequireAtLeastOneOf<T1, T2>(
+        T1? value1,
+        T2? value2,
+        string? errorMessage = null,
+        [CallerArgumentExpression(nameof(value1))] string? value1Name = null,
+        [CallerArgumentExpression(nameof(value2))] string? value2Name = null
+    )
+    {
+        if (value1 is null && value2 is null)
+        {
+            var message = errorMessage ?? $"At least one of {value1Name} or {value2Name} must be set.";
+            throw new CorrespondenceArgumentException(message);
+        }
+    }
+
+    internal static void RequireExactlyOneOf<T1, T2>(
+        T1? value1,
+        T2? value2,
+        string? errorMessage = null,
+        [CallerArgumentExpression(nameof(value1))] string? value1Name = null,
+        [CallerArgumentExpression(nameof(value2))] string? value2Name = null
+    )
+    {
+        if ((value1 is not null && value2 is not null) || (value1 is null && value2 is null))
+        {
+            var message = errorMessage ?? $"Exactly one of {value1Name} or {value2Name} must be set.";
+            throw new CorrespondenceArgumentException(message);
         }
     }
 }
