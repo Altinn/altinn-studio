@@ -3,6 +3,7 @@ import classes from './RemindChoiceDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
+import cn from 'classnames';
 
 export type RemindChoiceDialogProps = {
   closeDialog: (permanentlyDismiss: boolean) => void;
@@ -24,9 +25,9 @@ export const RemindChoiceDialog = ({ closeDialog }: RemindChoiceDialogProps) => 
       <StudioPopover
         placement='bottom'
         data-color='info'
-        className={classes.popover}
         onOpen={() => setOpened(true)}
         onClose={() => setOpened(false)}
+        className={cn(classes.popover, { [classes.closed]: !opened })}
       >
         {opened && (
           <>
