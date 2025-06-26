@@ -79,6 +79,7 @@
   "EFormidling": null,
   "MessageBoxConfig": null,
   "CopyInstanceSettings": null,
+  "ApiScopes": null,
   "StorageAccountNumber": null,
   "DisallowUserInstantiation": false,
   "Created": "2019-09-16T22:22:22",

@@ -28,8 +28,8 @@ partial class Telemetry
                     {
                         m.Add(
                             0,
-                            new Tag(InternalLabels.Type, type.ToStringFast()),
-                            new Tag(InternalLabels.Result, result.ToStringFast())
+                            new Tag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true)),
+                            new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true))
                         );
                     }
                 }
@@ -40,7 +40,7 @@ partial class Telemetry
     internal Activity? StartNotificationOrderActivity(OrderType type)
     {
         var activity = ActivitySource.StartActivity("Notifications.Order");
-        activity?.SetTag(InternalLabels.Type, type.ToStringFast());
+        activity?.SetTag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true));
         return activity;
     }
 
@@ -48,8 +48,8 @@ partial class Telemetry
         _counters[MetricNameOrder]
             .Add(
                 1,
-                new Tag(InternalLabels.Type, type.ToStringFast()),
-                new Tag(InternalLabels.Result, result.ToStringFast())
+                new Tag(InternalLabels.Type, type.ToStringFast(useMetadataAttributes: true)),
+                new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true))
             );
 
     internal static class Notifications

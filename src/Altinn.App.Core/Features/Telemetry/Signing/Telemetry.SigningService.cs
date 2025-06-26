@@ -25,7 +25,7 @@ partial class Telemetry
             {
                 foreach (var result in NotifySigneesResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -37,17 +37,19 @@ partial class Telemetry
             {
                 foreach (var result in ServiceOwnerPartyResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
     }
 
     internal void RecordNotifySignees(NotifySigneesResult result) =>
-        _counters[MetricNameNotifySignees].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameNotifySignees]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal void RecordGetServiceOwnerParty(ServiceOwnerPartyResult result) =>
-        _counters[MetricNameGetServiceOwnerParty].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameGetServiceOwnerParty]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal Activity? StartAssignSigneesActivity() => ActivitySource.StartActivity("SigningService.AssignSignees");
 

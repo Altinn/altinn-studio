@@ -122,7 +122,8 @@ public class DataServiceTests
         instance.Data = [new DataElement { Id = Guid.NewGuid().ToString() }];
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _dataService.GetById<TestModel>(instance, Guid.NewGuid())
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _dataService.GetById<TestModel>(instance, Guid.NewGuid())
         );
     }
 

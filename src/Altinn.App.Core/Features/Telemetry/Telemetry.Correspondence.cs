@@ -17,7 +17,7 @@ partial class Telemetry
             {
                 foreach (var result in CorrespondenceResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -36,7 +36,8 @@ partial class Telemetry
     }
 
     internal void RecordCorrespondenceOrder(CorrespondenceResult result) =>
-        _counters[MetricNameOrder].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameOrder]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal static class Correspondence
     {

@@ -23,9 +23,6 @@
     <PackageReference Include="Verify.Xunit"/>
 
     <PackageReference Include="Buildalyzer.Workspaces"/>
-    <PackageReference Include="System.Formats.Asn1"/>
-        <!-- Add explicit reference to patched version to override vulnerable dependency -->
-    <PackageReference Include="Microsoft.Build.Tasks.Core"/>
   </ItemGroup>
 
   <ItemGroup>

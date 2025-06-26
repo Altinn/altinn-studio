@@ -17,7 +17,7 @@ partial class Telemetry
             {
                 foreach (var result in RequestResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -28,7 +28,7 @@ partial class Telemetry
             {
                 foreach (var result in RequestResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -54,12 +54,14 @@ partial class Telemetry
 
     internal void RecordMaskinportenTokenRequest(RequestResult result)
     {
-        _counters[MetricNameTokenRequest].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameTokenRequest]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
     }
 
     internal void RecordMaskinportenAltinnTokenExchangeRequest(RequestResult result)
     {
-        _counters[MetricNameTokenExchangeRequest].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameTokenExchangeRequest]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
     }
 
     internal static class Maskinporten

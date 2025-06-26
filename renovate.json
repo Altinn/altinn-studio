@@ -9,6 +9,10 @@
     {
       "matchPackageNames": ["/dotnet(-|\\/)sdk/", "/^Microsoft\\.AspNetCore/", "/^Microsoft\\.Extensions/", "!Microsoft.Extensions.Caching.Hybrid"],
       "allowedVersions": "<=8"
+    },
+    {
+      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
+      "enabled": false
     }
   ]
 }

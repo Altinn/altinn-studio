@@ -16,14 +16,15 @@ partial class Telemetry
             MetricNameDataPatched,
             init: static m =>
             {
-                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Success.ToStringFast()));
-                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Error.ToStringFast()));
+                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Success.ToStringFast(useMetadataAttributes: true)));
+                m.Add(0, new Tag(InternalLabels.Result, PatchResult.Error.ToStringFast(useMetadataAttributes: true)));
             }
         );
     }
 
     internal void DataPatched(PatchResult result) =>
-        _counters[MetricNameDataPatched].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameDataPatched]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal Activity? StartDataPatchActivity(Instance instance)
     {

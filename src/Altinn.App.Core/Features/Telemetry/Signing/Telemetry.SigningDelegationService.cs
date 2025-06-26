@@ -24,7 +24,7 @@ partial class Telemetry
             {
                 foreach (var result in DelegationResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -36,7 +36,7 @@ partial class Telemetry
             {
                 foreach (var result in DelegationResultExtensions.GetValues())
                 {
-                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast()));
+                    m.Add(0, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
                 }
             }
         );
@@ -57,10 +57,12 @@ partial class Telemetry
     }
 
     internal void RecordDelegation(DelegationResult result) =>
-        _counters[MetricNameDelegation].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameDelegation]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal void RecordDelegationRevoke(DelegationResult result) =>
-        _counters[MetricNameDelegationRevoke].Add(1, new Tag(InternalLabels.Result, result.ToStringFast()));
+        _counters[MetricNameDelegationRevoke]
+            .Add(1, new Tag(InternalLabels.Result, result.ToStringFast(useMetadataAttributes: true)));
 
     internal static class DelegationConst
     {

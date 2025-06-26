@@ -173,7 +173,8 @@ public class PaymentServiceTests
         fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() =>
+            fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -203,7 +204,8 @@ public class PaymentServiceTests
             .ThrowsAsync(new Exception());
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() =>
+            fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 
@@ -239,7 +241,8 @@ public class PaymentServiceTests
             .ReturnsAsync(paymentDetails);
 
         // Act & Assert
-        await Assert.ThrowsAsync<Exception>(() => fixture.Service.StartPayment(instance, paymentConfiguration, language)
+        await Assert.ThrowsAsync<Exception>(() =>
+            fixture.Service.StartPayment(instance, paymentConfiguration, language)
         );
     }
 

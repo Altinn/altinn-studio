@@ -2571,6 +2571,20 @@
         },
         "additionalProperties": false
       },
+      "ApiScopes": {
+        "type": "object",
+        "properties": {
+          "read": {
+            "type": "string",
+            "nullable": true
+          },
+          "write": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "InstanceSelection": {
         "type": "object",
         "properties": {
@@ -2725,6 +2739,9 @@
           },
           "copyInstanceSettings": {
             "$ref": "#/components/schemas/CopyInstanceSettings"
+          },
+          "apiScopes": {
+            "$ref": "#/components/schemas/ApiScopes"
           },
           "storageAccountNumber": {
             "type": "integer",
