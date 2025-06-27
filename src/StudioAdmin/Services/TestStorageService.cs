@@ -53,12 +53,11 @@ class TestStorageService : IStorageService
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
         var queryResponse =
-            JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString)
-            ?? throw new JsonException("Could not deserialize Instance query response");
+            JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
 
         if (queryResponse == null)
         {
-            throw new Exception("Unexpeced response from storage");
+            throw new JsonException("Could not deserialize Instance query response");
         }
 
         var instances = new List<SimpleInstance>();
@@ -80,7 +79,7 @@ class TestStorageService : IStorageService
 
             if (queryResponse == null)
             {
-                throw new Exception("Unexpeced response from storage");
+                throw new Exception("Unexpected response from storage");
             }
 
             instances.AddRange(
@@ -112,12 +111,11 @@ class TestStorageService : IStorageService
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
         var instance =
-            JsonConvert.DeserializeObject<Instance>(responseString)
-            ?? throw new JsonException("Could not deserialize Instance response");
+            JsonConvert.DeserializeObject<Instance>(responseString);
 
         if (instance == null)
         {
-            throw new Exception("Unexpeced response from storage");
+            throw new JsonException("Could not deserialize Instance response");
         }
 
         return instance;
@@ -186,7 +184,7 @@ class TestStorageService : IStorageService
 
         if (processHistoryList == null)
         {
-            throw new Exception("Unexpeced response from storage");
+            throw new Exception("Unexpected response from storage");
         }
 
         return processHistoryList.ProcessHistory;
@@ -222,7 +220,7 @@ class TestStorageService : IStorageService
 
         if (instanceEventList == null)
         {
-            throw new Exception("Unexpeced response from storage");
+            throw new Exception("Unexpected response from storage");
         }
 
         return instanceEventList.InstanceEvents;

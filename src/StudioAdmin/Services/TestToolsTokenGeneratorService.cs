@@ -70,7 +70,7 @@ public class TestToolsTokenGeneratorService
 
                 var request = new HttpRequestMessage(
                     HttpMethod.Get,
-                    $"https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken?org={org}&env={env}&scopes=altinn:serviceowner/instances.read"
+                    $"{_tokenGeneratorSettings.BaseUrl}/GetEnterpriseToken?org={org}&env={env}&scopes=altinn:serviceowner/instances.read"
                 );
                 request.Headers.Authorization = new AuthenticationHeaderValue(
                     "Basic",

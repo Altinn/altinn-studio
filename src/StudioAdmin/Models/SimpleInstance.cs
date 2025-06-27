@@ -58,11 +58,24 @@ public class SimpleInstance
 
     public static SimpleInstance FromInstance(Instance instance)
     {
+        var partyIdPrefix = $"{instance.InstanceOwner.PartyId}/";
+        var orgPrefix = $"{instance.Org}/";
+
+        if (!instance.Id.StartsWith(partyIdPrefix))
+        {
+            throw new InvalidOperationException($"Instance id {instance.Id} has an unexpected format, expected '{{instanceOwnerPartyId}}/{{instanceId}}'.");
+        }
+
+        if (!instance.AppId.StartsWith(orgPrefix))
+        {
+            throw new InvalidOperationException($"App id {instance.AppId} has an unexpected format, expected '{{org}}/{{app}}'.");
+        }
+
         return new SimpleInstance()
         {
-            Id = instance.Id.Substring($"{instance.InstanceOwner.PartyId}/".Length),
+            Id = instance.Id.Substring(partyIdPrefix.Length),
             Org = instance.Org,
-            App = instance.AppId.Substring($"{instance.Org}/".Length),
+            App = instance.AppId.Substring(orgPrefix.Length),
             CurrentTask = instance.Process.CurrentTask?.Name,
             DueBefore = instance.DueBefore,
             IsComplete = instance.Process.Ended != null,
@@ -73,7 +86,7 @@ public class SimpleInstance
             SoftDeletedAt = instance.Status.SoftDeleted,
             IsHardDeleted = instance.Status.IsHardDeleted,
             HardDeletedAt = instance.Status.HardDeleted,
-            IsConfirmed = instance.CompleteConfirmations?.Count is int Count && Count > 0,
+            IsConfirmed = instance.CompleteConfirmations?.Count > 0,
             ConfirmedAt = instance
                 .CompleteConfirmations?.OrderBy(c => c.ConfirmedOn)
                 .FirstOrDefault()

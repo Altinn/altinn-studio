@@ -9,7 +9,7 @@ namespace Altinn.Studio.Admin.Services;
 /// <summary>
 /// Implementation of the cdn config service.
 /// </summary>
-class CdnConfigService : ICdnConfigService
+public class CdnConfigService : ICdnConfigService
 {
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
