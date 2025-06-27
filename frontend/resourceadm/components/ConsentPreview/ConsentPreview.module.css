@@ -1,0 +1,82 @@
+.consentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-8);
+  background-color: var(--ds-color-accent-background-default);
+  padding: var(--ds-size-12);
+  margin-bottom: 3px;
+}
+
+.expiration {
+  margin-top: var(--ds-size-4);
+}
+
+.boldText {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.buttonRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
+  margin-top: var(--ds-size-15);
+  pointer-events: none;
+}
+
+.consentRight {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-size-4);
+}
+.consentRightIcon {
+  font-size: var(--ds-size-7);
+}
+
+.consentRightContent {
+  flex: 1;
+}
+
+.previewControls {
+  display: grid;
+  gap: var(--ds-size-2);
+  align-self: flex-start;
+  align-items: flex-start;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: var(--ds-size-4);
+}
+
+.consentPreviewInner {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ds-color-neutral-background-tinted);
+  position: sticky;
+  height: 100vh;
+  top: 0;
+  right: 0;
+  border-left: 1px solid var(--fds-semantic-border-divider-default);
+  padding: var(--fds-spacing-5);
+  overflow: auto;
+}
+
+.consentPreviewPanel {
+  height: 100%;
+  right: 0;
+  top: 0;
+  position: absolute;
+  width: 45%;
+}
+
+.mobileView {
+  max-width: 25rem;
+}
+.mobileView h1 {
+  font-size: var(--ds-heading-2xs-font-size);
+}
+.mobileView .consentBlock {
+  padding: var(--ds-size-5);
+}
+.mobileView .expiration,
+.mobileView .buttonRow {
+  margin-top: 0;
+}

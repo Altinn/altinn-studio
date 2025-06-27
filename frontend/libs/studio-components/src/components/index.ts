@@ -35,3 +35,4 @@ export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
 export { StudioDetails } from './StudioDetails';
 export { StudioRadio } from './StudioRadio';
+export { StudioToggleGroup } from './StudioToggleGroup';
