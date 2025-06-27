@@ -12,11 +12,10 @@ import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 export const StageAddNodes = Symbol('AddNodes');
 export const StageMarkHidden = Symbol('MarkHidden');
-export const StageFetchOptions = Symbol('OptionsFetched');
 export const StageFormValidation = Symbol('FormValidation');
 export const StageFinished = Symbol('Finished');
 
-const List = [StageAddNodes, StageMarkHidden, StageFetchOptions, StageFormValidation, StageFinished] as const;
+const List = [StageAddNodes, StageMarkHidden, StageFormValidation, StageFinished] as const;
 
 type StageList = typeof List;
 type Stage = StageList[number];

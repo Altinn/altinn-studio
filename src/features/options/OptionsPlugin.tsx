@@ -2,16 +2,9 @@ import { CG } from 'src/codegen/CG';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
-import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ISelectionComponent, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { CompTypes } from 'src/layout/layout';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
-import type {
-  DefPluginExtraState,
-  DefPluginState,
-  DefPluginStateFactoryProps,
-} from 'src/utils/layout/plugins/NodeDefPlugin';
 
 interface Config<SupportsPreselection extends boolean> {
   componentType: CompTypes;
@@ -20,10 +13,6 @@ interface Config<SupportsPreselection extends boolean> {
     allowsEffects?: boolean;
     supportsPreselection: SupportsPreselection;
     type: OptionsValueType;
-  };
-  extraState: {
-    options: IOptionInternal[] | undefined;
-    isFetchingOptions: boolean;
   };
 }
 
@@ -48,13 +37,6 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
     return 'OptionsPlugin';
   }
 
-  stateFactory(_props: DefPluginStateFactoryProps): DefPluginExtraState<ToInternal<E>> {
-    return {
-      options: undefined,
-      isFetchingOptions: true,
-    };
-  }
-
   addToComponent(component: ComponentConfig): void {
     component.inner.extends(
       this.settings!.supportsPreselection ? CG.common('ISelectionComponentFull') : CG.common('ISelectionComponent'),
@@ -63,25 +45,16 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
   }
 
   extraNodeGeneratorChildren(): string {
-    const StoreOptionsInNode = new CG.import({
-      import: 'StoreOptionsInNode',
-      from: 'src/features/options/StoreOptionsInNode',
-    });
-
     const allowsEffects = this.settings!.allowsEffects ?? true;
-
-    return `
-      <${StoreOptionsInNode}
-        valueType={'${this.settings!.type}'}
-        allowEffects={${allowsEffects ? 'true' : 'false'}}
-      />`.trim();
-  }
-
-  stateIsReady(state: DefPluginState<ToInternal<E>>, fullState: NodesContext): boolean {
-    if (!super.stateIsReady(state, fullState)) {
-      return false;
+    if (!allowsEffects) {
+      return '';
     }
 
-    return !!state.options;
+    const RunOptionsEffects = new CG.import({
+      import: 'RunOptionsEffects',
+      from: 'src/features/options/RunOptionsEffects',
+    });
+
+    return `<${RunOptionsEffects} valueType={'${this.settings!.type}'} />`.trim();
   }
 }

@@ -4,7 +4,7 @@ import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
@@ -21,7 +21,7 @@ export interface IAttachmentSummaryComponent {
 export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryComponent) {
   const attachments = useUploaderSummaryData(targetNode);
   const hasTag = targetNode.isType('FileUploadWithTag');
-  const { options, isFetching } = useNodeOptions(targetNode as LayoutNode<'FileUploadWithTag'>);
+  const { options, isFetching } = useOptionsFor(targetNode.baseId, 'single');
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
   const isSmall = mobileView && !pdfModeActive;

@@ -5,7 +5,7 @@ import dot from 'dot-object';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useValidateSimpleBindingWithOptionalGroup } from 'src/features/saveToGroup/layoutValidation';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
@@ -13,7 +13,6 @@ import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesCont
 import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -34,7 +33,7 @@ export class Checkboxes extends CheckboxesDef {
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'Checkboxes');
-    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
+    const options = useOptionsFor(baseComponentId, 'multi').options;
     const langAsString = useLanguage().langAsString;
 
     const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Checkboxes');

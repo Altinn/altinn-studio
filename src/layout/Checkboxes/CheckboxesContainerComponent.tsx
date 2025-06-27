@@ -39,7 +39,7 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxC
     isFetching,
     setData,
     selectedValues: selectedFromSimpleBinding,
-  } = useGetOptions(node, 'multi');
+  } = useGetOptions(node.baseId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 

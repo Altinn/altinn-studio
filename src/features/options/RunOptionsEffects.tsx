@@ -1,17 +1,12 @@
 import React from 'react';
 
-import deepEqual from 'fast-deep-equal';
-
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
 import { EffectSetDownstreamParameters } from 'src/features/options/effects/EffectSetDownstreamParameters';
 import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel';
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
-import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorCondition, StageFetchOptions } from 'src/utils/layout/generator/GeneratorStages';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -19,23 +14,11 @@ import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface GeneratorOptionProps {
+interface RunOptionEffectsProps {
   valueType: OptionsValueType;
-  allowEffects: boolean;
 }
 
-export function StoreOptionsInNode(props: GeneratorOptionProps) {
-  return (
-    <GeneratorCondition
-      stage={StageFetchOptions}
-      mustBeAdded='parent'
-    >
-      <StoreOptionsInNodeWorker {...props} />
-    </GeneratorCondition>
-  );
-}
-
-function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionProps) {
+export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
@@ -43,22 +26,9 @@ function StoreOptionsInNodeWorker({ valueType, allowEffects }: GeneratorOptionPr
     | IDataModelBindingsForGroupCheckbox
     | IDataModelBindingsForGroupMultiselect;
   const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
-  const { options, preselectedOption } = useFilteredAndSortedOptions({
-    unsorted,
-    valueType,
-    node,
-    item,
-  });
+  const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, item });
 
-  const hasBeenSet = NodesInternal.useNodeData(
-    node,
-    (data) => deepEqual(data.options, options) && data.isFetchingOptions === isFetching,
-  );
-
-  NodesStateQueue.useSetNodeProp({ node, prop: 'options', value: options }, !hasBeenSet && !isFetching);
-  NodesStateQueue.useSetNodeProp({ node, prop: 'isFetchingOptions', value: isFetching }, !hasBeenSet);
-
-  if (isFetching || !hasBeenSet || !allowEffects) {
+  if (isFetching) {
     // No need to run effects while fetching or if the data has not been set yet
     return false;
   }

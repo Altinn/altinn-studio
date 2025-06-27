@@ -5,12 +5,11 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
@@ -33,7 +32,7 @@ export class LikertItem extends LikertItemDef {
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'LikertItem');
-    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
+    const options = useOptionsFor(baseComponentId, 'single').options;
     const langTools = useLanguage();
     const value = String(formData?.simpleBinding ?? '');
     if (!value) {

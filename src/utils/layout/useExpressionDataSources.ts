@@ -27,7 +27,6 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
-import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -42,7 +41,6 @@ export interface ExpressionDataSources {
   dataModelNames: string[];
   formDataSelector: FormDataSelector;
   attachmentsSelector: AttachmentsSelector;
-  optionsSelector: NodeOptionsSelector;
   langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
   currentLanguage: string;
   defaultDataType: string | null;
@@ -58,7 +56,6 @@ export interface ExpressionDataSources {
 const multiSelectors = {
   formDataSelector: () => FD.useDebouncedSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
-  optionsSelector: () => NodesInternal.useNodeOptionsSelectorProps(),
   nodeDataSelector: () => NodesInternal.useNodeDataSelectorProps(),
   isHiddenSelector: () => Hidden.useIsHiddenSelectorProps(),
   dataElementSelector: () => useLaxDataElementsSelectorProps(),

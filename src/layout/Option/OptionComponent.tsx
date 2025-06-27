@@ -56,7 +56,7 @@ function Text({ node, usingLabel }: TextProps) {
   const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
   const icon = useNodeItem(node, (i) => i.icon);
   const value = useNodeItem(node, (i) => i.value);
-  const { options, isFetching } = useGetOptions(node, 'single');
+  const { options, isFetching } = useGetOptions(node.baseId, 'single');
   const { langAsString } = useLanguage();
   const selectedOption = options.find((option) => option.value === value);
   if (isFetching) {

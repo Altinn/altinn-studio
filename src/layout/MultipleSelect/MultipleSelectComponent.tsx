@@ -25,7 +25,12 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
   const item = useNodeItem(node);
   const isValid = useIsValid(node);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required, dataModelBindings } = item;
-  const { options, isFetching, selectedValues: selectedFromSimpleBinding, setData } = useGetOptions(node, 'multi');
+  const {
+    options,
+    isFetching,
+    selectedValues: selectedFromSimpleBinding,
+    setData,
+  } = useGetOptions(node.baseId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 

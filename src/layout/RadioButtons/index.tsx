@@ -4,13 +4,12 @@ import type { JSX } from 'react';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -30,7 +29,7 @@ export class RadioButtons extends RadioButtonsDef {
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'RadioButtons');
     const value = String(formData?.simpleBinding ?? '');
-    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
+    const options = useOptionsFor(baseComponentId, 'single').options;
     const langTools = useLanguage();
     return getSelectedValueToText(value, langTools, options) || '';
   }

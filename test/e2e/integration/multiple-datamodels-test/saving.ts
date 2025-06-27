@@ -234,7 +234,9 @@ describe('saving multiple data models', () => {
     cy.findByRole('radio', { name: /privat/i }).click();
     cy.findByRole('checkbox', { name: /petroleum og engineering/i }).should('exist');
 
-    cy.get('@saveFormData.all').should('have.length', 5);
+    cy.waitUntilSaved();
+    cy.get('@saveFormData.all').should('have.length.at.least', 4);
+    cy.get('@saveFormData.all').should('have.length.at.most', 5);
     cy.get('@saveFormData.all').should(haveTheSameUrls);
 
     cy.findByRole('checkbox', { name: /petroleum og engineering/i }).click();

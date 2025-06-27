@@ -20,7 +20,6 @@ import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>;
 
@@ -50,7 +49,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
 
   const validations = useUnifiedValidationsForNode(node).filter((v) => !('attachmentId' in v) || !v.attachmentId);
 
-  const { options, isFetching } = useGetOptions(node as LayoutNode<'FileUploadWithTag'>, 'single');
+  const { options, isFetching } = useGetOptions(node.baseId, 'single');
 
   const canUploadMoreAttachments = attachments.length < maxNumberOfAttachments;
   const isComplexMode = displayMode !== 'simple';

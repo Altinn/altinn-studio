@@ -6,7 +6,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
 import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -20,7 +20,7 @@ export interface IMultipleChoiceSummaryProps {
 export function MultipleChoiceSummary({ targetNode }: IMultipleChoiceSummaryProps) {
   const rawFormData = useNodeFormData(targetNode);
   const { dataModelBindings } = useNodeItem(targetNode);
-  const options = useNodeOptions(targetNode).options;
+  const options = useOptionsFor(targetNode.baseId, 'multi').options;
   const { langAsString } = useLanguage();
 
   const relativeCheckedPath =

@@ -16,11 +16,7 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
-interface IUseSourceOptionsArgs {
-  source: IOptionSource | undefined;
-}
-
-export const useSourceOptions = ({ source }: IUseSourceOptionsArgs): IOptionInternal[] | undefined => {
+export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();
   const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
@@ -50,11 +46,6 @@ export const useSourceOptions = ({ source }: IUseSourceOptionsArgs): IOptionInte
 
   const dataSources = useExpressionDataSources(source);
   return useMemoDeepEqual(() => {
-    if (!source) {
-      // Returning undefined here allows us to fall back to use other options sources if `source` is not configured.
-      return undefined;
-    }
-
     if (!rawValues || rawValues.length === 0) {
       return [];
     }

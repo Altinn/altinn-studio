@@ -277,6 +277,7 @@ describe('Party selection', () => {
     // To make sure this instance is different from the next, we navigate to the next process step in this one
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
+    cy.waitUntilSaved();
 
     // Navigate directly to /#/party-selection to test that instantiation once more works
     cy.window().then((win) => {

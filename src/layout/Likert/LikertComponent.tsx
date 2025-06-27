@@ -9,7 +9,7 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Description } from 'src/components/form/Description';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -18,10 +18,8 @@ import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LikertComponentProps = PropsFromGenericComponent<'Likert'>;
 
@@ -30,10 +28,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
   const textResourceBindings = useNodeItem(node, (item) => item.textResourceBindings);
   const mobileView = useIsMobileOrTablet();
   const rows = useLikertRows(node);
-  const firstRow = rows.find((row) => !!row);
-  const firstLikertNodeId = firstRow && makeLikertChildId(node.id, firstRow.index);
-  const firstLikertNode = useNode(firstLikertNodeId) as LayoutNode<'LikertItem'> | undefined;
-  const { options: calculatedOptions, isFetching } = useNodeOptions(firstLikertNode);
+  const { options: calculatedOptions, isFetching } = useOptionsFor(makeLikertChildId(node.baseId, undefined), 'single');
   const columns = useNodeItem(node, (item) => item.columns);
 
   const id = node.id;

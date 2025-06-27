@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { useNodeOptions } from 'src/features/options/useNodeOptions';
+import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { OptionDef } from 'src/layout/Option/config.def.generated';
 import { OptionComponent } from 'src/layout/Option/OptionComponent';
 import { OptionSummary } from 'src/layout/Option/OptionSummary';
@@ -19,7 +19,7 @@ export class Option extends OptionDef implements DisplayData {
     const nodeId = useIndexedId(baseComponentId);
     const item = useNodeItemWhenType(nodeId, 'Option');
     const value = item?.value ?? '';
-    const options = useNodeOptions(nodeId).options;
+    const options = useOptionsFor(baseComponentId, 'single').options;
     const langTools = useLanguage();
     return getSelectedValueToText(value, langTools, options) || '';
   }

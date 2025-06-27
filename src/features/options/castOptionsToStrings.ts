@@ -13,18 +13,12 @@ export interface IOptionInternal extends Omit<IRawOption, 'value'> {
   dataModelLocation?: IDataModelReference;
 }
 
-type ReplaceWithStrings<T> = T extends IRawOption[] ? IOptionInternal[] : T;
-
 /**
  * Casts the option values to strings. In configurations where the option values are numbers, boolean or other types,
  * this is necessary to ensure that the values are correctly compared. Internally, the option values are always
  * stored as strings.
  */
-export function castOptionsToStrings<T extends IRawOption[] | undefined>(options: T): ReplaceWithStrings<T> {
-  if (!options) {
-    return options as ReplaceWithStrings<T>;
-  }
-
+export function castOptionsToStrings(options: IRawOption[]): IOptionInternal[] {
   const newOptions: IOptionInternal[] = [];
   for (const option of options) {
     newOptions.push({
@@ -32,5 +26,5 @@ export function castOptionsToStrings<T extends IRawOption[] | undefined>(options
       value: option.value === null ? 'null' : option.value === undefined ? '' : option.value.toString(),
     });
   }
-  return newOptions as ReplaceWithStrings<T>;
+  return newOptions;
 }

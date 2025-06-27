@@ -32,7 +32,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ node, overrideDisplay });
 
-  const { options, isFetching, selectedValues, setData } = useGetOptions(node, 'single');
+  const { options, isFetching, selectedValues, setData } = useGetOptions(node.baseId, 'single');
   const debounce = FD.useDebounceImmediately();
 
   const changeMessageGenerator = useCallback(
