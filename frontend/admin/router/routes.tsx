@@ -2,10 +2,11 @@ import { RoutePaths } from 'admin/enums/RoutePaths';
 import { Apps } from 'admin/features/apps/Apps';
 import { Instances } from 'admin/features/instances/Instances';
 import { Overview } from 'admin/features/overview/Overview';
+import type { ComponentType } from 'react';
 
 interface RouterRoute {
   path: RoutePaths;
-  page: any;
+  page: ComponentType;
 }
 
 export const routerRoutes: RouterRoute[] = [

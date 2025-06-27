@@ -5,6 +5,7 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
+import { Navigate } from 'react-router-dom';
 
 /**
  * Displays the layout for the app development pages
@@ -13,7 +14,7 @@ export const PageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
-  const { org } = match.params;
+  const { org } = match?.params ?? {};
   const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: user, isPending: isUserPending } = useUserQuery();
 
@@ -23,6 +24,11 @@ export const PageLayout = (): React.ReactNode => {
         <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
       </StudioCenter>
     );
+  }
+
+  if (!org || !orgs?.[org]) {
+    // TODO: Navigate to 404 page?
+    return <Navigate to='/' replace />;
   }
 
   return (

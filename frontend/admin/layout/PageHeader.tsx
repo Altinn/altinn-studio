@@ -45,7 +45,7 @@ const CenterContent = (): ReactElement => {
         variant='regular'
         renderLink={(props) => (
           <NavLink to={'/'} {...props}>
-            <span>{t('Oversikt')}</span>
+            <span>{t('top_menu.about')}</span>
           </NavLink>
         )}
       />
