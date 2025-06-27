@@ -25,6 +25,6 @@ export function LibraryHeader(): React.ReactElement {
 }
 
 function isOrgLibraryPage(): boolean {
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
-  return currentRoutePath === StringUtils.removeLeadingSlash(ORG_LIBRARY_BASENAME);
+  const currentPathSegment: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+  return currentPathSegment === StringUtils.removeLeadingSlash(ORG_LIBRARY_BASENAME);
 }
