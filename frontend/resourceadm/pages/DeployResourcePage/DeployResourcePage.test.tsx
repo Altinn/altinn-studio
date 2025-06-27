@@ -332,6 +332,14 @@ describe('DeployResourcePage', () => {
     expect(tt02Button).toBeDisabled();
     expect(prodButton).toBeDisabled();
   });
+
+  it('shows the spinner when isSavingResource is true', async () => {
+    await resolveAndWaitForSpinnerToDisappear({}, { isSavingResource: true });
+
+    expect(
+      screen.getByLabelText(textMock('resourceadm.deploy_status_card_loading')),
+    ).toBeInTheDocument();
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (
