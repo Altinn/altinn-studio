@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
-import { MenuElipsisVerticalIcon, MinusCircleIcon, PlusCircleIcon } from '@studio/icons';
+import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
@@ -52,13 +52,23 @@ export const DesignViewNavigation = () => {
               <DropdownMenu.Content>
                 <DropdownMenu.Group>
                   {isUsingPageGroups ? (
-                    <DropdownMenu.Item onClick={() => convertToPageOrder()}>
-                      <MinusCircleIcon className={classes.deleteGroupIcon} />
+                    <DropdownMenu.Item
+                      onClick={() => {
+                        if (confirm(t('ux_editor.page_layout_convert_to_pages_confirm')))
+                          convertToPageOrder();
+                      }}
+                    >
+                      <EyeClosedIcon className={classes.deleteGroupIcon} />
                       {t('ux_editor.page_layout_remove_group_division')}
                     </DropdownMenu.Item>
                   ) : (
-                    <DropdownMenu.Item onClick={() => convertToPageGroups()}>
-                      <PlusCircleIcon className={classes.groupPagesIcon} />
+                    <DropdownMenu.Item
+                      onClick={() => {
+                        if (confirm(t('ux_editor.page_layout_convert_to_group_confirm')))
+                          convertToPageGroups();
+                      }}
+                    >
+                      <EyeIcon className={classes.groupPagesIcon} />
                       {t('ux_editor.page_layout_add_group_division')}
                     </DropdownMenu.Item>
                   )}
