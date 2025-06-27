@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
 import { EditFormComponent } from '../../config/EditFormComponent';
 import { DataModelBindings } from '../DataModelBindings';
-import { DeprecatedCalculationsInfo } from '../DeprecatedCalculationsInfo';
 import { Dynamics } from '../Dynamics';
 import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
@@ -109,14 +108,6 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
             </Accordion.Header>
             <Accordion.Content>
               <Dynamics />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item open={openList.includes('calculations')}>
-            <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
-              {t('right_menu.calculations')}
-            </Accordion.Header>
-            <Accordion.Content>
-              <DeprecatedCalculationsInfo />
             </Accordion.Content>
           </Accordion.Item>
         </Accordion>
