@@ -5,6 +5,8 @@ import { shouldValidateNode } from 'src/features/validation/StoreValidationsInNo
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { NodesStore } from 'src/utils/layout/NodesContext';
 import type { ValidationsProcessedLast } from 'src/features/validation';
+import type { CompExternal, CompTypes } from 'src/layout/layout';
+import type { NodeData } from 'src/utils/layout/types';
 
 export function useWaitForNodesToValidate() {
   const registry = GeneratorInternal.useRegistry();
@@ -23,8 +25,7 @@ export function useWaitForNodesToValidate() {
         for (const nodeId of nodeIds) {
           const nodeData = allNodeData[nodeId];
           const layout = lookups.getComponent(nodeData.baseId);
-          if (!nodeData || !('validations' in nodeData) || !shouldValidateNode(layout)) {
-            // Node does not support validation
+          if (!doesNodeSupportValidation(nodeData, layout)) {
             continue;
           }
 
@@ -54,4 +55,8 @@ export function useWaitForNodesToValidate() {
     },
     [lookups, nodesStore, registry],
   );
+}
+
+function doesNodeSupportValidation<T extends CompTypes>(nodeData: NodeData, layout: CompExternal<T>): boolean {
+  return nodeData && 'validations' in nodeData && shouldValidateNode(layout);
 }

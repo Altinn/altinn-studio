@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
@@ -8,7 +9,7 @@ import { AddressSummary } from 'src/layout/Address/AddressSummary/AddressSummary
 import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { useAddressValidation } from 'src/layout/Address/useAddressValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
@@ -47,17 +48,23 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
   }
 
   useDataModelBindingValidation(node: LayoutNode<'Address'>, bindings: IDataModelBindings<'Address'>): string[] {
+    const lookupBinding = DataModels.useLookupBinding();
     const component = useLayoutLookups().getComponent(node.baseId, 'Address');
     const errors: string[] = [
-      ...(useValidateDataModelBindingsAny(node, bindings, 'address', ['string'])[0] || []),
-      ...(useValidateDataModelBindingsAny(node, bindings, 'zipCode', ['string', 'number', 'integer'])[0] || []),
-      ...(useValidateDataModelBindingsAny(node, bindings, 'postPlace', ['string'])[0] || []),
+      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'address', ['string'])[0] || []),
+      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'zipCode', ['string', 'number', 'integer'])[0] ||
+        []),
+      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'postPlace', ['string'])[0] || []),
     ];
 
     if (component.simplified === false) {
-      errors.push(...(useValidateDataModelBindingsAny(node, bindings, 'careOf', ['string'])[0] || []));
+      errors.push(...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'careOf', ['string'])[0] || []));
       errors.push(
-        ...(useValidateDataModelBindingsAny(node, bindings, 'houseNumber', ['string', 'number', 'integer'])[0] || []),
+        ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'houseNumber', [
+          'string',
+          'number',
+          'integer',
+        ])[0] || []),
       );
     } else {
       const hasCareOf = bindings?.careOf;

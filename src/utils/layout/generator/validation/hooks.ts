@@ -1,20 +1,21 @@
 import type { JSONSchema7 } from 'json-schema';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
+import { implementsIsDataModelBindingsRequired } from 'src/layout';
+import type { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useValidateDataModelBindingsAny<T extends CompTypes>(
+export function validateDataModelBindingsAny<T extends CompTypes>(
   node: LayoutNode<T>,
   bindings: IDataModelBindings<T>,
+  lookupBinding: ReturnType<(typeof DataModels)['useLookupBinding']>,
   key: string,
   validTypes: string[],
   isRequired = 'isDataModelBindingsRequired' in node.def ? node.def.isDataModelBindingsRequired(node as never) : false,
   name = key,
 ): [string[], undefined] | [undefined, JSONSchema7] {
-  const lookupBinding = DataModels.useLookupBinding();
   const value: IDataModelReference = (bindings ?? {})[key] ?? undefined;
   if (!lookupBinding || window.forceNodePropertiesValidation === 'off') {
     return [[], undefined];
@@ -53,14 +54,18 @@ export function useValidateDataModelBindingsAny<T extends CompTypes>(
   return [undefined, result];
 }
 
-export function useValidateDataModelBindingsSimple<T extends CompTypes>(
+export function validateDataModelBindingsSimple<T extends CompTypes>(
   node: LayoutNode<T>,
   bindings: IDataModelBindings<T>,
-  isRequired = 'isDataModelBindingsRequired' in node.def ? node.def.isDataModelBindingsRequired(node as never) : false,
+  lookupBinding: ReturnType<(typeof DataModels)['useLookupBinding']>,
+  isRequired = implementsIsDataModelBindingsRequired(node.def, node)
+    ? node.def.isDataModelBindingsRequired(node)
+    : false,
 ): string[] {
-  const [errors] = useValidateDataModelBindingsAny(
+  const [errors] = validateDataModelBindingsAny(
     node,
     bindings,
+    lookupBinding,
     'simpleBinding',
     ['string', 'number', 'integer', 'boolean'],
     isRequired,
@@ -70,12 +75,15 @@ export function useValidateDataModelBindingsSimple<T extends CompTypes>(
   return errors || [];
 }
 
-export function useValidateDataModelBindingsList<T extends CompTypes>(
+export function validateDataModelBindingsList<T extends CompTypes>(
   node: LayoutNode<T>,
   bindings: IDataModelBindings<T>,
-  isRequired = 'isDataModelBindingsRequired' in node.def ? node.def.isDataModelBindingsRequired(node as never) : false,
+  lookupBinding: ReturnType<(typeof DataModels)['useLookupBinding']>,
+  isRequired = implementsIsDataModelBindingsRequired(node.def, node)
+    ? node.def.isDataModelBindingsRequired(node)
+    : false,
 ): string[] {
-  const [errors, result] = useValidateDataModelBindingsAny(node, bindings, 'list', ['array'], isRequired);
+  const [errors, result] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'list', ['array'], isRequired);
   if (errors) {
     return errors;
   }

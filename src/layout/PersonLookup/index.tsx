@@ -1,11 +1,12 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -46,6 +47,7 @@ export class PersonLookup extends PersonLookupDef {
     node: LayoutNode<'PersonLookup'>,
     bindings: IDataModelBindings<'PersonLookup'>,
   ): string[] {
-    return useValidateDataModelBindingsAny(node, bindings, 'person_lookup_ssn', ['string'])[0] ?? [];
+    const lookupBinding = DataModels.useLookupBinding();
+    return validateDataModelBindingsAny(node, bindings, lookupBinding, 'person_lookup_ssn', ['string'])[0] ?? [];
   }
 }

@@ -13,7 +13,7 @@ import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -102,7 +102,7 @@ export class List extends ListDef {
     const lookupBinding = DataModels.useLookupBinding();
 
     if (groupBinding) {
-      const [groupErrors] = useValidateDataModelBindingsAny(node, bindings, 'group', ['array'], false);
+      const [groupErrors] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'group', ['array'], false);
       groupErrors && errors.push(...groupErrors);
 
       for (const key of Object.keys(bindings)) {
@@ -131,7 +131,14 @@ export class List extends ListDef {
       }
     } else {
       for (const [binding] of Object.entries(bindings ?? {})) {
-        const [newErrors] = useValidateDataModelBindingsAny(node, bindings, binding, allowedLeafTypes, false);
+        const [newErrors] = validateDataModelBindingsAny(
+          node,
+          bindings,
+          lookupBinding,
+          binding,
+          allowedLeafTypes,
+          false,
+        );
         errors.push(...(newErrors || []));
       }
     }

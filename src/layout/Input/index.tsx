@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
@@ -10,7 +11,7 @@ import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { formatNumericText } from 'src/utils/formattingUtils';
-import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -53,7 +54,8 @@ export class Input extends InputDef {
   }
 
   useDataModelBindingValidation(node: LayoutNode<'Input'>, bindings: IDataModelBindings<'Input'>): string[] {
-    return useValidateDataModelBindingsSimple(node, bindings);
+    const lookupBinding = DataModels.useLookupBinding();
+    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
   }
 
   evalExpressions(props: ExprResolver<'Input'>) {

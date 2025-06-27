@@ -1,12 +1,13 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { TextAreaSummary } from 'src/layout/TextArea/TextAreaSummary';
-import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -41,6 +42,7 @@ export class TextArea extends TextAreaDef {
   }
 
   useDataModelBindingValidation(node: LayoutNode<'TextArea'>, bindings: IDataModelBindings<'TextArea'>): string[] {
-    return useValidateDataModelBindingsSimple(node, bindings);
+    const lookupBinding = DataModels.useLookupBinding();
+    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
   }
 }

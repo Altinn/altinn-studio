@@ -3,11 +3,12 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import type { ComponentValidation } from 'src/features/validation';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -43,7 +44,10 @@ export class Likert extends LikertDef {
   }
 
   useDataModelBindingValidation(node: LayoutNode<'Likert'>, bindings: IDataModelBindings<'Likert'>): string[] {
-    const [questionsErr, questions] = useValidateDataModelBindingsAny(node, bindings, 'questions', ['array']);
+    const lookupBinding = DataModels.useLookupBinding();
+    const [questionsErr, questions] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'questions', [
+      'array',
+    ]);
     const errors: string[] = [...(questionsErr || [])];
 
     if (

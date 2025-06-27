@@ -1,6 +1,7 @@
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import {
-  useValidateDataModelBindingsList,
-  useValidateDataModelBindingsSimple,
+  validateDataModelBindingsList,
+  validateDataModelBindingsSimple,
 } from 'src/utils/layout/generator/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -9,6 +10,7 @@ export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | '
   node: LayoutNode<T>,
   bindings: IDataModelBindings<T>,
 ): string[] {
+  const lookupBinding = DataModels.useLookupBinding();
   const isRequired = node.def.isDataModelBindingsRequired(node as never);
   const hasBinding = bindings && ('simpleBinding' in bindings || 'list' in bindings);
 
@@ -26,13 +28,11 @@ export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | '
   const listBinding = bindings && 'list' in bindings ? bindings.list : undefined;
 
   if (simpleBinding) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useValidateDataModelBindingsSimple(node, bindings);
+    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
   }
 
   if (listBinding) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useValidateDataModelBindingsList(node, bindings);
+    return validateDataModelBindingsList(node, bindings, lookupBinding);
   }
 
   return [];

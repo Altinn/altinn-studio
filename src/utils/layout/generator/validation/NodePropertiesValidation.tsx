@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import type { FC } from 'react';
 
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { getNodeDef } from 'src/layout';
+import { getNodeDef, implementsDataModelBindingValidation } from 'src/layout';
 import { GeneratorValidation } from 'src/utils/layout/generator/validation/GenerationValidationContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
@@ -29,8 +29,8 @@ function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: No
   const addError = NodesInternal.useAddError();
   const def = node.def;
   const errors =
-    'useDataModelBindingValidation' in def && window.forceNodePropertiesValidation !== 'off'
-      ? def.useDataModelBindingValidation(node as never, intermediateItem.dataModelBindings as never)
+    implementsDataModelBindingValidation(def, node) && window.forceNodePropertiesValidation !== 'off'
+      ? def.useDataModelBindingValidation(node, intermediateItem.dataModelBindings)
       : emptyArray;
 
   // Must run after nodes have been added for the errors to actually be added

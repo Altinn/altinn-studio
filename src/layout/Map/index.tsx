@@ -1,12 +1,13 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -37,13 +38,22 @@ export class Map extends MapDef {
 
   useDataModelBindingValidation(node: LayoutNode<'Map'>, bindings: IDataModelBindings<'Map'>): string[] {
     const errors: string[] = [];
+    const lookupBinding = DataModels.useLookupBinding();
 
-    const [simpleBindingErrors] = useValidateDataModelBindingsAny(node, bindings, 'simpleBinding', ['string'], false);
-    simpleBindingErrors && errors.push(...simpleBindingErrors);
-
-    const [geometriesErrors, geometriesResult] = useValidateDataModelBindingsAny(
+    const [simpleBindingErrors] = validateDataModelBindingsAny(
       node,
       bindings,
+      lookupBinding,
+      'simpleBinding',
+      ['string'],
+      false,
+    );
+    simpleBindingErrors && errors.push(...simpleBindingErrors);
+
+    const [geometriesErrors, geometriesResult] = validateDataModelBindingsAny(
+      node,
+      bindings,
+      lookupBinding,
       'geometries',
       ['array'],
       false,

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -10,7 +11,7 @@ import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/n
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -52,7 +53,8 @@ export class LikertItem extends LikertItemDef {
   }
 
   useDataModelBindingValidation(node: LayoutNode<'LikertItem'>, bindings: IDataModelBindings<'LikertItem'>): string[] {
-    const [answerErr] = useValidateDataModelBindingsAny(node, bindings, 'simpleBinding', [
+    const lookupBinding = DataModels.useLookupBinding();
+    const [answerErr] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'simpleBinding', [
       'string',
       'number',
       'boolean',

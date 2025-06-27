@@ -6,7 +6,7 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { CompInternal, CompTypes } from 'src/layout/layout';
+import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -105,4 +105,22 @@ export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[]
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData {
   return 'useDisplayData' in def;
+}
+
+export function implementsDataModelBindingValidation<T extends CompTypes>(
+  def: CompDef<T>,
+  _node: LayoutNode<T>,
+): def is CompDef<T> & {
+  useDataModelBindingValidation: (node: LayoutNode<T>, bindings: CompIntermediate['dataModelBindings']) => string[];
+} {
+  return 'useDataModelBindingValidation' in def;
+}
+
+export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
+  def: CompDef<T>,
+  _node: LayoutNode<T>,
+): def is CompDef<T> & {
+  isDataModelBindingsRequired: (node: LayoutNode<T>) => boolean;
+} {
+  return 'isDataModelBindingsRequired' in def;
 }

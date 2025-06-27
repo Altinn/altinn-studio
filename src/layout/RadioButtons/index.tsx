@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
@@ -10,7 +11,7 @@ import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
+import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -55,6 +56,7 @@ export class RadioButtons extends RadioButtonsDef {
   }
 
   useDataModelBindingValidation(node: LayoutNode<'RadioButtons'>, dmb: IDataModelBindings<'RadioButtons'>): string[] {
-    return useValidateDataModelBindingsSimple(node, dmb);
+    const lookupBinding = DataModels.useLookupBinding();
+    return validateDataModelBindingsSimple(node, dmb, lookupBinding);
   }
 }
