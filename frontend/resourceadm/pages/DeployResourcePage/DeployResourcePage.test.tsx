@@ -67,7 +67,7 @@ describe('DeployResourcePage', () => {
   it('initially displays the spinner when loading data', () => {
     renderDeployResourcePage();
 
-    expect(screen.getByTitle(textMock('resourceadm.deploy_spinner'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('resourceadm.deploy_spinner'))).toBeInTheDocument();
   });
 
   it('fetches repo status data on mount', () => {
@@ -99,7 +99,7 @@ describe('DeployResourcePage', () => {
       });
 
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
+        screen.queryByLabelText(textMock('resourceadm.deploy_spinner')),
       );
 
       expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
@@ -345,7 +345,7 @@ const resolveAndWaitForSpinnerToDisappear = async (
     props,
   );
   await waitForElementToBeRemoved(() =>
-    screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
+    screen.queryByLabelText(textMock('resourceadm.deploy_spinner')),
   );
 };
 
