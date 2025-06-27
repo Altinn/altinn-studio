@@ -48,7 +48,7 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
     return 'OptionsPlugin';
   }
 
-  stateFactory(_props: DefPluginStateFactoryProps<ToInternal<E>>): DefPluginExtraState<ToInternal<E>> {
+  stateFactory(_props: DefPluginStateFactoryProps): DefPluginExtraState<ToInternal<E>> {
     return {
       options: undefined,
       isFetchingOptions: true,

@@ -2,6 +2,7 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CardConfig } from 'src/layout/Cards/config.generated';
 import type { CompTypes } from 'src/layout/layout';
 import type {
@@ -90,7 +91,7 @@ export class CardsPlugin<Type extends CompTypes>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string): boolean {
+  isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string, _lookups: LayoutLookups): boolean {
     return false;
   }
 }

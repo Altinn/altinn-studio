@@ -13,6 +13,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
@@ -596,7 +597,7 @@ export const useRepeatingGroup = () => ExtendedStore.useCtx();
 export const useRepeatingGroupNode = () => ExtendedStore.useCtx().node;
 
 function useBinding(node: LayoutNode<'RepeatingGroup'>) {
-  return NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
+  return useDataModelBindingsFor(node.baseId, 'RepeatingGroup')?.group;
 }
 
 export const useRepeatingGroupRowState = () => {

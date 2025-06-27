@@ -51,15 +51,15 @@ export function useOnPageNavigationValidation() {
 
     for (const nodeData of Object.values(state.nodeData)) {
       if (currentOrPreviousPages.has(nodeData.pageKey)) {
-        nodesOnCurrentOrPreviousPages.add(nodeData.layout.id);
+        nodesOnCurrentOrPreviousPages.add(nodeData.id);
       }
       if (!shouldCheckPage(nodeData.pageKey)) {
         continue;
       }
-      if (nodeData.layout.type === 'Subform') {
+      if (nodeData.nodeType === 'Subform') {
         hasSubform = true;
       }
-      nodeIds.push(nodeData.layout.id);
+      nodeIds.push(nodeData.id);
     }
 
     // We need to get updated validations from backend to validate subform

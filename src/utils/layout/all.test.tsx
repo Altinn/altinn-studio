@@ -65,7 +65,7 @@ function RenderAllComponents() {
   }
   const all = Object.values(state.nodeData)
     .filter((nodeData) => nodeData.isValid)
-    .map((nodeData) => nodeData.layout.id);
+    .map((nodeData) => nodeData.id);
 
   return (
     <>

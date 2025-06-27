@@ -22,7 +22,11 @@ describe('SummaryRepeatingGroup', () => {
   });
 
   function TestComponent({ groupId }: { groupId: string }) {
-    const groupNode = useNode(groupId) as LayoutNode<'RepeatingGroup'>;
+    const groupNode = useNode(groupId);
+    if (!groupNode || !groupNode.isType('RepeatingGroup')) {
+      throw new Error('Could not find group node or wrong type');
+    }
+
     return (
       <SummaryRepeatingGroup
         changeText='Change'

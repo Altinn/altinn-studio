@@ -5,25 +5,17 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function useDatepickerValidation(node: LayoutNode<'Datepicker'>): ComponentValidation[] {
   const currentLanguage = useCurrentLanguage();
-  const field = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings?.simpleBinding);
+  const field = useDataModelBindingsFor(node.baseId, 'Datepicker')?.simpleBinding;
+  const component = useExternalItem(node.baseId, 'Datepicker');
   const data = FD.useDebouncedPick(field);
-  const minDate = getDateConstraint(
-    NodesInternal.useNodeData(node, (data) => data.layout.minDate),
-    'min',
-  );
-  const maxDate = getDateConstraint(
-    NodesInternal.useNodeData(node, (data) => data.layout.maxDate),
-    'max',
-  );
-  const format = getDateFormat(
-    NodesInternal.useNodeData(node, (data) => data.layout.format),
-    currentLanguage,
-  );
+  const minDate = getDateConstraint(component?.minDate, 'min');
+  const maxDate = getDateConstraint(component?.maxDate, 'max');
+  const format = getDateFormat(component?.format, currentLanguage);
   const dataAsString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;
   if (!dataAsString) {
     return [];

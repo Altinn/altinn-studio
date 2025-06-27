@@ -2,6 +2,7 @@ import { CG } from 'src/codegen/CG';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelBindingsLikert } from 'src/layout/common.generated';
 import type {
   DefPluginChildClaimerProps,
@@ -50,7 +51,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     props.claimChild(makeLikertChildId(props.item.id, undefined));
   }
 
-  isChildHidden(_state: DefPluginState<Config>, _childId: string): boolean {
+  isChildHidden(_state: DefPluginState<Config>, _childId: string, _lookup: LayoutLookups): boolean {
     return false;
   }
 }

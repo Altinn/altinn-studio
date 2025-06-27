@@ -110,7 +110,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * Creates the zustand store default state for a node of this component type. Usually this is implemented
    * automatically by code generation, but you can override it if you need to add additional properties to the state.
    */
-  abstract stateFactory(props: StateFactoryProps<Type>): unknown;
+  abstract stateFactory(props: StateFactoryProps): unknown;
 
   /**
    * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
@@ -140,9 +140,8 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return false;
   }
 
-  shouldRenderInAutomaticPDF(data: NodeData<Type>): boolean {
-    const item = data.layout;
-    return !(item && 'renderAsSummary' in item ? item.renderAsSummary : false);
+  shouldRenderInAutomaticPDF(layout: CompExternal<Type>): boolean {
+    return !('renderAsSummary' in layout ? layout.renderAsSummary : false);
   }
 
   /**
@@ -234,7 +233,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
 export abstract class ActionComponent<Type extends CompTypes> extends AnyComponent<Type> {
   readonly category = CompCategory.Action;
 
-  shouldRenderInAutomaticPDF(_data: NodeData<Type>): boolean {
+  shouldRenderInAutomaticPDF(_data: CompExternal<Type>): boolean {
     return false;
   }
 }

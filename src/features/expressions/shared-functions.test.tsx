@@ -25,7 +25,7 @@ import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 's
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -63,7 +63,9 @@ function DataModelLocationFromNode({ nodeId, children }: PropsWithChildren<{ nod
   }
 
   const [closestRepeating, rowIndex] = getClosestRepeating(realNode);
-  const dataModelBindings = NodesInternal.useNodeData(closestRepeating, (d) => d.layout.dataModelBindings);
+  const dataModelBindings = NodesInternal.useNodeData(closestRepeating, (d) => d.dataModelBindings) as
+    | IDataModelBindings<RepeatingComponents>
+    | undefined;
   const repeatingBinding = closestRepeating && getRepeatingBinding(closestRepeating.type, dataModelBindings);
 
   if (closestRepeating === undefined || rowIndex === undefined || !repeatingBinding) {

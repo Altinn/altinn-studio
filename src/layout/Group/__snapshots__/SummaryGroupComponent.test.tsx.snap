@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
 <DocumentFragment>
@@ -7,9 +7,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
   >
     <div
       style="display: none;"
-    >
-       
-    </div>
+    />
     <div
       data-testid="summary-group-component"
       style="width: 100%;"

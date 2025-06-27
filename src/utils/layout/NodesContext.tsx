@@ -14,7 +14,7 @@ import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStor
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups, useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { OptionsStorePlugin } from 'src/features/options/OptionsStorePlugin';
 import { useIsCurrentView } from 'src/features/routing/AppRoutingContext';
@@ -43,6 +43,7 @@ import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { AttachmentsStorePluginConfig } from 'src/features/attachments/AttachmentsStorePlugin';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsStorePluginConfig } from 'src/features/options/OptionsStorePlugin';
 import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
@@ -599,13 +600,13 @@ function MarkAsReady() {
 
 function areAllNodesReady(state: NodesContext) {
   for (const nodeData of Object.values(state.nodeData)) {
-    const def = getComponentDef(nodeData.layout.type) as LayoutComponent;
+    const def = getComponentDef(nodeData.nodeType) as LayoutComponent;
     const nodeReady = def.stateIsReady(nodeData);
     const pluginsReady = def.pluginStateIsReady(nodeData, state);
     if (!nodeReady || !pluginsReady) {
       generatorLog(
         'logReadiness',
-        `Node ${nodeData.layout.id} is not ready yet because of ` +
+        `Node ${nodeData.id} is not ready yet because of ` +
           `${nodeReady ? 'plugins' : pluginsReady ? 'node' : 'both node and plugins'}`,
       );
       return false;
@@ -769,6 +770,7 @@ export function isHidden(
   state: NodesContext,
   type: 'page' | 'node',
   id: string | undefined,
+  lookups: LayoutLookups,
   _options?: IsHiddenOptions,
 ): boolean | undefined {
   if (!id) {
@@ -800,17 +802,17 @@ export function isHidden(
 
   const parentId = state.nodeData[id]?.parentId;
   const parent = parentId ? state.nodeData[parentId] : undefined;
-  const parentDef = parent ? getComponentDef(parent.layout.type) : undefined;
+  const parentDef = parent ? getComponentDef(parent.nodeType) : undefined;
   if (parent && parentDef && 'isChildHidden' in parentDef) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const childHidden = parentDef.isChildHidden(parent as any, id);
+    const childHidden = parentDef.isChildHidden(parent as any, id, lookups);
     if (childHidden) {
       return true;
     }
   }
 
   if (parent) {
-    return isHidden(state, 'node', parent.layout.id, options);
+    return isHidden(state, 'node', parent.id, lookups, options);
   }
 
   return false;
@@ -830,10 +832,11 @@ function useIsForcedVisibleByDevTools() {
 export type IsHiddenSelector = ReturnType<typeof Hidden.useIsHiddenSelector>;
 export const Hidden = {
   useIsHidden(node: LayoutNode | LayoutPage | undefined, options?: AccessibleIsHiddenOptions) {
+    const lookups = useLayoutLookups();
     const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
     const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
     const id = node instanceof LayoutPage ? node.pageKey : node?.id;
-    return WhenReady.useSelector((s) => isHidden(s, type, id, makeOptions(forcedVisibleByDevTools, options)));
+    return WhenReady.useSelector((s) => isHidden(s, type, id, lookups, makeOptions(forcedVisibleByDevTools, options)));
   },
   useIsHiddenPage(page: LayoutPage | string | undefined, options?: AccessibleIsHiddenOptions) {
     const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
@@ -864,13 +867,14 @@ export const Hidden = {
   },
   useIsHiddenSelector() {
     const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
+    const lookups = useLayoutLookups();
     return Store.useDelayedSelector(
       {
         mode: 'simple',
         selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) => {
           const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
           const id = node instanceof LayoutPage ? node.pageKey : typeof node === 'string' ? node : node?.id;
-          return isHidden(state, type, id, makeOptions(forcedVisibleByDevTools, options));
+          return isHidden(state, type, id, lookups, makeOptions(forcedVisibleByDevTools, options));
         },
       },
       [forcedVisibleByDevTools],
@@ -878,13 +882,14 @@ export const Hidden = {
   },
   useIsHiddenSelectorProps() {
     const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
+    const lookups = useLayoutLookups();
     return Store.useDelayedSelectorProps(
       {
         mode: 'simple',
         selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) => {
           const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
           const id = node instanceof LayoutPage ? node.pageKey : typeof node === 'string' ? node : node?.id;
-          return isHidden(state, type, id, makeOptions(forcedVisibleByDevTools, options));
+          return isHidden(state, type, id, lookups, makeOptions(forcedVisibleByDevTools, options));
         },
       },
       [forcedVisibleByDevTools],
@@ -917,9 +922,10 @@ export const Hidden = {
    * Iterate through a list of node IDs and find the first one that is not hidden
    */
   useFirstVisibleNode(nodeIds: string[]): string | undefined {
+    const lookups = useLayoutLookups();
     return WhenReady.useSelector((state) => {
       for (const id of nodeIds) {
-        if (!isHidden(state, 'node', id)) {
+        if (!isHidden(state, 'node', id, lookups)) {
           return id;
         }
       }
@@ -954,7 +960,7 @@ function selectNodeData<T extends CompTypes = CompTypes>(
           ? state.prevNodeData[id]
           : state.nodeData[id]; // Fall back to fresh data if prevNodeData is not set
 
-  if (data && type && data.layout.type !== type) {
+  if (data && type && data.nodeType !== type) {
     return undefined;
   }
 
@@ -1074,7 +1080,7 @@ export const NodesInternal = {
             ? s.nodeData[nodeId]
             : (s.prevNodeData?.[nodeId] ?? s.nodeData[nodeId]);
 
-      if (!data || data.layout.type !== type) {
+      if (!data || data.nodeType !== type) {
         return undefined;
       }
 

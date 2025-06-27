@@ -19,8 +19,8 @@ export class Custom extends CustomDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Custom');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Custom');
     return Object.values(formData ?? {}).join(', ');
   }
 

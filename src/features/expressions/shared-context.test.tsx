@@ -29,7 +29,7 @@ function recurse(state: NodesContext, nodeId: string, pageKey: string): SharedTe
   };
   const children = Object.values(state.nodeData)
     .filter((n) => n.parentId === nodeId)
-    .map((n) => recurse(state, n.layout.id, pageKey));
+    .map((n) => recurse(state, n.id, pageKey));
   if (children.length) {
     context.children = children;
   }
@@ -49,7 +49,7 @@ function TestContexts() {
         currentLayout: page.pageKey,
         children: Object.values(state.nodeData)
           .filter((n) => n.pageKey === page.pageKey && n.parentId === undefined)
-          .map((n) => recurse(state, n.layout.id, page.pageKey)),
+          .map((n) => recurse(state, n.id, page.pageKey)),
       });
     }
 

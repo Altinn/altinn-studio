@@ -400,6 +400,11 @@ export class ComponentConfig {
       from: 'src/layout/layout',
     });
 
+    const LayoutLookups = new CG.import({
+      import: 'LayoutLookups',
+      from: 'src/features/form/layout/makeLayoutLookups.ts',
+    });
+
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
 
@@ -466,7 +471,7 @@ export class ComponentConfig {
     ) {
       additionalMethods.push(
         `// This component has data model bindings, so it should be able to produce a display string
-        abstract useDisplayData(nodeId: string): string;`,
+        abstract useDisplayData(baseComponentId: string): string;`,
       );
       implementsInterfaces.push(`${DisplayData}`);
     }
@@ -507,14 +512,14 @@ export class ComponentConfig {
       );
 
       const isChildHiddenBody = childrenPlugins.map(
-        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childId)`,
+        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childId, lookups)`,
       );
 
       additionalMethods.push(
         `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
           ${claimChildrenBody.join('\n')}
         }`,
-        `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string) {
+        `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string, lookups: ${LayoutLookups}) {
           return [${isChildHiddenBody.join(', ')}].some((h) => h);
         }`,
       );
@@ -538,14 +543,17 @@ export class ComponentConfig {
       stateFactory(props: ${StateFactoryProps}<'${this.type}'>) {
         const baseState: ${BaseNodeData}<'${this.type}'> = {
           type: 'node',
+          id: props.id,
+          baseId: props.baseId,
+          nodeType: '${this.type}',
           pageKey: props.pageKey,
           parentId: props.parentId,
           depth: props.depth,
           isValid: props.isValid,
-          layout: props.item,
           hidden: undefined,
           rowIndex: props.rowIndex,
           errors: undefined,
+          dataModelBindings: props.dataModelBindings,
         };
 
         return { ...baseState, ${pluginStateFactories} };

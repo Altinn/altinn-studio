@@ -6,6 +6,7 @@ import { formatDate, isValid, parseISO } from 'date-fns';
 import { DateDef } from 'src/layout/Date/config.def.generated';
 import { DateComponent } from 'src/layout/Date/DateComponent';
 import { DateSummary } from 'src/layout/Date/DateSummary';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { DisplayData } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -13,7 +14,8 @@ import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Date extends DateDef implements DisplayData {
-  useDisplayData(nodeId: string): string {
+  useDisplayData(baseComponentId: string): string {
+    const nodeId = useIndexedId(baseComponentId);
     const item = useNodeItemWhenType(nodeId, 'Date');
     const dateString = item?.value;
     const format = item?.format;

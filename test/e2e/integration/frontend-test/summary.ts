@@ -416,14 +416,15 @@ describe('Summary', () => {
       if (config === undefined) {
         cy.navPage('summary').should('have.attr', 'aria-current', 'page');
       } else {
-        cy.navPage('form').should('have.attr', 'aria-current', 'page');
         cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldLastName);
+        cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
         /*
          * Test that ValidateAllPages and ValidatePreviousPages prevents the user from proceeding
          * when there are errors on a previous page.
          */
         cy.gotoNavPage('summary');
+        cy.findByText('Er fordelingen av studielånsgjeld verifisert?').should('be.visible');
         cy.findByRole('button', { name: /Neste/ }).click();
         if (config.page === 'current') {
           cy.navPage('grid').should('have.attr', 'aria-current', 'page');

@@ -33,19 +33,19 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
       const recursiveChildren = new Set<string>(recursivelyFindChildren(nodeRef.current.id, state, restriction));
       const uploaderNodeIds = Object.values(state.nodeData)
         .filter((n) => {
-          if (!recursiveChildren.has(n.layout.id)) {
+          if (!recursiveChildren.has(n.id)) {
             return false;
           }
-          const def = getComponentDef(n.layout.type);
+          const def = getComponentDef(n.nodeType);
           return def && def.hasPlugin(AttachmentsPlugin);
         })
-        .map((n) => n.layout.id);
+        .map((n) => n.id);
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
       for (const uploaderId of uploaderNodeIds) {
         const nodeData = state.nodeData[uploaderId];
-        const dataModelBindings = nodeData?.layout.dataModelBindings as IDataModelBindings<
+        const dataModelBindings = nodeData?.dataModelBindings as IDataModelBindings<
           CompWithPlugin<typeof AttachmentsPlugin>
         >;
 
@@ -93,7 +93,7 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 function recursivelyFindChildren(parentId: string, state: NodesContext, restriction?: number): string[] {
   const children = Object.values(state.nodeData)
     .filter((n) => n.parentId === parentId && (restriction === undefined || n.rowIndex === restriction))
-    .map((n) => n.layout.id);
+    .map((n) => n.id);
 
   return [...children, ...children.flatMap((c) => recursivelyFindChildren(c, state, undefined))];
 }

@@ -10,6 +10,7 @@ import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { RadioButtonsSummary } from 'src/layout/RadioButtons/RadioButtonsSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -26,10 +27,10 @@ export class RadioButtons extends RadioButtonsDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'RadioButtons');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'RadioButtons');
     const value = String(formData?.simpleBinding ?? '');
-    const options = useNodeOptions(nodeId).options;
+    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
     const langTools = useLanguage();
     return getSelectedValueToText(value, langTools, options) || '';
   }

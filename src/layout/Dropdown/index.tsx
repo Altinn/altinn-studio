@@ -10,6 +10,7 @@ import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { DropdownSummary } from 'src/layout/Dropdown/DropdownSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useValidateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
@@ -26,9 +27,9 @@ export class Dropdown extends DropdownDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Dropdown');
-    const options = useNodeOptions(nodeId).options;
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Dropdown');
+    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
     const langTools = useLanguage();
     const value = String(formData?.simpleBinding ?? '');
     if (!value) {

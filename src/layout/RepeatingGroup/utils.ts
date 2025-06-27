@@ -6,7 +6,7 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -26,18 +26,18 @@ export interface RepGroupRowWithButtons extends RepGroupRow {
 
 export type RepGroupRowWithExpressions = RepGroupRow & GroupExpressions;
 
-const noRows: RepGroupRow[] = [];
+const noRows: never[] = [];
 
 interface EvalExprProps<T extends ExprVal> {
   expr: ExprValToActualOrExpr<T> | undefined;
   defaultValue?: ExprValToActual<T>;
   dataSources: ExpressionDataSources;
-  groupBinding: IDataModelReference;
+  groupBinding: IDataModelReference | undefined;
   rowIndex: number;
 }
 
 function evalString({ expr, defaultValue = '', dataSources, groupBinding, rowIndex }: EvalExprProps<ExprVal.String>) {
-  if (!ExprValidation.isValidOrScalar(expr, ExprVal.String)) {
+  if (!ExprValidation.isValidOrScalar(expr, ExprVal.String) || !groupBinding) {
     return defaultValue;
   }
 
@@ -49,7 +49,7 @@ function evalString({ expr, defaultValue = '', dataSources, groupBinding, rowInd
 }
 
 function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIndex }: EvalExprProps<ExprVal.Boolean>) {
-  if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean)) {
+  if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean) || !groupBinding) {
     return defaultValue;
   }
 
@@ -62,14 +62,14 @@ function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIn
 
 export const RepGroupHooks = {
   useAllBaseRows(node: LayoutNode<'RepeatingGroup'> | undefined) {
-    const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
+    const groupBinding = useDataModelBindingsFor(node?.baseId, 'RepeatingGroup')?.group;
     return FD.useFreshRows(groupBinding);
   },
 
   useAllRowsWithHidden(node: LayoutNode<'RepeatingGroup'> | undefined): RepGroupRow[] {
-    const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
-    const hiddenRow = NodesInternal.useNodeData(node, (d) => d.layout.hiddenRow);
-    const dataSources = useExpressionDataSources(hiddenRow);
+    const component = useExternalItem(node?.baseId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(node?.baseId, 'RepeatingGroup')?.group;
+    const dataSources = useExpressionDataSources(component?.hiddenRow);
     const rows = RepGroupHooks.useAllBaseRows(node);
 
     return useMemo(
@@ -77,18 +77,19 @@ export const RepGroupHooks = {
         (groupBinding &&
           rows.map((row) => ({
             ...row,
-            hidden: evalBool({ expr: hiddenRow, dataSources, groupBinding, rowIndex: row.index }),
+            hidden: evalBool({ expr: component?.hiddenRow, dataSources, groupBinding, rowIndex: row.index }),
           }))) ??
         noRows,
-      [rows, hiddenRow, dataSources, groupBinding],
+      [rows, component?.hiddenRow, dataSources, groupBinding],
     );
   },
 
   useAllRowsWithButtons(node: LayoutNode<'RepeatingGroup'>): RepGroupRowWithButtons[] {
-    const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
-    const hiddenRow = NodesInternal.useNodeData(node, (d) => d.layout.hiddenRow);
-    const editButton = NodesInternal.useNodeData(node, (d) => d.layout.edit?.editButton);
-    const deleteButton = NodesInternal.useNodeData(node, (d) => d.layout.edit?.deleteButton);
+    const component = useExternalItem(node?.baseId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(node?.baseId, 'RepeatingGroup')?.group;
+    const hiddenRow = component?.hiddenRow;
+    const editButton = component?.edit?.editButton;
+    const deleteButton = component?.edit?.deleteButton;
     const dataSources = useExpressionDataSources({ hiddenRow, editButton, deleteButton });
     const rows = RepGroupHooks.useAllBaseRows(node);
 
@@ -110,10 +111,11 @@ export const RepGroupHooks = {
   },
 
   useGetFreshRowsWithButtons(node: LayoutNode<'RepeatingGroup'>): () => RepGroupRowWithButtons[] {
-    const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
-    const hiddenRow = NodesInternal.useNodeData(node, (d) => d.layout.hiddenRow);
-    const editButton = NodesInternal.useNodeData(node, (d) => d.layout.edit?.editButton);
-    const deleteButton = NodesInternal.useNodeData(node, (d) => d.layout.edit?.deleteButton);
+    const component = useExternalItem(node?.baseId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(node?.baseId, 'RepeatingGroup')?.group;
+    const hiddenRow = component?.hiddenRow;
+    const editButton = component?.edit?.editButton;
+    const deleteButton = component?.edit?.deleteButton;
     const dataSources = useExpressionDataSources({ hiddenRow, editButton, deleteButton });
     const getFreshRows = FD.useGetFreshRows();
 
@@ -135,10 +137,11 @@ export const RepGroupHooks = {
     node: LayoutNode<'RepeatingGroup'> | undefined,
     _row: 'first' | { uuid: string } | { index: number },
   ): RepGroupRowWithExpressions | undefined {
-    const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.group);
-    const hiddenRow = NodesInternal.useNodeData(node, (d) => d.layout.hiddenRow);
-    const edit = NodesInternal.useNodeData(node, (d) => d.layout.edit);
-    const trb = NodesInternal.useNodeData(node, (d) => d.layout.textResourceBindings);
+    const component = useExternalItem(node?.baseId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(node?.baseId, 'RepeatingGroup')?.group;
+    const hiddenRow = component?.hiddenRow;
+    const edit = component?.edit;
+    const trb = component?.textResourceBindings;
     const dataSources = useExpressionDataSources({ hiddenRow, edit, trb });
     const rows = RepGroupHooks.useAllBaseRows(node);
     const row = _row === 'first' ? rows[0] : 'uuid' in _row ? rows.find((r) => r.uuid === _row.uuid) : rows[_row.index];

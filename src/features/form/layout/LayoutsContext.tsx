@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
@@ -66,7 +67,7 @@ function useLayoutQuery() {
       }
     : utils;
 }
-const { Provider, useCtx } = delayedContext(() =>
+const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
   createQueryContext({
     name: 'LayoutsContext',
     required: true,
@@ -107,6 +108,10 @@ const emptyLayouts: ILayouts = {};
 export const LayoutsProvider = Provider;
 export const useLayouts = (): ILayouts => useCtx()?.layouts ?? emptyLayouts;
 export const useLayoutLookups = () => useCtx().lookups;
+export const useLayoutLookupsLax = () => {
+  const ctx = useLaxCtx();
+  return ctx === ContextNotProvided ? undefined : ctx.lookups;
+};
 
 export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 

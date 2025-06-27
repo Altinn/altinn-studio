@@ -21,8 +21,8 @@ export class Map extends MapDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Map');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Map');
     const location = parseLocation(formData?.simpleBinding);
     return location ? `${location.latitude}, ${location.longitude}` : '';
   }

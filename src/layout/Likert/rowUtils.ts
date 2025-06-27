@@ -1,5 +1,5 @@
 import { FD } from 'src/features/formData/FormDataWrite';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
@@ -21,7 +21,7 @@ export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilte
 };
 
 export function useLikertRows(node: LayoutNode<'Likert'>) {
-  const groupBinding = NodesInternal.useNodeData(node, (d) => d.layout.dataModelBindings.questions);
+  const groupBinding = useDataModelBindingsFor(node.baseId, 'Likert')?.questions;
   const filter = useNodeItem(node, (i) => i.filter);
   const rows = FD.useFreshRows(groupBinding);
   const lastIndex = rows.length - 1;

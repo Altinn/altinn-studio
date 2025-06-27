@@ -7,7 +7,7 @@ import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useDoOverrideSummary } from 'src/layout/Subform/SubformWrapper';
@@ -22,8 +22,9 @@ import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryCompone
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { typedBoolean } from 'src/utils/typing';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { IData } from 'src/types/shared';
@@ -139,11 +140,11 @@ const DoSummaryWrapper = ({
 };
 
 export function AllSubformSummaryComponent2() {
-  const allIds = NodesInternal.useShallowSelector((state) =>
-    Object.values(state.nodeData)
-      .filter((data) => data.layout.type === 'Subform')
-      .map((data) => data.layout.id),
-  );
+  const lookups = useLayoutLookups();
+  const allIds = Object.values(lookups.topLevelComponents)
+    .flat()
+    .filter((id) => (id ? lookups.allComponents[id]?.type === 'Subform' : false))
+    .filter(typedBoolean);
 
   return (
     <>

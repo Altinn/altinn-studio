@@ -33,7 +33,7 @@ export class AttachmentsPlugin extends NodeDefPlugin<Config> {
     return 'AttachmentsPlugin';
   }
 
-  stateFactory(_props: DefPluginStateFactoryProps<Config>): Config['extraState'] {
+  stateFactory(_props: DefPluginStateFactoryProps): Config['extraState'] {
     return {
       attachments: {},
       attachmentsFailedToUpload: {},

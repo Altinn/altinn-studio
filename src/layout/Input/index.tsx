@@ -25,9 +25,9 @@ export class Input extends InputDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Input');
-    const item = useNodeItemWhenType(nodeId, 'Input');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Input');
+    const item = useNodeItemWhenType(baseComponentId, 'Input');
     const formatting = item?.formatting;
     const currentLanguage = useCurrentLanguage();
     const text = formData?.simpleBinding || '';

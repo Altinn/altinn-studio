@@ -22,8 +22,8 @@ export class OrganisationLookup extends OrganisationLookupDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'OrganisationLookup');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'OrganisationLookup');
     return Object.values(formData ?? {}).join(', ');
   }
 

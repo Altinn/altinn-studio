@@ -1,13 +1,6 @@
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { CompDef } from 'src/layout';
-import type {
-  CompExternal,
-  CompIntermediate,
-  CompIntermediateExact,
-  CompInternal,
-  CompTypes,
-  TypeFromNode,
-} from 'src/layout/layout';
+import type { CompExternal, CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
 import type { ChildIdMutator } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -23,9 +16,10 @@ export interface BaseRow {
   index: number;
 }
 
-export interface StateFactoryProps<Type extends CompTypes> {
-  item: CompIntermediateExact<Type>;
+export interface StateFactoryProps<T extends CompTypes = CompTypes> {
   pageKey: string;
+  id: string;
+  baseId: string;
   parent: LayoutNode | LayoutPage;
   parentId: string | undefined;
   depth: number;
@@ -34,6 +28,7 @@ export interface StateFactoryProps<Type extends CompTypes> {
   layoutMap: Record<string, CompExternal | undefined>;
   getCapabilities: (type: CompTypes) => CompCapabilities;
   isValid: boolean;
+  dataModelBindings: IDataModelBindings<T>;
 }
 
 export interface GeneratorErrors {
@@ -41,16 +36,19 @@ export interface GeneratorErrors {
   [key: string]: true;
 }
 
-export interface BaseNodeData<T extends CompTypes> {
+export interface BaseNodeData<T extends CompTypes = CompTypes> {
   type: 'node';
   pageKey: string;
+  id: string;
+  baseId: string;
+  nodeType: T;
   parentId: string | undefined; // String if parent is a node, undefined if parent is a page (on the top level)
   isValid: boolean; // False when page is not in the page order, and not a pdf page
   depth: number;
-  layout: CompIntermediate<T>;
   hidden: boolean | undefined;
   rowIndex: number | undefined;
   errors: GeneratorErrors | undefined;
+  dataModelBindings: IDataModelBindings<T>;
 }
 
 export type NodeData<Type extends CompTypes = CompTypes> = ReturnType<CompDef<Type>['stateFactory']>;

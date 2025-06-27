@@ -10,6 +10,7 @@ import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/n
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
@@ -30,9 +31,9 @@ export class LikertItem extends LikertItemDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'LikertItem');
-    const options = useNodeOptions(nodeId).options;
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'LikertItem');
+    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
     const langTools = useLanguage();
     const value = String(formData?.simpleBinding ?? '');
     if (!value) {

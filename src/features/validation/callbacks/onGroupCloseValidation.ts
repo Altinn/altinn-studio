@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { getRecursiveValidations } from 'src/features/validation/ValidationStorePlugin';
@@ -16,6 +17,7 @@ export function useOnGroupCloseValidation() {
   const setNodeVisibility = NodesInternal.useSetNodeVisibility();
   const validating = Validation.useValidating();
   const nodeStore = NodesInternal.useStore();
+  const lookups = useLayoutLookups();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent(
@@ -30,6 +32,7 @@ export function useOnGroupCloseValidation() {
         restriction,
         mask,
         state,
+        lookups,
       }).map((v) => v.nodeId);
 
       if (nodesWithErrors.length > 0) {

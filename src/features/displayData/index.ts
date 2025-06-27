@@ -1,3 +1,3 @@
 export interface DisplayData {
-  useDisplayData(nodeId: string): string;
+  useDisplayData(baseComponentId: string): string;
 }

@@ -12,7 +12,8 @@ import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { useDatepickerValidation } from 'src/layout/Datepicker/useDatepickerValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
-import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useExternalItem } from 'src/utils/layout/hooks';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type {
@@ -33,11 +34,11 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Datepicker');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Datepicker');
     const currentLanguage = useCurrentLanguage();
-    const item = useNodeItemWhenType(nodeId, 'Datepicker');
-    const format = item?.format;
+    const component = useExternalItem(baseComponentId, 'Datepicker');
+    const format = component?.format;
     const data = formData?.simpleBinding ?? '';
     if (!data) {
       return '';

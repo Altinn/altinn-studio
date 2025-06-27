@@ -20,12 +20,12 @@ export const PanelComponent = ({ node }: IPanelProps) => {
     if (node.parent instanceof LayoutPage) {
       children = Object.values(state.nodeData)
         .filter((n) => n.pageKey === node.parent.pageKey && n.parentId === undefined)
-        .map((n) => n.layout.id);
+        .map((n) => n.id);
     } else {
       const parentId = node.parent.id;
       children = Object.values(state.nodeData)
         .filter((n) => n.parentId === parentId)
-        .map((n) => n.layout.id);
+        .map((n) => n.id);
     }
 
     const isOnBottom = children.indexOf(node.id) === children.length - 1;

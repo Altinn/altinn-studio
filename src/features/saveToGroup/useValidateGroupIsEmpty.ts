@@ -15,7 +15,7 @@ export function useValidateGroupIsEmpty(
   const required = item && 'required' in item ? item.required : false;
   const dataModelBindings = item.dataModelBindings;
   const textResourceBindings = item.textResourceBindings;
-  const formData = useNodeFormDataWhenType<'Checkboxes' | 'MultipleSelect' | 'List'>(node.id, node.type);
+  const formData = useNodeFormDataWhenType<'Checkboxes' | 'MultipleSelect' | 'List'>(node.baseId, node.type);
 
   const invalidDataSelector = FD.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {

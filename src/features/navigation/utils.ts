@@ -100,7 +100,7 @@ export function useValidationsForPages(order: string[], shouldMarkWhenCompleted 
 
   const allNodeIds = NodesInternal.useLaxMemoSelector((state) => {
     const allNodeIds = Object.fromEntries<string[]>(order.map((page) => [page, []]));
-    Object.values(state.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.layout.id));
+    Object.values(state.nodeData).forEach((node) => allNodeIds[node.pageKey]?.push(node.id));
     return allNodeIds;
   });
 

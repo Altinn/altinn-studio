@@ -14,7 +14,8 @@ import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useValidateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
-import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -30,14 +31,14 @@ export class List extends ListDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const item = useNodeItemWhenType(nodeId, 'List');
-    const dmBindings = item?.dataModelBindings;
+  useDisplayData(baseComponentId: string): string {
+    const component = useExternalItem(baseComponentId, 'List');
+    const dmBindings = useDataModelBindingsFor(baseComponentId, 'List');
     const groupBinding = dmBindings?.group;
     const checkedBinding = dmBindings?.checked;
-    const summaryBinding = item?.summaryBinding;
-    const legacySummaryBinding = item?.bindingToShowInSummary;
-    const formData = useNodeFormDataWhenType(nodeId, 'List');
+    const summaryBinding = component?.summaryBinding;
+    const legacySummaryBinding = component?.bindingToShowInSummary;
+    const formData = useNodeFormDataWhenType(baseComponentId, 'List');
 
     if (groupBinding) {
       // When the data model binding is a group binding, all the data is now in formData.group, and all the other
@@ -56,7 +57,7 @@ export class List extends ListDef {
 
       if (legacySummaryBinding && dmBindings) {
         window.logError(
-          `Node ${nodeId}: BindingToShowInSummary is deprecated and does not work ` +
+          `Node ${baseComponentId}: BindingToShowInSummary is deprecated and does not work ` +
             `along with a group binding, use summaryBinding instead`,
         );
       }

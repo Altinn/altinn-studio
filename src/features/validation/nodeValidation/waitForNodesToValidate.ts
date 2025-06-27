@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { shouldValidateNode } from 'src/features/validation/StoreValidationsInNode';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { NodesStore } from 'src/utils/layout/NodesContext';
@@ -8,6 +9,7 @@ import type { ValidationsProcessedLast } from 'src/features/validation';
 export function useWaitForNodesToValidate() {
   const registry = GeneratorInternal.useRegistry();
   const nodesStore = NodesStore.useStore();
+  const lookups = useLayoutLookups();
 
   return useCallback(
     async (processedLast: ValidationsProcessedLast): Promise<void> => {
@@ -20,7 +22,8 @@ export function useWaitForNodesToValidate() {
         const nodeIds = Object.keys(allNodeData);
         for (const nodeId of nodeIds) {
           const nodeData = allNodeData[nodeId];
-          if (!nodeData || !('validations' in nodeData) || !shouldValidateNode(nodeData.layout)) {
+          const layout = lookups.getComponent(nodeData.baseId);
+          if (!nodeData || !('validations' in nodeData) || !shouldValidateNode(layout)) {
             // Node does not support validation
             continue;
           }
@@ -49,6 +52,6 @@ export function useWaitForNodesToValidate() {
         checkAndResolve();
       });
     },
-    [nodesStore, registry],
+    [lookups, nodesStore, registry],
   );
 }

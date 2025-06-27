@@ -6,7 +6,7 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { getComponentCapabilities, getComponentDef } from 'src/layout';
+import { getComponentCapabilities } from 'src/layout';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
@@ -50,7 +50,7 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
   const node = useNewNode(intermediateItem.id, externalItem.id, externalItem.type) as LayoutNode;
   useGeneratorErrorBoundaryNodeRef().current = node;
 
-  const commonProps: CommonProps<CompTypes> = { node, externalItem, intermediateItem };
+  const commonProps: CommonProps<CompTypes> = { node, externalItem };
 
   return (
     // Adding id as a key to make it easier to see which component is being rendered in the React DevTools
@@ -59,7 +59,10 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
         stage={StageAddNodes}
         mustBeAdded='parent'
       >
-        <AddRemoveNode {...commonProps} />
+        <AddRemoveNode
+          {...commonProps}
+          intermediateItem={intermediateItem}
+        />
       </GeneratorCondition>
       <GeneratorCondition
         stage={StageMarkHidden}
@@ -75,7 +78,10 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
           stage={StageMarkHidden}
           mustBeAdded='parent'
         >
-          <NodePropertiesValidation {...commonProps} />
+          <NodePropertiesValidation
+            {...commonProps}
+            intermediateItem={intermediateItem}
+          />
         </GeneratorCondition>
         {children}
       </GeneratorNodeProvider>
@@ -86,7 +92,6 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
 interface CommonProps<T extends CompTypes> {
   node: LayoutNode<T>;
   externalItem: CompExternalExact<T>;
-  intermediateItem: CompIntermediateExact<T>;
 }
 
 function MarkAsHidden<T extends CompTypes>({ node, externalItem }: CommonProps<T>) {
@@ -104,7 +109,10 @@ function MarkAsHidden<T extends CompTypes>({ node, externalItem }: CommonProps<T
   return null;
 }
 
-function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonProps<T>) {
+function AddRemoveNode<T extends CompTypes>({
+  node,
+  intermediateItem,
+}: CommonProps<T> & { intermediateItem: CompIntermediateExact<T> }) {
   const parent = GeneratorInternal.useParent()!;
   const depth = GeneratorInternal.useDepth();
   const rowIndex = GeneratorInternal.useRowIndex();
@@ -114,8 +122,9 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonPr
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = (type: CompTypes) => getComponentCapabilities(type);
   const stateFactoryProps = {
-    item: intermediateItem,
     parent,
+    id: node.id,
+    baseId: node.baseId,
     parentId: parent instanceof LayoutNode ? parent.id : undefined,
     depth,
     rowIndex,
@@ -124,7 +133,8 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonPr
     layoutMap,
     getCapabilities,
     isValid,
-  } satisfies StateFactoryProps<T>;
+    dataModelBindings: intermediateItem.dataModelBindings as never,
+  } satisfies StateFactoryProps;
   const isAdded = NodesInternal.useIsAdded(node);
 
   NodesStateQueue.useAddNode(
@@ -303,13 +313,4 @@ function isFormItem(item: CompIntermediate): item is CompIntermediate & FormComp
 
 function isSummarizableItem(item: CompIntermediate): item is CompIntermediate & SummarizableComponentProps {
   return 'renderAsSummary' in item;
-}
-
-export function useDef<T extends CompTypes>(type: T) {
-  const def = getComponentDef<T>(type)!;
-  if (!def) {
-    throw new Error(`Component type "${type}" not found`);
-  }
-
-  return def;
 }

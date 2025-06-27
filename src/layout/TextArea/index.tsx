@@ -21,8 +21,8 @@ export class TextArea extends TextAreaDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'TextArea');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'TextArea');
     return formData?.simpleBinding ?? '';
   }
 

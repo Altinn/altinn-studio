@@ -1,7 +1,8 @@
 import { FD } from 'src/features/formData/FormDataWrite';
 import { getComponentDef } from 'src/layout';
-import { useDataModelLocationForNode, useIntermediateItem } from 'src/utils/layout/DataModelLocation';
+import { useDataModelLocationForNode } from 'src/utils/layout/DataModelLocation';
 import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
+import { useDataModelBindingsFor, useIntermediateItem } from 'src/utils/layout/hooks';
 import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -59,7 +60,7 @@ export function useNodeDirectChildren(parent: LayoutNode | undefined, restrictio
       const out: (LayoutNode | undefined)[] = [];
       for (const n of Object.values(state.nodeData)) {
         if (n.parentId === parent.id && (restriction === undefined || restriction === n.rowIndex)) {
-          out.push(nodes.findById(n.layout.id));
+          out.push(nodes.findById(n.id));
         }
       }
       return out.filter(typedBoolean);
@@ -73,21 +74,15 @@ type NodeFormData<N extends LayoutNode | undefined> = N extends undefined
 
 const emptyObject = {};
 export function useNodeFormData<N extends LayoutNode | undefined>(node: N): NodeFormData<N> {
-  const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings) as
-    | IDataModelBindings<TypeFromNode<N>>
-    | undefined;
-
+  const dataModelBindings = useDataModelBindingsFor(node?.baseId) as IDataModelBindings<TypeFromNode<N>> | undefined;
   return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as NodeFormData<N>;
 }
 
 export function useNodeFormDataWhenType<Type extends CompTypes>(
-  nodeId: string,
+  baseComponentId: string,
   type: Type,
 ): IComponentFormData<Type> | undefined {
-  const dataModelBindings = NodesInternal.useNodeDataWhenType(nodeId, type, (data) => data.layout.dataModelBindings) as
-    | IDataModelBindings<Type>
-    | undefined;
-
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, type) as IDataModelBindings<Type> | undefined;
   return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick));
 }
 

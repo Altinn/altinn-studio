@@ -24,8 +24,8 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'Address');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Address');
     return Object.values(formData ?? {}).join(' ');
   }
 

@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { ExprVal } from 'src/features/expressions/types';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
@@ -18,20 +17,16 @@ import {
   useExpressionDataSourcesForSubform,
   useSubformFormData,
 } from 'src/layout/Subform/utils';
-import { useIntermediateItem } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useExternalItem } from 'src/utils/layout/hooks';
+import { useNode } from 'src/utils/layout/NodesContext';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey }: { pageKey: string }) {
-  const subformIds = NodesInternal.useLaxMemoSelector(({ nodeData }) =>
-    Object.values(nodeData)
-      .filter((node) => node.pageKey === pageKey && node.layout.type === 'Subform')
-      .map((node) => node.layout.id),
-  );
-
-  if (subformIds === ContextNotProvided || !subformIds.length) {
+  const lookups = useLayoutLookups();
+  const subformIds = lookups.topLevelComponents[pageKey]?.filter((id) => lookups.allComponents[id]?.type === 'Subform');
+  if (!subformIds?.length) {
     return null;
   }
 
@@ -51,7 +46,7 @@ function SubformGroup({ nodeId }: { nodeId: string }) {
     throw new Error(`Navigation expected component: "${nodeId}" to exist and be of type: "Subform"`);
   }
   const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
-  const { layoutSet, textResourceBindings, entryDisplayName } = useIntermediateItem(node.baseId, 'Subform') ?? {};
+  const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(node.baseId, 'Subform') ?? {};
   const title = useEvalExpression(textResourceBindings?.title, {
     returnType: ExprVal.String,
     defaultValue: '',

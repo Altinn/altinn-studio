@@ -15,8 +15,8 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class PersonLookup extends PersonLookupDef {
-  useDisplayData(nodeId: string): string {
-    const formData = useNodeFormDataWhenType(nodeId, 'PersonLookup');
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'PersonLookup');
     return Object.values(formData ?? {}).join(', ');
   }
 

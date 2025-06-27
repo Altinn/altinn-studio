@@ -62,8 +62,8 @@ export const ExpressionPlayground = () => {
 
   const componentOptions = NodesInternal.useMemoSelector((state) =>
     Object.values(state.nodeData).map((nodeData) => ({
-      label: nodeData.layout.id,
-      value: nodeData.layout.id,
+      label: nodeData.id,
+      value: nodeData.id,
     })),
   );
 

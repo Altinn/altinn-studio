@@ -11,19 +11,17 @@ import { NodeInspectorContextProvider } from 'src/features/devtools/components/N
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { implementsAnyValidation } from 'src/layout';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useNode } from 'src/utils/layout/NodesContext';
 
 export const NodeInspector = () => {
   const pageKey = useCurrentView();
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const selectedNode = useNode(selectedId);
-  const children = NodesInternal.useShallowSelector((state) =>
-    Object.values(state.nodeData)
-      .filter((data) => data.pageKey === pageKey && data.parentId === undefined) // Find top-level nodes
-      .map((data) => data.layout.id),
-  );
+  const lookups = useLayoutLookups();
+  const children = pageKey ? lookups.topLevelComponents[pageKey] : undefined;
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
   const focusLayoutInspector = useDevToolsStore((state) => state.actions.focusLayoutInspector);
 

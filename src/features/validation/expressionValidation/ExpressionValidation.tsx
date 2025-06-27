@@ -41,8 +41,8 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
     const out: Binding[] = [];
 
     for (const nodeData of Object.values(state.nodeData)) {
-      if (nodeData.layout.dataModelBindings) {
-        out.push(nodeData.layout.dataModelBindings as Binding);
+      if (nodeData.dataModelBindings) {
+        out.push(nodeData.dataModelBindings as Binding);
       }
     }
 

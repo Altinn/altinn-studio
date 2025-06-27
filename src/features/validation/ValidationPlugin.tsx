@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { getInitialMask } from 'src/features/validation/utils';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { ComponentValidation } from 'src/features/validation/index';
@@ -11,6 +12,7 @@ interface Config {
   extraState: {
     validations: ComponentValidation[];
     validationVisibility: number;
+    initialVisibility: number;
   };
 }
 
@@ -41,10 +43,11 @@ export class ValidationPlugin extends NodeDefPlugin<Config> {
     }
   }
 
-  stateFactory(_props: DefPluginStateFactoryProps<Config>): DefPluginExtraState<Config> {
+  stateFactory(props: DefPluginStateFactoryProps): DefPluginExtraState<Config> {
     return {
       validations: emptyArray,
       validationVisibility: 0,
+      initialVisibility: getInitialMask(props),
     };
   }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
@@ -6,6 +6,7 @@ import cn from 'classnames';
 
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -35,7 +36,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type {
@@ -234,21 +235,21 @@ function SummaryGridRowRenderer(props: GridRowProps) {
 }
 
 function useFirstFormNodeId(row: GridRow): string | undefined {
+  const layoutLookups = useLayoutLookups();
   const idMutator = useComponentIdMutator();
   const canRender = useHasCapability('renderInTable');
-  return NodesInternal.useSelector((state) => {
+  return useMemo(() => {
     for (const cell of row.cells) {
       if (cell && 'component' in cell && cell.component && canRender(cell.component)) {
-        const nodeId = idMutator(cell.component);
-        const nodeData = state.nodeData?.[nodeId];
-        const def = nodeData && getComponentDef(nodeData.layout.type);
+        const type = layoutLookups.getComponent(cell.component)?.type;
+        const def = getComponentDef(type);
         if (def && def.category === CompCategory.Form) {
-          return nodeData.layout.id;
+          return idMutator(cell.component);
         }
       }
     }
     return undefined;
-  });
+  }, [canRender, idMutator, layoutLookups, row.cells]);
 }
 
 function WrappedEditButton({

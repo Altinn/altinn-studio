@@ -112,15 +112,16 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return [];
   }
 
-  isChildHidden(state: NodeData<'RepeatingGroup'>, childId: string): boolean {
-    const hiddenByPlugins = super.isChildHidden(state, childId);
+  isChildHidden(state: NodeData<'RepeatingGroup'>, childId: string, lookups: LayoutLookups): boolean {
+    const hiddenByPlugins = super.isChildHidden(state, childId, lookups);
     if (hiddenByPlugins) {
       return true;
     }
 
     const { baseComponentId } = splitDashedKey(childId);
-    const tableColSetup = state.layout?.tableColumns?.[baseComponentId];
-    const mode = state.layout?.edit?.mode;
+    const layout = lookups.getComponent(state.baseId, 'RepeatingGroup');
+    const tableColSetup = layout.tableColumns?.[baseComponentId];
+    const mode = layout.edit?.mode;
 
     // This specific configuration hides the component fully, without having set hidden=true on the component itself.
     // It's most likely done by mistake, but we still need to respect it when checking if the component is hidden,

@@ -4,6 +4,7 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { TypesFromCategory } from 'src/layout/layout';
 import type {
   DefPluginChildClaimerProps,
@@ -124,7 +125,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
     }
   }
 
-  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string): boolean {
+  isChildHidden(_state: DefPluginState<ToInternal<E>>, _childId: string, _lookups: LayoutLookups): boolean {
     // Repeating children plugins do not have any specific logic here, but beware that
     // the RepeatingGroup component does.
     return false;

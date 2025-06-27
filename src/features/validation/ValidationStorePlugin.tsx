@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLayoutLookups, useLayoutLookupsLax } from 'src/features/form/layout/LayoutsContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
-import { getInitialMaskFromNodeItem, selectValidations } from 'src/features/validation/utils';
+import { selectValidations } from 'src/features/validation/utils';
 import { isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type {
   AnyValidation,
   AttachmentValidation,
@@ -78,10 +80,9 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           nodesProduce((state) => {
             for (const node of nodes) {
               const nodeData = typeof node === 'string' ? state.nodeData[node] : state.nodeData[node.id];
-              const initialMask = getInitialMaskFromNodeItem(nodeData.layout);
 
-              if (nodeData && 'validationVisibility' in nodeData) {
-                nodeData.validationVisibility = newVisibility | initialMask;
+              if (nodeData && 'validationVisibility' in nodeData && 'initialVisibility' in nodeData) {
+                nodeData.validationVisibility = newVisibility | nodeData.initialVisibility;
               }
             }
           }),
@@ -135,22 +136,27 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           const out = 'validations' in nodeData ? nodeData.validations : undefined;
           return out && out.length > 0 ? out : emptyArray;
         }),
-      useVisibleValidations: (node, showAll) =>
-        store.useShallowSelector((state) => {
+      useVisibleValidations: (node, showAll) => {
+        const lookups = useLayoutLookups();
+        return store.useShallowSelector((state) => {
           if (!node) {
             return emptyArray;
           }
-          return getValidations({ state, id: node.id, mask: showAll ? 'showAll' : 'visible' });
-        }),
-      useVisibleValidationsDeep: (node, mask, includeSelf, restriction, severity) =>
-        store.useMemoSelector((state) => {
+          return getValidations({ state, id: node.id, mask: showAll ? 'showAll' : 'visible', lookups });
+        });
+      },
+      useVisibleValidationsDeep: (node, mask, includeSelf, restriction, severity) => {
+        const lookups = useLayoutLookups();
+        return store.useMemoSelector((state) => {
           if (!node) {
             return emptyArray;
           }
-          return getRecursiveValidations({ state, id: node.id, mask, severity, includeSelf, restriction });
-        }),
-      useValidationsSelector: () =>
-        store.useDelayedSelector({
+          return getRecursiveValidations({ state, id: node.id, mask, severity, includeSelf, restriction, lookups });
+        });
+      },
+      useValidationsSelector: () => {
+        const lookups = useLayoutLookups();
+        return store.useDelayedSelector({
           mode: 'simple',
           selector:
             (
@@ -166,10 +172,13 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
                 mask,
                 severity,
                 includeHidden,
+                lookups,
               }),
-        }) satisfies ValidationsSelector,
-      useLaxValidationsSelector: () =>
-        store.useLaxDelayedSelector({
+        }) satisfies ValidationsSelector;
+      },
+      useLaxValidationsSelector: () => {
+        const lookups = useLayoutLookups();
+        return store.useLaxDelayedSelector({
           mode: 'simple',
           selector:
             (
@@ -185,23 +194,28 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
                 mask,
                 severity,
                 includeHidden,
+                lookups,
               }),
-        }) satisfies ValidationsSelector,
-      useAllValidations: (mask, severity, includeHidden) =>
-        store.useLaxMemoSelector((state) => {
+        }) satisfies ValidationsSelector;
+      },
+      useAllValidations: (mask, severity, includeHidden) => {
+        const lookups = useLayoutLookups();
+        return store.useLaxMemoSelector((state) => {
           const out: NodeRefValidation[] = [];
           for (const nodeData of Object.values(state.nodeData)) {
-            const id = nodeData.layout.id;
-            const validations = getValidations({ state, id, mask, severity, includeHidden });
+            const id = nodeData.id;
+            const validations = getValidations({ state, id, mask, severity, includeHidden, lookups });
             for (const validation of validations) {
               out.push({ ...validation, nodeId: id });
             }
           }
 
           return out;
-        }),
+        });
+      },
       useGetNodesWithErrors: () => {
         const zustand = store.useLaxStore();
+        const lookups = useLayoutLookupsLax();
         return useCallback(
           (mask, severity, includeHidden = false) => {
             if (zustand === ContextNotProvided) {
@@ -215,7 +229,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             const outNodes: string[] = [];
             const outValidations: AnyValidation[] = [];
             for (const id of Object.keys(state.nodeData)) {
-              const validations = getValidations({ state, id, mask, severity, includeHidden });
+              const validations = getValidations({ state, id, mask, severity, includeHidden, lookups });
               if (validations.length > 0) {
                 outNodes.push(id);
                 outValidations.push(...validations);
@@ -223,11 +237,12 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             }
             return [outNodes, outValidations];
           },
-          [zustand],
+          [zustand, lookups],
         );
       },
-      usePageHasVisibleRequiredValidations: (pageKey) =>
-        store.useSelector((state) => {
+      usePageHasVisibleRequiredValidations: (pageKey) => {
+        const lookups = useLayoutLookups();
+        return store.useSelector((state) => {
           if (!pageKey) {
             return false;
           }
@@ -237,8 +252,8 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
               continue;
             }
 
-            const id = nodeData.layout.id;
-            const validations = getValidations({ state, id, mask: 'visible', severity: 'error' });
+            const id = nodeData.id;
+            const validations = getValidations({ state, id, mask: 'visible', severity: 'error', lookups });
             for (const validation of validations) {
               if (validation.source === FrontendValidationSource.EmptyField) {
                 return true;
@@ -247,7 +262,8 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
 
           return false;
-        }),
+        });
+      },
     };
   }
 }
@@ -258,15 +274,23 @@ interface GetValidationsProps {
   mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
+  lookups: LayoutLookups | undefined;
 }
 
-function getValidations({ state, id, mask, severity, includeHidden = false }: GetValidationsProps): AnyValidation[] {
+function getValidations({
+  state,
+  id,
+  mask,
+  severity,
+  includeHidden = false,
+  lookups,
+}: GetValidationsProps): AnyValidation[] {
   const nodeData = state.nodeData[id];
   if (!nodeData || !('validations' in nodeData) || !('validationVisibility' in nodeData) || !nodeData.isValid) {
     return emptyArray;
   }
 
-  if (!includeHidden && isHidden(state, 'node', id, hiddenOptions)) {
+  if (!includeHidden && lookups && isHidden(state, 'node', id, lookups, hiddenOptions)) {
     return emptyArray;
   }
 
@@ -302,7 +326,7 @@ export function getRecursiveValidations(props: GetDeepValidationsProps): NodeRef
       (nodeData) =>
         nodeData.parentId === props.id && (props.restriction === undefined || props.restriction === nodeData.rowIndex),
     )
-    .map((nodeData) => nodeData.layout.id);
+    .map((nodeData) => nodeData.id);
 
   for (const id of children) {
     out.push(

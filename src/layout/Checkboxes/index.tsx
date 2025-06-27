@@ -13,7 +13,8 @@ import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesCont
 import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -31,13 +32,12 @@ export class Checkboxes extends CheckboxesDef {
     },
   );
 
-  useDisplayData(nodeId: string): string {
-    const node = useNode(nodeId) as LayoutNode<'Checkboxes'> | undefined;
-    const formData = useNodeFormDataWhenType(nodeId, 'Checkboxes');
-    const options = useNodeOptions(nodeId).options;
+  useDisplayData(baseComponentId: string): string {
+    const formData = useNodeFormDataWhenType(baseComponentId, 'Checkboxes');
+    const options = useNodeOptions(useIndexedId(baseComponentId)).options;
     const langAsString = useLanguage().langAsString;
 
-    const dataModelBindings = NodesInternal.useNodeData(node, (data) => data.layout.dataModelBindings);
+    const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Checkboxes');
 
     const relativeCheckedPath =
       dataModelBindings?.checked && dataModelBindings?.group

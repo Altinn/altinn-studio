@@ -1,8 +1,9 @@
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { SerializableSetting } from 'src/codegen/SerializableSetting';
-import type { CompInternal, CompTypes } from 'src/layout/layout';
-import type { ChildClaimerProps, ExprResolver } from 'src/layout/LayoutComponent';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
+import type { CompTypes } from 'src/layout/layout';
+import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
 
@@ -18,26 +19,12 @@ interface DefPluginConfig {
   settings?: any;
 }
 
-interface DefPluginBaseNodeData<Config extends DefPluginConfig>
-  extends Omit<BaseNodeData<DefPluginCompType<Config>>, 'layout' | 'item'> {
-  item: DefPluginCompInternal<Config> | undefined;
-  layout: DefPluginCompExternal<Config>;
-}
-
 type DefPluginCompType<Config extends DefPluginConfig> = Config['componentType'];
 export type DefPluginExtraState<Config extends DefPluginConfig> = Config['extraState'] extends undefined
   ? unknown
   : Config['extraState'];
-type DefPluginCompInternal<Config extends DefPluginConfig> = CompInternal<DefPluginCompType<Config>>;
-export type DefPluginState<Config extends DefPluginConfig> = DefPluginBaseNodeData<Config> &
-  DefPluginExtraState<Config>;
-export type DefPluginStateFactoryProps<Config extends DefPluginConfig> = StateFactoryProps<DefPluginCompType<Config>>;
-export type DefPluginExprResolver<Config extends DefPluginConfig> = Omit<
-  ExprResolver<DefPluginCompType<Config>>,
-  'item'
-> & {
-  item: DefPluginCompExternal<Config>;
-};
+export type DefPluginState<Config extends DefPluginConfig> = BaseNodeData & DefPluginExtraState<Config>;
+export type DefPluginStateFactoryProps = StateFactoryProps;
 export type DefPluginCompExternal<Config extends DefPluginConfig> = Config['expectedFromExternal'];
 export type DefPluginChildClaimerProps<Config extends DefPluginConfig> = Omit<
   ChildClaimerProps<DefPluginCompType<Config>>,
@@ -169,7 +156,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
    * Adds state factory properties to the component. This is called when creating the state for the component for the
    * first time.
    */
-  stateFactory(_props: DefPluginStateFactoryProps<Config>): DefPluginExtraState<Config> {
+  stateFactory(_props: DefPluginStateFactoryProps): DefPluginExtraState<Config> {
     return {} as DefPluginExtraState<Config>;
   }
 
@@ -206,7 +193,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
  */
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-  isChildHidden(state: DefPluginState<Config>, childId: string): boolean;
+  isChildHidden(state: DefPluginState<Config>, childId: string, lookups: LayoutLookups): boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
