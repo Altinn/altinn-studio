@@ -63,12 +63,16 @@ public class SimpleInstance
 
         if (!instance.Id.StartsWith(partyIdPrefix))
         {
-            throw new InvalidOperationException($"Instance id {instance.Id} has an unexpected format, expected '{{instanceOwnerPartyId}}/{{instanceId}}'.");
+            throw new InvalidOperationException(
+                $"Instance id {instance.Id} has an unexpected format, expected '{{instanceOwnerPartyId}}/{{instanceId}}'."
+            );
         }
 
         if (!instance.AppId.StartsWith(orgPrefix))
         {
-            throw new InvalidOperationException($"App id {instance.AppId} has an unexpected format, expected '{{org}}/{{app}}'.");
+            throw new InvalidOperationException(
+                $"App id {instance.AppId} has an unexpected format, expected '{{org}}/{{app}}'."
+            );
         }
 
         return new SimpleInstance()

@@ -52,8 +52,7 @@ class TestStorageService : IStorageService
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
-        var queryResponse =
-            JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
+        var queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
 
         if (queryResponse == null)
         {
@@ -110,8 +109,7 @@ class TestStorageService : IStorageService
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
-        var instance =
-            JsonConvert.DeserializeObject<Instance>(responseString);
+        var instance = JsonConvert.DeserializeObject<Instance>(responseString);
 
         if (instance == null)
         {
