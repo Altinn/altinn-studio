@@ -11,7 +11,7 @@ export const useAppInstances = (
   app: string,
 ): UseQueryResult<SimpleInstance[]> => {
   return useQuery<SimpleInstance[]>({
-    queryKey: [QueryKey.OrgList],
+    queryKey: [QueryKey.AppInstances, org, env, app],
     queryFn: async () => (await axios.get<SimpleInstance[]>(instancesListPath(org, env, app))).data,
   });
 };

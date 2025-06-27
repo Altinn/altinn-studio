@@ -7,7 +7,7 @@ import axios from 'axios';
 
 export const useRunningAppsQuery = (org: string): UseQueryResult<RunningApplication[]> => {
   return useQuery<RunningApplication[]>({
-    queryKey: [QueryKey.OrgList],
+    queryKey: [QueryKey.RunningApps, org],
     queryFn: async () => (await axios.get<RunningApplication[]>(runningAppsPath(org))).data,
   });
 };
