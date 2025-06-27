@@ -197,9 +197,16 @@ export const DeployResourcePage = ({
   const isDeployPossible = (envVersion: string): boolean => {
     const policyError =
       validatePolicyData === undefined || validatePolicyData.status !== ServerCodes.Ok;
+    const isLoading =
+      mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus) ===
+        'pending' ||
+      isSavingResource ||
+      isLoadingRepoStatus;
+
     const canDeploy =
       validateResourceData.status === 200 &&
       !policyError &&
+      !isLoading &&
       isLocalRepoInSync &&
       resourceVersionText !== '' &&
       envVersion !== resourceVersionText;
