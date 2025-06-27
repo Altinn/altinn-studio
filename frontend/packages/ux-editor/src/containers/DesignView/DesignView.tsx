@@ -23,7 +23,10 @@ import { DesignViewNavigation } from '../DesignViewNavigation';
 import { PageGroupAccordion } from './PageGroupAccordion';
 import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
-import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import {
+  isPagesModelWithGroups,
+  type PagesModelWithPageOrder,
+} from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner } from '@studio/components';
 
 /**
@@ -91,13 +94,12 @@ export const DesignView = (): ReactNode => {
     }
   };
 
-  const handleAddPage = () => {
-    if (isPagesModelWithGroups(pagesModel)) return;
-    let newNum = pagesModel?.pages?.length + 1;
+  const handleAddPage = (pagesModelWithPageOrder: PagesModelWithPageOrder) => {
+    let newNum = pagesModelWithPageOrder.pages?.length + 1;
     let newLayoutName = `${t('ux_editor.page')}${newNum}`;
 
     while (
-      pagesModel?.pages?.find((page) => page.id === newLayoutName) ||
+      pagesModelWithPageOrder.pages?.find((page) => page.id === newLayoutName) ||
       getPdfLayoutName() === newLayoutName
     ) {
       newNum += 1;
@@ -125,9 +127,8 @@ export const DesignView = (): ReactNode => {
   /**
    * Displays the pages as an ordered list
    */
-  const displayPageAccordions =
-    !isPagesModelWithGroups(pagesModel) &&
-    pagesModel?.pages?.map((pageModel) => {
+  const displayPageAccordions = (pagesModelWithPageOrder: PagesModelWithPageOrder) =>
+    pagesModelWithPageOrder.pages?.map((pageModel) => {
       const layout = layouts?.[pageModel.id];
 
       // If the layout does not exist, return null
@@ -175,7 +176,7 @@ export const DesignView = (): ReactNode => {
             />
           ) : (
             pagesModel?.pages?.length > 0 && (
-              <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+              <Accordion color='neutral'>{displayPageAccordions(pagesModel)}</Accordion>
             )
           )}
         </div>
@@ -184,7 +185,7 @@ export const DesignView = (): ReactNode => {
         {!hasGroups && (
           <StudioButton
             icon={<PlusIcon aria-hidden />}
-            onClick={() => handleAddPage()}
+            onClick={() => handleAddPage(pagesModel)}
             className={classes.button}
             disabled={isAddPageMutationPending}
           >
