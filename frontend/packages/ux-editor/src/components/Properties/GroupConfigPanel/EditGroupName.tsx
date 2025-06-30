@@ -1,14 +1,15 @@
 import React from 'react';
-import { StudioButton, StudioLabel, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from '@studio/icons';
 import classes from './EditGroupName.module.css';
 
-type EditGroupNameProps = {
+export type EditGroupNameProps = {
   group: GroupModel;
   onChange: (name: string) => void;
 };
+
 export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = React.useState(false);
@@ -18,7 +19,7 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
   if (!isEditing) {
     return (
       <div className={classes.reading} onClick={() => setIsEditing(true)}>
-        <StudioLabel>{groupName}</StudioLabel>
+        <StudioParagraph>{groupName}</StudioParagraph>
         <StudioEditIcon />
       </div>
     );
@@ -46,8 +47,17 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
         value={groupName}
         onChange={onChangeName}
       ></StudioTextfield>
-      <StudioButton icon={<StudioSaveIcon />} onClick={saveGroupName} />
-      <StudioButton variant='tertiary' icon={<StudioCancelIcon />} onClick={cancelEditing} />
+      <StudioButton
+        aria-label={t('general.save')}
+        icon={<StudioSaveIcon />}
+        onClick={saveGroupName}
+      />
+      <StudioButton
+        aria-label={t('general.cancel')}
+        variant='tertiary'
+        icon={<StudioCancelIcon />}
+        onClick={cancelEditing}
+      />
     </div>
   );
 };
