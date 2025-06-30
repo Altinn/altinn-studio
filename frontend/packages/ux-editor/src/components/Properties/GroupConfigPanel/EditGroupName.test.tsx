@@ -13,6 +13,11 @@ describe('EditGroupName', () => {
     expect(readModeButton()).toBeInTheDocument();
   });
 
+  it('should render placeholder when group name is empty', async () => {
+    renderEditGroupName({ group: { name: '', order: [{ id: 'page1' }, { id: 'page2' }] } });
+    expect(readModeButton()).toHaveTextContent(textMock('ux_editor.page_group.name'));
+  });
+
   it('should start editing when clicking on the group name', async () => {
     const user = userEvent.setup();
     renderEditGroupName({});
@@ -33,6 +38,32 @@ describe('EditGroupName', () => {
     await user.click(saveButton());
 
     expect(onChangeMock).toHaveBeenCalledWith('new name');
+    expect(readModeButton()).toBeInTheDocument();
+  });
+
+  it('should call onChange when clicking enter in the text field', async () => {
+    const user = userEvent.setup();
+    const onChangeMock = jest.fn();
+    renderEditGroupName({ onChange: onChangeMock });
+
+    await user.click(readModeButton());
+    await user.clear(nameTextField());
+    await user.type(nameTextField(), 'new name{enter}');
+
+    expect(onChangeMock).toHaveBeenCalledWith('new name');
+    expect(readModeButton()).toBeInTheDocument();
+  });
+
+  it('should cancel editing when clicking escape in the text field', async () => {
+    const user = userEvent.setup();
+    const onChangeMock = jest.fn();
+    renderEditGroupName({ onChange: onChangeMock });
+
+    await user.click(readModeButton());
+    await user.clear(nameTextField());
+    await user.type(nameTextField(), 'new name{escape}');
+
+    expect(onChangeMock).not.toHaveBeenCalled();
     expect(readModeButton()).toBeInTheDocument();
   });
 
