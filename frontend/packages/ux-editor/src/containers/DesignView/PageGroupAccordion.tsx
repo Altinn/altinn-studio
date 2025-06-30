@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
 import { StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioAlert, StudioButton, StudioPopover } from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
@@ -19,7 +19,7 @@ import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '@altinn/ux-editor/utils/formLayoutUtils';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useDeletePageGroupMutation } from '@altinn/ux-editor/hooks/mutations/useDeletePageGroupMutation';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
 import { useAppContext } from '../../hooks';
@@ -33,7 +33,7 @@ import { useAddPageToGroup } from '../../hooks/mutations/useAddPageToGroup';
 import { pageGroupDisplayName } from '@altinn/ux-editor/utils/pageGroupUtils';
 
 export interface PageGroupAccordionProps {
-  pages: PagesModel;
+  pages: PagesModelWithPageGroups;
   layouts: IFormLayouts;
   selectedFormLayoutName: string;
   onAccordionClick: (pageName: string) => void;
@@ -66,20 +66,22 @@ export const PageGroupAccordion = ({
   );
 
   const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
-  const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(pagesModel);
+  const { addPageToGroup: handleAddPageInsideGroup } = useAddPageToGroup(
+    pagesModel as PagesModelWithPageGroups,
+  );
 
   const moveGroupUp = (groupIndex: number) => {
     const newGroups = [...pages.groups];
     const moveGroup = newGroups.splice(groupIndex, 1);
     newGroups.splice(groupIndex - 1, 0, ...moveGroup);
-    changePageGroupOrder({ ...pages, groups: newGroups });
+    changePageGroupOrder({ groups: newGroups });
   };
 
   const moveGroupDown = (groupIndex: number) => {
     const newGroups = [...pages.groups];
     const moveGroup = newGroups.splice(groupIndex, 1);
     newGroups.splice(groupIndex + 1, 0, ...moveGroup);
-    changePageGroupOrder({ ...pages, groups: newGroups });
+    changePageGroupOrder({ groups: newGroups });
   };
 
   return pages?.groups.map((group, groupIndex) => {
@@ -175,6 +177,11 @@ export const PageGroupAccordion = ({
             </Accordion>
           );
         })}
+        {group.order.length === 1 && (
+          <StudioAlert data-color='info' className={classes.alertMessage}>
+            {t('ux_editor.page_group.one_page_in_group_info_message')}
+          </StudioAlert>
+        )}
         <StudioButton
           icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPageInsideGroup(groupIndex)}
