@@ -9,6 +9,7 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 const label: string = 'Radio';
+const ariaLabel = `aria label`;
 
 describe('StudioRadio', () => {
   it('Renders a radio', () => {
@@ -33,10 +34,9 @@ describe('StudioRadio', () => {
     testRootClassNameAppending((className) => renderStudioRadio({ label, className }));
   });
 
-  it('Does not use StudioLabelWrapper when aria-label is provided', () => {
-    const tagText: string = 'Required';
-    renderStudioRadio({ 'aria-label': label });
-    expect(screen.queryByText(tagText)).not.toBeInTheDocument();
+  it('should render with aria-label when it is provided', () => {
+    renderStudioRadio({ 'aria-label': ariaLabel });
+    expect(getRadio()).toHaveAccessibleName(ariaLabel);
   });
 });
 

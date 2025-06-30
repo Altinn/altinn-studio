@@ -2,7 +2,6 @@ import React, { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Radio, type RadioProps } from '@digdir/designsystemet-react';
 import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';
-import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
 export type StudioRadioProps = RadioProps;
 
@@ -16,7 +15,7 @@ function StudioRadio(
     return <Radio ref={ref} {...rest} />;
   }
 
-  return <Radio {...rest} ref={ref} label={<StudioLabelWrapper>{label}</StudioLabelWrapper>} />;
+  return <Radio {...rest} ref={ref} label={label} />;
 }
 const ForwardedStudioRadio = forwardRef(StudioRadio);
 
