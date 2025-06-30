@@ -11053,6 +11053,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"markdown-to-jsx@npm:7.7.7":
+  version: 7.7.7
+  resolution: "markdown-to-jsx@npm:7.7.7"
+  peerDependencies:
+    react: ">= 0.14.0"
+  checksum: 10/1c1ff7e188ac448bcd69410aa1eba269d02a22aa1bb327a020e165876a46d50e350402a5a227464726d04bb886be16accb4ec7dfc1f251ed04d6e615ab92e6ee
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -13139,6 +13148,7 @@ __metadata:
   dependencies:
     cross-env: "npm:7.0.3"
     jest: "npm:29.7.0"
+    markdown-to-jsx: "npm:7.7.7"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     typescript: "npm:5.7.3"

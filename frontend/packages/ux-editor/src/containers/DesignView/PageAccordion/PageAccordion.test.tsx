@@ -12,7 +12,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import type { useAppContext } from '@altinn/ux-editor/hooks';
 import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
@@ -72,16 +72,16 @@ describe('PageAccordion', () => {
 
   it('calls page group mutation when deleting a page in a group', async () => {
     const user = userEvent.setup();
-    await render({ pagesModel: groupsPagesModelMock });
+    await render({ props: { groupIndex: 0 }, pagesModel: groupsPagesModelMock });
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
     await user.click(deleteButton);
-    const expectedPagesModel = {
+    const expectedPagesModel: PagesModelWithPageGroups = {
       ...groupsPagesModelMock,
     };
     expectedPagesModel.groups[0].order.splice(0, 1);
-    expectedPagesModel.groups[0].name = expectedPagesModel.groups[0].order[0].id;
+    expectedPagesModel.groups[0].name = undefined;
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
     expect(queriesMock.changePageGroups).toHaveBeenCalledWith(
       org,
