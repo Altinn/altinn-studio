@@ -11,10 +11,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IHeaderProps = PropsFromGenericComponent<'Header'>;
 
-type HeadingProps = {
-  level: Parameters<typeof Heading>[0]['level'];
-  size: Parameters<typeof Heading>[0]['data-size'];
-};
+type HeadingProps = Pick<Parameters<typeof Heading>[0], 'level' | 'data-size'>;
 
 function getHeaderProps(size?: string): HeadingProps {
   switch (size) {
@@ -22,14 +19,14 @@ function getHeaderProps(size?: string): HeadingProps {
     case 'h2': {
       return {
         level: 2,
-        size: 'md',
+        'data-size': 'md',
       };
     }
     case 'M':
     case 'h3': {
       return {
         level: 3,
-        size: 'sm',
+        'data-size': 'sm',
       };
     }
     case 'S':
@@ -37,7 +34,7 @@ function getHeaderProps(size?: string): HeadingProps {
     default: {
       return {
         level: 4,
-        size: 'xs',
+        'data-size': 'xs',
       };
     }
   }
