@@ -15,6 +15,7 @@ import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChang
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor/components/Pages/PageGroupMoveDialog';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -40,19 +41,17 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
   );
   const [isMoveToGroupDialogOpen, setIsMoveToGroupDialogOpen] = React.useState(false);
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
-  const isUsingGroups = !!pagesModel.groups;
-  const groupModel = pagesModel.groups?.find((group) =>
-    group.order.some((page) => page.id === pageName),
-  );
+
+  const isUsingGroups = isPagesModelWithGroups(pagesModel);
+  const groupModel =
+    isUsingGroups &&
+    pagesModel.groups?.find((group) => group.order.some((page) => page.id === pageName));
   const pageIndex = isUsingGroups
     ? groupModel?.order?.findIndex((page) => page.id === pageName)
     : pagesModel.pages?.findIndex((page) => page.id === pageName);
   const pageCount = isUsingGroups ? groupModel?.order?.length : pagesModel.pages?.length;
   const disableUp = pageIndex === 0;
   const disableDown = pageIndex === pageCount - 1;
-  const pagesInGroup =
-    pagesModel.groups?.find((group) => group.order.some((page) => page.id === pageName))?.order
-      .length || 0;
 
   const moveLayoutUp = () => {
     if (isUsingGroups) {
@@ -89,6 +88,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
   };
 
   const movePageToNewGroup = () => {
+    if (!isPagesModelWithGroups(pagesModel)) return;
     const newGroup: GroupModel = {
       order: [{ id: pageName }],
     };
@@ -152,7 +152,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
               </StudioDropdown.Button>
             </StudioDropdown.Item>
             <StudioDropdown.Item>
-              <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pagesInGroup <= 1}>
+              <StudioDropdown.Button onClick={movePageToNewGroup} disabled={pageCount <= 1}>
                 <FolderPlusIcon />
                 {t('ux_editor.page_menu_new_group')}
               </StudioDropdown.Button>
