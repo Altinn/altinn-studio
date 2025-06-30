@@ -105,7 +105,7 @@ const DoSummaryWrapper = ({
 
   return (
     <div className={classes.summaryWrapperMargin}>
-      <FormProvider>
+      <FormProvider readOnly={true}>
         <Flex
           container
           spacing={6}

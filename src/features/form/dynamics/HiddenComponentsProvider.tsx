@@ -86,9 +86,18 @@ function useLegacyHiddenComponents() {
   const hiddenNodes: { [nodeId: string]: true } = {};
   const defaultDataType = useCurrentDataModelName() ?? '';
   const topLevelGroups = useAllReferencedGroups(rules);
+  const formIsEmbedded = NodesInternal.useIsEmbedded();
 
   if (!window.conditionalRuleHandlerObject || !rules || Object.keys(rules).length === 0) {
     // Rules have not been initialized
+    return hiddenNodes;
+  }
+
+  if (formIsEmbedded) {
+    window.logErrorOnce(
+      'Conditional rendering rules are not supported in embedded forms (such as Subform or Summary2 with a ' +
+        'taskId override). Rewrite your conditional rendering rules to use expressions instead.',
+    );
     return hiddenNodes;
   }
 

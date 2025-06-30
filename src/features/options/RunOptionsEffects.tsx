@@ -7,6 +7,7 @@ import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel'
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -19,6 +20,7 @@ interface RunOptionEffectsProps {
 }
 
 export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
+  const isReadOnly = NodesInternal.useIsReadOnly();
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
@@ -28,7 +30,7 @@ export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
   const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
   const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, item });
 
-  if (isFetching) {
+  if (isFetching || isReadOnly) {
     // No need to run effects while fetching or if the data has not been set yet
     return false;
   }
