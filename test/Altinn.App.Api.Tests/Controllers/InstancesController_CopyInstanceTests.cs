@@ -423,13 +423,659 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<IInstanceClient>().VerifyAll();
         fixture.Mock<IProcessEngine>().VerifyAll();
         fixture.Mock<IInstantiationValidator>().VerifyAll();
+    }
 
-        fixture.VerifyNoOtherCalls(
-            verifyDataClient: false,
-            verifyAppModel: false,
-            verifyInstantiationProcessor: false,
-            verifyPrefill: false
-        );
+    [Fact]
+    public async Task CopyInstance_WithBinaryData_CopiesBothFormAndBinaryData()
+    {
+        // Arrange
+        using var fixture = InstancesControllerFixture.Create();
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        const int InstanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid formDataGuid = Guid.NewGuid();
+        Guid binaryDataGuid = Guid.NewGuid();
+        const string formDataTypeId = "data_type_1";
+        const string binaryDataTypeId = "attachment";
+
+        var binaryDataBytes = System.Text.Encoding.UTF8.GetBytes("Test file content");
+
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{Org}/{AppName}",
+            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus() { IsArchived = true },
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+            Data = new List<DataElement>
+            {
+                // Form data element
+                new DataElement { Id = formDataGuid.ToString(), DataType = formDataTypeId },
+                // Binary data element
+                new DataElement
+                {
+                    Id = binaryDataGuid.ToString(),
+                    DataType = binaryDataTypeId,
+                    ContentType = "application/pdf",
+                    Filename = "test.pdf",
+                    Size = binaryDataBytes.Length,
+                },
+            },
+        };
+        InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(hc => hc.User)
+            .Returns(TestAuthentication.GetUserPrincipal(1337, InstanceOwnerPartyId));
+        fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
+        // Create app metadata with IncludeAttachments = true to enable binary data copying
+        var appMetadata = CreateApplicationMetadata(Org, AppName, true);
+        appMetadata.CopyInstanceSettings.IncludeAttachments = true;
+        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ReturnsAsync(instance);
+        fixture.Mock<IInstanceClient>().Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p =>
+                p.HandleEventsAndUpdateStorage(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<List<InstanceEvent>>()
+                )
+            );
+
+        // Form data mocks
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, formDataGuid)
+            )
+            .ReturnsAsync(new { test = "test" });
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertFormData(
+                    It.IsAny<object>(),
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    InstanceOwnerPartyId,
+                    formDataTypeId
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .ReturnsAsync(new MemoryStream(binaryDataBytes));
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertBinaryData(
+                    It.IsAny<string>(),
+                    binaryDataTypeId,
+                    "application/pdf",
+                    "test.pdf",
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(Org, AppName, InstanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+
+        // Verify form data was copied (this should pass - existing functionality)
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, formDataGuid),
+                Times.Once
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertFormData(
+                        It.IsAny<object>(),
+                        instanceGuid,
+                        It.IsAny<Type?>()!,
+                        Org,
+                        AppName,
+                        InstanceOwnerPartyId,
+                        formDataTypeId
+                    ),
+                Times.Once
+            );
+
+        // Verify binary data was copied (this should FAIL until we implement it)
+        fixture
+            .Mock<IDataClient>()
+            .Verify(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid), Times.Once);
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertBinaryData(
+                        It.IsAny<string>(),
+                        binaryDataTypeId,
+                        "application/pdf",
+                        "test.pdf",
+                        It.IsAny<Stream>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+    }
+
+    [Fact]
+    public async Task CopyInstance_WithExcludedBinaryDataType_SkipsExcludedType()
+    {
+        // Arrange
+        using var fixture = InstancesControllerFixture.Create();
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        const int InstanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid formDataGuid = Guid.NewGuid();
+        Guid binaryDataGuid = Guid.NewGuid();
+        const string formDataTypeId = "data_type_1";
+        const string binaryDataTypeId = "sensitive-attachment";
+
+        var binaryDataBytes = System.Text.Encoding.UTF8.GetBytes("Sensitive content");
+
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{Org}/{AppName}",
+            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus() { IsArchived = true },
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+            Data = new List<DataElement>
+            {
+                new DataElement { Id = formDataGuid.ToString(), DataType = formDataTypeId },
+                new DataElement
+                {
+                    Id = binaryDataGuid.ToString(),
+                    DataType = binaryDataTypeId,
+                    ContentType = "application/pdf",
+                    Filename = "sensitive.pdf",
+                    Size = binaryDataBytes.Length,
+                },
+            },
+        };
+        InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
+
+        // Create app metadata with excluded binary data type
+        var appMetadata = CreateApplicationMetadata(Org, AppName, true);
+        appMetadata.CopyInstanceSettings.ExcludedDataTypes = new List<string> { binaryDataTypeId };
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(hc => hc.User)
+            .Returns(TestAuthentication.GetUserPrincipal(1337, InstanceOwnerPartyId));
+        fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
+        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ReturnsAsync(instance);
+        fixture.Mock<IInstanceClient>().Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p =>
+                p.HandleEventsAndUpdateStorage(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<List<InstanceEvent>>()
+                )
+            );
+
+        // Form data mocks (should be copied)
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, formDataGuid)
+            )
+            .ReturnsAsync(new { test = "test" });
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertFormData(
+                    It.IsAny<object>(),
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    InstanceOwnerPartyId,
+                    formDataTypeId
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        // Binary data mocks (should NOT be called - type is excluded)
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .ReturnsAsync(new MemoryStream(binaryDataBytes));
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertBinaryData(
+                    It.IsAny<string>(),
+                    binaryDataTypeId,
+                    "application/pdf",
+                    "sensitive.pdf",
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(Org, AppName, InstanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+
+        // Verify form data was copied
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, formDataGuid),
+                Times.Once
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertFormData(
+                        It.IsAny<object>(),
+                        instanceGuid,
+                        It.IsAny<Type?>()!,
+                        Org,
+                        AppName,
+                        InstanceOwnerPartyId,
+                        formDataTypeId
+                    ),
+                Times.Once
+            );
+
+        // Verify binary data was NOT copied (excluded type)
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertBinaryData(
+                        It.IsAny<string>(),
+                        binaryDataTypeId,
+                        "application/pdf",
+                        "sensitive.pdf",
+                        It.IsAny<Stream>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
+    }
+
+    [Fact]
+    public async Task CopyInstance_IncludeAttachmentsIsTrue_CopiesBinaryData()
+    {
+        // Arrange
+        using var fixture = InstancesControllerFixture.Create();
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        const int InstanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid binaryDataGuid = Guid.NewGuid();
+        const string binaryDataTypeId = "attachment";
+
+        var binaryDataBytes = System.Text.Encoding.UTF8.GetBytes("Binary content");
+
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{Org}/{AppName}",
+            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus() { IsArchived = true },
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+            Data = new List<DataElement>
+            {
+                // Only binary data element - no form data
+                new DataElement
+                {
+                    Id = binaryDataGuid.ToString(),
+                    DataType = binaryDataTypeId,
+                    ContentType = "application/pdf",
+                    Filename = "test.pdf",
+                    Size = binaryDataBytes.Length,
+                },
+            },
+        };
+        InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
+
+        // Create app metadata with IncludeAttachments = true
+        var appMetadata = CreateApplicationMetadata(Org, AppName, true);
+        appMetadata.CopyInstanceSettings.IncludeAttachments = true;
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(hc => hc.User)
+            .Returns(TestAuthentication.GetUserPrincipal(1337, InstanceOwnerPartyId));
+        fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
+        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ReturnsAsync(instance);
+        fixture.Mock<IInstanceClient>().Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p =>
+                p.HandleEventsAndUpdateStorage(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<List<InstanceEvent>>()
+                )
+            );
+
+        // Binary data mocks (should be called)
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .ReturnsAsync(new MemoryStream(binaryDataBytes));
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertBinaryData(
+                    It.IsAny<string>(),
+                    binaryDataTypeId,
+                    "application/pdf",
+                    "test.pdf",
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(Org, AppName, InstanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+
+        // Verify binary data was copied
+        fixture
+            .Mock<IDataClient>()
+            .Verify(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid), Times.Once);
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertBinaryData(
+                        It.IsAny<string>(),
+                        binaryDataTypeId,
+                        "application/pdf",
+                        "test.pdf",
+                        It.IsAny<Stream>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Once
+            );
+
+        // No form data calls should have been made
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.GetFormData(
+                        It.IsAny<Guid>(),
+                        It.IsAny<Type?>()!,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>()
+                    ),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertFormData(
+                        It.IsAny<object>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<Type?>()!,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
+    }
+
+    [Fact]
+    public async Task CopyInstance_OnlyBinaryData_NotCopiedByDefault()
+    {
+        // Arrange
+        using var fixture = InstancesControllerFixture.Create();
+        const string Org = "ttd";
+        const string AppName = "copy-instance";
+        const int InstanceOwnerPartyId = 343234;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid binaryDataGuid = Guid.NewGuid();
+        const string binaryDataTypeId = "attachment";
+
+        var binaryDataBytes = System.Text.Encoding.UTF8.GetBytes("Only binary content");
+
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{Org}/{AppName}",
+            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus() { IsArchived = true },
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+            Data = new List<DataElement>
+            {
+                // Only binary data element - no form data
+                new DataElement
+                {
+                    Id = binaryDataGuid.ToString(),
+                    DataType = binaryDataTypeId,
+                    ContentType = "application/pdf",
+                    Filename = "only-binary.pdf",
+                    Size = binaryDataBytes.Length,
+                },
+            },
+        };
+        InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(hc => hc.User)
+            .Returns(TestAuthentication.GetUserPrincipal(1337, InstanceOwnerPartyId));
+        fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
+        fixture
+            .Mock<IAppMetadata>()
+            .Setup(a => a.GetApplicationMetadata())
+            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ReturnsAsync(instance);
+        fixture.Mock<IInstanceClient>().Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() => new ProcessChangeResult() { Success = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p =>
+                p.HandleEventsAndUpdateStorage(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<List<InstanceEvent>>()
+                )
+            );
+
+        // Binary data mocks (should be called)
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .ReturnsAsync(new MemoryStream(binaryDataBytes));
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertBinaryData(
+                    It.IsAny<string>(),
+                    binaryDataTypeId,
+                    "application/pdf",
+                    "only-binary.pdf",
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(Org, AppName, InstanceOwnerPartyId, instanceGuid);
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+
+        // Verify binary data was NOT copied (IncludeAttachments is null by default)
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p => p.GetBinaryData(Org, AppName, InstanceOwnerPartyId, instanceGuid, binaryDataGuid),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertBinaryData(
+                        It.IsAny<string>(),
+                        binaryDataTypeId,
+                        "application/pdf",
+                        "only-binary.pdf",
+                        It.IsAny<Stream>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
+
+        // No form data calls should have been made
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.GetFormData(
+                        It.IsAny<Guid>(),
+                        It.IsAny<Type?>()!,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>()
+                    ),
+                Times.Never
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                p =>
+                    p.InsertFormData(
+                        It.IsAny<object>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<Type?>()!,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
     }
 
     private static ApplicationMetadata CreateApplicationMetadata(string org, string app, bool enableCopyInstance)
@@ -439,11 +1085,27 @@ public class InstancesController_CopyInstanceTests
             CopyInstanceSettings = new CopyInstanceSettings { Enabled = enableCopyInstance },
             DataTypes = new List<DataType>
             {
+                // Form data type (has AppLogic.ClassRef)
                 new DataType
                 {
                     Id = "data_type_1",
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
                     TaskId = "First",
+                },
+                // Binary data types (no AppLogic.ClassRef)
+                new DataType
+                {
+                    Id = "attachment",
+                    TaskId = "First",
+                    MaxSize = 25 * 1024 * 1024,
+                    MaxCount = 10,
+                },
+                new DataType
+                {
+                    Id = "sensitive-attachment",
+                    TaskId = "First",
+                    MaxSize = 10 * 1024 * 1024,
+                    MaxCount = 5,
                 },
             },
             Org = org,

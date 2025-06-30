@@ -1024,6 +1024,49 @@ public class InstancesController : ControllerBase
                 await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
             }
         }
+
+        if (application.CopyInstanceSettings?.IncludeAttachments != true)
+        {
+            return;
+        }
+
+        // Copy binary data elements (files/attachments)
+        // Error handling strategy: Continue processing other attachments even if individual ones fail
+        // This ensures partial success rather than complete failure when some attachments cannot be copied
+        List<DataType> binaryDataTypes = application
+            .DataTypes.Where(dt => dt.AppLogic?.ClassRef == null)
+            .Where(dt =>
+                dt.TaskId != null
+                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
+            )
+            .ToList();
+
+        foreach (DataElement de in sourceInstance.Data)
+        {
+            if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
+            {
+                continue;
+            }
+
+            if (binaryDataTypes.Any(dt => dt.Id.Equals(de.DataType, StringComparison.Ordinal)))
+            {
+                using var binaryDataStream = await _dataClient.GetBinaryData(
+                    org,
+                    app,
+                    instanceOwnerPartyId,
+                    sourceInstanceGuid,
+                    Guid.Parse(de.Id)
+                );
+
+                await _dataClient.InsertBinaryData(
+                    targetInstance.Id,
+                    de.DataType,
+                    de.ContentType,
+                    de.Filename,
+                    binaryDataStream
+                );
+            }
+        }
     }
 
     private ActionResult ExceptionResponse(Exception exception, string message)

@@ -2567,6 +2567,9 @@
               "type": "string"
             },
             "nullable": true
+          },
+          "includeAttachments": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
