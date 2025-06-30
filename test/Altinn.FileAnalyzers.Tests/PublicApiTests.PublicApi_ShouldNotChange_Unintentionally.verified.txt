@@ -1,0 +1,24 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/fileanalyzers-lib-dotnet.git")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v6.0", FrameworkDisplayName=".NET 6.0")]
+namespace Altinn.FileAnalyzers.MimeType
+{
+    public class MimeTypeAnalyser : Altinn.App.Core.Features.FileAnalysis.IFileAnalyser
+    {
+        public MimeTypeAnalyser(Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, MimeDetective.ContentInspector inspector) { }
+        public string Id { get; }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> Analyse(System.IO.Stream stream, string? filename = null) { }
+    }
+    public class MimeTypeValidator : Altinn.App.Core.Features.Validation.IFileValidator
+    {
+        public MimeTypeValidator() { }
+        public string Id { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Success",
+                "Errors"})]
+        public System.Threading.Tasks.Task<System.ValueTuple<bool, System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Validation.ValidationIssue>>> Validate(Altinn.Platform.Storage.Interface.Models.DataType dataType, System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.FileAnalysis.FileAnalysisResult> fileAnalysisResults) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static void AddMimeTypeValidation(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+    }
+}
