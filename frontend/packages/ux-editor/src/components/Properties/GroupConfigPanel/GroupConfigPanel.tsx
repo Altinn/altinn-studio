@@ -16,15 +16,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
+import { GroupType } from 'app-shared/types/api/dto/PageModel';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
 };
-
-export enum GroupType {
-  Data = undefined,
-  Info = 'info',
-}
 
 export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
@@ -51,7 +47,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   };
 
   const onChangeGroupType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const typeValue = event.target.value || undefined;
+    const typeValue = (event.target.value || GroupType.Data) as GroupType;
     const updatedPages = { ...pages };
     updatedPages.groups[selectedItem.id].type = typeValue;
 
