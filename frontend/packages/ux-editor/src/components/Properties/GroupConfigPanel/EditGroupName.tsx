@@ -55,7 +55,7 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
         label={t('ux_editor.page_group.name')}
         value={groupName}
         onChange={onChangeName}
-        onKeyUp={(event: KeyboardEvent) => {
+        onKeyDown={(event: KeyboardEvent) => {
           if (event.key === 'Enter') saveGroupName();
           if (event.key === 'Escape') cancelEditing();
         }}
