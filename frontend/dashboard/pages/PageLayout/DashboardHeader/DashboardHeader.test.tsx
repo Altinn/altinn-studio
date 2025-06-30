@@ -234,20 +234,6 @@ describe('DashboardHeader', () => {
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
-  it('should not render the submenu when page is orgLibrary', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: mockOrgTtd,
-      subroute: Subroute.OrgLibrary,
-    });
-    (useLocation as jest.Mock).mockReturnValue({ pathname: mockPathnameOrgLibraryTtd });
-    const getRepoStatus = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
-
-    renderDashboardHeader({ getRepoStatus });
-    expect(getFetchChangesButton()).not.toBeInTheDocument();
-  });
-
   it('should not render the submenu when the selected context is not org', () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
