@@ -18,6 +18,7 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -38,11 +39,13 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     selectedFormLayoutSetName,
   );
   const { getRadioProps } = useStudioRadioGroup({
-    value: pages?.groups[selectedItem.id]?.type || GroupType.Data,
+    value:
+      (isPagesModelWithGroups(pages) && pages?.groups[selectedItem.id]?.type) || GroupType.Data,
     onChange: (value) => onChangeGroupType(value as GroupType),
   });
 
   if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
+  if (!isPagesModelWithGroups(pages)) return;
   const selectedGroup = pages.groups[selectedItem.id];
 
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
