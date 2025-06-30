@@ -24,12 +24,11 @@ dotnet test test/Altinn.App.Core.Tests/ -v m
 ```
 
 **Format code (required before commits):**
-```bash
-dotnet tool restore
-dotnet csharpier .
-```
+
+Formatting happens automatically when building due to `CSharpier.MSBuild`.
 
 **Check code formatting:**
+Can check formatting manually if a project build is not needed (project build will format code automatically).
 ```bash
 dotnet csharpier check .
 ```
@@ -47,6 +46,7 @@ The solution follows a **layered architecture** with feature-based organization:
 - **Altinn.App.Core** - Core business logic organized by features
 - **Altinn.App.Api** - Web API controllers and HTTP layer
 - **Altinn.App.Analyzers** - Code analyzers for consuming applications
+- **Altinn.App.Internal.Analyzers** - Custom code analyzers for Core/Api library development
 
 ### Key Features (`/src/Altinn.App.Core/Features/`)
 - **Authentication** - OAuth2, JWT, Maskinporten integration
@@ -62,6 +62,10 @@ The solution follows a **layered architecture** with feature-based organization:
 - **ASP.NET Core** for web APIs
 - **OpenTelemetry** for observability
 - **xUnit** with FluentAssertions and Moq for testing
+
+### ADR
+
+We have Architecture Decision Records in the `/doc/adr/` folder.
 
 ## Development Guidelines
 
@@ -79,7 +83,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 ### Versioning
 - Uses **semantic versioning** with MinVer
-- Avoid breaking changes when possible
+- Avoid breaking changes (we plan to release major versions yearly. Some breaking changes can be done inbetween but must be manually verified)
 - PR titles become release notes
 
 ### Platform Integrations
@@ -92,6 +96,14 @@ The libraries integrate with:
 
 ## Common Development Patterns
 
+- Use internal accessibility on types by default
+- Use sealed for classes unless we consider inheritance a valid use-case
+- Use Nullable Reference Types
+- Remember to dispose `IDisposable`/`IAsyncDisposable` instances
+- We want to minimize external dependencies
+- For HTTP APIs we should have `...Request` and `...Response` DTOs (see `LookupPersonRequest.cs` and the corresponding response as an example)
+- Types meant to be implemented by apps should be marked with the `ImplementableByApps` attribute
+
 ### Feature Implementation
 New features should follow the established pattern in `/src/Altinn.App.Core/Features/`:
 - Feature-specific folder with clear responsibility
@@ -101,7 +113,7 @@ New features should follow the established pattern in `/src/Altinn.App.Core/Feat
 
 ### Testing
 - Test projects mirror source structure
-- Use FluentAssertions for readable assertions
+- Prefer xUnit asserts over FluentAssertions
 - Mock external dependencies with Moq
 - Include integration tests for platform service interactions
 
