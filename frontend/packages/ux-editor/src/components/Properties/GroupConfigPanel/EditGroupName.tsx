@@ -1,5 +1,5 @@
-import React from 'react';
-import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components';
+import React, { type KeyboardEvent } from 'react';
+import { StudioButton, StudioLabel, StudioParagraph, StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from '@studio/icons';
@@ -18,10 +18,18 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
 
   if (!isEditing) {
     return (
-      <div className={classes.reading} onClick={() => setIsEditing(true)}>
-        <StudioParagraph>{groupName}</StudioParagraph>
+      <StudioButton
+        variant='tertiary'
+        className={classes.reading}
+        onClick={() => setIsEditing(true)}
+        aria-label={t('ux_editor.page_group.name')}
+      >
+        <div>
+          <StudioLabel>{t('ux_editor.page_group.name')}</StudioLabel>
+          <StudioParagraph>{groupName || t('ux_editor.page_group.name')}</StudioParagraph>
+        </div>
         <StudioEditIcon />
-      </div>
+      </StudioButton>
     );
   }
 
@@ -42,10 +50,15 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
   return (
     <div className={classes.editing}>
       <StudioTextfield
+        autoFocus={true}
         className={classes.editingTextfield}
         label={t('ux_editor.page_group.name')}
         value={groupName}
         onChange={onChangeName}
+        onKeyUp={(event: KeyboardEvent) => {
+          if (event.key === 'Enter') saveGroupName();
+          if (event.key === 'Escape') cancelEditing();
+        }}
       ></StudioTextfield>
       <StudioButton
         aria-label={t('general.save')}

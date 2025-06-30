@@ -85,7 +85,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
         }}
       />
       <div className={classes.configPanel}>
-        {!!selectedGroup.name && (
+        {selectedGroup.order.length > 1 && (
           <EditGroupName group={selectedGroup} onChange={onChangeGroupName} />
         )}
         <div className={classes.fieldSetWrapper}>

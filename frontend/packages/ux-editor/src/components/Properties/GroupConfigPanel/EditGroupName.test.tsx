@@ -10,14 +10,14 @@ describe('EditGroupName', () => {
   it('should render the group name in reading mode', async () => {
     renderEditGroupName({});
 
-    expect(readModeParagraph(mockGroupName)).toBeInTheDocument();
+    expect(readModeButton()).toBeInTheDocument();
   });
 
   it('should start editing when clicking on the group name', async () => {
     const user = userEvent.setup();
     renderEditGroupName({});
 
-    await user.click(readModeParagraph(mockGroupName));
+    await user.click(readModeButton());
 
     expect(nameTextField()).toBeInTheDocument();
   });
@@ -27,13 +27,13 @@ describe('EditGroupName', () => {
     const onChangeMock = jest.fn();
     renderEditGroupName({ onChange: onChangeMock });
 
-    await user.click(readModeParagraph(mockGroupName));
+    await user.click(readModeButton());
     await user.clear(nameTextField());
     await user.type(nameTextField(), 'new name');
     await user.click(saveButton());
 
     expect(onChangeMock).toHaveBeenCalledWith('new name');
-    expect(readModeParagraph('new name')).toBeInTheDocument();
+    expect(readModeButton()).toBeInTheDocument();
   });
 
   it('should cancel editing and revert to original group name', async () => {
@@ -41,19 +41,20 @@ describe('EditGroupName', () => {
     const onChangeMock = jest.fn();
     renderEditGroupName({ onChange: onChangeMock });
 
-    await user.click(readModeParagraph(mockGroupName));
+    await user.click(readModeButton());
     await user.clear(nameTextField());
     await user.type(nameTextField(), 'new name');
     await user.click(cancelButton());
 
     expect(onChangeMock).not.toHaveBeenCalled();
-    expect(readModeParagraph(mockGroupName)).toBeInTheDocument();
-    await user.click(readModeParagraph(mockGroupName));
+    expect(readModeButton()).toBeInTheDocument();
+    await user.click(readModeButton());
     expect(nameTextField()).toHaveValue(mockGroupName);
   });
 });
 
-const readModeParagraph = (groupName: string) => screen.getByText(groupName, { selector: 'p' });
+const readModeButton = () =>
+  screen.getByRole('button', { name: textMock('ux_editor.page_group.name') });
 const nameTextField = () =>
   screen.getByRole('textbox', { name: textMock('ux_editor.page_group.name') });
 const saveButton = () => screen.getByRole('button', { name: textMock('general.save') });
