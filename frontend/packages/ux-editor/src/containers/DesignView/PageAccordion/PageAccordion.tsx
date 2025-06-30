@@ -14,6 +14,7 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import cn from 'classnames';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -63,7 +64,7 @@ export const PageAccordion = ({
   );
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
 
-  const isUsingGroups = !!pages.groups;
+  const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
     if (!confirm(t('ux_editor.page_delete_text'))) return;
     if (selectedItem?.id === pageName) setSelectedItem(null);

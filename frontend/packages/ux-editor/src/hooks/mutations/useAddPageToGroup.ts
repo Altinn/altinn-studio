@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useAppContext } from '../useAppContext';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
-export const useAddPageToGroup = (pagesModel: PagesModel) => {
+export const useAddPageToGroup = (pagesModel: PagesModelWithPageGroups) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const {
