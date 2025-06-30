@@ -38,9 +38,12 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     app,
     selectedFormLayoutSetName,
   );
+
+  const selectedGroupType =
+    !pageQueryPending && isPagesModelWithGroups(pages) && pages?.groups[selectedItem.id]?.type;
+
   const { getRadioProps } = useStudioRadioGroup({
-    value:
-      (isPagesModelWithGroups(pages) && pages?.groups[selectedItem.id]?.type) || GroupType.Data,
+    value: selectedGroupType || GroupType.Data,
     onChange: (value) => onChangeGroupType(value as GroupType),
   });
 
