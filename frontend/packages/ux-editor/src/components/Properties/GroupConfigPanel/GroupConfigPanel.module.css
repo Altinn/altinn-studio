@@ -25,12 +25,12 @@
 }
 
 .radioLabelIcon {
-  color: #3582c8;
+  color: var(--ds-color-border-default);
   width: var(--fds-sizing-5);
   height: var(--fds-sizing-5);
   padding: var(--fds-spacing-1);
   flex-shrink: 0;
-  border: 1px solid #3582c8;
-  border-radius: 4px;
-  background: #fff;
+  border: var(--ds-border-width-default) solid var(--ds-color-border-default);
+  border-radius: var(--ds-border-radius-default);
+  background: var(--studio-app-background);
 }
