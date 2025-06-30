@@ -1422,6 +1422,7 @@
   "ux_editor.component_properties.edit": "Redigeringsvalg",
   "ux_editor.component_properties.editButton": "Endre-knapp",
   "ux_editor.component_properties.elements": "Elementer som skal vises (når ingen er satt vises alle)",
+  "ux_editor.component_properties.entryDisplayName": "Navn som skal vises",
   "ux_editor.component_properties.enum_All": "Alt",
   "ux_editor.component_properties.enum_AllExceptRequired": "Alle, unntatt påkrevde",
   "ux_editor.component_properties.enum_Component": "Komponent",
