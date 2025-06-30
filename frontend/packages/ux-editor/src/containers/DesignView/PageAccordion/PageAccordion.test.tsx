@@ -12,7 +12,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import type { useAppContext } from '@altinn/ux-editor/hooks';
 import { ItemType } from '@altinn/ux-editor/components/Properties/ItemType';
 
@@ -77,7 +77,7 @@ describe('PageAccordion', () => {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
     await user.click(deleteButton);
-    const expectedPagesModel = {
+    const expectedPagesModel: PagesModelWithPageGroups = {
       ...groupsPagesModelMock,
     };
     expectedPagesModel.groups[0].order.splice(0, 1);
