@@ -9,6 +9,8 @@ import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGr
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import { StudioSpinner } from '@studio/components';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();
@@ -21,9 +23,15 @@ export const DesignViewNavigation = () => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const isUsingPageGroups = pagesModel?.groups?.length > 0;
+  if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
+
+  const isUsingPageGroups = isPagesModelWithGroups(pagesModel);
 
   return (
     <div data-testid='design-view-navigation'>
