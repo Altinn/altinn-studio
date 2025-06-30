@@ -19,6 +19,7 @@ import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useCh
 import classes from './GroupConfigPanel.module.css';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import { EditGroupName } from './EditGroupName';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -64,6 +65,14 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     changePageGroup(updatedPages);
   };
 
+  const onChangeGroupName = (name: string) => {
+    const updatedPages = {
+      ...pages,
+    };
+    updatedPages.groups[selectedItem.id] = { ...selectedGroup, name };
+    changePageGroup(updatedPages);
+  };
+
   return (
     <>
       <StudioSectionHeader
@@ -75,6 +84,9 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
         }}
       />
       <div className={classes.configPanel}>
+        {!!selectedGroup.name && (
+          <EditGroupName group={selectedGroup} onChange={onChangeGroupName} />
+        )}
         <div className={classes.fieldSetWrapper}>
           <StudioSwitch
             label={t('ux_editor.page_group.markAsCompleted_switch')}
