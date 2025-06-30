@@ -5,6 +5,7 @@ import {
   StudioSpinner,
   StudioSwitch,
   StudioRadio,
+  useStudioRadioGroup,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
@@ -36,6 +37,10 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     app,
     selectedFormLayoutSetName,
   );
+  const { getRadioProps } = useStudioRadioGroup({
+    value: pages?.groups[selectedItem.id]?.type || GroupType.Data,
+    onChange: (value) => onChangeGroupType(value as GroupType),
+  });
 
   if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
   const selectedGroup = pages.groups[selectedItem.id];
@@ -46,8 +51,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
     changePageGroup(updatedPages);
   };
 
-  const onChangeGroupType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const typeValue = (event.target.value || GroupType.Data) as GroupType;
+  const onChangeGroupType = (typeValue: GroupType) => {
     const updatedPages = { ...pages };
     updatedPages.groups[selectedItem.id].type = typeValue;
 
@@ -87,9 +91,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
                 </div>
               }
               className={classes.radio}
-              value={GroupType.Data}
-              checked={!selectedGroup.type}
-              onChange={onChangeGroupType}
+              {...getRadioProps({ value: GroupType.Data })}
             />
             <StudioRadio
               label={
@@ -101,9 +103,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
                 </div>
               }
               className={classes.radio}
-              value={GroupType.Info}
-              checked={selectedGroup.type === GroupType.Info}
-              onChange={onChangeGroupType}
+              {...getRadioProps({ value: GroupType.Info })}
             />
           </StudioFieldset>
           {/*Remove this studioAlert when config for group is completed*/}

@@ -34,5 +34,5 @@ export { type StudioCallToActionBarProps, StudioCallToActionBar } from './Studio
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
 export { StudioDetails } from './StudioDetails';
-export { StudioRadio } from './StudioRadio';
+export { StudioRadio, useStudioRadioGroup } from './StudioRadio';
 export { StudioToggleGroup } from './StudioToggleGroup';

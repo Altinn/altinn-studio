@@ -3,7 +3,7 @@ export type PageModel = {
 };
 
 export enum GroupType {
-  Data = undefined,
+  Data = 'default',
   Info = 'info',
 }
 
