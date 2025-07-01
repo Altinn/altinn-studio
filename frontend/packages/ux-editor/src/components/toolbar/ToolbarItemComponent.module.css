@@ -9,7 +9,7 @@
 }
 
 .toolbarItem:hover {
-  background-color: var(--fds-semantic-surface-action-no_fill-hover);
+  background-color: var(--ds-color-surface-hover);
 }
 
 .componentIcon {
