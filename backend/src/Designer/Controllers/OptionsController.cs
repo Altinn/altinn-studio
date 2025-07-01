@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -257,18 +258,20 @@ public class OptionsController : ControllerBase
             return NotFound($"The code list file {optionListId}.json does not exist.");
         }
 
-        (List<OptionListData> importedOptionList, Dictionary<string, TextResource> importedTextResources) = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
-
-        if (importedOptionList is null && importedTextResources is null)
+        try
         {
-            return Conflict($"The options file {optionListId}.json already exists.");
+            (List<OptionListData> optionLists, Dictionary<string, TextResource> textResources) = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
+            ImportOptionListResponse importOptionListResponse = new()
+            {
+                OptionList = optionLists,
+                TextResources = textResources
+            };
+            return Ok(importOptionListResponse);
+
         }
-
-        ImportOptionListResponse importOptionListResponse = new()
+        catch (ConflictingFileNameException ex)
         {
-            OptionList = importedOptionList,
-            TextResources = importedTextResources
-        };
-        return Ok(importOptionListResponse);
+            return Conflict(ex.Message);
+        }
     }
 }

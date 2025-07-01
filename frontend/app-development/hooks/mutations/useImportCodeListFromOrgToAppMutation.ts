@@ -2,7 +2,11 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
-import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type {
+  ITextResource,
+  ITextResources,
+  ITextResourcesWithLanguage,
+} from 'app-shared/types/global';
 
 export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
@@ -13,7 +17,8 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
       return await importCodeListFromOrgToApp(org, app, codeListId);
     },
     onSuccess: ({ optionList, textResources }: ImportCodeListResponse) => {
-      const updatedTextResources: ITextResources = extractTexts(textResources);
+      const updatedTextResources: ITextResources =
+        convertTextResourceResponseToCacheFormat(textResources);
       queryClient.setQueryData([QueryKey.TextResources, org, app], updatedTextResources);
       queryClient.setQueryData([QueryKey.OptionLists, org, app], optionList);
 
@@ -26,15 +31,14 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
   });
 };
 
-export function extractTexts(
+export function convertTextResourceResponseToCacheFormat(
   texts: Record<string, ITextResourcesWithLanguage> | undefined,
 ): ITextResources | null {
   if (!texts) return null;
-  const updatedTextResources: ITextResources = {};
 
-  Object.keys(texts).forEach((language: string): void => {
-    updatedTextResources[language] = texts[language].resources;
-  });
+  const entries = Object.entries(texts).map(
+    ([languageCode, { resources }]): [string, ITextResource[]] => [languageCode, resources],
+  );
 
-  return updatedTextResources;
+  return Object.fromEntries(entries);
 }

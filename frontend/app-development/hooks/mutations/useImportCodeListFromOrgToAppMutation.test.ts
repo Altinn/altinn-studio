@@ -1,6 +1,6 @@
 import {
   useImportCodeListFromOrgToAppMutation,
-  extractTexts,
+  convertTextResourceResponseToCacheFormat,
 } from './useImportCodeListFromOrgToAppMutation';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { org, app } from '@studio/testing/testids';
@@ -20,23 +20,27 @@ describe('useImportCodeListFromOrgToAppMutation', () => {
     expect(queriesMock.importCodeListFromOrgToApp).toHaveBeenCalledWith(org, app, codeListId);
   });
 
-  describe('extractTexts', () => {
-    const textResources: ITextResource[] = [{ id: 'some-id', value: 'some-value' }];
+  describe('convertTextResourceResponseToCacheFormat', () => {
+    const textResourcesNorwegian: ITextResource[] = [{ id: 'some-id', value: 'en-verdi' }];
+    const textResourcesEnglish: ITextResource[] = [{ id: 'some-id', value: 'some-value' }];
     const languageCodeNorwegian = 'nb';
     const languageCodeEnglish = 'en';
     const initialTexts: Record<string, ITextResourcesWithLanguage> = {
-      nb: { language: languageCodeNorwegian, resources: textResources },
-      en: { language: languageCodeEnglish, resources: textResources },
+      [languageCodeNorwegian]: {
+        language: languageCodeNorwegian,
+        resources: textResourcesNorwegian,
+      },
+      [languageCodeEnglish]: { language: languageCodeEnglish, resources: textResourcesEnglish },
     };
 
-    it('should return updated textResources', () => {
-      const result = extractTexts(initialTexts);
-      expect(result[languageCodeNorwegian]).toBe(textResources);
-      expect(result[languageCodeEnglish]).toBe(textResources);
+    it('should return convert textResources to correct format', () => {
+      const result = convertTextResourceResponseToCacheFormat(initialTexts);
+      expect(result[languageCodeNorwegian]).toBe(textResourcesNorwegian);
+      expect(result[languageCodeEnglish]).toBe(textResourcesEnglish);
     });
 
     it('should return null if text is undefined', () => {
-      const result = extractTexts(undefined);
+      const result = convertTextResourceResponseToCacheFormat(undefined);
       expect(result).toBeNull();
     });
   });

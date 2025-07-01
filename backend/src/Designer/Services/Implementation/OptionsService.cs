@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -179,7 +180,7 @@ public class OptionsService : IOptionsService
         bool optionListExists = await OptionsListExists(org, repo, developer, optionListId, cancellationToken);
         if (optionListExists)
         {
-            return (null, null);
+            throw new ConflictingFileNameException($"The options file {optionListId}.json already exists.");
         }
 
         List<Option> importedOptionList = await CopyOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
