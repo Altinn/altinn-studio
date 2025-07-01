@@ -140,6 +140,7 @@
     },
     "showAddButton": { "default": true, "type": "boolean" },
     "showDeleteButton": { "default": true, "type": "boolean" },
+    "entryDisplayName": { "$ref": "expression.schema.v1.json#/definitions/string" },
     "tableColumns": {
       "type": "array",
       "items": {
@@ -150,23 +151,7 @@
             "description": "The header value to display. May contain a text resource bindings, but no data model lookups.",
             "type": "string"
           },
-          "cellContent": {
-            "type": "object",
-            "properties": {
-              "query": {
-                "title": "The cell value via data model lookup",
-                "description": "The cell value to display from a data model lookup (dot notation).",
-                "type": "string"
-              },
-              "default": {
-                "title": "The default cell value",
-                "description": "The cell value to display if `query` returns no result.",
-                "type": "string"
-              }
-            },
-            "required": ["query"],
-            "additionalProperties": false
-          }
+          "cellContent": { "$ref": "#/definitions/ISubformCellContent" }
         },
         "required": ["headerContent", "cellContent"],
         "additionalProperties": false
