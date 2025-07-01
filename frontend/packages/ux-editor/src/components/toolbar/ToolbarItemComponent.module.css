@@ -8,6 +8,10 @@
   gap: var(--fds-spacing-2);
 }
 
+.toolbarItem:hover {
+  background-color: var(--fds-semantic-surface-action-no_fill-hover);
+}
+
 .componentIcon {
   min-width: var(--fds-spacing-10);
   display: flex;
