@@ -393,7 +393,7 @@ describe('AboutResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('handles consentMetadata changes', async () => {
+  it('handles consentMetadata changes and lowercase value', async () => {
     const user = userEvent.setup();
     render(
       <AboutResourcePage
@@ -405,7 +405,7 @@ describe('AboutResourcePage', () => {
     const consentMetadataField = screen.getByLabelText(
       textMock('resourceadm.about_resource_consent_metadata'),
     );
-    await user.type(consentMetadataField, ', year');
+    await user.type(consentMetadataField, ', YEAR');
     await waitFor(() => consentMetadataField.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
