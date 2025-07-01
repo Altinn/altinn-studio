@@ -48,20 +48,20 @@ public class ValidateExternalImageUrlTests(
     }
 
     [Fact]
-    public async Task ValidateExternalImageUrl_WhenUrlIsNotFound_ReturnsNotFound()
+    public async Task ValidateExternalImageUrl_WhenUrlIsNotFound_ReturnsNotValidIm()
     {
         string path =
             $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url=http://localhost:38929/notvalidurl";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(ImageUrlValidationResult.NotValidUrl.ToString(), validationResult.Trim('"'));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(ImageUrlValidationResult.NotValidImage.ToString(), validationResult.Trim('"'));
     }
 
     [Fact]
     [UseSystemTextJson]
-    public async Task ValidateExternalImageUrl_WhenUrlIsNotPointingToAnImage_ReturnsUnsupportedMediaType()
+    public async Task ValidateExternalImageUrl_WhenUrlIsNotPointingToAnImage_ReturnsNotValidImage()
     {
         IRequestBuilder validNonImageRequest = Request.Create().UsingHead();
         IResponseBuilder validNonImageResponse = Response
@@ -76,7 +76,7 @@ public class ValidateExternalImageUrlTests(
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(ImageUrlValidationResult.NotAnImage.ToString(), validationResult.Trim('"'));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(ImageUrlValidationResult.NotValidImage.ToString(), validationResult.Trim('"'));
     }
 }
