@@ -57,6 +57,19 @@ describe('NameField', () => {
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 
+  it('should not save if name is a c sharp keyword', async () => {
+    await render();
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'namespace');
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('schema_editor.nameError_cSharpReservedKeyword')),
+    ).toBeInTheDocument();
+    expect(defaultProps.handleSave).not.toHaveBeenCalled();
+  });
+
   it('should save if name is valid', async () => {
     await render();
     await user.type(screen.getByRole('textbox'), '3');
