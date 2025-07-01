@@ -6,11 +6,13 @@ on:
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/KubernetesWrapper/**'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/KubernetesWrapper/**'
   schedule:
     - cron: "55 4 * * 6"
 
