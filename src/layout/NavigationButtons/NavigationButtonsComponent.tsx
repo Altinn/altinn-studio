@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from 'src/app-components/Button/Button';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
+import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -70,6 +71,8 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
+
+  const attachmentsPending = useHasPendingAttachments();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
@@ -144,7 +147,7 @@ function NavigationButtonsComponentInner({
         )}
         {showNextButton && (
           <Button
-            disabled={isAnyProcessing}
+            disabled={isAnyProcessing || attachmentsPending}
             isLoading={process === 'next'}
             onClick={onClickNext}
             // If we are showing a back to summary button, we want the "next" button to be secondary
