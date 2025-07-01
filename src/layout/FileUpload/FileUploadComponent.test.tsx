@@ -187,6 +187,133 @@ describe('File uploading components', () => {
       ).toBeInTheDocument();
       jest.restoreAllMocks();
     });
+
+    describe('Expression support for min/max attachments', () => {
+      it('should work with static numbers (baseline test)', async () => {
+        await render({
+          component: {
+            maxNumberOfAttachments: 2, // Static number (this should work)
+            displayMode: 'list',
+          },
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+        });
+
+        // Should show the drop area since we have 1 attachment and max is 2
+        expect(screen.getByRole('presentation', { name: /attachment-title/i })).toBeInTheDocument();
+        expect(screen.getByText(/Antall filer 1\/2\./i)).toBeInTheDocument();
+      });
+
+      it('should evaluate conditional expression for maxNumberOfAttachments', async () => {
+        await render({
+          component: {
+            maxNumberOfAttachments: ['if', ['equals', ['dataModel', 'user.type'], 'admin'], 10, 'else', 3], // Conditional expression
+            displayMode: 'list',
+          },
+          attachments: (dataType) => getDataElements({ count: 2, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ user: { type: 'admin' } }),
+          },
+        });
+
+        // Should show drop area since user is admin (max=10) and we only have 2 attachments
+        expect(screen.getByRole('presentation', { name: /attachment-title/i })).toBeInTheDocument();
+        expect(screen.getByText(/Antall filer 2\/10\./i)).toBeInTheDocument();
+      });
+
+      it('should evaluate conditional expression for non-admin user', async () => {
+        await render({
+          component: {
+            maxNumberOfAttachments: ['if', ['equals', ['dataModel', 'user.type'], 'admin'], 10, 'else', 3], // Conditional expression
+            displayMode: 'list',
+          },
+          attachments: (dataType) => getDataElements({ count: 3, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ user: { type: 'regular' } }),
+          },
+        });
+
+        // Should not show drop area since user is regular (max=3) and we have 3 attachments
+        expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
+        expect(screen.getByText(/Antall filer 3\/3\./i)).toBeInTheDocument();
+      });
+
+      it('should evaluate dataModel expression for minNumberOfAttachments validation', async () => {
+        await render({
+          component: {
+            minNumberOfAttachments: ['dataModel', 'form.requiredFiles'], // Expression using form data
+            maxNumberOfAttachments: 5,
+            displayMode: 'list',
+            showValidations: ['Required'],
+          },
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ form: { requiredFiles: 3 } }),
+          },
+        });
+
+        // Should show validation error since expression resolves to 3 but we only have 1
+        await waitFor(() => {
+          expect(screen.getByText(/For å fortsette må du laste opp 3 vedlegg/i)).toBeInTheDocument();
+        });
+      });
+
+      it('should evaluate complex expression with greaterThan for minNumberOfAttachments', async () => {
+        await render({
+          component: {
+            minNumberOfAttachments: ['if', ['greaterThan', ['dataModel', 'form.priority'], 5], 2, 'else', 1], // Complex expression
+            maxNumberOfAttachments: 5,
+            displayMode: 'list',
+            showValidations: ['Required'],
+          },
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ form: { priority: 8 } }),
+          },
+        });
+
+        // Should show validation error since priority > 5, so min=2 but we only have 1
+        await waitFor(() => {
+          expect(screen.getByText(/For å fortsette må du laste opp 2 vedlegg/i)).toBeInTheDocument();
+        });
+      });
+
+      it('should handle expression that resolves to zero for minNumberOfAttachments', async () => {
+        await render({
+          component: {
+            minNumberOfAttachments: ['dataModel', 'form.optionalFiles'], // Expression that resolves to 0
+            maxNumberOfAttachments: 5,
+            displayMode: 'list',
+          },
+          attachments: (dataType) => getDataElements({ count: 0, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ form: { optionalFiles: 0 } }),
+          },
+        });
+
+        // Should not show validation error since expression resolves to 0
+        expect(screen.queryByText(/For å fortsette må du laste opp/i)).not.toBeInTheDocument();
+      });
+
+      it('should use default values when expressions resolve to null/undefined', async () => {
+        await render({
+          component: {
+            minNumberOfAttachments: ['dataModel', 'form.nonExistentMin'], // Expression that resolves to undefined
+            maxNumberOfAttachments: ['dataModel', 'form.nonExistentMax'], // Expression that resolves to undefined
+            displayMode: 'list',
+          },
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          queries: {
+            fetchFormData: () => Promise.resolve({ form: {} }), // Empty form data
+          },
+        });
+
+        // Should show drop area since default maxNumberOfAttachments is Infinity
+        expect(screen.getByRole('presentation', { name: /attachment-title/i })).toBeInTheDocument();
+
+        // Should not show min validation error since default minNumberOfAttachments is 0
+        expect(screen.queryByText(/For å fortsette må du laste opp/i)).not.toBeInTheDocument();
+      });
+    });
   });
 
   async function openEdit() {
@@ -372,6 +499,7 @@ describe('File uploading components', () => {
     type,
     component,
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
+    queries,
   }: Props<T>) {
     jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
       getIncomingApplicationMetadataMock((a) => {
@@ -425,6 +553,7 @@ describe('File uploading components', () => {
             ],
             headers: {},
           } as AxiosResponse<IRawOption[], unknown>),
+        ...queries,
       },
     });
 
