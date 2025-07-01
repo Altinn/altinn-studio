@@ -28,4 +28,4 @@ This template is built using .NET
 The below diagram shows the different layers.
 
 
-![Template](https://raw.githubusercontent.com/Altinn/app-template-dotnet/main/apptemplate.drawio.svg)
+![Template](./apptemplate.drawio.svg)
