@@ -57,5 +57,5 @@ public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeature
         Assert.Contains("Invalid feature name", responseBody);
     }
 
-   private static string ApiUrl(string featureName) => $"designer/api/CanUseFeature?featureName={featureName}";
+    private static string ApiUrl(string featureName) => $"designer/api/CanUseFeature?featureName={featureName}";
 }
