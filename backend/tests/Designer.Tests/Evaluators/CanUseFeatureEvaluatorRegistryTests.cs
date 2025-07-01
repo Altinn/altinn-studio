@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Evaluators;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Moq;
 using Xunit;
+
+namespace Designer.Tests.Evaluators;
 
 public class CanUseFeatureEvaluatorRegistryTests
 {

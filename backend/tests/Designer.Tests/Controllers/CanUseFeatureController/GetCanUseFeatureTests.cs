@@ -35,9 +35,7 @@ public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeature
     [Fact]
     public async Task CanUseFeature_Returns200Ok_WithTrue()
     {
-        string apiUrl = "designer/api/CanUseFeature?featureName=UploadDataModel";
-
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, ApiUrl("UploadDataModel"));
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<CanUseFeatureDto>(responseBody,
@@ -51,13 +49,13 @@ public class GetCanUseFeatureTests : DesignerEndpointsTestsBase<GetCanUseFeature
     [Fact]
     public async Task CanUseFeature_Returns400BadRequest_ForInvalidFeatureName()
     {
-        string apiUrl = "designer/api/CanUseFeature?featureName=InvalidFeature";
-
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, ApiUrl("InvalidFeature"));
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("Invalid feature name", responseBody);
     }
+
+   private static string ApiUrl(string featureName) => $"designer/api/CanUseFeature?featureName={featureName}";
 }

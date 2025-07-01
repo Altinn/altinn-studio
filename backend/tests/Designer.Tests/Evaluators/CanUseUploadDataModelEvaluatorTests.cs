@@ -5,6 +5,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Moq;
 using Xunit;
 
+namespace Designer.Tests.Evaluators;
+
 public class CanUseUploadDataModelEvaluatorTests
 {
     [Fact]

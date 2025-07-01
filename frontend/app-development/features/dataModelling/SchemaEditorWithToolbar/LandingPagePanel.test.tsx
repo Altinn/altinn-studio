@@ -60,6 +60,11 @@ function getUploadXSButton(): HTMLButtonElement {
   });
 }
 
-const renderLandingPagePanel = (
-  props: Partial<LandingPagePanelProps> = { canUseUploadXSDFeature: true },
-) => renderWithProviders()(<LandingPagePanel {...landingPagePropsMock} {...props} />);
+const defaultProps: Partial<LandingPagePanelProps> = {
+  canUseUploadXSDFeature: true,
+};
+
+const renderLandingPagePanel = (props: Partial<LandingPagePanelProps> = {}) =>
+  renderWithProviders()(
+    <LandingPagePanel {...landingPagePropsMock} {...defaultProps} {...props} />,
+  );
