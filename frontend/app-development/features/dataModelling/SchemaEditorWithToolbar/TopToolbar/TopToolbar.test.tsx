@@ -104,7 +104,7 @@ describe('TopToolbar', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
 
-  it('should show upload xsd if feature is not available', (): void => {
+  it('should show upload xsd if feature is available', (): void => {
     renderToolbar({ canUseUploadXSDFeature: true });
     expect(queryUploadXSDButton()).toBeInTheDocument();
   });
