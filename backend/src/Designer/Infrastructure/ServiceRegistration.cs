@@ -58,6 +58,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
+            services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
             services.AddScoped<IUserOrganizationService, UserOrganizationService>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
