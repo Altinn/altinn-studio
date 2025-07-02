@@ -48,20 +48,6 @@
         "format": "DD/MM/YYYY"
       },
       {
-        "id": "InputPage-Input",
-        "required": false,
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Min date"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "DatepickerMinDateExample"
-        },
-        "showValidations": [
-          "All"
-        ]
-      },
-      {
         "id": "DatepickerMaxDateExample1",
         "type": "Datepicker",
         "textResourceBindings": {
@@ -72,20 +58,6 @@
           "simpleBinding": "DatepickerMaxDateExample"
         },
         "format": "DD/MM/YYYY"
-      },
-      {
-        "id": "InputPage-Input",
-        "required": false,
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Max date"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "DatepickerMaxDateExample"
-        },
-        "showValidations": [
-          "All"
-        ]
       },
       {
         "size": "h3",
