@@ -738,7 +738,7 @@
   "not_found_page.heading": "Vi finner ikke siden",
   "not_found_page.redirect_to_dashboard": "Gå tilbake til Dashboard",
   "not_found_page.text": "Vi finner ikke siden du leter etter. Har du skrevet inn riktig URL? \nDu kan prøve å gå tilbake til dashboardet for å sjekke, eller <a>ta kontakt med oss</a> om du trenger hjelp.",
-  "org_content_library.library_heading": "Organisasjonsbibliotek",
+  "org_content_library.library_heading": "Organisasjonsbiblioteket",
   "overview.activity": "Aktivitet",
   "overview.deployment_log_list_created": "Opprettet {{createdDateTime}} av {{createdBy}}",
   "overview.deployment_log_list_title": "Versjon {{tagName}} {{envTitle}}",
