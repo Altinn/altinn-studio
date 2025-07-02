@@ -39,20 +39,15 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   }
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
-
-  if (isUnknownInternalComponent) {
+  if (isUnknownInternalComponent)
     return (
       <div className={classes.unknownComponentAlert}>
         <UnknownComponentAlert componentName={formItem.type} />
       </div>
     );
-  }
 
-  if (isFetchingSchema) {
+  if (isFetchingSchema)
     return <StudioSpinner aria-label={t('ux_editor.edit_component.loading_schema')} />;
-  }
-
-  const isSubformWithoutLayoutSet = formItem.type === 'Subform' && !formItem.layoutSet;
 
   const renderPropertiesHeader = () => (
     <PropertiesHeader
@@ -64,9 +59,8 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
     />
   );
 
-  if (isSubformWithoutLayoutSet) {
-    return renderPropertiesHeader();
-  }
+  const isSubformWithoutLayoutSet = formItem.type === 'Subform' && !formItem.layoutSet;
+  if (isSubformWithoutLayoutSet) return renderPropertiesHeader();
 
   const properties = schema?.properties || {};
   const { textResourceBindings, dataModelBindings, ...otherProperties } = properties;
