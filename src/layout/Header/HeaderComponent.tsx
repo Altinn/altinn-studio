@@ -44,7 +44,10 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
   const { id, size, textResourceBindings } = useItemWhenType(node.baseId, 'Header');
   const { langAsString } = useLanguage();
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper
+      node={node}
+      style={{ display: 'flex' }}
+    >
       <Heading
         id={id}
         {...getHeaderProps(size)}
