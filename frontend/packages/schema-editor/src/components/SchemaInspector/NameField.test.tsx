@@ -74,8 +74,7 @@ describe('NameField', () => {
 
   it('should save if name is valid', async () => {
     await render();
-    await user.type(screen.getByRole('textbox'), '3');
-    await user.tab();
+    await typeAndBlurNameField('3');
     expect(defaultProps.handleSave).toHaveBeenCalledTimes(1);
   });
 });
