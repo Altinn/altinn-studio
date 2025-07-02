@@ -76,6 +76,7 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
+import { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -159,6 +160,9 @@ export const queriesMock: ServicesContextProps = {
     }),
   ),
   getPages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  canUseFeature: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<CanUseFeature>({ canUseFeature: false })),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
