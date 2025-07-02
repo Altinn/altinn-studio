@@ -67,7 +67,7 @@ export const constructItemsCategoryPath = (pointer: string): string | undefined 
   return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : undefined;
 };
 
-export const extractItemCategory = (pointer: string): string | undefined => {
+export const extractItemsCategory = (pointer: string): string | undefined => {
   const categoryPositionFromEnd = 3;
   const category = getPointerPartCategory(pointer, categoryPositionFromEnd);
   return category === Keyword.Items ? Keyword.Items : undefined;
