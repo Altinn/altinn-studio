@@ -1,14 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageTags>Altinn;Studio;App;Core</PackageTags>
+    <Description>
+      This class library holds extra file analyzers for Altinn Studio apps.
+    </Description>
+    <!-- We don't care about transitive NuGet audit warnings for Altinn.App.Core minimum version -->
+    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
 
   <ItemGroup>
-		<PackageReference Include="Altinn.App.Core" Version="7.10.1" />
-		<PackageReference Include="Mime-Detective" Version="23.10.1" />
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- This defines the minimum required version of Altinn.App.Core and should not be bumped unless new features require it. -->
+    <PackageReference Include="Altinn.App.Core" VersionOverride="8.0.0" />
+
+    <PackageReference Include="Mime-Detective" />
+  </ItemGroup>
+
+  <Target Name="GenerateDependencyAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'%(PackageReference.Identity)' != '' and '%(PackageReference.PrivateAssets)' != 'all'">
+        <_Parameter1>PackageReference.%(PackageReference.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(PackageReference.VersionOverride)' != ''">%(PackageReference.VersionOverride)</_Parameter2>
+        <_Parameter2 Condition="'%(PackageReference.VersionOverride)' == ''">%(PackageReference.Version)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 </Project>

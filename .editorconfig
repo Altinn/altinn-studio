@@ -351,6 +351,9 @@ dotnet_diagnostic.SA1649.severity = error
 
 dotnet_diagnostic.SA1651.severity = error
 
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+
 [*.{cs,vb}]
 #### Naming styles ####
 
@@ -425,3 +428,15 @@ csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 csharp_indent_labels = one_less_than_current
+
+ # Verify settings
+ # https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
+
+ [*.{received,verified}.{json,txt,xml}]
+ charset = "utf-8-bom"
+ end_of_line = lf
+ indent_size = unset
+ indent_style = unset
+ insert_final_newline = false
+ tab_width = unset
+ trim_trailing_whitespace = false
