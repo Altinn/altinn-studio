@@ -25,14 +25,7 @@ export const SchemaInspector = () => {
     return <NoItemSelectedMessage />;
   }
 
-  console.log({
-    selectedUniquePointer,
-  });
-
-  const selectedItemPath = selectedUniquePointer.replace(/\/\/([^/]+)/g, '/items/$1');
-  console.log({ selectedItemPath });
-
-  const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedItemPath);
+  const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
 
   return (
     <Tabs

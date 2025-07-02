@@ -23,8 +23,10 @@ import {
   createDefinitionPointer,
   createPropertyPointer,
   extractCategoryFromPointer,
+  constructItemsCategoryPath,
   extractNameFromPointer,
   makePointerFromArray,
+  extractItemCategory,
 } from '../pointerUtils';
 import {
   defaultCombinationNode,
@@ -55,33 +57,22 @@ export class SchemaModel extends SchemaModelBase {
   }
 
   public getNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
-    console.log({
-      getNodeByUniquePointer: uniquePointer,
-    });
     const schemaPointer = this.getSchemaPointerByUniquePointer(uniquePointer);
-    console.log({
-      getNodeByUniquePointerschemaPointer: schemaPointer,
-    });
     return this.getNodeBySchemaPointer(schemaPointer);
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
     const pointer = SchemaModel.removeUniquePointerPrefix(uniquePointer);
     if (this.hasNode(pointer)) {
-      console.log({
-        getSchemaPointerByUniquePointerPointerValue: pointer,
-      });
       return pointer;
     }
 
     const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
-    console.log({
-      getSchemaPointerByUniquePointer: parentSchemaPointer,
-    });
+    const itemsPointerCategoryPath = constructItemsCategoryPath(uniquePointer);
     return makePointerFromArray([
       parentSchemaPointer,
-      uniquePointer.includes('items')
-        ? 'items' + '/properties'
+      itemsPointerCategoryPath
+        ? itemsPointerCategoryPath
         : extractCategoryFromPointer(uniquePointer),
       extractNameFromPointer(uniquePointer),
     ]);
@@ -89,10 +80,6 @@ export class SchemaModel extends SchemaModelBase {
 
   private getParentSchemaPointerByUniquePointer(uniquePointer: string): string {
     const parentPropertyNode = this.getParentPropertyNodeByUniquePointer(uniquePointer);
-    console.log({
-      getParentSchemaPointerByUniquePointer: uniquePointer,
-      parentPropertyNode: parentPropertyNode.schemaPointer,
-    });
     return isReference(parentPropertyNode)
       ? parentPropertyNode.reference
       : parentPropertyNode.schemaPointer;
@@ -112,16 +99,11 @@ export class SchemaModel extends SchemaModelBase {
       return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
     }
 
-    const category = extractCategoryFromPointer(schemaPointer);
+    const itemsPointerCategory = extractItemCategory(schemaPointer);
+    const category = itemsPointerCategory
+      ? itemsPointerCategory
+      : extractCategoryFromPointer(schemaPointer);
     const parentPointer = SchemaModel.removeUniquePointerPrefix(uniqueParentPointer);
-
-    if (schemaPointer.includes('items')) {
-      console.log({
-        yest: schemaPointer,
-      });
-      return `${UNIQUE_POINTER_PREFIX}${parentPointer}/items/${extractNameFromPointer(schemaPointer)}`;
-    }
-
     return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 

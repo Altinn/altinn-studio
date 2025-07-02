@@ -49,8 +49,7 @@ export const extractNameFromPointer = (pointer: string): string => {
 export const extractCategoryFromPointer = (
   pointer: string,
 ): Keyword.Properties | Keyword.Definitions | CombinationKind | undefined => {
-  const parts = pointer.split('/');
-  const category = parts[parts.length - 2];
+  const category = getPointerPartCategory(pointer);
   switch (category) {
     case Keyword.Properties:
     case Keyword.Definitions:
@@ -63,9 +62,14 @@ export const extractCategoryFromPointer = (
   }
 };
 
-export const extractItemsFromPointer = (pointer: string): Keyword.Items | undefined => {
-  const parts = pointer.split('/');
-  const category = parts[parts.length - 2];
+export const constructItemsCategoryPath = (pointer: string): string | undefined => {
+  const category = getPointerPartCategory(pointer);
+  return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : undefined;
+};
+
+export const extractItemCategory = (pointer: string): string | undefined => {
+  const categoryPositionFromEnd = 3;
+  const category = getPointerPartCategory(pointer, categoryPositionFromEnd);
   return category === Keyword.Items ? Keyword.Items : undefined;
 };
 
@@ -74,4 +78,13 @@ export const changeNameInPointer = (pointer: string, newName: string): string =>
   parts.pop();
   parts.push(newName);
   return parts.join('/');
+};
+
+const getPointerPartCategory = (
+  pointer: string,
+  categoryPositionFromEnd: number = 2,
+): string | undefined => {
+  const parts = pointer.split('/');
+  const index = parts.length - categoryPositionFromEnd;
+  return index >= 0 ? parts[index] : undefined;
 };
