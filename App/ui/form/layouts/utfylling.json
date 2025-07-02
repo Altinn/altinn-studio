@@ -110,7 +110,7 @@
             ],
             "Rediger Vespa",
             "else",
-            "IKKE Vespa"
+            "general.edit"
           ]
         },
         "layoutSet": "moped-subform",
