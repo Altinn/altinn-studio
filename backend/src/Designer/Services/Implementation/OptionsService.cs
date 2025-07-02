@@ -73,34 +73,37 @@ public class OptionsService : IOptionsService
     public async Task<List<OptionListData>> GetOptionLists(string org, string repo, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
         string[] optionListIds = GetOptionsListIds(org, repo, developer);
-        List<OptionListData> optionLists = [];
-        foreach (string optionListId in optionListIds)
-        {
-            try
-            {
-                List<Option> options = await GetOptionsList(org, repo, developer, optionListId, cancellationToken);
-                OptionListData optionListData = new()
-                {
-                    Title = optionListId,
-                    Data = options,
-                    HasError = false
-                };
-                optionLists.Add(optionListData);
-            }
-            catch (InvalidOptionsFormatException)
-            {
-                OptionListData optionListData = new() { Title = optionListId, Data = null, HasError = true };
-                optionLists.Add(optionListData);
-            }
-        }
 
-        return optionLists;
+        var tasks = optionListIds.Select(optionListId =>
+            RetrieveOptionsListAndConvertToOptionListData(org, repo, developer, optionListId, cancellationToken));
+
+        return (await Task.WhenAll(tasks)).ToList();
     }
 
+    private async Task<OptionListData> RetrieveOptionsListAndConvertToOptionListData(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            List<Option> options = await GetOptionsList(org, repo, developer, optionListId, cancellationToken);
+            return new OptionListData
+            {
+                Title = optionListId,
+                Data = options,
+                HasError = false
+            };
+        }
+        catch (InvalidOperationException)
+        {
+            return new OptionListData
+            {
+                Title = optionListId,
+                HasError = true
+            };
+        }
+    }
 
-    private void ValidateOption(Option option)
+    private static void ValidateOption(Option option)
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
