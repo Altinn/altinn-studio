@@ -9,6 +9,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
+  ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
@@ -27,7 +28,6 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
-import type { ContentLibraryConfig } from '@studio/content-library';
 
 // Test data:
 const orgName: string = 'org';

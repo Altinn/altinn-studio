@@ -12,6 +12,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type {
   CodeListData,
   CodeListWithMetadata,
+  ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
@@ -20,7 +21,6 @@ import { optionList1Data, optionListDataList } from './test-data/optionListDataL
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { codeListTitles } from './test-data/codeListTitles';
-import type { ContentLibraryConfig } from '@studio/content-library';
 
 // Mocks:
 jest.mock('@studio/content-library', () => ({
