@@ -33,7 +33,7 @@ describe('useImportCodeListFromOrgToAppMutation', () => {
       [languageCodeEnglish]: { language: languageCodeEnglish, resources: textResourcesEnglish },
     };
 
-    it('should return convert textResources to correct format', () => {
+    it('should convert textResources to correct format', () => {
       const result = convertTextResourceResponseToCacheFormat(initialTexts);
       expect(result[languageCodeNorwegian]).toBe(textResourcesNorwegian);
       expect(result[languageCodeEnglish]).toBe(textResourcesEnglish);
