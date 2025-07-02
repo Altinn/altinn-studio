@@ -1,20 +1,19 @@
-import { renderHook } from '@testing-library/react';
 import React from 'react';
 import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import { QuestionmarkIcon } from '@studio/icons';
 
-describe('useLayoutSetIcon', () => {
+describe('getLayoutSetIcon', () => {
   it('should return default icon for unknown types', () => {
     const layoutSet: LayoutSetModel = {
       id: 'unknown-id',
       dataType: '',
       type: 'unknown-type',
     };
-    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
+    const result = getLayoutSetIcon(layoutSet);
 
-    expect(result.current.icon.type).toBe((<QuestionmarkIcon />).type);
-    expect(result.current.iconColor).toBe('grey');
+    expect(result.icon.type).toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBe('grey');
   });
 
   it('should return icon and iconColor for custom receipt', () => {
@@ -27,10 +26,10 @@ describe('useLayoutSetIcon', () => {
         type: '',
       },
     };
-    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
-    expect(result.current.icon).toBeTruthy();
-    expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
-    expect(result.current.iconColor).toBeTruthy();
+    const result = getLayoutSetIcon(layoutSet);
+    expect(result.icon).toBeTruthy();
+    expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBeTruthy();
   });
 
   it('should return icon and iconColor for subform', () => {
@@ -39,10 +38,10 @@ describe('useLayoutSetIcon', () => {
       dataType: '',
       type: 'subform',
     };
-    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
-    expect(result.current.icon).toBeTruthy();
-    expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
-    expect(result.current.iconColor).toBeTruthy();
+    const result = getLayoutSetIcon(layoutSet);
+    expect(result.icon).toBeTruthy();
+    expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBeTruthy();
   });
 
   it('should return icon and iconColor for data tasks', () => {
@@ -55,10 +54,10 @@ describe('useLayoutSetIcon', () => {
         type: 'data',
       },
     };
-    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
-    expect(result.current.icon).toBeTruthy();
-    expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
-    expect(result.current.iconColor).toBeTruthy();
+    const result = getLayoutSetIcon(layoutSet);
+    expect(result.icon).toBeTruthy();
+    expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBeTruthy();
   });
 
   it('should return icon and iconColor for signing tasks', () => {
@@ -71,9 +70,9 @@ describe('useLayoutSetIcon', () => {
         type: 'signing',
       },
     };
-    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
-    expect(result.current.icon).toBeTruthy();
-    expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
-    expect(result.current.iconColor).toBeTruthy();
+    const result = getLayoutSetIcon(layoutSet);
+    expect(result.icon).toBeTruthy();
+    expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBeTruthy();
   });
 });
