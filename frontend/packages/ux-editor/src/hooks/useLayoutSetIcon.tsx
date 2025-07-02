@@ -25,7 +25,7 @@ export const useLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData =
   );
 };
 
-const iconByTaskTypeMap: Record<BpmnTaskType, IconMetaData> = {
+const iconByTaskTypeMap: Partial<Record<BpmnTaskType, IconMetaData>> = {
   data: { icon: <DataTaskIcon />, iconColor: 'blue' },
   signing: { icon: <SignTaskIcon />, iconColor: 'red' },
   payment: { icon: <CardIcon />, iconColor: 'yellow' },
