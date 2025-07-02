@@ -263,7 +263,7 @@ public class OptionsServiceTests : IDisposable
     {
         // Arrange
         const string OrgRepo = "org-content";
-        const string AppRepo = "app-with-options";
+        const string AppRepo = "hvem-er-hvem";
         const string OptionListId = "codeListString";
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
