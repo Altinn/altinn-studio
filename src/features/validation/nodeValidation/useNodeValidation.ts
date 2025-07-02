@@ -34,8 +34,7 @@ export function useNodeValidation(node: LayoutNode): AnyValidation[] {
   }
 
   if (implementsValidateComponent(node.def)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unfiltered.push(...node.def.useComponentValidation(node as any));
+    unfiltered.push(...node.def.useComponentValidation(node.baseId));
   }
 
   const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
@@ -79,8 +78,7 @@ function filter<Validation extends BaseValidation>(
     return validations;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filters = node.def.getValidationFilters(node as any, layoutLookups);
+  const filters = node.def.getValidationFilters(node.baseId, layoutLookups);
   if (filters.length == 0) {
     return validations;
   }

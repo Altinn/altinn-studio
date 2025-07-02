@@ -14,7 +14,7 @@ import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
 import { isRejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 
 export function FailedAttachments({ node }: { node: FileUploaderNode }) {
-  const failedAttachments = useFailedAttachmentsFor(node);
+  const failedAttachments = useFailedAttachmentsFor(node.baseId);
   const deleteFailedAttachment = useDeleteFailedAttachment();
 
   return failedAttachments.length > 0 ? (

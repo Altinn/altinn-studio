@@ -1,20 +1,23 @@
 import { useMemo } from 'react';
 
-import type { ComponentValidation, NodeValidation } from '..';
-
 import { Validation } from 'src/features/validation/validationContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { ComponentValidation, NodeRefValidation } from 'src/features/validation/index';
 
 /**
  * Get only the component validations which are not bound to any data model fields.
  */
-export function useComponentValidationsForNode(node: LayoutNode): NodeValidation<ComponentValidation>[] {
+export function useComponentValidationsFor(baseComponentId: string): NodeRefValidation<ComponentValidation>[] {
   const showAll = Validation.useShowAllBackendErrors();
-  const component = NodesInternal.useVisibleValidations(node, showAll);
+  const indexedId = useIndexedId(baseComponentId);
+  const component = NodesInternal.useVisibleValidations(indexedId, showAll);
 
   return useMemo(
-    () => component.filter((v) => !('bindingKey' in v)).map((validation) => ({ ...validation, node })),
-    [component, node],
+    () =>
+      component
+        .filter((v) => !('bindingKey' in v))
+        .map((validation) => ({ ...validation, nodeId: indexedId, baseComponentId })),
+    [baseComponentId, component, indexedId],
   );
 }

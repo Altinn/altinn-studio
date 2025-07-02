@@ -2,12 +2,11 @@ import { FrontendValidationSource, ValidationMask } from 'src/features/validatio
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { ComponentValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useValidateRepGroupMinCount(node: LayoutNode<'RepeatingGroup'>): ComponentValidation[] {
-  const dataModelBindings = useDataModelBindingsFor(node.baseId, 'RepeatingGroup');
-  const minCount = useExternalItem(node.baseId, 'RepeatingGroup')?.minCount ?? 0;
-  const visibleRows = RepGroupHooks.useVisibleRows(node).length;
+export function useValidateRepGroupMinCount(baseComponentId: string): ComponentValidation[] {
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
+  const minCount = useExternalItem(baseComponentId, 'RepeatingGroup')?.minCount ?? 0;
+  const visibleRows = RepGroupHooks.useVisibleRows(baseComponentId).length;
   if (!dataModelBindings) {
     return [];
   }

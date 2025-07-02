@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
@@ -17,7 +18,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Input extends InputDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Input'>>(
@@ -53,9 +53,10 @@ export class Input extends InputDef {
     return <InputSummary {...props} />;
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'Input'>, bindings: IDataModelBindings<'Input'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Input'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
+    const layoutLookups = useLayoutLookups();
+    return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 
   evalExpressions(props: ExprResolver<'Input'>) {

@@ -835,11 +835,12 @@ function useIsForcedVisibleByDevTools() {
 
 export type IsHiddenSelector = ReturnType<typeof Hidden.useIsHiddenSelector>;
 export const Hidden = {
-  useIsHidden(node: LayoutNode | LayoutPage | undefined, options?: AccessibleIsHiddenOptions) {
+  useIsHidden(nodeOrId: LayoutNode | LayoutPage | string | undefined, options?: AccessibleIsHiddenOptions) {
     const lookups = useLayoutLookups();
     const forcedVisibleByDevTools = useIsForcedVisibleByDevTools();
-    const type = node instanceof LayoutPage ? ('page' as const) : ('node' as const);
-    const id = node instanceof LayoutPage ? node.pageKey : node?.id;
+    const type = nodeOrId instanceof LayoutPage ? ('page' as const) : ('node' as const);
+    const id =
+      nodeOrId instanceof LayoutPage ? nodeOrId.pageKey : typeof nodeOrId === 'string' ? nodeOrId : nodeOrId?.id;
     return WhenReady.useSelector((s) => isHidden(s, type, id, lookups, makeOptions(forcedVisibleByDevTools, options)));
   },
   useIsHiddenPage(page: LayoutPage | string | undefined, options?: AccessibleIsHiddenOptions) {

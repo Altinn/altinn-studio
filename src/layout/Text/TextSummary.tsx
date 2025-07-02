@@ -14,7 +14,7 @@ export const TextSummary = ({ target }: Summary2Props<'Text'>) => {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(target);
-  const validations = useUnifiedValidationsForNode(target);
+  const validations = useUnifiedValidationsForNode(target.baseId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, direction } = useItemWhenType(target.baseId, 'Text');
   const title = textResourceBindings?.title;

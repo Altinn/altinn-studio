@@ -3,7 +3,7 @@ import React from 'react';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
+import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/Address/AddressSummary/AddressSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { useHasNoDataInBindings } from 'src/layout/Summary2/isEmpty/isEmptyComponent';
@@ -26,7 +26,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
   const isCompact = useSummaryProp('isCompact');
   const isEmpty = useHasNoDataInBindings(componentNode);
 
-  const bindingValidations = useBindingValidationsForNode(componentNode);
+  const bindingValidations = useBindingValidationsFor<'Address'>(componentNode.baseId);
 
   return (
     <SummaryFlex
@@ -50,7 +50,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
           />
           <ComponentValidations
             validations={bindingValidations?.address}
-            node={componentNode}
+            baseComponentId={componentNode.baseId}
           />
         </div>
 
@@ -66,7 +66,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             />
             <ComponentValidations
               validations={bindingValidations?.careOf}
-              node={componentNode}
+              baseComponentId={componentNode.baseId}
             />
           </div>
         )}
@@ -83,7 +83,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             />
             <ComponentValidations
               validations={bindingValidations?.zipCode}
-              node={componentNode}
+              baseComponentId={componentNode.baseId}
             />
           </div>
 
@@ -98,7 +98,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             />
             <ComponentValidations
               validations={bindingValidations?.postPlace}
-              node={componentNode}
+              baseComponentId={componentNode.baseId}
             />
           </div>
           {!simplified && (
@@ -113,7 +113,7 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
               />
               <ComponentValidations
                 validations={bindingValidations?.houseNumber}
-                node={componentNode}
+                baseComponentId={componentNode.baseId}
               />
             </div>
           )}

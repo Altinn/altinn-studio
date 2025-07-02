@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import type { PropsFromGenericComponent } from '..';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { OrganisationLookupDef } from 'src/layout/OrganisationLookup/config.def.generated';
 import { OrganisationLookupComponent } from 'src/layout/OrganisationLookup/OrganisationLookupComponent';
@@ -14,7 +15,6 @@ import type { ComponentValidation } from 'src/features/validation';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class OrganisationLookup extends OrganisationLookupDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganisationLookup'>>(
@@ -44,13 +44,18 @@ export class OrganisationLookup extends OrganisationLookupDef {
     );
   }
 
-  useDataModelBindingValidation(
-    node: LayoutNode<'OrganisationLookup'>,
-    bindings: IDataModelBindings<'OrganisationLookup'>,
-  ): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'OrganisationLookup'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
+    const layoutLookups = useLayoutLookups();
     return (
-      validateDataModelBindingsAny(node, bindings, lookupBinding, 'organisation_lookup_orgnr', ['string'])[0] ?? []
+      validateDataModelBindingsAny(
+        baseComponentId,
+        bindings,
+        lookupBinding,
+        layoutLookups,
+        'organisation_lookup_orgnr',
+        ['string'],
+      )[0] ?? []
     );
   }
 }

@@ -58,11 +58,9 @@ export function getComponentCapabilities<T extends CompTypes>(type: T): Componen
   return undefined as any;
 }
 
-type TypeFromDef<Def extends CompDef> = Def extends CompDef<infer T> ? T : CompTypes;
-
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
-): def is Def & (ValidateEmptyField | ValidateComponent<TypeFromDef<Def>>) {
+): def is Def & (ValidateEmptyField | ValidateComponent) {
   return 'useEmptyFieldValidation' in def || 'useComponentValidation' in def;
 }
 
@@ -74,18 +72,16 @@ export function implementsValidateEmptyField<Def extends CompDef>(def: Def): def
   return 'useEmptyFieldValidation' in def;
 }
 
-export interface ValidateComponent<Type extends CompTypes> {
-  useComponentValidation: (node: LayoutNode<Type>) => ComponentValidation[];
+export interface ValidateComponent {
+  useComponentValidation: (baseComponentId: string) => ComponentValidation[];
 }
 
-export function implementsValidateComponent<Def extends CompDef>(
-  def: Def,
-): def is Def & ValidateComponent<TypeFromDef<Def>> {
+export function implementsValidateComponent<Def extends CompDef>(def: Def): def is Def & ValidateComponent {
   return 'useComponentValidation' in def;
 }
 
-export interface SubRouting<Type extends CompTypes> {
-  subRouting: (props: { node: LayoutNode<Type> }) => ReactNode;
+export interface SubRouting {
+  subRouting: (props: { baseComponentId: string }) => ReactNode;
 }
 
 export type ValidationFilterFunction = (
@@ -95,7 +91,7 @@ export type ValidationFilterFunction = (
 ) => boolean;
 
 export interface ValidationFilter {
-  getValidationFilters: (node: LayoutNode, layoutLookups: LayoutLookups) => ValidationFilterFunction[];
+  getValidationFilters: (baseComponentId: string, layoutLookups: LayoutLookups) => ValidationFilterFunction[];
 }
 
 export type FormDataSelector = (reference: IDataModelReference) => unknown;
@@ -107,18 +103,30 @@ export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def
 
 export function implementsDataModelBindingValidation<T extends CompTypes>(
   def: CompDef<T>,
-  _node: LayoutNode<T>,
+  _item?: CompIntermediate<T>,
 ): def is CompDef<T> & {
-  useDataModelBindingValidation: (node: LayoutNode<T>, bindings: CompIntermediate['dataModelBindings']) => string[];
+  useDataModelBindingValidation: (baseComponentId: string, bindings: CompIntermediate['dataModelBindings']) => string[];
 } {
   return 'useDataModelBindingValidation' in def;
 }
 
 export function implementsIsDataModelBindingsRequired<T extends CompTypes>(
   def: CompDef<T>,
-  _node: LayoutNode<T>,
 ): def is CompDef<T> & {
-  isDataModelBindingsRequired: (node: LayoutNode<T>) => boolean;
+  isDataModelBindingsRequired: (baseComponentId: string, lookups: LayoutLookups) => boolean;
 } {
   return 'isDataModelBindingsRequired' in def;
+}
+
+export function isDataModelBindingsRequired(baseComponentId: string, lookups: LayoutLookups): boolean {
+  const component = lookups.getComponent(baseComponentId);
+  if (!component) {
+    return false;
+  }
+  const def = getComponentDef(component.type);
+  return implementsIsDataModelBindingsRequired(def) ? def.isDataModelBindingsRequired(baseComponentId, lookups) : false;
+}
+
+export function implementsSubRouting<T extends CompTypes>(def: CompDef<T>): def is CompDef<T> & SubRouting {
+  return 'subRouting' in def;
 }

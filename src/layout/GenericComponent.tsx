@@ -139,13 +139,11 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
       grid,
-      id,
-      baseComponentId: node.baseId === node.id ? undefined : node.baseId,
-      node,
+      baseComponentId: node.baseId,
       overrideItemProps,
       overrideDisplay,
     }),
-    [grid, id, node, overrideItemProps, overrideDisplay],
+    [grid, node, overrideItemProps, overrideDisplay],
   );
 
   useFinishNodeNavigation(async (targetNode, options, onHit) => {

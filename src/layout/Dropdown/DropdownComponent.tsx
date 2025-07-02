@@ -25,12 +25,12 @@ export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
 export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const item = useItemWhenType(node.baseId, 'Dropdown');
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
   const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ node, overrideDisplay });
+    useLabel({ baseComponentId: node.baseId, overrideDisplay });
 
   const { options, isFetching, selectedValues, setData } = useGetOptions(node.baseId, 'single');
   const debounce = FD.useDebounceImmediately();

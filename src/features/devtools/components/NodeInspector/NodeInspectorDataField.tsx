@@ -166,7 +166,7 @@ function NodeInspectorDataFieldForFirstRow({
   node,
   ...rest
 }: NodeInspectorDataFieldParams & { node: LayoutNode<'RepeatingGroup'> }) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node, 'first');
+  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node.baseId, 'first');
 
   return (
     <NodeInspectorDataFieldInner

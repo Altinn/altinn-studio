@@ -31,7 +31,7 @@ interface FullRowProps extends Omit<FullProps, 'rows'> {
 
 export function SummaryRepeatingGroup(props: SummaryRendererProps<'RepeatingGroup'>) {
   const { excludedChildren, largeGroup } = props.overrides ?? {};
-  const rows = RepGroupHooks.useVisibleRows(props.targetNode);
+  const rows = RepGroupHooks.useVisibleRows(props.targetNode.baseId);
 
   const inExcludedChildren = (n: LayoutNode) =>
     excludedChildren ? excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId) : false;
@@ -62,7 +62,7 @@ function RegularRepeatingGroup(props: FullProps) {
   const display = overrides?.display;
   const { langAsString } = useLanguage();
 
-  const groupValidations = useDeepValidationsForNode(targetNode);
+  const groupValidations = useDeepValidationsForNode(targetNode.baseId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const summaryAccessibleTitleTrb = trb && 'summaryAccessibleTitle' in trb ? trb.summaryAccessibleTitle : undefined;

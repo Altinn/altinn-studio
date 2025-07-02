@@ -27,7 +27,7 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const geometries = formData.geometries as RawGeometry[] | undefined;
-  const validations = useUnifiedValidationsForNode(target);
+  const validations = useUnifiedValidationsForNode(target.baseId);
   const errors = validationsOfSeverity(validations, 'error');
   const title = textResourceBindings?.title;
 
@@ -63,7 +63,7 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
       <div className={classes.summaryItemWrapper}>
         <div className={classes.summaryItem}>
           <Label
-            node={target}
+            baseComponentId={target.baseId}
             renderLabelAs='span'
             textResourceBindings={{ title }}
           />

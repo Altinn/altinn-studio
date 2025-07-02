@@ -10,6 +10,7 @@ import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Caption } from 'src/components/form/caption/Caption';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -24,7 +25,6 @@ import {
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
@@ -39,7 +39,8 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
-  const isNested = node.parent instanceof LayoutNode;
+  const parent = useLayoutLookups().componentToParent[node.baseId];
+  const isNested = parent?.type === 'node';
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
 
@@ -286,7 +287,10 @@ function MobileGrid({ node, overrideDisplay }: PropsFromGenericComponent<'Grid'>
   const nodeIds = useNodeIdsFromGrid(node);
   const isHidden = Hidden.useIsHiddenSelector();
 
-  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
+    baseComponentId: node.baseId,
+    overrideDisplay,
+  });
 
   return (
     <Fieldset

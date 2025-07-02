@@ -46,9 +46,9 @@ export interface ValidationStorePluginConfig {
     useSetAttachmentVisibility: () => ValidationStorePluginConfig['extraFunctions']['setAttachmentVisibility'];
     useRawValidationVisibility: (node: LayoutNode | undefined) => number;
     useRawValidations: (node: LayoutNode | undefined) => AnyValidation[];
-    useVisibleValidations: (node: LayoutNode | undefined, showAll?: boolean) => AnyValidation[];
+    useVisibleValidations: (indexedId: string, showAll?: boolean) => AnyValidation[];
     useVisibleValidationsDeep: (
-      node: LayoutNode | undefined,
+      indexedId: string,
       mask: NodeVisibility,
       includeSelf: boolean,
       restriction?: number | undefined,
@@ -137,31 +137,30 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           const out = 'validations' in nodeData ? nodeData.validations : undefined;
           return out && out.length > 0 ? out : emptyArray;
         }),
-      useVisibleValidations: (node, showAll) => {
+      useVisibleValidations: (indexedId, showAll) => {
         const lookups = useLayoutLookups();
         return store.useShallowSelector((state) => {
-          if (!node) {
+          if (!indexedId) {
             return emptyArray;
           }
+          const { baseComponentId } = splitDashedKey(indexedId);
           return getValidations({
             state,
-            id: node.id,
-            baseId: node.baseId,
+            id: indexedId,
+            baseId: baseComponentId,
             mask: showAll ? 'showAll' : 'visible',
             lookups,
           });
         });
       },
-      useVisibleValidationsDeep: (node, mask, includeSelf, restriction, severity) => {
+      useVisibleValidationsDeep: (indexedId, mask, includeSelf, restriction, severity) => {
         const lookups = useLayoutLookups();
         return store.useMemoSelector((state) => {
-          if (!node) {
-            return emptyArray;
-          }
+          const { baseComponentId } = splitDashedKey(indexedId);
           return getRecursiveValidations({
             state,
-            id: node.id,
-            baseId: node.baseId,
+            id: indexedId,
+            baseId: baseComponentId,
             mask,
             severity,
             includeSelf,

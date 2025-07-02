@@ -10,7 +10,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
 
 export function InfectedFileAlert({ node }: { node: FileUploaderNode }) {
-  const attachments = useAttachmentsFor(node);
+  const attachments = useAttachmentsFor(node.baseId);
   const infectedAttachments = attachments.filter(
     (attachment) => isAttachmentUploaded(attachment) && attachment.data.fileScanResult === FileScanResults.Infected,
   );

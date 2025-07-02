@@ -9,33 +9,31 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
 import type { CompInternal } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LabelType = 'span' | 'plainLabel';
 
 export type LabelProps = PropsWithChildren<{
-  node: LayoutNode;
+  baseComponentId: string;
   renderLabelAs: LabelType;
   className?: string;
-
   overrideId?: string;
   textResourceBindings?: ExprResolved<TRBLabel>;
 }> &
   DesignsystemetLabelProps;
 
-type LabelInnerProps = Omit<LabelProps, 'node'> & { item: CompInternal; nodeId: string };
+type LabelInnerProps = LabelProps & { item: CompInternal };
 
 export function Label(props: LabelProps) {
-  const item = useItemFor(props.node.baseId);
+  const item = useItemFor(props.baseComponentId);
   return (
     <LabelInner
       item={item}
-      nodeId={props.node.id}
       {...props}
     />
   );
@@ -59,8 +57,7 @@ export function LabelInner(props: LabelInnerProps) {
   const readOnly = 'readOnly' in item && item.readOnly;
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 
-  // These can be overridden by props, but are otherwise retrieved from the node item
-  const id = overrideId ?? props.nodeId;
+  const id = useIndexedId(overrideId ?? props.baseComponentId);
   const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
 
   if (!textResourceBindings?.title) {

@@ -104,18 +104,21 @@ export function useDataModelLocationForRow(
   );
 }
 
-export function useComponentIdMutator(): IdMutator {
+export function useComponentIdMutator(skipLastMutator = false): IdMutator {
   const mutators = useCtx()?.idMutators;
   return useCallback(
     (id) => {
       let newId = id;
-      for (const mutator of mutators ?? []) {
+      for (const [index, mutator] of mutators?.entries() ?? []) {
+        if (skipLastMutator && mutators && index === mutators.length - 1) {
+          continue;
+        }
         newId = mutator(newId);
       }
 
       return newId;
     },
-    [mutators],
+    [mutators, skipLastMutator],
   );
 }
 
@@ -126,11 +129,11 @@ export function useComponentIdMutator(): IdMutator {
  * @see useIndexedComponentIds - An alternative (more complex) solution that will complain if the target ID does not
  * belong here, according to the layout structure.
  */
-export function useIndexedId(baseId: string): string;
+export function useIndexedId(baseId: string, skipLastMutator?: boolean): string;
 // eslint-disable-next-line no-redeclare
-export function useIndexedId(baseId: string | undefined): string | undefined;
+export function useIndexedId(baseId: string | undefined, skipLastMutator?: boolean): string | undefined;
 // eslint-disable-next-line no-redeclare
-export function useIndexedId(baseId: unknown) {
-  const idMutator = useComponentIdMutator();
+export function useIndexedId(baseId: unknown, skipLastMutator = false) {
+  const idMutator = useComponentIdMutator(skipLastMutator);
   return useMemo(() => (typeof baseId === 'string' ? idMutator(baseId) : baseId), [baseId, idMutator]);
 }

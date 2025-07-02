@@ -220,8 +220,8 @@ export class AppFrontend {
     addNewItemSubGroup: '[id*="add-button-subGroup"]',
     comments: 'input[id^="comments"]',
     saveSubGroup: 'button[id*="save-button-subGroup"]',
-    saveMainGroup: '#save-button-mainGroup',
-    saveAndNextMainGroup: '#next-button-grp-mainGroup',
+    saveMainGroup: '[id^="save-button-mainGroup"]',
+    saveAndNextMainGroup: '[id^="next-button-grp-mainGroup"]',
     editContainer: '[data-testid=group-edit-container]',
     sendersName: '#sendersName',
     summaryText: '#send-in-text',
@@ -259,7 +259,7 @@ export class AppFrontend {
           deleteBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type button`,
         }),
         groupContainer: `#group-subGroup-${idx}`,
-        saveBtn: `#save-button-subGroup-${idx}`,
+        saveBtn: `[id^="save-button-subGroup-${idx}"]`,
       },
     }),
   };
@@ -290,7 +290,7 @@ export class AppFrontend {
           age: '[data-testid=group-edit-container] [id^="pet-age"]',
           sortOrder: '[data-testid=group-edit-container] [id^="futureSortOrder-inside"]',
           sortButton: '[data-testid=group-edit-container] [id^="custom-button-sortOrderButton-inside"]',
-          saveAndClose: '[data-testid=group-edit-container] #save-button-pets',
+          saveAndClose: '[data-testid=group-edit-container] [id^="save-button-pets"]',
         },
       };
     },

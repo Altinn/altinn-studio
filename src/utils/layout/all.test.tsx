@@ -16,7 +16,7 @@ import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal, useNode, useNodes } from 'src/utils/layout/NodesContext';
+import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config();
@@ -83,15 +83,10 @@ function RenderAllComponents() {
 /**
  * Makes sure we go one level deeper into the subform context when testing subforms
  */
-function SubformTestWrapper({ id, children }: PropsWithChildren<{ id: string }>) {
-  const node = useNode(id);
-  if (!node || !node.isType('Subform')) {
-    throw new Error(`Subform node with id ${id} not found`);
-  }
-
+function SubformTestWrapper({ baseId, children }: PropsWithChildren<{ baseId: string }>) {
   return (
     <TaskStoreProvider>
-      <SubformWrapper node={node}>{children}</SubformWrapper>
+      <SubformWrapper baseComponentId={baseId}>{children}</SubformWrapper>
     </TaskStoreProvider>
   );
 }
@@ -160,7 +155,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     await renderWithInstanceAndLayout({
       taskId: mainSet.getTaskId(),
       renderer: () =>
-        subformComponent ? <SubformTestWrapper id={subformComponent.id}>{children}</SubformTestWrapper> : children,
+        subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
         fetchLayoutSets: async () => set.app.getRawLayoutSets(),
         fetchLayouts: async (setId) => set.app.getLayoutSet(setId).getLayouts(),

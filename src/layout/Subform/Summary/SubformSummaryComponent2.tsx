@@ -42,7 +42,7 @@ const SummarySubformWrapperInner = ({ nodeId }: PropsWithChildren<{ nodeId: stri
         <>
           <div className={classes.pageBreak} />
           <Label
-            node={node}
+            baseComponentId={node.baseId}
             id={`subform-summary2-${id}`}
             renderLabelAs='span'
             weight='regular'
@@ -115,7 +115,7 @@ const DoSummaryWrapper = ({
             <div className={classes_singlevaluesummary.labelValueWrapper}>
               <LabelInner
                 item={item}
-                nodeId={node.id}
+                baseComponentId={node.baseId}
                 id={`subform-summary2-${dataElement.id}`}
                 renderLabelAs='span'
                 weight='regular'

@@ -14,7 +14,7 @@ export interface IAttachmentSummaryComponent {
 }
 
 export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {
-  const attachments = useUploaderSummaryData(targetNode);
+  const attachments = useUploaderSummaryData(targetNode.baseId);
   const { langAsString } = useLanguage();
   const component = useItemWhenType(targetNode.baseId, targetNode.type);
   const hasTag = component.type === 'FileUploadWithTag';

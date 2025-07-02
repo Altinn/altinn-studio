@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
@@ -13,7 +14,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Map extends MapDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Map'>>(
@@ -36,14 +36,16 @@ export class Map extends MapDef {
     return <MapSummary {...props} />;
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'Map'>, bindings: IDataModelBindings<'Map'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Map'>): string[] {
     const errors: string[] = [];
     const lookupBinding = DataModels.useLookupBinding();
+    const layoutLookups = useLayoutLookups();
 
     const [simpleBindingErrors] = validateDataModelBindingsAny(
-      node,
+      baseComponentId,
       bindings,
       lookupBinding,
+      layoutLookups,
       'simpleBinding',
       ['string'],
       false,
@@ -51,9 +53,10 @@ export class Map extends MapDef {
     simpleBindingErrors && errors.push(...simpleBindingErrors);
 
     const [geometriesErrors, geometriesResult] = validateDataModelBindingsAny(
-      node,
+      baseComponentId,
       bindings,
       lookupBinding,
+      layoutLookups,
       'geometries',
       ['array'],
       false,

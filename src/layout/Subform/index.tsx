@@ -15,23 +15,22 @@ import { useValidateSubform } from 'src/layout/Subform/useValidateSubform';
 import type { PropsFromGenericComponent, SubRouting, ValidateComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Subform extends SubformDef implements ValidateComponent<'Subform'>, SubRouting<'Subform'> {
+export class Subform extends SubformDef implements ValidateComponent, SubRouting {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Subform'>>(
     function LayoutComponentSubformRender(props, _): JSX.Element | null {
       return <SubformComponent {...props} />;
     },
   );
 
-  subRouting({ node }: { node: LayoutNode<'Subform'> }): ReactNode {
+  subRouting({ baseComponentId }: { baseComponentId: string }): ReactNode {
     return (
       <TaskStoreProvider>
         <Routes>
           <Route
             path=':dataElementId/:subformPage?'
             element={
-              <SubformWrapper node={node}>
+              <SubformWrapper baseComponentId={baseComponentId}>
                 <SubformForm />
               </SubformWrapper>
             }
@@ -61,7 +60,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     return <SubformSummaryComponent2 {...props} />;
   }
 
-  useComponentValidation(node: LayoutNode<'Subform'>): ComponentValidation[] {
-    return useValidateSubform(node);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateSubform(baseComponentId);
   }
 }

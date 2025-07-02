@@ -13,7 +13,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsSubformPage, useNavigate, useNavigationParams } from 'src/features/routing/AppRoutingContext';
 import { isSubformValidation } from 'src/features/validation';
-import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes1 from 'src/layout/Subform/SubformComponent.module.css';
@@ -114,8 +114,9 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
   }
 
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const subformIdsWithError =
-    useComponentValidationsForNode(targetNode).find(isSubformValidation)?.subformDataElementIds;
+  const subformIdsWithError = useComponentValidationsFor(targetNode.baseId).find(
+    isSubformValidation,
+  )?.subformDataElementIds;
 
   if (!dataType) {
     window.logErrorOnce(`Unable to find data type for subform with id ${id}`);
@@ -129,7 +130,7 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
     return (
       <>
         <Label
-          node={targetNode}
+          baseComponentId={targetNode.baseId}
           id={`subform-summary2-${id}`}
           renderLabelAs='span'
           weight='regular'

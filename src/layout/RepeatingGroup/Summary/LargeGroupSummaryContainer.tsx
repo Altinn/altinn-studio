@@ -4,13 +4,14 @@ import type { JSX } from 'react';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IDisplayRepAsLargeGroup {
   groupNode: LayoutNode<'RepeatingGroup'>;
@@ -32,12 +33,14 @@ export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderL
   const isHidden = Hidden.useIsHidden(groupNode);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
   const children = useNodeDirectChildren(groupNode, restriction);
+  const layoutLookups = useLayoutLookups();
   if (isHidden) {
     return null;
   }
   const { title, summaryTitle } = item.textResourceBindings || {};
 
-  const isNested = groupNode.parent instanceof LayoutNode;
+  const parent = layoutLookups.componentToParent[groupNode.baseId];
+  const isNested = parent?.type === 'node';
   const headingLevel = Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
   const legend = summaryTitle ?? title;

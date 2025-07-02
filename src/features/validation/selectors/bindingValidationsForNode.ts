@@ -1,26 +1,26 @@
 import { useMemo } from 'react';
 
-import type { ComponentValidation, FieldValidation, NodeValidation } from '..';
+import type { ComponentValidation, FieldValidation, NodeRefValidation } from '..';
 
 import { Validation } from 'src/features/validation/validationContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type OutValues = NodeValidation<ComponentValidation | FieldValidation>[];
+type OutValues = NodeRefValidation<ComponentValidation | FieldValidation>[];
 
 /**
  * Gets all validations that are bound to a data model field,
  * including component validations which have a binding key association.
  */
-export function useBindingValidationsForNode<
-  N extends LayoutNode,
-  T extends CompTypes = N extends LayoutNode<infer T> ? T : never,
->(node: N): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
+export function useBindingValidationsFor<T extends CompTypes>(
+  baseComponentId: string,
+): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
   const showAll = Validation.useShowAllBackendErrors();
-  const component = NodesInternal.useVisibleValidations(node, showAll);
-  const dataModelBindings = useDataModelBindingsFor(node.baseId);
+  const component = NodesInternal.useVisibleValidations(baseComponentId, showAll);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
+  const indexedId = useIndexedId(baseComponentId);
 
   return useMemo(() => {
     if (!dataModelBindings) {
@@ -35,12 +35,20 @@ export function useBindingValidationsForNode<
       bindingValidations[bindingKey].push(
         ...validations
           .filter((v) => 'bindingKey' in v && v.bindingKey === bindingKey)
-          .map((validation) => ({ ...validation, bindingKey, node }) as NodeValidation<ComponentValidation>),
+          .map(
+            (validation) =>
+              ({
+                ...validation,
+                bindingKey,
+                nodeId: indexedId,
+                baseComponentId,
+              }) satisfies NodeRefValidation<ComponentValidation>,
+          ),
       );
     }
 
     return bindingValidations as {
       [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues;
     };
-  }, [component, node, dataModelBindings]);
+  }, [component, baseComponentId, indexedId, dataModelBindings]);
 }

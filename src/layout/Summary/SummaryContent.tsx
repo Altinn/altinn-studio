@@ -27,7 +27,7 @@ export function SummaryContent({
   const targetItem = useItemFor(targetNode.baseId);
   const display = overrides?.display;
   const readOnlyComponent = 'readOnly' in targetItem && targetItem.readOnly === true;
-  const validations = useUnifiedValidationsForNode(targetNode);
+  const validations = useUnifiedValidationsForNode(targetNode.baseId);
   const hasErrors = hasValidationErrors(validations);
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;
   const displaySummaryBoilerPlate =

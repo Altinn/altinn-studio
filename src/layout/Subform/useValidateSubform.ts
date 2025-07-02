@@ -5,15 +5,14 @@ import { FrontendValidationSource, ValidationMask } from 'src/features/validatio
 import { Validation } from 'src/features/validation/validationContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ComponentValidation, SubformValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useValidateSubform(node: LayoutNode<'Subform'>): ComponentValidation[] {
+export function useValidateSubform(baseComponentId: string): ComponentValidation[] {
   const applicationMetadata = useApplicationMetadata();
   const layoutSets = useLayoutSets();
-  const component = useExternalItem(node.baseId, 'Subform');
+  const component = useExternalItem(baseComponentId, 'Subform');
   const layoutSetName = component?.layoutSet;
   if (!layoutSetName) {
-    throw new Error(`Layoutset not found for node with id ${node.id}.`);
+    throw new Error(`Layoutset not found for node with id ${baseComponentId}.`);
   }
   const targetType = layoutSets.find((set) => set.id === layoutSetName)?.dataType;
   if (!targetType) {

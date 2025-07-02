@@ -5,7 +5,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
+import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -27,7 +27,7 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
   const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const bindingValidations = useBindingValidationsForNode(componentNode);
+  const bindingValidations = useBindingValidationsFor<'OrganisationLookup'>(componentNode.baseId);
   const isEmpty = !(organisation_lookup_orgnr || organisation_lookup_name);
 
   return (
@@ -60,7 +60,7 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
             />
             <ComponentValidations
               validations={bindingValidations?.organisation_lookup_orgnr}
-              node={componentNode}
+              baseComponentId={componentNode.baseId}
             />
           </div>
           {organisation_lookup_name && (
@@ -75,7 +75,7 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
               />
               <ComponentValidations
                 validations={bindingValidations?.organisation_lookup_name}
-                node={componentNode}
+                baseComponentId={componentNode.baseId}
               />
             </div>
           )}

@@ -1,23 +1,32 @@
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import {
   validateDataModelBindingsAny,
   validateDataModelBindingsSimple,
 } from 'src/utils/layout/generator/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes' | 'MultipleSelect'>(
-  node: LayoutNode<T>,
+  baseComponentId: string,
   bindings: IDataModelBindings<T>,
 ) {
   const errors: string[] = [];
   const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
   const { group: groupBinding, simpleBinding, label: labelBinding, metadata: metadataBinding } = bindings ?? {};
   const lookupBinding = DataModels.useLookupBinding();
+  const layoutLookups = useLayoutLookups();
 
   if (groupBinding) {
-    const [groupErrors] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'group', ['array'], false);
+    const [groupErrors] = validateDataModelBindingsAny(
+      baseComponentId,
+      bindings,
+      lookupBinding,
+      layoutLookups,
+      'group',
+      ['array'],
+      false,
+    );
     errors.push(...(groupErrors || []));
 
     if (!simpleBinding.field.startsWith(`${groupBinding.field}.`)) {
@@ -44,7 +53,7 @@ export function useValidateSimpleBindingWithOptionalGroup<T extends 'Checkboxes'
       errors.push(`Field ${simpleBinding} in group must be one of types ${allowedLeafTypes.join(', ')}`);
     }
   } else {
-    const [newErrors] = validateDataModelBindingsSimple(node, bindings, lookupBinding);
+    const [newErrors] = validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
     errors.push(...(newErrors || []));
   }
 

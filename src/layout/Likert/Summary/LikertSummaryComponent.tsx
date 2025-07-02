@@ -37,7 +37,7 @@ export function LikertSummaryComponent({
   const inExcludedChildren = (n: LayoutNode) =>
     (excludedChildren && (excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId))) ?? false;
 
-  const groupValidations = useDeepValidationsForNode(targetNode);
+  const groupValidations = useDeepValidationsForNode(targetNode.baseId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const dataModelBindings = useDataModelBindingsFor(targetNode.baseId, 'Likert');

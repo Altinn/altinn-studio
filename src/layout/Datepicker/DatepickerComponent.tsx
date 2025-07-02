@@ -46,7 +46,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
   };
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ node, overrideDisplay });
+    useLabel({ baseComponentId: node.baseId, overrideDisplay });
 
   return (
     <Label

@@ -6,18 +6,18 @@ import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function useLabel({
-  node,
+  baseComponentId,
   overrideDisplay,
 }: {
-  node: LayoutNode;
+  baseComponentId: string;
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }) {
-  const item = useItemFor(node.baseId);
+  const item = useItemFor(baseComponentId);
   const { readOnly, required, showOptionalMarking, textResourceBindings } = {
     readOnly: item['readOnly'],
     required: item['required'],
@@ -29,6 +29,7 @@ export function useLabel({
     },
   };
 
+  const indexedId = useIndexedId(baseComponentId);
   const { langAsString } = useLanguage();
   const { title, help, description } = textResourceBindings ?? {};
 
@@ -56,7 +57,7 @@ export function useLabel({
   const getDescriptionComponent = () =>
     description ? (
       <Description
-        componentId={node.id}
+        componentId={indexedId}
         description={<Lang id={description} />}
       />
     ) : undefined;

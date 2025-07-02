@@ -30,7 +30,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   const rows = useLikertRows(target);
   const { textResourceBindings, dataModelBindings, readOnly, required } = useItemWhenType(target.baseId, 'Likert');
 
-  const validations = useUnifiedValidationsForNode(target);
+  const validations = useUnifiedValidationsForNode(target.baseId);
   const errors = validationsOfSeverity(validations, 'error');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
@@ -126,7 +126,7 @@ function LikertRowSummaryInner({
 }) {
   const { textResourceBindings, required } = useItemWhenType(node.baseId, 'LikertItem');
   const displayData = useDisplayData(node);
-  const validations = useUnifiedValidationsForNode(node);
+  const validations = useUnifiedValidationsForNode(node.baseId);
   const errors = validationsOfSeverity(validations, 'error');
 
   useReportSummaryRender(

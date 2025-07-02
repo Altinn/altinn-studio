@@ -3,11 +3,13 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNode } from 'src/utils/layout/NodesContext';
 
 interface RepeatingGroupEditRowContext {
   multiPageEnabled: boolean;
@@ -24,10 +26,10 @@ const { Provider, useCtx } = createContext<RepeatingGroupEditRowContext>({
 });
 
 function useRepeatingGroupEditRowState(
-  node: LayoutNode<'RepeatingGroup'>,
+  baseComponentId: string,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
-  const lastPage = RepGroupHooks.useLastMultiPageIndex(node) ?? 0;
-  const multiPageEnabled = useExternalItem(node.baseId, 'RepeatingGroup').edit?.multiPage ?? false;
+  const lastPage = RepGroupHooks.useLastMultiPageIndex(baseComponentId) ?? 0;
+  const multiPageEnabled = useExternalItem(baseComponentId, 'RepeatingGroup').edit?.multiPage ?? false;
   const [multiPageIndex, setMultiPageIndex] = useState(0);
 
   const nextMultiPage = useCallback(() => {
@@ -50,8 +52,9 @@ function useRepeatingGroupEditRowState(
 }
 
 export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
-  const { node } = useRepeatingGroup();
-  const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(node);
+  const baseComponentId = useRepeatingGroupComponentId();
+  const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(baseComponentId);
+  const node = useNode(useIndexedId(baseComponentId));
 
   useRegisterNodeNavigationHandler(async (targetNode) => {
     if (!state.multiPageEnabled) {

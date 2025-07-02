@@ -128,8 +128,8 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
 function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyItemProps) {
   const node = useNode(nodeId) as LayoutNode<'RepeatingGroup'>;
   const nodeItem = useItemWhenType(node.baseId, 'RepeatingGroup');
-  const rows = RepGroupHooks.useAllRowsWithHidden(node);
-  const childIds = RepGroupHooks.useChildIds(node);
+  const rows = RepGroupHooks.useAllRowsWithHidden(node.baseId);
+  const childIds = RepGroupHooks.useChildIds(node.baseId);
 
   return (
     <>

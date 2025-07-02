@@ -8,15 +8,13 @@ import {
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
-  node: LayoutNode<'RepeatingGroup'>;
+  baseComponentId: string;
 }
 
-export function OpenByDefaultProvider({ node, children }: PropsWithChildren<Props>) {
-  const groupId = node.id;
-  const item = useItemWhenType(node.baseId, 'RepeatingGroup');
+export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithChildren<Props>) {
+  const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
   const openByDefault = item.edit?.openByDefault;
   const isFirstRender = useRef(true);
   const { addRow, openForEditing } = useRepeatingGroup();
@@ -55,7 +53,7 @@ export function OpenByDefaultProvider({ node, children }: PropsWithChildren<Prop
         const { result } = await addRow();
         if (result !== 'addedAndOpened') {
           window.logWarn(
-            `openByDefault for repeating group '${groupId}' returned '${result}'. You may have rules that make it ` +
+            `openByDefault for repeating group '${baseComponentId}' returned '${result}'. You may have rules that make it ` +
               `impossible to add a new blank row, or open the added row for editing, such as a restrictive ` +
               `hiddenRow expression. You probably want to disable openByDefault for this group, as openByDefault ` +
               `might create empty and invisible rows before it will disable itself. openByDefault will be disabled ` +
@@ -81,7 +79,7 @@ export function OpenByDefaultProvider({ node, children }: PropsWithChildren<Prop
         isFirstRender.current = false;
       }
     })();
-  }, [openByDefault, stateRef, addRow, groupId, hasNoRows]);
+  }, [openByDefault, stateRef, addRow, baseComponentId, hasNoRows]);
 
   return children;
 }

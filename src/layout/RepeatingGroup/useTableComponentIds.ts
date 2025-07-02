@@ -4,13 +4,12 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import type { CompTypes } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const emptyArray: never[] = [];
 const extraToShowInTable: CompTypes[] = ['Text', 'Number', 'Date', 'Option'];
-export function useTableComponentIds(node: LayoutNode<'RepeatingGroup'>) {
+export function useTableComponentIds(baseComponentId: string) {
   const layoutLookups = useLayoutLookups();
-  const component = layoutLookups.getComponent(node.baseId, 'RepeatingGroup');
+  const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
   const tableHeaders = component.tableHeaders;
   const multiPage = component.edit?.multiPage ?? false;
   const children =

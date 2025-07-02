@@ -13,10 +13,10 @@ import {
   useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 interface RepeatingGroupPaginationProps {
   inTable?: boolean;
 }
@@ -33,16 +33,17 @@ export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
   return <RGPagination {...props} />;
 }
 function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
-  const { changePage, node } = useRepeatingGroup();
+  const { changePage, baseComponentId } = useRepeatingGroup();
   const { hasPagination, rowsPerPage, currentPage, totalPages } = useRepeatingGroupPagination();
-  const pagesWithErrors = usePagesWithErrors(rowsPerPage, node);
+  const pagesWithErrors = usePagesWithErrors(rowsPerPage, baseComponentId);
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
   const isMini = useIsMini();
-  const textResourceBindings = useItemWhenType(node.baseId, 'RepeatingGroup').textResourceBindings || {};
+  const textResourceBindings = useItemWhenType(baseComponentId, 'RepeatingGroup').textResourceBindings || {};
+  const indexedId = useIndexedId(baseComponentId);
   const getScrollPosition = useCallback(
-    () => document.querySelector(`[data-pagination-id="${node.id}"]`)?.getClientRects().item(0)?.y,
-    [node],
+    () => document.querySelector(`[data-pagination-id="${indexedId}"]`)?.getClientRects().item(0)?.y,
+    [indexedId],
   );
   /**
    * The last page can have fewer items than the other pages,
@@ -78,7 +79,7 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
       <PaginationComponent
         nextTextKey={textResourceBindings?.pagination_next_button ?? 'general.next'}
         backTextKey={textResourceBindings?.pagination_back_button ?? 'general.back'}
-        data-pagination-id={node.id}
+        data-pagination-id={indexedId}
         className={classes.pagination}
         currentPage={currentPage + 1}
         totalPages={totalPages}
@@ -178,16 +179,23 @@ function PaginationComponent({
 /**
  * Returns a list of pagination pages containing errors
  */
-function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'RepeatingGroup'>): number[] {
-  const rows = RepGroupHooks.useAllRowsWithHidden(node);
-  const deepValidations = NodesInternal.useVisibleValidationsDeep(node, 'visible', false, undefined, 'error');
+function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: string): number[] {
+  const rows = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
+  const deepValidations = NodesInternal.useVisibleValidationsDeep(
+    baseComponentId,
+    'visible',
+    false,
+    undefined,
+    'error',
+  );
+  const indexedId = useIndexedId(baseComponentId);
 
   return useMemo(() => {
     if (typeof rowsPerPage !== 'number') {
       return [];
     }
 
-    const { depth } = splitDashedKey(node.id);
+    const { depth } = splitDashedKey(indexedId);
     const rowsWithErrors = new Set<number>(
       deepValidations.map((v) => splitDashedKey(v.nodeId).depth.slice(depth.length)[0]),
     );
@@ -204,5 +212,5 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'R
     }
 
     return Array.from(pagesWithErrors);
-  }, [rowsPerPage, node.id, deepValidations, rows]);
+  }, [rowsPerPage, indexedId, deepValidations, rows]);
 }

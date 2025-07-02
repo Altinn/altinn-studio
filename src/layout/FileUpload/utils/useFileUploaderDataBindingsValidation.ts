@@ -1,17 +1,19 @@
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { isDataModelBindingsRequired } from 'src/layout';
 import {
   validateDataModelBindingsList,
   validateDataModelBindingsSimple,
 } from 'src/utils/layout/generator/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | 'FileUploadWithTag'>(
-  node: LayoutNode<T>,
+  baseComponentId: string,
   bindings: IDataModelBindings<T>,
 ): string[] {
+  const layoutLookups = useLayoutLookups();
   const lookupBinding = DataModels.useLookupBinding();
-  const isRequired = node.def.isDataModelBindingsRequired(node as never);
+  const isRequired = isDataModelBindingsRequired(baseComponentId, layoutLookups);
   const hasBinding = bindings && ('simpleBinding' in bindings || 'list' in bindings);
 
   if (!isRequired && !hasBinding) {
@@ -28,11 +30,11 @@ export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | '
   const listBinding = bindings && 'list' in bindings ? bindings.list : undefined;
 
   if (simpleBinding) {
-    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
+    return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 
   if (listBinding) {
-    return validateDataModelBindingsList(node, bindings, lookupBinding);
+    return validateDataModelBindingsList(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 
   return [];

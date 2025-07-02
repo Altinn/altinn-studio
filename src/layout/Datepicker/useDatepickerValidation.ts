@@ -6,12 +6,11 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useDatepickerValidation(node: LayoutNode<'Datepicker'>): ComponentValidation[] {
+export function useDatepickerValidation(baseComponentId: string): ComponentValidation[] {
   const currentLanguage = useCurrentLanguage();
-  const field = useDataModelBindingsFor(node.baseId, 'Datepicker')?.simpleBinding;
-  const component = useExternalItem(node.baseId, 'Datepicker');
+  const field = useDataModelBindingsFor(baseComponentId, 'Datepicker')?.simpleBinding;
+  const component = useExternalItem(baseComponentId, 'Datepicker');
   const data = FD.useDebouncedPick(field);
   const minDate = getDateConstraint(component?.minDate, 'min');
   const maxDate = getDateConstraint(component?.maxDate, 'max');

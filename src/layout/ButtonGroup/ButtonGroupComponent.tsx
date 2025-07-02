@@ -15,7 +15,10 @@ import { useLabel } from 'src/utils/layout/useLabel';
 
 export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
   const { grid, children } = useExternalItem(node.baseId, 'ButtonGroup');
-  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
+    baseComponentId: node.baseId,
+    overrideDisplay,
+  });
 
   return (
     <Fieldset

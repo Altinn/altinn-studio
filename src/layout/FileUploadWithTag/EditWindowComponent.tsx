@@ -48,7 +48,7 @@ export function EditWindowComponent({
   const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
   const updateAttachment = useAttachmentsUpdater();
 
-  const attachmentValidations = useAttachmentValidations(node, uploadedAttachment?.data.id);
+  const attachmentValidations = useAttachmentValidations(node.baseId, uploadedAttachment?.data.id);
   const onAttachmentSave = useOnAttachmentSave();
 
   const hasErrors = hasValidationErrors(attachmentValidations);
@@ -230,7 +230,7 @@ export function EditWindowComponent({
         >
           <ComponentValidations
             validations={attachmentValidations}
-            node={node}
+            baseComponentId={node.baseId}
           />
         </div>
       ) : undefined}

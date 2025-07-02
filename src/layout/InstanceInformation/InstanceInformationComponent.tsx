@@ -103,7 +103,10 @@ export function InstanceInformationComponent({
   overrideDisplay,
 }: PropsFromGenericComponent<'InstanceInformation'>) {
   const { grid, elements } = useExternalItem(node.baseId, 'InstanceInformation');
-  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
+    baseComponentId: node.baseId,
+    overrideDisplay,
+  });
 
   return (
     <Fieldset

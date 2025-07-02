@@ -772,13 +772,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     };
 
     return (
-      <FormComponentContextProvider
-        value={{
-          node,
-          baseComponentId: node.baseId,
-          id: node.id,
-        }}
-      >
+      <FormComponentContextProvider value={{ baseComponentId: node.baseId }}>
         {renderer(props)}
       </FormComponentContextProvider>
     );

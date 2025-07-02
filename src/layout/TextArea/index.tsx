@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
@@ -13,7 +14,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class TextArea extends TextAreaDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'TextArea'>>(
@@ -41,8 +41,9 @@ export class TextArea extends TextAreaDef {
     return <TextAreaSummary {...props} />;
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'TextArea'>, bindings: IDataModelBindings<'TextArea'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TextArea'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
+    const layoutLookups = useLayoutLookups();
+    return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 }

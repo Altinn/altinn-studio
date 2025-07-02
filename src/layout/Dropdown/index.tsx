@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
@@ -18,7 +19,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Dropdown'>>(
@@ -59,8 +59,9 @@ export class Dropdown extends DropdownDef {
     return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'simpleBinding');
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'Dropdown'>, bindings: IDataModelBindings<'Dropdown'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Dropdown'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    return validateDataModelBindingsSimple(node, bindings, lookupBinding);
+    const layoutLookups = useLayoutLookups();
+    return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 }

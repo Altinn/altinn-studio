@@ -29,8 +29,8 @@ function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: No
   const addError = NodesInternal.useAddError();
   const def = node.def;
   const errors =
-    implementsDataModelBindingValidation(def, node) && window.forceNodePropertiesValidation !== 'off'
-      ? def.useDataModelBindingValidation(node, intermediateItem.dataModelBindings)
+    implementsDataModelBindingValidation(def, intermediateItem) && window.forceNodePropertiesValidation !== 'off'
+      ? def.useDataModelBindingValidation(node.baseId, intermediateItem.dataModelBindings)
       : emptyArray;
 
   // Must run after nodes have been added for the errors to actually be added

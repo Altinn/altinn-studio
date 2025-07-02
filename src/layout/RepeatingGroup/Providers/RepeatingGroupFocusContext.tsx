@@ -5,8 +5,10 @@ import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNode } from 'src/utils/layout/NodesContext';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 type FocusableHTMLElement =
@@ -39,9 +41,10 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   const elementRefs = useMemo(() => new Map<string, HTMLElement | null>(), []);
   const waitingForFocus = useRef<number | null>(null);
 
-  const { node, openForEditing, changePageToRow } = useRepeatingGroup();
-  const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(node.baseId, 'RepeatingGroup');
+  const { baseComponentId, openForEditing, changePageToRow } = useRepeatingGroup();
+  const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
   const rowsSelector = FD.useDebouncedRowsSelector();
+  const node = useNode(useIndexedId(baseComponentId));
 
   useRegisterNodeNavigationHandler(async (targetNode) => {
     // Figure out if we are a parent of the target component, setting the targetChild to the target

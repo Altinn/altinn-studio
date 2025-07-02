@@ -19,7 +19,7 @@ export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
   const { langAsString } = useLanguage();
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const {
     id,
     readOnly,
@@ -39,7 +39,7 @@ export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
   const debounce = FD.useDebounceImmediately();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ node, overrideDisplay });
+    useLabel({ baseComponentId: node.baseId, overrideDisplay });
 
   return (
     <Label

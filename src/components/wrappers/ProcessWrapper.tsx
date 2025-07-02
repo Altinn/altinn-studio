@@ -23,11 +23,11 @@ import {
   useQueryKeysAsString,
 } from 'src/features/routing/AppRoutingContext';
 import { useIsCurrentTask, useIsValidTaskId, useNavigateToTask, useStartUrl } from 'src/hooks/useNavigatePage';
+import { implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { useNode } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface NavigationErrorProps {
   label: string;
@@ -178,17 +178,14 @@ export const ComponentRouting = () => {
     return <RedirectBackToMainForm />;
   }
 
-  function isSubroutingNode(node: LayoutNode): node is LayoutNode<'Subform'> {
-    return node.isType('Subform') && !!node.def.subRouting;
-  }
-
-  if (isSubroutingNode(node)) {
-    const SubRouting = node.def.subRouting;
+  const def = node.def;
+  if (implementsSubRouting(def)) {
+    const SubRouting = def.subRouting;
 
     return (
       <SubRouting
         key={node.id}
-        node={node}
+        baseComponentId={node.baseId}
       />
     );
   }

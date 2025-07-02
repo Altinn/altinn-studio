@@ -6,9 +6,9 @@ import { isAttachmentUploaded } from 'src/features/attachments/index';
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentDef } from 'src/layout';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompWithPlugin, IDataModelBindings } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 
 /**
@@ -21,16 +21,16 @@ import type { NodesContext } from 'src/utils/layout/NodesContext';
  * The 'onBeforeRowDeletion' function you get as a result here gives you a Promise that resolves to true if all
  * attachments were successfully removed, or false if any of them failed to be removed.
  */
-export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGroup'>) {
+export function useAttachmentDeletionInRepGroups(baseComponentId: string) {
   const remove = useAsRef(useAttachmentsRemover());
   const awaiter = useAttachmentsAwaiter();
-  const nodeRef = useAsRef(node);
+  const idRef = useAsRef(useIndexedId(baseComponentId));
   const nodesStore = NodesInternal.useStore();
 
   return useCallback(
     async (restriction: number | undefined): Promise<boolean> => {
       const state = nodesStore.getState();
-      const recursiveChildren = new Set<string>(recursivelyFindChildren(nodeRef.current.id, state, restriction));
+      const recursiveChildren = new Set<string>(recursivelyFindChildren(idRef.current, state, restriction));
       const uploaderNodeIds = Object.values(state.nodeData)
         .filter((n) => {
           if (!recursiveChildren.has(n.id)) {
@@ -86,7 +86,7 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 
       return true;
     },
-    [nodesStore, nodeRef, remove, awaiter],
+    [nodesStore, idRef, remove, awaiter],
   );
 }
 

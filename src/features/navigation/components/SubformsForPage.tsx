@@ -10,7 +10,7 @@ import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
 import { isSubformValidation } from 'src/features/validation';
-import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import {
   getSubformEntryDisplayName,
@@ -45,7 +45,7 @@ function SubformGroup({ nodeId }: { nodeId: string }) {
     // This should never happen, @see SubformsForPage
     throw new Error(`Navigation expected component: "${nodeId}" to exist and be of type: "Subform"`);
   }
-  const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
+  const subformIdsWithError = useComponentValidationsFor(node.baseId).find(isSubformValidation)?.subformDataElementIds;
   const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(node.baseId, 'Subform') ?? {};
   const title = useEvalExpression(textResourceBindings?.title, {
     returnType: ExprVal.String,

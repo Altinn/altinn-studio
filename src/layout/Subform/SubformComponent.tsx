@@ -16,7 +16,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
-import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -59,7 +59,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
   const [subformEntries, updateSubformEntries] = useState(dataElements);
 
-  const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
+  const subformIdsWithError = useComponentValidationsFor(node.baseId).find(isSubformValidation)?.subformDataElementIds;
 
   const addEntry = () =>
     performProcess(async () => {

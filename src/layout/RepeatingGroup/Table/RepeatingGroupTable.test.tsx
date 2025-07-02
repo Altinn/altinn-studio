@@ -178,7 +178,7 @@ describe('RepeatingGroupTable', () => {
       nodeId: group.id,
       inInstance: true,
       renderer: ({ node }) => (
-        <RepeatingGroupProvider node={node}>
+        <RepeatingGroupProvider baseComponentId={node.baseId}>
           <LeakEditIndex />
           <RepeatingGroupTable />
         </RepeatingGroupProvider>

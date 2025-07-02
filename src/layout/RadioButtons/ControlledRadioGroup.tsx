@@ -23,7 +23,7 @@ export type IControlledRadioGroupProps = PropsFromGenericComponent<'RadioButtons
 
 export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { node, overrideDisplay } = props;
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const item = useItemWhenType<'RadioButtons' | 'LikertItem'>(
     node.baseId,
     (t) => t === 'RadioButtons' || t === 'LikertItem',

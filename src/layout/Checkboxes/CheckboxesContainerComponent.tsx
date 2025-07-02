@@ -41,7 +41,7 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: PropsFromG
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const horizontal = shouldUseRowLayout({
     layout,
     optionsCount: calculatedOptions.length,

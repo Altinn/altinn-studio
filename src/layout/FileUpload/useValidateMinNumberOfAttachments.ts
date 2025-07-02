@@ -1,15 +1,21 @@
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useValidateMinNumberOfAttachments(
-  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>,
-): ComponentValidation[] {
-  const minNumberOfAttachments = useNodeItem(node, (item) => item.minNumberOfAttachments);
-  const attachments = NodesInternal.useAttachments(node.id);
+export function useValidateMinNumberOfAttachments(baseComponentId: string): ComponentValidation[] {
   const validations: ComponentValidation[] = [];
+  const component = useExternalItem(baseComponentId);
+  const attachments = NodesInternal.useAttachments(useIndexedId(baseComponentId));
+  const minNumberOfAttachments = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
+    baseComponentId,
+    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
+  ).minNumberOfAttachments;
+  if (!component || (component.type !== 'FileUpload' && component.type !== 'FileUploadWithTag')) {
+    return validations;
+  }
 
   if (
     minNumberOfAttachments !== undefined &&

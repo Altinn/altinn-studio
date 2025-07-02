@@ -460,7 +460,7 @@ export class ComponentConfig {
     if (this.hasDataModelBindings()) {
       additionalMethods.push(
         `// You must implement this because the component has data model bindings defined
-        abstract useDataModelBindingValidation(node: ${LayoutNode}<'${this.type}'>, bindings: ${IDataModelBindings}<'${this.type}'>): string[];`,
+        abstract useDataModelBindingValidation(baseComponentId: string, bindings: ${IDataModelBindings}<'${this.type}'>): string[];`,
       );
     }
 

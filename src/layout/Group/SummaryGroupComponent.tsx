@@ -34,7 +34,7 @@ export function SummaryGroupComponent({
     [excludedChildren],
   );
 
-  const groupValidations = useDeepValidationsForNode(targetNode);
+  const groupValidations = useDeepValidationsForNode(targetNode.baseId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const textBindings = targetItem.textResourceBindings as ITextResourceBindings;

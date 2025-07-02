@@ -69,7 +69,10 @@ export function OrganisationLookupComponent({
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
   const { id, dataModelBindings, required } = useItemWhenType(node.baseId, 'OrganisationLookup');
-  const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({ node, overrideDisplay });
+  const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
+    baseComponentId: node.baseId,
+    overrideDisplay,
+  });
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
 

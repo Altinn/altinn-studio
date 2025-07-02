@@ -19,7 +19,7 @@ import type { RawGeometry } from 'src/layout/Map/types';
 export type IMapComponentProps = PropsFromGenericComponent<'Map'>;
 
 export function MapComponent({ node }: IMapComponentProps) {
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const dataModelBindings = useDataModelBindingsFor(node.baseId, 'Map');
   const markerBinding = dataModelBindings.simpleBinding;
 
@@ -42,7 +42,7 @@ export function MapComponent({ node }: IMapComponentProps) {
     <ComponentStructureWrapper
       node={node}
       label={{
-        node,
+        baseComponentId: node.baseId,
         renderLabelAs: 'span',
         className: classes.label,
       }}

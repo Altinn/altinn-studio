@@ -23,7 +23,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSelectProps) {
   const item = useItemWhenType(node.baseId, 'MultipleSelect');
-  const isValid = useIsValid(node);
+  const isValid = useIsValid(node.baseId);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required, dataModelBindings } = item;
   const {
     options,
@@ -38,7 +38,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
   const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ node, overrideDisplay });
+    useLabel({ baseComponentId: node.baseId, overrideDisplay });
 
   const changeMessageGenerator = useCallback(
     (values: string[]) => {

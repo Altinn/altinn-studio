@@ -39,7 +39,7 @@ export function ComponentStructureWrapper<Type extends CompTypes = CompTypes>({
       item
     >
       {children}
-      {showValidationMessages && <AllComponentValidations node={node} />}
+      {showValidationMessages && <AllComponentValidations baseComponentId={node.baseId} />}
     </Flex>
   );
 

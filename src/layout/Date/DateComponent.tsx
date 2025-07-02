@@ -42,7 +42,7 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
     <ComponentStructureWrapper
       node={node}
       label={{
-        node,
+        baseComponentId: node.baseId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,

@@ -137,7 +137,7 @@ const SummaryComponentInner = React.forwardRef(function (
   const targetView = targetNode.pageKey;
   const targetIsHidden = Hidden.useIsHidden(targetNode);
 
-  const validations = useUnifiedValidationsForNode(targetNode);
+  const validations = useUnifiedValidationsForNode(targetNode.baseId);
   const errors = validationsOfSeverity(validations, 'error');
 
   const navigateTo = useNavigateToNode();

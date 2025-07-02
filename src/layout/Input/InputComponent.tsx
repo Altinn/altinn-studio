@@ -138,7 +138,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
     onBlur: FD.useDebounceImmediately(),
-    error: !useIsValid(node),
+    error: !useIsValid(node.baseId),
     prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
     style: { width: '100%' },
@@ -238,7 +238,7 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
   const { grid, id, required } = useItemWhenType(node.baseId, 'Input');
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ node, overrideDisplay });
+    useLabel({ baseComponentId: node.baseId, overrideDisplay });
 
   return (
     <Label

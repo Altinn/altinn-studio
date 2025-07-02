@@ -1,25 +1,21 @@
 import { useMemo } from 'react';
 
-import type { AttachmentValidation, NodeValidation } from '..';
+import type { AttachmentValidation, NodeRefValidation } from '..';
 
 import { Validation } from 'src/features/validation/validationContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
-import type { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
-import type { CompWithPlugin } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-type ValidTypes = CompWithPlugin<AttachmentsPlugin> & CompWithPlugin<ValidationPlugin>;
 
 /**
  * Returns the validations for the given attachment.
  */
 export function useAttachmentValidations(
-  node: LayoutNode<ValidTypes>,
+  baseComponentId: string,
   attachmentId: string | undefined,
-): NodeValidation<AttachmentValidation>[] {
+): NodeRefValidation<AttachmentValidation>[] {
   const showAll = Validation.useShowAllBackendErrors();
-  const validations = NodesInternal.useVisibleValidations(node, showAll);
+  const indexedId = useIndexedId(baseComponentId);
+  const validations = NodesInternal.useVisibleValidations(indexedId, showAll);
 
   return useMemo(() => {
     if (!attachmentId) {
@@ -28,8 +24,12 @@ export function useAttachmentValidations(
 
     return validations
       .filter((v) => 'attachmentId' in v && v.attachmentId === attachmentId)
-      .map((validation) => ({ ...validation, node })) as NodeValidation<AttachmentValidation>[];
-  }, [attachmentId, node, validations]);
+      .map((validation) => ({
+        ...validation,
+        baseComponentId,
+        nodeId: indexedId,
+      })) as NodeRefValidation<AttachmentValidation>[];
+  }, [attachmentId, baseComponentId, indexedId, validations]);
 }
 
 const emptyArray: never[] = [];

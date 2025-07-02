@@ -26,9 +26,8 @@ import type {
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Datepicker extends DatepickerDef implements ValidateComponent<'Datepicker'>, ValidationFilter {
+export class Datepicker extends DatepickerDef implements ValidateComponent, ValidationFilter {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Datepicker'>>(
     function LayoutComponentDatepickerRender(props, _): JSX.Element | null {
       return <DatepickerComponent {...props} />;
@@ -63,8 +62,8 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     return <DatepickerSummary {...props} />;
   }
 
-  useComponentValidation(node: LayoutNode<'Datepicker'>): ComponentValidation[] {
-    return useDatepickerValidation(node);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useDatepickerValidation(baseComponentId);
   }
 
   /**
@@ -97,9 +96,9 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     );
   }
 
-  getValidationFilters(node: LayoutNode<'Datepicker'>, layoutLookups: LayoutLookups): ValidationFilterFunction[] {
+  getValidationFilters(baseComponentId: string, layoutLookups: LayoutLookups): ValidationFilterFunction[] {
     const filters = [Datepicker.schemaFormatFilter];
-    const component = layoutLookups.getComponent(node.baseId, 'Datepicker');
+    const component = layoutLookups.getComponent(baseComponentId, 'Datepicker');
 
     if (component.minDate) {
       filters.push(Datepicker.schemaFormatMinimumFilter);
@@ -112,10 +111,18 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     return filters;
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'Datepicker'>, bindings: IDataModelBindings<'Datepicker'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Datepicker'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    const component = useLayoutLookups().getComponent(node.baseId, 'Datepicker');
-    const validation = validateDataModelBindingsAny(node, bindings, lookupBinding, 'simpleBinding', ['string']);
+    const layoutLookups = useLayoutLookups();
+    const component = useLayoutLookups().getComponent(baseComponentId, 'Datepicker');
+    const validation = validateDataModelBindingsAny(
+      baseComponentId,
+      bindings,
+      lookupBinding,
+      layoutLookups,
+      'simpleBinding',
+      ['string'],
+    );
     const [errors, result] = [validation[0] ?? [], validation[1]];
 
     if (result?.format === 'date-time' && component.timeStamp === false) {

@@ -16,9 +16,8 @@ import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Address extends AddressDef implements ValidateComponent<'Address'> {
+export class Address extends AddressDef implements ValidateComponent {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Address'>>(
     function LayoutComponentAddressRender(props, _): JSX.Element | null {
       return <AddressComponent {...props} />;
@@ -43,24 +42,36 @@ export class Address extends AddressDef implements ValidateComponent<'Address'> 
     return false;
   }
 
-  useComponentValidation(node: LayoutNode<'Address'>): ComponentValidation[] {
-    return useAddressValidation(node);
+  useComponentValidation(baseComponentId: string): ComponentValidation[] {
+    return useAddressValidation(baseComponentId);
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'Address'>, bindings: IDataModelBindings<'Address'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Address'>): string[] {
     const lookupBinding = DataModels.useLookupBinding();
-    const component = useLayoutLookups().getComponent(node.baseId, 'Address');
+    const layoutLookups = useLayoutLookups();
+    const component = layoutLookups.getComponent(baseComponentId, 'Address');
     const errors: string[] = [
-      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'address', ['string'])[0] || []),
-      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'zipCode', ['string', 'number', 'integer'])[0] ||
-        []),
-      ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'postPlace', ['string'])[0] || []),
+      ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'address', [
+        'string',
+      ])[0] || []),
+      ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'zipCode', [
+        'string',
+        'number',
+        'integer',
+      ])[0] || []),
+      ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'postPlace', [
+        'string',
+      ])[0] || []),
     ];
 
     if (component.simplified === false) {
-      errors.push(...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'careOf', ['string'])[0] || []));
       errors.push(
-        ...(validateDataModelBindingsAny(node, bindings, lookupBinding, 'houseNumber', [
+        ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'careOf', [
+          'string',
+        ])[0] || []),
+      );
+      errors.push(
+        ...(validateDataModelBindingsAny(baseComponentId, bindings, lookupBinding, layoutLookups, 'houseNumber', [
           'string',
           'number',
           'integer',

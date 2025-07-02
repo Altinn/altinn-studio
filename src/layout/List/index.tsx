@@ -6,6 +6,7 @@ import dot from 'dot-object';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { useValidateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
@@ -22,7 +23,6 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class List extends ListDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'List'>>(
@@ -95,14 +95,23 @@ export class List extends ListDef {
     return <ObjectToGroupLayoutValidator {...props} />;
   }
 
-  useDataModelBindingValidation(node: LayoutNode<'List'>, bindings: IDataModelBindings<'List'>): string[] {
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'List'>): string[] {
     const errors: string[] = [];
     const allowedLeafTypes = ['string', 'boolean', 'number', 'integer'];
     const groupBinding = bindings?.group;
     const lookupBinding = DataModels.useLookupBinding();
+    const layoutLookups = useLayoutLookups();
 
     if (groupBinding) {
-      const [groupErrors] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'group', ['array'], false);
+      const [groupErrors] = validateDataModelBindingsAny(
+        baseComponentId,
+        bindings,
+        lookupBinding,
+        layoutLookups,
+        'group',
+        ['array'],
+        false,
+      );
       groupErrors && errors.push(...groupErrors);
 
       for (const key of Object.keys(bindings)) {
@@ -132,9 +141,10 @@ export class List extends ListDef {
     } else {
       for (const [binding] of Object.entries(bindings ?? {})) {
         const [newErrors] = validateDataModelBindingsAny(
-          node,
+          baseComponentId,
           bindings,
           lookupBinding,
+          layoutLookups,
           binding,
           allowedLeafTypes,
           false,

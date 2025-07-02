@@ -13,7 +13,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) => {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const validations = useUnifiedValidationsForNode(target);
+  const validations = useUnifiedValidationsForNode(target.baseId);
   const displayData = useDisplayData(target);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, required } = useItemWhenType(target.baseId, 'RadioButtons');

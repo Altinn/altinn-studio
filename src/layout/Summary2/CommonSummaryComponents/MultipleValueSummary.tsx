@@ -80,7 +80,7 @@ export const MultipleValueSummary = ({
   isCompact,
   emptyFieldText,
 }: MultipleValueSummaryProps) => {
-  const validations = useUnifiedValidationsForNode(componentNode);
+  const validations = useUnifiedValidationsForNode(componentNode.baseId);
   const errors = validationsOfSeverity(validations, 'error');
 
   const displayType = getDisplayType(displayValues, showAsList, isCompact);

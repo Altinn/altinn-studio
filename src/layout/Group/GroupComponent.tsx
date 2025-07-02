@@ -7,12 +7,13 @@ import cn from 'classnames';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IGroupComponent {
   groupNode: LayoutNode<'Group'>;
@@ -45,12 +46,14 @@ export function GroupComponent({
 
   const children = useNodeDirectChildren(groupNode, restriction);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
+  const layoutLookups = useLayoutLookups();
 
   if (isHidden) {
     return null;
   }
 
-  const isNested = groupNode.parent instanceof LayoutNode;
+  const parent = layoutLookups.componentToParent[groupNode.baseId];
+  const isNested = parent?.type === 'node';
   const isPanel = container.groupingIndicator === 'panel';
   const isIndented = container.groupingIndicator === 'indented';
   const headingLevel = container.headingLevel ?? (Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel);

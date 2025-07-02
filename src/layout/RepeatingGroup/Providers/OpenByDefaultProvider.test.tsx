@@ -99,7 +99,7 @@ describe('openByDefault', () => {
 
     return renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
       renderer: ({ node }) => (
-        <RepeatingGroupProvider node={node}>
+        <RepeatingGroupProvider baseComponentId={node.baseId}>
           <RenderTest />
         </RepeatingGroupProvider>
       ),

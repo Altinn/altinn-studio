@@ -2,10 +2,9 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { ComponentValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useAddressValidation(node: LayoutNode<'Address'>): ComponentValidation[] {
-  const dataModelBindings = useDataModelBindingsFor(node.baseId, 'Address');
+export function useAddressValidation(baseComponentId: string): ComponentValidation[] {
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
   const zipCode = FD.useDebouncedPick(dataModelBindings?.zipCode);
   const houseNumber = FD.useDebouncedPick(dataModelBindings?.houseNumber);
   if (!dataModelBindings) {

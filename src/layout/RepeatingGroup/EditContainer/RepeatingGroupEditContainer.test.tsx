@@ -91,7 +91,7 @@ describe('RepeatingGroupsEditContainer', () => {
       nodeId: 'group',
       inInstance: true,
       renderer: ({ node }) => (
-        <RepeatingGroupProvider node={node}>
+        <RepeatingGroupProvider baseComponentId={node.baseId}>
           <TestRenderer />
         </RepeatingGroupProvider>
       ),

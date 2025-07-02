@@ -41,7 +41,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
     <ComponentStructureWrapper
       node={node}
       label={{
-        node,
+        baseComponentId: node.baseId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,

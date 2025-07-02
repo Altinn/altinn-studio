@@ -11,10 +11,9 @@ import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function SubformWrapper({ node, children }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) {
-  const isDone = useDoOverride(node);
+export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
+  const isDone = useDoOverride(baseComponentId);
 
   if (!isDone) {
     return <Loader reason='subform-taskstore' />;
@@ -70,10 +69,10 @@ export const useDoOverrideSummary = (dataElementId: string, layoutSet: string, d
   return isDone;
 };
 
-export const useDoOverride = (node: LayoutNode<'Subform'>, providedDataElementId?: string) => {
+export const useDoOverride = (baseComponentId: string, providedDataElementId?: string) => {
   const dataElementId = useNavigationParam('dataElementId');
   const actualDataElementId = providedDataElementId ? providedDataElementId : dataElementId;
-  const { layoutSet, id } = useItemWhenType(node.baseId, 'Subform');
+  const { layoutSet, id } = useItemWhenType(baseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
 
   if (!dataType) {

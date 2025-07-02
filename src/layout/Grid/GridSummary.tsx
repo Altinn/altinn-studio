@@ -427,7 +427,7 @@ function SummaryCellWithComponent({
 }: CellWithComponentProps & { node: LayoutNode }) {
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
   const displayData = useDisplayData(node);
-  const validations = useUnifiedValidationsForNode(node);
+  const validations = useUnifiedValidationsForNode(node.baseId);
   const errors = validationsOfSeverity(validations, 'error');
   const isHidden = Hidden.useIsHidden(node);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);

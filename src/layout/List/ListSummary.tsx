@@ -23,7 +23,7 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(target);
-  const validations = useUnifiedValidationsForNode(target);
+  const validations = useUnifiedValidationsForNode(target.baseId);
   const errors = validationsOfSeverity(validations, 'error');
 
   const { tableHeaders, dataModelBindings, required, textResourceBindings } = useItemWhenType(target.baseId, 'List');

@@ -15,7 +15,7 @@ export const DateSummary = ({ target }: Summary2Props<'Date'>) => {
   const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(componentNode);
-  const validations = useUnifiedValidationsForNode(componentNode);
+  const validations = useUnifiedValidationsForNode(componentNode.baseId);
   const errors = validationsOfSeverity(validations, 'error');
   const { textResourceBindings, direction } = useItemWhenType(componentNode.baseId, 'Date');
   const title = textResourceBindings?.title;

@@ -100,7 +100,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
 
   return await renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
     renderer: ({ node }) => (
-      <RepeatingGroupProvider node={node}>
+      <RepeatingGroupProvider baseComponentId={node.baseId}>
         <LeakEditIndex />
         <RepeatingGroupContainer />
       </RepeatingGroupProvider>

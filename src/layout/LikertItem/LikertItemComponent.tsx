@@ -40,7 +40,7 @@ LikertItemComponent.displayName = 'LikertItemComponent';
 const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>((props, ref) => {
   const { node } = props;
   const { selectedValues, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
-  const validations = useUnifiedValidationsForNode(node);
+  const validations = useUnifiedValidationsForNode(node.baseId);
 
   const { id, readOnly, textResourceBindings, required } = useItemWhenType(node.baseId, 'LikertItem');
   const groupContainer = node.parent instanceof LayoutNode && node.parent.isType('Likert') ? node.parent : undefined;
@@ -70,7 +70,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
         </Label>
         <ComponentValidations
           validations={validations}
-          node={node}
+          baseComponentId={node.baseId}
         />
       </Table.Cell>
       {calculatedOptions?.map((option, index) => {

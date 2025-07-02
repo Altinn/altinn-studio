@@ -14,16 +14,20 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class SimpleTable extends SimpleTableDef {
-  useDataModelBindingValidation(
-    node: LayoutNode<'SimpleTable'>,
-    bindings: IDataModelBindings<'SimpleTable'>,
-  ): string[] {
-    const component = useLayoutLookups().getComponent(node.baseId, 'SimpleTable');
+  useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'SimpleTable'>): string[] {
+    const layoutLookups = useLayoutLookups();
+    const component = layoutLookups.getComponent(baseComponentId, 'SimpleTable');
     const lookupBinding = DataModels.useLookupBinding();
-    const [errors, result] = validateDataModelBindingsAny(node, bindings, lookupBinding, 'tableData', ['array']);
+    const [errors, result] = validateDataModelBindingsAny(
+      baseComponentId,
+      bindings,
+      lookupBinding,
+      layoutLookups,
+      'tableData',
+      ['array'],
+    );
     if (errors) {
       return errors;
     }

@@ -8,8 +8,9 @@ const appFrontend = new AppFrontend();
 describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
     cy.goto('changename');
-    // Case: options are dynamically refetched based on what the user selects as source
-    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    // Case: options are dynamically refetched based on what the user selects as source, so we should wait until
+    // the pre-selected value is set first.
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
@@ -197,7 +198,7 @@ describe('Options', () => {
     );
     cy.goto('changename');
 
-    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');

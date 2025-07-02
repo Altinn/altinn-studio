@@ -29,7 +29,7 @@ export const OptionComponent = ({ node }: PropsFromGenericComponent<'Option'>) =
     <ComponentStructureWrapper
       node={node}
       label={{
-        node,
+        baseComponentId: node.baseId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,

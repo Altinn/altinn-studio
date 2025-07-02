@@ -38,7 +38,7 @@ function NodeNodeInspectorTextResourceBindingsForFirstRow({
   node,
   textResourceBindings,
 }: Props & { node: LayoutNode<'RepeatingGroup'> }) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node, 'first');
+  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node.baseId, 'first');
   return (
     <NodeInspectorTextResourceBindingsInner
       node={node}

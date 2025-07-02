@@ -4,6 +4,7 @@ import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponentById } from 'src/layout/GenericComponent';
@@ -13,6 +14,7 @@ import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditCont
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
   useRepeatingGroup,
+  useRepeatingGroupComponentId,
   useRepeatingGroupPagination,
   useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
@@ -25,21 +27,20 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { node, isEditing } = useRepeatingGroup();
+  const { baseComponentId, isEditing } = useRepeatingGroup();
   const { rowsToDisplay } = useRepeatingGroupPagination();
-  const rows = RepGroupHooks.useAllRowsWithButtons(node);
+  const rows = RepGroupHooks.useAllRowsWithButtons(baseComponentId);
   const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader, tableColumns, dataModelBindings } =
-    useItemWhenType(node.baseId, 'RepeatingGroup');
+    useItemWhenType(baseComponentId, 'RepeatingGroup');
   const required = !!minCount && minCount > 0;
 
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
-  const tableIds = useTableComponentIds(node);
+  const tableIds = useTableComponentIds(baseComponentId);
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -60,7 +61,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
 
-  const isNested = node.parent instanceof LayoutNode;
+  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const isNested = parent?.type === 'node';
   const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
 
   return (
@@ -198,11 +200,12 @@ interface ExtraRowsProps {
 
 function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
-  const { node } = useRepeatingGroup();
+  const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
-  const { rowsBefore, rowsAfter } = useExternalItem(node.baseId, 'RepeatingGroup');
-  const isNested = node.parent instanceof LayoutNode;
+  const { rowsBefore, rowsAfter } = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const isNested = parent?.type === 'node';
 
   const rows = where === 'Before' ? rowsBefore : rowsAfter;
   const mobileNodeIds = useNodeIdsFromGridRows(rows, mobileView);
