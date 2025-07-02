@@ -67,6 +67,7 @@ export class SchemaModel extends SchemaModelBase {
 
     const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
     const itemsPointerCategoryPath = constructItemsCategoryPath(uniquePointer);
+
     return makePointerFromArray([
       parentSchemaPointer,
       itemsPointerCategoryPath
@@ -100,6 +101,7 @@ export class SchemaModel extends SchemaModelBase {
     const category = itemsPointerCategory
       ? itemsPointerCategory
       : extractCategoryFromPointer(schemaPointer);
+
     const parentPointer = SchemaModel.removeUniquePointerPrefix(uniqueParentPointer);
     return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }

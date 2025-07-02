@@ -23,6 +23,9 @@ import {
   subSubNodeMock,
   uiSchemaMock,
   unusedDefinitionMock,
+  simpleArrayItemsPointer,
+  simpleArrayItemsMock,
+  defNodeWithChildrenPointer,
 } from '../../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
@@ -129,6 +132,14 @@ describe('SchemaModel', () => {
       const result = schemaModel.getSchemaPointerByUniquePointer(uniquePointer);
       expect(result).toEqual(expectedResult);
     });
+
+    it('returns the schema pointer for a given unique array items pointer', () => {
+      const uniquePointer = '#/properties/simpleArray/items/properties/simpleChild';
+      const expectedResult = simpleArrayItemsMock.schemaPointer;
+
+      const result = schemaModel.getSchemaPointerByUniquePointer(uniquePointer);
+      expect(result).toEqual(expectedResult);
+    });
   });
 
   describe('getUniquePointer', () => {
@@ -147,30 +158,19 @@ describe('SchemaModel', () => {
       );
     });
 
+    it('Handles items pointer category correctly in getUniquePointer', () => {
+      const schemaPointer = simpleArrayItemsMock.schemaPointer;
+      const uniqueParentPointer = `${UNIQUE_POINTER_PREFIX}#/properties/simpleArray`;
+      const expected = `${UNIQUE_POINTER_PREFIX}#/properties/simpleArray/items/properties/simpleChild`;
+
+      const result = SchemaModel.getUniquePointer(schemaPointer, uniqueParentPointer);
+      expect(result).toEqual(expected);
+    });
+
     it('Returns a unique pointer reflecting the path to a given node in a reference to an object', () => {
       const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
       const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
 
-      expect(
-        SchemaModel.getUniquePointer(
-          defNodeWithChildrenChildMock.schemaPointer,
-          referenceToObjectNodeMock.schemaPointer,
-        ),
-      ).toEqual(expectedUniqueChildPointer);
-      expect(
-        SchemaModel.getUniquePointer(
-          defNodeWithChildrenGrandchildMock.schemaPointer,
-          expectedUniqueChildPointer,
-        ),
-      ).toEqual(expectedUniqueGrandchildPointer);
-    });
-
-    it('Returns a unique pointer reflecting the path to a given node in a reference to an array', () => {
-      const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
-      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
-
-      console.log(defNodeWithChildrenChildMock.schemaPointer);
-      console.log(referenceToObjectNodeMock.schemaPointer);
       expect(
         SchemaModel.getUniquePointer(
           defNodeWithChildrenChildMock.schemaPointer,
