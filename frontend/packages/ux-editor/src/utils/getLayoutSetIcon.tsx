@@ -17,10 +17,11 @@ type IconMetaData = {
 };
 
 export const getLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData => {
+  const { type, task } = layoutSetModel;
   return (
-    iconByLayoutSetModelType[layoutSetModel.type] ||
-    iconByTaskIdMap[layoutSetModel.task?.id] ||
-    iconByTaskTypeMap[layoutSetModel.task?.type] ||
+    iconByLayoutSetModelType[type] ||
+    iconByTaskIdMap[task?.id] ||
+    iconByTaskTypeMap[task?.type] ||
     defaultIcon
   );
 };

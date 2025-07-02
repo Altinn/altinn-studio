@@ -3,6 +3,7 @@ export const APP_DEVELOPMENT_BASENAME = '/editor';
 export const APP_DASHBOARD_BASENAME = '/app-dashboard';
 export const DASHBOARD_BASENAME = '/dashboard';
 export const DASHBOARD_ROOT_ROUTE = '/';
+export const ADMIN_BASENAME = '/admin';
 export const RESOURCEADM_BASENAME = '/resourceadm';
 export const ORG_LIBRARY_BASENAME = '/org-library';
 export const PREVIEW_BASENAME = '/preview';
