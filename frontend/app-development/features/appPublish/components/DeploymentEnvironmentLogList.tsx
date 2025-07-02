@@ -131,6 +131,19 @@ export const DeploymentEnvironmentLogList = ({
                               Grafana
                             </StudioLink>
                           ),
+                          buildLog: (
+                            <StudioLink
+                              href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                              rel='noopener noreferrer'
+                              target='_blank'
+                              icon={
+                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                              }
+                              iconPlacement={'right'}
+                            >
+                              Build log
+                            </StudioLink>
+                          ),
                         }}
                       />
                     </Table.Cell>
