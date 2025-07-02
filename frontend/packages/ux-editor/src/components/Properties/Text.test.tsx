@@ -20,7 +20,6 @@ import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 jest.mock('../../testing/componentSchemaMocks', () => ({
   componentSchemaMocks: {
