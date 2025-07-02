@@ -83,12 +83,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
       </div>
-      <StudioButton
-        className={classes.navigateButton}
-        onClick={goToFormEditor}
-        color='second'
-        variant='primary'
-      >
+      <StudioButton onClick={goToFormEditor} color='second' variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>

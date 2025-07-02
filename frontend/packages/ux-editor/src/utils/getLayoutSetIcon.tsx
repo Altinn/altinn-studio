@@ -6,10 +6,10 @@ import {
   QuestionmarkIcon,
   ReceiptIcon,
   SignTaskIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import type { StudioIconCardIconColors } from 'libs/studio-components-legacy/src/components/StudioIconCard/StudioIconCard';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
+import type { StudioIconCardIconColors } from '@studio/components-legacy';
 
 type IconMetaData = {
   icon: ReactElement;

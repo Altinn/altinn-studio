@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import React from 'react';
 import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import { QuestionmarkIcon } from 'libs/studio-icons/src';
+import { QuestionmarkIcon } from '@studio/icons';
 
 describe('useLayoutSetIcon', () => {
   it('should return default icon for unknown types', () => {
