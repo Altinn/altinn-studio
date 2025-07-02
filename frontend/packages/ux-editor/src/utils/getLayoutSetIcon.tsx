@@ -6,9 +6,9 @@ import {
   QuestionmarkIcon,
   ReceiptIcon,
   SignTaskIcon,
-} from '@studio/icons';
+} from 'libs/studio-icons/src';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import type { StudioIconCardIconColors } from '@studio/components-legacy/src/components/StudioIconCard/StudioIconCard';
+import type { StudioIconCardIconColors } from 'libs/studio-components-legacy/src/components/StudioIconCard/StudioIconCard';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 
 type IconMetaData = {

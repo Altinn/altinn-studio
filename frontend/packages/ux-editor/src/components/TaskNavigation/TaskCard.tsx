@@ -10,7 +10,7 @@ import {
   StudioHeading,
   StudioParagraph,
 } from '@studio/components-legacy';
-import { getLayoutSetIcon } from '../../hooks/getLayoutSetIcon';
+import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
