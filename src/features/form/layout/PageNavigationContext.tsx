@@ -62,10 +62,10 @@ export const useSetReturnToView = () => {
   return func === ContextNotProvided ? undefined : func;
 };
 
-export const useSummaryNodeOfOrigin = (): LayoutNode<'Summary'> | undefined => {
+export const useSummaryNodeOfOrigin = (): LayoutNode | undefined => {
   const func = useLaxSelector((ctx) => ctx.summaryNodeOfOrigin);
   const node = useNode(func === ContextNotProvided ? undefined : func);
-  return func === ContextNotProvided ? undefined : (node as LayoutNode<'Summary'>);
+  return func === ContextNotProvided ? undefined : (node as LayoutNode);
 };
 
 export const useSetSummaryNodeOfOrigin = () => {

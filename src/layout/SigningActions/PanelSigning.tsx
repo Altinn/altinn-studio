@@ -10,7 +10,7 @@ import { useIsAuthorized } from 'src/features/instance/ProcessContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PanelProps } from 'src/app-components/Panel/Panel';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -70,7 +70,7 @@ function RejectButton({ node }: RejectTextProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const rejectButtonRef = useRef<HTMLButtonElement>(null);
   const processNext = useProcessNext();
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
 
   const modalTitle = textResourceBindings?.rejectModalTitle ?? 'signing.reject_modal_title';
   const modalDescription = textResourceBindings?.rejectModalDescription ?? 'signing.reject_modal_description';

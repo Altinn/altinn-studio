@@ -9,7 +9,7 @@ import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContaine
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
 export interface IDisplayRepAsLargeGroup {
@@ -28,7 +28,7 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-s
 };
 
 export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderLayoutNode }: IDisplayRepAsLargeGroup) {
-  const item = useNodeItem(groupNode);
+  const item = useItemWhenType(groupNode.baseId, 'RepeatingGroup');
   const isHidden = Hidden.useIsHidden(groupNode);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
   const children = useNodeDirectChildren(groupNode, restriction);

@@ -10,7 +10,7 @@ import classes from 'src/layout/OrganisationLookup/OrganisationLookupSummary.mod
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface OrganisationLookupSummaryProps {
@@ -18,11 +18,11 @@ interface OrganisationLookupSummaryProps {
 }
 
 export function OrganisationLookupSummary({ componentNode }: OrganisationLookupSummaryProps) {
-  const { dataModelBindings, title, required } = useNodeItem(componentNode, (i) => ({
-    dataModelBindings: i.dataModelBindings,
-    title: i.textResourceBindings?.title,
-    required: i.required,
-  }));
+  const { dataModelBindings, textResourceBindings, required } = useItemWhenType(
+    componentNode.baseId,
+    'OrganisationLookup',
+  );
+  const title = textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings);
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
   const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;

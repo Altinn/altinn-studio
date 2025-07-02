@@ -12,7 +12,7 @@ import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -54,9 +54,8 @@ export function EditButton({
   const pdfModeActive = usePdfModeActive();
   const isMobile = useIsMobile();
 
-  const titleTrb = useNodeItem(componentNode, (i) =>
-    i.textResourceBindings && 'title' in i.textResourceBindings ? i.textResourceBindings.title : undefined,
-  );
+  const { textResourceBindings } = useItemFor(componentNode.baseId);
+  const titleTrb = textResourceBindings && 'title' in textResourceBindings ? textResourceBindings.title : undefined;
   const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
 
   const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);

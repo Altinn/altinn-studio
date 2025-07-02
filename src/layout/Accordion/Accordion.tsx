@@ -10,13 +10,13 @@ import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupC
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type IAccordionProps = PropsFromGenericComponent<'Accordion'>;
 
 export const Accordion = ({ node }: IAccordionProps) => {
-  const { textResourceBindings, children, openByDefault } = useNodeItem(node);
+  const { textResourceBindings, children, openByDefault } = useItemWhenType(node.baseId, 'Accordion');
   const { langAsString } = useLanguage();
   const canRender = useHasCapability('renderInAccordion');
   const renderAsAccordionItem = useIsInAccordionGroup();

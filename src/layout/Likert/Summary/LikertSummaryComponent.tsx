@@ -13,8 +13,9 @@ import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -27,7 +28,7 @@ export function LikertSummaryComponent({
   targetNode,
   overrides,
 }: SummaryRendererProps<'Likert'>) {
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemWhenType(targetNode.baseId, 'Likert');
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { lang, langAsString } = useLanguage();
@@ -39,7 +40,7 @@ export function LikertSummaryComponent({
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const groupBinding = useNodeItem(targetNode, (i) => i.dataModelBindings.questions);
+  const dataModelBindings = useDataModelBindingsFor(targetNode.baseId, 'Likert');
   const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
@@ -56,12 +57,12 @@ export function LikertSummaryComponent({
         {rows.map((row) => (
           <DataModelLocationProvider
             key={`summary-${targetNode.id}-${row.uuid}`}
-            groupBinding={groupBinding}
+            groupBinding={dataModelBindings.questions}
             rowIndex={row.index}
           >
             <LargeLikertSummaryContainer
               id={`summary-${targetNode.id}-${row.index}`}
-              groupNode={targetNode}
+              likertNode={targetNode}
               restriction={row.index}
               renderLayoutNode={(n) => {
                 if (inExcludedChildren(n) || isHidden(n)) {
@@ -111,7 +112,7 @@ export function LikertSummaryComponent({
             rows.filter(typedBoolean).map((row) => (
               <DataModelLocationProvider
                 key={row.index}
-                groupBinding={groupBinding}
+                groupBinding={dataModelBindings.questions}
                 rowIndex={row.index}
               >
                 <Row

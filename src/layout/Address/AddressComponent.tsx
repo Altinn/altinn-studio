@@ -17,7 +17,7 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { usePostPlaceQuery } from 'src/hooks/queries/usePostPlaceQuery';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForAddress } from 'src/layout/Address/config.generated';
 
@@ -41,7 +41,7 @@ export function AddressComponent({ node }: IAddressProps) {
     textResourceBindings,
     dataModelBindings,
     labelSettings,
-  } = useNodeItem(node);
+  } = useItemWhenType(node.baseId, 'Address');
   const { langAsString } = useLanguage();
 
   const bindingValidations = useBindingValidationsForNode(node);

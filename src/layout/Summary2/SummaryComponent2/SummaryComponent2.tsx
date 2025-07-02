@@ -5,7 +5,7 @@ import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/Comp
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { Summary2StoreProvider } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -31,7 +31,7 @@ function SummaryBody({ target }: SummaryBodyProps) {
 }
 
 function SummaryComponent2Inner({ summaryNode }: ISummaryComponent2) {
-  const target = useNodeItem(summaryNode, (i) => i.target);
+  const target = useExternalItem(summaryNode.baseId, 'Summary2').target;
   return (
     <TaskStoreProvider>
       <Summary2StoreProvider node={summaryNode}>

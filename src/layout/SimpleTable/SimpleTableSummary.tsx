@@ -8,7 +8,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type TableSummaryProps = {
@@ -18,12 +18,10 @@ type TableSummaryProps = {
 const emptyArray: never[] = [];
 
 export function SimpleTableSummary({ componentNode }: TableSummaryProps) {
-  const { dataModelBindings, textResourceBindings, columns, required } = useNodeItem(componentNode, (item) => ({
-    dataModelBindings: item.dataModelBindings,
-    textResourceBindings: item.textResourceBindings,
-    columns: item.columns,
-    required: item.required,
-  }));
+  const { dataModelBindings, textResourceBindings, columns, required } = useItemWhenType(
+    componentNode.baseId,
+    'SimpleTable',
+  );
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const { title } = textResourceBindings ?? {};

@@ -16,7 +16,7 @@ import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGrid, IPageBreak } from 'src/layout/common.generated';
@@ -43,7 +43,7 @@ export const SummaryComponentFor = React.forwardRef(function (
   { targetNode, overrides }: { targetNode: LayoutNode; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemFor(targetNode.baseId);
 
   return (
     <SummaryComponentInner
@@ -72,9 +72,9 @@ export const SummaryComponent = React.forwardRef(function (
   { summaryNode, overrides }: { summaryNode: LayoutNode<'Summary'>; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const summaryItem = useNodeItem(summaryNode);
+  const summaryItem = useItemWhenType(summaryNode.baseId, 'Summary');
   const targetNode = useNode(summaryItem.componentRef);
-  const targetItem = useNodeItem(targetNode);
+  const { grid, pageBreak } = useItemFor(targetNode.baseId);
 
   if (!targetNode) {
     throw new Error(
@@ -94,10 +94,10 @@ export const SummaryComponent = React.forwardRef(function (
       display={overrides?.display ?? summaryItem?.display}
       grid={
         overrides?.display && overrides?.display.useComponentGrid
-          ? overrides?.grid || targetItem?.grid
+          ? overrides?.grid || grid
           : overrides?.grid || summaryItem?.grid
       }
-      pageBreak={overrides?.pageBreak ?? summaryItem?.pageBreak ?? targetItem?.pageBreak}
+      pageBreak={overrides?.pageBreak ?? summaryItem?.pageBreak ?? pageBreak}
       largeGroup={overrides?.largeGroup ?? summaryItem?.largeGroup}
       excludedChildren={overrides?.excludedChildren ?? summaryItem?.excludedChildren}
     />
@@ -129,7 +129,7 @@ const SummaryComponentInner = React.forwardRef(function (
   }: ISummaryProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemFor(targetNode.baseId);
   const { langAsString } = useLanguage();
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');

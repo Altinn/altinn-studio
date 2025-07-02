@@ -8,7 +8,8 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
-import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type Row = Record<string, string | number | boolean>;
@@ -19,7 +20,10 @@ export interface IMultipleChoiceSummaryProps {
 
 export function MultipleChoiceSummary({ targetNode }: IMultipleChoiceSummaryProps) {
   const rawFormData = useNodeFormData(targetNode);
-  const { dataModelBindings } = useNodeItem(targetNode);
+  const dataModelBindings = useDataModelBindingsFor<'Checkboxes' | 'MultipleSelect'>(
+    targetNode.baseId,
+    (t) => t === 'Checkboxes' || t === 'MultipleSelect',
+  );
   const options = useOptionsFor(targetNode.baseId, 'multi').options;
   const { langAsString } = useLanguage();
 

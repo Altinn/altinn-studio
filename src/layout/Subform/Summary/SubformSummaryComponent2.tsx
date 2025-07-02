@@ -23,7 +23,7 @@ import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryCompone
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -32,7 +32,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const SummarySubformWrapperInner = ({ nodeId }: PropsWithChildren<{ nodeId: string }>) => {
   const node = useNode(nodeId) as LayoutNode<'Subform'>;
-  const { layoutSet, id, textResourceBindings, entryDisplayName } = useNodeItem(node);
+  const { layoutSet, id, textResourceBindings, entryDisplayName } = useItemWhenType(node.baseId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
 
@@ -88,7 +88,7 @@ const DoSummaryWrapper = ({
   title: string | undefined;
   node: LayoutNode<'Subform'>;
 }>) => {
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, 'Subform');
   const isDone = useDoOverrideSummary(dataElement.id, layoutSet, dataElement.dataType);
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
@@ -160,12 +160,12 @@ export function AllSubformSummaryComponent2() {
 
 export function SubformSummaryComponent2({ target }: Summary2Props<'Subform'>) {
   const displayType = useSummaryOverrides(target)?.display;
-  const layoutSet = useNodeItem(target, (i) => i.layoutSet);
+  const { layoutSet } = useItemWhenType(target.baseId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
   const minCount = useApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
-  const required = useNodeItem(target, (i) => i.required) || (minCount !== undefined && minCount > 0);
+  const required = useItemWhenType(target.baseId, 'Subform').required || (minCount !== undefined && minCount > 0);
 
   const inner =
     displayType === 'table' && target ? (

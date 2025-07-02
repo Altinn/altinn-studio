@@ -7,7 +7,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 export const buttonStyles: {
@@ -29,7 +29,7 @@ export function LinkComponent({ node }: ILinkComponent) {
     size,
     fullWidth,
     textAlign,
-  } = useNodeItem(node);
+  } = useItemWhenType(node.baseId, 'Link');
   const { langAsString } = useLanguage();
 
   const downloadName = textResourceBindings?.download;

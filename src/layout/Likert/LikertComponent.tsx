@@ -18,20 +18,17 @@ import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 
 type LikertComponentProps = PropsFromGenericComponent<'Likert'>;
 
 export const LikertComponent = ({ node }: LikertComponentProps) => {
-  const groupBinding = useNodeItem(node, (item) => item.dataModelBindings.questions);
-  const textResourceBindings = useNodeItem(node, (item) => item.textResourceBindings);
+  const { id, dataModelBindings, textResourceBindings, columns } = useItemWhenType(node.baseId, 'Likert');
+  const groupBinding = dataModelBindings.questions;
   const mobileView = useIsMobileOrTablet();
   const rows = useLikertRows(node);
   const { options: calculatedOptions, isFetching } = useOptionsFor(makeLikertChildId(node.baseId, undefined), 'single');
-  const columns = useNodeItem(node, (item) => item.columns);
-
-  const id = node.id;
 
   const title = textResourceBindings?.title;
   const description = textResourceBindings?.description;

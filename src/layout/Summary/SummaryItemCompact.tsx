@@ -3,7 +3,7 @@ import React from 'react';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ICompactSummaryItem {
@@ -12,7 +12,7 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemFor(targetNode.baseId);
   const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
   const summaryTitleTrb =
     textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type AwaitingOtherSignaturesPanelProps = {
@@ -12,7 +12,7 @@ type AwaitingOtherSignaturesPanelProps = {
 };
 
 export function AwaitingOtherSignaturesPanel({ node, hasSigned }: AwaitingOtherSignaturesPanelProps) {
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
   const [userTriedToSubmit, setUserTriedToSubmit] = useState<boolean>(false);
 
   useEffect(() => {

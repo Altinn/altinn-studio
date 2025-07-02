@@ -5,7 +5,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/components/label/Label';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LabelProps } from 'src/components/label/Label';
 import type { CompTypes } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -25,8 +25,8 @@ export function ComponentStructureWrapper<Type extends CompTypes = CompTypes>({
   style,
 }: PropsWithChildren<ComponentStructureWrapperProps<Type>>) {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const _grid = useNodeItem(node, (i) => i.grid);
-  const grid = overrideItemProps?.grid ?? _grid;
+  const component = useExternalItem(node.baseId);
+  const grid = overrideItemProps?.grid ?? component?.grid;
   const layoutComponent = node.def;
   const showValidationMessages = layoutComponent.renderDefaultValidations();
 

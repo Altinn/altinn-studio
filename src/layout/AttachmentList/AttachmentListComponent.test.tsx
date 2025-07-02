@@ -5,9 +5,10 @@ import { render, screen } from '@testing-library/react';
 
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
+import { CompInternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IData, IDataType } from 'src/types/shared';
 
 // Mock application metadata data types with only the properties used in tests
@@ -107,7 +108,7 @@ jest.mock('src/components/organisms/AttachmentGroupings', () => ({
 }));
 
 describe('AttachmentListComponent', () => {
-  const mockUseNodeItem = jest.mocked(useNodeItem<LayoutNode<'AttachmentList'>, unknown>);
+  const mockUseItemWhenType = jest.mocked(useItemWhenType<'AttachmentList'>);
   const mockUseLaxInstanceData = jest.mocked(useLaxInstanceData);
 
   // Helper function to set up mockUseNodeItem with specific values
@@ -118,28 +119,16 @@ describe('AttachmentListComponent', () => {
     dataTypeIds = ['dataType1', 'dataType2', 'dataType3'],
     showDataTypeDescriptions = false,
   } = {}) => {
-    mockUseNodeItem.mockImplementation((_node, selector) => {
-      if (typeof selector === 'function') {
-        const selectorStr = selector.toString();
-
-        if (selectorStr.includes('groupByDataTypeGrouping')) {
-          return groupByDataTypeGrouping;
-        }
-        if (selectorStr.includes('textResourceBindings')) {
-          return textResourceBindings;
-        }
-        if (selectorStr.includes('links')) {
-          return links;
-        }
-        if (selectorStr.includes('dataTypeIds')) {
-          return dataTypeIds;
-        }
-        if (selectorStr.includes('showDataTypeDescriptions')) {
-          return showDataTypeDescriptions;
-        }
-      }
-      return undefined;
-    });
+    mockUseItemWhenType.mockImplementation(
+      (_baseId) =>
+        ({
+          groupByDataTypeGrouping,
+          textResourceBindings,
+          links,
+          dataTypeIds,
+          showDataTypeDescriptions,
+        }) as CompInternal<'AttachmentList'>,
+    );
   };
 
   beforeEach(() => {

@@ -11,6 +11,7 @@ import { canBeExpression } from 'src/features/expressions/validation';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 
 interface NodeInspectorDataFieldParams {
   path: string[];
@@ -139,11 +140,51 @@ function ExpandArray(props: { path: string[]; property: string; elements: unknow
   );
 }
 
-export function NodeInspectorDataField({ path, property, value: inputValue }: NodeInspectorDataFieldParams) {
+export function NodeInspectorDataField(props: NodeInspectorDataFieldParams) {
   const { node } = useNodeInspectorContext();
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node?.isType('RepeatingGroup') ? node : undefined, 'first');
-  const itemWithExpressions = useIntermediateItem(node?.baseId);
+  if (node && node.isType('RepeatingGroup')) {
+    return (
+      <NodeInspectorDataFieldForFirstRow
+        node={node}
+        {...props}
+      />
+    );
+  }
+  if (node) {
+    return (
+      <NodeInspectorDataFieldInner
+        node={node}
+        {...props}
+      />
+    );
+  }
 
+  return null;
+}
+
+function NodeInspectorDataFieldForFirstRow({
+  node,
+  ...rest
+}: NodeInspectorDataFieldParams & { node: LayoutNode<'RepeatingGroup'> }) {
+  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node, 'first');
+
+  return (
+    <NodeInspectorDataFieldInner
+      node={node}
+      firstRowExpr={firstRowExpr}
+      {...rest}
+    />
+  );
+}
+
+function NodeInspectorDataFieldInner({
+  node,
+  firstRowExpr,
+  path,
+  property,
+  value: inputValue,
+}: NodeInspectorDataFieldParams & { node: LayoutNode; firstRowExpr?: GroupExpressions }) {
+  const itemWithExpressions = useIntermediateItem(node.baseId);
   let value = inputValue;
   const preEvaluatedValue = dot.pick(path.join('.'), itemWithExpressions);
   const isExpression =
@@ -151,7 +192,7 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     canBeExpression(value, true);
 
   let exprText = 'Ble evaluert til:';
-  if (isExpression && node?.isType('RepeatingGroup') && firstRowExpr) {
+  if (isExpression && firstRowExpr) {
     const realValue = dot.pick(path.join('.'), firstRowExpr);
     if (realValue !== undefined) {
       value = realValue;

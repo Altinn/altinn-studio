@@ -13,8 +13,8 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
@@ -102,9 +102,7 @@ export function InstanceInformationComponent({
   node,
   overrideDisplay,
 }: PropsFromGenericComponent<'InstanceInformation'>) {
-  const elements = useNodeItem(node, (i) => i.elements);
-
-  const { grid } = useNodeItem(node);
+  const { grid, elements } = useExternalItem(node.baseId, 'InstanceInformation');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
 
   return (

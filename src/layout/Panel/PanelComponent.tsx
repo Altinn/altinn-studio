@@ -6,13 +6,13 @@ import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type IPanelProps = PropsFromGenericComponent<'Panel'>;
 
 export const PanelComponent = ({ node }: IPanelProps) => {
-  const { textResourceBindings, variant, showIcon, grid } = useNodeItem(node);
+  const { textResourceBindings, variant, showIcon, grid } = useItemWhenType(node.baseId, 'Panel');
   const fullWidth = !grid && node.parent instanceof LayoutPage;
 
   const { isOnBottom, isOnTop } = NodesInternal.useShallowSelector((state) => {

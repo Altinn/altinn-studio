@@ -14,7 +14,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type INavigationBar = PropsFromGenericComponent<'NavigationBar'>;
@@ -50,7 +50,7 @@ const NavigationButton = React.forwardRef(
 NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBarComponent = ({ node }: INavigationBar) => {
-  const { compact, validateOnForward, validateOnBackward } = useNodeItem(node);
+  const { compact, validateOnForward, validateOnBackward } = useItemWhenType(node.baseId, 'NavigationBar');
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();

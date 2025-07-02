@@ -36,9 +36,9 @@ export class OrganisationLookup extends OrganisationLookupDef {
     return null;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'OrganisationLookup'>): ComponentValidation[] {
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
     return useEmptyFieldValidationOnlyOneBinding(
-      node,
+      baseComponentId,
       'organisation_lookup_orgnr',
       'organisation_lookup.error_required',
     );

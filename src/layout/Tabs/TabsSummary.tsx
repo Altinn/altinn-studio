@@ -9,7 +9,7 @@ import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type TabsSummaryProps = {
@@ -19,7 +19,7 @@ type TabsSummaryProps = {
 export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const idMutator = useComponentIdMutator();
-  const tabs = useNodeItem(componentNode, (i) => i.tabs);
+  const { tabs } = useExternalItem(componentNode.baseId, 'Tabs');
   const canRender = useHasCapability('renderInTabs');
 
   if (!tabs || tabs.length === 0) {

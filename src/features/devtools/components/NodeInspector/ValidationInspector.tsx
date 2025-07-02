@@ -9,8 +9,8 @@ import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
 import { implementsAnyValidation } from 'src/layout';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { FileUploaderNode } from 'src/features/attachments';
 import type { AttachmentValidation, NodeValidation, ValidationSeverity } from 'src/features/validation';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -31,7 +31,8 @@ const categories = [
 export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
   const validations = NodesInternal.useRawValidations(node);
   const nodeVisibility = NodesInternal.useRawValidationVisibility(node);
-  const { dataModelBindings, type } = useNodeItem(node);
+  const dataModelBindings = useDataModelBindingsFor(node.baseId);
+  const type = node.type;
   const attachments = useAttachmentsFor(node as FileUploaderNode);
 
   if (!implementsAnyValidation(node.def)) {

@@ -8,7 +8,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
@@ -24,7 +24,7 @@ export function SummaryContent({
   RenderSummary,
 }: SummaryContentProps) {
   const { langAsString } = useLanguage();
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemFor(targetNode.baseId);
   const display = overrides?.display;
   const readOnlyComponent = 'readOnly' in targetItem && targetItem.readOnly === true;
   const validations = useUnifiedValidationsForNode(targetNode);

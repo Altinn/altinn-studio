@@ -1,9 +1,9 @@
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 function useHasDataInBindings(node: LayoutNode) {
-  const dataModelBindings = useNodeItem(node, (i) => i.dataModelBindings);
+  const dataModelBindings = useDataModelBindingsFor(node.baseId);
   const formData = FD.useFreshBindings(dataModelBindings, 'raw');
 
   // Checks if there is data in any of the data model binding
@@ -15,6 +15,6 @@ export function useHasNoDataInBindings(node: LayoutNode) {
 }
 
 export function useHasBindingsAndNoData(node: LayoutNode) {
-  const hasBindings = useNodeItem(node, (i) => !!i.dataModelBindings);
+  const hasBindings = !!useDataModelBindingsFor(node.baseId);
   return useHasNoDataInBindings(node) && hasBindings;
 }

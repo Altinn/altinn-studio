@@ -9,7 +9,7 @@ import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summar
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -31,7 +31,7 @@ function getHeadingLevel(headingLevel: number | undefined) {
 }
 
 export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'Accordion'>) {
-  const { textResourceBindings, headingLevel, children } = useNodeItem(targetNode);
+  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetNode.baseId, 'Accordion');
   const { langAsString } = useLanguage();
 
   const title = langAsString(textResourceBindings?.title);
@@ -57,7 +57,7 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
 export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'>) {
   const idMutator = useComponentIdMutator();
   const canRenderInAccordion = useHasCapability('renderInAccordion');
-  const { textResourceBindings, headingLevel, children } = useNodeItem(target);
+  const { textResourceBindings, headingLevel, children } = useItemWhenType(target.baseId, 'Accordion');
   const { langAsString } = useLanguage();
 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');

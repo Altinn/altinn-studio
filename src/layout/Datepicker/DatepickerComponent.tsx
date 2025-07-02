@@ -11,7 +11,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 import 'react-day-picker/style.css';
@@ -32,7 +32,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
     dataModelBindings,
     grid,
     autocomplete,
-  } = useNodeItem(node);
+  } = useItemWhenType(node.baseId, 'Datepicker');
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');

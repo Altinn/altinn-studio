@@ -17,14 +17,14 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/Dropdown/DropdownComponent.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionSearchFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
 export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, 'Dropdown');
   const isValid = useIsValid(node);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
   const { langAsString, lang } = useLanguage();

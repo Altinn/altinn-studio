@@ -6,14 +6,14 @@ import { SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/C
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const SummaryAccordionGroupComponent = ({ targetNode, ...rest }: SummaryRendererProps<'AccordionGroup'>) => {
-  const { children } = useNodeItem(targetNode);
-  return children.map((childId) => (
+  const children = useExternalItem(targetNode.baseId, 'AccordionGroup')?.children;
+  return children?.map((childId) => (
     <Child
       key={childId}
       id={childId}
@@ -23,7 +23,7 @@ export const SummaryAccordionGroupComponent = ({ targetNode, ...rest }: SummaryR
 };
 
 export const SummaryAccordionGroupComponent2 = ({ target, ...rest }: Summary2Props<'AccordionGroup'>) => {
-  const { children } = useNodeItem(target);
+  const children = useExternalItem(target.baseId, 'AccordionGroup')?.children;
   const canRender = useHasCapability('renderInAccordionGroup');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   return (
@@ -31,7 +31,7 @@ export const SummaryAccordionGroupComponent2 = ({ target, ...rest }: Summary2Pro
       hideWhen={hideEmptyFields}
       target={target}
     >
-      {children.filter(canRender).map((childId) => (
+      {children?.filter(canRender).map((childId) => (
         <Child2
           target={target}
           key={childId}

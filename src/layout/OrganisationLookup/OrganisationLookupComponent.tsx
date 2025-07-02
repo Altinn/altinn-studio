@@ -19,7 +19,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/OrganisationLookup/OrganisationLookupComponent.module.css';
 import { validateOrganisationLookupResponse, validateOrgnr } from 'src/layout/OrganisationLookup/validation';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { httpGet } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 
@@ -68,7 +68,7 @@ export function OrganisationLookupComponent({
   node,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
-  const { id, dataModelBindings, required } = useNodeItem(node);
+  const { id, dataModelBindings, required } = useItemWhenType(node.baseId, 'OrganisationLookup');
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({ node, overrideDisplay });
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();

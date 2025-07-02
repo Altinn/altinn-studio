@@ -13,7 +13,10 @@ import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout
  *  - The `dataModelBindings` property will never have any indexes for which row in a repeating group it is in.
  *  - The `mapping` property will never have any indexes for which row in a repeating group it is in.
  */
-export function useExternalItem<T extends CompTypes = CompTypes>(baseComponentId: string | undefined, type?: T) {
+export function useExternalItem<T extends CompTypes = CompTypes>(
+  baseComponentId: string,
+  type?: T | ((type: CompTypes) => boolean),
+) {
   const lookups = useLayoutLookups();
   return lookups.getComponent(baseComponentId, type);
 }
@@ -44,22 +47,19 @@ function useBindingParts() {
  * the current path inside the data model.
  */
 export function useIntermediateItem<T extends CompTypes = CompTypes>(
-  baseComponentId: string | undefined,
+  baseComponentId: string,
   type?: T,
-): CompIntermediate<T> | undefined {
+): CompIntermediate<T> {
   const component = useExternalItem(baseComponentId, type);
   const idMutator = useComponentIdMutator();
   const bindingParts = useBindingParts();
 
   return useMemo(() => {
-    if (!component) {
-      return undefined;
-    }
     const clone = structuredClone(component) as unknown as CompIntermediate<T>;
     if ('mapping' in clone) {
       clone.mapping = mutateMapping(clone.mapping, bindingParts);
     }
-    if ('dataModelBindings' in clone) {
+    if ('dataModelBindings' in clone && clone.dataModelBindings !== undefined) {
       clone.dataModelBindings = mutateDataModelBindings(clone.dataModelBindings, bindingParts);
     }
 
@@ -70,11 +70,11 @@ export function useIntermediateItem<T extends CompTypes = CompTypes>(
 }
 
 function mutateDataModelBindings<T extends CompTypes = CompTypes>(
-  bindings: IDataModelBindings<T> | undefined,
+  bindings: IDataModelBindings<T>,
   parts: ReturnType<typeof useBindingParts>,
-): IDataModelBindings<T> | undefined {
+): IDataModelBindings<T> {
   if (!bindings) {
-    return undefined;
+    return bindings;
   }
 
   const clone = structuredClone(bindings);
@@ -100,13 +100,13 @@ function mutateDataModelBindings<T extends CompTypes = CompTypes>(
 }
 
 export function useDataModelBindingsFor<T extends CompTypes = CompTypes>(
-  baseComponentId: string | undefined,
-  type?: T,
-): IDataModelBindings<T> | undefined {
+  baseComponentId: string,
+  type?: T | ((type: CompTypes) => boolean),
+): IDataModelBindings<T> {
   const component = useExternalItem<T>(baseComponentId, type);
   const parts = useBindingParts();
   return useMemo(
-    () => mutateDataModelBindings<T>(component?.dataModelBindings as IDataModelBindings<T> | undefined, parts),
+    () => mutateDataModelBindings<T>(component.dataModelBindings as IDataModelBindings<T>, parts),
     [component, parts],
   );
 }
@@ -128,7 +128,7 @@ function mutateMapping(mapping: IMapping | undefined, parts: ReturnType<typeof u
   return clone;
 }
 
-export function useMappingFor<T extends CompTypes = CompTypes>(baseComponentId: string | undefined, type?: T) {
+export function useMappingFor<T extends CompTypes = CompTypes>(baseComponentId: string, type?: T) {
   const component = useExternalItem<T>(baseComponentId, type);
   const parts = useBindingParts();
   return useMemo(

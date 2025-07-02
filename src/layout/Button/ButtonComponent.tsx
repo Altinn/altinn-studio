@@ -13,7 +13,7 @@ import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { ProcessTaskType } from 'src/types';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
 
@@ -23,7 +23,7 @@ export type IButtonProvidedProps =
   | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
 
 export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, node.type);
   const { mode } = item;
   const { langAsString } = useLanguage();
   const props: IButtonProvidedProps = { ...componentProps, ...item, node };

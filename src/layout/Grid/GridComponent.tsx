@@ -28,13 +28,13 @@ import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { GridRow, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
-  const { rows, textResourceBindings, labelSettings } = useNodeItem(node);
+  const { rows, textResourceBindings, labelSettings } = useItemWhenType(node.baseId, 'Grid');
   const { title, description, help } = textResourceBindings ?? {};
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
@@ -255,11 +255,9 @@ function CellWithText({ children, className, columnStyleOptions, help, isHeader 
 function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = false }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const labelFromNode = useNode(labelFrom);
-  const { trb, required = false } =
-    useNodeItem(labelFromNode, (i) => ({
-      trb: 'textResourceBindings' in i ? i.textResourceBindings : {},
-      required: 'required' in i ? i.required : false,
-    })) ?? {};
+  const item = useItemFor(labelFromNode.baseId);
+  const trb = item.textResourceBindings;
+  const required = 'required' in item && item.required;
 
   const title = trb && 'title' in trb ? trb.title : undefined;
   const help = trb && 'help' in trb ? trb.help : undefined;
@@ -285,7 +283,6 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
 }
 
 function MobileGrid({ node, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
-  const { id } = useNodeItem(node);
   const nodeIds = useNodeIdsFromGrid(node);
   const isHidden = Hidden.useIsHiddenSelector();
 
@@ -293,7 +290,7 @@ function MobileGrid({ node, overrideDisplay }: PropsFromGenericComponent<'Grid'>
 
   return (
     <Fieldset
-      id={id}
+      id={node.id}
       size='sm'
       legend={labelText}
       description={getDescriptionComponent()}

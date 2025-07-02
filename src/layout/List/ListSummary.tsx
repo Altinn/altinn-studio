@@ -14,7 +14,7 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 type Row = Record<string, string | number | boolean>;
@@ -25,9 +25,9 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
   const displayData = useDisplayData(target);
   const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(target, (i) => i.textResourceBindings?.summaryTitle || i.textResourceBindings?.title);
 
-  const { tableHeaders, dataModelBindings, required } = useNodeItem(target);
+  const { tableHeaders, dataModelBindings, required, textResourceBindings } = useItemWhenType(target.baseId, 'List');
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
 
   const relativeCheckedPath =

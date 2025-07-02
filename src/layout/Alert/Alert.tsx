@@ -5,13 +5,13 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type AlertProps = PropsFromGenericComponent<'Alert'>;
 
 export const Alert = ({ node }: AlertProps) => {
-  const { severity, textResourceBindings } = useNodeItem(node);
+  const { severity, textResourceBindings } = useItemWhenType(node.baseId, 'Alert');
   const { langAsString } = useLanguage();
 
   // If the 'hidden' property is an expression, we should alert screen readers whenever this becomes visible

@@ -10,7 +10,7 @@ import classes from 'src/layout/PersonLookup/PersonLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface PersonLookupSummaryProps {
@@ -18,11 +18,7 @@ interface PersonLookupSummaryProps {
 }
 
 export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps) {
-  const { dataModelBindings, title, required } = useNodeItem(componentNode, (i) => ({
-    dataModelBindings: i.dataModelBindings,
-    title: i.textResourceBindings?.title,
-    required: i.required,
-  }));
+  const { dataModelBindings, textResourceBindings, required } = useItemWhenType(componentNode.baseId, 'PersonLookup');
   const { formData } = useDataModelBindings(dataModelBindings);
   const { person_lookup_name, person_lookup_ssn } = formData;
   const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
@@ -46,7 +42,7 @@ export function PersonLookupSummary({ componentNode }: PersonLookupSummaryProps)
           data-size='sm'
           level={2}
         >
-          <Lang id={title} />
+          <Lang id={textResourceBindings?.title} />
         </Heading>
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>

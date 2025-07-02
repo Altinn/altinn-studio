@@ -12,7 +12,7 @@ import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/S
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type GroupComponentSummaryProps = {
@@ -60,13 +60,13 @@ function ChildComponent({ id: _id, hierarchyLevel }: ChildComponentProps) {
 }
 
 export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
-  const summaryTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.summaryTitle);
+  const item = useItemWhenType(componentNode.baseId, 'Group');
+  const title = item.textResourceBindings?.title;
+  const summaryTitle = item.textResourceBindings?.summaryTitle;
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
 
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
-  const children = useNodeItem(componentNode, (i) => i.children);
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   return (
@@ -98,7 +98,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
           spacing={6}
           alignItems='flex-start'
         >
-          {children.map((childId) => (
+          {item.children.map((childId) => (
             <ChildComponent
               key={childId}
               id={childId}

@@ -14,23 +14,22 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { RawGeometry } from 'src/layout/Map/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function MapSummary({ target }: Summary2Props<'Map'>) {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const markerBinding = useNodeItem(target, (item) => item.dataModelBindings.simpleBinding);
-  const readOnly = useNodeItem(target, (item) => item.readOnly);
+  const { dataModelBindings, readOnly, textResourceBindings, required } = useItemWhenType(target.baseId, 'Map');
+  const markerBinding = dataModelBindings.simpleBinding;
   const formData = useNodeFormData(target);
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const geometries = formData.geometries as RawGeometry[] | undefined;
   const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(target, (i) => i.required);
+  const title = textResourceBindings?.title;
 
   if (markerBinding && !markerLocationIsValid) {
     return (

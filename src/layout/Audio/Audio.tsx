@@ -3,14 +3,14 @@ import React from 'react';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParentCard } from 'src/layout/Cards/CardContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAudioProps = PropsFromGenericComponent<'Audio'>;
 
 export function AudioComponent({ node }: IAudioProps) {
   const { langAsString } = useLanguage();
-  const { id, audio, textResourceBindings } = useNodeItem(node);
+  const { id, audio, textResourceBindings } = useItemWhenType(node.baseId, 'Audio');
   const languageKey = useCurrentLanguage();
   const altText = textResourceBindings?.altText ? langAsString(textResourceBindings.altText) : undefined;
   const audioSrc = audio?.src?.[languageKey] || '';

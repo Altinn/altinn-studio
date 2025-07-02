@@ -200,6 +200,7 @@ export type NodeValidation<Validation extends AnyValidation<any> = AnyValidation
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type NodeRefValidation<Validation extends AnyValidation<any> = AnyValidation<any>> = Validation & {
+  baseComponentId: string;
   nodeId: string;
 };
 

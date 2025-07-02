@@ -24,8 +24,9 @@ import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
@@ -34,7 +35,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const { rowsToDisplay } = useRepeatingGroupPagination();
   const rows = RepGroupHooks.useAllRowsWithButtons(node);
   const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader, tableColumns, dataModelBindings } =
-    useNodeItem(node);
+    useItemWhenType(node.baseId, 'RepeatingGroup');
   const required = !!minCount && minCount > 0;
 
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
@@ -200,10 +201,10 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   const { node } = useRepeatingGroup();
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
-  const item = useNodeItem(node);
+  const { rowsBefore, rowsAfter } = useExternalItem(node.baseId, 'RepeatingGroup');
   const isNested = node.parent instanceof LayoutNode;
 
-  const rows = where === 'Before' ? item.rowsBefore : item.rowsAfter;
+  const rows = where === 'Before' ? rowsBefore : rowsAfter;
   const mobileNodeIds = useNodeIdsFromGridRows(rows, mobileView);
   if (isEmpty || !rows) {
     return null;

@@ -21,7 +21,7 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 
@@ -33,7 +33,6 @@ export interface IRepeatingGroupsEditContainer {
 
 export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGroupsEditContainer): JSX.Element | null {
   const { node } = useRepeatingGroup();
-  const group = useNodeItem(node);
   const rows = RepGroupHooks.useVisibleRows(node);
   const row = rows.find((r) => r && r.uuid === editId);
   if (!row) {
@@ -44,7 +43,6 @@ export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGro
     <RepeatingGroupEditRowProvider>
       <RepeatingGroupsEditContainerInternal
         editId={editId}
-        group={group}
         row={row}
         {...props}
       />
@@ -56,10 +54,8 @@ function RepeatingGroupsEditContainerInternal({
   className,
   editId,
   forceHideSaveButton,
-  group,
   row,
 }: IRepeatingGroupsEditContainer & {
-  group: CompInternal<'RepeatingGroup'>;
   row: RepGroupRow;
 }): JSX.Element | null {
   const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting } = useRepeatingGroup();
@@ -81,10 +77,10 @@ function RepeatingGroupsEditContainerInternal({
   const rowWithExpressions = RepGroupHooks.useRowWithExpressions(node, { uuid: row.uuid });
   const textsForRow = rowWithExpressions?.textResourceBindings;
   const editForRow = rowWithExpressions?.edit;
-  const editForGroup = group.edit;
+  const { textResourceBindings, edit: editForGroup, tableColumns } = useItemWhenType(node.baseId, 'RepeatingGroup');
   const { refSetter } = useRepeatingGroupsFocusContext();
   const texts = {
-    ...group.textResourceBindings,
+    ...textResourceBindings,
     ...textsForRow,
   };
 
@@ -160,7 +156,7 @@ function RepeatingGroupsEditContainerInternal({
               nodeId={nodeId}
               multiPageIndex={multiPageIndex}
               multiPageEnabled={multiPageEnabled}
-              tableColumns={group.tableColumns}
+              tableColumns={tableColumns}
             />
           ))}
         </Flex>

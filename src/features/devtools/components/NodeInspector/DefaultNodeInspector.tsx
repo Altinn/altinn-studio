@@ -8,7 +8,7 @@ import { NodeInspectorDataModelBindings } from 'src/features/devtools/components
 import { NodeInspectorTextResourceBindings } from 'src/features/devtools/components/NodeInspector/NodeInspectorTextResourceBindings';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface DefaultNodeInspectorParams {
@@ -19,7 +19,7 @@ interface DefaultNodeInspectorParams {
 export function DefaultNodeInspector({ node, ignoredProperties }: DefaultNodeInspectorParams) {
   // Hidden state is removed from the item by the hierarchy generator, but we simulate adding it back here (but only
   // if it's an expression). This allows app developers to inspect this as well.
-  const _item = useNodeItem(node);
+  const _item = useItemFor(node.baseId);
   const hidden = Hidden.useIsHidden(node);
   const component = useExternalItem(node.baseId);
   const hiddenIsExpression = Array.isArray(component?.hidden);

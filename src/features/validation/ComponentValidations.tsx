@@ -7,7 +7,7 @@ import classes from 'src/features/validation/ComponentValidations.module.css';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useCurrentNode } from 'src/layout/FormComponentContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { BaseValidation, NodeValidation } from 'src/features/validation';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';
@@ -36,9 +36,8 @@ export function AllComponentValidations({ node: _node }: { node?: LayoutNode }) 
 export function ComponentValidations({ validations, node: _node }: Props) {
   const currentNode = useCurrentNode();
   const node = _node ?? currentNode;
-  const inputMaxLength = useNodeItem(node, (i) =>
-    i.type === 'Input' || i.type === 'TextArea' ? i.maxLength : undefined,
-  );
+  const inputItem = useItemIfType<'Input' | 'TextArea'>(node.baseId, (type) => type === 'Input' || type === 'TextArea');
+  const inputMaxLength = inputItem?.maxLength;
 
   // If maxLength is set in both schema and component, don't display the schema error message here.
   // TODO: This should preferably be implemented in the Input component, via ValidationFilter, but that causes

@@ -2,22 +2,21 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompTypes, CompWithBinding } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompTypes } from 'src/layout/layout';
 
 /**
  * Default implementation of useEmptyFieldValidation
  * Checks all the component's dataModelBindings and returns one error for each one missing data
  */
 export function useEmptyFieldValidationAllBindings<Type extends CompTypes>(
-  node: LayoutNode<Type>,
+  baseComponentId: string,
   defaultText: ValidLanguageKey = 'form_filler.error_required',
 ): ComponentValidation[] {
-  const dataModelBindings = useDataModelBindingsFor<Type>(node.baseId);
-  const item = useNodeItem(node);
+  const dataModelBindings = useDataModelBindingsFor<Type>(baseComponentId);
+  const item = useItemFor(baseComponentId);
   const required = 'required' in item ? item.required : false;
   const trb = item.textResourceBindings;
   const formDataSelector = FD.useDebouncedSelector();
@@ -55,13 +54,13 @@ export function useEmptyFieldValidationAllBindings<Type extends CompTypes>(
  * like options-based components that can store the label and metadata about the options alongside the actual value
  */
 export function useEmptyFieldValidationOnlyOneBinding<Binding extends string>(
-  node: LayoutNode<CompWithBinding<Binding>>,
+  baseComponentId: string,
   binding: Binding,
   defaultText: ValidLanguageKey = 'form_filler.error_required',
 ): ComponentValidation[] {
-  const item = useNodeItem(node);
+  const item = useItemFor(baseComponentId);
   const required = 'required' in item ? item.required : false;
-  const reference = useDataModelBindingsFor(node.baseId)?.[binding as string] as IDataModelReference | undefined;
+  const reference = item.dataModelBindings?.[binding as string] as IDataModelReference | undefined;
   const trb = item.textResourceBindings;
   const validData = FD.useDebouncedPick(reference);
   const invalidData = FD.useInvalidDebouncedPick(reference);

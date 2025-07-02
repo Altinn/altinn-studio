@@ -23,7 +23,7 @@ import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/SubformComponent.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import utilClasses from 'src/styles/utils.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -36,7 +36,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
     tableColumns = [],
     showAddButton = true,
     showDeleteButton = true,
-  } = useNodeItem(node);
+  } = useItemWhenType(node.baseId, 'Subform');
 
   const isSubformPage = useIsSubformPage();
   if (isSubformPage) {
@@ -192,7 +192,7 @@ function SubformTableRow({
   deleteEntryCallback: (dataElement: IData) => void;
 }) {
   const id = dataElement.id;
-  const { tableColumns = [] } = useNodeItem(node);
+  const { tableColumns = [] } = useItemWhenType(node.baseId, 'Subform');
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
   const { langAsString } = useLanguage();

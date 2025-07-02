@@ -87,8 +87,8 @@ export class List extends ListDef {
     return <ListSummary {...props} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'List'>): ComponentValidation[] {
-    return useValidateGroupIsEmpty(node);
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateGroupIsEmpty(baseComponentId, 'List');
   }
 
   renderLayoutValidators(props: NodeValidationProps<'List'>): JSX.Element | null {

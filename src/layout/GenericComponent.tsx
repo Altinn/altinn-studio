@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
+import { ExprVal } from 'src/features/expressions/types';
 import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
@@ -12,8 +13,10 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
@@ -112,18 +115,23 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     throw new Error(`Node not found`);
   }
 
-  const grid = useNodeItem(node, (i) => overrideItemProps?.grid ?? i.grid);
-  const renderAsSummary = useNodeItem(node, (i) =>
+  const component = useExternalItem(node.baseId);
+  const grid = overrideItemProps?.grid ?? component?.grid;
+  const renderAsSummary =
     overrideItemProps && 'renderAsSummary' in overrideItemProps && overrideItemProps.renderAsSummary !== undefined
       ? overrideItemProps.renderAsSummary
-      : 'renderAsSummary' in i
-        ? i.renderAsSummary
-        : undefined,
-  );
-  const pageBreak = useNodeItem(
-    node,
-    (i) => overrideItemProps?.pageBreak ?? ('pageBreak' in i ? i.pageBreak : undefined),
-  );
+      : component && 'renderAsSummary' in component
+        ? component.renderAsSummary
+        : undefined;
+  const pageBreakUnresolved = component?.pageBreak;
+  const options: EvalExprOptions<ExprVal.String> = {
+    returnType: ExprVal.String,
+    defaultValue: '',
+    errorIntroText: `Invalid expression for component ${node.baseId}`,
+  };
+  const breakBefore = useEvalExpression(pageBreakUnresolved?.breakBefore, options);
+  const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, options);
+  const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const id = node.id;
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
   const isHidden = Hidden.useIsHidden(node);

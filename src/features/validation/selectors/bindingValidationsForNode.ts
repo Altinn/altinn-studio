@@ -3,8 +3,8 @@ import { useMemo } from 'react';
 import type { ComponentValidation, FieldValidation, NodeValidation } from '..';
 
 import { Validation } from 'src/features/validation/validationContext';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -20,7 +20,7 @@ export function useBindingValidationsForNode<
 >(node: N): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
   const showAll = Validation.useShowAllBackendErrors();
   const component = NodesInternal.useVisibleValidations(node, showAll);
-  const dataModelBindings = useNodeItem(node).dataModelBindings;
+  const dataModelBindings = useDataModelBindingsFor(node.baseId);
 
   return useMemo(() => {
     if (!dataModelBindings) {

@@ -7,7 +7,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) => {
@@ -16,8 +16,8 @@ export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) =
   const validations = useUnifiedValidationsForNode(target);
   const displayData = useDisplayData(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(target, (i) => i.required);
+  const { textResourceBindings, required } = useItemWhenType(target.baseId, 'RadioButtons');
+  const title = textResourceBindings?.title;
 
   return (
     <SummaryFlex

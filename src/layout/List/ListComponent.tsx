@@ -26,7 +26,7 @@ import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
@@ -36,7 +36,7 @@ type Row = Record<string, string | number | boolean>;
 
 export const ListComponent = ({ node }: IListProps) => {
   const isMobile = useIsMobile();
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, 'List');
   const {
     tableHeaders,
     pagination,

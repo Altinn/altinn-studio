@@ -6,11 +6,9 @@ import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGener
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { NodeValidationProps } from 'src/layout/layout';
-
-export type IActionButton = PropsFromGenericComponent<'PDFPreviewButton'>;
 
 export function PDFPreviewButtonRenderLayoutValidator({ node }: NodeValidationProps<'PDFPreviewButton'>) {
   const instanceId = useStrictInstanceId();
@@ -39,7 +37,7 @@ export function PDFPreviewButtonRenderLayoutValidator({ node }: NodeValidationPr
   return null;
 }
 
-export function PDFPreviewButtonComponent({ node }: IActionButton) {
-  const { textResourceBindings } = useNodeItem(node);
+export function PDFPreviewButtonComponent({ node }: PropsFromGenericComponent<'PDFPreviewButton'>) {
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'PDFPreviewButton');
   return <PDFGeneratorPreview buttonTitle={textResourceBindings?.title} />;
 }

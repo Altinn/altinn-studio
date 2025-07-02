@@ -5,10 +5,10 @@ import type { PropsFromGenericComponent } from '..';
 import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintButton'>) => {
-  const { textResourceBindings } = useNodeItem(node);
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'PrintButton');
 
   return (
     <ComponentStructureWrapper node={node}>

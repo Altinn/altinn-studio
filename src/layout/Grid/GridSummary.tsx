@@ -37,7 +37,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type {
   GridCell,
@@ -57,7 +57,7 @@ type GridSummaryProps = Readonly<{
 }>;
 
 export const GridSummary = ({ componentNode }: GridSummaryProps) => {
-  const { rows, textResourceBindings } = useNodeItem(componentNode);
+  const { rows, textResourceBindings } = useItemWhenType(componentNode.baseId, 'Grid');
   const { title } = textResourceBindings ?? {};
 
   const columnSettings: ITableColumnFormatting = {};
@@ -299,10 +299,10 @@ function SummaryCell(props: CellProps) {
 
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: LayoutNode }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
-  const required = useNodeItem(props.labelFrom, (i) => ('required' in i ? i.required : false));
-  const title = useNodeItem(props.labelFrom, (i) =>
-    i.textResourceBindings && 'title' in i.textResourceBindings ? i.textResourceBindings.title : undefined,
-  );
+  const item = useItemFor(props.labelFrom.baseId);
+  const required = 'required' in item ? item.required : false;
+  const title =
+    item.textResourceBindings && 'title' in item.textResourceBindings ? item.textResourceBindings.title : undefined;
   const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
   const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
 
@@ -431,8 +431,9 @@ function SummaryCellWithComponent({
   const errors = validationsOfSeverity(validations, 'error');
   const isHidden = Hidden.useIsHidden(node);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
-  const required = useNodeItem(node, (i) => ('required' in i ? i.required : false));
+  const item = useItemFor(node.baseId);
+  const textResourceBindings = item.textResourceBindings;
+  const required = 'required' in item ? item.required : false;
   const content = getComponentCellData(node, displayData, textResourceBindings);
 
   const isEmpty = typeof content === 'string' && content.trim() === '';
@@ -517,7 +518,7 @@ function SummaryCellWithLabel({
   isSmall,
 }: CellWithLabelProps) {
   const referenceNode = useNode(cell.labelFrom);
-  const refItem = useNodeItem(referenceNode);
+  const refItem = useItemFor(referenceNode.baseId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
     | ITextResourceBindings

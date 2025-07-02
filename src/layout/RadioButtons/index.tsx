@@ -51,8 +51,8 @@ export class RadioButtons extends RadioButtonsDef {
     return <RadioButtonsSummary {...props} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'RadioButtons'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'simpleBinding');
   }
 
   useDataModelBindingValidation(node: LayoutNode<'RadioButtons'>, dmb: IDataModelBindings<'RadioButtons'>): string[] {

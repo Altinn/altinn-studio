@@ -12,7 +12,7 @@ import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface SigneeListSummaryProps {
@@ -24,7 +24,7 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
   const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
   const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 
-  const originalTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const originalTitle = useItemWhenType(componentNode.baseId, 'SigneeList').textResourceBindings?.title;
   const title = titleOverride === undefined ? originalTitle : titleOverride;
   const heading = title ? <Lang id={title} /> : undefined;
 

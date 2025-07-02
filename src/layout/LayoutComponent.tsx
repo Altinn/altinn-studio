@@ -238,14 +238,11 @@ export abstract class ActionComponent<Type extends CompTypes> extends AnyCompone
   }
 }
 
-export abstract class FormComponent<Type extends CompTypes>
-  extends _FormComponent<Type>
-  implements ValidateEmptyField<Type>
-{
+export abstract class FormComponent<Type extends CompTypes> extends _FormComponent<Type> implements ValidateEmptyField {
   readonly category = CompCategory.Form;
 
-  useEmptyFieldValidation(node: LayoutNode<Type>): ComponentValidation[] {
-    return useEmptyFieldValidationAllBindings(node);
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationAllBindings(baseComponentId);
   }
 }
 

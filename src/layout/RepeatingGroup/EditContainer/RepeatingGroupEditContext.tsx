@@ -5,9 +5,9 @@ import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 interface RepeatingGroupEditRowContext {
   multiPageEnabled: boolean;
@@ -26,9 +26,8 @@ const { Provider, useCtx } = createContext<RepeatingGroupEditRowContext>({
 function useRepeatingGroupEditRowState(
   node: LayoutNode<'RepeatingGroup'>,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
-  const edit = useNodeItem(node, (i) => i.edit);
   const lastPage = RepGroupHooks.useLastMultiPageIndex(node) ?? 0;
-  const multiPageEnabled = edit?.multiPage ?? false;
+  const multiPageEnabled = useExternalItem(node.baseId, 'RepeatingGroup').edit?.multiPage ?? false;
   const [multiPageIndex, setMultiPageIndex] = useState(0);
 
   const nextMultiPage = useCallback(() => {

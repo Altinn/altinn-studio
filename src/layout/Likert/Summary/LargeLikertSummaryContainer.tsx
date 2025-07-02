@@ -7,12 +7,12 @@ import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IDisplayLikertContainer {
-  groupNode: LayoutNode<'Likert'>;
+  likertNode: LayoutNode<'Likert'>;
   divRef?: React.Ref<HTMLDivElement>;
   id?: string;
   restriction?: number | undefined;
@@ -29,16 +29,16 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-s
 
 export function LargeLikertSummaryContainer({
   divRef,
-  groupNode,
+  likertNode,
   id,
   restriction,
   renderLayoutNode,
 }: IDisplayLikertContainer) {
-  const container = useNodeItem(groupNode);
+  const container = useItemWhenType(likertNode.baseId, 'Likert');
   const { title, summaryTitle } = container.textResourceBindings ?? {};
-  const isHidden = Hidden.useIsHidden(groupNode);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
-  const children = useNodeDirectChildren(groupNode, restriction);
+  const isHidden = Hidden.useIsHidden(likertNode);
+  const depth = NodesInternal.useSelector((state) => state.nodeData?.[likertNode.id]?.depth);
+  const children = useNodeDirectChildren(likertNode, restriction);
 
   if (isHidden) {
     return null;
@@ -61,8 +61,8 @@ export function LargeLikertSummaryContainer({
         )
       }
       className={classes.summary}
-      data-componentid={groupNode.id}
-      data-componentbaseid={groupNode.baseId}
+      data-componentid={likertNode.id}
+      data-componentbaseid={likertNode.baseId}
     >
       <div
         ref={divRef}

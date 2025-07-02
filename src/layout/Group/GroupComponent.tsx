@@ -11,7 +11,7 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
 export interface IGroupComponent {
@@ -39,7 +39,7 @@ export function GroupComponent({
   isSummary,
   renderLayoutNode,
 }: IGroupComponent) {
-  const container = useNodeItem(groupNode);
+  const container = useItemWhenType(groupNode.baseId, 'Group');
   const { title, summaryTitle, description } = container.textResourceBindings ?? {};
   const isHidden = Hidden.useIsHidden(groupNode);
 

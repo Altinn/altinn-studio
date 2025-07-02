@@ -7,14 +7,14 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParentCard } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;
 
 export function ImageComponent({ node }: IImageProps) {
   const { langAsString } = useLanguage();
-  const { id, image, textResourceBindings } = useNodeItem(node);
+  const { id, image, textResourceBindings } = useItemWhenType(node.baseId, 'Image');
   const languageKey = useCurrentLanguage();
   const width = image?.width ?? '100%';
   const align = image?.align ?? 'center';

@@ -8,7 +8,7 @@ import {
 } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'>) {
@@ -20,8 +20,7 @@ export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'
 
   const showAsList =
     overrides?.displayType === 'list' || (!overrides?.displayType && displayData?.length >= maxStringLength);
-  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(target, (i) => i.required);
+  const { textResourceBindings, required } = useItemWhenType(target.baseId, 'MultipleSelect');
   const displayValues = useMultipleValuesForSummary(target);
 
   return (
@@ -36,7 +35,7 @@ export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'
       }
     >
       <MultipleValueSummary
-        title={<Lang id={title} />}
+        title={<Lang id={textResourceBindings?.title} />}
         componentNode={target}
         displayValues={displayValues}
         showAsList={showAsList}

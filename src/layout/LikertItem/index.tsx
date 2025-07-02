@@ -48,8 +48,8 @@ export class LikertItem extends LikertItemDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'LikertItem'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'simpleBinding');
   }
 
   useDataModelBindingValidation(node: LayoutNode<'LikertItem'>, bindings: IDataModelBindings<'LikertItem'>): string[] {

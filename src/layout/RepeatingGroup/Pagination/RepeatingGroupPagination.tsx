@@ -14,7 +14,7 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 interface RepeatingGroupPaginationProps {
@@ -39,7 +39,7 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
   const isMini = useIsMini();
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings || {});
+  const textResourceBindings = useItemWhenType(node.baseId, 'RepeatingGroup').textResourceBindings || {};
   const getScrollPosition = useCallback(
     () => document.querySelector(`[data-pagination-id="${node.id}"]`)?.getClientRects().item(0)?.y,
     [node],

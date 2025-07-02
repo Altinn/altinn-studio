@@ -9,7 +9,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
@@ -31,10 +31,10 @@ export type LabelProps = PropsWithChildren<{
 type LabelInnerProps = Omit<LabelProps, 'node'> & { item: CompInternal; nodeId: string };
 
 export function Label(props: LabelProps) {
-  const _item = useNodeItem(props.node);
+  const item = useItemFor(props.node.baseId);
   return (
     <LabelInner
-      item={_item}
+      item={item}
       nodeId={props.node.id}
       {...props}
     />

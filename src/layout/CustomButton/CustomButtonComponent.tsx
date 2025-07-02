@@ -19,7 +19,7 @@ import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ButtonColor, ButtonVariant } from 'src/app-components/Button/Button';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -200,7 +200,10 @@ function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
 }
 
 export const CustomButtonComponent = ({ node }: Props) => {
-  const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useNodeItem(node);
+  const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
+    node.baseId,
+    'CustomButton',
+  );
 
   const acquireLock = FD.useLocking(id);
   const isAuthorized = useIsAuthorized();

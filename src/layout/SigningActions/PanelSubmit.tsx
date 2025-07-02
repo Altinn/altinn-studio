@@ -3,7 +3,7 @@ import React from 'react';
 import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type SubmitPanelProps = {
@@ -11,7 +11,7 @@ type SubmitPanelProps = {
 };
 
 export function SubmitPanel({ node }: SubmitPanelProps) {
-  const { textResourceBindings } = useNodeItem(node, (i) => ({ textResourceBindings: i.textResourceBindings }));
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
 
   const titleReadyForSubmit = textResourceBindings?.submitPanelTitle ?? 'signing.submit_panel_title';
   const descriptionReadyForSubmit = textResourceBindings?.submitPanelDescription ?? 'signing.submit_panel_description';

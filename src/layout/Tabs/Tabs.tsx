@@ -10,8 +10,8 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -22,9 +22,8 @@ const sizeMap: Record<string, 'sm' | 'md' | 'lg'> = {
 };
 
 export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
-  const size = useNodeItem(node, (i) => i.size) ?? 'medium';
-  const defaultTab = useNodeItem(node, (i) => i.defaultTab);
-  const tabs = useNodeItem(node, (i) => i.tabs);
+  const { size: _size, defaultTab, tabs } = useExternalItem(node.baseId, 'Tabs');
+  const size = _size ?? 'medium';
   const idMutator = useComponentIdMutator();
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
 

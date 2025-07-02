@@ -6,7 +6,7 @@ import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -17,7 +17,7 @@ export function useLabel({
   node: LayoutNode;
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }) {
-  const item = useNodeItem(node);
+  const item = useItemFor(node.baseId);
   const { readOnly, required, showOptionalMarking, textResourceBindings } = {
     readOnly: item['readOnly'],
     required: item['required'],

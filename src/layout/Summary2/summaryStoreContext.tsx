@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ISummaryOverridesCommon } from 'src/layout/common.generated';
 import type { CompSummaryOverrides, CompTypes } from 'src/layout/layout';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
@@ -11,10 +11,7 @@ type Summary2State = Pick<CompSummary2External, 'hideEmptyFields' | 'showPageInA
 const StoreContext = createContext<Summary2State | null>(null);
 
 export function Summary2StoreProvider({ children, node }: PropsWithChildren<{ node: LayoutNode<'Summary2'> }>) {
-  const hideEmptyFields = useNodeItem(node, (i) => i.hideEmptyFields);
-  const showPageInAccordion = useNodeItem(node, (i) => i.showPageInAccordion);
-  const overrides = useNodeItem(node, (i) => i.overrides);
-  const isCompact = useNodeItem(node, (i) => i.isCompact);
+  const { hideEmptyFields, showPageInAccordion, overrides, isCompact } = useItemWhenType(node.baseId, 'Summary2');
 
   return (
     <StoreContext.Provider value={{ hideEmptyFields, showPageInAccordion, overrides, isCompact }}>

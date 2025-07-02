@@ -9,7 +9,7 @@ import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponen
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
 import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
 import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings, NodeValidationProps } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -48,13 +48,13 @@ export class SimpleTable extends SimpleTableDef {
     return false;
   }
   renderSummary2(props: Summary2Props<'SimpleTable'>): React.JSX.Element | null {
-    const item = useNodeItem(props.target);
+    const { externalApi, dataModelBindings } = useItemWhenType(props.target.baseId, 'SimpleTable');
 
-    if (item.externalApi) {
+    if (externalApi) {
       return <ApiTableSummary componentNode={props.target} />;
     }
 
-    if (item.dataModelBindings) {
+    if (dataModelBindings) {
       return <SimpleTableSummary componentNode={props.target} />;
     }
 
@@ -62,21 +62,21 @@ export class SimpleTable extends SimpleTableDef {
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
-      const item = useNodeItem(props.node);
-      if (item.dataModelBindings) {
+      const { dataModelBindings, externalApi } = useItemWhenType(props.node.baseId, 'SimpleTable');
+      if (dataModelBindings) {
         return (
           <SimpleTableComponent
             {...props}
-            dataModelBindings={item.dataModelBindings}
+            dataModelBindings={dataModelBindings}
           />
         );
       }
 
-      if (item.externalApi) {
+      if (externalApi) {
         return (
           <ApiTable
             {...props}
-            externalApi={item.externalApi}
+            externalApi={externalApi}
           />
         );
       }

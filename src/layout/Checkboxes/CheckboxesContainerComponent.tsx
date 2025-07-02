@@ -14,14 +14,12 @@ import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.c
 import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { shouldUseRowLayout } from 'src/utils/layout';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
-
-export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxContainerProps) => {
-  const item = useNodeItem(node);
+export const CheckboxContainerComponent = ({ node, overrideDisplay }: PropsFromGenericComponent<'Checkboxes'>) => {
+  const item = useItemWhenType(node.baseId, 'Checkboxes');
   const {
     id,
     layout,

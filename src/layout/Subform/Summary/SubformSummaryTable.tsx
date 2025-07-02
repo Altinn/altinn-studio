@@ -21,7 +21,7 @@ import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import utilClasses from 'src/styles/utils.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ISubformSummaryComponent } from 'src/layout/Subform/Summary/SubformSummaryComponent';
 import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -40,7 +40,7 @@ function SubformTableRow({
   pdfModeActive: boolean;
 }) {
   const id = dataElement.id;
-  const { tableColumns } = useNodeItem(targetNode);
+  const { tableColumns } = useItemWhenType(targetNode.baseId, 'Subform');
   const { instanceOwnerPartyId, instanceGuid, taskId } = useNavigationParams();
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
@@ -105,7 +105,7 @@ function SubformTableRow({
 }
 
 export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): React.JSX.Element | null {
-  const { id, layoutSet, textResourceBindings, tableColumns = [] } = useNodeItem(targetNode);
+  const { id, layoutSet, textResourceBindings, tableColumns = [] } = useItemWhenType(targetNode.baseId, 'Subform');
 
   const isSubformPage = useIsSubformPage();
   if (isSubformPage) {

@@ -9,13 +9,12 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
-  const { grid, children } = useNodeItem(node);
-
+  const { grid, children } = useExternalItem(node.baseId, 'ButtonGroup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
 
   return (

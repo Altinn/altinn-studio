@@ -1,51 +1,84 @@
 import { FD } from 'src/features/formData/FormDataWrite';
 import { getComponentDef } from 'src/layout';
-import { useDataModelLocationForNode } from 'src/utils/layout/DataModelLocation';
+import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
 import { useDataModelBindingsFor, useIntermediateItem } from 'src/utils/layout/hooks';
 import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { splitDashedKey } from 'src/utils/splitDashedKey';
 import { typedBoolean } from 'src/utils/typing';
 import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeItemFromNode } from 'src/utils/layout/types';
 
 /**
- * Use the item of a node. This re-renders when the item changes (or when the part of the item you select changes),
- * which doesn't happen if you use node.item directly.
+ * This evaluates all expressions for a given component configuration. If the type is not correct, things will crash.
+ * @see useNodeItemIfType Use this one if you only want to evaluate expressions _if_ the type is the expected one.
  */
-export function useNodeItem<N extends LayoutNode, Out>(node: N, selector: (item: NodeItemFromNode<N>) => Out): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeItem<N extends LayoutNode>(node: N, selector?: undefined): NodeItemFromNode<N>;
-// eslint-disable-next-line no-redeclare
-export function useNodeItem(node: LayoutNode, selector: never): unknown {
-  const intermediate = useIntermediateItem(node.baseId);
-  const location = useDataModelLocationForNode(node.id);
-  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const props = useExpressionResolverProps(`Invalid expression for ${node?.id}`, intermediate, dataSources) as any;
-  const resolved = node?.def.evalExpressions(props);
-
-  if (!resolved) {
-    return undefined;
+export function useItemWhenType<T extends CompTypes>(
+  baseComponentId: string,
+  type: T | ((type: CompTypes) => boolean),
+): CompInternal<T> {
+  const intermediate = useIntermediateItem(baseComponentId);
+  if (
+    !intermediate ||
+    (typeof type === 'string' && intermediate.type !== type) ||
+    (typeof type === 'function' && !type(intermediate.type))
+  ) {
+    const suffix = typeof type === 'string' ? ` (expected ${type})` : '';
+    throw new Error(`Unexpected type for ${baseComponentId}: ${intermediate?.type}${suffix}`);
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return selector ? (selector as any)(resolved) : resolved;
+  const location = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
+  const def = getComponentDef(intermediate.type);
+  return def.evalExpressions(props as never) as CompInternal<T>;
 }
 
-export function useNodeItemWhenType<T extends CompTypes>(nodeId: string, type: T): CompInternal<T> {
-  const { baseComponentId } = nodeId ? splitDashedKey(nodeId) : { baseComponentId: undefined };
+/**
+ * This evaluates all expressions for a given component configuration, but only when the
+ * target component is the given type.
+ * @see useItemWhenType
+ * @see useItemFor
+ */
+export function useItemIfType<T extends CompTypes>(
+  baseComponentId: string,
+  type: T | ((type: CompTypes) => boolean),
+): CompInternal<T> | undefined {
   const intermediate = useIntermediateItem(baseComponentId);
-  const location = useDataModelLocationForNode(nodeId);
+  if (
+    !intermediate ||
+    (typeof type === 'string' && intermediate.type !== type) ||
+    (typeof type === 'function' && !type(intermediate.type))
+  ) {
+    return undefined;
+  }
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const location = useCurrentDataModelLocation();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const props = useExpressionResolverProps(`Invalid expression for ${nodeId}`, intermediate, dataSources) as any;
-  const def = getComponentDef(type);
-  return def.evalExpressions(props) as CompInternal<T>;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
+  const def = getComponentDef(intermediate.type);
+  return def.evalExpressions(props as never) as CompInternal<T>;
+}
+
+/**
+ * This evaluates all expressions for a given component configuration. This should only be used when you don't know
+ * the target component type beforehand.
+ * @see useItemWhenType
+ * @see useItemIfType
+ */
+export function useItemFor<T extends CompTypes = CompTypes>(baseComponentId: string): CompInternal<T> {
+  const intermediate = useIntermediateItem(baseComponentId);
+  if (!intermediate) {
+    throw new Error(`No component configuration found for ${baseComponentId}`);
+  }
+  const location = useCurrentDataModelLocation();
+  const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
+  const def = getComponentDef(intermediate.type);
+  return def.evalExpressions(props as never) as CompInternal<T>;
 }
 
 const emptyArray: LayoutNode[] = [];
@@ -73,8 +106,8 @@ type NodeFormData<N extends LayoutNode | undefined> = N extends undefined
   : IComponentFormData<TypeFromNode<Exclude<N, undefined>>>;
 
 const emptyObject = {};
-export function useNodeFormData<N extends LayoutNode | undefined>(node: N): NodeFormData<N> {
-  const dataModelBindings = useDataModelBindingsFor(node?.baseId) as IDataModelBindings<TypeFromNode<N>> | undefined;
+export function useNodeFormData<N extends LayoutNode>(node: N): NodeFormData<N> {
+  const dataModelBindings = useDataModelBindingsFor(node.baseId) as IDataModelBindings<TypeFromNode<N>>;
   return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as NodeFormData<N>;
 }
 

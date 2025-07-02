@@ -55,8 +55,8 @@ export class Dropdown extends DropdownDef {
     return <DropdownSummary {...props} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'Dropdown'>): ComponentValidation[] {
-    return useEmptyFieldValidationOnlyOneBinding(node, 'simpleBinding');
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'simpleBinding');
   }
 
   useDataModelBindingValidation(node: LayoutNode<'Dropdown'>, bindings: IDataModelBindings<'Dropdown'>): string[] {

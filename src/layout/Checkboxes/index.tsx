@@ -74,8 +74,8 @@ export class Checkboxes extends CheckboxesDef {
     return <CheckboxesSummary {...props} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'Checkboxes'>): ComponentValidation[] {
-    return useValidateGroupIsEmpty(node);
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateGroupIsEmpty(baseComponentId, 'Checkboxes');
   }
 
   renderLayoutValidators(props: NodeValidationProps<'Checkboxes'>): JSX.Element | null {

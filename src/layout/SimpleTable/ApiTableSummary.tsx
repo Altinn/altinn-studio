@@ -9,7 +9,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -18,12 +18,7 @@ type ApiTableSummaryProps = {
 };
 
 export function ApiTableSummary({ componentNode }: ApiTableSummaryProps) {
-  const { externalApi, textResourceBindings, columns, required } = useNodeItem(componentNode, (item) => ({
-    externalApi: item.externalApi,
-    textResourceBindings: item.textResourceBindings,
-    columns: item.columns,
-    required: item.required,
-  }));
+  const { externalApi, textResourceBindings, columns, required } = useItemWhenType(componentNode.baseId, 'SimpleTable');
 
   const { title } = textResourceBindings ?? {};
   const isMobile = useIsMobile();

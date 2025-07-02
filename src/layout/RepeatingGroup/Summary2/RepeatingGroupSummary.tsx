@@ -21,7 +21,7 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'>) => {
@@ -33,12 +33,12 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
   const rows = RepGroupHooks.useVisibleRows(target);
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
-  const dataModelBindings = useNodeItem(componentNode, (i) => i.dataModelBindings);
+  const { textResourceBindings, dataModelBindings, minCount } = useItemWhenType(componentNode.baseId, 'RepeatingGroup');
+  const title = textResourceBindings?.title;
   const isNested = componentNode.parent instanceof LayoutNode;
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
-  const required = useNodeItem(componentNode, (i) => i.minCount !== undefined && i.minCount > 0);
+  const required = minCount !== undefined && minCount > 0;
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
 
   if (rows.length === 0) {

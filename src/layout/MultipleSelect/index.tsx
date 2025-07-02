@@ -73,8 +73,8 @@ export class MultipleSelect extends MultipleSelectDef {
     return <MultipleSelectSummary {...props} />;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'MultipleSelect'>): ComponentValidation[] {
-    return useValidateGroupIsEmpty(node);
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useValidateGroupIsEmpty(baseComponentId, 'MultipleSelect');
   }
 
   renderLayoutValidators(props: NodeValidationProps<'MultipleSelect'>): JSX.Element | null {

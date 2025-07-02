@@ -9,8 +9,8 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -27,7 +27,13 @@ const colorVariantMap: Record<string, 'tinted' | 'default'> = {
 };
 
 export const Cards = ({ node }: ICardsProps) => {
-  const { cards, minMediaHeight, minWidth, color, mediaPosition: _mediaPosition } = useNodeItem(node);
+  const {
+    cards,
+    minMediaHeight,
+    minWidth,
+    color,
+    mediaPosition: _mediaPosition,
+  } = useExternalItem(node.baseId, 'Cards');
   const processedMinWidth = parseSize(minWidth, '250px');
   const processedMinMediaHeight = parseSize(minMediaHeight, '150px');
   const mediaPosition = _mediaPosition ?? 'top';

@@ -8,14 +8,15 @@ import { FileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRow
 import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComponent';
 import { atLeastOneTagExists } from 'src/utils/formComponentUtils';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { FileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface FileTableProps {
-  node: PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>['node'];
+  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
   attachments: IAttachment[];
   mobileView: boolean;
   options?: IOptionInternal[];
@@ -31,7 +32,7 @@ export function FileTable({
   isSummary,
   isFetching,
 }: FileTableProps): React.JSX.Element | null {
-  const { textResourceBindings, type, readOnly } = useNodeItem(node);
+  const { textResourceBindings, type, readOnly } = useItemWhenType(node.baseId, node.type);
   const hasTag = type === 'FileUploadWithTag';
   const pdfModeActive = usePdfModeActive();
   const [editIndex, setEditIndex] = React.useState<number>(-1);

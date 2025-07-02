@@ -62,17 +62,15 @@ type TypeFromDef<Def extends CompDef> = Def extends CompDef<infer T> ? T : CompT
 
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
-): def is Def & (ValidateEmptyField<TypeFromDef<Def>> | ValidateComponent<TypeFromDef<Def>>) {
+): def is Def & (ValidateEmptyField | ValidateComponent<TypeFromDef<Def>>) {
   return 'useEmptyFieldValidation' in def || 'useComponentValidation' in def;
 }
 
-export interface ValidateEmptyField<Type extends CompTypes> {
-  useEmptyFieldValidation: (node: LayoutNode<Type>) => ComponentValidation[];
+export interface ValidateEmptyField {
+  useEmptyFieldValidation: (baseComponentId: string) => ComponentValidation[];
 }
 
-export function implementsValidateEmptyField<Def extends CompDef>(
-  def: Def,
-): def is Def & ValidateEmptyField<TypeFromDef<Def>> {
+export function implementsValidateEmptyField<Def extends CompDef>(def: Def): def is Def & ValidateEmptyField {
   return 'useEmptyFieldValidation' in def;
 }
 

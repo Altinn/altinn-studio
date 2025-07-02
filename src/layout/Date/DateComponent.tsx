@@ -10,15 +10,13 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { formatDateLocale } from 'src/utils/dateUtils';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
-  const direction = useNodeItem(node, (i) => i.direction) ?? 'horizontal';
-  const value = useNodeItem(node, (i) => i.value);
-  const icon = useNodeItem(node, (i) => i.icon);
-  const format = useNodeItem(node, (i) => i.format);
+  const item = useItemWhenType(node.baseId, 'Date');
+  const { textResourceBindings, direction: _direction, value, icon, format } = item;
+  const direction = _direction ?? 'horizontal';
   const { langAsString } = useLanguage();
   const language = useCurrentLanguage();
   const parsedValue = parseISO(value);

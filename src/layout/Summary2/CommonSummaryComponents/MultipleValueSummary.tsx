@@ -12,7 +12,8 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
-import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValidTypes = 'MultipleSelect' | 'Checkboxes';
@@ -44,7 +45,10 @@ function getDisplayType(
 }
 
 export function useMultipleValuesForSummary(componentNode: ValidNodes) {
-  const { dataModelBindings } = useNodeItem(componentNode);
+  const dataModelBindings = useDataModelBindingsFor<'MultipleSelect' | 'Checkboxes'>(
+    componentNode.baseId,
+    (t) => t === 'MultipleSelect' || t === 'Checkboxes',
+  );
   const options = useOptionsFor(componentNode.baseId, 'multi').options;
   const rawFormData = useNodeFormData(componentNode);
   const { langAsString } = useLanguage();

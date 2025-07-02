@@ -22,15 +22,16 @@ import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Provid
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ButtonPosition } from 'src/layout/common.generated';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const { node } = useRepeatingGroup();
-  const mode = useNodeItem(node, (i) => i.edit?.mode);
+  const mode = useExternalItem(node.baseId, 'RepeatingGroup').edit?.mode;
 
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
   const isHidden = Hidden.useIsHidden(node);
@@ -76,8 +77,8 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const { node } = useRepeatingGroup();
   const isNested = node.parent instanceof LayoutNode;
 
-  const groupBinding = useNodeItem(node, (i) => i.dataModelBindings.group);
-  const grid = useNodeItem(node, (i) => i.grid);
+  const groupBinding = useDataModelBindingsFor(node.baseId, 'RepeatingGroup').group;
+  const grid = useExternalItem(node.baseId, 'RepeatingGroup').grid;
   const rowIndex = RepGroupHooks.useAllBaseRows(node).find((r) => r.uuid === editingId)?.index;
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
 
@@ -117,8 +118,8 @@ function ModeShowAll() {
   const numRows = rowsToDisplay.length;
   const lastIndex = rowsToDisplay[numRows - 1];
 
-  const groupBinding = useNodeItem(node, (i) => i.dataModelBindings.group);
-  const grid = useNodeItem(node, (i) => i.grid);
+  const groupBinding = useDataModelBindingsFor(node.baseId, 'RepeatingGroup').group;
+  const grid = useExternalItem(node.baseId, 'RepeatingGroup').grid;
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
 
   return (
@@ -179,7 +180,7 @@ function AddButton() {
     currentlyAddingRow: state.addingIds.length > 0,
   }));
 
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, 'RepeatingGroup');
   const { textResourceBindings, id, edit, addButton } = item;
   const { add_button, add_button_full } = textResourceBindings || {};
 

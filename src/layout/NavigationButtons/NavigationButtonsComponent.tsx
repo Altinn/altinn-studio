@@ -10,7 +10,7 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -19,7 +19,7 @@ type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'node'>;
 export function NavigationButtonsComponent({ node }: Props) {
   const summaryNode = useSummaryNodeOfOrigin();
 
-  if (summaryNode) {
+  if (summaryNode && summaryNode.isType('Summary')) {
     return (
       <WithSummary
         node={node}
@@ -38,7 +38,7 @@ export function NavigationButtonsComponent({ node }: Props) {
 }
 
 function WithSummary({ node, summaryNode }: Props & { summaryNode: LayoutNode<'Summary'> }) {
-  const summaryItem = useNodeItem(summaryNode);
+  const summaryItem = useItemWhenType(summaryNode.baseId, 'Summary');
   const returnToViewText =
     summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
   const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
@@ -57,7 +57,10 @@ function NavigationButtonsComponentInner({
   returnToViewText,
   showNextButtonSummary,
 }: Props & { returnToViewText: string; showNextButtonSummary: boolean }) {
-  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useNodeItem(node);
+  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useItemWhenType(
+    node.baseId,
+    'NavigationButtons',
+  );
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();
   const hasPrevious = !!usePreviousPageKey();

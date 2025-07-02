@@ -11,7 +11,7 @@ import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -22,7 +22,7 @@ export function SummaryGroupComponent({
   targetNode,
   overrides,
 }: SummaryRendererProps<'Group'>) {
-  const targetItem = useNodeItem(targetNode);
+  const targetItem = useItemWhenType(targetNode.baseId, 'Group');
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { langAsString } = useLanguage();

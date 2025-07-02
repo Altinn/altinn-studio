@@ -7,7 +7,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -18,7 +18,7 @@ type NoActionRequiredPanelProps = {
 
 export function NoActionRequiredPanel({ node, hasSigned }: NoActionRequiredPanelProps) {
   const currentUserPartyId = useProfile()?.partyId;
-  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
 
   const titleHasSigned =
     textResourceBindings?.noActionRequiredPanelTitleHasSigned ?? 'signing.no_action_required_panel_title_has_signed';

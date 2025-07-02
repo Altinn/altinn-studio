@@ -4,18 +4,18 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
-import { useNodeFormDataWhenType, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { ComponentValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function useValidateGroupIsEmpty(
-  node: LayoutNode<'Checkboxes' | 'MultipleSelect' | 'List'>,
+export function useValidateGroupIsEmpty<T extends 'Checkboxes' | 'MultipleSelect' | 'List'>(
+  baseComponentId: string,
+  type: T,
 ): ComponentValidation[] {
-  const item = useNodeItem(node);
+  const item = useItemWhenType(baseComponentId, type);
   const required = item && 'required' in item ? item.required : false;
   const dataModelBindings = item.dataModelBindings;
   const textResourceBindings = item.textResourceBindings;
-  const formData = useNodeFormDataWhenType<'Checkboxes' | 'MultipleSelect' | 'List'>(node.baseId, node.type);
+  const formData = useNodeFormDataWhenType(baseComponentId, type);
 
   const invalidDataSelector = FD.useInvalidDebouncedSelector();
   if (!required || !dataModelBindings) {

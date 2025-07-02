@@ -7,7 +7,7 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 
 export function OpenByDefaultProvider({ node, children }: PropsWithChildren<Props>) {
   const groupId = node.id;
-  const item = useNodeItem(node);
+  const item = useItemWhenType(node.baseId, 'RepeatingGroup');
   const openByDefault = item.edit?.openByDefault;
   const isFirstRender = useRef(true);
   const { addRow, openForEditing } = useRepeatingGroup();

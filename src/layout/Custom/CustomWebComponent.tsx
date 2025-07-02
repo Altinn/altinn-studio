@@ -7,7 +7,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
@@ -36,7 +36,10 @@ export function CustomWebComponent({
   const langTools = useLanguage();
   const langAsString = langTools.langAsString;
   const legacyLanguage = useLegacyNestedTexts();
-  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useNodeItem(node);
+  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useItemWhenType(
+    node.baseId,
+    'Custom',
+  );
 
   const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
 

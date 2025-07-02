@@ -13,7 +13,7 @@ import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>) => {
@@ -21,7 +21,7 @@ export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>)
   const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'reject'>();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
-  const { title, description } = useNodeItem(node, (i) => i.textResourceBindings) ?? {};
+  const { title, description } = useItemWhenType(node.baseId, 'Payment').textResourceBindings ?? {};
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use PaymentComponent in a subform');

@@ -17,7 +17,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { TableActionButton } from 'src/app-components/Table/Table';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -28,10 +28,13 @@ interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
 }
 
 export function SimpleTableComponent({ node, dataModelBindings }: TableComponentProps) {
-  const item = useNodeItem(node);
+  const { textResourceBindings, enableDelete, enableEdit, zebra, size, columns } = useItemWhenType(
+    node.baseId,
+    'SimpleTable',
+  );
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const removeFromList = FD.useRemoveFromListCallback();
-  const { title, description, help } = item.textResourceBindings ?? {};
+  const { title, description, help } = textResourceBindings ?? {};
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
@@ -49,7 +52,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
 
   const actionButtons: TableActionButton[] = [];
 
-  if (item.enableDelete) {
+  if (enableDelete) {
     actionButtons.push({
       onClick: (idx) => {
         removeFromList({
@@ -67,7 +70,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
     });
   }
 
-  if (item.enableEdit) {
+  if (enableEdit) {
     actionButtons.push({
       onClick: (idx, _) => {
         setEditItemIndex(idx);
@@ -136,8 +139,8 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
       )}
 
       <AppTable
-        zebra={item.zebra}
-        size={item.size}
+        zebra={zebra}
+        size={size}
         schema={schema}
         mobile={isMobile}
         actionButtons={actionButtons}
@@ -154,7 +157,7 @@ export function SimpleTableComponent({ node, dataModelBindings }: TableComponent
         }
         data={data}
         stickyHeader={true}
-        columns={item.columns.map((config) => {
+        columns={columns.map((config) => {
           const { component } = config;
           const header = <Lang id={config.header} />;
           let renderCell;

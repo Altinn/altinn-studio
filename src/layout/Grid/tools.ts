@@ -1,7 +1,7 @@
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type {
   GridCell,
   GridCellLabelFrom,
@@ -18,7 +18,7 @@ const emptyArray: never[] = [];
 
 export function useNodeIdsFromGrid(grid: LayoutNode<'Grid'>, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
-  const rows = useNodeItem(grid, (item) => item.rows);
+  const rows = useExternalItem(grid.baseId, 'Grid').rows;
   const idMutator = useComponentIdMutator();
   return enabled && grid && rows ? nodeIdsFromGridRows(rows, isHiddenSelector, idMutator) : emptyArray;
 }

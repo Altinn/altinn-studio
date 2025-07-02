@@ -8,7 +8,7 @@ import {
 } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function CheckboxesSummary({ target }: Summary2Props<'Checkboxes'>) {
@@ -21,8 +21,9 @@ export function CheckboxesSummary({ target }: Summary2Props<'Checkboxes'>) {
   const showAsList =
     summaryOverride?.displayType === 'list' ||
     (!summaryOverride?.displayType && displayData?.length >= maxStringLength);
-  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(componentNode, (i) => i.required);
+  const item = useItemWhenType(componentNode.baseId, 'Checkboxes');
+  const title = item.textResourceBindings?.title;
+  const required = item.required;
   const displayValues = useMultipleValuesForSummary(target);
 
   return (

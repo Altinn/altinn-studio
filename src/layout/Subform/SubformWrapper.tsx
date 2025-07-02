@@ -10,7 +10,7 @@ import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContex
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function SubformWrapper({ node, children }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) {
@@ -73,7 +73,7 @@ export const useDoOverrideSummary = (dataElementId: string, layoutSet: string, d
 export const useDoOverride = (node: LayoutNode<'Subform'>, providedDataElementId?: string) => {
   const dataElementId = useNavigationParam('dataElementId');
   const actualDataElementId = providedDataElementId ? providedDataElementId : dataElementId;
-  const { layoutSet, id } = useNodeItem(node);
+  const { layoutSet, id } = useItemWhenType(node.baseId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
 
   if (!dataType) {

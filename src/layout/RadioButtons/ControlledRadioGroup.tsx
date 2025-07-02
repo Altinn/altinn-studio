@@ -16,7 +16,7 @@ import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IControlledRadioGroupProps = PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>;
@@ -24,7 +24,10 @@ export type IControlledRadioGroupProps = PropsFromGenericComponent<'RadioButtons
 export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { node, overrideDisplay } = props;
   const isValid = useIsValid(node);
-  const item = useNodeItem(node);
+  const item = useItemWhenType<'RadioButtons' | 'LikertItem'>(
+    node.baseId,
+    (t) => t === 'RadioButtons' || t === 'LikertItem',
+  );
   const { id, layout, readOnly, textResourceBindings, required, showLabelsInTable } = item;
   const showAsCard = 'showAsCard' in item ? item.showAsCard : false;
   const { selectedValues, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);
@@ -49,7 +52,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   if (node.parent instanceof LayoutNode && node.parent.isType('Likert')) {
     // The parent node type never changes, so this doesn't break the rule of hooks
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    leftColumnHeader = useNodeItem(node.parent, (i) => i.textResourceBindings?.leftColumnHeader);
+    leftColumnHeader = useItemWhenType(node.parent.baseId, 'Likert').textResourceBindings?.leftColumnHeader;
   }
 
   const labelText = (

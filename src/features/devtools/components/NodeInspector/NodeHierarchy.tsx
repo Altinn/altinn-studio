@@ -11,7 +11,7 @@ import { nodeIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { GridRows } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -127,7 +127,7 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
 
 function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyItemProps) {
   const node = useNode(nodeId) as LayoutNode<'RepeatingGroup'>;
-  const nodeItem = useNodeItem(node);
+  const nodeItem = useItemWhenType(node.baseId, 'RepeatingGroup');
   const rows = RepGroupHooks.useAllRowsWithHidden(node);
   const childIds = RepGroupHooks.useChildIds(node);
 

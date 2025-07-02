@@ -28,7 +28,7 @@ import {
   locationToTuple,
   parseGeometries,
 } from 'src/layout/Map/utils';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Location } from 'src/layout/Map/config.generated';
 import type { RawGeometry } from 'src/layout/Map/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -80,7 +80,7 @@ export function Map({
     centerLocation: customCenterLocation,
     zoom: customZoom,
     geometryType,
-  } = useNodeItem(mapNode);
+  } = useItemWhenType(mapNode.baseId, 'Map');
 
   const isPdf = useIsPdf();
   const isInteractive = !readOnly && !isSummary;

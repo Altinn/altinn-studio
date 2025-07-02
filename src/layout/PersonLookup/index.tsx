@@ -39,8 +39,8 @@ export class PersonLookup extends PersonLookupDef {
     return false;
   }
 
-  useEmptyFieldValidation(node: LayoutNode<'PersonLookup'>): ComponentValidation[] {
-    return useEmptyFieldValidationAllBindings(node, 'person_lookup.error_required');
+  useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
+    return useEmptyFieldValidationAllBindings(baseComponentId, 'person_lookup.error_required');
   }
 
   useDataModelBindingValidation(

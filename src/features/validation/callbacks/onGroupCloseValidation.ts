@@ -26,6 +26,7 @@ export function useOnGroupCloseValidation() {
       const state = nodeStore.getState();
       const nodesWithErrors = getRecursiveValidations({
         id: node.id,
+        baseId: node.baseId,
         includeHidden: false,
         includeSelf: false,
         severity: 'error',

@@ -7,7 +7,7 @@ import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { ProcessTaskType } from 'src/types';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -34,7 +34,7 @@ export class SigneeList extends SigneeListDef {
   }
 
   renderSummary2({ target }: Summary2Props<'SigneeList'>): JSX.Element | null {
-    const textResourceBindings = useNodeItem(target, (i) => i.textResourceBindings);
+    const { textResourceBindings } = useItemWhenType(target.baseId, 'SigneeList');
 
     return (
       <SigneeListSummary

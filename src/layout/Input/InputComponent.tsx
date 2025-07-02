@@ -14,7 +14,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { InputProps } from 'src/app-components/Input/Input';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type {
@@ -114,7 +114,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     saveWhileTyping,
     autocomplete,
     maxLength,
-  } = useNodeItem(node);
+  } = useItemWhenType(node.baseId, 'Input');
   const {
     formData: { simpleBinding: realFormValue },
     setValue,
@@ -235,7 +235,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
 };
 
 export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, overrideDisplay }) => {
-  const { grid, id, required } = useNodeItem(node);
+  const { grid, id, required } = useItemWhenType(node.baseId, 'Input');
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ node, overrideDisplay });

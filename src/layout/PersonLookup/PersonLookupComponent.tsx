@@ -21,7 +21,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
 import { validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { httpPost } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -80,7 +80,7 @@ async function fetchPerson(
 }
 
 export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
-  const { id, dataModelBindings, required } = useNodeItem(node);
+  const { id, dataModelBindings, required } = useItemWhenType(node.baseId, 'PersonLookup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');

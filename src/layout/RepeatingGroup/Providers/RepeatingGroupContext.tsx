@@ -13,9 +13,8 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
 import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
@@ -318,7 +317,7 @@ function newStore({ getRows, editMode, pagination }: NewStoreProps) {
 
 function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): ExtendedContext {
   const stateRef = ZStore.useSelectorAsRef((state) => state);
-  const validateOnSaveRow = useNodeItem(node, (i) => i.validateOnSaveRow);
+  const { pagination, validateOnSaveRow } = useExternalItem(node.baseId, 'RepeatingGroup');
   const groupBinding = useBinding(node);
 
   const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
@@ -330,7 +329,6 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
   const onGroupCloseValidation = useOnGroupCloseValidation();
   const markNodesNotReady = NodesInternal.useMarkNotReady();
 
-  const pagination = useNodeItem(node, (i) => i.pagination);
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(node);
   const getState = useCallback(() => produceStateFromRows(getRows() ?? []), [getRows]);
   const getPaginationState = useCallback(
@@ -574,8 +572,9 @@ interface Props {
 }
 
 export function RepeatingGroupProvider({ node, children }: PropsWithChildren<Props>) {
-  const pagination = useNodeItem(node, (i) => i.pagination);
-  const editMode = useNodeItem(node, (i) => i.edit?.mode);
+  const component = useExternalItem(node.baseId, 'RepeatingGroup');
+  const pagination = component.pagination;
+  const editMode = component.edit?.mode;
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(node);
 
   return (
@@ -609,7 +608,7 @@ export const useRepeatingGroupRowState = () => {
 export const useRepeatingGroupPagination = () => {
   const node = useRepeatingGroupNode();
   const nodeState = useRepeatingGroupRowState();
-  const pagination = useNodeItem(node, (i) => i.pagination);
+  const { pagination } = useExternalItem(node.baseId, 'RepeatingGroup');
   const currentPage = ZStore.useSelector((state) => state.currentPage);
   return producePaginationState(currentPage, pagination, nodeState.visibleRows);
 };

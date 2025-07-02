@@ -13,7 +13,7 @@ import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/lay
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { ProcessTaskType } from 'src/types';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 jest.mock('src/utils/layout/useNodeItem');
@@ -82,13 +82,13 @@ describe('SigneeListComponent', () => {
       partyId: 'partyId',
       instanceGuid: randomUUID(),
     });
-    jest.mocked(useNodeItem).mockReturnValue({
+    jest.mocked(useItemWhenType).mockReturnValue({
       textResourceBindings: {
         title: 'Signee List',
         description: 'description',
         help: 'help',
       },
-    } as ReturnType<typeof useNodeItem>);
+    } as ReturnType<typeof useItemWhenType>);
   });
 
   it('should render correctly', () => {

@@ -9,14 +9,14 @@ import { useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function SigneeListComponent({ node }: PropsFromGenericComponent<'SigneeList'>) {
   const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
   const { langAsString } = useLanguage();
 
-  const { textResourceBindings } = useNodeItem(node);
+  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigneeList');
 
   const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 

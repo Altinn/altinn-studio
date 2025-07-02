@@ -12,7 +12,7 @@ import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { formatNumericText } from 'src/utils/formattingUtils';
 import { validateDataModelBindingsSimple } from 'src/utils/layout/generator/validation/hooks';
-import { useNodeFormDataWhenType, useNodeItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -28,7 +28,7 @@ export class Input extends InputDef {
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'Input');
-    const item = useNodeItemWhenType(baseComponentId, 'Input');
+    const item = useItemWhenType(baseComponentId, 'Input');
     const formatting = item?.formatting;
     const currentLanguage = useCurrentLanguage();
     const text = formData?.simpleBinding || '';

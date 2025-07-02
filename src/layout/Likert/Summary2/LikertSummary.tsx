@@ -19,7 +19,7 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -28,13 +28,10 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const rows = useLikertRows(target);
-  const groupBinding = useNodeItem(target, (i) => i.dataModelBindings.questions);
-  const readOnly = useNodeItem(target, (item) => item.readOnly);
+  const { textResourceBindings, dataModelBindings, readOnly, required } = useItemWhenType(target.baseId, 'Likert');
 
   const validations = useUnifiedValidationsForNode(target);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = useNodeItem(target, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(target, (i) => i.required);
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   if (!rows.length || rows.length <= 0) {
@@ -44,7 +41,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
-          title={<Lang id={title} />}
+          title={<Lang id={textResourceBindings?.title} />}
           componentNode={target}
           errors={errors}
           hideEditButton={readOnly}
@@ -67,13 +64,13 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
               data-size='xs'
               level={4}
             >
-              <Lang id={title} />
+              <Lang id={textResourceBindings?.title} />
             </Heading>
           </div>
           {rows.filter(typedBoolean).map((row) => (
             <DataModelLocationProvider
               key={row.index}
-              groupBinding={groupBinding}
+              groupBinding={dataModelBindings.questions}
               rowIndex={row.index}
             >
               <LikertRowSummary
@@ -127,8 +124,7 @@ function LikertRowSummaryInner({
 }: LikertRowSummaryProps & {
   node: LayoutNode<'LikertItem'>;
 }) {
-  const title = useNodeItem(node, (i) => i.textResourceBindings?.title);
-  const required = useNodeItem(node, (i) => i.required);
+  const { textResourceBindings, required } = useItemWhenType(node.baseId, 'LikertItem');
   const displayData = useDisplayData(node);
   const validations = useUnifiedValidationsForNode(node);
   const errors = validationsOfSeverity(validations, 'error');
@@ -143,7 +139,7 @@ function LikertRowSummaryInner({
 
   return (
     <SingleValueSummary
-      title={<Lang id={title} />}
+      title={<Lang id={textResourceBindings?.title} />}
       isCompact={isCompact}
       componentNode={node}
       displayData={displayData}

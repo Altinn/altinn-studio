@@ -7,7 +7,7 @@ import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/Sig
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { ProcessTaskType } from 'src/types';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -15,7 +15,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export class SigningDocumentList extends SigningDocumentListDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SigningDocumentList'>>(
     function SigningDocumentListComponentRender(props, _): JSX.Element | null {
-      const textResourceBindings = useNodeItem(props.node, (i) => i.textResourceBindings);
+      const { textResourceBindings } = useItemWhenType(props.node.baseId, 'SigningDocumentList');
       return <SigningDocumentListComponent textResourceBindings={textResourceBindings} />;
     },
   );
@@ -35,7 +35,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
   }
 
   renderSummary2({ target }: Summary2Props<'SigningDocumentList'>): JSX.Element | null {
-    const textResourceBindings = useNodeItem(target, (i) => i.textResourceBindings);
+    const { textResourceBindings } = useItemWhenType(target.baseId, 'SigningDocumentList');
 
     return (
       <SummaryFlex

@@ -11,7 +11,7 @@ import classes from 'src/layout/Summary2/Summary2.module.css';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -81,8 +81,9 @@ function useIsHidden<T extends CompTypes>(node: LayoutNode<T>) {
 
 function useIsHiddenBecauseEmpty<T extends CompTypes>(node: LayoutNode<T>, content: SummaryContains) {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const isRequired = useNodeItem(node, (i) => ('required' in i ? i.required : undefined));
-  const forceShowInSummary = useNodeItem(node, (i) => i['forceShowInSummary']);
+  const item = useItemWhenType(node.baseId, node.type);
+  const isRequired = 'required' in item ? item.required : undefined;
+  const forceShowInSummary = item['forceShowInSummary'];
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
     window.logErrorOnce(`Node ${node.id} marked as required, but summary indicates EmptyValueNotRequired`);
@@ -100,8 +101,7 @@ interface SummaryFlexProps extends PropsWithChildren {
 }
 
 function SummaryFlexInternal({ target, children, className }: Omit<SummaryFlexProps, 'content'>) {
-  const pageBreak = useNodeItem(target, (i) => i.pageBreak);
-  const grid = useNodeItem(target, (i) => i.grid);
+  const { pageBreak, grid } = useItemFor(target.baseId);
 
   return (
     <Flex

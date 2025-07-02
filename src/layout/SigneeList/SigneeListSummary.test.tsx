@@ -12,7 +12,7 @@ import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router-dom');
@@ -22,7 +22,8 @@ jest.mock('src/features/language/Lang');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
-  const mockedUseNodeItem = jest.mocked(useNodeItem);
+  const mockedUseItemWhenType = jest.mocked(useItemWhenType);
+  const mockedUseItemFor = jest.mocked(useItemFor);
   const mockedUseIsHidden = jest.mocked(Hidden.useIsHidden);
   const mockedNode = new LayoutNode({
     type: 'SigneeList',
@@ -41,14 +42,22 @@ describe('SigneeListSummary', () => {
   };
 
   function mockNodeItem(extras: Partial<CompInternal<'SigneeList'>> = {}) {
-    mockedUseNodeItem.mockImplementation(
+    mockedUseItemWhenType.mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (node: LayoutNode, selector: ((item: CompInternal<'SigneeList'>) => unknown) | undefined): any => {
-        if (!node || node !== mockedNode) {
-          throw new Error('node in useNodeItem() is not the mocked one');
+      (baseComponentId, type): any => {
+        if (baseComponentId !== mockedNode.baseId || type !== mockedNode.type) {
+          throw new Error('Component id in useItemWhenType() is not the mocked one');
         }
-        const full = { ...mockedItem, ...extras };
-        return selector ? selector(full) : full;
+        return { ...mockedItem, ...extras };
+      },
+    );
+    mockedUseItemFor.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (baseComponentId): any => {
+        if (baseComponentId !== mockedNode.baseId) {
+          throw new Error('Component id in useItemWhenType() is not the mocked one');
+        }
+        return { ...mockedItem, ...extras };
       },
     );
   }
