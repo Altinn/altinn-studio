@@ -10,11 +10,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: |
             8.0.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
@@ -30,7 +30,7 @@ jobs:
           reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:TestResults/Output/CoverageReport -reporttypes:Cobertura
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: code-coverage-report
           path: TestResults/Output/CoverageReport/
@@ -47,7 +47,7 @@ jobs:
           name: code-coverage-report
           path: dist/
       - name: Create Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
+        uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
         with:
           filename: dist/Cobertura.xml
           badge: true
@@ -60,7 +60,7 @@ jobs:
           thresholds: '60 80'
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728 # v2
         with:
           recreate: true
           path: code-coverage-results.md
