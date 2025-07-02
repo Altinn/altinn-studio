@@ -9,17 +9,37 @@ import {
 } from '@studio/icons';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { StudioIconCardIconColors } from '@studio/components-legacy/src/components/StudioIconCard/StudioIconCard';
+import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 
-export const useLayoutSetIcon = (
-  layoutSetModel: LayoutSetModel,
-): { icon: ReactElement; iconColor: StudioIconCardIconColors } => {
-  if (layoutSetModel.type == 'subform') return { icon: <ClipboardIcon />, iconColor: 'blue' };
+type IconMetaData = {
+  icon: ReactElement;
+  iconColor: StudioIconCardIconColors;
+};
 
-  if (layoutSetModel.task?.id == 'CustomReceipt')
-    return { icon: <ReceiptIcon />, iconColor: 'green' };
-  if (layoutSetModel.task?.type == 'data') return { icon: <DataTaskIcon />, iconColor: 'blue' };
-  if (layoutSetModel.task?.type == 'signing') return { icon: <SignTaskIcon />, iconColor: 'red' };
-  if (layoutSetModel.task?.type == 'payment') return { icon: <CardIcon />, iconColor: 'yellow' };
+export const useLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData => {
+  return (
+    iconByLayoutSetModelType[layoutSetModel.type] ||
+    iconByTaskIdMap[layoutSetModel.task?.id] ||
+    iconByTaskTypeMap[layoutSetModel.task?.type] ||
+    defaultIcon
+  );
+};
 
-  return { icon: <QuestionmarkIcon />, iconColor: 'grey' };
+const iconByTaskTypeMap: Record<BpmnTaskType, IconMetaData> = {
+  data: { icon: <DataTaskIcon />, iconColor: 'blue' },
+  signing: { icon: <SignTaskIcon />, iconColor: 'red' },
+  payment: { icon: <CardIcon />, iconColor: 'yellow' },
+};
+
+const iconByTaskIdMap: Record<string, IconMetaData> = {
+  CustomReceipt: { icon: <ReceiptIcon />, iconColor: 'green' },
+};
+
+const iconByLayoutSetModelType: Record<string, IconMetaData> = {
+  subform: { icon: <ClipboardIcon />, iconColor: 'blue' },
+};
+
+const defaultIcon: IconMetaData = {
+  icon: <QuestionmarkIcon />,
+  iconColor: 'grey',
 };
