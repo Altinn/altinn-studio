@@ -48,7 +48,7 @@ export const extractNameFromPointer = (pointer: string): string => {
 };
 
 export const extractCategoryFromPointer = (pointer: string): ValidPointerCategory | undefined => {
-  const category: ValidPointerCategory =
+  const category =
     extractItemsCategory(pointer) ||
     constructItemsCategoryPath(pointer) ||
     getPointerPartCategory(pointer);
