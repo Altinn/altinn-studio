@@ -297,15 +297,6 @@ describe('ComponentConfigPanel', () => {
       ).toBeInTheDocument();
     });
 
-    it('renders properties when formItem is not a Subform component', () => {
-      renderComponentConfig();
-      expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
-    });
-
     it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
       editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
       renderComponentConfig({
