@@ -248,7 +248,7 @@ describe('DashboardHeader', () => {
     expect(getFetchChangesButton()).not.toBeInTheDocument();
   });
 
-  it('should render the submenu when showSubMenu is true, there is no repo error, page is orgLibrary', async () => {
+  it('should render the submenu when showSubMenu is true, there is no repo error and page is orgLibrary', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: mockOrgTtd,
       subroute: Subroute.OrgLibrary,
