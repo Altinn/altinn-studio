@@ -313,10 +313,20 @@ describe('ComponentConfigPanel', () => {
         formItemId: componentMocks[ComponentType.Subform].id,
       });
       expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+    });
+
+    it('does not render text and data model accordions when these properties is not available', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Summary2],
+        formItemId: componentMocks[ComponentType.Summary2].id,
+      });
+      expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(textMock('right_menu.data_model_bindings')),
+      ).not.toBeInTheDocument();
     });
   });
 });
