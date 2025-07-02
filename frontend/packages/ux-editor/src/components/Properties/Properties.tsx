@@ -26,7 +26,7 @@ const PropertiesSelectedConfig = () => {
     case ItemType.Page:
       return <PageConfigPanel selectedItem={selectedItem} />;
     case ItemType.Group:
-      return <GroupConfigPanel selectedItem={selectedItem} />;
+      return <GroupConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
     default:
       return (
         <StudioSectionHeader
