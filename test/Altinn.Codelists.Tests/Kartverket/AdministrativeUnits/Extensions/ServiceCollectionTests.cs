@@ -15,6 +15,6 @@ public class ServiceCollectionTests
 
         IEnumerable<IAppOptionsProvider> appOptionsServices = provider.GetServices<IAppOptionsProvider>();
 
-        appOptionsServices.Should().HaveCount(2);
+        Assert.Equal(2, appOptionsServices.Count());
     }
 }

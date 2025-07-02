@@ -5,26 +5,17 @@ namespace Altinn.Codelists.RestCountries.Models;
 /// <summary>
 /// Holds information about the name of a country.
 /// </summary>
-public class Name
+public class Name(string common, string official)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Name"/> class.
-    /// </summary>
-    public Name(string common, string official)
-    {
-        Common = common;
-        Official = official;
-    }
-
     /// <summary>
     /// The common name
     /// </summary>
     [JsonPropertyName("common")]
-    public string Common { get; set; }
+    public string Common { get; set; } = common;
 
     /// <summary>
     /// The official name
     /// </summary>
     [JsonPropertyName("official")]
-    public string Official { get; set; }
+    public string Official { get; set; } = official;
 }

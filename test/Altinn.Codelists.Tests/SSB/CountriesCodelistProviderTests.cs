@@ -12,11 +12,16 @@ public class CountriesStatusCodelistProviderTests
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("land", Classification.Countries, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "land",
+            Classification.Countries,
+            httpClientMock
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(252);
-        appOptions.Options.First(x => x.Value == "NOR").Label.Should().Be("Norge");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(252, appOptions.Options.Count);
+        Assert.Equal("Norge", appOptions.Options.First(x => x.Value == "NOR").Label);
     }
 }

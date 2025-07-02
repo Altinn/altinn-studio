@@ -6,7 +6,7 @@
 /// File used: https://www.bring.no/postnummerregister-ansi.txt
 /// Examample record: 6863	LEIKANGER	4640	SOGNDAL	G
 /// </summary>
-public class PostalCodesCsvParser
+internal sealed class PostalCodesCsvParser
 {
     private Stream _csvStream { get; set; }
 

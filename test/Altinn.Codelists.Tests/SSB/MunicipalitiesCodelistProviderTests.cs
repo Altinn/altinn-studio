@@ -12,11 +12,16 @@ public class MunicipalitiesCodelistProviderTests
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("kommuner", Classification.Municipalities, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "kommuner",
+            Classification.Municipalities,
+            httpClientMock
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(357);
-        appOptions.Options.First(x => x.Value == "4640").Label.Should().Be("Sogndal");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(357, appOptions.Options.Count);
+        Assert.Equal("Sogndal", appOptions.Options.First(x => x.Value == "4640").Label);
     }
 }

@@ -1,4 +1,3 @@
-using Altinn.Codelists.RestCountries;
 using Altinn.Codelists.RestCountries.Data;
 using Altinn.Codelists.RestCountries.Models;
 using Altinn.Codelists.Utilities;
@@ -10,7 +9,7 @@ namespace Altinn.Codelists.RestCountries.Clients;
 /// Note that this is not an http client but uses a static json embedded within
 /// this dll to resolve the the list of countries.
 /// </summary>
-public class CountriesClient : ICountryClient
+internal sealed class CountriesClient : ICountryClient
 {
     /// <summary>
     /// Sends a asynchronus internal request to get all the countries of the world.
@@ -49,12 +48,12 @@ public class CountriesClient : ICountryClient
             var subPredicate = PredicateBuilder.True<Country>();
             if (!string.IsNullOrEmpty(filter.Region))
             {
-                subPredicate = subPredicate.And(c => c.Region.Equals(filter.Region));
+                subPredicate = subPredicate.And(c => c.Region.Equals(filter.Region, StringComparison.Ordinal));
             }
 
             if (!string.IsNullOrEmpty(filter.SubRegion))
             {
-                subPredicate = subPredicate.And(c => c.SubRegion.Equals(filter.SubRegion));
+                subPredicate = subPredicate.And(c => c.SubRegion.Equals(filter.SubRegion, StringComparison.Ordinal));
             }
 
             predicate = predicate.Or(subPredicate);

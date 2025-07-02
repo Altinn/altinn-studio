@@ -5,26 +5,17 @@ namespace Altinn.Codelists.RestCountries.Models;
 /// <summary>
 /// Holds information of a currency used within a country.
 /// </summary>
-public class Currency
+public class Currency(string name, string symbol)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Currency"/> class.
-    /// </summary>
-    public Currency(string name, string symbol)
-    {
-        Name = name;
-        Symbol = symbol;
-    }
-
     /// <summary>
     /// The name of the curreny eg. Norwegian krone, United States dollar, Pound sterling
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     /// <summary>
     /// The symbol used to identify the currency eg. kr, $, £
     /// </summary>
     [JsonPropertyName("symbol")]
-    public string Symbol { get; set; }
+    public string Symbol { get; set; } = symbol;
 }

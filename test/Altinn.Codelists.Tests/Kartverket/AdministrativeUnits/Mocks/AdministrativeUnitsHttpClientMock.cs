@@ -7,9 +7,12 @@ namespace Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Mocks;
 
 public class AdministrativeUnitsHttpClientMock : IAdministrativeUnitsClient
 {
-    private const string COUNTIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.fylker.json";
-    private const string COUNTY_MUNICIPALITIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.fylke46_kommuner.json";
-    private const string MUNICIPALITIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.kommuner.json";
+    private const string COUNTIES_TESTDATA_RESOURCE =
+        "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.fylker.json";
+    private const string COUNTY_MUNICIPALITIES_TESTDATA_RESOURCE =
+        "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.fylke46_kommuner.json";
+    private const string MUNICIPALITIES_TESTDATA_RESOURCE =
+        "Altinn.Codelists.Tests.Kartverket.AdministrativeUnits.Testdata.kommuner.json";
 
     private readonly IAdministrativeUnitsClient _administrativeUnitsHttpClient;
     private readonly IOptions<AdministrativeUnitsSettings> _administrativeUnitsOptions;
@@ -33,9 +36,15 @@ public class AdministrativeUnitsHttpClientMock : IAdministrativeUnitsClient
 
         MockedMunicipalitiesRequest = HttpMessageHandlerMock
             .When("https://ws.geonorge.no/kommuneinfo/v1/fylker/46?filtrer=kommuner,fylkesnavn,fylkesnummer")
-            .Respond("application/json", EmbeddedResource.LoadDataAsString(COUNTY_MUNICIPALITIES_TESTDATA_RESOURCE).Result);
+            .Respond(
+                "application/json",
+                EmbeddedResource.LoadDataAsString(COUNTY_MUNICIPALITIES_TESTDATA_RESOURCE).Result
+            );
 
-        _administrativeUnitsHttpClient = new AdministrativeUnitsHttpClient(_administrativeUnitsOptions, new HttpClient(HttpMessageHandlerMock));
+        _administrativeUnitsHttpClient = new AdministrativeUnitsHttpClient(
+            _administrativeUnitsOptions,
+            new HttpClient(HttpMessageHandlerMock)
+        );
     }
 
     public Task<List<County>> GetCounties()

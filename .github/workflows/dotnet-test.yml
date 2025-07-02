@@ -13,15 +13,14 @@ jobs:
         os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
-    env: 
+    env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.0.x
-            5.0.x
+            8.0.x
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis

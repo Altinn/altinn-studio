@@ -6,7 +6,7 @@ namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
 /// <summary>
 /// Http client to get information on norways offical administrative units for counties and municipalities .
 /// </summary>
-public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
+internal sealed class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
 {
     private readonly HttpClient _httpClient;
 
@@ -25,7 +25,7 @@ public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     /// </summary>
     public async Task<List<County>> GetCounties()
     {
-        var response = await _httpClient.GetAsync("fylker");
+        using var response = await _httpClient.GetAsync("fylker");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var counties = JsonSerializer.Deserialize<List<County>>(responseJson);
@@ -38,7 +38,7 @@ public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     /// </summary>
     public async Task<List<Municipality>> GetMunicipalities()
     {
-        var response = await _httpClient.GetAsync("kommuner");
+        using var response = await _httpClient.GetAsync("kommuner");
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var municipalities = JsonSerializer.Deserialize<List<Municipality>>(responseJson);
@@ -52,7 +52,9 @@ public class AdministrativeUnitsHttpClient : IAdministrativeUnitsClient
     /// <param name="countyNumber">County number (string) including leading zero's indentifying the county.</param>
     public async Task<List<Municipality>> GetMunicipalities(string countyNumber)
     {
-        var response = await _httpClient.GetAsync($"fylker/{countyNumber}?filtrer=kommuner,fylkesnavn,fylkesnummer");
+        using var response = await _httpClient.GetAsync(
+            $"fylker/{countyNumber}?filtrer=kommuner,fylkesnavn,fylkesnummer"
+        );
         var responseJson = await response.Content.ReadAsStringAsync();
 
         var county = JsonSerializer.Deserialize<County>(responseJson);

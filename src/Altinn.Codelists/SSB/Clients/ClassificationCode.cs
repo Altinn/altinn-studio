@@ -5,23 +5,13 @@ namespace Altinn.Codelists.SSB.Clients;
 /// <summary>
 /// Represents a single classification code.
 /// </summary>
-public class ClassificationCode
+public class ClassificationCode(string code, string name, string level)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ClassificationCode"/> class.
-    /// </summary>
-    public ClassificationCode(string code, string name, string level)
-    {
-        Code = code;
-        Name = name;
-        Level = level;
-    }
-
     /// <summary>
     /// Unique classification code
     /// </summary>
     [JsonPropertyName("code")]
-    public string Code { get; set; }
+    public string Code { get; set; } = code;
 
     /// <summary>
     /// If part of a hierarchy, this is a reference to the parent <see cref="Code"/>
@@ -34,13 +24,13 @@ public class ClassificationCode
     /// will have a value of one.
     /// </summary>
     [JsonPropertyName("level")]
-    public string Level { get; set; }
+    public string Level { get; set; } = level;
 
     /// <summary>
     /// Classification name.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     /// <summary>
     /// Classification short name.

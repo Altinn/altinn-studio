@@ -12,38 +12,60 @@ public class OccupationsCodelistProviderTests
     public async Task GetAppOptionsAsync_AllLevels_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("yrker", Classification.Occupations, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "yrker",
+            Classification.Occupations,
+            httpClientMock
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(582);
-        appOptions.Options.First(x => x.Value == "2").Label.Should().Be("Akademiske yrker");
-        appOptions.Options.First(x => x.Value == "25").Label.Should().Be("IKT-rådgivere");
-        appOptions.Options.First(x => x.Value == "251").Label.Should().Be("Programvare- og applikasjonsutviklere/analytikere");
-        appOptions.Options.First(x => x.Value == "2512").Label.Should().Be("Programvareutviklere");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(582, appOptions.Options.Count);
+        Assert.Equal("Akademiske yrker", appOptions.Options.First(x => x.Value == "2").Label);
+        Assert.Equal("IKT-rådgivere", appOptions.Options.First(x => x.Value == "25").Label);
+        Assert.Equal(
+            "Programvare- og applikasjonsutviklere/analytikere",
+            appOptions.Options.First(x => x.Value == "251").Label
+        );
+        Assert.Equal("Programvareutviklere", appOptions.Options.First(x => x.Value == "2512").Label);
     }
 
     [Fact]
     public async Task GetAppOptionsAsync_FirstLevelOnly_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("yrker", Classification.Occupations, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "yrker",
+            Classification.Occupations,
+            httpClientMock
+        );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "level", "1" } });
+        var appOptions = await appOptionsProvider.GetAppOptionsAsync(
+            "nb",
+            new Dictionary<string, string>() { { "level", "1" } }
+        );
 
-        appOptions.Options.Should().HaveCount(10);
-        appOptions.Options.First(x => x.Value == "0").Label.Should().Be("Militære yrker og uoppgitt");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(10, appOptions.Options.Count);
+        Assert.Equal("Militære yrker og uoppgitt", appOptions.Options.First(x => x.Value == "0").Label);
     }
 
     [Fact]
     public async Task GetAppOptionsAsync_DefaultFirstLevel_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("næringsgruppering", Classification.IndustryGrouping, httpClientMock, new Dictionary<string, string>() { { "level", "1" } } );
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "næringsgruppering",
+            Classification.IndustryGrouping,
+            httpClientMock,
+            new Dictionary<string, string>() { { "level", "1" } }
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(21);
-        appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(21, appOptions.Options.Count);
+        Assert.Equal("Jordbruk, skogbruk og fiske", appOptions.Options.First(x => x.Value == "A").Label);
     }
 }

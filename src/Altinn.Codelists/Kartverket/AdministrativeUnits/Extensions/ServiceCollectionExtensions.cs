@@ -1,5 +1,6 @@
 ﻿using Altinn.App.Core.Features;
 using Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Extensions;
@@ -16,8 +17,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddOptions<AdministrativeUnitsSettings>();
-        services.AddHttpClient<IAdministrativeUnitsClient, AdministrativeUnitsHttpClient>();
-        services.Decorate<IAdministrativeUnitsClient, AdministrativeUnitsHttpClientCached>();
+        services.AddHttpClient();
+        services.AddTransient<IAdministrativeUnitsClient>(sp => new AdministrativeUnitsHttpClientCached(
+            ActivatorUtilities.CreateInstance<AdministrativeUnitsHttpClient>(sp),
+            sp.GetRequiredService<IMemoryCache>()
+        ));
         services.AddTransient<IAppOptionsProvider, CountiesCodelistProvider>();
         services.AddTransient<IAppOptionsProvider, MunicipalitiesCodelistProvider>();
 

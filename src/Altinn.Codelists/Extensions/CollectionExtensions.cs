@@ -3,7 +3,7 @@
 /// <summary>
 /// A class which contains useful methods for processing collections.
 /// </summary>
-public static class CollectionExtensions
+internal static class CollectionExtensions
 {
     /// <summary>
     /// Checks whether enumerable is null or empty.

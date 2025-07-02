@@ -5,7 +5,7 @@ namespace Altinn.Codelists.Tests;
 
 public static class EmbeddedResource
 {
-    public async static Task<string> LoadDataAsString(string resourceName)
+    public static async Task<string> LoadDataAsString(string resourceName)
     {
         var resourceStream = LoadDataAsStream(resourceName);
 
@@ -22,7 +22,9 @@ public static class EmbeddedResource
 
         if (resourceStream == null)
         {
-            throw new InvalidOperationException($"Unable to find resource {resourceName} embedded in assembly {assembly.FullName}.");
+            throw new InvalidOperationException(
+                $"Unable to find resource {resourceName} embedded in assembly {assembly.FullName}."
+            );
         }
 
         resourceStream.Seek(0, SeekOrigin.Begin);

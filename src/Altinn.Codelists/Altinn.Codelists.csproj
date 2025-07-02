@@ -1,38 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageTags>Altinn;Studio;App;Core</PackageTags>
+    <Description>
+      This class library holds extra codelists for Altinn Studio apps.
+    </Description>
+    <!-- We don't care about transitive NuGet audit warnings for Altinn.App.Core minimum version -->
+    <NuGetAuditMode>direct</NuGetAuditMode>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <CodeAnalysisRuleSet />
-    <WarningLevel>7</WarningLevel>
-    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <CodeAnalysisRuleSet />
-    <WarningLevel>7</WarningLevel>
-    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="RestCountries\Data\countries.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-		<!-- This defines the minimum required version of Altinn.App.Core and should not be bumped unless new features require it.-->
-    <PackageReference Include="Altinn.App.Core" Version="7.14.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Scrutor" Version="4.2.2" />
-	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-		<_Parameter1>$(AssemblyName).Tests</_Parameter1>
-	</AssemblyAttribute>
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="RestCountries\Data\countries.json" />
+
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+		<!-- This defines the minimum required version of Altinn.App.Core and should not be bumped unless new features require it. -->
+    <PackageReference Include="Altinn.App.Core" VersionOverride="8.0.0" />
+  </ItemGroup>
+
+  <Target Name="GenerateDependencyAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'%(PackageReference.Identity)' != '' and '%(PackageReference.PrivateAssets)' != 'all'">
+        <_Parameter1>PackageReference.%(PackageReference.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(PackageReference.VersionOverride)' != ''">%(PackageReference.VersionOverride)</_Parameter2>
+        <_Parameter2 Condition="'%(PackageReference.VersionOverride)' == ''">%(PackageReference.Version)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
 </Project>

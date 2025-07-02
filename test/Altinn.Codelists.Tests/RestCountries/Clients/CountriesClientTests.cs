@@ -19,7 +19,7 @@ public class CountriesClientTests
 
         var countries = await countriesClient.GetCountries();
 
-        countries.Should().HaveCount(250);
+        Assert.Equal(250, countries.Count);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class CountriesClientTests
 
         var countries = await countriesClient.GetCountries(new List<Filter>() { new Filter() { Region = "Europe" } });
 
-        countries.Should().HaveCount(53);
+        Assert.Equal(53, countries.Count);
     }
 
     [Fact]
@@ -37,9 +37,18 @@ public class CountriesClientTests
     {
         var countriesClient = new CountriesClient();
 
-        var countries = await countriesClient.GetCountries(new List<Filter>() { new Filter() { Region = "Europe" }, new Filter() { Region = "Asia", SubRegion = "Eastern Asia" } });
+        var countries = await countriesClient.GetCountries(
+            new List<Filter>()
+            {
+                new Filter() { Region = "Europe" },
+                new Filter() { Region = "Asia", SubRegion = "Eastern Asia" },
+            }
+        );
 
-        countries.ForEach(c => { _output.WriteLine(c.Name.Common); });
-        countries.Should().HaveCount(61);
+        countries.ForEach(c =>
+        {
+            _output.WriteLine(c.Name.Common);
+        });
+        Assert.Equal(61, countries.Count);
     }
 }

@@ -7,7 +7,7 @@ namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Clients;
 /// Http client to get information on norways offical administrative units for counties and municipalities.
 /// This class caches the information for performance reasons to avoid costly http calls.
 /// </summary>
-public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
+internal sealed class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
 {
     private const string COUNTIES_CACHE_KEY = "counties";
     private const string MUNICIPALITIES_CACHE_KEY_BASE = "municipalities";
@@ -19,14 +19,17 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
     /// <summary>
     /// Initializes a new instance of the <see cref="AdministrativeUnitsHttpClientCached"/> class.
     /// </summary>
-    public AdministrativeUnitsHttpClientCached(IAdministrativeUnitsClient countiesClient, IMemoryCache memoryCache) : this(countiesClient, memoryCache, DefaultCacheEntryOptions)
-    {
-    }
+    public AdministrativeUnitsHttpClientCached(IAdministrativeUnitsClient countiesClient, IMemoryCache memoryCache)
+        : this(countiesClient, memoryCache, DefaultCacheEntryOptions) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AdministrativeUnitsHttpClientCached"/> class.
     /// </summary>
-    public AdministrativeUnitsHttpClientCached(IAdministrativeUnitsClient countiesClient, IMemoryCache memoryCache, Func<MemoryCacheEntryOptions> getCacheEntryOptionsFunc)
+    public AdministrativeUnitsHttpClientCached(
+        IAdministrativeUnitsClient countiesClient,
+        IMemoryCache memoryCache,
+        Func<MemoryCacheEntryOptions> getCacheEntryOptionsFunc
+    )
     {
         _administrativeUnitsClient = countiesClient;
         _memoryCache = memoryCache;
@@ -36,13 +39,16 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
     /// <inheritdoc/>
     public async Task<List<County>> GetCounties()
     {
-        var counties = await _memoryCache.GetOrCreateAsync(COUNTIES_CACHE_KEY, async cacheEntry =>
-        {
-            var cacheEntryOptions = _getCacheEntryOptions.Invoke();
-            cacheEntry.SetOptions(cacheEntryOptions);
+        var counties = await _memoryCache.GetOrCreateAsync(
+            COUNTIES_CACHE_KEY,
+            async cacheEntry =>
+            {
+                var cacheEntryOptions = _getCacheEntryOptions.Invoke();
+                cacheEntry.SetOptions(cacheEntryOptions);
 
-            return await _administrativeUnitsClient.GetCounties();
-        });
+                return await _administrativeUnitsClient.GetCounties();
+            }
+        );
 
         return counties ?? new List<County>();
     }
@@ -50,20 +56,23 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
     /// <inheritdoc/>
     public async Task<List<Municipality>> GetMunicipalities()
     {
-        var municipalities = await _memoryCache.GetOrCreateAsync(MUNICIPALITIES_CACHE_KEY_BASE, async cacheEntry =>
-        {
-            var cacheEntryOptions = _getCacheEntryOptions.Invoke();
-            cacheEntry.SetOptions(cacheEntryOptions);
-            var data = await _administrativeUnitsClient.GetMunicipalities();
-
-            if (data is null)
+        var municipalities = await _memoryCache.GetOrCreateAsync(
+            MUNICIPALITIES_CACHE_KEY_BASE,
+            async cacheEntry =>
             {
-                cacheEntry.Dispose();
-                return null;
-            }
+                var cacheEntryOptions = _getCacheEntryOptions.Invoke();
+                cacheEntry.SetOptions(cacheEntryOptions);
+                var data = await _administrativeUnitsClient.GetMunicipalities();
 
-            return data;
-        });
+                if (data is null)
+                {
+                    cacheEntry.Dispose();
+                    return null;
+                }
+
+                return data;
+            }
+        );
 
         return municipalities ?? new List<Municipality>();
     }
@@ -77,21 +86,24 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
             return new List<Municipality>();
         }
 
-        var municipalities = await _memoryCache.GetOrCreateAsync($"county-{countyNumber}-{MUNICIPALITIES_CACHE_KEY_BASE}", async cacheEntry =>
-        {
-            var cacheEntryOptions = _getCacheEntryOptions.Invoke();
-            cacheEntry.SetOptions(cacheEntryOptions);
-
-            var data = await _administrativeUnitsClient.GetMunicipalities(countyNumber);
-
-            if (data is null)
+        var municipalities = await _memoryCache.GetOrCreateAsync(
+            $"county-{countyNumber}-{MUNICIPALITIES_CACHE_KEY_BASE}",
+            async cacheEntry =>
             {
-                cacheEntry.Dispose();
-                return null;
-            }
+                var cacheEntryOptions = _getCacheEntryOptions.Invoke();
+                cacheEntry.SetOptions(cacheEntryOptions);
 
-            return data;
-        });
+                var data = await _administrativeUnitsClient.GetMunicipalities(countyNumber);
+
+                if (data is null)
+                {
+                    cacheEntry.Dispose();
+                    return null;
+                }
+
+                return data;
+            }
+        );
 
         return municipalities ?? new List<Municipality>();
     }
@@ -104,7 +116,7 @@ public class AdministrativeUnitsHttpClientCached : IAdministrativeUnitsClient
         return new MemoryCacheEntryOptions()
         {
             AbsoluteExpiration = expirationTime,
-            Priority = CacheItemPriority.Normal
+            Priority = CacheItemPriority.Normal,
         };
     }
 }

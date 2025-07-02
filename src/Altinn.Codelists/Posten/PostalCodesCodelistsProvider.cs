@@ -2,37 +2,36 @@
 using Altinn.App.Core.Models;
 using Altinn.Codelists.Posten.Clients;
 
-namespace Altinn.Codelists.Posten
+namespace Altinn.Codelists.Posten;
+
+/// <summary>
+/// Post codes and corresponding names for Norway.
+/// </summary>
+internal sealed class PostalCodesCodelistsProvider : IAppOptionsProvider
 {
+    private readonly IPostalCodesClient _postalCodesClient;
+
     /// <summary>
-    /// Post codes and corresponding names for Norway.
+    /// Initializes a new instance of the <see cref="PostalCodesCodelistsProvider"/> class.
     /// </summary>
-    public class PostalCodesCodelistsProvider : IAppOptionsProvider
+    public PostalCodesCodelistsProvider(IPostalCodesClient postalCodesClient)
     {
-        private readonly IPostalCodesClient _postalCodesClient;
+        _postalCodesClient = postalCodesClient;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PostalCodesCodelistsProvider"/> class.
-        /// </summary>
-        public PostalCodesCodelistsProvider(IPostalCodesClient postalCodesClient)
+    /// <inheritdoc/>
+    public string Id => "poststed";
+
+    /// <inheritdoc/>
+    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    {
+        List<PostalCodeRecord> postalCodes = await _postalCodesClient.GetPostalCodes();
+
+        var appOptions = new AppOptions
         {
-            _postalCodesClient = postalCodesClient;
-        }
+            Options = postalCodes.Select(x => new AppOption() { Value = x.PostCode, Label = x.PostalName }).ToList(),
+        };
 
-        /// <inheritdoc/>
-        public string Id => "poststed";
-
-        /// <inheritdoc/>
-        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
-        {
-            List<PostalCodeRecord> postalCodes = await _postalCodesClient.GetPostalCodes();
-
-            var appOptions = new AppOptions
-            {
-                Options = postalCodes.Select(x => new AppOption() { Value = x.PostCode, Label = x.PostalName }).ToList()
-            };
-
-            return appOptions;
-        }
+        return appOptions;
     }
 }

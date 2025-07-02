@@ -12,11 +12,16 @@ public class BaseAmountNationalInsuranceCodelistProviderTests
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("grunnbeløpfolketrygden", Classification.BaseAmountNationalInsurance, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "grunnbeløpfolketrygden",
+            Classification.BaseAmountNationalInsurance,
+            httpClientMock
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(32);
-        appOptions.Options.First(x => x.Value == "2022").Label.Should().Be("111 477 kroner");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(32, appOptions.Options.Count);
+        Assert.Equal("111 477 kroner", appOptions.Options.First(x => x.Value == "2022").Label);
     }
 }

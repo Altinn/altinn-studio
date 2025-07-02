@@ -8,7 +8,13 @@ public record PostalCodeRecord
     /// <summary>
     /// Creates an instance of <see cref="PostalCodeRecord"/>
     /// </summary>
-    public PostalCodeRecord(string postCode, string postalName, string municipalityNumber, string municipalityName, string category)
+    public PostalCodeRecord(
+        string postCode,
+        string postalName,
+        string municipalityNumber,
+        string municipalityName,
+        string category
+    )
     {
         PostCode = postCode;
         PostalName = postalName;

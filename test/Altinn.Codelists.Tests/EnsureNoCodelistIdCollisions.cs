@@ -2,35 +2,35 @@
 using Altinn.Codelists.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Codelists.Tests
+namespace Altinn.Codelists.Tests;
+
+public class EnsureNoCodelistIdCollisionsTest
 {
-    public class EnsureNoCodelistIdCollisionsTest
+    [Fact]
+    public void EnsureNoCodelistIdCollision()
     {
-        [Fact]
-        public void EnsureNoCodelistIdCollision()
+        IServiceCollection services = new ServiceCollection();
+        services.AddAltinnCodelists();
+        var serviceProvider = services.BuildServiceProvider();
+        var appOptionsProviders = serviceProvider.GetServices<IAppOptionsProvider>().ToList<IAppOptionsProvider>();
+
+        Assert.Empty(ValidateIdsAreUnique(appOptionsProviders));
+    }
+
+    public static string ValidateIdsAreUnique<T>(List<T> objects)
+        where T : IAppOptionsProvider
+    {
+        HashSet<string> seenIds = new();
+
+        foreach (T obj in objects)
         {
-            IServiceCollection services = new ServiceCollection();
-            services.AddAltinnCodelists();
-            var serviceProvider = services.BuildServiceProvider();
-            var appOptionsProviders = serviceProvider.GetServices<IAppOptionsProvider>().ToList<IAppOptionsProvider>();
-
-            ValidateIdsAreUnique(appOptionsProviders).Should().BeEmpty(because: $"there should be no codelist with the same id registered");
-        }
-
-        public static string ValidateIdsAreUnique<T>(List<T> objects) where T : IAppOptionsProvider
-        {
-            HashSet<string> seenIds = new();
-
-            foreach (T obj in objects)
+            if (seenIds.Contains(obj.Id))
             {
-                if (seenIds.Contains(obj.Id))
-                {
-                    return $"{obj.Id} in {obj.GetType().FullName}";
-                }
-                seenIds.Add(obj.Id);
+                return $"{obj.Id} in {obj.GetType().FullName}";
             }
-
-            return string.Empty;
+            seenIds.Add(obj.Id);
         }
+
+        return string.Empty;
     }
 }

@@ -1,13 +1,14 @@
-﻿using Altinn.Codelists.Extensions;
-using Microsoft.Extensions.Options;
+﻿using System.Globalization;
 using System.Net;
+using Altinn.Codelists.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Codelists.SSB.Clients;
 
 /// <summary>
 /// Http client to get classification codes from SSB.
 /// </summary>
-public class ClassificationsHttpClient : IClassificationsClient
+internal sealed class ClassificationsHttpClient : IClassificationsClient
 {
     private readonly HttpClient _httpClient;
 
@@ -33,13 +34,20 @@ public class ClassificationsHttpClient : IClassificationsClient
     /// <param name="variant">The name of the variant to use instead of the original code list specified.</param>
     /// <param name="selectCodes">selectCodes is used to limit the result to codes that match the pattern given by selectCodes.</param>
     /// <returns></returns>
-    public async Task<ClassificationCodes> GetClassificationCodes(int classificationId, string language = "nb", DateOnly? atDate = null, string level = "", string variant = "", string selectCodes = "")
+    public async Task<ClassificationCodes> GetClassificationCodes(
+        int classificationId,
+        string language = "nb",
+        DateOnly? atDate = null,
+        string level = "",
+        string variant = "",
+        string selectCodes = ""
+    )
     {
         string selectLanguage = $"language={language}";
 
         // If no date is specified we use todays date to get the latest classification codes.
         DateOnly date = atDate ?? DateOnly.FromDateTime(DateTime.Today);
-        string selectDate = $"&date={date.ToString("yyyy-MM-dd")}";
+        string selectDate = $"&date={date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
 
         // No level specified means all levels will be returned
         string selectLevel = level == string.Empty ? string.Empty : $"&selectLevel={level}";
@@ -58,7 +66,7 @@ public class ClassificationsHttpClient : IClassificationsClient
         }
         string query = BuildQuery(selectLanguage, selectDate, selectLevel, selectVariant, selectedCodes);
 
-        var response = await _httpClient.GetAsync($"{url}{query}");
+        using var response = await _httpClient.GetAsync($"{url}{query}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -69,8 +77,8 @@ public class ClassificationsHttpClient : IClassificationsClient
         // If we get a 404 we try to get the codes in the fallback language (nb)
         else if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
         {
-            string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant,selectedCodes);
-            var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
+            string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant, selectedCodes);
+            using var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
             if (fallbackResponse.IsSuccessStatusCode)
             {
                 var fallbackResponseJosn = await fallbackResponse.Content.ReadAsStringAsync();
@@ -82,7 +90,13 @@ public class ClassificationsHttpClient : IClassificationsClient
         return new ClassificationCodes();
     }
 
-    private static string BuildQuery(string selectLanguage, string selectDate, string selectLevel, string selectVariant, string selectCodes)
+    private static string BuildQuery(
+        string selectLanguage,
+        string selectDate,
+        string selectLevel,
+        string selectVariant,
+        string selectCodes
+    )
     {
         return $"?{selectLanguage}{selectDate}{selectLevel}{selectVariant}{selectCodes}";
     }

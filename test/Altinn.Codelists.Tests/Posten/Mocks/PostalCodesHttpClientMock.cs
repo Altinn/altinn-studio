@@ -6,7 +6,8 @@ namespace Altinn.Codelists.Tests.Posten.Mocks;
 
 public class PostalCodesHttpClientMock : IPostalCodesClient
 {
-    private const string POSTAL_CODES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.Posten.Testdata.Postnummerregister-ansi.txt";
+    private const string POSTAL_CODES_TESTDATA_RESOURCE =
+        "Altinn.Codelists.Tests.Posten.Testdata.Postnummerregister-ansi.txt";
 
     private readonly IPostalCodesClient _client;
 

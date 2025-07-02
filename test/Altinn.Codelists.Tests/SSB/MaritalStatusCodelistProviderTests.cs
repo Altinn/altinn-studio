@@ -12,11 +12,16 @@ public class MaritalStatusCodelistProviderTests
     public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
-        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("maritalStatus", Classification.MaritalStatus, httpClientMock);
+        IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
+            "maritalStatus",
+            Classification.MaritalStatus,
+            httpClientMock
+        );
 
         var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
 
-        appOptions.Options.Should().HaveCount(9);
-        appOptions.Options.First(x => x.Value == "2").Label.Should().Be("Gift");
+        Assert.NotNull(appOptions.Options);
+        Assert.Equal(9, appOptions.Options.Count);
+        Assert.Equal("Gift", appOptions.Options.First(x => x.Value == "2").Label);
     }
 }
