@@ -25,6 +25,11 @@ const render = async (props?: Partial<NameFieldProps>) =>
     appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock) },
   })(<NameField {...defaultProps} {...props} />);
 
+async function typeAndBlurNameField(text: string) {
+  await user.type(screen.getByRole('textbox'), text);
+  await user.tab();
+}
+
 describe('NameField', () => {
   const mockOnChange = jest.fn();
 
@@ -41,8 +46,7 @@ describe('NameField', () => {
 
   it('should not save if name contains invalid characters', async () => {
     await render();
-    await user.type(screen.getByRole('textbox'), '@');
-    await user.tab();
+    await typeAndBlurNameField('@');
     expect(
       screen.getByText(textMock('schema_editor.nameError_invalidCharacter')),
     ).toBeInTheDocument();
@@ -51,8 +55,7 @@ describe('NameField', () => {
 
   it('should not save if name is already in use', async () => {
     await render();
-    await user.type(screen.getByRole('textbox'), '2');
-    await user.tab();
+    await typeAndBlurNameField('2');
     expect(screen.getByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeInTheDocument();
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
@@ -61,8 +64,7 @@ describe('NameField', () => {
     await render();
     const input = screen.getByRole('textbox');
     await user.clear(input);
-    await user.type(input, 'namespace');
-    await user.tab();
+    await typeAndBlurNameField('namespace');
 
     expect(
       screen.getByText(textMock('schema_editor.nameError_cSharpReservedKeyword')),
