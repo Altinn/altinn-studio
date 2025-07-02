@@ -8,6 +8,7 @@ export enum QueryKey {
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
+  CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',

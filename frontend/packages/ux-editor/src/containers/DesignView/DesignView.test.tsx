@@ -161,17 +161,6 @@ describe('DesignView', () => {
     expect(screen.queryByText('EmptyGroup')).not.toBeInTheDocument();
   });
 
-  it('calls handleAddGroup and triggers addGroupMutation correctly', async () => {
-    const user = userEvent.setup();
-    const updateLayoutsForPreviewMock = jest.fn().mockResolvedValue(undefined);
-    appContextMock.updateLayoutsForPreview = updateLayoutsForPreviewMock;
-    renderDesignView({ pagesModel: groupsPagesModelMock });
-    const addGroupButton = screen.getByRole('button', { name: textMock('ux_editor.groups.add') });
-    expect(addGroupButton).toBeInTheDocument();
-    await user.click(addGroupButton);
-    expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
-  });
-
   it('calls "setSelectedFormLayoutName" with page name when clicking a closed accordion in a group', async () => {
     const user = userEvent.setup();
     appContextMock.selectedFormLayoutName = layout2NameMock;

@@ -19,6 +19,7 @@ export interface TopToolbarProps {
   setIsCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
   onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
+  canUseUploadXSDFeature?: boolean;
 }
 
 export function TopToolbar({
@@ -29,6 +30,7 @@ export function TopToolbar({
   setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
+  canUseUploadXSDFeature = false,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
@@ -48,10 +50,12 @@ export function TopToolbar({
         setIsCreateNewOpen={setIsCreateNewOpen}
         createPathOption={createPathOption}
       />
-      <XSDUpload
-        selectedOption={selectedOption}
-        uploadButtonText={t('app_data_modelling.upload_xsd')}
-      />
+      {canUseUploadXSDFeature && (
+        <XSDUpload
+          selectedOption={selectedOption}
+          uploadButtonText={t('app_data_modelling.upload_xsd')}
+        />
+      )}
       <SchemaSelect
         dataModels={dataModels}
         disabled={false}
