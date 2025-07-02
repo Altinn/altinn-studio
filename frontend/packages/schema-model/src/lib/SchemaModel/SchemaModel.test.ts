@@ -23,9 +23,7 @@ import {
   subSubNodeMock,
   uiSchemaMock,
   unusedDefinitionMock,
-  simpleArrayItemsPointer,
   simpleArrayItemsMock,
-  defNodeWithChildrenPointer,
 } from '../../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
