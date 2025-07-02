@@ -173,6 +173,16 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("MultiselectGroupExample")]
     public List<MultiselectGroupExample> MultiselectGroupExample { get; set; }
 
+    [XmlElement("DatepickerMaxDateExample", Order = 32)]
+    [JsonProperty("DatepickerMaxDateExample")]
+    [JsonPropertyName("DatepickerMaxDateExample")]
+    public string DatepickerMaxDateExample { get; set; }
+
+    [XmlElement("DatepickerMinDateExample", Order = 33)]
+    [JsonProperty("DatepickerMinDateExample")]
+    [JsonPropertyName("DatepickerMinDateExample")]
+    public string DatepickerMinDateExample { get; set; }
+
   }
 
   public class GridExample
@@ -476,7 +486,9 @@ namespace Altinn.App.Models.Model
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-    public string String { get; set; }
+    public DateTime? String { get; set; }
+
+    public bool ShouldSerializeString() => String.HasValue;
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -485,10 +497,11 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]
-    public DateOnly? DateOnly { get; set; }
+    public string DateOnly { get; set; }
 
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]

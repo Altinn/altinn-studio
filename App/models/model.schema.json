@@ -383,6 +383,12 @@
           }
         }
       }
+    },
+    "DatepickerMaxDateExample": {
+      "type": "string"
+    },
+    "DatepickerMinDateExample": {
+      "type": "string"
     }
   }
 }
