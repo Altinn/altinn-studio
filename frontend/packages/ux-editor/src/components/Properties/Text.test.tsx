@@ -68,19 +68,6 @@ describe('TextTab', () => {
       render({ props });
     });
 
-    it('should render alert when schema does not have text property', async () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            type: 'CustomComponentType' as ComponentType,
-          } as FormItem,
-        },
-      });
-      const alert = screen.getByText(textMock('ux_editor.properties_panel.texts.no_properties'));
-      expect(alert).toBeInTheDocument();
-    });
-
     it('should render sub title for texts', () => {
       render({ props });
       const textsSubTitle = screen.getByText(

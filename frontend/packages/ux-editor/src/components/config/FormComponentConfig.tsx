@@ -67,8 +67,6 @@ export const FormComponentConfig = ({
     [component, selectedDataType],
   );
 
-  if (!schema?.properties) return null;
-
   const { properties } = schema;
   const { hasCustomFileEndings, grid, layoutSet } = properties;
 

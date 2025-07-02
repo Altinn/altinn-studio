@@ -263,30 +263,6 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('nullProperty')).not.toBeInTheDocument();
   });
 
-  it('should render nothing if schema is undefined', () => {
-    render({
-      props: {
-        schema: undefined,
-      },
-    });
-    expect(
-      screen.queryByText(textMock('ux_editor.component_properties.grid')),
-    ).not.toBeInTheDocument();
-  });
-
-  it('should render nothing if schema properties are undefined', () => {
-    render({
-      props: {
-        schema: {
-          properties: undefined,
-        },
-      },
-    });
-    expect(
-      screen.queryByText(textMock('ux_editor.component_properties.grid')),
-    ).not.toBeInTheDocument();
-  });
-
   it('should call handleComponentUpdate and setSelectedValue when array property is updated', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
