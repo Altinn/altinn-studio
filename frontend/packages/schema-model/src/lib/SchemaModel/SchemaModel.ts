@@ -23,10 +23,8 @@ import {
   createDefinitionPointer,
   createPropertyPointer,
   extractCategoryFromPointer,
-  constructItemsCategoryPath,
   extractNameFromPointer,
   makePointerFromArray,
-  extractItemsCategory,
 } from '../pointerUtils';
 import {
   defaultCombinationNode,
@@ -66,13 +64,10 @@ export class SchemaModel extends SchemaModelBase {
     if (this.hasNode(pointer)) return pointer;
 
     const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
-    const itemsPointerCategoryPath = constructItemsCategoryPath(uniquePointer);
 
     return makePointerFromArray([
       parentSchemaPointer,
-      itemsPointerCategoryPath
-        ? itemsPointerCategoryPath
-        : extractCategoryFromPointer(uniquePointer),
+      extractCategoryFromPointer(uniquePointer),
       extractNameFromPointer(uniquePointer),
     ]);
   }
@@ -97,12 +92,9 @@ export class SchemaModel extends SchemaModelBase {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
       return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
 
-    const itemsPointerCategory = extractItemsCategory(schemaPointer);
-    const category = itemsPointerCategory
-      ? itemsPointerCategory
-      : extractCategoryFromPointer(schemaPointer);
-
+    const category = extractCategoryFromPointer(schemaPointer);
     const parentPointer = SchemaModel.removeUniquePointerPrefix(uniqueParentPointer);
+
     return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 

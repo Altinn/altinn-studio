@@ -5,6 +5,7 @@ import { ROOT_POINTER } from './constants';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
 import { isNodeValidParent } from './utils';
+import { ValidPointerCategory } from '@altinn/schema-model/types/ValidPointerCategory';
 
 export const createDefinitionPointer = (name: string): string =>
   makePointerFromArray([Keyword.Definitions, name]);
@@ -46,20 +47,16 @@ export const extractNameFromPointer = (pointer: string): string => {
   return parts.pop();
 };
 
-export const extractCategoryFromPointer = (
-  pointer: string,
-): Keyword.Properties | Keyword.Definitions | CombinationKind | undefined => {
-  const category = getPointerPartCategory(pointer);
-  switch (category) {
-    case Keyword.Properties:
-    case Keyword.Definitions:
-    case CombinationKind.AllOf:
-    case CombinationKind.AnyOf:
-    case CombinationKind.OneOf:
-      return category;
-    default:
-      return undefined;
+export const extractCategoryFromPointer = (pointer: string): ValidPointerCategory | undefined => {
+  const category: ValidPointerCategory =
+    extractItemsCategory(pointer) ||
+    constructItemsCategoryPath(pointer) ||
+    getPointerPartCategory(pointer);
+
+  if (category && isValidPointerCategory(category)) {
+    return category;
   }
+  return undefined;
 };
 
 export const constructItemsCategoryPath = (pointer: string): string | undefined => {
@@ -87,4 +84,17 @@ const getPointerPartCategory = (
   const parts = pointer.split('/');
   const index = parts.length - categoryPositionFromEnd;
   return index >= 0 ? parts[index] : undefined;
+};
+
+const isValidPointerCategory = (value: string): value is ValidPointerCategory => {
+  const validCategories: Set<string> = new Set([
+    Keyword.Properties,
+    Keyword.Definitions,
+    Keyword.Items,
+    `${Keyword.Items}/${Keyword.Properties}`,
+    CombinationKind.AllOf,
+    CombinationKind.AnyOf,
+    CombinationKind.OneOf,
+  ]);
+  return validCategories.has(value);
 };
