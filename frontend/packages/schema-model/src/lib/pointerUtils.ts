@@ -59,12 +59,12 @@ export const extractCategoryFromPointer = (pointer: string): ValidPointerCategor
   return undefined;
 };
 
-export const constructItemsCategoryPath = (pointer: string): string | undefined => {
+const constructItemsCategoryPath = (pointer: string): string | undefined => {
   const category = getPointerPartCategory(pointer);
   return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : undefined;
 };
 
-export const extractItemsCategory = (pointer: string): string | undefined => {
+const extractItemsCategory = (pointer: string): string | undefined => {
   const categoryPositionFromEnd = 3;
   const category = getPointerPartCategory(pointer, categoryPositionFromEnd);
   return category === Keyword.Items ? Keyword.Items : undefined;

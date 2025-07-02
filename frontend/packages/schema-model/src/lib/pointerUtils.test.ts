@@ -1,11 +1,9 @@
 import { expect } from '@jest/globals';
 import {
   changeNameInPointer,
-  constructItemsCategoryPath,
   createDefinitionPointer,
   createPropertyPointer,
   extractCategoryFromPointer,
-  extractItemsCategory,
   extractNameFromPointer,
   makePointerFromArray,
 } from './pointerUtils';
@@ -90,6 +88,16 @@ describe('pointerUtils', () => {
     it('Returns undefined when the pointer is the root pointer', () => {
       expect(extractCategoryFromPointer('#')).toBe(undefined);
     });
+
+    it('Returns "items/properties" when pointer includes "items"', () => {
+      const pointer = '#/properties/simpleArray/items/simpleChild';
+      expect(extractCategoryFromPointer(pointer)).toBe(`${Keyword.Items}/${Keyword.Properties}`);
+    });
+
+    it('Returns "items" when pointer has "items" 3 parts from the end', () => {
+      const pointer = '#/properties/simpleArray/items/properties/simpleChild';
+      expect(extractCategoryFromPointer(pointer)).toBe(Keyword.Items);
+    });
   });
 
   describe('changeNameInPointer', () => {
@@ -99,30 +107,6 @@ describe('pointerUtils', () => {
       expect(changeNameInPointer('#/properties/hello/anyOf/hello', 'world')).toBe(
         '#/properties/hello/anyOf/world',
       );
-    });
-  });
-
-  describe('constructItemsCategoryPath', () => {
-    it('Returns "items/properties" when pointer includes "items"', () => {
-      const pointer = '#/properties/simpleArray/items/simpleChild';
-      expect(constructItemsCategoryPath(pointer)).toBe(`${Keyword.Items}/${Keyword.Properties}`);
-    });
-
-    it('Returns undefined when pointer does not include "items"', () => {
-      const pointer = '#/properties/simpleParent/properties/simpleChild';
-      expect(constructItemsCategoryPath(pointer)).toBeUndefined();
-    });
-  });
-
-  describe('extractItemsCategory', () => {
-    it('Returns "items" when pointer has "items" 3 parts from the end', () => {
-      const pointer = '#/properties/simpleArray/items/properties/simpleChild';
-      expect(extractItemsCategory(pointer)).toBe(Keyword.Items);
-    });
-
-    it('Returns undefined when pointer does not have "items" 3 parts from the end', () => {
-      const pointer = '#/properties/simpleParent/properties/simpleChild';
-      expect(extractItemsCategory(pointer)).toBeUndefined();
     });
   });
 });
