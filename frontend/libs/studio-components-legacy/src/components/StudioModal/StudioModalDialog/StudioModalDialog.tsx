@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { forwardRef, useCallback } from 'react';
+import React, { useId, forwardRef, useCallback } from 'react';
 import { Modal } from '@digdir/designsystemet-react';
 import type { ModalDialogProps } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -32,6 +32,7 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
     ref,
   ): ReactNode => {
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
+    const headerId = useId();
 
     const className = cn(
       givenClassName,
@@ -45,6 +46,7 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
 
     return (
       <Modal.Dialog
+        aria-labelledby={headerId}
         className={className}
         onInteractOutside={closeModal} // Not possible to test with React testing library because of JSDOM limitations
         ref={dialogRef}
@@ -56,7 +58,7 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
               {icon}
             </span>
           )}
-          <span>{heading}</span>
+          <span id={headerId}>{heading}</span>
         </Modal.Header>
         <Modal.Content className={cn(classes.content, contentClassName)}>{children}</Modal.Content>
         {footer && <Modal.Footer className={classes.footer}>{footer}</Modal.Footer>}
