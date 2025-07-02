@@ -63,6 +63,12 @@ export const extractCategoryFromPointer = (
   }
 };
 
+export const extractItemsFromPointer = (pointer: string): Keyword.Items | undefined => {
+  const parts = pointer.split('/');
+  const category = parts[parts.length - 2];
+  return category === Keyword.Items ? Keyword.Items : undefined;
+};
+
 export const changeNameInPointer = (pointer: string, newName: string): string => {
   const parts = pointer.split('/');
   parts.pop();

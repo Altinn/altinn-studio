@@ -165,6 +165,26 @@ describe('SchemaModel', () => {
       ).toEqual(expectedUniqueGrandchildPointer);
     });
 
+    it('Returns a unique pointer reflecting the path to a given node in a reference to an array', () => {
+      const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
+      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
+
+      console.log(defNodeWithChildrenChildMock.schemaPointer);
+      console.log(referenceToObjectNodeMock.schemaPointer);
+      expect(
+        SchemaModel.getUniquePointer(
+          defNodeWithChildrenChildMock.schemaPointer,
+          referenceToObjectNodeMock.schemaPointer,
+        ),
+      ).toEqual(expectedUniqueChildPointer);
+      expect(
+        SchemaModel.getUniquePointer(
+          defNodeWithChildrenGrandchildMock.schemaPointer,
+          expectedUniqueChildPointer,
+        ),
+      ).toEqual(expectedUniqueGrandchildPointer);
+    });
+
     it('Returns a pointer reflecting the path to a given node in a reference to a combination', () => {
       const { schemaPointer } = combinationDefNodeChild1Mock;
       const uniquePointerOfParent = referenceToCombinationDefNodeMock.schemaPointer;
