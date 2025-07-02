@@ -2,7 +2,6 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SubHeader } from './SubHeader';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { HeaderContextProvider } from '../../../../context/HeaderContext';
@@ -22,9 +21,6 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('SubHeader', () => {
-  beforeAll(() => {
-    addFeatureFlagToLocalStorage(FeatureFlag.OrgLibrary);
-  });
   afterEach(() => {
     jest.clearAllMocks();
   });
