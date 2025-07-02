@@ -1,11 +1,10 @@
 import type { UiSchemaNode } from '../types';
 import { CombinationKind, Keyword, ObjectKind } from '../types';
-
-import { ROOT_POINTER } from './constants';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
+import type { ValidPointerCategory } from '../types/ValidPointerCategory';
+import { ROOT_POINTER } from './constants';
 import { isNodeValidParent } from './utils';
-import { ValidPointerCategory } from '@altinn/schema-model/types/ValidPointerCategory';
 
 export const createDefinitionPointer = (name: string): string =>
   makePointerFromArray([Keyword.Definitions, name]);
