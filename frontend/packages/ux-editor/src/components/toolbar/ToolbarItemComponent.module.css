@@ -10,6 +10,11 @@
 
 .toolbarItem:hover {
   background-color: var(--ds-color-surface-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toolbarItem:active {
+  cursor: grabbing;
 }
 
 .componentIcon {
