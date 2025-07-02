@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -314,13 +315,13 @@ public class OptionsServiceTests : IDisposable
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
 
-        // Act
+        // Act and assert
         var optionsService = GetOptionsServiceForTest();
-        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
-        // Assert
-        Assert.Null(optionListDataList);
-        Assert.Null(textResources);
+        await Assert.ThrowsAsync<ConflictingFileNameException>(async () =>
+        {
+            await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        });
     }
 
     private static OptionsService GetOptionsServiceForTest()
