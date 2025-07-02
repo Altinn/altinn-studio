@@ -27,6 +27,22 @@ export interface DeploymentEnvironmentLogListProps {
   kubernetesDeployment?: KubernetesDeployment;
 }
 
+const getIcon = (buildResult: BuildResult) => {
+  const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
+  switch (buildResult) {
+    case BuildResult.failed:
+      return <XMarkOctagonFillIcon className={classnames} />;
+    case BuildResult.canceled:
+    case BuildResult.partiallySucceeded:
+      return <ExclamationmarkTriangleFillIcon className={classnames} />;
+    case BuildResult.succeeded:
+      return <CheckmarkCircleFillIcon className={classnames} />;
+    case BuildResult.none:
+    default:
+      return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
+  }
+};
+
 export const DeploymentEnvironmentLogList = ({
   envName,
   isProduction,
@@ -38,22 +54,6 @@ export const DeploymentEnvironmentLogList = ({
   const envTitle = isProduction
     ? t(`general.production_environment_alt`).toLowerCase()
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
-
-  const getIcon = (buildResult: BuildResult) => {
-    const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
-    switch (buildResult) {
-      case BuildResult.failed:
-        return <XMarkOctagonFillIcon className={classnames} />;
-      case BuildResult.canceled:
-      case BuildResult.partiallySucceeded:
-        return <ExclamationmarkTriangleFillIcon className={classnames} />;
-      case BuildResult.succeeded:
-        return <CheckmarkCircleFillIcon className={classnames} />;
-      case BuildResult.none:
-      default:
-        return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
-    }
-  };
 
   return (
     <div className={classes.container}>
