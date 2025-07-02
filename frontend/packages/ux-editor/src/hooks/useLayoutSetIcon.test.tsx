@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import React from 'react';
-import { useLayoutSetIcon } from './useLayoutSetIcon';
+import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import { QuestionmarkIcon } from '@studio/icons';
 
@@ -11,7 +11,7 @@ describe('useLayoutSetIcon', () => {
       dataType: '',
       type: 'unknown-type',
     };
-    const { result } = renderHook(() => useLayoutSetIcon(layoutSet));
+    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
 
     expect(result.current.icon.type).toBe((<QuestionmarkIcon />).type);
     expect(result.current.iconColor).toBe('grey');
@@ -27,7 +27,7 @@ describe('useLayoutSetIcon', () => {
         type: '',
       },
     };
-    const { result } = renderHook(() => useLayoutSetIcon(layoutSet));
+    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
     expect(result.current.icon).toBeTruthy();
     expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
     expect(result.current.iconColor).toBeTruthy();
@@ -39,7 +39,7 @@ describe('useLayoutSetIcon', () => {
       dataType: '',
       type: 'subform',
     };
-    const { result } = renderHook(() => useLayoutSetIcon(layoutSet));
+    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
     expect(result.current.icon).toBeTruthy();
     expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
     expect(result.current.iconColor).toBeTruthy();
@@ -55,7 +55,7 @@ describe('useLayoutSetIcon', () => {
         type: 'data',
       },
     };
-    const { result } = renderHook(() => useLayoutSetIcon(layoutSet));
+    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
     expect(result.current.icon).toBeTruthy();
     expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
     expect(result.current.iconColor).toBeTruthy();
@@ -71,7 +71,7 @@ describe('useLayoutSetIcon', () => {
         type: 'signing',
       },
     };
-    const { result } = renderHook(() => useLayoutSetIcon(layoutSet));
+    const { result } = renderHook(() => getLayoutSetIcon(layoutSet));
     expect(result.current.icon).toBeTruthy();
     expect(result.current.icon.type).not.toBe((<QuestionmarkIcon />).type);
     expect(result.current.iconColor).toBeTruthy();

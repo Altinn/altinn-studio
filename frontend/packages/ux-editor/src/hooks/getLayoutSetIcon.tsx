@@ -16,7 +16,7 @@ type IconMetaData = {
   iconColor: StudioIconCardIconColors;
 };
 
-export const useLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData => {
+export const getLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData => {
   return (
     iconByLayoutSetModelType[layoutSetModel.type] ||
     iconByTaskIdMap[layoutSetModel.task?.id] ||
