@@ -10,6 +10,7 @@ COPY ./development/azure-devops-mock/package.json ./development/azure-devops-moc
 COPY ./frontend/app-development/package.json ./frontend/app-development/
 COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
+COPY ./frontend/admin/package.json ./frontend/admin/
 COPY ./frontend/language/package.json ./frontend/language/
 COPY ./frontend/libs/studio-components/package.json ./frontend/libs/studio-components/
 COPY ./frontend/libs/studio-components-legacy/package.json ./frontend/libs/studio-components-legacy/
