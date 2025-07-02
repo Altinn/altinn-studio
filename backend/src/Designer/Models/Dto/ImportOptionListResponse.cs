@@ -5,8 +5,8 @@ namespace Altinn.Studio.Designer.Models.Dto;
 
 public class ImportOptionListResponse
 {
-    [JsonPropertyName("optionList")]
-    public List<OptionListData> OptionList { get; set; }
+    [JsonPropertyName("optionLists")]
+    public List<OptionListData> OptionLists { get; set; }
     [JsonPropertyName("textResources")]
     public Dictionary<string, TextResource> TextResources { get; set; }
 }

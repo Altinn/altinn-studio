@@ -47,7 +47,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         using HttpResponseMessage response = await HttpClient.SendAsync(message);
         string responseContent = await response.Content.ReadAsStringAsync();
         ImportOptionListResponse importedResponse = JsonSerializer.Deserialize<ImportOptionListResponse>(responseContent, s_jsonOptions);
-        List<OptionListData> optionListDataList = importedResponse.OptionList;
+        List<OptionListData> optionListDataList = importedResponse.OptionLists;
         List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert

@@ -16,11 +16,11 @@ export const useImportCodeListFromOrgToAppMutation = (org: string, app: string) 
     mutationFn: async (codeListId: string): Promise<ImportCodeListResponse> => {
       return await importCodeListFromOrgToApp(org, app, codeListId);
     },
-    onSuccess: ({ optionList, textResources }: ImportCodeListResponse) => {
+    onSuccess: ({ optionLists, textResources }: ImportCodeListResponse) => {
       const updatedTextResources: ITextResources =
         convertTextResourceResponseToCacheFormat(textResources);
       queryClient.setQueryData([QueryKey.TextResources, org, app], updatedTextResources);
-      queryClient.setQueryData([QueryKey.OptionLists, org, app], optionList);
+      queryClient.setQueryData([QueryKey.OptionLists, org, app], optionLists);
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org] }),

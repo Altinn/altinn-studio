@@ -263,7 +263,7 @@ public class OptionsController : ControllerBase
             (List<OptionListData> optionLists, Dictionary<string, TextResource> textResources) = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
             ImportOptionListResponse importOptionListResponse = new()
             {
-                OptionList = optionLists,
+                OptionLists = optionLists,
                 TextResources = textResources
             };
             return Ok(importOptionListResponse);
