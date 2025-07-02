@@ -100,7 +100,18 @@
         "type": "Subform",
         "textResourceBindings": {
           "title": "subform-moped.title",
-          "addButton": "subform-moped.add"
+          "addButton": "subform-moped.add",
+          "tableEditButton": [
+            "if",
+            [
+              "equals",  ["dataModel",
+              "Merke"],
+              "Vespa"
+            ],
+            "Rediger Vespa",
+            "else",
+            "IKKE Vespa"
+          ]
         },
         "layoutSet": "moped-subform",
         "showAddButton": true,
