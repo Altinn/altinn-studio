@@ -26,13 +26,66 @@
         },
         "readOnly": false,
         "format": "DD/MM/YYYY",
-        "minDate": "1900-01-01T12:00:00Z",
-        "maxDate": "2100-01-01T12:00:00Z",
+        "minDate": ["dataModel","DatepickerMinDateExample"],
+        "maxDate":  ["dataModel","DatepickerMaxDateExample"],
         "required": true,
         "timeStamp": false,
         "grid": {
           "md": 6
         }
+      },
+      
+      {
+        "id": "DatepickerMinDateExample1",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "sett min dato for datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMinDateExample"
+        },
+        "format": "DD/MM/YYYY"
+      },
+      {
+        "id": "InputPage-Input",
+        "required": false,
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Min date"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMinDateExample"
+        },
+        "showValidations": [
+          "All"
+        ]
+      },
+      {
+        "id": "DatepickerMaxDateExample1",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "sett max dato for datofeltet",
+          "shortName": "dato-short"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMaxDateExample"
+        },
+        "format": "DD/MM/YYYY"
+      },
+      {
+        "id": "InputPage-Input",
+        "required": false,
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Max date"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "DatepickerMaxDateExample"
+        },
+        "showValidations": [
+          "All"
+        ]
       },
       {
         "size": "h3",
