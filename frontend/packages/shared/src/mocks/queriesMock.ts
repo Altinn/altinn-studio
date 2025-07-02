@@ -76,7 +76,7 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
-import { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
