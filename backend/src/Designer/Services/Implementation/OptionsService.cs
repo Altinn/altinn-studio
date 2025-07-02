@@ -93,7 +93,7 @@ public class OptionsService : IOptionsService
                 HasError = false
             };
         }
-        catch (InvalidOperationException)
+        catch (InvalidOptionsFormatException)
         {
             return new OptionListData
             {
