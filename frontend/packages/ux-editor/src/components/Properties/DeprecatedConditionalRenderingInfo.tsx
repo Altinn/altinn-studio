@@ -2,7 +2,6 @@ import React from 'react';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useAppContext } from '../../hooks';
-import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';
@@ -14,7 +13,7 @@ export const DeprecatedConditionalRenderingInfo = () => {
   const ruleHandlerLocation = `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`;
 
   return (
-    <div className={classes.calculations}>
+    <div>
       <Alert size='small'>
         <Heading size='xxsmall'>
           {t('right_menu.rules_conditional_rendering_deprecated_info_title')}
