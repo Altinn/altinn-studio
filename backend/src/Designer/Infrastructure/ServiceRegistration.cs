@@ -7,6 +7,7 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
+using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -57,6 +58,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
+            services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
+            services.AddScoped<IUserOrganizationService, UserOrganizationService>();
+            services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
@@ -84,6 +89,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IImagesService, ImagesService>();
             services.AddTransient<ILayoutService, LayoutService>();
             services.AddTransient<IOrgTextsService, OrgTextsService>();
+            services.AddTransient<CanUseFeatureEvaluatorRegistry>();
             services.RegisterDatamodeling(configuration);
             services.RegisterSettingsSingleton<KafkaSettings>(configuration);
             services.AddTransient<IKafkaProducer, KafkaProducer>();

@@ -6,7 +6,8 @@ import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schem
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { isCSharpReservedKeyword } from 'app-shared/hooks/useValidateSchemaName';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
 export type NameFieldProps = StudioTextfieldProps & {
   id?: string;
@@ -37,6 +38,7 @@ export function NameField({
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
     if (schemaModel.hasNode(replaceLastPointerSegment(schemaPointer, nodeNameToValidate)))
       return NameError.AlreadyInUse;
+    if (isCSharpReservedKeyword(nodeNameToValidate)) return NameError.CSharpReservedKeyword;
   };
 
   const onNameBlur = (newNodeName: string, errorCode: string) => {
@@ -57,6 +59,8 @@ export function NameField({
             return t('schema_editor.nameError_invalidCharacter');
           case NameError.AlreadyInUse:
             return t('schema_editor.nameError_alreadyInUse');
+          case NameError.CSharpReservedKeyword:
+            return t('schema_editor.nameError_cSharpReservedKeyword');
           default:
             return '';
         }
