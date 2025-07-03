@@ -109,7 +109,7 @@ describe('FormComponentConfig', () => {
         },
         schema: {
           properties: {
-            layoutSet: 'subform-unit-test-layout-set',
+            layoutSet: { value: 'subform-unit-test-layout-set' },
           },
         },
       },
