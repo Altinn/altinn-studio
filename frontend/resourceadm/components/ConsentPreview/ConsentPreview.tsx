@@ -134,14 +134,14 @@ export const ConsentPreview = ({
             </StudioToggleGroup.Item>
           </StudioToggleGroup>
           <StudioSwitch
-            label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
-            checked={isDummyMetadataEnabled}
-            onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
-          />
-          <StudioSwitch
             label={t('resourceadm.about_resource_consent_preview_mobile_view')}
             checked={isMobileViewEnabled}
             onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
+          />
+          <StudioSwitch
+            label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
+            checked={isDummyMetadataEnabled}
+            onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
           />
         </div>
         <div
