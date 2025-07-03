@@ -70,7 +70,7 @@ export const FormComponentConfig = ({
       )}
 
       {/** Boolean fields, incl. expression type */}
-      {booleanKeys.length && (
+      {booleanKeys.length > 0 && (
         <ConfigBooleanProperties
           booleanPropertyKeys={booleanKeys}
           schema={schema}
@@ -85,7 +85,7 @@ export const FormComponentConfig = ({
       )}
 
       {/** String properties */}
-      {stringKeys.length && (
+      {stringKeys.length > 0 && (
         <ConfigStringProperties
           stringPropertyKeys={stringKeys}
           schema={schema}
@@ -115,7 +115,7 @@ export const FormComponentConfig = ({
       )}
 
       {/** Object properties  */}
-      {objectKeys.length && (
+      {objectKeys.length > 0 && (
         <ConfigObjectProperties
           editFormId={editFormId}
           objectPropertyKeys={objectKeys}
