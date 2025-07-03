@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class RefToOptionListSpecifier
+public class OptionListReference
 {
     [JsonPropertyName("optionListId")]
     public string OptionListId { get; set; }

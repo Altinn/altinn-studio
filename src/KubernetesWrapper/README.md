@@ -1,9 +1,11 @@
 # Kubernetes Wrapper
+
 Application exposing information about deployments in kubernetes in a rest API
 
 ## Testing
 
 ### Linux and macOS
+
 To test kuberneteswrapper in a kubernetes cluster (kind) lokally run the following command
 
 ```shell
@@ -11,6 +13,7 @@ make test
 ```
 
 This will do the following
+
 1. create a kind kubernetescluster
 2. build kuberneteswrapper docker image
 3. load the image into kind
