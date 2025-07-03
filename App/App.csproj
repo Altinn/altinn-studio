@@ -10,10 +10,8 @@
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Altinn.App.Core" Version="8.7.0-preview.3" />
-    <PackageReference Include="Altinn.Codelists" Version="0.8.0" />
-    <PackageReference Include="Altinn.FileAnalyzers" Version="0.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Altinn.Codelists" Version="8.0.0-rc.1" />
+    <PackageReference Include="Altinn.FileAnalyzers" Version="8.0.0-rc.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
