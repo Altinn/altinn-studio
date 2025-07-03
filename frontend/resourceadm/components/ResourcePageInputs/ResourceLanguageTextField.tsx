@@ -1,5 +1,5 @@
 import React, { forwardRef, useRef, useState } from 'react';
-import type { ChangeEvent, MutableRefObject, ReactElement, Ref } from 'react';
+import type { ChangeEvent, MutableRefObject, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioButton, StudioTextfield } from '@studio/components';
@@ -179,28 +179,21 @@ export const ResourceLanguageTextField = ({
               />
               {hasMarkdownToolbar && (
                 <div className={classes.markdownToolbar}>
-                  <StudioButton
-                    variant='tertiary'
+                  <MarkdownToolbarButton
                     icon={<BulletListIcon />}
-                    title={t('resourceadm.about_resource_consent_add_list')}
-                    aria-label={t('resourceadm.about_resource_consent_add_list')}
+                    text={t('resourceadm.about_resource_consent_add_list')}
                     onClick={onAddMarkdownList}
                   />
-                  <StudioButton
-                    variant='tertiary'
+                  <MarkdownToolbarButton
                     icon={<LinkIcon />}
-                    title={t('resourceadm.about_resource_consent_add_link')}
-                    aria-label={t('resourceadm.about_resource_consent_add_link')}
+                    text={t('resourceadm.about_resource_consent_add_link')}
                     onClick={onAddMarkdownLink}
                   />
-                  <StudioButton
-                    variant='tertiary'
-                    title={t('resourceadm.about_resource_consent_add_metadata')}
-                    aria-label={t('resourceadm.about_resource_consent_add_metadata')}
+                  <MarkdownToolbarButton
+                    icon={'{ }'}
+                    text={t('resourceadm.about_resource_consent_add_metadata')}
                     onClick={onAddMetadata}
-                  >
-                    {'{ }'}
-                  </StudioButton>
+                  />
                 </div>
               )}
             </div>
@@ -213,6 +206,17 @@ export const ResourceLanguageTextField = ({
         onBlur={onBlurField}
       />
     </div>
+  );
+};
+
+interface MarkdownToolbarButtonProps {
+  text: string;
+  icon: ReactNode;
+  onClick: () => void;
+}
+const MarkdownToolbarButton = ({ text, icon, onClick }: MarkdownToolbarButtonProps) => {
+  return (
+    <StudioButton variant='tertiary' icon={icon} title={text} aria-label={text} onClick={onClick} />
   );
 };
 
