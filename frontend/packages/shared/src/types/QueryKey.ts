@@ -58,6 +58,10 @@ export enum QueryKey {
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
 
+  // Admin
+  AppInstances = 'AppInstances',
+  RunningApps = 'RunningApps',
+
   // Resourceadm
   ResourceList = 'ResourceList',
   ResourcePolicy = 'ResourcePolicy',
