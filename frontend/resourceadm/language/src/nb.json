@@ -89,7 +89,7 @@
   "resourceadm.about_resource_consent_add_list": "Sett inn liste",
   "resourceadm.about_resource_consent_add_link": "Sett inn link",
   "resourceadm.about_resource_consent_add_metadata": "Sett inn metadata",
-  "resourceadm.about_resource_consent_text_text": "Beskriv hva samtykket gjelder. Metadata kan brukes",
+  "resourceadm.about_resource_consent_text_text": "Beskriv tydelig hva det samtykkes til, hvem som mottar samtykket, formålet, og hvordan samtykket kan trekkes tilbake. Skriv teksten i Markdown, eller benytt verktøylinjen for å legge til liste, link og metadata.",
   "resourceadm.about_resource_consent_metadata": "Metadata for samtykketekst",
   "resourceadm.about_resource_consent_metadata_description": "Metadata-verdiene som defineres her kan brukes i samtykketeksten som {metadataNavn}. Skill hvert ord med komma \",\". F.eks dersom du vil bruke verdien {inntektsaar} i samtykketeksten, skriv \"inntektsaar\" i dette feltet",
   "resourceadm.about_resource_consent_preview_approve_nb": "Ja, jeg gir samtykke",
