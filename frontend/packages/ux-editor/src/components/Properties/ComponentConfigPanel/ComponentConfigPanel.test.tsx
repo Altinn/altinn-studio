@@ -297,6 +297,15 @@ describe('ComponentConfigPanel', () => {
       ).toBeInTheDocument();
     });
 
+    it('should not render properties accordions when subform component is selected but not linked to a subform layoutSet', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Subform],
+        formItemId: componentMocks[ComponentType.Subform].id,
+      });
+      const contentAccordion = screen.queryByText(textMock('right_menu.content'));
+      expect(contentAccordion).not.toBeInTheDocument();
+    });
+
     it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
       editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
       renderComponentConfig({
