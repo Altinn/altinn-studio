@@ -67,14 +67,6 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
   });
 
-  it('renders upload xsd button with correct text', () => {
-    renderToolbar();
-    const uploadButton = screen.getByRole('button', {
-      name: textMock('app_data_modelling.upload_xsd'),
-    });
-    expect(uploadButton).toBeInTheDocument();
-  });
-
   it('handles a click on the generate button', async () => {
     renderToolbar({}, {});
     const topToolbar = screen.getByRole('toolbar');
@@ -111,4 +103,20 @@ describe('TopToolbar', () => {
     await user.click(screen.getByRole('button', { name: generateText }));
     expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
+
+  it('should show upload xsd if feature is available', (): void => {
+    renderToolbar({ canUseUploadXSDFeature: true });
+    expect(queryUploadXSDButton()).toBeInTheDocument();
+  });
+
+  it('should hide upload xsd if feature is not available', (): void => {
+    renderToolbar({ canUseUploadXSDFeature: false });
+    expect(queryUploadXSDButton()).not.toBeInTheDocument();
+  });
 });
+
+function queryUploadXSDButton(): HTMLButtonElement | null {
+  return screen.queryByRole('button', {
+    name: textMock('app_data_modelling.upload_xsd'),
+  });
+}

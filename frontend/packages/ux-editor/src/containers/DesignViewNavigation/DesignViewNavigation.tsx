@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
-import { MenuElipsisVerticalIcon, MinusCircleIcon, PlusCircleIcon } from '@studio/icons';
+import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';
@@ -9,6 +9,8 @@ import { useConvertToPageGroups } from '../../hooks/mutations/useConvertToPageGr
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import { StudioSpinner } from '@studio/components';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();
@@ -21,9 +23,15 @@ export const DesignViewNavigation = () => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const isUsingPageGroups = pagesModel?.groups?.length > 0;
+  if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
+
+  const isUsingPageGroups = isPagesModelWithGroups(pagesModel);
 
   return (
     <div data-testid='design-view-navigation'>
@@ -52,13 +60,23 @@ export const DesignViewNavigation = () => {
               <DropdownMenu.Content>
                 <DropdownMenu.Group>
                   {isUsingPageGroups ? (
-                    <DropdownMenu.Item onClick={() => convertToPageOrder()}>
-                      <MinusCircleIcon className={classes.deleteGroupIcon} />
+                    <DropdownMenu.Item
+                      onClick={() => {
+                        if (confirm(t('ux_editor.page_layout_convert_to_pages_confirm')))
+                          convertToPageOrder();
+                      }}
+                    >
+                      <EyeClosedIcon className={classes.deleteGroupIcon} />
                       {t('ux_editor.page_layout_remove_group_division')}
                     </DropdownMenu.Item>
                   ) : (
-                    <DropdownMenu.Item onClick={() => convertToPageGroups()}>
-                      <PlusCircleIcon className={classes.groupPagesIcon} />
+                    <DropdownMenu.Item
+                      onClick={() => {
+                        if (confirm(t('ux_editor.page_layout_convert_to_group_confirm')))
+                          convertToPageGroups();
+                      }}
+                    >
+                      <EyeIcon className={classes.groupPagesIcon} />
                       {t('ux_editor.page_layout_add_group_division')}
                     </DropdownMenu.Item>
                   )}

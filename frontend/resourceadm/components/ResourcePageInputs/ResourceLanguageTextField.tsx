@@ -40,6 +40,11 @@ type ResourceLanguageTextFieldProps = {
    */
   onBlur: (translations: SupportedLanguage) => void;
   /**
+   * Function to be executed on change
+   * @returns void
+   */
+  onChange?: (translations: SupportedLanguage) => void;
+  /**
    * The error texts to be shown
    */
   errors: ResourceFormError[];
@@ -62,6 +67,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {function}[onChange] - Function to be executed on change
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  * @property {boolean}[required] - Whether this field is required or not
@@ -74,6 +80,7 @@ export const ResourceLanguageTextField = ({
   description,
   value,
   onBlur,
+  onChange,
   errors,
   useTextArea,
   required,
@@ -95,6 +102,9 @@ export const ResourceLanguageTextField = ({
 
   const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;
+    if (onChange) {
+      onChange({ ...translations, [selectedLanguage]: newValue });
+    }
     setTranslations((oldTranslations) => {
       return { ...oldTranslations, [selectedLanguage]: newValue };
     });

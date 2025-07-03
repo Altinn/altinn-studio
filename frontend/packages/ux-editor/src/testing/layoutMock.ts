@@ -8,7 +8,10 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type {
+  PagesModelWithPageGroups,
+  PagesModelWithPageOrder,
+} from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
@@ -179,11 +182,11 @@ const layout2Mock: ExternalFormLayout = {
     layout: [],
   },
 };
-export const pagesModelMock: PagesModel = {
+export const pagesModelMock: PagesModelWithPageOrder = {
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 
-export const groupsPagesModelMock: PagesModel = {
+export const groupsPagesModelMock: PagesModelWithPageGroups = {
   groups: [
     {
       name: pagelayout1NameMock,
@@ -195,7 +198,7 @@ export const groupsPagesModelMock: PagesModel = {
     },
   ],
 };
-export const pageGroupsMultiplePagesMock: PagesModel = {
+export const pageGroupsMultiplePagesMock: PagesModelWithPageGroups = {
   groups: [
     {
       name: pagelayout1NameMock,
