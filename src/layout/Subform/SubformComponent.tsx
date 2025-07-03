@@ -21,8 +21,9 @@ import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/SubformComponent.module.css';
-import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
+import { evalSubformString, useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import utilClasses from 'src/styles/utils.module.css';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
@@ -58,7 +59,6 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const lock = FD.useLocking(id);
   const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
   const [subformEntries, updateSubformEntries] = useState(dataElements);
-
   const subformIdsWithError = useComponentValidationsFor(node.baseId).find(isSubformValidation)?.subformDataElementIds;
 
   const addEntry = () =>
@@ -193,15 +193,31 @@ function SubformTableRow({
 }) {
   const id = dataElement.id;
   const { tableColumns = [] } = useItemWhenType(node.baseId, 'Subform');
+
+  const component = useExternalItem(node?.baseId, 'Subform');
+
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
+
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
+
+  const editButtonDataSource = useExpressionDataSourcesForSubform(
+    dataElement.dataType,
+    subformData,
+    component?.textResourceBindings?.tableEditButton,
+  );
+
   const { langAsString } = useLanguage();
   const { enterSubform } = useNavigatePage();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteEntryMutation = useDeleteEntryMutation(id);
   const deleteButtonText = langAsString('general.delete');
-  const editButtonText = langAsString('general.edit');
+
+  const editButtonText = component?.textResourceBindings?.tableEditButton
+    ? langAsString(
+        evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource, 'general.edit'),
+      )
+    : langAsString('general.edit');
 
   const numColumns = tableColumns.length;
   const actualColumns = showDeleteButton ? numColumns + 1 : numColumns;

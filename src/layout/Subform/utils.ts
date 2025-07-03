@@ -49,7 +49,8 @@ function useFormDataSelectorForSubform(dataType: string, subformData: unknown) {
       if (reference.dataType !== dataType) {
         return formDataSelector(reference);
       }
-      return dot.pick(reference.field, subformData);
+      const result = dot.pick(reference.field, subformData);
+      return result;
     },
     [formDataSelector, dataType, subformData],
   );
@@ -116,4 +117,26 @@ export function getSubformEntryDisplayName(
     errorIntroText,
   });
   return resolvedValue ? String(resolvedValue) : null;
+}
+
+export function evalSubformString(
+  expr: ExprValToActualOrExpr<ExprVal.String> | undefined,
+  dataSources: ExpressionDataSources,
+  defaultValue = '',
+): string {
+  if (!ExprValidation.isValidOrScalar(expr, ExprVal.String)) {
+    return defaultValue;
+  }
+
+  try {
+    const resolvedValue = evalExpr(expr, dataSources, {
+      returnType: ExprVal.String,
+      defaultValue,
+    });
+
+    return resolvedValue ? String(resolvedValue) : defaultValue;
+  } catch (error) {
+    console.error('Error evaluating subform expression:', error);
+    return defaultValue;
+  }
 }

@@ -113,6 +113,13 @@ export const Config = new CG.component({
       description: 'The text for the "Add" button (used as a suffix after the default button text)',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'tableEditButton',
+      title: 'Table edit button',
+      description: 'The text for the "Edit" button in the table rows',
+    }),
+  )
   .addSummaryOverrides((obj) => {
     obj.addProperty(
       new CG.prop(
