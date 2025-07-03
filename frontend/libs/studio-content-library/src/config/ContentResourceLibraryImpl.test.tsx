@@ -12,9 +12,7 @@ describe('ContentResourceLibraryImpl', () => {
       codeList: mockPagesConfig.codeList,
       images: mockPagesConfig.images,
     };
-    const heading = 'Lorem ipsum';
-    const config: ContentLibraryConfig = { pages, heading };
-    renderContentResourceLibraryImpl(config);
+    renderContentResourceLibraryImpl({ pages, heading: 'Lorem ipsum' });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
