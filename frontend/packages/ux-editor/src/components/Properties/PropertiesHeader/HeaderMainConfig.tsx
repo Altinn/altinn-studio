@@ -7,17 +7,20 @@ import { useTranslation } from 'react-i18next';
 export const HeaderMainConfig = (): JSX.Element => {
   const { t } = useTranslation();
 
+  const headingId = 'main-config-heading';
+  const requiredIndicatorId = 'main-config-required-indicator';
+
   return (
     <section
       className={classes.componentMainConfig}
-      aria-labelledby={'id-of-heading-element'}
-      aria-describedby={'require-indicator-element-id'}
+      aria-labelledby={headingId}
+      aria-describedby={requiredIndicatorId}
     >
       <div className={classes.flexContainer}>
-        <StudioHeading size='2xs'>
+        <StudioHeading id={headingId} size='2xs'>
           {t('ux_editor.component_properties.main_configuration')}
         </StudioHeading>
-        <span>
+        <span id={requiredIndicatorId}>
           <RequiredIndicator />
         </span>
       </div>
