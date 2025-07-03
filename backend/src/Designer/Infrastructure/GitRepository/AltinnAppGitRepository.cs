@@ -945,7 +945,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
-        public Definitions GetDefinitions()
+        public Definitions GetProcessDefinitions()
         {
             using Stream processDefinitionStream = GetProcessDefinitionFile();
             XmlSerializer serializer = new(typeof(Definitions));
