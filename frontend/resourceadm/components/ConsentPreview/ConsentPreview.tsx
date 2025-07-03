@@ -165,7 +165,7 @@ export const ConsentPreview = ({
                 <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
-                <Markdown>{texts.resourceText}</Markdown>
+                <Markdown options={{ disableParsingRawHTML: true }}>{texts.resourceText}</Markdown>
               </div>
             </div>
             <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
