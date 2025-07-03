@@ -276,7 +276,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            Definitions definitions = altinnAppGitRepository.GetDefinitions();
+            Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
             LayoutSetsModel layoutSetsModel = new();
             layoutSetsFile.Sets.ForEach(set =>
