@@ -8,11 +8,19 @@ export const HeaderMainConfig = (): JSX.Element => {
   const { t } = useTranslation();
 
   return (
-    <div className={classes.componentMainConfig}>
-      <StudioHeading size='2xs'>
-        {t('ux_editor.component_properties.main_configuration')}
-        <RequiredIndicator />
-      </StudioHeading>
-    </div>
+    <section
+      className={classes.componentMainConfig}
+      aria-labelledby={'id-of-heading-element'}
+      aria-describedby={'require-indicator-element-id'}
+    >
+      <div className={classes.flexContainer}>
+        <StudioHeading size='2xs'>
+          {t('ux_editor.component_properties.main_configuration')}
+        </StudioHeading>
+        <span>
+          <RequiredIndicator />
+        </span>
+      </div>
+    </section>
   );
 };
