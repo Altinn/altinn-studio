@@ -42,7 +42,7 @@
     "@faker-js/faker": "9.8.0",
     "@percy/cli": "1.31.0",
     "@percy/cypress": "3.1.6",
-    "@pmmmwh/react-refresh-webpack-plugin": "0.6.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "0.6.1",
     "@tanstack/react-query-devtools": "5.81.2",
     "@testing-library/cypress": "10.0.3",
     "@testing-library/dom": "10.4.0",
