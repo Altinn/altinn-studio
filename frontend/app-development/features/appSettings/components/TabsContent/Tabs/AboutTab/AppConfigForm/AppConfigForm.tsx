@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield } from '@studio/components';
+import { StudioTextfield, useStudioCheckboxGroup } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfigNew } from 'app-shared/types/AppConfig';
+import type { AppConfigNew, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -13,6 +13,8 @@ import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
+import { getKeywordValue, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
+import { StatusRadioGroup } from './StatusRadioGroup';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -63,7 +65,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const persistAppDetails = (): void => {
     setShowAppConfigErrors(false);
-    saveAppConfig(updatedAppConfig);
+    saveAppConfig(updatedAppConfig); // TODO add the resource type
     console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
@@ -113,6 +115,15 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       rightDescription: updatedLanguage,
+    }));
+  };
+
+  const onChangeKeywords = (e: ChangeEvent<HTMLInputElement>): void => {
+    const keywordsString: string = e.target.value;
+    const keywords: Keyword[] = mapStringToKeywords(keywordsString);
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      keywords,
     }));
   };
 
@@ -186,6 +197,15 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
             errors={rightDescriptionErrors}
           />
         )}
+        <StudioTextfield
+          label={t('app_settings.about_tab_keywords_label')}
+          description={t('app_settings.about_tab_keywords_description')}
+          value={getKeywordValue(updatedAppConfig.keywords)}
+          onChange={onChangeKeywords}
+          required={false}
+          tagText={t('general.optional')}
+        />
+        <StatusRadioGroup status={updatedAppConfig.status} />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}

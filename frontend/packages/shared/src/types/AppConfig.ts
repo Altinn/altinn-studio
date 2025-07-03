@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from './SupportedLanguages';
+import type { SupportedLanguage, ValidLanguage } from './SupportedLanguages';
 
 export type AppConfig = {
   repositoryName: string;
@@ -16,4 +16,23 @@ export type AppConfigNew = {
   homepage?: string;
   isDelegable?: boolean;
   rightDescription?: SupportedLanguage;
+  keywords?: Keyword[];
+  status?: StatusOption;
+  selfIdentifiedUserEnabled?: boolean;
+  enterpriseUserEnabled?: boolean;
+  availableForType?: AvailableForTypeOption[];
 };
+
+export type Keyword = {
+  language: ValidLanguage;
+  word: string;
+};
+
+export type StatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
+
+export type AvailableForTypeOption =
+  | 'PrivatePerson'
+  | 'LegalEntityEnterprise'
+  | 'Company'
+  | 'BankruptcyEstate'
+  | 'SelfRegisteredUser';

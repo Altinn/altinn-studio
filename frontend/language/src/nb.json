@@ -181,6 +181,8 @@
   "app_settings.about_tab_heading": "Om appen",
   "app_settings.about_tab_homepage_field_description": "Lenke til informasjon om hvor sluttbrukerne kan finne appen og informasjon om den.",
   "app_settings.about_tab_homepage_field_label": "Hjemmeside",
+  "app_settings.about_tab_keywords_description": "Ord som er enkle å søke på. Skill hvert ord med komma \",\".",
+  "app_settings.about_tab_keywords_label": "Nøkkelord for ressursen (bokmål, nynorsk og engelsk)",
   "app_settings.about_tab_language_translation_header": "Oversettelse av {{field}}",
   "app_settings.about_tab_name_description": "Navnet blir synlig for brukerne og bør beskrive appen.",
   "app_settings.about_tab_name_error": "Du må fylle ut App-navn. Du kan endre navnet helt frem til du skal publisere appen.",
