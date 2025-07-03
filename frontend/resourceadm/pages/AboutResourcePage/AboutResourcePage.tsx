@@ -219,6 +219,7 @@ export const AboutResourcePage = ({
               }
               onChange={setConsentPreviewText}
               required
+              hasMarkdownToolbar
               errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
             <ResourceSwitchInput
