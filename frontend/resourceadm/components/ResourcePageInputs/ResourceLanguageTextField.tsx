@@ -1,5 +1,5 @@
 import React, { forwardRef, useRef, useState } from 'react';
-import type { ChangeEvent, MutableRefObject, ReactElement, ReactNode, Ref } from 'react';
+import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioButton, StudioTextfield } from '@studio/components';
@@ -222,7 +222,6 @@ const MarkdownToolbarButton = ({ text, icon, onClick }: MarkdownToolbarButtonPro
 
 type LanguageInputFieldProps = {
   id: string;
-  ref: MutableRefObject<HTMLInputElement>;
   required?: boolean;
   isTextArea?: boolean;
   label: ReactElement;

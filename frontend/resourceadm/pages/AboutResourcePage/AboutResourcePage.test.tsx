@@ -410,7 +410,7 @@ describe('AboutResourcePage', () => {
     });
   });
 
-  it('should insert metadata when metadta button is clicked', async () => {
+  it('should insert metadata when metadata button is clicked', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
 
