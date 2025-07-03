@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import type { ChangeEvent, ReactElement } from 'react';
+import React, { forwardRef, useRef, useState } from 'react';
+import type { ChangeEvent, MutableRefObject, ReactElement, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
-import { StudioTextfield } from '@studio/components';
-import { XMarkOctagonFillIcon } from '@studio/icons';
+import { StudioButton, StudioTextfield } from '@studio/components';
+import { BulletListIcon, LinkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type {
   ResourceFormError,
   SupportedLanguage,
@@ -56,6 +56,10 @@ type ResourceLanguageTextFieldProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Whether this field has markdown toolbar
+   */
+  hasMarkdownToolbar?: boolean;
 };
 
 /**
@@ -71,6 +75,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {boolean}[hasMarkdownToolbar] - Whether this field has markdown toolbar
  *
  * @returns {ReactElement} - The rendered component
  */
@@ -84,7 +89,10 @@ export const ResourceLanguageTextField = ({
   errors,
   useTextArea,
   required,
+  hasMarkdownToolbar,
 }: ResourceLanguageTextFieldProps): ReactElement => {
+  const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>();
   const [selectedLanguage, setSelectedLanguage] = useState<ValidLanguage>('nb');
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
@@ -102,12 +110,48 @@ export const ResourceLanguageTextField = ({
 
   const onFieldValueChanged = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = event.target.value;
+    onChangeText(newValue);
+  };
+
+  const onChangeText = (newValue: string): void => {
     if (onChange) {
       onChange({ ...translations, [selectedLanguage]: newValue });
     }
     setTranslations((oldTranslations) => {
       return { ...oldTranslations, [selectedLanguage]: newValue };
     });
+  };
+
+  const onAddMetadata = (): void => {
+    onAddMarkdown('{metadata}', 'metadata');
+  };
+
+  const onAddMarkdownLink = (): void => {
+    onAddMarkdown('[Link](https://altinn.no)', 'Link');
+  };
+
+  const onAddMarkdownList = (): void => {
+    onAddMarkdown('\n- Item1\n- Item2\n- Item3\n');
+  };
+
+  const onAddMarkdown = (text: string, selectionText?: string): void => {
+    if (inputRef.current) {
+      const caretIndex = inputRef.current.selectionEnd;
+      const fieldValue = inputRef.current.value;
+      const newValue = fieldValue.slice(0, caretIndex) + text + fieldValue.slice(caretIndex);
+
+      onChangeText(newValue);
+      inputRef.current.focus();
+      requestAnimationFrame(() => {
+        let startIndex = caretIndex;
+        let endIndex = caretIndex + text.length;
+        if (selectionText) {
+          startIndex = caretIndex + text.indexOf(selectionText);
+          endIndex = caretIndex + text.indexOf(selectionText) + selectionText.length;
+        }
+        inputRef.current.setSelectionRange(startIndex, endIndex);
+      });
+    }
   };
 
   const mainFieldError = errors.map((error, index) => (
@@ -118,19 +162,48 @@ export const ResourceLanguageTextField = ({
 
   return (
     <div className={classes.inputWrapper}>
-      <LanguageInputField
+      <ForwardedLanguageInputField
         id={id}
+        ref={inputRef}
         required={required}
         label={<ResourceFieldHeader label={label} required={required} />}
         description={
           <div className={classes.translationFieldDescription}>
             {description}
-            <LanguageTabs
-              label={label}
-              errors={errors}
-              selectedLanguage={selectedLanguage}
-              onChangeSelectedLanguage={setSelectedLanguage}
-            />
+            <div className={classes.tabControlContainer}>
+              <LanguageTabs
+                label={label}
+                errors={errors}
+                selectedLanguage={selectedLanguage}
+                onChangeSelectedLanguage={setSelectedLanguage}
+              />
+              {hasMarkdownToolbar && (
+                <div className={classes.markdownToolbar}>
+                  <StudioButton
+                    variant='tertiary'
+                    icon={<BulletListIcon />}
+                    title={t('resourceadm.about_resource_consent_add_list')}
+                    aria-label={t('resourceadm.about_resource_consent_add_list')}
+                    onClick={onAddMarkdownList}
+                  />
+                  <StudioButton
+                    variant='tertiary'
+                    icon={<LinkIcon />}
+                    title={t('resourceadm.about_resource_consent_add_link')}
+                    aria-label={t('resourceadm.about_resource_consent_add_link')}
+                    onClick={onAddMarkdownLink}
+                  />
+                  <StudioButton
+                    variant='tertiary'
+                    title={t('resourceadm.about_resource_consent_add_metadata')}
+                    aria-label={t('resourceadm.about_resource_consent_add_metadata')}
+                    onClick={onAddMetadata}
+                  >
+                    {'{ }'}
+                  </StudioButton>
+                </div>
+              )}
+            </div>
           </div>
         }
         value={translations[selectedLanguage]}
@@ -145,6 +218,7 @@ export const ResourceLanguageTextField = ({
 
 type LanguageInputFieldProps = {
   id: string;
+  ref: MutableRefObject<HTMLInputElement>;
   required?: boolean;
   isTextArea?: boolean;
   label: ReactElement;
@@ -154,12 +228,16 @@ type LanguageInputFieldProps = {
   error: ReactElement[];
   onBlur: () => void;
 };
-const LanguageInputField = ({ isTextArea, ...rest }: LanguageInputFieldProps): ReactElement => {
+function LanguageInputField(
+  { isTextArea, ...rest }: LanguageInputFieldProps,
+  ref: Ref<HTMLInputElement>,
+): ReactElement {
   if (isTextArea) {
-    return <StudioTextfield multiline rows={5} {...rest} />;
+    return <StudioTextfield ref={ref} multiline rows={5} {...rest} />;
   }
-  return <StudioTextfield {...rest} />;
-};
+  return <StudioTextfield ref={ref} {...rest} />;
+}
+const ForwardedLanguageInputField = forwardRef(LanguageInputField);
 
 interface LanguageTabsProps {
   label: string;

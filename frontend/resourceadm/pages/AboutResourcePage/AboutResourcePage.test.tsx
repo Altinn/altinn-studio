@@ -362,6 +362,78 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('should insert markdown list when markdown list button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const listMarkdownButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_list'),
+    );
+    await user.click(listMarkdownButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const listMarkdown = `- Item1\n- Item2\n- Item3\n`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${listMarkdown}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
+  it('should insert markdown link when markdown link button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const linkMarkdownButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_link'),
+    );
+    await user.click(linkMarkdownButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const linkMarkdown = `[Link](https://altinn.no)`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${linkMarkdown}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
+  it('should insert metadata when metadta button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const metadataButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_metadata'),
+    );
+    await user.click(metadataButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const metadataString = `{metadata}`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${metadataString}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
   it('handles consentTemplate changes', async () => {
     const user = userEvent.setup();
 
