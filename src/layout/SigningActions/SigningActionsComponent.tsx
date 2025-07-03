@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Spinner } from '@digdir/designsystemet-react';
 
 import { Panel } from 'src/app-components/Panel/Panel';
-import { useIsAuthorized } from 'src/features/instance/ProcessContext';
+import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useProfile } from 'src/features/profile/ProfileProvider';

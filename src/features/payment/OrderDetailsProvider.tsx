@@ -1,11 +1,10 @@
 import { useCallback, useEffect } from 'react';
 
-import { skipToken, useQueryClient } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasPayment } from 'src/features/payment/utils';
@@ -27,7 +26,7 @@ export function useOrderDetailsQueryDef(enabled: boolean, instanceId?: string): 
 const useOrderDetailsQuery = () => {
   const instanceId = useLaxInstanceId();
   const enabled = useHasPayment();
-  const utils = useQueryWithStaleData<OrderDetails, HttpClientError>(useOrderDetailsQueryDef(enabled, instanceId));
+  const utils = useQuery<OrderDetails, HttpClientError>(useOrderDetailsQueryDef(enabled, instanceId));
 
   useEffect(() => {
     utils.error && window.logError('Fetching orderDetails failed:\n', utils.error);

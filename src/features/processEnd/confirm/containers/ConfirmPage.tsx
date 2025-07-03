@@ -6,8 +6,8 @@ import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
@@ -78,7 +78,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
 };
 
 const ConfirmButton = () => {
-  const { actions } = useLaxProcessData()?.currentTask || {};
+  const { actions } = useProcessQuery().data?.currentTask || {};
   const processNext = useProcessNext();
   const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
 

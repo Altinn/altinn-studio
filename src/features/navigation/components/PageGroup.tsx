@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
-import { useGetAltinnTaskType } from 'src/features/instance/ProcessContext';
+import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

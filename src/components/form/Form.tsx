@@ -15,11 +15,11 @@ import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/lay
 import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import {
   SearchParams,
   useNavigate,
-  useNavigationParam,
   useNavigationPath,
   useQueryKey,
   useQueryKeysAsString,
@@ -174,13 +174,11 @@ export function FormFirstPage() {
  */
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
   const { isValidPageId, navigateToPage } = useNavigatePage();
   const applicationMetadataId = useApplicationMetadata()?.id;
 
-  const instanceId = `${instanceOwnerPartyId}/${instanceGuid}`;
-  const currentViewCacheKey = instanceId || applicationMetadataId;
+  const instanceId = useLaxInstanceId();
+  const currentViewCacheKey = instanceId ?? applicationMetadataId;
 
   useEffect(() => {
     if (!pageKey && !!currentViewCacheKey) {

@@ -59,10 +59,12 @@ jest.mock('src/features/instance/InstanceContext', () => ({
   useLaxInstanceData: jest.fn(() => mockInstanceData),
 }));
 
-jest.mock('src/features/instance/ProcessContext', () => ({
-  useLaxProcessData: jest.fn(() => ({
-    currentTask: {
-      elementId: 'Task_1',
+jest.mock('src/features/instance/useProcessQuery', () => ({
+  useProcessQuery: jest.fn(() => ({
+    data: {
+      currentTask: {
+        elementId: 'Task_1',
+      },
     },
   })),
 }));

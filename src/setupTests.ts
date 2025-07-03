@@ -83,6 +83,17 @@ global.TextEncoder = TextEncoder;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).TextDecoder = TextDecoder;
 
+// Add Request polyfill for tests that use fetch/Request
+if (!globalThis.Request) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).Request = class Request {
+    constructor(
+      public url: string,
+      public options?: unknown,
+    ) {}
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 global.ResizeObserver = require('resize-observer-polyfill');
 

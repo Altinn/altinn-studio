@@ -11,7 +11,7 @@ import {
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useGetAltinnTaskType } from 'src/features/instance/ProcessContext';
+import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useIsReceiptPage } from 'src/features/routing/AppRoutingContext';
 import { ValidationMask } from 'src/features/validation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
@@ -13,7 +14,7 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingScans } from 'src/features/attachments/useHasPendingScans';
 import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
-import { ProcessProvider } from 'src/features/instance/ProcessContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -125,8 +126,8 @@ export function useInstanceDataQueryDef(
 
 function useGetInstanceDataQuery(
   hasResultFromInstantiation: boolean,
-  partyId: string,
-  instanceGuid: string,
+  partyId: string | undefined,
+  instanceGuid: string | undefined,
   enablePolling: boolean = false,
 ) {
   const queryDef = useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid);
@@ -149,18 +150,14 @@ function useGetInstanceDataQuery(
 
 export const InstanceProvider = ({ children }: { children: React.ReactNode }) => (
   <Provider>
-    <BlockUntilLoaded>
-      <ProcessProvider>{children}</ProcessProvider>
-    </BlockUntilLoaded>
+    <BlockUntilLoaded>{children}</BlockUntilLoaded>
   </Provider>
 );
 
 const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  if (!instanceOwnerPartyId || !instanceGuid) {
-    throw new Error('Missing partyId or instanceGuid when creating instance context');
-  }
+  const navigation = useNavigation();
 
   const changeData = useSelector((state) => state.changeData);
   const setReFetch = useSelector((state) => state.setReFetch);
@@ -169,6 +166,7 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
 
   const hasPendingScans = useHasPendingScans();
   const enablePolling = isDataSet && hasPendingScans;
+  const { isLoading: isProcessLoading, error: processError } = useProcessQuery();
 
   const {
     error: queryError,
@@ -177,14 +175,8 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     refetch,
   } = useGetInstanceDataQuery(!!instantiation.lastResult, instanceOwnerPartyId, instanceGuid, enablePolling);
 
-  const error = instantiation.error ?? queryError;
+  const instantiationError = instantiation.error ?? queryError;
   const data = instantiation.lastResult ?? queryData;
-
-  if (!window.inUnitTest && data && !data.id.endsWith(instanceGuid)) {
-    throw new Error(
-      `Mismatch between instanceGuid in URL and fetched instance data (URL: '${instanceGuid}', data: '${data.id}')`,
-    );
-  }
 
   useEffect(() => {
     data && changeData(() => data);
@@ -194,12 +186,29 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     setReFetch(refetch);
   }, [refetch, setReFetch]);
 
+  const error = instantiationError ?? processError;
   if (error) {
     return <DisplayError error={error} />;
   }
 
   if (isLoading || !isDataSet) {
     return <Loader reason='instance' />;
+  }
+  if (isProcessLoading) {
+    return <Loader reason='fetching-process' />;
+  }
+
+  if (navigation.state === 'loading') {
+    return <Loader reason='navigation' />;
+  }
+
+  if (!instanceOwnerPartyId || !instanceGuid) {
+    throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
+  }
+  if (!window.inUnitTest && data && !data.id.endsWith(instanceGuid)) {
+    throw new Error(
+      `Mismatch between instanceGuid in URL and fetched instance data (URL: '${instanceGuid}', data: '${data.id}')`,
+    );
   }
 
   return children;
@@ -217,12 +226,6 @@ export function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
 }
 
 const emptyArray: never[] = [];
-
-export const useLaxInstanceId = () => {
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
-  return instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-};
 
 export const useLaxInstanceData = <U,>(selector: (data: IInstance) => U) =>
   useLaxInstance((state) => (state.data ? selector(state.data) : undefined));
@@ -263,13 +266,20 @@ export const useLaxInstanceAllDataElementsNow = () => {
 };
 
 export const useStrictInstanceRefetch = () => useSelector((state) => state.reFetch);
-export const useStrictInstanceId = () => {
+
+export const useLaxInstanceId = () => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
-  if (!instanceOwnerPartyId || !instanceGuid) {
-    throw new Error('Missing partyId or instanceGuid in URL');
+  return instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
+};
+
+export const useStrictInstanceId = () => {
+  const instanceId = useLaxInstanceId();
+  if (!instanceId) {
+    throw new Error('Missing instanceOwnerPartyId or instanceGuid in URL');
   }
-  return `${instanceOwnerPartyId}/${instanceGuid}`;
+
+  return instanceId;
 };
 export const useStrictAppendDataElements = () => useSelector((state) => state.appendDataElements);
 export const useStrictRemoveDataElement = () => useSelector((state) => state.removeDataElement);

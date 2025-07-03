@@ -6,7 +6,7 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
-import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
+import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/layout/SigneeList/api';
@@ -20,7 +20,7 @@ jest.mock('src/utils/layout/useNodeItem');
 jest.mock('react-router-dom');
 jest.mock('src/features/language/useLanguage');
 jest.mock('src/features/language/Lang');
-jest.mock('src/features/instance/ProcessContext');
+jest.mock('src/features/instance/useProcessQuery');
 jest.mock('src/layout/SigneeList/api');
 jest.mock('src/layout/SigneeList/SigneeListError');
 

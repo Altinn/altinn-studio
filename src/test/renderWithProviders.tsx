@@ -1,5 +1,5 @@
 import React from 'react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
@@ -249,27 +249,28 @@ export function InstanceRouter({
   query,
 }: PropsWithChildren<InstanceRouterProps>) {
   const path = `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
-  return (
-    <MemoryRouter
-      basename='/ttd/test'
-      initialEntries={[query ? `${path}?${query}` : path]}
-    >
-      <Routes>
-        <Route
-          path='instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId'
-          element={children}
-        />
-        <Route
-          path='instance/:instanceOwnerPartyId/:instanceGuid/:taskId'
-          element={children}
-        />
-        <Route
-          path='*'
-          element={alwaysRouteToChildren ? children : <NotFound />}
-        />
-      </Routes>
-    </MemoryRouter>
+  const router = createMemoryRouter(
+    [
+      {
+        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
+        element: children,
+      },
+      {
+        path: 'instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
+        element: children,
+      },
+      {
+        path: '*',
+        element: alwaysRouteToChildren ? children : <NotFound />,
+      },
+    ],
+    {
+      basename: '/ttd/test',
+      initialEntries: [query ? `${path}?${query}` : path],
+    },
   );
+
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {

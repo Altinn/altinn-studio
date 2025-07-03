@@ -6,7 +6,7 @@ import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useGetTaskTypeById, useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import {
   SearchParams,
   useAllNavigationParamsAsRef,
@@ -74,7 +74,7 @@ export const usePageOrder = () => {
 };
 
 export const useIsCurrentTask = () => {
-  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const taskId = useNavigationParam('taskId');
   return useMemo(() => {
     if (currentTaskId === undefined && taskId === TaskKeys.CustomReceipt) {
@@ -192,7 +192,7 @@ export function useNavigateToTask() {
 }
 
 export function useIsValidTaskId() {
-  const processTasks = useLaxProcessData()?.processTasks;
+  const processTasks = useProcessQuery().data?.processTasks;
 
   return useCallback(
     (taskId?: string) => {

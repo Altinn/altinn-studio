@@ -7,7 +7,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
+import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { ProcessTaskType } from 'src/types';
 import { isStudioPreview } from 'src/utils/isDev';
 

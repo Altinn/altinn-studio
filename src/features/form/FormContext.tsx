@@ -11,11 +11,11 @@ import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationC
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
-import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
 import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { ValidationProvider } from 'src/features/validation/validationContext';
 import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
@@ -43,7 +43,10 @@ export function useIsInFormContext() {
  */
 export function FormProvider({ children, readOnly = false }: React.PropsWithChildren<FormContext>) {
   const isEmbedded = useIsInFormContext();
-  const hasProcess = useHasProcessProvider();
+  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
+  const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
+
   const renderCount = useRef(0);
   renderCount.current += 1;
 

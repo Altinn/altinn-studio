@@ -10,7 +10,7 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useGetTaskTypeById, useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
@@ -34,7 +34,7 @@ interface NavigationErrorProps {
 }
 
 function NavigationError({ label }: NavigationErrorProps) {
-  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const navigateToTask = useNavigateToTask();
 
   const appName = useAppName();
@@ -75,7 +75,7 @@ function NavigationError({ label }: NavigationErrorProps) {
 
 export function NavigateToStartUrl() {
   const navigate = useNavigate();
-  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const startUrl = useStartUrl(currentTaskId);
 
   const currentLocation = `${useNavigationPath()}${useQueryKeysAsString()}`;
@@ -94,7 +94,7 @@ export const ProcessWrapper = () => {
   const isValidTaskId = useIsValidTaskId();
   const taskIdParam = useNavigationParam('taskId');
   const taskType = useGetTaskTypeById()(taskIdParam);
-  const process = useLaxProcessData();
+  const { data: process } = useProcessQuery();
 
   if (process?.ended) {
     return <NavigateToStartUrl />;

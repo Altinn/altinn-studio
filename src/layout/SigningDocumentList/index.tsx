@@ -1,6 +1,6 @@
 import React, { forwardRef, type JSX } from 'react';
 
-import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
+import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.def.generated';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';

@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
+import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SigningActionsDef } from 'src/layout/SigningActions/config.def.generated';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';

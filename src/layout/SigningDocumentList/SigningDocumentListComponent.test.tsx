@@ -53,7 +53,7 @@ jest.mock('src/features/applicationMetadata/ApplicationMetadataProvider', () => 
   })),
 }));
 
-jest.mock('src/features/instance/ProcessContext', () => ({
+jest.mock('src/features/instance/useProcessQuery', () => ({
   useTaskTypeFromBackend: jest.fn(() => ProcessTaskType.Signing),
 }));
 
