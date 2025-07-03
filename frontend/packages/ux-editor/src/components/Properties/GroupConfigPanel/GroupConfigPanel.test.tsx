@@ -79,6 +79,28 @@ describe('GroupConfigPanel', () => {
       );
     },
   );
+
+  it('should render edit group name when group has multiple pages', () => {
+    const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };
+    renderGroupConfigPanel({
+      props: { selectedItem },
+      queries: { getPages: jest.fn().mockResolvedValue(groupsPagesModelMock) },
+    });
+    expect(
+      screen.getByRole('button', { name: textMock('ux_editor.page_group.name') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render edit group group has a single page', () => {
+    const selectedItem: SelectedItem = { type: ItemType.Group, id: 1 };
+    renderGroupConfigPanel({
+      props: { selectedItem },
+      queries: { getPages: jest.fn().mockResolvedValue(groupsPagesModelMock) },
+    });
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.page_group.name') }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const markAsCompletedSwitch = (): HTMLElement =>
