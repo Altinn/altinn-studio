@@ -17,16 +17,17 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
   const [groupName, setGroupName] = React.useState(group.name);
 
   if (!isEditing) {
+    const pageGroupNameTranslationKey = t('ux_editor.page_group.name');
     return (
       <StudioButton
         variant='tertiary'
         className={classes.reading}
         onClick={() => setIsEditing(true)}
-        aria-label={t('ux_editor.page_group.name')}
+        aria-label={pageGroupNameTranslationKey}
       >
         <div>
-          <StudioLabel>{t('ux_editor.page_group.name')}</StudioLabel>
-          <StudioParagraph>{groupName || t('ux_editor.page_group.name')}</StudioParagraph>
+          <StudioLabel>{pageGroupNameTranslationKey}</StudioLabel>
+          <StudioParagraph>{groupName || pageGroupNameTranslationKey}</StudioParagraph>
         </div>
         <StudioEditIcon />
       </StudioButton>
@@ -47,6 +48,11 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
     setGroupName(event.target.value);
   };
 
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter') saveGroupName();
+    if (event.key === 'Escape') cancelEditing();
+  };
+
   return (
     <div className={classes.editing}>
       <StudioTextfield
@@ -55,10 +61,7 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
         label={t('ux_editor.page_group.name')}
         value={groupName}
         onChange={onChangeName}
-        onKeyDown={(event: KeyboardEvent) => {
-          if (event.key === 'Enter') saveGroupName();
-          if (event.key === 'Escape') cancelEditing();
-        }}
+        onKeyDown={onKeyDown}
       ></StudioTextfield>
       <StudioButton
         aria-label={t('general.save')}
