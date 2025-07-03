@@ -20,7 +20,6 @@ export const EditFormComponent = ({
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
   const { data: schema } = useComponentSchemaQuery(component.type);
-
   return (
     <Fieldset className={classes.root} legend='' size='sm'>
       <FormComponentConfig

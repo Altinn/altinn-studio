@@ -20,6 +20,7 @@ import { ChevronDownIcon, ChevronUpIcon, PlusCircleIcon, XMarkIcon } from '@stud
 import { StudioButton, StudioCard, StudioProperty } from '@studio/components-legacy';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import { SelectPropertyEditor } from './SelectPropertyEditor/SelectPropertyEditor';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -28,7 +29,7 @@ export interface IEditFormComponentProps {
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
-  schema: any;
+  schema: JsonSchema;
   hideUnsupported?: boolean;
 }
 
