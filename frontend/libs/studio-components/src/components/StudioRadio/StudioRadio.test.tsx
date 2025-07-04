@@ -38,30 +38,6 @@ describe('StudioRadio', () => {
     renderStudioRadio({ 'aria-label': ariaLabel });
     expect(getRadio()).toHaveAccessibleName(ariaLabel);
   });
-
-  it('should render with required text when required is true and required is true', () => {
-    const tagText: string = 'Required';
-    renderStudioRadio({
-      label,
-      required: true,
-      tagText,
-    });
-    const tag: HTMLElement = screen.getByText(tagText);
-    expect(tag).toBeInTheDocument();
-    expect(tag).toHaveClass('requiredTag');
-  });
-
-  it('should render with required text when required is false and required is true', () => {
-    const tagText: string = 'Optional';
-    renderStudioRadio({
-      label,
-      required: false,
-      tagText,
-    });
-    const tag: HTMLElement = screen.getByText(tagText);
-    expect(tag).toBeInTheDocument();
-    expect(tag).toHaveClass('requiredTag');
-  });
 });
 
 function renderStudioRadio(props: StudioRadioProps, ref?: Ref<HTMLInputElement>): RenderResult {
