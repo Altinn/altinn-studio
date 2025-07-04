@@ -33,7 +33,9 @@ describe('Render summary of previous task', () => {
     uploadFileWithTagAndVerify(fileName, fileType);
 
     cy.findByRole('button', { name: /Datepicker/i }).click();
-    cy.findByRole('textbox', { name: /datofeltet/i }).type('01.01.2022');
+    cy.findAllByRole('textbox', { name: /datofeltet/i })
+      .first()
+      .type('01.01.2022');
 
     cy.gotoNavPage('Oppsummering 2.0');
 

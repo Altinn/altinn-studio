@@ -5,12 +5,13 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { getDatepickerFormat } from 'src/utils/dateUtils';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function useDatepickerValidation(baseComponentId: string): ComponentValidation[] {
   const currentLanguage = useCurrentLanguage();
   const field = useDataModelBindingsFor(baseComponentId, 'Datepicker')?.simpleBinding;
-  const component = useExternalItem(baseComponentId, 'Datepicker');
+  const component = useItemWhenType(baseComponentId, 'Datepicker');
   const data = FD.useDebouncedPick(field);
   const minDate = getDateConstraint(component?.minDate, 'min');
   const maxDate = getDateConstraint(component?.maxDate, 'max');
