@@ -2,7 +2,8 @@ import type { UiSchemaNode } from '../types';
 import { CombinationKind, Keyword, ObjectKind } from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
-import type { ValidPointerCategory } from '../types/ValidPointerCategory';
+import type { PointerCategory } from '../types/PointerCategory';
+import { Items } from '../types/Items';
 import { ROOT_POINTER } from './constants';
 import { isNodeValidParent } from './utils';
 
@@ -46,27 +47,30 @@ export const extractNameFromPointer = (pointer: string): string => {
   return parts.pop();
 };
 
-export const extractCategoryFromPointer = (pointer: string): ValidPointerCategory | undefined => {
-  const category =
-    extractItemsCategory(pointer) ||
-    constructItemsCategoryPath(pointer) ||
-    getPointerPartCategory(pointer);
+export const extractCategoryFromPointer = (pointer: string): PointerCategory | undefined => {
+  const arrayCategory: Keyword.Items | null = extractArrayCategoryFromPointer(pointer);
+  const itemCategory: string | null = constructItemsCategoryPath(pointer);
 
-  if (category && isValidPointerCategory(category)) {
-    return category;
-  }
-  return undefined;
+  const candidates: Array<string | null> = [
+    itemCategory,
+    arrayCategory,
+    getPointerPartCategory(pointer),
+  ];
+
+  return candidates.find((pointerCategory): pointerCategory is PointerCategory => {
+    return !!pointerCategory && isValidPointerCategory(pointerCategory);
+  });
 };
 
-const constructItemsCategoryPath = (pointer: string): string | undefined => {
+const constructItemsCategoryPath = (pointer: string): string | null => {
   const category = getPointerPartCategory(pointer);
-  return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : undefined;
+  return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : null;
 };
 
-const extractItemsCategory = (pointer: string): string | undefined => {
+const extractArrayCategoryFromPointer = (pointer: string): Keyword.Items | null => {
   const categoryPositionFromEnd = 3;
   const category = getPointerPartCategory(pointer, categoryPositionFromEnd);
-  return category === Keyword.Items ? Keyword.Items : undefined;
+  return category === Keyword.Items ? Keyword.Items : null;
 };
 
 export const changeNameInPointer = (pointer: string, newName: string): string => {
@@ -79,13 +83,13 @@ export const changeNameInPointer = (pointer: string, newName: string): string =>
 const getPointerPartCategory = (
   pointer: string,
   categoryPositionFromEnd: number = 2,
-): string | undefined => {
+): string | null => {
   const parts = pointer.split('/');
   const index = parts.length - categoryPositionFromEnd;
-  return index >= 0 ? parts[index] : undefined;
+  return index >= 0 ? parts[index] : null;
 };
 
-const isValidPointerCategory = (value: string): value is ValidPointerCategory => {
+const isValidPointerCategory = (value: string): value is PointerCategory => {
   const validCategories: Set<string> = new Set([
     Keyword.Properties,
     Keyword.Definitions,
@@ -94,6 +98,9 @@ const isValidPointerCategory = (value: string): value is ValidPointerCategory =>
     CombinationKind.AllOf,
     CombinationKind.AnyOf,
     CombinationKind.OneOf,
+    Items.AnyOf,
+    Items.AllOf,
+    Items.AnyOf,
   ]);
   return validCategories.has(value);
 };
