@@ -3,6 +3,7 @@ import { CombinationKind, Keyword, ObjectKind } from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
 import type { PointerCategory } from '../types/PointerCategory';
+import type { ItemCategory } from '../types/ItemCategory';
 import { ROOT_POINTER } from './constants';
 import { isNodeValidParent } from './utils';
 
@@ -48,22 +49,25 @@ export const extractNameFromPointer = (pointer: string): string => {
 
 export const extractCategoryFromPointer = (pointer: string): PointerCategory | undefined => {
   const arrayCategory: Keyword.Items | null = extractArrayCategoryFromPointer(pointer);
-  const itemCategory: string | null = constructItemsCategoryPath(pointer);
-
-  const candidates: Array<string | null> = [
-    itemCategory,
-    arrayCategory,
-    getPointerPartCategory(pointer),
-  ];
-
-  return candidates.find((pointerCategory): pointerCategory is PointerCategory => {
-    return !!pointerCategory && isValidPointerCategory(pointerCategory);
-  });
+  const itemCategory: ItemCategory | null = extractItemCategoryFromPointer(pointer);
+  const categories = [arrayCategory, itemCategory].filter((c) => !!c);
+  const superCategory = categories.join('/');
+  return isValidPointerCategory(superCategory) ? superCategory : undefined;
 };
 
-const constructItemsCategoryPath = (pointer: string): string | null => {
-  const category = getPointerPartCategory(pointer);
-  return category === Keyword.Items ? `${Keyword.Items}/${Keyword.Properties}` : null;
+export const extractItemCategoryFromPointer = (pointer: string): ItemCategory => {
+  const parts = pointer.split('/');
+  const category = parts[parts.length - 2];
+  switch (category) {
+    case Keyword.Properties:
+    case Keyword.Definitions:
+    case CombinationKind.AllOf:
+    case CombinationKind.AnyOf:
+    case CombinationKind.OneOf:
+      return category;
+    default:
+      return undefined;
+  }
 };
 
 const extractArrayCategoryFromPointer = (pointer: string): Keyword.Items | null => {

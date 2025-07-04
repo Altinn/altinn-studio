@@ -100,7 +100,7 @@ describe('SchemaModel', () => {
 
     it('Returns the node reflecting the path to a given unique pointer in a reference', () => {
       const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
-      const uniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+      const uniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
 
       expect(schemaModel.getNodeByUniquePointer(uniqueChildPointer)).toEqual(
         defNodeWithChildrenChildMock,
@@ -112,7 +112,7 @@ describe('SchemaModel', () => {
   });
 
   describe('getSchemaPointerByUniquePointer', () => {
-    const uniqueGrandChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+    const uniqueGrandChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
     const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
 
     it('Returns the schema pointer for a given unique pointer', () => {
@@ -167,7 +167,7 @@ describe('SchemaModel', () => {
 
     it('Returns a unique pointer reflecting the path to a given node in a reference to an object', () => {
       const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
-      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
 
       expect(
         SchemaModel.getUniquePointer(
