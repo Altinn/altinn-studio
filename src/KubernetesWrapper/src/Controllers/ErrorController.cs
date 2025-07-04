@@ -7,7 +7,7 @@ namespace KubernetesWrapper.Controllers
     /// Controller for error handling
     /// </summary>
     [ApiController]
-    public class ErrorController(ILogger<ErrorController> logger) : ControllerBase
+    public class ErrorController() : ControllerBase
     {
         [Route("/error-development")]
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -19,11 +19,8 @@ namespace KubernetesWrapper.Controllers
                 return NotFound();
             }
 
-            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature is null)
-            {
-                return NotFound();
-            }
+            var exceptionHandlerFeature =
+                HttpContext.Features.Get<IExceptionHandlerFeature>()!;
 
             return Problem(
                 detail: exceptionHandlerFeature.Error.StackTrace,
@@ -32,17 +29,7 @@ namespace KubernetesWrapper.Controllers
 
         [Route("/error")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult HandleError()
-        {
-            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature is null)
-            {
-                return NotFound();
-            }
-
-            logger.LogError(exceptionHandlerFeature.Error, "An unhandled exception occurred.");
-
-            return Problem();
-        }
+        public IActionResult HandleError() =>
+            Problem();
     }
 }
