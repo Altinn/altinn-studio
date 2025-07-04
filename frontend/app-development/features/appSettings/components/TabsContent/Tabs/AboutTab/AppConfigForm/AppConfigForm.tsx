@@ -4,7 +4,7 @@ import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield, useStudioCheckboxGroup } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfigNew, Keyword } from 'app-shared/types/AppConfig';
+import type { AppConfigNew, Keyword, StatusOption } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -46,6 +46,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     !showAppConfigErrors,
     validationErrors,
     'rightDescription',
+  );
+
+  const statusErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'status',
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -127,6 +133,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
+  const onChangeStatus = (status: StatusOption): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      status,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
@@ -205,7 +218,11 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           required={false}
           tagText={t('general.optional')}
         />
-        <StatusRadioGroup status={updatedAppConfig.status} />
+        <StatusRadioGroup
+          status={updatedAppConfig.status}
+          onChangeStatus={onChangeStatus}
+          errors={statusErrors}
+        />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}

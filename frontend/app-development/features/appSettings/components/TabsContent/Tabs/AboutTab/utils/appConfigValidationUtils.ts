@@ -48,6 +48,14 @@ export const validateAppConfig = (
         }),
       });
     }
+
+    // validate status
+    if (!Object.keys(appConfig).includes(appConfig.status)) {
+      errors.push({
+        field: 'status',
+        error: t('app_settings.about_tab_status_error'),
+      });
+    }
   });
 
   return errors;
