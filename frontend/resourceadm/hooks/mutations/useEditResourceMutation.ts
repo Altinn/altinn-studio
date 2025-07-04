@@ -20,6 +20,7 @@ export const useEditResourceMutation = (org: string, repo: string, id: string) =
       queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, repo] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.SingleResource, org, repo, id] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ValidateResource, org, repo, id] });
     },
   });
 };

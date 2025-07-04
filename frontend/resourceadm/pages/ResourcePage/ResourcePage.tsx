@@ -72,7 +72,11 @@ export const ResourcePage = (): React.JSX.Element => {
   );
 
   // Mutation function for editing a resource
-  const { mutateAsync: editResource } = useEditResourceMutation(org, app, resourceId);
+  const { mutateAsync: editResource, isPending: isSavingResource } = useEditResourceMutation(
+    org,
+    app,
+    resourceId,
+  );
 
   // Set resourceData when loaded from server. Should only be called once
   useEffect(() => {
@@ -269,6 +273,7 @@ export const ResourcePage = (): React.JSX.Element => {
                 })
               }
               id='page-content-deploy'
+              isSavingResource={isSavingResource}
             />
           )}
           {currentPage === migrationPageId && isMigrateEnabled() && (
