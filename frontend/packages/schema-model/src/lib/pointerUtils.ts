@@ -98,9 +98,6 @@ const isValidPointerCategory = (value: string): value is PointerCategory => {
     CombinationKind.AllOf,
     CombinationKind.AnyOf,
     CombinationKind.OneOf,
-    Items.AnyOf,
-    Items.AllOf,
-    Items.AnyOf,
   ]);
   return validCategories.has(value);
 };
