@@ -20,13 +20,14 @@ export const ManualEditor = ({
 }: ManualEditorProps) => {
   const { texts } = useStudioExpressionContext();
   const expressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(expressionString);
-  const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const [isValid, setIsValid] = useState<boolean>(isStringValidAsExpression(expressionString));
 
-  // Sync local validity when the external expression is cleared by deletion
+  // Sync local validity when the expression is cleared by external deletion
   useEffect(() => {
-    setIsValid(isInitiallyValid);
-  }, [isInitiallyValid]);
+    const isValidAfterExternalChange = isStringValidAsExpression(expressionString);
+    setIsValid(isValidAfterExternalChange);
+    isManualExpressionValidRef.current = isValidAfterExternalChange;
+  }, [expressionString, isManualExpressionValidRef]);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.target;
