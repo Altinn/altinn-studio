@@ -1,6 +1,7 @@
 import {
   CombinationKind,
   FieldType,
+  Keyword,
   type NodePosition,
   type UiSchemaNode,
   type UiSchemaNodes,
@@ -64,6 +65,7 @@ export class SchemaModel extends SchemaModelBase {
     if (this.hasNode(pointer)) return pointer;
 
     const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
+
     return makePointerFromArray([
       parentSchemaPointer,
       extractCategoryFromPointer(uniquePointer),
@@ -79,8 +81,21 @@ export class SchemaModel extends SchemaModelBase {
   }
 
   private getParentPropertyNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
-    const parentUniquePointer = uniquePointer.split('/').slice(0, -2).join('/');
+    const parentUniquePointer = this.getParentUniquePointer(uniquePointer);
     return this.getNodeByUniquePointer(parentUniquePointer);
+  }
+
+  public getParentUniquePointer(uniquePointer: string): string {
+    const parts = uniquePointer.split('/');
+    const partsWithoutName = ArrayUtils.removeLast(parts);
+    const partsWithoutItemCategory = ArrayUtils.removeLast(partsWithoutName);
+    const lastPart = ArrayUtils.last(partsWithoutItemCategory);
+    const finalParts =
+      lastPart === Keyword.Items
+        ? ArrayUtils.removeLast(partsWithoutItemCategory)
+        : partsWithoutItemCategory;
+
+    return finalParts.join('/');
   }
 
   private static removeUniquePointerPrefix(uniquePointer: string): string {
@@ -90,8 +105,10 @@ export class SchemaModel extends SchemaModelBase {
   public static getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
       return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
+
     const category = extractCategoryFromPointer(schemaPointer);
     const parentPointer = SchemaModel.removeUniquePointerPrefix(uniqueParentPointer);
+
     return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 

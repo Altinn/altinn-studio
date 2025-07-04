@@ -58,6 +58,10 @@ export class ArrayUtils {
   public static removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
     array.filter((_, index) => index !== indexToRemove);
 
+  public static removeLast<T>(array: Array<T>): Array<T> {
+    return array.slice(0, -1);
+  }
+
   /** Returns the provided array if it has at least one item, otherwise returns undefined */
   public static getNonEmptyArrayOrUndefined = <T>(array: T[]): T[] | undefined =>
     array.length > 0 ? array : undefined;
