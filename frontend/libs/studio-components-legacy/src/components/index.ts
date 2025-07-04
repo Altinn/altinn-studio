@@ -64,3 +64,4 @@ export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
 export * from './StudioToggleableTextfieldSchema';
 export * from './StudioTreeView';
+export * from './StudioIconCard';

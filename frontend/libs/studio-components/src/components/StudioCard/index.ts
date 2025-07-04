@@ -1,1 +1,1 @@
-export { StudioCard } from './StudioCard';
+export * from './StudioCard';
