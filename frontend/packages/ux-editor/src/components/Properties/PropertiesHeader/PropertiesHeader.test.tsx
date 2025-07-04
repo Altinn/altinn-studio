@@ -43,12 +43,6 @@ describe('PropertiesHeader', () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it('should render spinner when fetching component schema', async () => {
-    renderPropertiesHeader({}, false);
-    const spinner = screen.getByText(textMock('ux_editor.properties_panel.texts.loading'));
-    expect(spinner).toBeInTheDocument();
-  });
-
   it('displays the help text when the help text button is clicked', async () => {
     const user = userEvent.setup();
     renderPropertiesHeader();
@@ -201,17 +195,13 @@ describe('PropertiesHeader', () => {
   });
 });
 
-const renderPropertiesHeader = (
-  props: Partial<PropertiesHeaderProps> = {},
-  useSetQueryDataSchema: boolean = true,
-) => {
+const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
 
-  if (useSetQueryDataSchema)
-    queryClientMock.setQueryData(
-      [QueryKey.FormComponent, componentType],
-      componentSchemaMocks[componentType],
-    );
+  queryClientMock.setQueryData(
+    [QueryKey.FormComponent, componentType],
+    componentSchemaMocks[componentType],
+  );
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);

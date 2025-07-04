@@ -1,10 +1,9 @@
 import React from 'react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { StudioSpinner } from '@studio/components-legacy';
 import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '../../hooks';
@@ -24,32 +23,17 @@ export const Text = () => {
     await debounceSave(formId, updatedComponent);
   };
 
-  if (!schema) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle
-        spinnerTitle={t('ux_editor.properties_panel.texts.loading')}
-      />
-    );
-  }
-
-  if (!schema?.properties) {
-    return <Alert>{t('ux_editor.properties_panel.texts.no_properties')}</Alert>;
-  }
-
   return (
     <>
       <Heading level={2} size='2xs' className={classes.heading}>
         {t('ux_editor.properties_panel.texts.sub_title_texts')}
       </Heading>
-      {schema.properties.textResourceBindings?.properties && (
-        <EditTextResourceBindings
-          component={form}
-          handleComponentChange={handleComponentChange}
-          textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
-          layoutName={selectedFormLayoutName}
-        />
-      )}
+      <EditTextResourceBindings
+        component={form}
+        handleComponentChange={handleComponentChange}
+        textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
+        layoutName={selectedFormLayoutName}
+      />
       {form.type === ComponentType.Subform && (
         <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />
       )}
