@@ -21,13 +21,7 @@ namespace KubernetesWrapper.Services.Implementation
     [ApiController]
     public class OperationalLogsService(IConfiguration configuration) : IOperationalLogsService
     {
-        /// <summary>
-        /// Get the list of operational logs
-        /// </summary>
-        /// <param name="app">app</param>
-        /// <param name="take">take</param>
-        /// <param name="time">time</param>
-        /// <returns>The list of operational logs</returns>
+        /// <inheritdoc />
         [HttpGet]
         [EnableCors]
         public async Task<IEnumerable<Log>> GetLogs(string app = null, double take = 50, double time = 1)

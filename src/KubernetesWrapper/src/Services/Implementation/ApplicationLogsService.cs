@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace KubernetesWrapper.Services.Implementation
 {
     /// <summary>
-    ///  Service containing all actions related to application logs
+    /// Service containing all actions related to application logs
     /// </summary>
     /// <remarks>
     /// Initializes a new instance of the <see cref="ApplicationLogsService"/> class
@@ -21,13 +21,7 @@ namespace KubernetesWrapper.Services.Implementation
     [ApiController]
     public class ApplicationLogsService(IConfiguration configuration) : IApplicationLogsService
     {
-        /// <summary>
-        /// Get the list of application logs
-        /// </summary>
-        /// <param name="app">app</param>
-        /// <param name="take">take</param>
-        /// <param name="time">time</param>
-        /// <returns>The list of application logs</returns>
+        /// <inheritdoc />
         [HttpGet]
         [EnableCors]
         public async Task<IEnumerable<Log>> GetLogs(string app = null, double take = 50, double time = 1)

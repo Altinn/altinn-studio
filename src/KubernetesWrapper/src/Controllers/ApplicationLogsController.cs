@@ -1,3 +1,4 @@
+using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,10 @@ namespace KubernetesWrapper.Controllers
     /// <remarks>
     /// Initializes a new instance of the <see cref="ApplicationLogsController"/> class
     /// </remarks>
-    /// <param name="logger">The logger</param>
     /// <param name="applicationLogsService">The service</param>
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class ApplicationLogsController(ILogger<ApplicationLogsController> logger, IApplicationLogsService applicationLogsService) : ControllerBase
+    public class ApplicationLogsController(IApplicationLogsService applicationLogsService) : ControllerBase
     {
         /// <summary>
         /// Get the list of application logs
@@ -25,18 +25,10 @@ namespace KubernetesWrapper.Controllers
         /// <returns>The list of application logs</returns>
         [HttpGet]
         [EnableCors]
-        public async Task<ActionResult> GetLogs(string app = null, double take = 50, double time = 1)
+        public async Task<ActionResult<IEnumerable<Log>>> GetLogs(string app = null, double take = 50, double time = 1)
         {
-            try
-            {
-                var logs = await applicationLogsService.GetLogs(app, take, time);
-                return Ok(logs);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Unable to get Logs");
-                return StatusCode(500);
-            }
+            var logs = await applicationLogsService.GetLogs(app, take, time);
+            return Ok(logs);
         }
     }
 }
