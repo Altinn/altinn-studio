@@ -408,3 +408,6 @@ layoutSettings.schema.v1.json
 eslint-results.html
 
 runner-results
+
+# CLAUDE local context file
+CLAUDE.local.md
