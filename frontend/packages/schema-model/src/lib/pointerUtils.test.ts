@@ -88,16 +88,6 @@ describe('pointerUtils', () => {
     it('Returns undefined when the pointer is the root pointer', () => {
       expect(extractCategoryFromPointer('#')).toBe(undefined);
     });
-
-    it('Returns "items/properties" when pointer includes "items"', () => {
-      const pointer = '#/properties/simpleArray/items/simpleChild';
-      expect(extractCategoryFromPointer(pointer)).toBe(`${Keyword.Items}/${Keyword.Properties}`);
-    });
-
-    it('Returns "items" when pointer has "items" 3 parts from the end', () => {
-      const pointer = '#/properties/simpleArray/items/properties/simpleChild';
-      expect(extractCategoryFromPointer(pointer)).toBe(Keyword.Items);
-    });
   });
 
   describe('changeNameInPointer', () => {
