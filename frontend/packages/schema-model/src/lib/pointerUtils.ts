@@ -3,7 +3,6 @@ import { CombinationKind, Keyword, ObjectKind } from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
 import type { PointerCategory } from '../types/PointerCategory';
-import { Items } from '../types/Items';
 import { ROOT_POINTER } from './constants';
 import { isNodeValidParent } from './utils';
 
