@@ -35,6 +35,10 @@ type ResourceTextFieldProps = {
    * Whether this field is read only or not
    */
   readOnly?: boolean;
+  /**
+   * Whether the value in this field can only be lowercase
+   */
+  isLowerCase?: boolean;
 };
 
 /**
@@ -48,6 +52,7 @@ type ResourceTextFieldProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[required] - Whether this field is required or not
  * @property {boolean}[readOnly] - Whether this field is read only or not
+ * @property {boolean}[isLowerCase] - Whether the value in this field can only be lowercase
  *
  * @returns {ReactElement} - The rendered component
  */
@@ -59,6 +64,7 @@ export const ResourceTextField = ({
   onBlur,
   required,
   readOnly,
+  isLowerCase,
 }: ResourceTextFieldProps): ReactElement => {
   const [val, setVal] = useState(value);
 
@@ -70,7 +76,7 @@ export const ResourceTextField = ({
         description={description}
         value={val}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          setVal(e.target.value);
+          setVal(isLowerCase ? e.target.value.toLowerCase() : e.target.value);
         }}
         onBlur={() => onBlur(val)}
         required={required}

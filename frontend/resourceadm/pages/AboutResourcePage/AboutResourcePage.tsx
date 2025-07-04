@@ -201,6 +201,7 @@ export const AboutResourcePage = ({
               label={t('resourceadm.about_resource_consent_metadata')}
               description={t('resourceadm.about_resource_consent_metadata_description')}
               value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
+              isLowerCase
               onBlur={(val: string) =>
                 handleSave({
                   ...resourceData,
