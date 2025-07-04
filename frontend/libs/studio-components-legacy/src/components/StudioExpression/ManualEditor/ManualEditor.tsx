@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Expression } from '../types/Expression';
 import { isStringValidAsExpression } from '../validators/isStringValidAsExpression';
 import { stringToExpression } from '../converters/stringToExpression';
@@ -19,14 +19,16 @@ export const ManualEditor = ({
   isManualExpressionValidRef,
 }: ManualEditorProps) => {
   const { texts } = useStudioExpressionContext();
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
+  const expressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(expressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+
+  useEffect(() => {
+    setIsValid(isInitiallyValid);
+  }, [isInitiallyValid]);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.target;
-    setExpressionString(value);
     if (isStringValidAsExpression(value)) {
       const expression = stringToExpression(value);
       onChange(expression);
