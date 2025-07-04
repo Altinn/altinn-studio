@@ -10,7 +10,7 @@ import {
   StudioHeading,
   StudioParagraph,
 } from '@studio/components-legacy';
-import { useLayoutSetIcon } from '../../hooks/useLayoutSetIcon';
+import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
@@ -28,7 +28,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
-  const taskIcon = useLayoutSetIcon(layoutSetModel);
+  const taskIcon = getLayoutSetIcon(layoutSetModel);
 
   const [editing, setEditing] = useState(false);
 
@@ -83,12 +83,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
       </div>
-      <StudioButton
-        className={classes.navigateButton}
-        onClick={goToFormEditor}
-        color='second'
-        variant='primary'
-      >
+      <StudioButton onClick={goToFormEditor} color='second' variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>
