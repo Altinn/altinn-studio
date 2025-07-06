@@ -3,10 +3,15 @@ import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioRadioGroup, useStudioRadioGroup } from './';
 
-const ComposedComponent = (args): ReactElement => {
+type ArgsProps = {
+  hasError?: boolean;
+};
+
+const ComposedComponent = (args: ArgsProps): ReactElement => {
   const options: string[] = ['option 1', 'option 2', 'option 3'];
 
-  const [hasError, setHasError] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(args.hasError || false);
+  console.log('hasError', hasError);
 
   const { getRadioProps, validationMessageProps, value } = useStudioRadioGroup({
     name: 'my-radio-group',
