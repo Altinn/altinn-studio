@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import { StudioRadio } from '../StudioRadio';
 import type { StudioGetRadioProps } from './StudioGetRadioProps';
-import { StudioRadioProps } from '../StudioRadio';
+import type { StudioRadioProps } from '../StudioRadio';
 
 export type StudioRadioGroupItemProps = {
   getRadioProps: StudioGetRadioProps;
