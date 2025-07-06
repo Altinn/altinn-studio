@@ -2,14 +2,11 @@ import React, { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Radio, type RadioProps } from '@digdir/designsystemet-react';
 import { hasAriaLabel, hasAriaLabelledBy } from '../../utils/labelUtils';
-import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
-export type StudioRadioProps = RadioProps & {
-  tagText?: string;
-};
+export type StudioRadioProps = RadioProps;
 
 function StudioRadio(
-  { label, required, tagText, ...rest }: StudioRadioProps,
+  { label, ...rest }: StudioRadioProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
   // Designsystemet has conditional types, so if we extract label from props, we must
@@ -18,17 +15,7 @@ function StudioRadio(
     return <Radio ref={ref} {...rest} />;
   }
 
-  return (
-    <Radio
-      {...rest}
-      ref={ref}
-      label={
-        <StudioLabelWrapper required={required} tagText={tagText}>
-          {label}
-        </StudioLabelWrapper>
-      }
-    />
-  );
+  return <Radio {...rest} ref={ref} label={label} />;
 }
 const ForwardedStudioRadio = forwardRef(StudioRadio);
 
