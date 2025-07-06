@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioFieldset, StudioFieldsetProps } from '../StudioFieldset';
+import { StudioFieldset } from '../StudioFieldset';
+import type { StudioFieldsetProps } from '../StudioFieldset';
 
 export type StudioRadioGroupProps = StudioFieldsetProps;
 

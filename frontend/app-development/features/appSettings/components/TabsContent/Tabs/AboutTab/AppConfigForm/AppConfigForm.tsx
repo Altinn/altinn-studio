@@ -224,6 +224,17 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           errors={statusErrors}
           id={AppResourceFormFieldIds.Status}
         />
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
+            shouldText: !updatedAppConfig.isDelegable
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          cardHeading={t('app_settings.about_tab_delegable_field_label')}
+          description={t('app_settings.about_tab_delegable_field_description')}
+          checked={updatedAppConfig?.isDelegable ?? false}
+          onChange={onChangeDelegable}
+        />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
