@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioTextfield, useStudioCheckboxGroup } from '@studio/components';
+import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew, Keyword, StatusOption } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
