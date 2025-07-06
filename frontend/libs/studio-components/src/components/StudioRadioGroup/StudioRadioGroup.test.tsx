@@ -32,7 +32,7 @@ describe('StudioRadioGroup components', () => {
     renderRadioGroup({ hasError: false });
 
     options.forEach((option) => {
-      expect(getLabelText(option)).not.toHaveAttribute('aria-invalid');
+      expect(getLabelText(option)).toHaveAttribute('aria-invalid', 'false');
     });
   });
 
