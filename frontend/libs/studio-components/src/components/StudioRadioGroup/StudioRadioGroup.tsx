@@ -1,11 +1,9 @@
 import React from 'react';
-import type { ReactElement, ReactNode } from 'react';
-import { StudioFieldset } from '../StudioFieldset';
+import type { ReactElement } from 'react';
+import { StudioFieldset, StudioFieldsetProps } from '../StudioFieldset';
 
-export type StudioRadioGroupProps = {
-  children: ReactNode;
-};
+export type StudioRadioGroupProps = StudioFieldsetProps;
 
-export function StudioRadioGroup({ children }: StudioRadioGroupProps): ReactElement {
-  return <StudioFieldset>{children}</StudioFieldset>;
+export function StudioRadioGroup({ children, ...rest }: StudioRadioGroupProps): ReactElement {
+  return <StudioFieldset {...rest}>{children}</StudioFieldset>;
 }
