@@ -219,9 +219,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
         />
         <StatusRadioGroup
-          status={updatedAppConfig.status}
+          selectedStatus={updatedAppConfig.status}
           onChangeStatus={onChangeStatus}
           errors={statusErrors}
+          id={AppResourceFormFieldIds.Status}
         />
       </div>
       <ActionButtons
@@ -237,6 +238,7 @@ enum AppResourceFormFieldIds {
   ServiceName = 'serviceName',
   Description = 'description',
   RightDescription = 'rightDescription',
+  Status = 'status',
 }
 
 function getValidationErrorsForField(

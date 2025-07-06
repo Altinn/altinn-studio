@@ -1,35 +1,53 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioRadio, useStudioRadioGroup } from '@studio/components';
+import { StudioRadio, useStudioRadioGroup, StudioRadioGroup } from '@studio/components';
 import type { StatusOption } from 'app-shared/types/AppConfig';
 import { useTranslation } from 'react-i18next';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
+import { getStatusOptions } from '../../utils/appConfigStatusUtils';
 
 export type StatusRadioGroupProps = {
-  status?: StatusOption;
+  selectedStatus?: StatusOption;
   onChangeStatus: (value: StatusOption) => void;
   errors?: AppConfigFormError[];
+  id: string;
 };
 
 export function StatusRadioGroup({
-  status,
+  selectedStatus,
   onChangeStatus,
   errors = [],
+  id,
 }: StatusRadioGroupProps): ReactElement {
   const { t } = useTranslation();
 
-  const { getRadioProps } = useStudioRadioGroup({
-    value: status,
+  const { getRadioProps, validationMessageProps } = useStudioRadioGroup({
+    value: selectedStatus,
     onChange: onChangeStatus,
+    error: errors.length > 0 ? t('app_settings.about_tab_status_field_error') : undefined,
+    name: 'appConfigStatus',
   });
 
+  const options: LabelAndValue[] = getStatusOptions(t);
+
   return (
-    <StudioRadio
-      label={t('app_settings.about_tab_status_label')}
-      required
-      tagText={t('general.required')}
-      error={errors}
-      {...getRadioProps({ value: status })}
-    />
+    <StudioRadioGroup id={id}>
+      <StudioRadioGroup.Heading
+        label={t('app_settings.about_tab_status_field_label')}
+        required
+        tagText={t('general.required')}
+      />
+      {options.map((option: LabelAndValue) => (
+        <StudioRadio
+          key={option.value}
+          label={option.label}
+          {...getRadioProps({ value: option.value })}
+        />
+      ))}
+      {errors.length > 0 && (
+        <StudioRadioGroup.Error validationMessageProps={validationMessageProps} />
+      )}
+    </StudioRadioGroup>
   );
 }
