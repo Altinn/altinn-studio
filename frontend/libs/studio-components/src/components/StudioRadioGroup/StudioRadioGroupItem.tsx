@@ -14,5 +14,5 @@ export function StudioRadioGroupItem({
   hasError = false,
   label,
 }: StudioRadioGroupItemProps): ReactElement {
-  return <StudioRadio label={label} aria-invalid={hasError} {...getRadioProps} />;
+  return <StudioRadio label={label} {...getRadioProps} aria-invalid={hasError} />;
 }
