@@ -4,8 +4,9 @@
   flex-wrap: wrap;
   height: 75vh;
   flex: 3;
-  padding: 20px;
+  padding: 0 20px 20px;
   overflow-y: scroll;
+  gap: var(--fds-spacing-4);
 }
 
 .componentCategory {

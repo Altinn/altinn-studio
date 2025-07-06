@@ -8,7 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph, StudioSearch } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type AddItemContentProps = {
@@ -32,6 +32,14 @@ export const AddItemContent = ({
   return (
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
+        {/* TODO: Add functionality for search */}
+        <StudioSearch
+          label={t('ux_editor.add_item.component_search_label')}
+          value={undefined}
+          onChange={undefined}
+          onKeyDown={undefined}
+          onClear={undefined}
+        />
         <StudioParagraph spacing size='small' style={{ width: '100%' }}>
           {t('ux_editor.add_item.component_more_info_description')}
         </StudioParagraph>
