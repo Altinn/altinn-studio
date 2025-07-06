@@ -14,6 +14,6 @@ namespace KubernetesWrapper.Services.Interfaces
         /// <param name="take">take</param>
         /// <param name="time">time</param>
         /// <returns>The list of failed requests</returns>
-        Task<IEnumerable<Request>> GetRequests(string app, double take, double time);
+        Task<IEnumerable<Request>> GetRequests(string app, int take, double time);
     }
 }

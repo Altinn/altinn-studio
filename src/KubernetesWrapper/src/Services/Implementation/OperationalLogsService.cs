@@ -1,12 +1,9 @@
-using System.Threading.Tasks;
 using Azure;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Mvc;
 
 namespace KubernetesWrapper.Services.Implementation
 {
@@ -14,17 +11,13 @@ namespace KubernetesWrapper.Services.Implementation
     /// Service containing all actions related to operational logs
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="ApplicationLogsService"/> class
+    /// Initializes a new instance of the <see cref="OperationalLogsService"/> class
     /// </remarks>
     /// <param name="configuration">The configuration</param>
-    [Route("api/v1/[controller]")]
-    [ApiController]
     public class OperationalLogsService(IConfiguration configuration) : IOperationalLogsService
     {
         /// <inheritdoc />
-        [HttpGet]
-        [EnableCors]
-        public async Task<IEnumerable<Log>> GetLogs(string app = null, double take = 50, double time = 1)
+        public async Task<IEnumerable<Log>> GetLogs(string app = null, int take = 50, double time = 1)
         {
             string operationalLawWorkspaceId = configuration["OperationalLawWorkspaceId"];
 

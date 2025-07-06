@@ -14,6 +14,6 @@ namespace KubernetesWrapper.Services.Interfaces
         /// <param name="take">take</param>
         /// <param name="time">time</param>
         /// <returns>The list of application logs</returns>
-        Task<IEnumerable<Log>> GetLogs(string app, double take, double time);
+        Task<IEnumerable<Log>> GetLogs(string app, int take, double time);
     }
 }
