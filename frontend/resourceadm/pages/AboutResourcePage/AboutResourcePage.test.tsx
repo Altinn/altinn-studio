@@ -362,6 +362,27 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles language change for consentText field', async () => {
+    const user = userEvent.setup();
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
+        consentTemplates={consentTemplates}
+      />,
+    );
+
+    const languageEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_consent_text_label')}`,
+    );
+    await user.click(languageEnTab);
+
+    const previewHeader = screen.getByText(
+      textMock('resourceadm.about_resource_consent_preview', { language: textMock('language.en') }),
+    );
+    expect(previewHeader).toBeInTheDocument();
+  });
+
   it('should insert markdown list when markdown list button is clicked', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
