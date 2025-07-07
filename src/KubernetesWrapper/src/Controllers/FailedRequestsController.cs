@@ -25,7 +25,7 @@ namespace KubernetesWrapper.Controllers
         /// <returns>The list of failed requests</returns>
         [HttpGet]
         [EnableCors]
-        public async Task<ActionResult<IEnumerable<Request>>> GetRequests(string app = null, double take = 50, double time = 24)
+        public async Task<ActionResult<IEnumerable<Request>>> GetRequests(string app = null, int take = 50, double time = 24)
         {
             var requests = await failedRequestsService.GetRequests(app, take, time);
             return Ok(requests);

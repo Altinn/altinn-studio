@@ -25,7 +25,7 @@ namespace KubernetesWrapper.Controllers
         /// <returns>The list of application logs</returns>
         [HttpGet]
         [EnableCors]
-        public async Task<ActionResult<IEnumerable<Log>>> GetLogs(string app = null, double take = 50, double time = 1)
+        public async Task<ActionResult<IEnumerable<Log>>> GetLogs(string app = null, int take = 50, double time = 1)
         {
             var logs = await applicationLogsService.GetLogs(app, take, time);
             return Ok(logs);
