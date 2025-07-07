@@ -1,2 +1,2 @@
 export { StudioRadio } from './StudioRadio';
-export { useStudioRadioGroup } from './useStudioRadioGroup';
+export type { StudioRadioProps } from './StudioRadio';
