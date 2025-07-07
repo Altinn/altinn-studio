@@ -163,18 +163,20 @@ function RepeatingGroupsEditContainerInternal({
             />
           ))}
         </Flex>
-        <Flex item>
+        <Flex
+          item
+          style={{ display: 'flex', width: '100%', marginBottom: 12 }}
+        >
           {editForGroup?.multiPage && (
             <Flex
               container
               direction='row'
               spacing={2}
-              style={{ marginBottom: 12 }}
             >
               {hasPrevMultiPage && (
                 <Flex item>
                   <Button
-                    variant='tertiary'
+                    variant='secondary'
                     color='second'
                     onClick={() => prevMultiPage()}
                   >
@@ -182,18 +184,18 @@ function RepeatingGroupsEditContainerInternal({
                       fontSize='1rem'
                       aria-hidden='true'
                     />
-                    <Lang id='general.back' />
+                    <Lang id={texts.multipage_back_button ? texts.multipage_back_button : 'general.back'} />
                   </Button>
                 </Flex>
               )}
               {hasNextMultiPage && (
                 <Flex item>
                   <Button
-                    variant='tertiary'
+                    variant='secondary'
                     color='second'
                     onClick={() => nextMultiPage()}
                   >
-                    <Lang id='general.next' />
+                    <Lang id={texts.multipage_next_button ? texts.multipage_next_button : 'general.next'} />
                     <ChevronRightIcon
                       fontSize='1rem'
                       aria-hidden='true'
@@ -207,6 +209,7 @@ function RepeatingGroupsEditContainerInternal({
             container
             direction='row'
             spacing={2}
+            justifyContent={multiPageEnabled ? 'flex-end' : 'flex-start'}
           >
             {saveAndNextButtonVisible && (
               <Flex item>

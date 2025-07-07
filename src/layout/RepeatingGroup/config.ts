@@ -109,6 +109,20 @@ export const Config = new CG.component({
       description: 'The text for the "Back" button in pagination',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'multipage_back_button',
+      title: 'Back button in multipage navigation',
+      description: 'The text for the "Back" button in multipage navigation',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'multipage_next_button',
+      title: 'Next button in multipage navigation',
+      description: 'The text for the "Next" button in multipage navigation',
+    }),
+  )
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

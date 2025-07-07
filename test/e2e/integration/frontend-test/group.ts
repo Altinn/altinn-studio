@@ -967,4 +967,56 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
   });
+
+  it('Navigation on multiPage Group should skip pages with hidden components only', () => {
+    cy.interceptLayout('group', (component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
+        component.children = [
+          '0:currentValue',
+          '1:newValue',
+          '2:cards',
+          '3:mainUploaderSingle',
+          '3:mainUploaderMulti',
+          '4:subGroup',
+        ];
+        if (component.textResourceBindings) {
+          component.textResourceBindings.multipage_back_button = 'Forrige side';
+          component.textResourceBindings.multipage_next_button = 'Neste side';
+        }
+      }
+      if (
+        (component.id === 'newValue' && component.type === 'Input') ||
+        (component.id === 'mainUploaderSingle' && component.type === 'FileUpload')
+      ) {
+        component.hidden = true;
+      }
+    });
+    init();
+
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.mainGroup).should('exist');
+    cy.findByRole('textbox', { name: '1. Endre fra' }).should('exist');
+    cy.findByRole('textbox', { name: '2. Endre verdi til' }).should('not.exist');
+    cy.get(appFrontend.group.mainGroup)
+      .findByRole('button', { name: /Neste side/ })
+      .click();
+
+    //Make sure this page is skipped when component is hidden.
+    cy.findByRole('textbox', { name: '2. Endre verdi til' }).should('not.exist');
+    cy.findByRole('heading', { level: 2, name: 'Kilde' }).should('exist');
+    cy.get(appFrontend.group.mainGroup)
+      .findByRole('button', { name: /Neste side/ })
+      .click();
+    cy.findByRole('presentation', { name: 'Last opp alle vedlegg med kilde Altinn her' }).should('not.exist');
+    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+    cy.get(appFrontend.group.mainGroup)
+      .findByRole('button', { name: /Neste side/ })
+      .click();
+    cy.findByRole('table', { name: 'Nested group' }).should('exist');
+    cy.get(appFrontend.group.mainGroup)
+      .findByRole('button', { name: /Forrige side/ })
+      .click();
+    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+  });
 });
