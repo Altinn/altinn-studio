@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { useTranslation } from 'react-i18next';
 import Markdown from 'markdown-to-jsx';
 import cn from 'classnames';
@@ -48,21 +49,6 @@ interface ConsentPreviewProps {
   isOneTimeConsent: boolean;
   language: ValidLanguage;
 }
-
-const IllegalMarkdownTags = [
-  'img',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'hr',
-  'table',
-  'del',
-  'input',
-  'mark',
-];
 
 export const ConsentPreview = ({
   template,
@@ -167,10 +153,6 @@ export const ConsentPreview = ({
                   data-testid='consentPreviewMarkdown'
                   options={{
                     disableParsingRawHTML: true,
-                    overrides: IllegalMarkdownTags.reduce((acc, tag) => {
-                      acc[tag] = () => null; // Disable rendering of illegal tags
-                      return acc;
-                    }, {}),
                   }}
                 >
                   {texts.resourceText}
@@ -222,4 +204,14 @@ const getDummyDateString = (): string => {
     month: '2-digit',
     day: '2-digit',
   });
+};
+
+export const transformText = (text: string): string | React.JSX.Element | React.JSX.Element[] => {
+  const allowedTags = ['p', 'span', 'ul', 'ol', 'li', 'a', 'b', 'strong', 'em', 'i'];
+  const dirty = text;
+  const clean = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: allowedTags,
+  });
+
+  return clean;
 };
