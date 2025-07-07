@@ -49,6 +49,21 @@ interface ConsentPreviewProps {
   language: ValidLanguage;
 }
 
+const IllegalMarkdownTags = [
+  'img',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'hr',
+  'table',
+  'del',
+  'input',
+  'mark',
+];
+
 export const ConsentPreview = ({
   template,
   resourceName,
@@ -148,7 +163,18 @@ export const ConsentPreview = ({
                 <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
-                <Markdown options={{ disableParsingRawHTML: true }}>{texts.resourceText}</Markdown>
+                <Markdown
+                  data-testid='consentPreviewMarkdown'
+                  options={{
+                    disableParsingRawHTML: true,
+                    overrides: IllegalMarkdownTags.reduce((acc, tag) => {
+                      acc[tag] = () => null; // Disable rendering of illegal tags
+                      return acc;
+                    }, {}),
+                  }}
+                >
+                  {texts.resourceText}
+                </Markdown>
               </div>
             </div>
             <StudioParagraph className={cn(classes.expiration, classes.boldText)}>

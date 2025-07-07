@@ -123,6 +123,21 @@ describe('ConsentPreview', () => {
     ).toBeInTheDocument();
   });
 
+  it('should disable rendering HTML and illegal tags', () => {
+    render(
+      <ConsentPreview
+        {...defaultProps}
+        consentText={{
+          nb: '<div>hei ![alt text](image.jpg)</div>',
+          nn: '',
+          en: '',
+        }}
+      />,
+    );
+    const renderedMarkdown = screen.getByTestId('consentPreviewMarkdown');
+    expect(renderedMarkdown).toHaveTextContent('<div>hei </div>');
+  });
+
   it('should have mobileview class when mobileview is enabled', async () => {
     const user = userEvent.setup();
     render(<ConsentPreview {...defaultProps} />);
