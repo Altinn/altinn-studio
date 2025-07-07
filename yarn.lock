@@ -4215,6 +4215,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"admin@workspace:frontend/admin":
+  version: 0.0.0-use.local
+  resolution: "admin@workspace:frontend/admin"
+  dependencies:
+    "@studio/content-library": "workspace:^"
+    "@studio/feedback-form": "workspace:^"
+    "@studio/hooks": "workspace:^"
+    "@studio/icons": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
+    axios: "npm:1.8.2"
+    classnames: "npm:2.5.1"
+    i18next: "npm:23.16.8"
+    jest: "npm:29.7.0"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-i18next: "npm:15.4.0"
+    react-router-dom: "npm:7.6.2"
+    typescript: "npm:5.7.3"
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "agent-base@npm:6, agent-base@npm:^6.0.2":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -5804,6 +5826,13 @@ __metadata:
   version: 0.7.1
   resolution: "cookie@npm:0.7.1"
   checksum: 10/aec6a6aa0781761bf55d60447d6be08861d381136a0fe94aa084fddd4f0300faa2b064df490c6798adfa1ebaef9e0af9b08a189c823e0811b8b313b3d9a03380
+  languageName: node
+  linkType: hard
+
+"cookie@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "cookie@npm:1.0.2"
+  checksum: 10/f5817cdc84d8977761b12549eba29435e675e65c7fef172bc31737788cd8adc83796bf8abe6d950554e7987325ad2d9ac2971c5bd8ff0c4f81c145f82e4ab1be
   languageName: node
   linkType: hard
 
@@ -12794,6 +12823,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:7.6.2":
+  version: 7.6.2
+  resolution: "react-router-dom@npm:7.6.2"
+  dependencies:
+    react-router: "npm:7.6.2"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10/e793578cced33fce83ed8341a70e2238bd247cdc648a105d600e53551ad56fddab8c186d3711c1c46203f77ec6c3f9617a57465494597eadc165c55ef573ab51
+  languageName: node
+  linkType: hard
+
 "react-router@npm:6.29.0":
   version: 6.29.0
   resolution: "react-router@npm:6.29.0"
@@ -12802,6 +12843,22 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: 10/c3d0ce685a74818bf904900a6a9172eab7470d92df46804563743f666759cb3395f46743c784d51be57d878f84188ddf4477c3b5f029b6132e59692b8e3dc1ef
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.6.2":
+  version: 7.6.2
+  resolution: "react-router@npm:7.6.2"
+  dependencies:
+    cookie: "npm:^1.0.1"
+    set-cookie-parser: "npm:^2.6.0"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/38a8473c7358d873eb60cc6660deae16a629701b8867ee00e67871ff61009b90f73853235ef3b0f2e43ebedee697389afc7bf170df069823dc872be79798965b
   languageName: node
   linkType: hard
 
@@ -13593,6 +13650,13 @@ __metadata:
   version: 2.6.0
   resolution: "set-cookie-parser@npm:2.6.0"
   checksum: 10/8d451ebadb760989f93b634942c79de3c925ca7a986d133d08a80c40b5ae713ce12e354f0d5245c49f288c52daa7bd6554d5dc52f8a4eecaaf5e192881cf2b1f
+  languageName: node
+  linkType: hard
+
+"set-cookie-parser@npm:^2.6.0":
+  version: 2.7.1
+  resolution: "set-cookie-parser@npm:2.7.1"
+  checksum: 10/c92b1130032693342bca13ea1b1bc93967ab37deec4387fcd8c2a843c0ef2fd9a9f3df25aea5bb3976cd05a91c2cf4632dd6164d6e1814208fb7d7e14edd42b4
   languageName: node
   linkType: hard
 

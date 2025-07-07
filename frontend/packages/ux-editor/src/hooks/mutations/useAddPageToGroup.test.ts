@@ -1,5 +1,5 @@
 import { useAddPageToGroup } from './useAddPageToGroup';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderHookWithProviders } from '../../../../ux-editor/src/testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -62,7 +62,6 @@ describe('useAddPageToGroup', () => {
   describe('useAddPageToGroup loop coverage', () => {
     it('should increment multiple times when many duplicates exist', async () => {
       const mockPagesModel: PagesModel = {
-        pages: [{ id: textMock('ux_editor.page') + '1' }, { id: textMock('ux_editor.page') + '2' }],
         groups: [
           {
             name: textMock('ux_editor.page_layout_group') + ' 1',
@@ -87,7 +86,6 @@ describe('useAddPageToGroup', () => {
             ],
           },
         ],
-        pages: [{ id: textMock('ux_editor.page') + '1' }, { id: textMock('ux_editor.page') + '2' }],
       });
     });
 
@@ -147,6 +145,6 @@ describe('useAddPageToGroup', () => {
   });
 });
 
-const renderUseAddPageToGroup = (pagesModel: PagesModel) => {
+const renderUseAddPageToGroup = (pagesModel: PagesModelWithPageGroups) => {
   return renderHookWithProviders(() => useAddPageToGroup(pagesModel));
 };
