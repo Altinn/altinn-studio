@@ -36,16 +36,8 @@ namespace KubernetesWrapper.Controllers
         [EnableCors]
         public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
         {
-            try
-            {
-                var daemonSets = await _apiWrapper.GetDeployedResources(Models.ResourceType.DaemonSet, null, null, fieldSelector, labelSelector);
-                return Ok(daemonSets);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to GetDaemonSets");
-                return StatusCode(500);
-            }
+            var daemonSets = await _apiWrapper.GetDeployedResources(Models.ResourceType.DaemonSet, null, null, fieldSelector, labelSelector);
+            return Ok(daemonSets);
         }
     }
 }

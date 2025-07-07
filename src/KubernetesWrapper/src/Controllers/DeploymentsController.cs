@@ -36,16 +36,8 @@ namespace KubernetesWrapper.Controllers
         [EnableCors]
         public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
         {
-            try
-            {
-                var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
-                return Ok(deployments);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to GetDeployments");
-                return StatusCode(500);
-            }
+            var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
+            return Ok(deployments);
         }
     }
 }
