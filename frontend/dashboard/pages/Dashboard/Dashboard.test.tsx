@@ -6,10 +6,8 @@ import type { User } from 'app-shared/types/Repository';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
-import type { SearchRepositoryResponse } from 'app-shared/types/api';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 import { renderWithProviders } from 'dashboard/testing/mocks';
-import { type RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
@@ -33,8 +31,7 @@ describe('Dashboard', () => {
 
   it('should display favorite list with one item', async () => {
     renderWithMockServices({
-      getStarredRepos: () =>
-        Promise.resolve<RepoIncludingStarredData[]>([{ ...repository, hasStarred: true }]),
+      getStarredRepos: jest.fn().mockResolvedValue([{ ...repository, hasStarred: true }]),
     });
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
@@ -44,7 +41,7 @@ describe('Dashboard', () => {
     });
     //eslint-disable-next-line testing-library/no-node-access
     const starredContainer = starredHeading.closest('div');
-    const starredRepos = within(starredContainer).getAllByTitle(
+    const starredRepos = await within(starredContainer).findAllByTitle(
       textMock('dashboard.unstar', { appName: repository.name }),
     );
 
@@ -53,11 +50,10 @@ describe('Dashboard', () => {
 
   it('should display application list with one item', async () => {
     renderWithMockServices({
-      searchRepos: () =>
-        Promise.resolve<SearchRepositoryResponse>({
-          ...searchRepositoryResponse,
-          data: [repository],
-        }),
+      searchRepos: jest.fn().mockResolvedValue({
+        ...searchRepositoryResponse,
+        data: [repository],
+      }),
     });
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
@@ -81,11 +77,10 @@ describe('Dashboard', () => {
     };
 
     renderWithMockServices({
-      searchRepos: () =>
-        Promise.resolve<SearchRepositoryResponse>({
-          ...searchRepositoryResponse,
-          data: [dataModelsRepository],
-        }),
+      searchRepos: jest.fn().mockResolvedValue({
+        ...searchRepositoryResponse,
+        data: [dataModelsRepository],
+      }),
     });
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));

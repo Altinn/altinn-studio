@@ -89,9 +89,9 @@ import type { CodeList } from 'app-shared/types/CodeList';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
-import type { OptionList } from '../types/OptionList';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
+import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 
 const headers = {
   Accept: 'application/json',
@@ -148,8 +148,7 @@ export const uploadOptionList = (org: string, app: string, payload: FormData) =>
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
-export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string) => post<OptionList>(importCodeListFromOrgPath(org, app, codeListId));
-
+export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string): Promise<ImportCodeListResponse> => post<ImportCodeListResponse>(importCodeListFromOrgPath(org, app, codeListId));
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat): Promise<ITextResourcesWithLanguage> => put<ITextResourcesWithLanguage, ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
 export const deletePage = (org: string, app: string, layoutSetName: string, pageName: string) => del(layoutPagesPath(org, app, layoutSetName, pageName));
