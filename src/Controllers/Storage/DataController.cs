@@ -15,6 +15,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 using System.Web;
+using Altinn.Platform.Storage.Authorization;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -34,6 +35,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IDataService _dataService;
         private readonly IInstanceEventService _instanceEventService;
+        private readonly IAuthorization _authorizationService;
         private readonly string _storageBaseAndHost;
 
         /// <summary>
@@ -44,6 +46,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="dataService">A data service with data element related business logic.</param>
         /// <param name="instanceEventService">An instance event service with event related business logic.</param>
+        /// <param name="authorizationService">the authorization service</param>
         /// <param name="generalSettings">the general settings.</param>
         public DataController(
             IDataRepository dataRepository,
@@ -51,6 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             IApplicationRepository applicationRepository,
             IDataService dataService,
             IInstanceEventService instanceEventService,
+            IAuthorization authorizationService,
             IOptions<GeneralSettings> generalSettings)
         {
             _dataRepository = dataRepository;
@@ -58,6 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _dataService = dataService;
             _instanceEventService = instanceEventService;
+            _authorizationService = authorizationService;
             _storageBaseAndHost = $"{generalSettings.Value.Hostname}/storage/api/v1/";
         }
 
@@ -95,6 +100,18 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return NotFound();
             }
+            
+            (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(instance, dataElement.DataType);
+            if (dataTypeDefinition is null)
+            {
+                return dataTypeError;
+            }
+            
+            if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is false)
+            {
+                return Forbid();
+            }
+            
             string userOrOrgNo = User.GetUserOrOrgNo();
 
             if (delay)
@@ -164,6 +181,17 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return NotFound();
             }
+            
+            (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(instance, dataElement.DataType);
+            if (dataTypeDefinition == null)
+            {
+                return dataTypeError;
+            }
+            
+            if (await dataTypeDefinition.CanRead(_authorizationService, instance) is false)
+            {
+                return Forbid();
+            }
 
             if (!dataElement.IsRead && !appOwnerRequestingElement)
             {
@@ -186,7 +214,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             return NotFound("Unable to find requested data item");
         }
-
+        
         /// <summary>
         /// Returns a list of data elements of an instance.
         /// </summary>
@@ -257,18 +285,16 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return instanceError;
             }
-
-            (Application appInfo, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
-            if (appInfo == null)
-            {
-                return applicationError;
-            }
-
-            DataType dataTypeDefinition = appInfo.DataTypes.FirstOrDefault(e => e.Id == dataType);
-
+            
+            (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(instance, dataType);
             if (dataTypeDefinition is null)
             {
-                return BadRequest("Requested element type is not declared in application metadata");
+                return dataTypeError;
+            }
+            
+            if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is false)
+            {
+                return Forbid();
             }
 
             var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataType, refs, generatedFromTask, instance);
@@ -346,23 +372,21 @@ namespace Altinn.Platform.Storage.Controllers
                 return instanceError;
             }
 
-            (Application appInfo, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
-            if (appInfo == null)
-            {
-                return applicationError;
-            }
-
             (DataElement dataElement, ActionResult dataElementError) = await GetDataElementAsync(instanceGuid, dataGuid);
             if (dataElement == null)
             {
                 return dataElementError;
             }
 
-            DataType dataTypeDefinition = appInfo.DataTypes.FirstOrDefault(e => e.Id == dataElement.DataType);
-
+            (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(instance, dataElement.DataType);
             if (dataTypeDefinition is null)
             {
-                return BadRequest("Requested element type is not declared in application metadata");
+                return dataTypeError;
+            }
+            
+            if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is false)
+            {
+                return Forbid();
             }
 
             if (dataElement.Locked)
@@ -458,6 +482,23 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Mismatch between path and dataElement content");
             }
 
+            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
+            if (instance == null)
+            {
+                return instanceError;
+            }
+            
+            (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(instance, dataElement.DataType);
+            if (dataTypeDefinition is null)
+            {
+                return dataTypeError;
+            }
+            
+            if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is false)
+            {
+                return Forbid();
+            }
+            
             Dictionary<string, object> propertyList = new()
             {
                 { "/locked", dataElement.Locked },
@@ -618,6 +659,23 @@ namespace Altinn.Platform.Storage.Controllers
             await _instanceEventService.DispatchEvent(InstanceEventType.Deleted, instance, dataElement);
 
             return Ok(dataElement);
+        }
+        
+        private async Task<(DataType DataType, ActionResult ErrorMessage)> GetDataTypeAsync(Instance instance, string dataTypeId)
+        {
+            (Application appInfo, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
+            if (appInfo == null)
+            {
+                return (null, applicationError);
+            }
+
+            DataType dataTypeDefinition = appInfo.DataTypes.FirstOrDefault(e => e.Id == dataTypeId);
+            if (dataTypeDefinition is null)
+            {
+                return (null, BadRequest("Requested element type is not declared in application metadata"));
+            }
+            
+            return (dataTypeDefinition, null);
         }
     }
 }
