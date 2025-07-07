@@ -60,6 +60,10 @@ type ResourceLanguageTextFieldProps = {
    * Whether this field has markdown toolbar
    */
   hasMarkdownToolbar?: boolean;
+  /**
+   * Function to set the preview language
+   */
+  onSetLanguage?: (validLanguage: ValidLanguage) => void;
 };
 
 /**
@@ -90,6 +94,7 @@ export const ResourceLanguageTextField = ({
   useTextArea,
   required,
   hasMarkdownToolbar,
+  onSetLanguage,
 }: ResourceLanguageTextFieldProps): ReactElement => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>();
@@ -134,6 +139,13 @@ export const ResourceLanguageTextField = ({
     onAddMarkdown('\n- Item1\n- Item2\n- Item3\n');
   };
 
+  const onChangeLanguage = (newSelectedLanguage: ValidLanguage): void => {
+    setSelectedLanguage(newSelectedLanguage);
+    if (onSetLanguage) {
+      onSetLanguage(newSelectedLanguage);
+    }
+  };
+
   const onAddMarkdown = (text: string, selectionText?: string): void => {
     if (inputRef.current) {
       const caretIndex = inputRef.current.selectionEnd;
@@ -175,7 +187,7 @@ export const ResourceLanguageTextField = ({
                 label={label}
                 errors={errors}
                 selectedLanguage={selectedLanguage}
-                onChangeSelectedLanguage={setSelectedLanguage}
+                onChangeSelectedLanguage={onChangeLanguage}
               />
               {hasMarkdownToolbar && (
                 <div className={classes.markdownToolbar}>
