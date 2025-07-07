@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
@@ -31,7 +32,38 @@ public class OptionListReferenceServiceTests
         Assert.Equivalent(optionListsReferences, expectedResponseList);
     }
 
-    private List<OptionListReference> OptionListReferenceTestData()
+    [Fact]
+    public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenAppContainsASubform()
+    {
+        // Arrange
+        const string RepoName = "app-with-groups-and-task-navigation";
+        var optionListReferenceService = GetOptionListReferenceServiceForTest();
+        List<OptionListReference> expectedResponseList = [
+        new()
+        {
+           OptionListId = "yesNo",
+           OptionListIdSources = [
+               new OptionListIdSource {
+                   ComponentIds = ["brand"],
+                   LayoutName = "brand",
+                   LayoutSetId = "subform",
+                   TaskId = null,
+                   TaskType = null
+               }
+           ]
+        }];
+
+
+        // Act
+        List<OptionListReference> optionListReferences =
+            await optionListReferenceService.GetAllOptionListReferences(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+
+        // Assert
+        Assert.Equivalent(optionListReferences, expectedResponseList);
+    }
+
+    private static List<OptionListReference> OptionListReferenceTestData()
     {
         return new List<OptionListReference>
         {
