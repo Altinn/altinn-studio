@@ -1,46 +1,45 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace KubernetesWrapper.Controllers
+namespace KubernetesWrapper.Controllers;
+
+/// <summary>
+/// Controller for error handling
+/// </summary>
+[ApiController]
+public class ErrorController() : ControllerBase
 {
-    /// <summary>
-    /// Controller for error handling
-    /// </summary>
-    [ApiController]
-    public class ErrorController() : ControllerBase
+    [Route("/error-development")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult HandleErrorDevelopment(
+        [FromServices] IHostEnvironment hostEnvironment)
     {
-        [Route("/error-development")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult HandleErrorDevelopment(
-            [FromServices] IHostEnvironment hostEnvironment)
+        if (!hostEnvironment.IsDevelopment())
         {
-            if (!hostEnvironment.IsDevelopment())
-            {
-                return NotFound();
-            }
-
-            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature is null)
-            {
-                return NotFound();
-            }
-
-            return Problem(
-                detail: exceptionHandlerFeature.Error.StackTrace,
-                title: exceptionHandlerFeature.Error.Message);
+            return NotFound();
         }
 
-        [Route("/error")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult HandleError()
+        var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionHandlerFeature is null)
         {
-            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionHandlerFeature is null)
-            {
-                return NotFound();
-            }
-
-            return Problem();
+            return NotFound();
         }
+
+        return Problem(
+            detail: exceptionHandlerFeature.Error.StackTrace,
+            title: exceptionHandlerFeature.Error.Message);
+    }
+
+    [Route("/error")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult HandleError()
+    {
+        var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionHandlerFeature is null)
+        {
+            return NotFound();
+        }
+
+        return Problem();
     }
 }
