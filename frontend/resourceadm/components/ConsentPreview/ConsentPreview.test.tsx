@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
 import { ConsentPreview } from './ConsentPreview';
-import { ValidLanguage } from 'app-shared/types/ResourceAdm';
+import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
 
 const consentTemplates = testConsentTemplates;
 const defaultProps = {
