@@ -10,9 +10,9 @@
 
 ## Problem context
 
-When implementing signing functionality, there are two use cases for correspondence. With user delegated signing, using correspondence is required after the conclusion of ADR-004. If users are to receive receipts, a correspondence resource is also needed.
+A correspondence resource is a resource configured specifically for use with the correspondence service. This includes sending messages to the Altinn Inbox and sending notifications via email and sms using the notification service. A correspondence resource is required for user delegated signing, as concluded by ADR-004. Without such a resource, the signees would not be able to navigate to the form which they are to sign. If users are to receive receipts, a correspondence resource is also needed.
 
-The challenge is that different environments (staging, production, etc.) may require different correspondence resource IDs, similar to how other integration points like Maskinporten and eFormidling require environment-specific configuration.
+The service owner might want to use different resources for each environment, in order to make it easier to track costs or set different access rules depending on the environment.
 
 This ADR is written post-implementation, and aims to explain the different approaches that were considered and why the chosen alternative was preffered.
 
