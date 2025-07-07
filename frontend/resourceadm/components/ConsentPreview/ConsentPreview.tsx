@@ -103,9 +103,6 @@ export const ConsentPreview = ({
   return (
     <div className={classes.consentPreviewPanel}>
       <div className={classes.consentPreviewInner}>
-        <StudioHeading level={2} data-size='sm'>
-          {t('resourceadm.about_resource_consent_preview', { language: t(`language.${language}`) })}
-        </StudioHeading>
         <div className={classes.previewControls}>
           <StudioSwitch
             label={t('resourceadm.about_resource_consent_preview_mobile_view')}

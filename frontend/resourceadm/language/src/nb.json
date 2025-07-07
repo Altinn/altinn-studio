@@ -105,7 +105,6 @@
   "resourceadm.about_resource_consent_preview_approve_poa_en": "Yes, I give power of attorney",
   "resourceadm.about_resource_consent_preview_reject_poa_en": "No, I do not give power of attorney",
   "resourceadm.about_resource_consent_preview_no_template": "Ingen samtykkemal funnet",
-  "resourceadm.about_resource_consent_preview": "Forhåndsvisning av samtykke ({{language}})",
   "resourceadm.about_resource_consent_preview_reportee": "Mottaker",
   "resourceadm.about_resource_consent_preview_org": "Organsasjon",
   "resourceadm.about_resource_consent_preview_person": "Privatperson",
