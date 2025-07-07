@@ -12,7 +12,7 @@
 
 .addItemButtons {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   margin: 20px auto;
   background-color: var(--fds-semantic-surface-neutral-subtle);

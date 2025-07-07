@@ -1,9 +1,12 @@
 import React, { type ReactElement, useState } from 'react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';
+import {
+  getAvailableChildComponentsForContainer,
+  getDefaultChildComponentsForContainer,
+} from '../../../utils/formLayoutUtils';
 import { DefaultItems } from './DefaultItems';
 import { AddItemModal } from './AddItemModal';
 import type { AddedItem } from './types';
@@ -12,6 +15,9 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
+import { useFormLayouts } from '../../../hooks';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import { generateComponentId } from '../../../utils/generateId';
 
 export type AddItemProps = {
   containerId: string;
@@ -103,11 +109,46 @@ const DefaultItemButtons = ({
   onAddComponent: (item: AddedItem) => void;
   onCancel: () => void;
 }) => {
-  const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
+  const [defaultComponents, setDefaultComponents] = React.useState(
+    getDefaultChildComponentsForContainer(layout, containerId),
+  );
   const shouldShowAllComponentsButton = defaultComponents.length > 8;
+  const layouts = useFormLayouts();
+
+  function updateComponentSearch(search: React.ChangeEvent<HTMLInputElement>) {
+    if (!search.target.value) {
+      setDefaultComponents(getDefaultChildComponentsForContainer(layout, containerId));
+      return;
+    }
+    const allComponets = Object.values(
+      getAvailableChildComponentsForContainer(layout, containerId),
+    ).flat();
+    setDefaultComponents(
+      allComponets
+        .filter((component) => {
+          return component.label.toLowerCase().includes(search.target.value.toLowerCase());
+        })
+        .slice(0, 8),
+    );
+  }
 
   return (
     <div className={classes.addItemButtons}>
+      <StudioTextfield
+        autoFocus={true}
+        onChange={updateComponentSearch}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            const firstComponent = defaultComponents[0];
+            const addedItem: AddedItem = {
+              componentType: firstComponent.type,
+              componentId: generateComponentId(firstComponent.type as ComponentType, layouts),
+            };
+            onAddComponent(addedItem);
+          }
+        }}
+        placeholder='Søk etter komponent'
+      />
       <DefaultItems
         onAddItem={onAddComponent}
         onCancel={onCancel}
