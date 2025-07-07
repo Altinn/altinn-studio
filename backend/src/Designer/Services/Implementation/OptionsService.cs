@@ -187,10 +187,11 @@ public class OptionsService : IOptionsService
         }
 
         List<Option> importedOptionList = await CopyOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
-        Dictionary<string, TextResource> importedTextResources = await CopyTextResourcesFromOrg(org, repo, developer, importedOptionList, overwriteTextResources, cancellationToken);
-
+        Dictionary<string, TextResource> textResources = await CopyTextResourcesFromOrg(org, repo, developer, importedOptionList, overwriteTextResources, cancellationToken);
         List<OptionListData> optionLists = await GetOptionLists(org, repo, developer, cancellationToken);
-        return (optionLists, importedTextResources);
+
+        await SaveMetadataForImportedOptionList(org, repo, developer, optionListId);
+        return (optionLists, textResources);
     }
 
     private async Task<List<Option>> CopyOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
@@ -280,6 +281,25 @@ public class OptionsService : IOptionsService
         return appTextResourceIds.Intersect(orgTextResourceIds).ToHashSet();
     }
 
+    private async Task SaveMetadataForImportedOptionList(string org, string repo, string developer, string optionListId, string version = "")
+    {
+        var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
+        var settings = await altinnGitRepository.GetAltinnStudioSettings();
+        var importMetadata = new ImportMetadata
+        {
+            ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
+            ImportSource = ImportSourceName(org),
+            Name = optionListId,
+            Version = version,
+        };
+
+        settings.ImportedResources ??= new ImportedResources();
+        settings.ImportedResources.CodeLists ??= [];
+        settings.ImportedResources.CodeLists.Add(importMetadata);
+
+        await altinnGitRepository.SaveAltinnStudioSettings(settings);
+    }
+
     private (AltinnOrgGitRepository, AltinnAppGitRepository) GetAltinnRepositories(string org, string developer, string repo)
     {
         AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
@@ -291,6 +311,11 @@ public class OptionsService : IOptionsService
     {
         string repository = StaticContentRepoName(org);
         return _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repository, developer);
+    }
+
+    private static string ImportSourceName(string org)
+    {
+        return $"{org}/{StaticContentRepoName(org)}";
     }
 
     private static string StaticContentRepoName(string org)

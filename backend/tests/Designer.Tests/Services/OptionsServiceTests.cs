@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -276,6 +278,23 @@ public class OptionsServiceTests : IDisposable
         string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "CodeLists/codeListString.json");
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
+        AltinnStudioSettings expectedAppSettings =  new()
+        {
+            RepoType = AltinnRepositoryType.App,
+            ImportedResources = new ImportedResources
+            {
+                CodeLists = [
+                    new ImportMetadata
+                    {
+                        ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
+                        ImportSource = $"{TargetOrgName}/{targetOrgRepository}",
+                        Name = OptionListId,
+                        Version = ""
+                    }
+                ]
+            }
+        };
+
         // Act
         var optionsService = GetOptionsServiceForTest();
         (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
@@ -293,6 +312,11 @@ public class OptionsServiceTests : IDisposable
         }
 
         Assert.Equal(2, textResources.Keys.Count);
+
+        string actualAppSettingsString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetAppRepository, Developer, ".altinnstudio/settings.json");
+        AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(actualAppSettingsString,
+            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }});
+        Assert.Equivalent(expectedAppSettings, actualAppSettings);
     }
 
     [Fact]

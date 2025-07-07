@@ -1,19 +1,37 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
-using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.Models
+namespace Altinn.Studio.Designer.Models;
+
+/// <summary>
+/// Class representing the settings found in .altinnstudio/settings.json
+/// </summary>
+public class AltinnStudioSettings
 {
     /// <summary>
-    /// Class representing the settings found in .altinnstudio/settings.json
+    /// The type of Altinn repository ie. if this an app or data-models repository.
     /// </summary>
-    public class AltinnStudioSettings
-    {
-        /// <summary>
-        /// The type of Altinn repository ie. if this an app or datamodels repository.
-        /// </summary>
-        [JsonPropertyName("repoType")]
-        [JsonProperty("repoType")]
-        public AltinnRepositoryType RepoType { get; set; }
-    }
+    [JsonPropertyName("repoType")]
+    public AltinnRepositoryType RepoType { get; set; }
+    [JsonPropertyName("importedResources")]
+    public ImportedResources ImportedResources { get; set; }
+}
+
+public class ImportedResources
+{
+    [JsonPropertyName("codeLists")]
+    public List<ImportMetadata> CodeLists { get; set; }
+}
+
+public class ImportMetadata
+{
+    [JsonPropertyName("importDate")]
+    public string ImportDate { get; set; }
+    [JsonPropertyName("importSource")]
+    public string ImportSource { get; set; }
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("version")]
+    public string Version { get; set; }
 }
