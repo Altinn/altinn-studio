@@ -38,19 +38,20 @@ public class OptionListReferenceServiceTests
         const string RepoName = "app-with-groups-and-task-navigation";
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
         List<OptionListReference> expectedResponseList = [
-        new()
-        {
-           OptionListId = "yesNo",
-           OptionListIdSources = [
-               new OptionListIdSource {
-                   ComponentIds = ["brand"],
-                   LayoutName = "brand",
-                   LayoutSetId = "subform",
-                   TaskId = null,
-                   TaskType = null
-               }
-           ]
-        }];
+            new()
+            {
+               OptionListId = "yesNo",
+               OptionListIdSources = [
+                   new OptionListIdSource {
+                       ComponentIds = ["brand"],
+                       LayoutName = "brand",
+                       LayoutSetId = "subform",
+                       TaskId = null,
+                       TaskType = null
+                   }
+               ]
+            }
+        ];
 
 
         // Act
