@@ -34,6 +34,14 @@ export const removeEmptyGroups = (groups: GroupModel[]): GroupModel[] => {
   return groups.filter((group) => group.order.length > 0);
 };
 
+export const changeGroupName = (
+  groups: GroupModel[],
+  index: number,
+  newName: string,
+): GroupModel[] => {
+  return groups.map((group, i) => (i === index ? { ...group, name: newName } : group));
+};
+
 export const getNextValidGroupName = (groups: GroupModel[]): string => {
   const pageGroupPrefix = t('ux_editor.page_layout_group');
   let i = 1;
