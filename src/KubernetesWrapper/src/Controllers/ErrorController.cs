@@ -19,8 +19,11 @@ namespace KubernetesWrapper.Controllers
                 return NotFound();
             }
 
-            var exceptionHandlerFeature =
-                HttpContext.Features.Get<IExceptionHandlerFeature>()!;
+            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionHandlerFeature is null)
+            {
+                return NotFound();
+            }
 
             return Problem(
                 detail: exceptionHandlerFeature.Error.StackTrace,
@@ -29,7 +32,15 @@ namespace KubernetesWrapper.Controllers
 
         [Route("/error")]
         [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult HandleError() =>
-            Problem();
+        public IActionResult HandleError()
+        {
+            var exceptionHandlerFeature = HttpContext.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionHandlerFeature is null)
+            {
+                return NotFound();
+            }
+
+            return Problem();
+        }
     }
 }
