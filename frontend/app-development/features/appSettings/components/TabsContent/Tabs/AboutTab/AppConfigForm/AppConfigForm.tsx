@@ -4,7 +4,12 @@ import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioTextfield } from '@studio/components';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfigNew, Keyword, StatusOption } from 'app-shared/types/AppConfig';
+import type {
+  AppConfigNew,
+  AvailableForTypeOption,
+  Keyword,
+  StatusOption,
+} from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
@@ -15,6 +20,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
 import { getKeywordValue, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';
+import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -52,6 +58,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     !showAppConfigErrors,
     validationErrors,
     'status',
+  );
+
+  const availableForTypeErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'availableForType',
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -151,6 +163,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       enterpriseUserEnabled: e.target.checked,
+    }));
+  };
+
+  const onChangeAvailableForType = (availableForType: AvailableForTypeOption[]): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      availableForType: availableForType,
     }));
   };
 
@@ -260,6 +279,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           checked={updatedAppConfig?.enterpriseUserEnabled ?? false}
           onChange={onChangeEnterpriseUser}
         />
+        <AvailableForTypeCheckboxGroup
+          initialValues={updatedAppConfig.availableForType}
+          onChangeAvailableForType={onChangeAvailableForType}
+          errors={availableForTypeErrors}
+          id={AppResourceFormFieldIds.AvailableForType}
+        />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
@@ -275,6 +300,7 @@ enum AppResourceFormFieldIds {
   Description = 'description',
   RightDescription = 'rightDescription',
   Status = 'status',
+  AvailableForType = 'availableForType',
 }
 
 function getValidationErrorsForField(

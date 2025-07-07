@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioRadio, useStudioRadioGroup, StudioRadioGroup } from '@studio/components';
+import { useStudioRadioGroup, StudioRadioGroup } from '@studio/components';
 import type { StatusOption } from 'app-shared/types/AppConfig';
 import { useTranslation } from 'react-i18next';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
@@ -39,10 +39,10 @@ export function StatusRadioGroup({
         tagText={t('general.required')}
       />
       {options.map((option: LabelAndValue) => (
-        <StudioRadio
+        <StudioRadioGroup.Item
           key={option.value}
           label={option.label}
-          {...getRadioProps({ value: option.value })}
+          getRadioProps={getRadioProps({ value: option.value })}
         />
       ))}
       {errors.length > 0 && (

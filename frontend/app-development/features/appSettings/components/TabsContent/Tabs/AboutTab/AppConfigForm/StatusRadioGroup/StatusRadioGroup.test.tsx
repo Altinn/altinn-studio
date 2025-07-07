@@ -11,14 +11,14 @@ describe('StatusRadioGroup', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the radio group heading and tag', () => {
-    renderComponent();
+    renderStatusRadioGroup();
 
     expect(getText(textMock('app_settings.about_tab_status_field_label'))).toBeInTheDocument();
     expect(getText(textMock('general.required'))).toBeInTheDocument();
   });
 
   it('renders all status options', () => {
-    renderComponent();
+    renderStatusRadioGroup();
 
     const options: LabelAndValue[] = getStatusOptions(textMock);
     options.forEach((option: LabelAndValue) => {
@@ -27,7 +27,7 @@ describe('StatusRadioGroup', () => {
   });
 
   it('does not select any option when selectedStatus is undefined', () => {
-    renderComponent({ selectedStatus: undefined });
+    renderStatusRadioGroup({ selectedStatus: undefined });
     const options: LabelAndValue[] = getStatusOptions(textMock);
     options.forEach((option: LabelAndValue) => {
       expect(getLabelText(option.label)).not.toBeChecked();
@@ -35,7 +35,7 @@ describe('StatusRadioGroup', () => {
   });
 
   it('preselects the correct option based on selectedStatus', () => {
-    renderComponent({ selectedStatus: 'UnderDevelopment' });
+    renderStatusRadioGroup({ selectedStatus: 'UnderDevelopment' });
 
     expect(screen.getByLabelText(completedText)).not.toBeChecked();
     expect(screen.getByLabelText(deprecatedText)).not.toBeChecked();
@@ -45,7 +45,7 @@ describe('StatusRadioGroup', () => {
 
   it('calls onChangeStatus when an option is clicked', async () => {
     const onChangeStatus = jest.fn();
-    renderComponent({ onChangeStatus });
+    renderStatusRadioGroup({ onChangeStatus });
 
     const user = userEvent.setup();
     await user.click(getLabelText(completedText));
@@ -55,7 +55,7 @@ describe('StatusRadioGroup', () => {
   });
 
   it('renders error message when errors are present', () => {
-    renderComponent({ errors });
+    renderStatusRadioGroup({ errors });
     expect(getText(textMock('app_settings.about_tab_status_field_error'))).toBeInTheDocument();
   });
 });
@@ -67,7 +67,7 @@ const defaultProps: StatusRadioGroupProps = {
   id: 'status-radio-group',
 };
 
-function renderComponent(props: Partial<StatusRadioGroupProps> = {}) {
+function renderStatusRadioGroup(props: Partial<StatusRadioGroupProps> = {}) {
   return render(<StatusRadioGroup {...defaultProps} {...props} />);
 }
 

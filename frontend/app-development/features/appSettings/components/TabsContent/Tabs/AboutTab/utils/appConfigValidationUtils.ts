@@ -59,5 +59,13 @@ export const validateAppConfig = (
     });
   }
 
+  // validate availableForType
+  if (!appConfig.availableForType?.length) {
+    errors.push({
+      field: 'availableForType',
+      error: t('app_settings.about_tab_error_available_for_type'),
+    });
+  }
+
   return errors;
 };
