@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
@@ -275,7 +278,8 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert
         Assert.Equal(expectedOptionList.Count, optionList.Count);
@@ -287,6 +291,8 @@ public class OptionsServiceTests : IDisposable
             Assert.Equal(expectedOptionList[i].Description, optionList[i].Description);
             Assert.Equal(expectedOptionList[i].HelpText, optionList[i].HelpText);
         }
+
+        Assert.Equal(2, textResources.Keys.Count);
     }
 
     [Fact]
@@ -309,12 +315,13 @@ public class OptionsServiceTests : IDisposable
         string filePath = Path.Combine(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
 
-        // Act
+        // Act and assert
         var optionsService = GetOptionsServiceForTest();
-        List<Option> optionList = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
 
-        // Assert
-        Assert.Null(optionList);
+        await Assert.ThrowsAsync<ConflictingFileNameException>(async () =>
+        {
+            await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        });
     }
 
     private static OptionsService GetOptionsServiceForTest()

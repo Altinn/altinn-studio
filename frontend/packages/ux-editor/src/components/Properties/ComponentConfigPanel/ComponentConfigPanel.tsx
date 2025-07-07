@@ -7,8 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
 import { EditFormComponent } from '../../config/EditFormComponent';
 import { DataModelBindings } from '../DataModelBindings';
-import { DeprecatedCalculationsInfo } from '../DeprecatedCalculationsInfo';
-import { Dynamics } from '../Dynamics';
 import { PropertiesHeader } from '../PropertiesHeader';
 import classes from './ComponentConfigPanel.module.css';
 import { useAppContext } from '../../../hooks/useAppContext';
@@ -17,6 +15,7 @@ import { formItemConfigs } from '../../../data/formItemConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
+import { Expressions } from '../../config/Expressions';
 
 type ComponentConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Component }>;
@@ -108,15 +107,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
               {t('right_menu.dynamics')}
             </Accordion.Header>
             <Accordion.Content>
-              <Dynamics />
-            </Accordion.Content>
-          </Accordion.Item>
-          <Accordion.Item open={openList.includes('calculations')}>
-            <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
-              {t('right_menu.calculations')}
-            </Accordion.Header>
-            <Accordion.Content>
-              <DeprecatedCalculationsInfo />
+              <Expressions />
             </Accordion.Content>
           </Accordion.Item>
         </Accordion>
