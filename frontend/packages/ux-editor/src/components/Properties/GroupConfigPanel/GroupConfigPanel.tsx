@@ -15,10 +15,12 @@ import type { SelectedItem } from '../../../AppContext';
 import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
-import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
+import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import classes from './GroupConfigPanel.module.css';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import { EditGroupName } from './EditGroupName';
+import { changeGroupName } from '../../../utils/pageGroupUtils';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -28,7 +30,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
   const { selectedFormLayoutSetName } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate: changePageGroup, isPending: mutatingPages } = useChangePageGroupOrder(
+  const { mutate: pageGroupMutation, isPending: mutatingPages } = useChangePageGroupOrder(
     org,
     app,
     selectedFormLayoutSetName,
@@ -54,14 +56,22 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const onMarkAsCompleted = (event: React.ChangeEvent<HTMLInputElement>) => {
     const updatedPages = { ...pages };
     updatedPages.groups[selectedItem.id].markWhenCompleted = event.target.checked;
-    changePageGroup(updatedPages);
+    pageGroupMutation(updatedPages);
   };
 
   const onChangeGroupType = (typeValue: GroupType) => {
     const updatedPages = { ...pages };
     updatedPages.groups[selectedItem.id].type = typeValue;
 
-    changePageGroup(updatedPages);
+    pageGroupMutation(updatedPages);
+  };
+
+  const onChangeGroupName = (name: string) => {
+    const updatedPages = {
+      ...pages,
+      groups: changeGroupName(pages.groups, selectedItem.id, name),
+    };
+    pageGroupMutation(updatedPages);
   };
 
   return (
@@ -75,6 +85,9 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
         }}
       />
       <div className={classes.configPanel}>
+        {selectedGroup.order.length > 1 && (
+          <EditGroupName group={selectedGroup} onChange={onChangeGroupName} />
+        )}
         <div className={classes.fieldSetWrapper}>
           <StudioSwitch
             label={t('ux_editor.page_group.markAsCompleted_switch')}
