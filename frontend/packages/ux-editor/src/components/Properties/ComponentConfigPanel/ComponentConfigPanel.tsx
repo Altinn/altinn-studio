@@ -16,7 +16,8 @@ import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { UnknownComponentAlert } from '../../UnknownComponentAlert';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
-import { Expressions } from '../../config/componentSpecificContent/Expressions/Expressions';
+import { Expressions } from '../../config/Expressions';
+
 type ComponentConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Component }>;
 };
