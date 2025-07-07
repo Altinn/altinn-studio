@@ -1,2 +1,2 @@
 export { StudioCheckbox } from './StudioCheckbox';
-export { useStudioCheckboxGroup } from './useStudioCheckboxGroup';
+export type { StudioCheckboxProps } from './StudioCheckbox';

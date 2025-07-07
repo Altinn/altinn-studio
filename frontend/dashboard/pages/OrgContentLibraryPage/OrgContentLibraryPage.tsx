@@ -117,6 +117,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
+  const { t } = useTranslation();
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -145,6 +146,7 @@ function OrgContentLibraryWithContextAndData({
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
+    heading: t('org_content_library.library_heading'),
     pages: {
       codeList: {
         props: {

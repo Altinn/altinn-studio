@@ -117,7 +117,7 @@ const getFavouriteAppListHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('dashboard.favourites') });
 
 const getLibraryHeading = (): HTMLElement =>
-  screen.getByRole('heading', { name: textMock('app_content_library.library_heading') });
+  screen.getByRole('heading', { name: textMock('org_content_library.library_heading') });
 
 function createQueryClientWithUserAndOrg(): QueryClient {
   const client = createQueryClientMock();
