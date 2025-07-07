@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
 import { ConsentPreview } from './ConsentPreview';
+import { ValidLanguage } from 'app-shared/types/ResourceAdm';
 
 const consentTemplates = testConsentTemplates;
 const defaultProps = {
@@ -25,6 +26,7 @@ const defaultProps = {
     tilDato: { optional: false },
   },
   isOneTimeConsent: false,
+  language: 'nb' as ValidLanguage,
 };
 
 describe('ConsentPreview', () => {
@@ -52,26 +54,14 @@ describe('ConsentPreview', () => {
     expect(screen.getByText(consentTemplates[0].texts.heading.person.nb)).toBeInTheDocument();
   });
 
-  it('should show consent template texts for language nn', async () => {
-    const user = userEvent.setup();
-    render(<ConsentPreview {...defaultProps} />);
-
-    const orgButton = screen.getByText(
-      textMock('resourceadm.about_resource_consent_preview_language_nn'),
-    );
-    await user.click(orgButton);
+  it('should show consent template texts for language nn', () => {
+    render(<ConsentPreview {...defaultProps} language='nn' />);
 
     expect(screen.getByText(consentTemplates[0].texts.heading.person.nn)).toBeInTheDocument();
   });
 
-  it('should show consent template texts for language en', async () => {
-    const user = userEvent.setup();
-    render(<ConsentPreview {...defaultProps} />);
-
-    const orgButton = screen.getByText(
-      textMock('resourceadm.about_resource_consent_preview_language_en'),
-    );
-    await user.click(orgButton);
+  it('should show consent template texts for language en', () => {
+    render(<ConsentPreview {...defaultProps} language='en' />);
 
     expect(screen.getByText(consentTemplates[0].texts.heading.person.en)).toBeInTheDocument();
   });
