@@ -4,24 +4,24 @@ import { StudioFieldset, type StudioFieldsetProps } from '../StudioFieldset';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
 export type StudioFormGroupProps = StudioFieldsetProps & {
-  legend: string;
-  description?: string;
   tagText?: string;
   required?: boolean;
 };
 
 function StudioFormGroup(
-  { children, legend, description, tagText, required, ...rest }: StudioFormGroupProps,
+  { children, legend, tagText, required, ...rest }: StudioFormGroupProps,
   ref: Ref<HTMLFieldSetElement>,
 ): ReactElement {
   return (
-    <StudioFieldset {...rest} ref={ref}>
-      <StudioFieldset.Legend>
+    <StudioFieldset
+      legend={
         <StudioLabelWrapper required={required} tagText={tagText}>
           {legend}
         </StudioLabelWrapper>
-      </StudioFieldset.Legend>
-      {description && <StudioFieldset.Description>{description}</StudioFieldset.Description>}
+      }
+      {...rest}
+      ref={ref}
+    >
       {children}
     </StudioFieldset>
   );

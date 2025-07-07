@@ -83,10 +83,7 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
             checked={selectedGroup.markWhenCompleted || false}
             onChange={onMarkAsCompleted}
           ></StudioSwitch>
-          <StudioFieldset>
-            <StudioFieldset.Legend>
-              {t('ux_editor.page_group.select_type_title')}
-            </StudioFieldset.Legend>
+          <StudioFieldset legend={t('ux_editor.page_group.select_type_title')}>
             <StudioRadio
               label={
                 <div className={classes.radioLabel}>
