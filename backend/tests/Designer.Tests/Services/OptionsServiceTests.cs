@@ -278,7 +278,7 @@ public class OptionsServiceTests : IDisposable
         string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "CodeLists/codeListString.json");
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
-        AltinnStudioSettings expectedAppSettings =  new()
+        AltinnStudioSettings expectedAppSettings = new()
         {
             RepoType = AltinnRepositoryType.App,
             ImportedResources = new ImportedResources
@@ -315,7 +315,7 @@ public class OptionsServiceTests : IDisposable
 
         string actualAppSettingsString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetAppRepository, Developer, ".altinnstudio/settings.json");
         AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(actualAppSettingsString,
-            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() }});
+            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
         Assert.Equivalent(expectedAppSettings, actualAppSettings);
     }
 
