@@ -1,8 +1,7 @@
-namespace KubernetesWrapper.Models
+namespace KubernetesWrapper.Models;
+
+public class Log
 {
-    public class Log
-    {
-        public DateTime TimeGenerated { get; set; }
-        public string Message { get; set; }
-    }
+    public DateTime TimeGenerated { get; set; }
+    public string Message { get; set; }
 }

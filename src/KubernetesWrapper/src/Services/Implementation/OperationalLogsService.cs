@@ -5,34 +5,34 @@ using Azure.Monitor.Query.Models;
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
 
-namespace KubernetesWrapper.Services.Implementation
+namespace KubernetesWrapper.Services.Implementation;
+
+/// <summary>
+/// Service containing all actions related to operational logs
+/// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="OperationalLogsService"/> class
+/// </remarks>
+/// <param name="configuration">The configuration</param>
+public class OperationalLogsService(IConfiguration configuration) : IOperationalLogsService
 {
-    /// <summary>
-    /// Service containing all actions related to operational logs
-    /// </summary>
-    /// <remarks>
-    /// Initializes a new instance of the <see cref="OperationalLogsService"/> class
-    /// </remarks>
-    /// <param name="configuration">The configuration</param>
-    public class OperationalLogsService(IConfiguration configuration) : IOperationalLogsService
+    /// <inheritdoc />
+    public async Task<IEnumerable<Log>> GetLogs(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
-        /// <inheritdoc />
-        public async Task<IEnumerable<Log>> GetLogs(string app = null, int take = 50, double time = 1)
+        string operationalLawWorkspaceId = configuration["OperationalLawWorkspaceId"];
+
+        if (string.IsNullOrWhiteSpace(operationalLawWorkspaceId))
         {
-            string operationalLawWorkspaceId = configuration["OperationalLawWorkspaceId"];
+            throw new InvalidOperationException("Configuration value 'OperationalLawWorkspaceId' is missing or empty.");
+        }
 
-            if (string.IsNullOrWhiteSpace(operationalLawWorkspaceId))
-            {
-                throw new InvalidOperationException("Configuration value 'OperationalLawWorkspaceId' is missing or empty.");
-            }
+        var client = new LogsQueryClient(new DefaultAzureCredential());
 
-            var client = new LogsQueryClient(new DefaultAzureCredential());
+        string appNameFilter = string.IsNullOrWhiteSpace(app)
+            ? string.Empty
+            : $" | where PodName has '{app}'";
 
-            string appNameFilter = string.IsNullOrWhiteSpace(app)
-                ? string.Empty
-                : $" | where PodName has '{app}'";
-
-            var query = $@"
+        var query = $@"
                 ContainerLogV2{appNameFilter}
                 | where LogSource == 'stderr'
                 | where ContainerName == 'deployment'
@@ -40,13 +40,12 @@ namespace KubernetesWrapper.Services.Implementation
                 | project TimeGenerated, LogMessage
                 | take {take}";
 
-            Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(operationalLawWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)));
+        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(operationalLawWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
-            return response.Value.Table.Rows.Select(row => new Log
-            {
-                TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
-                Message = row.GetString("LogMessage") ?? string.Empty,
-            });
-        }
+        return response.Value.Table.Rows.Select(row => new Log
+        {
+            TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
+            Message = row.GetString("LogMessage") ?? string.Empty,
+        });
     }
 }
