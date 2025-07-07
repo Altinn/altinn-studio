@@ -8,6 +8,7 @@ export enum QueryKey {
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
+  CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
@@ -56,6 +57,10 @@ export enum QueryKey {
   DataType = 'DataType',
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
+
+  // Admin
+  AppInstances = 'AppInstances',
+  RunningApps = 'RunningApps',
 
   // Resourceadm
   ResourceList = 'ResourceList',
