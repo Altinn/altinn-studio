@@ -377,10 +377,10 @@ describe('AboutResourcePage', () => {
     );
     await user.click(languageEnTab);
 
-    const previewHeader = screen.getByText(
-      textMock('resourceadm.about_resource_consent_preview', { language: textMock('language.en') }),
-    );
-    expect(previewHeader).toBeInTheDocument();
+    const consentEnText = screen.getByText(mockConsentResource.consentText.en, {
+      ignore: 'textarea',
+    });
+    expect(consentEnText).toBeInTheDocument();
   });
 
   it('should insert markdown list when markdown list button is clicked', async () => {
