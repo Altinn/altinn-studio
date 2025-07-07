@@ -71,7 +71,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const persistAppDetails = (): void => {
     setShowAppConfigErrors(false);
-    saveAppConfig(updatedAppConfig); // TODO add the resource type
+    saveAppConfig({ ...updatedAppConfig, resourceType: 'altinnapp' });
     console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
@@ -137,6 +137,20 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       status,
+    }));
+  };
+
+  const onChangeSelfIdentifiedUser = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      selfIdentifiedUserEnabled: e.target.checked,
+    }));
+  };
+
+  const onChangeEnterpriseUser = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      enterpriseUserEnabled: e.target.checked,
     }));
   };
 
@@ -225,15 +239,26 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           id={AppResourceFormFieldIds.Status}
         />
         <SwitchInput
-          switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
-            shouldText: !updatedAppConfig.isDelegable
+          switchAriaLabel={t('app_settings.about_tab_self_identified_user_show_text', {
+            shouldText: !updatedAppConfig.selfIdentifiedUserEnabled
               ? t('app_settings.about_tab_switch_should_not')
               : '',
           })}
-          cardHeading={t('app_settings.about_tab_delegable_field_label')}
-          description={t('app_settings.about_tab_delegable_field_description')}
-          checked={updatedAppConfig?.isDelegable ?? false}
-          onChange={onChangeDelegable}
+          cardHeading={t('app_settings.about_tab_self_identified_user_field_label')}
+          description={t('app_settings.about_tab_self_identified_user_field_description')}
+          checked={updatedAppConfig?.selfIdentifiedUserEnabled ?? false}
+          onChange={onChangeSelfIdentifiedUser}
+        />
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_enterprise_user_show_text', {
+            shouldText: !updatedAppConfig.enterpriseUserEnabled
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          cardHeading={t('app_settings.about_tab_enterprise_user_field_label')}
+          description={t('app_settings.about_tab_enterprise_user_field_description')}
+          checked={updatedAppConfig?.enterpriseUserEnabled ?? false}
+          onChange={onChangeEnterpriseUser}
         />
       </div>
       <ActionButtons

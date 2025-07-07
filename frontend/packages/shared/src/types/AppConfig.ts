@@ -9,6 +9,7 @@ export type AppConfig = {
 
 // This will replace the original AppConfig type in the codebase when feature is fully implemented
 export type AppConfigNew = {
+  resourceType: ResourceType;
   repositoryName: string;
   serviceName: SupportedLanguage;
   serviceId: string;
@@ -36,3 +37,5 @@ export type AvailableForTypeOption =
   | 'Company'
   | 'BankruptcyEstate'
   | 'SelfRegisteredUser';
+
+export type ResourceType = 'altinnapp';
