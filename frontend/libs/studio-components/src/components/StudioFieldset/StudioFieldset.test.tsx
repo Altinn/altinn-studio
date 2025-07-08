@@ -27,22 +27,18 @@ describe('StudioFieldset', () => {
   });
 
   it('Renders the description ', () => {
-    renderFieldset();
+    const description: string = 'This is a description';
+    renderFieldset({ description });
     expect(screen.getByText(description)).toBeInTheDocument();
   });
 });
 
 const legend: string = 'Legend';
-const description: string = 'Description';
+const defaultProps: StudioFieldsetProps = { legend };
 
 function renderFieldset(
   props: Partial<StudioFieldsetProps> = {},
   ref?: ForwardedRef<HTMLFieldSetElement>,
 ): RenderResult {
-  return render(
-    <StudioFieldset {...props} ref={ref}>
-      <StudioFieldset.Legend>{legend}</StudioFieldset.Legend>
-      <StudioFieldset.Description>{description}</StudioFieldset.Description>
-    </StudioFieldset>,
-  );
+  return render(<StudioFieldset {...defaultProps} {...props} ref={ref} />);
 }

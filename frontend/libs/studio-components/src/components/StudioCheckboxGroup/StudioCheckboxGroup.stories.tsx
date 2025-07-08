@@ -2,8 +2,9 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioCheckboxGroup, useStudioCheckboxGroup } from './';
+import type { StudioCheckboxGroupProps } from './StudioCheckboxGroup';
 
-type ArgsProps = {
+type ArgsProps = StudioCheckboxGroupProps & {
   hasError?: boolean;
 };
 
@@ -19,12 +20,6 @@ const ComposedComponent = (args: ArgsProps): ReactElement => {
 
   return (
     <StudioCheckboxGroup {...args}>
-      <StudioCheckboxGroup.Heading
-        label='My label'
-        description='My description'
-        tagText='Required'
-        required={true}
-      />
       {options.map((option: string) => (
         <StudioCheckboxGroup.Item
           key={option}
@@ -52,5 +47,11 @@ const meta: Meta = {
   },
 };
 export const Preview: Story = (args): ReactElement => <ComposedComponent {...args} />;
+Preview.args = {
+  legend: 'My label',
+  description: 'My description',
+  tagText: 'Required',
+  required: true,
+};
 
 export default meta;

@@ -164,8 +164,8 @@ public class OptionListReferenceService : IOptionListReferenceService
             LayoutSetId = layoutSetName,
             LayoutName = layoutName,
             ComponentIds = [componentId],
-            TaskId = layoutSetModel?.Task.Id,
-            TaskType = layoutSetModel?.Task.Type
+            TaskId = layoutSetModel?.Task?.Id,
+            TaskType = layoutSetModel?.Task?.Type
         };
     }
 
