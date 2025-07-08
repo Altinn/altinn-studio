@@ -11,13 +11,13 @@
     <PackageVersion Include="Altinn.Platform.Models" Version="1.6.1" />
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.0.12" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.14.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.14.1" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.4.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.2" />
     <PackageVersion Include="Buildalyzer.Workspaces" Version="7.1.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.0.2"/>
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.0.3"/>
     <PackageVersion Include="FluentAssertions" Version="7.2.0" />
     <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
     <PackageVersion Include="JWTCookieAuthentication" Version="3.0.1" />
