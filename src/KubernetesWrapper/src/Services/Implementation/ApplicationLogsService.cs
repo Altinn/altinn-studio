@@ -16,7 +16,8 @@ namespace KubernetesWrapper.Services.Implementation;
 /// Initializes a new instance of the <see cref="ApplicationLogsService"/> class
 /// </remarks>
 /// <param name="generalSettings">The general settings</param>
-public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings) : IApplicationLogsService
+/// <param name="logsQueryClient">The logs query client for querying logs from Azure Monitor</param>
+public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings, LogsQueryClient logsQueryClient) : IApplicationLogsService
 {
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
@@ -30,8 +31,6 @@ public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings) :
             throw new InvalidOperationException("Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty.");
         }
 
-        var client = new LogsQueryClient(new DefaultAzureCredential());
-
         string appNameFilter = string.IsNullOrWhiteSpace(app)
             ? string.Empty
             : $" | where AppRoleName has '{app}'";
@@ -41,7 +40,7 @@ public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings) :
                 | project TimeGenerated, Details
                 | take {take}";
 
-        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
+        Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
         return response.Value.Table.Rows.Select(row => new Log
         {
