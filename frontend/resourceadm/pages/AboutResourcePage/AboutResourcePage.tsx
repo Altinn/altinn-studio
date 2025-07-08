@@ -13,6 +13,7 @@ import type {
   ResourceReference,
   ResourceFormError,
   ConsentTemplate,
+  ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -65,6 +66,7 @@ export const AboutResourcePage = ({
   const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
     resourceData.consentText,
   );
+  const [previewLanguage, setPreviewLanguage] = useState<ValidLanguage>('nb');
 
   /**
    * Resource type options
@@ -220,6 +222,8 @@ export const AboutResourcePage = ({
               }
               onChange={setConsentPreviewText}
               required
+              hasMarkdownToolbar
+              onSetLanguage={(setLanguage: ValidLanguage) => setPreviewLanguage(setLanguage)}
               errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
             <ResourceSwitchInput
@@ -240,6 +244,7 @@ export const AboutResourcePage = ({
                 consentText={consentPreviewText}
                 consentMetadata={resourceData.consentMetadata ?? {}}
                 isOneTimeConsent={resourceData.isOneTimeConsent}
+                language={previewLanguage}
               />
             )}
           </>
