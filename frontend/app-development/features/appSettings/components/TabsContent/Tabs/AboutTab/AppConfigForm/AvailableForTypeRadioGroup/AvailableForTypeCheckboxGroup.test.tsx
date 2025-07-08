@@ -5,7 +5,7 @@ import { AvailableForTypeCheckboxGroup } from './AvailableForTypeCheckboxGroup';
 import type { AvailableForTypeCheckboxGroupProps } from './AvailableForTypeCheckboxGroup';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
-import { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { getAvailableForTypeOptions } from '../../utils/appConfigAvailableForTypeUtils';
 
 describe('AvailableForTypeRadioGroup', () => {
