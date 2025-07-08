@@ -190,6 +190,51 @@ describe('AppConfigForm', () => {
     expect(rightDescription).toHaveValue('');
   });
 
+  it('updates "keywords" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const keywords = getOptionalTextbox(textMock('app_settings.about_tab_keywords_label'));
+    expect(keywords).toHaveValue('');
+
+    const newText: string = 'keyword1, keyword2';
+    await user.type(keywords, newText);
+
+    expect(keywords).toHaveValue(newText);
+  });
+
+  it('updates "selfIdentifiedUser" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const selfIdentifiedUser = getSwitch(
+      textMock('app_settings.about_tab_self_identified_user_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(selfIdentifiedUser).not.toBeChecked();
+
+    await user.click(selfIdentifiedUser);
+
+    expect(selfIdentifiedUser).toBeChecked();
+  });
+
+  it('updates "enterpriseUserEnabled" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const enterpriseUserEnabled = getSwitch(
+      textMock('app_settings.about_tab_enterprise_user_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(enterpriseUserEnabled).not.toBeChecked();
+
+    await user.click(enterpriseUserEnabled);
+
+    expect(enterpriseUserEnabled).toBeChecked();
+  });
+
   it('disables the action buttons when no changes are made', () => {
     renderAppConfigForm();
 

@@ -6,7 +6,7 @@ import type { StatusRadioGroupProps } from './StatusRadioGroup';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
 import { getStatusOptions } from '../../utils/appConfigStatusUtils';
-import { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
+import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 
 describe('StatusRadioGroup', () => {
   afterEach(jest.clearAllMocks);
