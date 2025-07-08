@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -278,26 +277,6 @@ public class OptionsServiceTests : IDisposable
         string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "CodeLists/codeListString.json");
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
-        AltinnStudioSettings expectedAppSettings = new()
-        {
-            RepoType = AltinnRepositoryType.App,
-            Imports = new ImportedResources
-            {
-                CodeLists = new Dictionary<string, ImportMetadata>
-                {
-                    {
-                        OptionListId,
-                        new ImportMetadata
-                        {
-                            ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
-                            ImportSource = $"{TargetOrgName}/{targetOrgRepository}",
-                            Version = ""
-                        }
-                    }
-                }
-            }
-        };
-
         // Act
         var optionsService = GetOptionsServiceForTest();
         (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
@@ -317,9 +296,13 @@ public class OptionsServiceTests : IDisposable
         Assert.Equal(2, textResources.Keys.Count);
 
         string actualAppSettingsString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetAppRepository, Developer, ".altinnstudio/settings.json");
-        AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(actualAppSettingsString,
-            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } });
-        Assert.Equivalent(expectedAppSettings, actualAppSettings);
+        AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
+            actualAppSettingsString,
+            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
+        );
+        Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
+        Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
+        Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
     }
 
     [Fact]

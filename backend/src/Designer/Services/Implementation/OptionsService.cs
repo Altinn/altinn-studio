@@ -287,7 +287,7 @@ public class OptionsService : IOptionsService
         var settings = await altinnGitRepository.GetAltinnStudioSettings();
         var importMetadata = new ImportMetadata
         {
-            ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
+            ImportDate = $"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}",
             ImportSource = ImportSourceName(org),
             Version = version,
         };
