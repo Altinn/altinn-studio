@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useDebounce } from '@studio/hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
@@ -17,7 +17,10 @@ export function useSearchComponent({
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
-  debounce(() => setDebouncedSearchText(searchText));
+
+  useEffect(() => {
+    debounce(() => setDebouncedSearchText(searchText));
+  }, [searchText, debounce]);
 
   const handleClear = () => setSearchText('');
   const handleEscape = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');

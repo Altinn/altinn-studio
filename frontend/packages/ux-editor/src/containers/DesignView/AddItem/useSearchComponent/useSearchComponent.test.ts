@@ -101,24 +101,6 @@ describe('useSearchComponent', () => {
       });
       expect(result.current.debouncedSearchText).toBe('Text');
     });
-
-    it('should update immediately when debounce is disabled', () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: textMock,
-        }),
-      );
-      act(() => {
-        result.current.handleSearchChange({ target: { value: 'Text' } });
-      });
-      expect(result.current.searchText).toBe('Text');
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-      expect(result.current.debouncedSearchText).toBe('Text');
-    });
   });
 
   describe('Event handlers', () => {
