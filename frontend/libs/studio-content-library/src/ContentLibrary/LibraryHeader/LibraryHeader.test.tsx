@@ -1,35 +1,37 @@
 import React from 'react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { LibraryHeaderProps } from './LibraryHeader';
 import { LibraryHeader } from './LibraryHeader';
 import { render, screen } from '@testing-library/react';
 import { RouterContext } from '../../contexts/RouterContext';
 
 const navigateMock = jest.fn();
 
+// Test data:
+const children = 'The test library';
+const defaultProps: LibraryHeaderProps = { children };
+
 describe('LibraryHeader', () => {
-  it('renders the content library header', () => {
+  it('renders header icon', () => {
     renderLibraryHeader();
     const libraryIcon = screen.getByRole('img');
-    const libraryHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.library_heading'),
-    });
     expect(libraryIcon).toBeInTheDocument();
-    expect(libraryHeader).toBeInTheDocument();
+  });
+
+  it('renders library header with the given text', () => {
+    renderLibraryHeader();
+    expect(screen.getByRole('heading', { name: children })).toBeInTheDocument();
   });
 
   it('renders the content library header with isBeta class', () => {
     renderLibraryHeader();
-    const libraryHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.library_heading'),
-    });
-    expect(libraryHeader).toHaveClass('isBeta');
+    expect(screen.getByRole('heading')).toHaveClass('isBeta');
   });
 });
 
-const renderLibraryHeader = () => {
+const renderLibraryHeader = (): void => {
   render(
     <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
-      <LibraryHeader />
+      <LibraryHeader {...defaultProps} />
     </RouterContext.Provider>,
   );
 };

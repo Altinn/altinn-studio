@@ -6,8 +6,6 @@ import { StudioTextfield } from '../StudioTextfield';
 
 const ComposedComponent = (args): ReactElement => (
   <StudioFieldset {...args}>
-    <StudioFieldset.Legend>My legend</StudioFieldset.Legend>
-    <StudioFieldset.Description>My description</StudioFieldset.Description>
     <StudioTextfield label='Tekstfelt' />
   </StudioFieldset>
 );
@@ -28,5 +26,7 @@ export const Preview: Story = (args): ReactElement => <ComposedComponent {...arg
 
 Preview.args = {
   'data-size': 'sm',
+  legend: 'My legend',
+  description: 'My description',
 };
 export default meta;
