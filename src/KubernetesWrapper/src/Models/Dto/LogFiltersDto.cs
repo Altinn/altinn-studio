@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using KubernetesWrapper.Configuration;
 
 namespace KubernetesWrapper.Models.Dto;
 
@@ -6,9 +7,9 @@ public class LogFiltersDto
 {
     public string App { get; set; }
 
-    [Range(1, 1000)]
-    public int Take { get; set; } = 50;
+    [Range(0, LogQueryLimits.MaxTake)]
+    public int Take { get; set; }
 
-    [Range(1, 24)]
-    public double Time { get; set; } = 24;
+    [Range(0, LogQueryLimits.MaxTime)]
+    public double Time { get; set; }
 }

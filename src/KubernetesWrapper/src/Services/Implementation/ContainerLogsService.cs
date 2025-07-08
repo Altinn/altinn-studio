@@ -23,6 +23,9 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
     /// <inheritdoc />
     public async Task<IEnumerable<ContainerLog>> GetAll(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);
+
         string logAnalyticsWorkspaceId = _generalSettings.OperationalLogAnalyticsWorkspaceId;
 
         if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
