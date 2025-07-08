@@ -48,18 +48,8 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   if (isFetchingSchema)
     return <StudioSpinner aria-label={t('ux_editor.edit_component.loading_schema')} />;
 
-  const renderPropertiesHeader = () => (
-    <PropertiesHeader
-      formItem={formItem}
-      handleComponentUpdate={async (updatedComponent) => {
-        handleUpdate(updatedComponent);
-        debounceSave(formItemId, updatedComponent);
-      }}
-    />
-  );
-
   const isSubformWithoutLayoutSet = formItem.type === 'Subform' && !formItem.layoutSet;
-  if (isSubformWithoutLayoutSet) return renderPropertiesHeader();
+  if (isSubformWithoutLayoutSet) return <ComponentConfigHeader />;
 
   const properties = schema?.properties || {};
   const { textResourceBindings, dataModelBindings, ...otherProperties } = properties;
@@ -70,7 +60,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
 
   return (
     <>
-      {renderPropertiesHeader()}
+      <ComponentConfigHeader />
       <Accordion color='subtle'>
         {formItem.type === ComponentType.Summary2 && (
           <Accordion.Item open={openList.includes('summary2overrides')}>
@@ -132,5 +122,18 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
         </Accordion.Item>
       </Accordion>
     </>
+  );
+};
+
+const ComponentConfigHeader = () => {
+  const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
+  return (
+    <PropertiesHeader
+      formItem={formItem}
+      handleComponentUpdate={async (updatedComponent) => {
+        handleUpdate(updatedComponent);
+        debounceSave(formItemId, updatedComponent);
+      }}
+    />
   );
 };
