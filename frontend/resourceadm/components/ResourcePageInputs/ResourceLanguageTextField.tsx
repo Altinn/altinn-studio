@@ -221,11 +221,11 @@ export const ResourceLanguageTextField = ({
   );
 };
 
-interface MarkdownToolbarButtonProps {
+type MarkdownToolbarButtonProps = {
   text: string;
   icon: ReactNode;
   onClick: () => void;
-}
+};
 const MarkdownToolbarButton = ({ text, icon, onClick }: MarkdownToolbarButtonProps) => {
   return (
     <StudioButton variant='tertiary' icon={icon} title={text} aria-label={text} onClick={onClick} />
@@ -254,12 +254,12 @@ function LanguageInputField(
 }
 const ForwardedLanguageInputField = forwardRef(LanguageInputField);
 
-interface LanguageTabsProps {
+type LanguageTabsProps = {
   label: string;
   errors?: ResourceFormError[];
   selectedLanguage: ValidLanguage;
   onChangeSelectedLanguage: (newSelectedLanguage: ValidLanguage) => void;
-}
+};
 const LanguageTabs = ({
   label,
   errors,

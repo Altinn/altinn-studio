@@ -5,6 +5,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
 import { ConsentPreview } from './ConsentPreview';
 import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
+import { resourceAdmConsentPreview } from '@studio/testing/testids';
 
 const consentTemplates = testConsentTemplates;
 const defaultProps = {
@@ -134,7 +135,7 @@ describe('ConsentPreview', () => {
         }}
       />,
     );
-    const renderedMarkdown = screen.getByTestId('consentPreviewMarkdown');
+    const renderedMarkdown = screen.getByTestId(resourceAdmConsentPreview);
     expect(renderedMarkdown).toHaveTextContent('<div>hei </div>');
   });
 

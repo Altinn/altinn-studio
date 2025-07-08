@@ -21,6 +21,7 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
+import { resourceAdmConsentPreview } from '@studio/testing/testids';
 
 const buttonText = {
   nb: {
@@ -151,7 +152,9 @@ export const ConsentPreview = ({
                 <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
-                <div data-testid='consentPreviewMarkdown'>{transformText(texts.resourceText)}</div>
+                <div data-testid={resourceAdmConsentPreview}>
+                  {transformText(texts.resourceText)}
+                </div>
               </div>
             </div>
             <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
