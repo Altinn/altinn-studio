@@ -4,7 +4,6 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHookWithProviders } from '../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import { waitFor } from '@testing-library/react';
 
 const MockIcon = () => null;
@@ -65,13 +64,7 @@ describe('useSearchComponent', () => {
 
   describe('Initial state', () => {
     it('should return all components when searchText is empty', () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: textMock,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
       expect(result.current.searchText).toBe('');
       expect(result.current.debouncedSearchText).toBe('');
@@ -80,13 +73,7 @@ describe('useSearchComponent', () => {
 
   describe('Debouncing', () => {
     it('should update debouncedSearchText only after debounce delay', () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: false,
-          t: textMock,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       expect(result.current.searchText).toBe('');
       expect(result.current.debouncedSearchText).toBe('');
 
@@ -105,13 +92,7 @@ describe('useSearchComponent', () => {
 
   describe('Event handlers', () => {
     it('should clear searchText when handleClear is called', () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: textMock,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'Text' } });
       });
@@ -123,13 +104,7 @@ describe('useSearchComponent', () => {
     });
 
     it('should reset searchText when Escape key is pressed', () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: textMock,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'Text' } });
       });
@@ -144,13 +119,7 @@ describe('useSearchComponent', () => {
   describe('Search filtering', () => {
     testCases.forEach(({ description, searchText, expected }) => {
       it(description, async () => {
-        const { result } = renderHookWithProviders(() =>
-          useSearchComponent({
-            availableComponents: mockAvailableComponents,
-            disableDebounce: true,
-            t: textMock,
-          }),
-        );
+        const { result } = renderUseSearchComponent();
         act(() => {
           result.current.handleSearchChange({ target: { value: searchText } });
         });
@@ -163,13 +132,7 @@ describe('useSearchComponent', () => {
 
   describe('Translation support', () => {
     it('should find component by searching with norwegian word', async () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: (key: string) => translations[key] || key,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'tekstfelt' } });
       });
@@ -181,13 +144,7 @@ describe('useSearchComponent', () => {
     });
 
     it('should find component by searching with english word', async () => {
-      const { result } = renderHookWithProviders(() =>
-        useSearchComponent({
-          availableComponents: mockAvailableComponents,
-          disableDebounce: true,
-          t: (key: string) => translations[key] || key,
-        }),
-      );
+      const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'text' } });
       });
@@ -199,3 +156,16 @@ describe('useSearchComponent', () => {
     });
   });
 });
+
+const renderUseSearchComponent = (
+  overrides: Partial<Parameters<typeof useSearchComponent>[0]> = {},
+) => {
+  return renderHookWithProviders(() =>
+    useSearchComponent({
+      availableComponents: mockAvailableComponents,
+      disableDebounce: true,
+      t: (key: string) => translations[key] || key,
+      ...overrides,
+    }),
+  );
+};
