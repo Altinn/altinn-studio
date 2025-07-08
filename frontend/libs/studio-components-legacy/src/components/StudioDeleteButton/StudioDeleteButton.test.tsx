@@ -40,7 +40,7 @@ describe('StudioDeleteButton', () => {
 
   it('Calls the onDelete callback directly when no confirm message is set', async () => {
     const user = userEvent.setup();
-    renderDeleteButton({ confirmMessage: undefined });
+    renderDeleteButton();
     await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
