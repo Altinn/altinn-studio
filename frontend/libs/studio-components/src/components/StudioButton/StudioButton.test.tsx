@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Ref } from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';
 import { render, screen } from '@testing-library/react';
@@ -6,6 +6,7 @@ import type { RenderResult } from '@testing-library/react';
 import type { IconPlacement } from '../../types/IconPlacement';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 const iconPlacementCases: IconPlacement[] = ['left', 'right'];
 const iconTestId: string = 'icon';
@@ -46,9 +47,15 @@ describe('StudioButton', () => {
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) => renderButton({ className }));
   });
+
+  it('Forwards the ref', () => {
+    const children = 'Button content';
+    testRefForwarding<HTMLButtonElement>((ref) => renderButton({ children }, ref), getButton);
+  });
 });
 
-const renderButton = (props: StudioButtonProps): RenderResult =>
-  render(<StudioButton {...props} />);
+const renderButton = (props: StudioButtonProps, ref?: Ref<HTMLButtonElement>): RenderResult =>
+  render(<StudioButton {...props} ref={ref} />);
 
 const getButtonByName = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const getButton = (): HTMLButtonElement => screen.getByRole('button');
