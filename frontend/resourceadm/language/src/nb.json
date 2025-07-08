@@ -88,7 +88,7 @@
   "resourceadm.about_resource_consent_text_label": "Samtykketekst",
   "resourceadm.about_resource_consent_text_text": "Beskriv hva samtykket gjelder. Metadata kan brukes",
   "resourceadm.about_resource_consent_metadata": "Metadata for samtykketekst",
-  "resourceadm.about_resource_consent_metadata_description": "Metadata-verdiene som defineres her kan brukes i samtykketeksten som {metadataNavn}. Skill hvert ord med komma \",\". F.eks dersom du vil bruke verdien {inntektsaar} i samtykketeksten, skriv \"inntektsaar\" i dette feltet",
+  "resourceadm.about_resource_consent_metadata_description": "Metadata-verdiene som defineres her kan brukes i samtykketeksten som {metadataNavn}. Skill hvert ord med komma \",\". Kun bokstavene a-z er tillatt. F.eks dersom du vil bruke verdien {inntektsaar} i samtykketeksten, skriv \"inntektsaar\" i dette feltet",
   "resourceadm.about_resource_consent_preview_approve_nb": "Ja, jeg gir samtykke",
   "resourceadm.about_resource_consent_preview_reject_nb": "Nei, jeg gir ikke samtykke",
   "resourceadm.about_resource_consent_preview_approve_poa_nb": "Ja, jeg gir fullmakt",
