@@ -13,7 +13,7 @@ function StudioDeleteButton(
   { confirmMessage, onClick, onDelete, variant = 'secondary', ...rest }: StudioDeleteButtonProps,
   ref: Ref<HTMLButtonElement>,
 ): ReactElement {
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
     onClick?.(event);
     if (!confirmMessage || confirm(confirmMessage)) onDelete();
   };
