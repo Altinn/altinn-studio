@@ -2,8 +2,10 @@ using Azure;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
+using KubernetesWrapper.Configuration;
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace KubernetesWrapper.Services.Implementation;
 
@@ -13,18 +15,15 @@ namespace KubernetesWrapper.Services.Implementation;
 /// <remarks>
 /// Initializes a new instance of the <see cref="FailedRequestsService"/> class
 /// </remarks>
-/// <param name="configuration">The configuration</param>
-public class FailedRequestsService(IConfiguration configuration) : IFailedRequestsService
+/// <param name="generalSettings">The general settings</param>
+public class FailedRequestsService(IOptions<GeneralSettings> generalSettings) : IFailedRequestsService
 {
+    private readonly GeneralSettings _generalSettings = generalSettings.Value;
+
     /// <inheritdoc />
     public async Task<IEnumerable<Request>> GetRequests(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
-        string applicationLawWorkspaceId = configuration["ApplicationLawWorkspaceId"];
-
-        if (string.IsNullOrWhiteSpace(applicationLawWorkspaceId))
-        {
-            throw new InvalidOperationException("Configuration value 'ApplicationLawWorkspaceId' is missing or empty.");
-        }
+        string applicationLawWorkspaceId = _generalSettings.ApplicationLawWorkspaceId;
 
         var client = new LogsQueryClient(new DefaultAzureCredential());
 

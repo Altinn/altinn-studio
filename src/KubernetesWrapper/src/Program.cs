@@ -1,5 +1,5 @@
 using System.Reflection;
-
+using KubernetesWrapper.Configuration;
 using KubernetesWrapper.Services.Implementation;
 using KubernetesWrapper.Services.Interfaces;
 
@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddOptions<GeneralSettings>().Bind(builder.Configuration.GetSection("GeneralSettings")).ValidateDataAnnotations().ValidateOnStart();
 
 RegisterServices(builder.Services);
 

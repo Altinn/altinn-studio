@@ -2,8 +2,10 @@ using Azure;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
+using KubernetesWrapper.Configuration;
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace KubernetesWrapper.Services.Implementation;
 
@@ -13,18 +15,15 @@ namespace KubernetesWrapper.Services.Implementation;
 /// <remarks>
 /// Initializes a new instance of the <see cref="OperationalLogsService"/> class
 /// </remarks>
-/// <param name="configuration">The configuration</param>
-public class OperationalLogsService(IConfiguration configuration) : IOperationalLogsService
+/// <param name="generalSettings">The general settings</param>
+public class OperationalLogsService(IOptions<GeneralSettings> generalSettings) : IOperationalLogsService
 {
+    private readonly GeneralSettings _generalSettings = generalSettings.Value;
+
     /// <inheritdoc />
     public async Task<IEnumerable<Log>> GetLogs(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
-        string operationalLawWorkspaceId = configuration["OperationalLawWorkspaceId"];
-
-        if (string.IsNullOrWhiteSpace(operationalLawWorkspaceId))
-        {
-            throw new InvalidOperationException("Configuration value 'OperationalLawWorkspaceId' is missing or empty.");
-        }
+        string operationalLawWorkspaceId = _generalSettings.OperationalLawWorkspaceId;
 
         var client = new LogsQueryClient(new DefaultAzureCredential());
 
