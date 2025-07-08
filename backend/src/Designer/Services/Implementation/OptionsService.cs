@@ -293,8 +293,8 @@ public class OptionsService : IOptionsService
         };
 
         settings.Imports ??= new ImportedResources();
-        settings.Imports.CodeLists ??= [];
-        settings.Imports.CodeLists.Add(optionListId, importMetadata);
+        settings.Imports.CodeLists ??= new Dictionary<string, ImportMetadata>();
+        settings.Imports.CodeLists[optionListId] = importMetadata;
 
         await altinnGitRepository.SaveAltinnStudioSettings(settings);
     }
