@@ -60,13 +60,7 @@ function renderRadioGroup({
     });
 
     return (
-      <StudioRadioGroup>
-        <StudioRadioGroup.Heading
-          label={label}
-          description={description}
-          tagText={tagText}
-          required
-        />
+      <StudioRadioGroup legend={label} description={description} tagText={tagText} required>
         {options.map((option) => (
           <StudioRadioGroup.Item
             key={option}
