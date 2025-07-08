@@ -10,7 +10,7 @@ const render = async (props: Partial<IReceiptComponentProps> = {}) => {
   const allProps = {
     attachments: undefined,
     body: 'body',
-    collapsibleTitle: 'collapsibleTitle',
+    collapsibleTitle: <>collapsibleTitle</>,
     instanceMetaDataObject: {},
     title: 'title',
     titleSubmitted: 'titleSubmitted',
@@ -98,7 +98,7 @@ describe('AltinnReceipt', () => {
   it('should show 2 attachments in default group when group name is not set', async () => {
     await render({
       attachments: [attachment1, attachment2],
-      collapsibleTitle: 'collapsibleTitle',
+      collapsibleTitle: <>collapsibleTitle</>,
       hideCollapsibleCount: false,
     });
 
@@ -110,7 +110,7 @@ describe('AltinnReceipt', () => {
   it('should not show collapsible count when hideCollapsibleCount is true', async () => {
     await render({
       attachments: [attachment1, attachment2],
-      collapsibleTitle: 'collapsibleTitle',
+      collapsibleTitle: <>collapsibleTitle</>,
       hideCollapsibleCount: true,
     });
 
@@ -124,7 +124,7 @@ describe('AltinnReceipt', () => {
         { ...attachment1, grouping: 'group1' },
         { ...attachment2, grouping: 'group2' },
       ],
-      collapsibleTitle: 'collapsibleTitle',
+      collapsibleTitle: <>collapsibleTitle</>,
       hideCollapsibleCount: false,
     });
 

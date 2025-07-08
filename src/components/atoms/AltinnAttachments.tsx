@@ -1,10 +1,12 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Heading, Link, List } from '@digdir/designsystemet-react';
+import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
+import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
+import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -37,14 +39,7 @@ export function AltinnAttachments({
       id={id}
       data-testid='attachment-list'
     >
-      {title && (
-        <Heading
-          level={2}
-          data-size='xs'
-        >
-          {title}
-        </Heading>
-      )}
+      <MainAttachmentHeader title={title} />
       <List.Unordered
         className={classes.attachmentList}
         data-size='sm'
@@ -85,7 +80,7 @@ function Attachment({ attachment, showLink, showDescription }: IAltinnAttachment
           <div className={classes.attachmentText}>
             {showDescription && attachment.description?.[currentLanguage] && (
               <div className={classes.description}>
-                {attachment.description[currentLanguage]}
+                <Lang id={attachment.description[currentLanguage]} />
                 <span>&nbsp;&ndash;&ndash;&nbsp;</span>
               </div>
             )}
@@ -114,7 +109,7 @@ function AttachmentFileName({
         href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
         className={cn(classes.attachment, classes.attachmentLink)}
         aria-label={langAsString('general.download', [`${attachment.name}`])}
-        aria-description={attachment.description?.[currentLanguage]}
+        aria-description={langAsString(attachment.description?.[currentLanguage])}
       >
         {children}
       </Link>

@@ -13,7 +13,7 @@ import type { IDisplayAttachment } from 'src/types/shared';
 export interface IReceiptComponentProps {
   attachments: IDisplayAttachment[] | undefined;
   body: React.ReactNode;
-  collapsibleTitle: React.ReactNode;
+  collapsibleTitle: JSX.Element | undefined;
   hideCollapsibleCount?: boolean;
   instanceMetaDataObject: SummaryDataObject;
   pdf: IDisplayAttachment[];
@@ -88,7 +88,7 @@ export function ReceiptComponent({
       {attachments && (
         <AttachmentGroupings
           attachments={attachments}
-          collapsibleTitle={collapsibleTitle}
+          title={collapsibleTitle}
           hideCollapsibleCount={hideCollapsibleCount}
           showLinks={true}
         />

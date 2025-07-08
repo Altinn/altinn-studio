@@ -48,6 +48,10 @@ jest.mock('src/features/language/useLanguage', () => ({
   })),
 }));
 
+jest.mock('src/features/language/Lang', () => ({
+  Lang: ({ id }) => <span data-testid='lang-component'>{id}</span>,
+}));
+
 jest.mock('src/layout/FileUpload/FileUploadTable/AttachmentFileName', () => ({
   FileExtensionIcon: jest.fn(({ fileEnding, className }) => (
     <span
