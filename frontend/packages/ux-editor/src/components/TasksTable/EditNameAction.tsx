@@ -85,8 +85,7 @@ export const EditNameAction = ({
         open={openDialog}
         onKeyDown={(e) => e.key === 'Escape' && handleCancel()}
       >
-        <StudioFieldset>
-          <StudioFieldset.Legend>{t('ux_editor.task_table.menu_edit_name')}</StudioFieldset.Legend>
+        <StudioFieldset legend={t('ux_editor.task_table.menu_edit_name')}>
           <TextResourceEditor
             textResourceId={textResourceId}
             onReferenceChange={handleReferenceChange}
