@@ -23,11 +23,11 @@ public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings) :
     /// <inheritdoc />
     public async Task<IEnumerable<Log>> GetLogs(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
-        string applicationLawWorkspaceId = _generalSettings.ApplicationLawWorkspaceId;
+        string logAnalyticsWorkspaceId = _generalSettings.ApplicationLogAnalyticsWorkspaceId;
 
-        if (string.IsNullOrWhiteSpace(applicationLawWorkspaceId))
+        if (string.IsNullOrWhiteSpace(logAnalyticsWorkspaceId))
         {
-            throw new InvalidOperationException("Configuration value 'ApplicationLawWorkspaceId' is missing or empty.");
+            throw new InvalidOperationException("Configuration value 'ApplicationLogAnalyticsWorkspaceId' is missing or empty.");
         }
 
         var client = new LogsQueryClient(new DefaultAzureCredential());
@@ -41,7 +41,7 @@ public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings) :
                 | project TimeGenerated, Details
                 | take {take}";
 
-        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(applicationLawWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
+        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
         return response.Value.Table.Rows.Select(row => new Log
         {
