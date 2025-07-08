@@ -77,13 +77,7 @@ function renderCheckboxGroup({
     });
 
     return (
-      <StudioCheckboxGroup>
-        <StudioCheckboxGroup.Heading
-          label={label}
-          description={description}
-          tagText={tagText}
-          required
-        />
+      <StudioCheckboxGroup legend={label} description={description} tagText={tagText} required>
         {options.map((option) => (
           <StudioCheckboxGroup.Item
             key={option}
