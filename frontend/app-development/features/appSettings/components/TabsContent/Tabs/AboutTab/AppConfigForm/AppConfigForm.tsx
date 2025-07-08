@@ -7,6 +7,7 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type {
   AppConfigNew,
   AvailableForTypeOption,
+  ContactPoint,
   Keyword,
   StatusOption,
 } from 'app-shared/types/AppConfig';
@@ -21,6 +22,7 @@ import { SwitchInput } from './SwitchInput';
 import { getKeywordValue, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
+import { ContactPointFields } from './ContactPointFields';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -64,6 +66,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     !showAppConfigErrors,
     validationErrors,
     'availableForType',
+  );
+
+  const contactPointErrors: AppConfigFormError[] = getValidationErrorsForField(
+    !showAppConfigErrors,
+    validationErrors,
+    'contactPoints',
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -170,6 +178,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       availableForType: availableForType,
+    }));
+  };
+
+  const onChangeContactPoints = (contactPoints: ContactPoint[]): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      contactPoints,
     }));
   };
 
@@ -285,6 +300,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           errors={availableForTypeErrors}
           id={AppResourceFormFieldIds.AvailableForType}
         />
+        <ContactPointFields
+          contactPointList={updatedAppConfig.contactPoints}
+          onContactPointsChanged={onChangeContactPoints}
+          errors={contactPointErrors}
+          required
+          id={AppResourceFormFieldIds.ContactPoints}
+        />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
@@ -301,6 +323,7 @@ enum AppResourceFormFieldIds {
   RightDescription = 'rightDescription',
   Status = 'status',
   AvailableForType = 'availableForType',
+  ContactPoints = 'contactPoints',
 }
 
 function getValidationErrorsForField(

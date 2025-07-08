@@ -1,0 +1,1 @@
+export { ContactPointFields } from './ContactPointFields';

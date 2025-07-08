@@ -22,6 +22,7 @@ export type AppConfigNew = {
   selfIdentifiedUserEnabled?: boolean;
   enterpriseUserEnabled?: boolean;
   availableForType?: AvailableForTypeOption[];
+  contactPoints?: ContactPoint[];
 };
 
 export type Keyword = {
@@ -39,3 +40,10 @@ export type AvailableForTypeOption =
   | 'SelfRegisteredUser';
 
 export type ResourceType = 'altinnapp';
+
+export type ContactPoint = {
+  category: string;
+  email: string;
+  telephone: string;
+  contactPage: string;
+};

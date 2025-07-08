@@ -1,5 +1,5 @@
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import type { AppConfigNew } from 'app-shared/types/AppConfig';
+import type { AppConfigNew, ContactPoint } from 'app-shared/types/AppConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
 import { statusMap } from './appConfigStatusUtils';
@@ -67,5 +67,32 @@ export const validateAppConfig = (
     });
   }
 
+  // validate contactpoint
+  if (!appConfig.contactPoints?.length) {
+    errors.push({
+      field: `contactPoints`,
+      index: 0,
+      error: t('app_settings.about_tab_error_contact_points'),
+    });
+  }
+  appConfig.contactPoints?.map((contactPoint: ContactPoint, index: number) => {
+    if (isContactPointEmpty(contactPoint)) {
+      errors.push({
+        field: 'contactPoints',
+        index: index,
+        error: t('app_settings.about_tab_error_contact_points'),
+      });
+    }
+  });
+
   return errors;
 };
+
+function isContactPointEmpty(contactPoint: ContactPoint): boolean {
+  return (
+    contactPoint.category === '' &&
+    contactPoint.email === '' &&
+    contactPoint.telephone === '' &&
+    contactPoint.contactPage === ''
+  );
+}
