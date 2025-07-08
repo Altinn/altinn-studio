@@ -15,6 +15,7 @@ import {
 import { useText } from '../../hooks';
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -23,7 +24,7 @@ export interface IEditFormComponentProps {
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
-  schema: any;
+  schema: JsonSchema;
   hideUnsupported?: boolean;
 }
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components-legacy';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -24,10 +24,6 @@ export const DataModelBindings = (): React.JSX.Element => {
     }
   }, [formItem.dataModelBindings?.list]);
 
-  if (!schema) {
-    return <StudioSpinner spinnerTitle={t('general.loading')} />;
-  }
-
   const { dataModelBindings } = schema.properties;
   let dataModelBindingsProperties = dataModelBindings?.properties;
 
@@ -36,14 +32,6 @@ export const DataModelBindings = (): React.JSX.Element => {
       (dataModelProp.required as string[]).includes(multipleAttachments ? 'list' : 'simpleBinding'),
     ) as any;
     dataModelBindingsProperties = properties;
-  }
-
-  if (!Object.keys(dataModelBindingsProperties || {}).length) {
-    return (
-      <Alert size='small' className={classes.alert}>
-        {t('ux_editor.modal_properties_data_model_binding_not_present')}
-      </Alert>
-    );
   }
 
   const handleMultipleAttachmentsSwitch = () => {
@@ -66,45 +54,43 @@ export const DataModelBindings = (): React.JSX.Element => {
   };
 
   return (
-    dataModelBindingsProperties && (
-      <>
-        {(formItem.type === ComponentType.FileUploadWithTag ||
-          formItem.type === ComponentType.FileUpload) &&
-          isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
-            <Alert size='small' severity='warning' className={classes.alert}>
-              {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
-            </Alert>
-          )}
-        {dataModelBindings.anyOf && (
-          <Switch
-            size='small'
-            checked={multipleAttachments}
-            onChange={handleMultipleAttachmentsSwitch}
-            className={classes.switch}
-          >
-            {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
-          </Switch>
+    <>
+      {(formItem.type === ComponentType.FileUploadWithTag ||
+        formItem.type === ComponentType.FileUpload) &&
+        isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
+          <Alert size='small' severity='warning' className={classes.alert}>
+            {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
+          </Alert>
         )}
-        <StudioProperty.Group>
-          {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
-            return (
-              <EditDataModelBinding
-                key={`${formItem.id}-data-model-${propertyKey}`}
-                component={formItem}
-                handleComponentChange={async (updatedComponent, mutateOptions) => {
-                  handleUpdate(updatedComponent);
-                  debounceSave(formItemId, updatedComponent, mutateOptions);
-                }}
-                editFormId={formItemId}
-                renderOptions={{
-                  key: propertyKey,
-                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                }}
-              />
-            );
-          })}
-        </StudioProperty.Group>
-      </>
-    )
+      {dataModelBindings.anyOf && (
+        <Switch
+          size='small'
+          checked={multipleAttachments}
+          onChange={handleMultipleAttachmentsSwitch}
+          className={classes.switch}
+        >
+          {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
+        </Switch>
+      )}
+      <StudioProperty.Group>
+        {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
+          return (
+            <EditDataModelBinding
+              key={`${formItem.id}-data-model-${propertyKey}`}
+              component={formItem}
+              handleComponentChange={async (updatedComponent, mutateOptions) => {
+                handleUpdate(updatedComponent);
+                debounceSave(formItemId, updatedComponent, mutateOptions);
+              }}
+              editFormId={formItemId}
+              renderOptions={{
+                key: propertyKey,
+                label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+              }}
+            />
+          );
+        })}
+      </StudioProperty.Group>
+    </>
   );
 };
