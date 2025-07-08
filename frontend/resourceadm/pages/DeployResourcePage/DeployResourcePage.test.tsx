@@ -58,6 +58,7 @@ const defaultProps: DeployResourcePageProps = {
   resourceVersionText: mockResourceVersionText,
   onSaveVersion: mockOnSaveVersion,
   id: mockId,
+  isSavingResource: false,
 };
 
 describe('DeployResourcePage', () => {
@@ -66,7 +67,7 @@ describe('DeployResourcePage', () => {
   it('initially displays the spinner when loading data', () => {
     renderDeployResourcePage();
 
-    expect(screen.getByTitle(textMock('resourceadm.deploy_spinner'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('resourceadm.deploy_spinner'))).toBeInTheDocument();
   });
 
   it('fetches repo status data on mount', () => {
@@ -98,7 +99,7 @@ describe('DeployResourcePage', () => {
       });
 
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
+        screen.queryByLabelText(textMock('resourceadm.deploy_spinner')),
       );
 
       expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
@@ -331,6 +332,14 @@ describe('DeployResourcePage', () => {
     expect(tt02Button).toBeDisabled();
     expect(prodButton).toBeDisabled();
   });
+
+  it('shows the spinner when isSavingResource is true', async () => {
+    await resolveAndWaitForSpinnerToDisappear({}, { isSavingResource: true });
+
+    expect(
+      screen.getByLabelText(textMock('resourceadm.deploy_status_card_loading')),
+    ).toBeInTheDocument();
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (
@@ -344,7 +353,7 @@ const resolveAndWaitForSpinnerToDisappear = async (
     props,
   );
   await waitForElementToBeRemoved(() =>
-    screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
+    screen.queryByLabelText(textMock('resourceadm.deploy_spinner')),
   );
 };
 
