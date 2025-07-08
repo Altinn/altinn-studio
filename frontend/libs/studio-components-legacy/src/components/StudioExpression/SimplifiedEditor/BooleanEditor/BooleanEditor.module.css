@@ -2,7 +2,7 @@
   align-items: stretch;
   display: flex;
   flex-direction: column;
-  gap: var(--studio-expression-spacing);
+  gap: var(--studio-legacy-expression-spacing);
 }
 
 .toggle {
