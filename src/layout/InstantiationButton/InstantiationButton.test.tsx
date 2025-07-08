@@ -32,6 +32,7 @@ const render = async () => {
       <MemoryRouter
         basename='/ttd/test'
         initialEntries={['/ttd/test']}
+        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <Routes>
           <Route

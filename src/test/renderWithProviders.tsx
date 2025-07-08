@@ -225,7 +225,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter future={{ v7_startTransition: true }}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <Routes>
         <Route
           path='/'
@@ -267,6 +267,7 @@ export function InstanceRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
+      future: { v7_relativeSplatPath: true },
     },
   );
 

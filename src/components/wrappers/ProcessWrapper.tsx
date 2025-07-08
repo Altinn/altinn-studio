@@ -1,19 +1,16 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Route, Routes } from 'react-router-dom';
+import type { PropsWithChildren } from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { FormProvider } from 'src/features/form/FormContext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { Confirm } from 'src/features/processEnd/confirm/containers/Confirm';
 import { Feedback } from 'src/features/processEnd/feedback/Feedback';
 import {
@@ -89,7 +86,7 @@ export function NavigateToStartUrl() {
   return <Loader reason='navigate-to-process-start' />;
 }
 
-export const ProcessWrapper = () => {
+export function ProcessWrapper({ children }: PropsWithChildren) {
   const isCurrentTask = useIsCurrentTask();
   const isValidTaskId = useIsValidTaskId();
   const taskIdParam = useNavigationParam('taskId');
@@ -139,30 +136,11 @@ export const ProcessWrapper = () => {
   }
 
   if (taskType === ProcessTaskType.Data) {
-    return (
-      <FormProvider>
-        <Routes>
-          <Route
-            path=':pageKey/:componentId/*'
-            element={<ComponentRouting />}
-          />
-          <Route
-            path='*'
-            element={
-              <PDFWrapper>
-                <PresentationComponent type={ProcessTaskType.Data}>
-                  <Form />
-                </PresentationComponent>
-              </PDFWrapper>
-            }
-          />
-        </Routes>
-      </FormProvider>
-    );
+    return children;
   }
 
   throw new Error(`Unknown task type: ${taskType}`);
-};
+}
 
 export const ComponentRouting = () => {
   const componentId = useNavigationParam('componentId');

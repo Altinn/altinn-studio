@@ -118,7 +118,7 @@ async function statelessRender(props: RenderProps) {
       ...props,
       initialRenderRef,
       router: ({ children }: PropsWithChildren) => (
-        <MemoryRouter>
+        <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
           <Routes>
             <Route
               path='/'

@@ -7,8 +7,6 @@ export const ignoredConsoleMessages = [
   /^\[webpack-dev-server]/,
 
   // React router v7 upgrade warnings
-  /React Router Future Flag Warning.*?v7_startTransition/,
-  /React Router Future Flag Warning.*?v7_relativeSplatPath/,
   /React Router Future Flag Warning.*?v7_fetcherPersist/,
   /React Router Future Flag Warning.*?v7_normalizeFormMethod/,
   /React Router Future Flag Warning.*?v7_partialHydration/,
