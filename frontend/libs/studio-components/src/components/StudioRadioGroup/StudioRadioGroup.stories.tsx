@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioRadioGroup, useStudioRadioGroup } from './';
+import type { StudioRadioGroupProps } from './StudioRadioGroup';
 
-type ArgsProps = {
+type ArgsProps = StudioRadioGroupProps & {
   hasError?: boolean;
 };
 
@@ -26,12 +27,6 @@ const ComposedComponent = (args: ArgsProps): ReactElement => {
 
   return (
     <StudioRadioGroup {...args}>
-      <StudioRadioGroup.Heading
-        label='My label'
-        description='My description'
-        tagText='Required'
-        required={true}
-      />
       {options.map((option: string) => (
         <StudioRadioGroup.Item
           key={option}
@@ -57,5 +52,11 @@ const meta: Meta = {
   },
 };
 export const Preview: Story = (args): ReactElement => <ComposedComponent {...args} />;
+Preview.args = {
+  legend: 'My label',
+  description: 'My description',
+  tagText: 'Required',
+  required: true,
+};
 
 export default meta;
