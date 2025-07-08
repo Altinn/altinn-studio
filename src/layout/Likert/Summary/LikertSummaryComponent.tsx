@@ -12,7 +12,7 @@ import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLike
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -25,10 +25,10 @@ import type { BaseRow } from 'src/utils/layout/types';
 export function LikertSummaryComponent({
   onChangeClick,
   changeText,
-  targetNode,
+  targetBaseComponentId,
   overrides,
-}: SummaryRendererProps<'Likert'>) {
-  const targetItem = useItemWhenType(targetNode.baseId, 'Likert');
+}: SummaryRendererProps) {
+  const targetItem = useItemWhenType(targetBaseComponentId, 'Likert');
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { lang, langAsString } = useLanguage();
@@ -37,10 +37,10 @@ export function LikertSummaryComponent({
   const inExcludedChildren = (n: LayoutNode) =>
     (excludedChildren && (excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId))) ?? false;
 
-  const groupValidations = useDeepValidationsForNode(targetNode.baseId);
+  const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const dataModelBindings = useDataModelBindingsFor(targetNode.baseId, 'Likert');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Likert');
   const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
@@ -48,21 +48,22 @@ export function LikertSummaryComponent({
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const title = lang(summaryTitleTrb ?? titleTrb);
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
+  const indexedId = useIndexedId(targetBaseComponentId);
 
-  const rows = useLikertRows(targetNode);
+  const rows = useLikertRows(targetBaseComponentId);
   const largeGroup = overrides?.largeGroup ?? false;
   if (largeGroup && rows.length) {
     return (
       <>
         {rows.map((row) => (
           <DataModelLocationProvider
-            key={`summary-${targetNode.id}-${row.uuid}`}
+            key={`summary-${indexedId}-${row.uuid}`}
             groupBinding={dataModelBindings.questions}
             rowIndex={row.index}
           >
             <LargeLikertSummaryContainer
-              id={`summary-${targetNode.id}-${row.index}`}
-              likertNode={targetNode}
+              id={`summary-${indexedId}-${row.index}`}
+              likertBaseId={targetBaseComponentId}
               restriction={row.index}
               renderLayoutNode={(n) => {
                 if (inExcludedChildren(n) || isHidden(n)) {
@@ -72,7 +73,7 @@ export function LikertSummaryComponent({
                 return (
                   <SummaryComponentFor
                     key={n.id}
-                    targetNode={n}
+                    targetBaseComponentId={n.baseId}
                     overrides={{
                       ...overrides,
                       grid: {},
@@ -120,7 +121,7 @@ export function LikertSummaryComponent({
                   inExcludedChildren={inExcludedChildren}
                   onChangeClick={onChangeClick}
                   changeText={changeText}
-                  targetNode={targetNode}
+                  targetBaseComponentId={targetBaseComponentId}
                 />
               </DataModelLocationProvider>
             ))
@@ -148,15 +149,15 @@ export function LikertSummaryComponent({
   );
 }
 
-interface RowProps extends Pick<SummaryRendererProps<'Likert'>, 'onChangeClick' | 'changeText' | 'targetNode'> {
+interface RowProps extends Pick<SummaryRendererProps, 'onChangeClick' | 'changeText' | 'targetBaseComponentId'> {
   row: BaseRow;
   inExcludedChildren: (n: LayoutNode) => boolean;
 }
 
-function Row({ row, inExcludedChildren, onChangeClick, changeText, targetNode }: RowProps) {
+function Row({ row, inExcludedChildren, onChangeClick, changeText, targetBaseComponentId }: RowProps) {
   const isHidden = Hidden.useIsHiddenSelector();
-  const childId = makeLikertChildId(targetNode.id, row.index);
-  const node = useNode(childId) as LayoutNode<'LikertItem'> | undefined;
+  const childId = makeLikertChildId(targetBaseComponentId);
+  const node = useNode(useIndexedId(childId)) as LayoutNode<'LikertItem'> | undefined;
 
   if (!node || inExcludedChildren(node)) {
     return null;
@@ -175,7 +176,7 @@ function Row({ row, inExcludedChildren, onChangeClick, changeText, targetNode }:
         onChangeClick={onChangeClick}
         changeText={changeText}
         key={node.id}
-        targetNode={node}
+        targetBaseComponentId={childId}
       />
     </div>
   );

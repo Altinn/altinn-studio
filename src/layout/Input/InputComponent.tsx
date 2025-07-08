@@ -56,8 +56,6 @@ function getVariantWithFormat(
   return { type: 'text' };
 }
 
-export type IInputProps = PropsFromGenericComponent<'Input'>;
-
 function getMobileKeyboardProps(
   variant: Variant,
   autocomplete: HTMLAutoCompleteValues | undefined,
@@ -102,7 +100,10 @@ function getMobileKeyboardProps(
   return { inputMode: 'text', pattern: undefined };
 }
 
-export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node' | 'overrideDisplay'>) => {
+export const InputVariant = ({
+  baseComponentId,
+  overrideDisplay,
+}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'>) => {
   const {
     id,
     readOnly,
@@ -114,7 +115,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     saveWhileTyping,
     autocomplete,
     maxLength,
-  } = useItemWhenType(node.baseId, 'Input');
+  } = useItemWhenType(baseComponentId, 'Input');
   const {
     formData: { simpleBinding: realFormValue },
     setValue,
@@ -138,7 +139,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
     onBlur: FD.useDebounceImmediately(),
-    error: !useIsValid(node.baseId),
+    error: !useIsValid(baseComponentId),
     prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
     style: { width: '100%' },
@@ -234,11 +235,14 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
   }
 };
 
-export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, overrideDisplay }) => {
-  const { grid, id, required } = useItemWhenType(node.baseId, 'Input');
+export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'Input'>> = ({
+  baseComponentId,
+  overrideDisplay,
+}) => {
+  const { grid, id, required } = useItemWhenType(baseComponentId, 'Input');
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId: node.baseId, overrideDisplay });
+    useLabel({ baseComponentId, overrideDisplay });
 
   return (
     <Label
@@ -251,9 +255,9 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
       help={getHelpTextComponent()}
       description={getDescriptionComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <InputVariant
-          node={node}
+          baseComponentId={baseComponentId}
           overrideDisplay={overrideDisplay}
         />
       </ComponentStructureWrapper>

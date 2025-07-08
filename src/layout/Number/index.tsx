@@ -40,7 +40,7 @@ export class Number extends NumberDef implements DisplayData {
     },
   );
 
-  renderSummary2(props: Summary2Props<'Number'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <NumberSummary {...props} />;
   }
 

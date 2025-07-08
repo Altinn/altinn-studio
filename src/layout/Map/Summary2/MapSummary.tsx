@@ -14,32 +14,32 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType, useNodeFormData } from 'src/utils/layout/useNodeItem';
+import { useFormDataFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { RawGeometry } from 'src/layout/Map/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export function MapSummary({ target }: Summary2Props<'Map'>) {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export function MapSummary({ targetBaseComponentId }: Summary2Props) {
+  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const { dataModelBindings, readOnly, textResourceBindings, required } = useItemWhenType(target.baseId, 'Map');
+  const { dataModelBindings, readOnly, textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'Map');
   const markerBinding = dataModelBindings.simpleBinding;
-  const formData = useNodeFormData(target);
+  const formData = useFormDataFor<'Map'>(targetBaseComponentId);
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const geometries = formData.geometries as RawGeometry[] | undefined;
-  const validations = useUnifiedValidationsForNode(target.baseId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const title = textResourceBindings?.title;
 
   if (markerBinding && !markerLocationIsValid) {
     return (
       <SummaryFlex
-        target={target}
+        targetBaseId={targetBaseComponentId}
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
           title={<Lang id={title} />}
-          componentNode={target}
+          targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           hideEditButton={readOnly}
           isCompact={isCompact}
@@ -51,7 +51,7 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={
         markerLocation
           ? SummaryContains.SomeUserContent
@@ -63,20 +63,19 @@ export function MapSummary({ target }: Summary2Props<'Map'>) {
       <div className={classes.summaryItemWrapper}>
         <div className={classes.summaryItem}>
           <Label
-            baseComponentId={target.baseId}
+            baseComponentId={targetBaseComponentId}
             renderLabelAs='span'
             textResourceBindings={{ title }}
           />
           {!readOnly && (
             <EditButton
               className={classes.editButton}
-              componentNode={target}
-              summaryComponentId={target.id}
+              targetBaseComponentId={targetBaseComponentId}
             />
           )}
         </div>
         <Map
-          mapNode={target}
+          baseComponentId={targetBaseComponentId}
           markerLocation={markerLocation}
           geometries={geometries}
           isSummary={true}

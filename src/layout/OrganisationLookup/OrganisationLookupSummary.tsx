@@ -11,28 +11,24 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-interface OrganisationLookupSummaryProps {
-  componentNode: LayoutNode<'OrganisationLookup'>;
-}
-
-export function OrganisationLookupSummary({ componentNode }: OrganisationLookupSummaryProps) {
+export function OrganisationLookupSummary({ targetBaseComponentId }: Summary2Props) {
   const { dataModelBindings, textResourceBindings, required } = useItemWhenType(
-    componentNode.baseId,
+    targetBaseComponentId,
     'OrganisationLookup',
   );
   const title = textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings);
   const { organisation_lookup_orgnr, organisation_lookup_name } = formData;
-  const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
+  const emptyFieldText = useSummaryOverrides<'OrganisationLookup'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const bindingValidations = useBindingValidationsFor<'OrganisationLookup'>(componentNode.baseId);
+  const bindingValidations = useBindingValidationsFor<'OrganisationLookup'>(targetBaseComponentId);
   const isEmpty = !(organisation_lookup_orgnr || organisation_lookup_name);
 
   return (
     <SummaryFlex
-      target={componentNode}
+      targetBaseId={targetBaseComponentId}
       content={
         isEmpty
           ? required
@@ -53,14 +49,14 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
             <SingleValueSummary
               title={<Lang id='organisation_lookup.orgnr_label' />}
               displayData={organisation_lookup_orgnr}
-              componentNode={componentNode}
+              targetBaseComponentId={targetBaseComponentId}
               hideEditButton={organisation_lookup_name ? true : false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.organisation_lookup_orgnr}
-              baseComponentId={componentNode.baseId}
+              baseComponentId={targetBaseComponentId}
             />
           </div>
           {organisation_lookup_name && (
@@ -68,14 +64,14 @@ export function OrganisationLookupSummary({ componentNode }: OrganisationLookupS
               <SingleValueSummary
                 title={<Lang id='organisation_lookup.org_name' />}
                 displayData={organisation_lookup_name}
-                componentNode={componentNode}
+                targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={false}
                 isCompact={isCompact}
                 emptyFieldText={emptyFieldText}
               />
               <ComponentValidations
                 validations={bindingValidations?.organisation_lookup_name}
-                baseComponentId={componentNode.baseId}
+                baseComponentId={targetBaseComponentId}
               />
             </div>
           )}

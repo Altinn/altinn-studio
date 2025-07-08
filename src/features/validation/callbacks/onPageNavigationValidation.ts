@@ -7,7 +7,6 @@ import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { PageValidation } from 'src/layout/common.generated';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 /**
  * Checks if a page has validation errors as specified by the config.
@@ -23,11 +22,11 @@ export function useOnPageNavigationValidation() {
   const refetchInitialValidations = useRefetchInitialValidations();
 
   /* Ensures the callback will have the latest state */
-  const callback = useEffectEvent(async (currentPage: LayoutPage, config: PageValidation): Promise<boolean> => {
+  const callback = useEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
     const pageConfig = config.page ?? 'current';
     const masks = config.show;
     const mask = getVisibilityMask(masks);
-    const currentIndex = pageOrder.indexOf(currentPage.pageKey);
+    const currentIndex = pageOrder.indexOf(currentPage);
 
     if (!pageOrder || currentIndex === -1) {
       return false;
@@ -44,7 +43,7 @@ export function useOnPageNavigationValidation() {
 
     let shouldCheckPage: (pageKey: string) => boolean = () => true; // Defaults to all pages
     if (pageConfig === 'current') {
-      shouldCheckPage = (pageKey: string) => pageKey === currentPage.pageKey;
+      shouldCheckPage = (pageKey: string) => pageKey === currentPage;
     } else if (pageConfig === 'currentAndPrevious') {
       shouldCheckPage = (pageKey: string) => currentOrPreviousPages.has(pageKey);
     }
@@ -94,7 +93,7 @@ export function useOnPageNavigationValidation() {
   });
 
   return useCallback(
-    async (currentPage: LayoutPage, config: PageValidation) => {
+    async (currentPage: string, config: PageValidation) => {
       await validating();
       return callback(currentPage, config);
     },

@@ -29,13 +29,13 @@ export class Address extends AddressDef implements ValidateComponent {
     return Object.values(formData ?? {}).join(' ');
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Address'>): JSX.Element | null {
-    const data = useDisplayData(targetNode);
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    const data = useDisplayData(targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={data} />;
   }
 
-  renderSummary2(props: Summary2Props<'Address'>): JSX.Element | null {
-    return <AddressSummary componentNode={props.target} />;
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <AddressSummary {...props} />;
   }
 
   renderDefaultValidations(): boolean {

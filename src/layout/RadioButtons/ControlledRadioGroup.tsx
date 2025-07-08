@@ -7,6 +7,7 @@ import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/Condit
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
@@ -15,17 +16,14 @@ import classes from 'src/layout/RadioButtons/ControlledRadioGroup.module.css';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IControlledRadioGroupProps = PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>;
-
-export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
-  const { node, overrideDisplay } = props;
-  const isValid = useIsValid(node.baseId);
+export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>) => {
+  const { baseComponentId, overrideDisplay } = props;
+  const isValid = useIsValid(baseComponentId);
   const item = useItemWhenType<'RadioButtons' | 'LikertItem'>(
-    node.baseId,
+    baseComponentId,
     (t) => t === 'RadioButtons' || t === 'LikertItem',
   );
   const { id, layout, readOnly, textResourceBindings, required, showLabelsInTable } = item;
@@ -48,11 +46,13 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
     error: !isValid,
   });
 
+  const layoutLookups = useLayoutLookups();
+  const parent = layoutLookups.componentToParent[baseComponentId];
   let leftColumnHeader: string | undefined = undefined;
-  if (node.parent instanceof LayoutNode && node.parent.isType('Likert')) {
+  if (parent?.type === 'node' && layoutLookups.getComponent(parent.id).type === 'Likert') {
     // The parent node type never changes, so this doesn't break the rule of hooks
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    leftColumnHeader = useItemWhenType(node.parent.baseId, 'Likert').textResourceBindings?.leftColumnHeader;
+    leftColumnHeader = useItemWhenType(parent.id, 'Likert').textResourceBindings?.leftColumnHeader;
   }
 
   const labelText = (
@@ -90,7 +90,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div id={id}>
         <Fieldset role='radiogroup'>
           <Fieldset.Legend

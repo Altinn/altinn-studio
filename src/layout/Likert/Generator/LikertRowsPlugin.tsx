@@ -48,7 +48,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
   }
 
   claimChildren(props: DefPluginChildClaimerProps<Config>) {
-    props.claimChild(makeLikertChildId(props.item.id, undefined));
+    props.claimChild(makeLikertChildId(props.item.id));
   }
 
   isChildHidden(_state: DefPluginState<Config>, _childId: string, _lookup: LayoutLookups): boolean {

@@ -12,11 +12,11 @@ import { SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export function SigneeListComponent({ node }: PropsFromGenericComponent<'SigneeList'>) {
+export function SigneeListComponent({ baseComponentId }: PropsFromGenericComponent<'SigneeList'>) {
   const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
   const { langAsString } = useLanguage();
 
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigneeList');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigneeList');
 
   const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 

@@ -26,11 +26,11 @@ export class Likert extends LikertDef {
     return false;
   }
 
-  renderSummary(props: SummaryRendererProps<'Likert'>): JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <LikertSummaryComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Likert'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <LikertSummary {...props} />;
   }
 

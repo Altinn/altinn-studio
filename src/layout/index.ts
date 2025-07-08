@@ -28,7 +28,7 @@ export interface IComponentProps {
 }
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
-  node: LayoutNode<T>;
+  baseComponentId: string;
   overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
 }

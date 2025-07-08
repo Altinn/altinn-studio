@@ -104,9 +104,9 @@ export function useExpressionDataSourcesForSubform(
 export function getSubformEntryDisplayName(
   entryDisplayName: ExprValToActualOrExpr<ExprVal.String>,
   dataSources: ExpressionDataSources,
-  nodeId: string,
+  baseComponentId: string,
 ): string | null {
-  const errorIntroText = `Invalid expression for component '${nodeId}'`;
+  const errorIntroText = `Invalid expression for component '${baseComponentId}'`;
   if (!ExprValidation.isValidOrScalar(entryDisplayName, ExprVal.String, errorIntroText)) {
     return null;
   }

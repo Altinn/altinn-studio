@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigation } from 'react-router-dom';
 
 import { Spinner, Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
@@ -19,17 +20,18 @@ import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/SubformComponent.module.css';
 import { evalSubformString, useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import utilClasses from 'src/styles/utils.module.css';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>): React.JSX.Element | null {
+export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<'Subform'>): React.JSX.Element | null {
   const {
     id,
     layoutSet,
@@ -37,15 +39,11 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
     tableColumns = [],
     showAddButton = true,
     showDeleteButton = true,
-  } = useItemWhenType(node.baseId, 'Subform');
+  } = useItemWhenType(baseComponentId, 'Subform');
 
   const isSubformPage = useIsSubformPage();
-  if (isSubformPage) {
-    window.logErrorOnce('Cannot use a SubformComponent component within a subform');
-    throw new Error('Cannot use a SubformComponent component within a subform');
-  }
-
   const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const navigation = useNavigation();
 
   if (!dataType) {
     window.logErrorOnce(`Unable to find data type for subform with id ${id}`);
@@ -59,14 +57,17 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
   const lock = FD.useLocking(id);
   const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
   const [subformEntries, updateSubformEntries] = useState(dataElements);
-  const subformIdsWithError = useComponentValidationsFor(node.baseId).find(isSubformValidation)?.subformDataElementIds;
+  const nodeId = useIndexedId(baseComponentId);
+
+  const subformIdsWithError =
+    useComponentValidationsFor(baseComponentId).find(isSubformValidation)?.subformDataElementIds;
 
   const addEntry = () =>
     performProcess(async () => {
       const currentLock = await lock();
       try {
         const result = await addEntryMutation.mutateAsync({});
-        enterSubform({ nodeId: node.id, dataElementId: result.id });
+        enterSubform({ nodeId, dataElementId: result.id });
       } catch {
         // NOTE: Handled by useAddEntryMutation
       } finally {
@@ -74,14 +75,23 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
       }
     });
 
+  if (isSubformPage && navigation.state !== 'loading') {
+    return (
+      <ComponentErrorList
+        baseComponentId={baseComponentId}
+        errors={['Cannot use a SubformComponent component within a subform']}
+      />
+    );
+  }
+
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Flex
-        id={node.id}
+        id={id}
         container
         item
-        data-componentid={node.id}
-        data-componentbaseid={node.baseId}
+        data-componentid={id}
+        data-componentbaseid={baseComponentId}
       >
         <Table
           id={`subform-${id}-table`}
@@ -129,7 +139,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
                   <SubformTableRow
                     key={dataElement.id}
                     dataElement={dataElement}
-                    node={node}
+                    baseComponentId={baseComponentId}
                     hasErrors={Boolean(subformIdsWithError?.includes(dataElement.id))}
                     rowNumber={index}
                     showDeleteButton={showDeleteButton}
@@ -178,24 +188,23 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
 
 function SubformTableRow({
   dataElement,
-  node,
+  baseComponentId,
   hasErrors,
   rowNumber,
   showDeleteButton,
   deleteEntryCallback,
 }: {
   dataElement: IData;
-  node: LayoutNode<'Subform'>;
+  baseComponentId: string;
   hasErrors: boolean;
   rowNumber: number;
   showDeleteButton: boolean;
   deleteEntryCallback: (dataElement: IData) => void;
 }) {
   const id = dataElement.id;
-  const { tableColumns = [] } = useItemWhenType(node.baseId, 'Subform');
+  const { tableColumns = [] } = useItemWhenType(baseComponentId, 'Subform');
 
-  const component = useExternalItem(node?.baseId, 'Subform');
-
+  const component = useExternalItem(baseComponentId, 'Subform');
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
 
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
@@ -218,6 +227,7 @@ function SubformTableRow({
         evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource, 'general.edit'),
       )
     : langAsString('general.edit');
+  const nodeId = useIndexedId(baseComponentId);
 
   const numColumns = tableColumns.length;
   const actualColumns = showDeleteButton ? numColumns + 1 : numColumns;
@@ -262,7 +272,7 @@ function SubformTableRow({
           <Table.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
-              node={node}
+              baseComponentId={baseComponentId}
               data={subformData}
               dataSources={subformDataSources}
             />
@@ -277,7 +287,7 @@ function SubformTableRow({
             disabled={isDeleting}
             variant='tertiary'
             color='second'
-            onClick={async () => enterSubform({ nodeId: node.id, dataElementId: id, validate: hasErrors })}
+            onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
             aria-label={editButtonText}
             className={classes.tableButton}
           >

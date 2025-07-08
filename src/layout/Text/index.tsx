@@ -26,7 +26,7 @@ export class Text extends TextDef implements DisplayData {
     },
   );
 
-  renderSummary2(props: Summary2Props<'Text'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <TextSummary {...props} />;
   }
 

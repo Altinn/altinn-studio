@@ -6,6 +6,7 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -16,8 +17,6 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/NavigationBar/NavigationBarComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-export type INavigationBar = PropsFromGenericComponent<'NavigationBar'>;
 
 interface INavigationButton {
   onClick: () => void;
@@ -49,8 +48,8 @@ const NavigationButton = React.forwardRef(
 
 NavigationButton.displayName = 'NavigationButton';
 
-export const NavigationBarComponent = ({ node }: INavigationBar) => {
-  const { compact, validateOnForward, validateOnBackward } = useItemWhenType(node.baseId, 'NavigationBar');
+export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) => {
+  const { compact, validateOnForward, validateOnBackward } = useItemWhenType(baseComponentId, 'NavigationBar');
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();
@@ -58,6 +57,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const { performProcess, isAnyProcessing, process } = useIsProcessing<string>();
+  const layoutLookups = useLayoutLookups();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
@@ -69,18 +69,20 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
       const isForward = newIndex > currentIndex && currentIndex !== -1;
       const isBackward = newIndex < currentIndex && currentIndex !== -1;
 
-      if (pageId === currentPageId || newIndex === -1) {
+      const pageKey = layoutLookups.componentToPage[baseComponentId];
+
+      if (pageId === currentPageId || newIndex === -1 || !pageKey) {
         return;
       }
 
       await maybeSaveOnPageChange();
 
-      if (isForward && validateOnForward && (await onPageNavigationValidation(node.page, validateOnForward))) {
+      if (isForward && validateOnForward && (await onPageNavigationValidation(pageKey, validateOnForward))) {
         // Block navigation if validation fails
         return;
       }
 
-      if (isBackward && validateOnBackward && (await onPageNavigationValidation(node.page, validateOnBackward))) {
+      if (isBackward && validateOnBackward && (await onPageNavigationValidation(pageKey, validateOnBackward))) {
         // Block navigation if validation fails
         return;
       }
@@ -107,7 +109,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Flex container>
         <Flex
           data-testid='NavigationBar'

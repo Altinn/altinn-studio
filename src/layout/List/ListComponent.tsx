@@ -26,17 +26,17 @@ import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 
-export type IListProps = PropsFromGenericComponent<'List'>;
 type Row = Record<string, string | number | boolean>;
 
-export const ListComponent = ({ node }: IListProps) => {
+export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'List'>) => {
   const isMobile = useIsMobile();
-  const item = useItemWhenType(node.baseId, 'List');
+  const item = useItemWhenType(baseComponentId, 'List');
   const {
     tableHeaders,
     pagination,
@@ -121,20 +121,22 @@ export const ListComponent = ({ node }: IListProps) => {
       </div>
     ));
 
+  const indexedId = useIndexedId(baseComponentId);
+
   const { getRadioProps } = useRadioGroup({
-    name: node.id,
+    name: indexedId,
     value: JSON.stringify(selectedRow),
     required,
   });
 
   const { getCheckboxProps } = useCheckboxGroup({
-    name: node.id,
+    name: indexedId,
     required,
   });
 
   if (isMobile) {
     return (
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         {enabled ? (
           <Fieldset>
             <Fieldset.Legend>
@@ -205,10 +207,10 @@ export const ListComponent = ({ node }: IListProps) => {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Table className={classes.listTable}>
         {title && (
-          <caption id={getLabelId(node.id)}>
+          <caption id={getLabelId(indexedId)}>
             <Heading
               level={2}
               data-size='sm'
@@ -219,7 +221,7 @@ export const ListComponent = ({ node }: IListProps) => {
             {description && (
               <Description
                 description={<Lang id={description} />}
-                componentId={node.id}
+                componentId={indexedId}
               />
             )}
           </caption>
@@ -263,7 +265,7 @@ export const ListComponent = ({ node }: IListProps) => {
                     onChange={() => {}}
                     value={JSON.stringify(row)}
                     checked={isChecked(row)}
-                    name={node.id}
+                    name={indexedId}
                   />
                 ) : (
                   <RadioButton
@@ -274,7 +276,7 @@ export const ListComponent = ({ node }: IListProps) => {
                     }}
                     value={JSON.stringify(row)}
                     checked={isRowSelected(row)}
-                    name={node.id}
+                    name={indexedId}
                   />
                 )}
               </Table.Cell>

@@ -4,24 +4,26 @@ import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useNavigateTo } from 'src/features/form/layout/NavigateToNode';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { getComponentDef } from 'src/layout';
+import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { Hidden } from 'src/utils/layout/NodesContext';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGrid, IPageBreak } from 'src/layout/common.generated';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
  * These overrides include all props from the Summary component that should be forwarded to underlying component
@@ -40,19 +42,19 @@ export interface LegacySummaryOverrides {
 }
 
 export const SummaryComponentFor = React.forwardRef(function (
-  { targetNode, overrides }: { targetNode: LayoutNode; overrides?: LegacySummaryOverrides },
+  { targetBaseComponentId, overrides }: { targetBaseComponentId: string; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useItemFor(targetNode.baseId);
+  const targetItem = useItemFor(targetBaseComponentId);
 
   return (
     <SummaryComponentInner
       ref={ref}
-      targetNode={targetNode}
-      summaryTestId={targetNode.id}
-      originNodeId={targetNode.id}
-      componentId={`summary-${targetNode?.id}`}
-      componentBaseId={`summary-${targetNode.id}`}
+      targetBaseComponentId={targetBaseComponentId}
+      summaryTestId={targetItem.id}
+      originNodeId={targetItem.id}
+      componentId={`summary-${targetItem.id}`}
+      componentBaseId={`summary-${targetBaseComponentId}`}
       display={overrides?.display}
       grid={overrides?.display && overrides?.display.useComponentGrid ? overrides?.grid || targetItem?.grid : undefined}
       pageBreak={overrides?.pageBreak ?? targetItem?.pageBreak}
@@ -69,28 +71,20 @@ SummaryComponentFor.displayName = 'SummaryComponentFor';
  * from that `summaryNode`.
  */
 export const SummaryComponent = React.forwardRef(function (
-  { summaryNode, overrides }: { summaryNode: LayoutNode<'Summary'>; overrides?: LegacySummaryOverrides },
+  { summaryBaseId, overrides }: { summaryBaseId: string; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const summaryItem = useItemWhenType(summaryNode.baseId, 'Summary');
-  const targetNode = useNode(summaryItem.componentRef);
-  const { grid, pageBreak } = useItemFor(targetNode.baseId);
-
-  if (!targetNode) {
-    throw new Error(
-      `No target found for Summary '${summaryNode.id}'. ` +
-        `Check the 'componentRef' property and make sure the target component exists.`,
-    );
-  }
+  const summaryItem = useItemWhenType(summaryBaseId, 'Summary');
+  const { grid, pageBreak } = useItemFor(summaryItem.componentRef);
 
   return (
     <SummaryComponentInner
       ref={ref}
-      targetNode={targetNode}
-      summaryTestId={summaryNode?.id ?? targetNode?.id ?? 'unknown'}
-      originNodeId={summaryNode?.id ?? targetNode?.id}
-      componentId={summaryNode?.id ?? `summary-${targetNode?.id}`}
-      componentBaseId={summaryNode?.baseId ?? `summary-${targetNode.id}`}
+      targetBaseComponentId={summaryItem.componentRef}
+      summaryTestId={summaryItem.id}
+      originNodeId={summaryItem.id}
+      componentId={summaryItem.id}
+      componentBaseId={summaryBaseId}
       display={overrides?.display ?? summaryItem?.display}
       grid={
         overrides?.display && overrides?.display.useComponentGrid
@@ -108,7 +102,7 @@ SummaryComponent.displayName = 'SummaryComponent';
 
 interface ISummaryProps extends LegacySummaryOverrides {
   originNodeId: string;
-  targetNode: LayoutNode;
+  targetBaseComponentId: string;
   summaryTestId: string;
   componentId: string;
   componentBaseId: string;
@@ -117,7 +111,7 @@ interface ISummaryProps extends LegacySummaryOverrides {
 const SummaryComponentInner = React.forwardRef(function (
   {
     originNodeId,
-    targetNode,
+    targetBaseComponentId,
     display,
     pageBreak,
     grid,
@@ -129,29 +123,30 @@ const SummaryComponentInner = React.forwardRef(function (
   }: ISummaryProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useItemFor(targetNode.baseId);
+  const targetItem = useItemFor(targetBaseComponentId);
   const { langAsString } = useLanguage();
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');
 
-  const targetView = targetNode.pageKey;
-  const targetIsHidden = Hidden.useIsHidden(targetNode);
+  const targetView = useLayoutLookups().componentToPage[targetBaseComponentId];
+  const indexedId = useIndexedId(targetBaseComponentId);
+  const targetIsHidden = Hidden.useIsHidden(indexedId);
 
-  const validations = useUnifiedValidationsForNode(targetNode.baseId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
 
-  const navigateTo = useNavigateToNode();
+  const navigateTo = useNavigateTo();
   const setReturnToView = useSetReturnToView();
   const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
 
   const onChangeClick = async () => {
-    if (!targetView || !targetNode) {
+    if (!targetView) {
       return;
     }
 
     setReturnToView?.(currentPageId);
     setNodeOfOrigin?.(originNodeId);
-    await navigateTo(targetNode, {
+    await navigateTo(indexedId, targetBaseComponentId, {
       shouldFocus: true,
       pageNavOptions: {
         resetReturnToView: false,
@@ -159,11 +154,11 @@ const SummaryComponentInner = React.forwardRef(function (
     });
   };
 
-  if (targetIsHidden || targetNode.type === 'Summary') {
+  if (targetIsHidden || targetItem.type === 'Summary') {
     return null;
   }
 
-  const component = targetNode.def;
+  const component = getComponentDef(targetItem.type);
   const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
@@ -194,12 +189,12 @@ const SummaryComponentInner = React.forwardRef(function (
           <SummaryContent
             onChangeClick={onChangeClick}
             changeText={langAsString('form_filler.summary_item_change')}
-            targetNode={targetNode}
+            targetBaseComponentId={targetBaseComponentId}
             overrides={{ largeGroup, display, pageBreak, grid, excludedChildren }}
             RenderSummary={RenderSummary}
           />
         ) : (
-          <GenericComponent node={targetNode} />
+          <GenericComponentByBaseId id={targetBaseComponentId} />
         )}
         {errors.length && targetItem.type !== 'Group' && !display?.hideValidationMessages ? (
           <Flex

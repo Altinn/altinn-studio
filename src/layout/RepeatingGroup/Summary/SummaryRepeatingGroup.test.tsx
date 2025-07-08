@@ -31,7 +31,7 @@ describe('SummaryRepeatingGroup', () => {
       <SummaryRepeatingGroup
         changeText='Change'
         onChangeClick={mockHandleDataChange}
-        targetNode={groupNode}
+        targetBaseComponentId={groupNode.baseId}
       />
     );
   }

@@ -79,10 +79,10 @@ async function fetchPerson(
   }
 }
 
-export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
-  const { id, dataModelBindings, required } = useItemWhenType(node.baseId, 'PersonLookup');
+export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
+  const { id, dataModelBindings, required } = useItemWhenType(baseComponentId, 'PersonLookup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideDisplay,
   });
   const [tempSsn, setTempSsn] = useState('');
@@ -90,7 +90,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
   const [ssnErrors, setSsnErrors] = useState<string[]>();
   const [nameError, setNameError] = useState<string>();
 
-  const bindingValidations = useBindingValidationsFor<'PersonLookup'>(node.baseId);
+  const bindingValidations = useBindingValidationsFor<'PersonLookup'>(baseComponentId);
   const { langAsString } = useLanguage();
   const {
     formData: { person_lookup_ssn, person_lookup_name },
@@ -164,7 +164,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
       help={getHelpTextComponent()}
       size='sm'
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <div className={classes.componentWrapper}>
           <div className={classes.ssnLabel}>
             <Label
@@ -214,7 +214,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
               (hasValidationErrors(bindingValidations?.person_lookup_ssn) && (
                 <ComponentValidations
                   validations={bindingValidations?.person_lookup_ssn}
-                  baseComponentId={node.baseId}
+                  baseComponentId={baseComponentId}
                 />
               ))}
           </Field>
@@ -265,7 +265,7 @@ export function PersonLookupComponent({ node, overrideDisplay }: PropsFromGeneri
               (hasValidationErrors(bindingValidations?.person_lookup_name) && (
                 <ComponentValidations
                   validations={bindingValidations?.person_lookup_name}
-                  baseComponentId={node.baseId}
+                  baseComponentId={baseComponentId}
                 />
               ))}
           </Field>

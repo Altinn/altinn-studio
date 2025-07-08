@@ -32,7 +32,7 @@ export const NodeInspector = () => {
     >
       <div className={reusedClasses.container}>
         <NodeHierarchy
-          nodeIds={children?.map((id) => id) ?? []}
+          baseIds={children?.map((id) => id) ?? []}
           selected={selectedId}
           onClick={setSelected}
         />

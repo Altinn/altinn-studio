@@ -19,14 +19,14 @@ import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTabl
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import comboboxClasses from 'src/styles/combobox.module.css';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionSearchFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface EditWindowProps {
-  node: LayoutNode<'FileUploadWithTag'>;
+  baseComponentId: string;
   attachment: IAttachment;
   mobileView: boolean;
   options?: IOptionInternal[];
@@ -36,19 +36,20 @@ export interface EditWindowProps {
 export function EditWindowComponent({
   attachment,
   mobileView,
-  node,
+  baseComponentId,
   options,
   isFetching,
 }: EditWindowProps): React.JSX.Element {
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'FileUploadWithTag');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'FileUploadWithTag');
   const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
   const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
+  const nodeId = useIndexedId(baseComponentId);
   const updateAttachment = useAttachmentsUpdater();
 
-  const attachmentValidations = useAttachmentValidations(node.baseId, uploadedAttachment?.data.id);
+  const attachmentValidations = useAttachmentValidations(baseComponentId, uploadedAttachment?.data.id);
   const onAttachmentSave = useOnAttachmentSave();
 
   const hasErrors = hasValidationErrors(attachmentValidations);
@@ -65,7 +66,7 @@ export function EditWindowComponent({
       await setAttachmentTag(chosenTags);
     }
     setEditIndex(-1);
-    await onAttachmentSave(node, uploadedAttachment.data.id);
+    await onAttachmentSave(baseComponentId, uploadedAttachment.data.id);
   };
 
   const setAttachmentTag = async (tags: string[]) => {
@@ -73,11 +74,7 @@ export function EditWindowComponent({
       return;
     }
 
-    await updateAttachment({
-      attachment,
-      nodeId: node.id,
-      tags,
-    });
+    await updateAttachment({ attachment, nodeId, tags });
   };
 
   const isLoading = attachment.updating || !attachment.uploaded || isFetching || options?.length === 0;
@@ -127,7 +124,7 @@ export function EditWindowComponent({
             )}
             <div>
               <FileTableButtons
-                node={node}
+                baseComponentId={baseComponentId}
                 mobileView={mobileView}
                 attachment={attachment}
                 editWindowIsOpen={true}
@@ -230,7 +227,7 @@ export function EditWindowComponent({
         >
           <ComponentValidations
             validations={attachmentValidations}
-            baseComponentId={node.baseId}
+            baseComponentId={baseComponentId}
           />
         </div>
       ) : undefined}

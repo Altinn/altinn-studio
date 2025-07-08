@@ -17,16 +17,15 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
 
-export type IButtonReceivedProps = PropsFromGenericComponent<'Button'>;
 export type IButtonProvidedProps =
   | (PropsFromGenericComponent<'Button'> & CompInternal<'Button'>)
   | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
 
-export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
-  const item = useItemWhenType(node.baseId, node.type);
-  const { mode } = item;
+export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFromGenericComponent<'Button'>) => {
+  const item = useItemWhenType(baseComponentId, 'Button');
+  const mode = item.type === 'Button' ? item.mode : undefined;
   const { langAsString } = useLanguage();
-  const props: IButtonProvidedProps = { ...componentProps, ...item, node };
+  const props: IButtonProvidedProps = { baseComponentId, ...componentProps, ...item };
 
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useProcessQuery().data?.currentTask || {};
@@ -70,13 +69,13 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     });
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Button
         style={item?.position ? { ...alignStyle(item?.position) } : {}}
         textAlign={item.textAlign}
         size={item.size}
         fullWidth={item.fullWidth}
-        id={node.id}
+        id={item.id}
         onClick={submitTask}
         isLoading={isThisProcessing}
         disabled={disabled}

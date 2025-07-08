@@ -10,7 +10,6 @@ import { type BackendValidationIssue, BackendValidationSeverity } from 'src/feat
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { useNode } from 'src/utils/layout/NodesContext';
 import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
@@ -146,14 +145,9 @@ export const render = async ({
 };
 
 export function ContainerTester(props: { id: string }) {
-  const node = useNode(props.id);
-  if (!node || !node.isType('Likert')) {
-    throw new Error(`Could not resolve node with id ${props.id}, or unexpected node type`);
-  }
-
   return (
     <LikertComponent
-      node={node}
+      baseComponentId={props.id}
       containerDivRef={{ current: null }}
     />
   );

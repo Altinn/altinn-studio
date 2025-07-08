@@ -10,11 +10,9 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IImageProps = PropsFromGenericComponent<'Image'>;
-
-export function ImageComponent({ node }: IImageProps) {
+export function ImageComponent({ baseComponentId }: PropsFromGenericComponent<'Image'>) {
   const { langAsString } = useLanguage();
-  const { id, image, textResourceBindings } = useItemWhenType(node.baseId, 'Image');
+  const { id, image, textResourceBindings } = useItemWhenType(baseComponentId, 'Image');
   const languageKey = useCurrentLanguage();
   const width = image?.width ?? '100%';
   const align = image?.align ?? 'center';
@@ -44,7 +42,7 @@ export function ImageComponent({ node }: IImageProps) {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Flex
         container
         direction='row'

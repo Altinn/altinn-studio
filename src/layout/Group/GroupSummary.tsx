@@ -10,15 +10,13 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useNode } from 'src/utils/layout/NodesContext';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-type GroupComponentSummaryProps = {
-  componentNode: LayoutNode<'Group'>;
+interface GroupComponentSummaryProps extends Summary2Props {
   hierarchyLevel?: number;
-};
+}
 
 type HeadingLevel = HeadingProps['level'];
 
@@ -38,29 +36,28 @@ interface ChildComponentProps extends Pick<GroupComponentSummaryProps, 'hierarch
   id: string;
 }
 
-function ChildComponent({ id: _id, hierarchyLevel }: ChildComponentProps) {
-  const id = useIndexedId(_id);
-  const child = useNode(id);
+function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
+  const child = useExternalItem(id);
   if (!child) {
     return null;
   }
 
-  if (child.isType('Group')) {
+  if (child.type === 'Group') {
     return (
       <Flex item>
         <GroupSummary
-          componentNode={child}
+          targetBaseComponentId={id}
           hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
         />
       </Flex>
     );
   }
 
-  return <ComponentSummary target={child} />;
+  return <ComponentSummary targetBaseComponentId={id} />;
 }
 
-export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
-  const item = useItemWhenType(componentNode.baseId, 'Group');
+export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
+  const item = useItemWhenType(targetBaseComponentId, 'Group');
   const title = item.textResourceBindings?.title;
   const summaryTitle = item.textResourceBindings?.summaryTitle;
   const headingLevel = getHeadingLevel(hierarchyLevel);
@@ -75,7 +72,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0 }: GroupCompone
       wrapper={(children) => (
         <SummaryFlexForContainer
           hideWhen={hideEmptyFields}
-          target={componentNode}
+          targetBaseId={targetBaseComponentId}
         >
           {children}
         </SummaryFlexForContainer>

@@ -3,15 +3,14 @@ import React, { useState } from 'react';
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -21,33 +20,29 @@ const sizeMap: Record<string, 'sm' | 'md' | 'lg'> = {
   large: 'lg',
 };
 
-export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
-  const { size: _size, defaultTab, tabs } = useExternalItem(node.baseId, 'Tabs');
+export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => {
+  const { size: _size, defaultTab, tabs } = useExternalItem(baseComponentId, 'Tabs');
   const size = _size ?? 'medium';
-  const idMutator = useComponentIdMutator();
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
+  const layoutLookups = useLayoutLookups();
 
-  useRegisterNodeNavigationHandler(async (targetNode) => {
-    const parents = parentNodes(targetNode);
-    for (const parent of parents) {
-      if (parent === node) {
-        const targetTabId = tabs.find((tab) =>
-          tab.children.some((childBaseId) => {
-            const childId = idMutator ? idMutator(childBaseId) : childBaseId;
-            return childId === targetNode.id;
-          }),
-        )?.id;
+  useRegisterNavigationHandler(async (_indexedId, targetBaseId) => {
+    let parent = layoutLookups.componentToParent[targetBaseId];
+    while (parent?.type === 'node') {
+      if (parent.id === baseComponentId) {
+        const targetTabId = tabs.find((tab) => tab.children.some((childBaseId) => childBaseId === targetBaseId))?.id;
         if (targetTabId) {
           setActiveTab(targetTabId);
           return true;
         }
       }
+      parent = layoutLookups.componentToParent[parent.id];
     }
     return false;
   });
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <DesignsystemetTabs
         defaultValue={activeTab}
         value={activeTab}
@@ -123,18 +118,4 @@ function TabHeader({ id, title, icon }: { id: string; title: string; icon: strin
       <Lang id={translatedTitle} />
     </DesignsystemetTabs.Tab>
   );
-}
-
-function parentNodes(node: LayoutNode): LayoutNode[] {
-  const parents: LayoutNode[] = [];
-  let parent = node.parent;
-  while (parent) {
-    if (!(parent instanceof LayoutNode)) {
-      break;
-    }
-    parents.push(parent);
-    parent = parent.parent;
-  }
-
-  return parents;
 }

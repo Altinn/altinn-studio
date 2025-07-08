@@ -11,21 +11,21 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'>) {
-  const overrides = useSummaryOverrides(target);
+export function MultipleSelectSummary({ targetBaseComponentId }: Summary2Props) {
+  const overrides = useSummaryOverrides<'MultipleSelect'>(targetBaseComponentId);
   const isCompact = useSummaryProp('isCompact');
-  const displayData = useDisplayData(target);
+  const displayData = useDisplayData(targetBaseComponentId);
 
   const maxStringLength = 75;
 
   const showAsList =
     overrides?.displayType === 'list' || (!overrides?.displayType && displayData?.length >= maxStringLength);
-  const { textResourceBindings, required } = useItemWhenType(target.baseId, 'MultipleSelect');
-  const displayValues = useMultipleValuesForSummary(target);
+  const { textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'MultipleSelect');
+  const displayValues = useMultipleValuesForSummary(targetBaseComponentId);
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={
         displayValues.length === 0
           ? required
@@ -36,7 +36,7 @@ export function MultipleSelectSummary({ target }: Summary2Props<'MultipleSelect'
     >
       <MultipleValueSummary
         title={<Lang id={textResourceBindings?.title} />}
-        componentNode={target}
+        baseComponentId={targetBaseComponentId}
         displayValues={displayValues}
         showAsList={showAsList}
         isCompact={isCompact}

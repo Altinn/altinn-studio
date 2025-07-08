@@ -14,7 +14,6 @@ import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { PropsFromGenericComponent } from 'src/layout';
 
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('react-router-dom');
@@ -100,7 +99,7 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        node={{} as PropsFromGenericComponent<'SigneeList'>['node']}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -127,7 +126,7 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        node={{} as PropsFromGenericComponent<'SigneeList'>['node']}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -144,7 +143,7 @@ describe('SigneeListComponent', () => {
 
     render(
       <SigneeListComponent
-        node={{} as PropsFromGenericComponent<'SigneeList'>['node']}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );

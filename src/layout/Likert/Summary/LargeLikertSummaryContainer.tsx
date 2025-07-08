@@ -6,13 +6,14 @@ import { Heading } from '@digdir/designsystemet-react';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IDisplayLikertContainer {
-  likertNode: LayoutNode<'Likert'>;
+  likertBaseId: string;
   divRef?: React.Ref<HTMLDivElement>;
   id?: string;
   restriction?: number | undefined;
@@ -29,18 +30,20 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-s
 
 export function LargeLikertSummaryContainer({
   divRef,
-  likertNode,
+  likertBaseId,
   id,
   restriction,
   renderLayoutNode,
 }: IDisplayLikertContainer) {
-  const container = useItemWhenType(likertNode.baseId, 'Likert');
+  const container = useItemWhenType(likertBaseId, 'Likert');
   const { title, summaryTitle } = container.textResourceBindings ?? {};
-  const isHidden = Hidden.useIsHidden(likertNode);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[likertNode.id]?.depth);
+  const indexedId = useIndexedId(likertBaseId, true);
+  const isHidden = Hidden.useIsHidden(indexedId);
+  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
+  const likertNode = useNode(indexedId);
   const children = useNodeDirectChildren(likertNode, restriction);
 
-  if (isHidden) {
+  if (isHidden || typeof depth !== 'number') {
     return null;
   }
 

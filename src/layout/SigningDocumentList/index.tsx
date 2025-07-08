@@ -15,7 +15,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export class SigningDocumentList extends SigningDocumentListDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SigningDocumentList'>>(
     function SigningDocumentListComponentRender(props, _): JSX.Element | null {
-      const { textResourceBindings } = useItemWhenType(props.node.baseId, 'SigningDocumentList');
+      const { textResourceBindings } = useItemWhenType(props.baseComponentId, 'SigningDocumentList');
       return <SigningDocumentListComponent textResourceBindings={textResourceBindings} />;
     },
   );
@@ -34,12 +34,12 @@ export class SigningDocumentList extends SigningDocumentListDef {
     return null;
   }
 
-  renderSummary2({ target }: Summary2Props<'SigningDocumentList'>): JSX.Element | null {
-    const { textResourceBindings } = useItemWhenType(target.baseId, 'SigningDocumentList');
+  renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {
+    const { textResourceBindings } = useItemWhenType(targetBaseComponentId, 'SigningDocumentList');
 
     return (
       <SummaryFlex
-        target={target}
+        targetBaseId={targetBaseComponentId}
         content={SummaryContains.SomeUserContent}
       >
         <SigningDocumentListComponent

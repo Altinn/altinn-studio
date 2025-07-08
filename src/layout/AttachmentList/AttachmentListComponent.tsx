@@ -18,12 +18,10 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataType } from 'src/types/shared';
 
-export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
-
 const emptyDataTypeArray: IDataType[] = [];
 
-export function AttachmentListComponent({ node }: IAttachmentListProps) {
-  const item = useItemWhenType(node.baseId, 'AttachmentList');
+export function AttachmentListComponent({ baseComponentId }: PropsFromGenericComponent<'AttachmentList'>) {
+  const item = useItemWhenType(baseComponentId, 'AttachmentList');
   const textResourceBindings = item.textResourceBindings;
   const showLinks = item.links;
   const allowedAttachmentTypes = new Set(item.dataTypeIds ?? []);
@@ -72,7 +70,7 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const title = textResourceBindings?.title ? <Lang id={textResourceBindings?.title} /> : undefined;
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       {groupAttachments ? (
         <AttachmentGroupings
           attachments={displayAttachments}

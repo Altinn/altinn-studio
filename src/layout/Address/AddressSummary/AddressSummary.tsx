@@ -10,27 +10,23 @@ import { useHasNoDataInBindings } from 'src/layout/Summary2/isEmpty/isEmptyCompo
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-interface AddressSummaryProps {
-  componentNode: LayoutNode<'Address'>;
-}
-
-export function AddressSummary({ componentNode }: AddressSummaryProps) {
-  const item = useItemWhenType(componentNode.baseId, 'Address');
+export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
+  const item = useItemWhenType(targetBaseComponentId, 'Address');
   const { textResourceBindings, dataModelBindings, simplified, required } = item;
   const { title, careOfTitle, zipCodeTitle, postPlaceTitle, houseNumberTitle } = textResourceBindings ?? {};
   const { formData } = useDataModelBindings(dataModelBindings);
   const { address, postPlace, zipCode, careOf, houseNumber } = formData;
-  const emptyFieldText = useSummaryOverrides(componentNode)?.emptyFieldText;
+  const emptyFieldText = useSummaryOverrides<'Address'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const isEmpty = useHasNoDataInBindings(componentNode);
+  const isEmpty = useHasNoDataInBindings(targetBaseComponentId);
 
-  const bindingValidations = useBindingValidationsFor<'Address'>(componentNode.baseId);
+  const bindingValidations = useBindingValidationsFor<'Address'>(targetBaseComponentId);
 
   return (
     <SummaryFlex
-      target={componentNode}
+      targetBaseId={targetBaseComponentId}
       content={
         isEmpty
           ? required
@@ -44,13 +40,13 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
           <SingleValueSummary
             title={<Lang id={title || 'address_component.address'} />}
             displayData={address}
-            componentNode={componentNode}
+            targetBaseComponentId={targetBaseComponentId}
             isCompact={isCompact}
             emptyFieldText={emptyFieldText}
           />
           <ComponentValidations
             validations={bindingValidations?.address}
-            baseComponentId={componentNode.baseId}
+            baseComponentId={targetBaseComponentId}
           />
         </div>
 
@@ -59,14 +55,14 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             <SingleValueSummary
               title={<Lang id={careOfTitle || 'address_component.care_of'} />}
               displayData={careOf}
-              componentNode={componentNode}
+              targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.careOf}
-              baseComponentId={componentNode.baseId}
+              baseComponentId={targetBaseComponentId}
             />
           </div>
         )}
@@ -76,14 +72,14 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             <SingleValueSummary
               title={<Lang id={zipCodeTitle || 'address_component.zip_code'} />}
               displayData={zipCode}
-              componentNode={componentNode}
+              targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.zipCode}
-              baseComponentId={componentNode.baseId}
+              baseComponentId={targetBaseComponentId}
             />
           </div>
 
@@ -91,14 +87,14 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             <SingleValueSummary
               title={<Lang id={postPlaceTitle || 'address_component.post_place'} />}
               displayData={postPlace}
-              componentNode={componentNode}
+              targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
             <ComponentValidations
               validations={bindingValidations?.postPlace}
-              baseComponentId={componentNode.baseId}
+              baseComponentId={targetBaseComponentId}
             />
           </div>
           {!simplified && (
@@ -106,14 +102,14 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
               <SingleValueSummary
                 title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}
                 displayData={houseNumber}
-                componentNode={componentNode}
+                targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={true}
                 isCompact={isCompact}
                 emptyFieldText={emptyFieldText}
               />
               <ComponentValidations
                 validations={bindingValidations?.houseNumber}
-                baseComponentId={componentNode.baseId}
+                baseComponentId={targetBaseComponentId}
               />
             </div>
           )}

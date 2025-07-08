@@ -3,14 +3,12 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { isHidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { isHidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 
 interface RepeatingGroupEditRowContext {
   multiPageEnabled: boolean;
@@ -89,43 +87,45 @@ function useRepeatingGroupEditRowState(
 export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
   const baseComponentId = useRepeatingGroupComponentId();
   const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(baseComponentId);
-  const node = useNode(useIndexedId(baseComponentId));
+  const layoutLookups = useLayoutLookups();
 
-  useRegisterNodeNavigationHandler(async (targetNode) => {
+  useRegisterNavigationHandler(async (_targetIndexedId, targetBaseComponentId) => {
     if (!state.multiPageEnabled) {
       // Nothing to do here. Other navigation handlers will make sure this row is opened for editing.
       return false;
     }
+    let isOurChildDirectly = false;
     let isOurChildRecursively = false;
-    let subject: LayoutNode | LayoutPage | undefined = targetNode;
-    while (subject instanceof LayoutNode) {
-      if (subject.parent === node) {
+    let subject: ParentRef = { type: 'node', id: targetBaseComponentId };
+    while (subject?.type === 'node') {
+      const parent = layoutLookups.componentToParent[subject.id];
+      if (parent?.type === 'node' && parent.id === baseComponentId) {
         isOurChildRecursively = true;
+        isOurChildDirectly = subject.id === targetBaseComponentId;
         break;
       }
-      subject = subject.parent;
+      subject = parent;
     }
 
     if (!isOurChildRecursively) {
       return false;
     }
-    const isOurChildDirectly = targetNode.parent === node;
-    if (isOurChildDirectly) {
-      const targetMultiPageIndex = targetNode.multiPageIndex ?? 0;
-      if (targetMultiPageIndex !== state.multiPageIndex) {
-        setMultiPageIndex(targetMultiPageIndex);
-      }
+
+    const ourConfig = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
+    if (!ourConfig.edit?.multiPage) {
       return true;
     }
 
-    // It's our child, but not directly. We need to figure out which of our children contains the target node,
+    // It's our child, but not directly. We need to figure out which of our children contains the target,
     // and navigate there. Then it's a problem that can be forwarded there.
-    if (subject && !(subject instanceof LayoutPage)) {
-      const targetMultiPageIndex = subject.multiPageIndex ?? 0;
-      if (targetMultiPageIndex !== state.multiPageIndex) {
-        setMultiPageIndex(targetMultiPageIndex);
+    const multiPageSubject = isOurChildDirectly ? targetBaseComponentId : subject.id;
+
+    for (const id of ourConfig.children) {
+      const [pageIndex, baseId] = id.split(':', 2);
+      if (baseId === multiPageSubject) {
+        setMultiPageIndex(parseInt(pageIndex, 10));
+        return true;
       }
-      return true;
     }
 
     return false;

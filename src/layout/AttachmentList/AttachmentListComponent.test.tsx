@@ -7,7 +7,6 @@ import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { CompInternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IData, IDataType } from 'src/types/shared';
 
@@ -144,7 +143,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -158,7 +157,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -175,7 +174,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -193,7 +192,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -210,7 +209,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -238,7 +237,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -266,7 +265,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -282,7 +281,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -299,7 +298,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -316,7 +315,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -332,7 +331,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -347,7 +346,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );
@@ -363,7 +362,7 @@ describe('AttachmentListComponent', () => {
 
     render(
       <AttachmentListComponent
-        node={{} as LayoutNode<'AttachmentList'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef<HTMLDivElement>()}
       />,
     );

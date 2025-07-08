@@ -26,7 +26,7 @@ export class Option extends OptionDef implements DisplayData {
     return <OptionComponent {...props} />;
   });
 
-  renderSummary2(props: Summary2Props<'Option'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <OptionSummary {...props} />;
   }
 

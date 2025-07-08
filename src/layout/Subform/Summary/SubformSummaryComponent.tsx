@@ -11,15 +11,11 @@ import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { IData } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export interface ISubformSummaryComponent {
-  targetNode: LayoutNode<'Subform'>;
-}
-
-export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent): React.JSX.Element | null {
-  const { layoutSet, id } = useItemWhenType(targetNode.baseId, 'Subform');
+export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): React.JSX.Element | null {
+  const { layoutSet, id } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
 
@@ -37,7 +33,7 @@ export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent
           <SubformSummaryRow
             key={dataElement.id}
             dataElement={dataElement}
-            node={targetNode}
+            baseComponentId={targetBaseComponentId}
           />
         ))
       )}
@@ -45,9 +41,9 @@ export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent
   );
 }
 
-function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: LayoutNode<'Subform'> }) {
+function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IData; baseComponentId: string }) {
   const id = dataElement.id;
-  const { tableColumns, summaryDelimiter = ' — ' } = useItemWhenType(node.baseId, 'Subform');
+  const { tableColumns, summaryDelimiter = ' — ' } = useItemWhenType(baseComponentId, 'Subform');
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
@@ -69,7 +65,7 @@ function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: La
     <SubformCellContent
       key={i}
       cellContent={entry.cellContent}
-      node={node}
+      baseComponentId={baseComponentId}
       data={subformData}
       dataSources={subformDataSources}
     />

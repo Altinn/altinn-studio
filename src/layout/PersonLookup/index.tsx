@@ -27,12 +27,12 @@ export class PersonLookup extends PersonLookupDef {
     },
   );
 
-  renderSummary(_props: SummaryRendererProps<'PersonLookup'>): JSX.Element | null {
+  renderSummary(_props: SummaryRendererProps): JSX.Element | null {
     return null;
   }
 
-  renderSummary2(props: Summary2Props<'PersonLookup'>): JSX.Element | null {
-    return <PersonLookupSummary componentNode={props.target} />;
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <PersonLookupSummary {...props} />;
   }
 
   renderDefaultValidations(): boolean {

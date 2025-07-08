@@ -7,13 +7,12 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import { nodeIdsFromGridRow } from 'src/layout/Grid/tools';
+import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { GridRows } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Common {
   selected: string | undefined;
@@ -21,11 +20,11 @@ interface Common {
 }
 
 interface INodeHierarchyItemProps extends Common {
-  nodeId: string;
+  baseId: string;
 }
 
 interface INodeHierarchyProps extends Common {
-  nodeIds: string[];
+  baseIds: string[];
 }
 
 interface IGridRowsRenderer extends Common {
@@ -33,35 +32,33 @@ interface IGridRowsRenderer extends Common {
   text: string;
 }
 
-const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => {
-  const idMutator = useComponentIdMutator();
-  return (
-    <>
-      {rows.map((row, idx) => {
-        const nodeIds = nodeIdsFromGridRow(row, idMutator);
-        return (
-          <li
-            className={classes.repGroupRow}
-            key={idx}
-          >
-            <span className={classes.componentMetadata}>{text}</span>
-            {nodeIds.length > 0 ? (
-              <NodeHierarchy
-                nodeIds={nodeIds}
-                selected={selected}
-                onClick={onClick}
-              />
-            ) : (
-              <li className={cn(classes.componentMetadata, classes.list)}>Ingen komponenter å vise her</li>
-            )}
-          </li>
-        );
-      })}
-    </>
-  );
-};
+const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
+  <>
+    {rows.map((row, idx) => {
+      const baseIds = baseIdsFromGridRow(row);
+      return (
+        <li
+          className={classes.repGroupRow}
+          key={idx}
+        >
+          <span className={classes.componentMetadata}>{text}</span>
+          {baseIds.length > 0 ? (
+            <NodeHierarchy
+              baseIds={baseIds}
+              selected={selected}
+              onClick={onClick}
+            />
+          ) : (
+            <li className={cn(classes.componentMetadata, classes.list)}>Ingen komponenter å vise her</li>
+          )}
+        </li>
+      );
+    })}
+  </>
+);
 
-const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProps) => {
+const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProps) => {
+  const nodeId = useIndexedId(baseId);
   const node = useNode(nodeId);
   const nodeType = node?.type;
   const nodeMultiPageIndex = node?.multiPageIndex;
@@ -107,8 +104,9 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
       {/* Support for generic components with children */}
       {hasChildren && !node.isType('RepeatingGroup') && (
         <li>
+          {/*TODO: Insert data model location provider here*/}
           <NodeHierarchy
-            nodeIds={children.map((child) => child.id)}
+            baseIds={children.map((child) => child.baseId)}
             selected={selected}
             onClick={onClick}
           />
@@ -116,7 +114,7 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
       )}
       {node.isType('RepeatingGroup') && (
         <RepeatingGroupExtensions
-          nodeId={nodeId}
+          baseId={baseId}
           selected={selected}
           onClick={onClick}
         />
@@ -125,11 +123,10 @@ const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProp
   );
 };
 
-function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyItemProps) {
-  const node = useNode(nodeId) as LayoutNode<'RepeatingGroup'>;
-  const nodeItem = useItemWhenType(node.baseId, 'RepeatingGroup');
-  const rows = RepGroupHooks.useAllRowsWithHidden(node.baseId);
-  const childIds = RepGroupHooks.useChildIds(node.baseId);
+function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyItemProps) {
+  const nodeItem = useItemWhenType(baseId, 'RepeatingGroup');
+  const rows = RepGroupHooks.useAllRowsWithHidden(baseId);
+  const childIds = RepGroupHooks.useChildIds(baseId);
 
   return (
     <>
@@ -154,7 +151,7 @@ function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyI
             rowIndex={row.index}
           >
             <NodeHierarchy
-              nodeIds={childIds.map((childId) => `${childId}-${row.index}`)}
+              baseIds={childIds}
               selected={selected}
               onClick={onClick}
             />
@@ -173,10 +170,10 @@ function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyI
   );
 }
 
-export function NodeHierarchy({ nodeIds, ...rest }: INodeHierarchyProps) {
+export function NodeHierarchy({ baseIds, ...rest }: INodeHierarchyProps) {
   return (
     <ul className={classes.list}>
-      {nodeIds.map((childId) => {
+      {baseIds.map((childId) => {
         if (!childId) {
           return null;
         }
@@ -184,7 +181,7 @@ export function NodeHierarchy({ nodeIds, ...rest }: INodeHierarchyProps) {
         return (
           <NodeHierarchyItem
             key={childId}
-            nodeId={childId}
+            baseId={childId}
             {...rest}
           />
         );

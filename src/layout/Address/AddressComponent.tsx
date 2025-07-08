@@ -21,8 +21,6 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForAddress } from 'src/layout/Address/config.generated';
 
-export type IAddressProps = PropsFromGenericComponent<'Address'>;
-
 const bindingKeys: { [k in keyof IDataModelBindingsForAddress]: k } = {
   address: 'address',
   postPlace: 'postPlace',
@@ -31,7 +29,7 @@ const bindingKeys: { [k in keyof IDataModelBindingsForAddress]: k } = {
   careOf: 'careOf',
 };
 
-export function AddressComponent({ node }: IAddressProps) {
+export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<'Address'>) {
   const {
     id,
     required,
@@ -41,11 +39,11 @@ export function AddressComponent({ node }: IAddressProps) {
     textResourceBindings,
     dataModelBindings,
     labelSettings,
-  } = useItemWhenType(node.baseId, 'Address');
+  } = useItemWhenType(baseComponentId, 'Address');
   const { langAsString } = useLanguage();
 
-  const bindingValidations = useBindingValidationsFor<'Address'>(node.baseId);
-  const componentValidations = useComponentValidationsFor(node.baseId);
+  const bindingValidations = useBindingValidationsFor<'Address'>(baseComponentId);
+  const componentValidations = useComponentValidationsFor(baseComponentId);
   const { formData, setValue } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const debounce = FD.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
@@ -102,7 +100,7 @@ export function AddressComponent({ node }: IAddressProps) {
         </Label>
         <ComponentValidations
           validations={bindingValidations?.address}
-          baseComponentId={node.baseId}
+          baseComponentId={baseComponentId}
         />
       </div>
 
@@ -140,7 +138,7 @@ export function AddressComponent({ node }: IAddressProps) {
               />
               <ComponentValidations
                 validations={bindingValidations?.careOf}
-                baseComponentId={node.baseId}
+                baseComponentId={baseComponentId}
               />
             </Flex>
           </Label>
@@ -189,7 +187,7 @@ export function AddressComponent({ node }: IAddressProps) {
               />
               <ComponentValidations
                 validations={bindingValidations?.zipCode}
-                baseComponentId={node.baseId}
+                baseComponentId={baseComponentId}
               />
             </Flex>
           </Label>
@@ -276,13 +274,13 @@ export function AddressComponent({ node }: IAddressProps) {
           </Label>
           <ComponentValidations
             validations={bindingValidations?.houseNumber}
-            baseComponentId={node.baseId}
+            baseComponentId={baseComponentId}
           />
         </div>
       )}
       <ComponentValidations
         validations={componentValidations}
-        baseComponentId={node.baseId}
+        baseComponentId={baseComponentId}
       />
     </div>
   );

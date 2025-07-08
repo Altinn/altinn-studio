@@ -39,7 +39,7 @@ export class Date extends DateDef implements DisplayData {
     },
   );
 
-  renderSummary2(props: Summary2Props<'Date'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <DateSummary {...props} />;
   }
 

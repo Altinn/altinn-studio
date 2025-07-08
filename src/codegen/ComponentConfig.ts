@@ -390,11 +390,6 @@ export class ComponentConfig {
       from: 'src/features/displayData/index',
     });
 
-    const LayoutNode = new GenerateImportedSymbol({
-      import: 'LayoutNode',
-      from: 'src/utils/layout/LayoutNode',
-    });
-
     const IDataModelBindings = new CG.import({
       import: 'IDataModelBindings',
       from: 'src/layout/layout',

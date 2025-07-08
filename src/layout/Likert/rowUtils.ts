@@ -2,7 +2,6 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
   const start = filters.find(({ key }) => key === 'start')?.value;
@@ -19,9 +18,9 @@ export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilte
   return { startIndex, stopIndex: boundedStopIndex };
 };
 
-export function useLikertRows(node: LayoutNode<'Likert'>) {
-  const groupBinding = useDataModelBindingsFor(node.baseId, 'Likert')?.questions;
-  const filter = useExternalItem(node.baseId, 'Likert').filter;
+export function useLikertRows(baseComponentId: string) {
+  const groupBinding = useDataModelBindingsFor(baseComponentId, 'Likert')?.questions;
+  const filter = useExternalItem(baseComponentId, 'Likert').filter;
   const rows = FD.useFreshRows(groupBinding);
   const lastIndex = rows.length - 1;
   const { startIndex, stopIndex } = getLikertStartStopIndex(lastIndex, filter);

@@ -36,7 +36,7 @@ export type LaxValidationsSelector = (
 export interface ValidationStorePluginConfig {
   extraFunctions: {
     setNodeVisibility: (nodes: LayoutNode[] | string[], newVisibility: number) => void;
-    setAttachmentVisibility: (attachmentId: string, node: LayoutNode, newVisibility: number) => void;
+    setAttachmentVisibility: (attachmentId: string, nodeId: string, newVisibility: number) => void;
   };
   extraHooks: {
     useSetNodeVisibility: () => ValidationStorePluginConfig['extraFunctions']['setNodeVisibility'];
@@ -89,10 +89,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }),
         );
       },
-      setAttachmentVisibility: (attachmentId, node, newVisibility) => {
+      setAttachmentVisibility: (attachmentId, nodeId, newVisibility) => {
         set(
           nodesProduce((state) => {
-            const nodeData = state.nodeData[node.id];
+            const nodeData = state.nodeData[nodeId];
             if (nodeData && 'validations' in nodeData) {
               for (const validation of nodeData.validations) {
                 if ('attachmentId' in validation && validation.attachmentId === attachmentId) {

@@ -10,27 +10,31 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { formatDateLocale } from 'src/utils/dateUtils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
-  const item = useItemWhenType(node.baseId, 'Date');
+export const DateComponent = ({ baseComponentId }: PropsFromGenericComponent<'Date'>) => {
+  const item = useItemWhenType(baseComponentId, 'Date');
   const { textResourceBindings, direction: _direction, value, icon, format } = item;
   const direction = _direction ?? 'horizontal';
   const { langAsString } = useLanguage();
   const language = useCurrentLanguage();
   const parsedValue = parseISO(value);
+  const indexedId = useIndexedId(baseComponentId);
 
   let displayData: string | null = null;
   try {
     displayData = isValid(parsedValue) ? formatDateLocale(language, parsedValue, format) : null;
     if (displayData?.includes('Unsupported: ')) {
       displayData = null;
-      window.logErrorOnce(`Date component "${node.id}" failed to format using "${format}": Unsupported token(s)`);
+      window.logErrorOnce(
+        `Date component "${baseComponentId}" failed to format using "${format}": Unsupported token(s)`,
+      );
     }
   } catch (err) {
     if (value?.trim() !== '') {
-      window.logErrorOnce(`Date component "${node.id}" failed to parse date "${value}":`, err);
+      window.logErrorOnce(`Date component "${baseComponentId}" failed to parse date "${value}":`, err);
     }
   }
 
@@ -40,9 +44,9 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
 
   return (
     <ComponentStructureWrapper
-      node={node}
+      baseComponentId={baseComponentId}
       label={{
-        baseComponentId: node.baseId,
+        baseComponentId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,
@@ -55,7 +59,7 @@ export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
         value={displayData}
         iconUrl={icon}
         iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(node.id)}
+        labelId={getLabelId(indexedId)}
       />
     </ComponentStructureWrapper>
   );

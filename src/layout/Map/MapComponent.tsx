@@ -11,17 +11,17 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { Location } from 'src/layout/Map/config.generated';
 import type { RawGeometry } from 'src/layout/Map/types';
 
-export type IMapComponentProps = PropsFromGenericComponent<'Map'>;
-
-export function MapComponent({ node }: IMapComponentProps) {
-  const isValid = useIsValid(node.baseId);
-  const dataModelBindings = useDataModelBindingsFor(node.baseId, 'Map');
+export function MapComponent({ baseComponentId }: PropsFromGenericComponent<'Map'>) {
+  const isValid = useIsValid(baseComponentId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
   const markerBinding = dataModelBindings.simpleBinding;
+  const indexedId = useIndexedId(baseComponentId);
 
   const { formData, setValue } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
 
@@ -40,19 +40,19 @@ export function MapComponent({ node }: IMapComponentProps) {
 
   return (
     <ComponentStructureWrapper
-      node={node}
+      baseComponentId={baseComponentId}
       label={{
-        baseComponentId: node.baseId,
+        baseComponentId,
         renderLabelAs: 'span',
         className: classes.label,
       }}
     >
       <div
-        data-testid={`map-container-${node.id}`}
+        data-testid={`map-container-${indexedId}`}
         className={cn({ [classes.mapError]: !isValid })}
       >
         <Map
-          mapNode={node}
+          baseComponentId={baseComponentId}
           markerLocation={markerLocation}
           setMarkerLocation={markerBinding ? setMarkerLocation : undefined}
           geometries={geometries}

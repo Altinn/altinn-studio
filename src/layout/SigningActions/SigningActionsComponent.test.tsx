@@ -19,7 +19,6 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 jest.mock('src/utils/layout/useNodeItem');
 jest.mock('react-router-dom');
@@ -148,7 +147,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -165,7 +164,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -183,7 +182,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -201,7 +200,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -219,7 +218,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -234,7 +233,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -249,7 +248,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -268,7 +267,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -287,7 +286,7 @@ describe('SigningActionsComponent', () => {
 
     render(
       <SigningActionsComponent
-        node={{} as LayoutNode<'SigningActions'>}
+        baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
@@ -308,7 +307,7 @@ describe('SigningActionsComponent', () => {
 
       render(
         <SigningActionsComponent
-          node={{} as LayoutNode<'SigningActions'>}
+          baseComponentId='whatever'
           containerDivRef={React.createRef()}
         />,
       );

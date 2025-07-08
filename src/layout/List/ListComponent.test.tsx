@@ -13,7 +13,6 @@ import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { doPatchFormData } from 'src/queries/queries';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const paginationData = { alternatives: [2, 5], default: 2 };
 const countries = [
@@ -55,9 +54,9 @@ const countries = [
   },
 ];
 
-function RenderCounter({ node }: { node: LayoutNode<'List'> }) {
+function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
   const renderCount = React.useRef(0);
-  const dataModelBindings = useDataModelBindingsFor(node.baseId, 'List');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
 
   // This simulates the List component data model fetching. It will trigger a re-render of the component once every
   // time any of the data model bindings change.
@@ -74,7 +73,7 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
     renderer: (props) => (
       <>
         <ListComponent {...props} />
-        <RenderCounter node={props.node} />
+        <RenderCounter baseComponentId={props.baseComponentId} />
       </>
     ),
     component: {

@@ -34,6 +34,11 @@ export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren
     }
   }, [layoutSets, setOverriddenDataModelType, setOverriddenDataModelUuid, setOverriddenLayoutSetId, setTaskId, taskId]);
 
+  if (taskId && overriddenTaskId !== taskId) {
+    // Wait for the task to be set correctly
+    return null;
+  }
+
   if (notCurrentTask) {
     return <FormProvider readOnly={true}>{children}</FormProvider>;
   }

@@ -11,14 +11,13 @@ import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-type ApiTableSummaryProps = {
-  componentNode: LayoutNode<'SimpleTable'>;
-};
-
-export function ApiTableSummary({ componentNode }: ApiTableSummaryProps) {
-  const { externalApi, textResourceBindings, columns, required } = useItemWhenType(componentNode.baseId, 'SimpleTable');
+export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
+  const { externalApi, textResourceBindings, columns, required } = useItemWhenType(
+    targetBaseComponentId,
+    'SimpleTable',
+  );
 
   const { title } = textResourceBindings ?? {};
   const isMobile = useIsMobile();
@@ -43,7 +42,7 @@ export function ApiTableSummary({ componentNode }: ApiTableSummaryProps) {
   }
   return (
     <SummaryFlex
-      target={componentNode}
+      targetBaseId={targetBaseComponentId}
       content={
         !Array.isArray(data) || data.length === 0
           ? required

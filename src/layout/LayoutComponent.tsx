@@ -67,7 +67,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
     | ReturnType<typeof React.forwardRef<HTMLElement, PropsFromGenericComponent<Type>>>
     | ((props: PropsFromGenericComponent<Type>) => JSX.Element | null);
 
-  renderSummary2?(props: Summary2Props<Type>): JSX.Element | null;
+  renderSummary2?(props: Summary2Props): JSX.Element | null;
 
   /**
    * Render a node generator for this component. This can be overridden if you want to extend
@@ -180,8 +180,8 @@ export abstract class PresentationComponent<Type extends CompTypes> extends AnyC
   readonly category = CompCategory.Presentation;
 }
 
-export interface SummaryRendererProps<Type extends CompTypes> {
-  targetNode: LayoutNode<Type>;
+export interface SummaryRendererProps {
+  targetBaseComponentId: string;
   onChangeClick: () => void;
   changeText: string | null;
   overrides?: LegacySummaryOverrides;
@@ -192,7 +192,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
    * Render a summary for this component. For most components, this will return a:
    * <SingleInputSummary formDataAsString={displayData} />
    */
-  abstract renderSummary(props: SummaryRendererProps<Type>): JSX.Element | null;
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
   /**
    * Lets you control if the component renders something like <SummaryBoilerplate /> first, or if the Summary should
@@ -206,11 +206,11 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
    * When rendering a summary of a repeating group with `largeGroup: false`, every FormComponent inside each row is
    * rendered in a compact way. The default
    */
-  public renderCompactSummary({ targetNode }: SummaryRendererProps<Type>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  public renderCompactSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(targetBaseComponentId);
     return (
       <SummaryItemCompact
-        targetNode={targetNode}
+        targetBaseComponentId={targetBaseComponentId}
         displayData={displayData}
       />
     );

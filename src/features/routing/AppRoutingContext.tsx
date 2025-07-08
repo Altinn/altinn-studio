@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { matchPath, useLocation, useNavigate as useNativeNavigate } from 'react-router-dom';
 import type { MutableRefObject, PropsWithChildren } from 'react';
 import type { NavigateOptions } from 'react-router-dom';
@@ -202,9 +202,9 @@ function UpdateHash() {
   const location = useLocation();
   const hash = location.pathname + location.search;
 
-  useEffect(() => {
+  setTimeout(() => {
     updateHash(hash);
-  }, [hash, updateHash]);
+  }, 0);
 
   return null;
 }

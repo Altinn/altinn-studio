@@ -19,11 +19,11 @@ export class AccordionGroup extends AccordionGroupDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps<'AccordionGroup'>): JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <SummaryAccordionGroupComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'AccordionGroup'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
         <SummaryAccordionGroupComponent2 {...props} />

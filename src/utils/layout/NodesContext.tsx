@@ -26,6 +26,7 @@ import {
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getComponentDef } from 'src/layout';
+import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useGetAwaitingCommits } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug, generatorLog } from 'src/utils/layout/generator/debug';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -128,7 +129,7 @@ export type NodesContext = {
   addNodes: (requests: AddNodeRequest[]) => void;
   removeNodes: (request: RemoveNodeRequest[]) => void;
   setNodeProps: (requests: SetNodePropRequest<CompTypes, keyof NodeData>[]) => void;
-  addError: (error: string, node: LayoutPage | LayoutNode) => void;
+  addError: (error: string, node: LayoutPage | LayoutNode | string) => void;
   markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
 
   addPage: (pageKey: string) => void;
@@ -254,7 +255,8 @@ export function createNodesDataStore({ registry, validationsProcessedLast, ...pr
     addError: (error, node) =>
       set(
         nodesProduce((state) => {
-          const data = node instanceof LayoutPage ? state.pagesData.pages[node.pageKey] : state.nodeData[node.id];
+          const nodeId = typeof node === 'string' ? node : node instanceof LayoutNode ? node.id : '';
+          const data = node instanceof LayoutPage ? state.pagesData.pages[node.pageKey] : state.nodeData[nodeId];
 
           if (!data) {
             return;
@@ -926,12 +928,14 @@ export const Hidden = {
   /**
    * Iterate through a list of node IDs and find the first one that is not hidden
    */
-  useFirstVisibleNode(nodeIds: string[]): string | undefined {
+  useFirstVisibleBaseId(baseIds: string[]) {
     const lookups = useLayoutLookups();
+    const idMutator = useComponentIdMutator();
     return WhenReady.useSelector((state) => {
-      for (const id of nodeIds) {
+      for (const baseId of baseIds) {
+        const id = idMutator(baseId);
         if (!isHidden(state, 'node', id, lookups)) {
-          return id;
+          return baseId;
         }
       }
       return undefined;

@@ -15,14 +15,14 @@ export class Divider extends DividerDef {
     },
   );
 
-  renderSummary2(props: Summary2Props<'Divider'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <SummaryFlex
-        target={props.target}
+        targetBaseId={props.targetBaseComponentId}
         content={SummaryContains.Presentational}
       >
         <DividerComponent
-          node={props.target}
+          baseComponentId={props.targetBaseComponentId}
           containerDivRef={React.createRef()}
         />
       </SummaryFlex>

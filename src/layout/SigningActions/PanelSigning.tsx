@@ -12,10 +12,9 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PanelProps } from 'src/app-components/Panel/Panel';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type SigningPanelProps = {
-  node: LayoutNode<'SigningActions'>;
+  baseComponentId: string;
   heading: React.ReactElement;
   description?: React.ReactElement;
   variant?: PanelProps['variant'];
@@ -24,7 +23,7 @@ type SigningPanelProps = {
 };
 
 export function SigningPanel({
-  node,
+  baseComponentId,
   heading,
   description,
   variant = 'info',
@@ -53,7 +52,7 @@ export function SigningPanel({
         <div>
           <div className={classes.buttonContainer}>
             {actionButton}
-            {canReject && <RejectButton node={node} />}
+            {canReject && <RejectButton baseComponentId={baseComponentId} />}
           </div>
           {errorMessage && <ValidationMessage>{errorMessage}</ValidationMessage>}
         </div>
@@ -63,14 +62,14 @@ export function SigningPanel({
 }
 
 type RejectTextProps = {
-  node: LayoutNode<'SigningActions'>;
+  baseComponentId: string;
 };
 
-function RejectButton({ node }: RejectTextProps) {
+function RejectButton({ baseComponentId }: RejectTextProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
   const rejectButtonRef = useRef<HTMLButtonElement>(null);
   const processNext = useProcessNext();
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
 
   const modalTitle = textResourceBindings?.rejectModalTitle ?? 'signing.reject_modal_title';
   const modalDescription = textResourceBindings?.rejectModalDescription ?? 'signing.reject_modal_description';

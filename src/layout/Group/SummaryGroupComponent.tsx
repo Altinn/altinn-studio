@@ -10,19 +10,20 @@ import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
-import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function SummaryGroupComponent({
   onChangeClick,
   changeText,
-  targetNode,
+  targetBaseComponentId,
   overrides,
-}: SummaryRendererProps<'Group'>) {
-  const targetItem = useItemWhenType(targetNode.baseId, 'Group');
+}: SummaryRendererProps) {
+  const targetItem = useItemWhenType(targetBaseComponentId, 'Group');
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { langAsString } = useLanguage();
@@ -34,7 +35,7 @@ export function SummaryGroupComponent({
     [excludedChildren],
   );
 
-  const groupValidations = useDeepValidationsForNode(targetNode.baseId);
+  const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
@@ -43,20 +44,21 @@ export function SummaryGroupComponent({
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
+  const targetNode = useNode(useIndexedId(targetBaseComponentId));
   const children = useNodeDirectChildren(targetNode).filter((n) => !inExcludedChildren(n));
 
   const largeGroup = overrides?.largeGroup ?? false;
   if (largeGroup) {
     return (
       <GroupComponent
-        key={`summary-${targetNode.id}`}
-        id={`summary-${targetNode.id}`}
-        groupNode={targetNode}
+        key={`summary-${targetItem.id}`}
+        id={`summary-${targetItem.id}`}
+        baseComponentId={targetBaseComponentId}
         isSummary={true}
         renderLayoutNode={(node) => (
           <SummaryComponentFromNode
             key={node.id}
-            targetNode={node}
+            targetBaseComponentId={node.baseId}
             overrides={overrides}
             inExcludedChildren={inExcludedChildren}
           />
@@ -69,14 +71,13 @@ export function SummaryGroupComponent({
     if (!child.isCategory(CompCategory.Form) || isHidden(child)) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def) as React.FC<SummaryRendererProps<any>>;
+    const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def) as React.FC<SummaryRendererProps>;
     return (
       <RenderCompactSummary
         onChangeClick={onChangeClick}
         changeText={changeText}
         key={child.id}
-        targetNode={child}
+        targetBaseComponentId={child.baseId}
         overrides={{}}
       />
     );
@@ -126,19 +127,24 @@ export function SummaryGroupComponent({
   );
 }
 
-interface SummaryComponentFromRefProps extends Pick<SummaryRendererProps<CompTypes>, 'targetNode' | 'overrides'> {
+interface SummaryComponentFromRefProps extends Pick<SummaryRendererProps, 'targetBaseComponentId' | 'overrides'> {
   inExcludedChildren: (node: LayoutNode) => boolean;
 }
 
-function SummaryComponentFromNode({ targetNode, inExcludedChildren, overrides }: SummaryComponentFromRefProps) {
-  const isHidden = Hidden.useIsHidden(targetNode);
-  if (inExcludedChildren(targetNode) || isHidden) {
+function SummaryComponentFromNode({
+  targetBaseComponentId,
+  inExcludedChildren,
+  overrides,
+}: SummaryComponentFromRefProps) {
+  const node = useNode(useIndexedId(targetBaseComponentId));
+  const isHidden = Hidden.useIsHidden(node);
+  if (inExcludedChildren(node) || isHidden) {
     return null;
   }
 
   return (
     <SummaryComponentFor
-      targetNode={targetNode}
+      targetBaseComponentId={targetBaseComponentId}
       overrides={{
         ...overrides,
         grid: {},

@@ -7,11 +7,11 @@ import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
-export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintButton'>) => {
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'PrintButton');
+export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'PrintButton'>) => {
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'PrintButton');
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Button
         variant='secondary'
         color='first'

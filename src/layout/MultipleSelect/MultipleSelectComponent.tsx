@@ -20,17 +20,19 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
-export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSelectProps) {
-  const item = useItemWhenType(node.baseId, 'MultipleSelect');
-  const isValid = useIsValid(node.baseId);
+export function MultipleSelectComponent({
+  baseComponentId,
+  overrideDisplay,
+}: PropsFromGenericComponent<'MultipleSelect'>) {
+  const item = useItemWhenType(baseComponentId, 'MultipleSelect');
+  const isValid = useIsValid(baseComponentId);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required, dataModelBindings } = item;
   const {
     options,
     isFetching,
     selectedValues: selectedFromSimpleBinding,
     setData,
-  } = useGetOptions(node.baseId, 'multi');
+  } = useGetOptions(baseComponentId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 
@@ -38,7 +40,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
   const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId: node.baseId, overrideDisplay });
+    useLabel({ baseComponentId, overrideDisplay });
 
   const changeMessageGenerator = useCallback(
     (values: string[]) => {
@@ -92,7 +94,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
         help={getHelpTextComponent()}
         description={getDescriptionComponent()}
       >
-        <ComponentStructureWrapper node={node}>
+        <ComponentStructureWrapper baseComponentId={baseComponentId}>
           <EXPERIMENTAL_MultiSuggestion
             key={componentKey}
             id={id}

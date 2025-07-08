@@ -72,7 +72,7 @@ const GenerateLikertRowInner = React.memo(function ({ rowIndex, questionsBinding
   const parentItem = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;
   const depth = GeneratorInternal.useDepth();
 
-  const childId = makeLikertChildId(parentItem.id, undefined); // This needs to be the base ID
+  const childId = makeLikertChildId(parentItem.id);
 
   const childClaims = useMemo(
     (): ChildClaims => ({

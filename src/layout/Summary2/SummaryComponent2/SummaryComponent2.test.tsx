@@ -485,7 +485,7 @@ describe('SummaryComponent', () => {
     return await renderWithNode<true, LayoutNode<'Summary2'>>({
       nodeId: 'mySummary2',
       inInstance: true,
-      renderer: ({ node }) => <SummaryComponent2 summaryNode={node} />,
+      renderer: ({ node }) => <SummaryComponent2 baseComponentId={node.baseId} />,
       initialPage: currentPageId,
       queries: {
         fetchLayouts: async () => layout,

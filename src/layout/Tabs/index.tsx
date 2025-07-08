@@ -17,19 +17,14 @@ export class Tabs extends TabsDef {
     },
   );
 
-  renderSummary({ targetNode, overrides }: SummaryRendererProps<'Tabs'>): JSX.Element | null {
-    return (
-      <TabsSummaryComponent
-        targetNode={targetNode}
-        overrides={overrides}
-      />
-    );
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <TabsSummaryComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Tabs'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
-        <TabsSummary componentNode={props.target} />
+        <TabsSummary {...props} />
       </EmptyChildrenBoundary>
     );
   }

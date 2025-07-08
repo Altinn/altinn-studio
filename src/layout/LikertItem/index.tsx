@@ -42,8 +42,8 @@ export class LikertItem extends LikertItemDef {
     return getSelectedValueToText(value, langTools, options) || '';
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'LikertItem'>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 

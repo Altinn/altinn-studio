@@ -20,17 +20,16 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type AwaitingCurrentUserSignaturePanelProps = {
-  node: LayoutNode<'SigningActions'>;
+  baseComponentId: string;
   hasMissingSignatures: boolean;
 };
 
 const emptyArray = [];
 
 export function AwaitingCurrentUserSignaturePanel({
-  node,
+  baseComponentId,
   hasMissingSignatures,
 }: Readonly<AwaitingCurrentUserSignaturePanelProps>) {
   const { instanceOwnerPartyId, instanceGuid } = useParams();
@@ -39,7 +38,7 @@ export function AwaitingCurrentUserSignaturePanel({
   const canWrite = isAuthorized('write');
 
   const currentUserPartyId = useProfile()?.partyId;
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
   const { langAsString } = useLanguage();
 
   const title = textResourceBindings?.awaitingSignaturePanelTitle ?? 'signing.awaiting_signature_panel_title';
@@ -120,7 +119,7 @@ export function AwaitingCurrentUserSignaturePanel({
 
   return (
     <SigningPanel
-      node={node}
+      baseComponentId={baseComponentId}
       variant='info'
       heading={<Lang id={title} />}
       actionButton={
@@ -133,7 +132,7 @@ export function AwaitingCurrentUserSignaturePanel({
           >
             <Lang id={signingButtonText} />
           </Button>
-          {!hasMissingSignatures && canWrite && <SubmitSigningButton node={node} />}
+          {!hasMissingSignatures && canWrite && <SubmitSigningButton baseComponentId={baseComponentId} />}
         </>
       }
       description={<Lang id={checkboxDescription} />}

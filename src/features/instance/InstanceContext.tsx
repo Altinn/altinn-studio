@@ -129,6 +129,7 @@ function useGetInstanceDataQuery(
   partyId: string | undefined,
   instanceGuid: string | undefined,
   enablePolling: boolean = false,
+  enabled: boolean = true,
 ) {
   const queryDef = useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid);
 
@@ -138,6 +139,7 @@ function useGetInstanceDataQuery(
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: enablePolling,
     retry: 3,
+    enabled,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
@@ -157,6 +159,7 @@ export const InstanceProvider = ({ children }: { children: React.ReactNode }) =>
 const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
+  const enabled = !!instanceOwnerPartyId && !!instanceGuid;
   const navigation = useNavigation();
 
   const changeData = useSelector((state) => state.changeData);
@@ -173,10 +176,22 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     isLoading,
     data: queryData,
     refetch,
-  } = useGetInstanceDataQuery(!!instantiation.lastResult, instanceOwnerPartyId, instanceGuid, enablePolling);
+  } = useGetInstanceDataQuery(
+    !!instantiation.lastResult,
+    instanceOwnerPartyId ?? '',
+    instanceGuid ?? '',
+    enablePolling,
+    enabled,
+  );
 
   const instantiationError = instantiation.error ?? queryError;
   const data = instantiation.lastResult ?? queryData;
+
+  if (!window.inUnitTest && data && instanceGuid && !data.id.endsWith(instanceGuid)) {
+    throw new Error(
+      `Mismatch between instanceGuid in URL and fetched instance data (URL: '${instanceGuid}', data: '${data.id}')`,
+    );
+  }
 
   useEffect(() => {
     data && changeData(() => data);
@@ -191,7 +206,7 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     return <DisplayError error={error} />;
   }
 
-  if (isLoading || !isDataSet) {
+  if (isLoading || !isDataSet || !enabled) {
     return <Loader reason='instance' />;
   }
   if (isProcessLoading) {

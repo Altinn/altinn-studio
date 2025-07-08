@@ -8,20 +8,22 @@ import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) => {
+export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'Number'>) => {
   const {
     textResourceBindings,
     value,
     icon,
     direction: _direction,
     formatting,
-  } = useItemWhenType(node.baseId, 'Number');
+  } = useItemWhenType(baseComponentId, 'Number');
   const direction = _direction ?? 'horizontal';
   const { langAsString } = useLanguage();
   const currentLanguage = useCurrentLanguage();
+  const indexedId = useIndexedId(baseComponentId);
 
   if (isNaN(value)) {
     return null;
@@ -39,9 +41,9 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
 
   return (
     <ComponentStructureWrapper
-      node={node}
+      baseComponentId={baseComponentId}
       label={{
-        baseComponentId: node.baseId,
+        baseComponentId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,
@@ -55,7 +57,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
         currentLanguage={currentLanguage}
         iconUrl={icon}
         iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(node.id)}
+        labelId={getLabelId(indexedId)}
         formatting={formatting}
       />
     </ComponentStructureWrapper>

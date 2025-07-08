@@ -17,14 +17,12 @@ export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor;
   secondary: { variant: 'secondary', color: 'first' },
 };
 
-export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
-
-export function ActionButtonComponent({ node }: IActionButton) {
+export function ActionButtonComponent({ baseComponentId }: PropsFromGenericComponent<'ActionButton'>) {
   const processNext = useProcessNext();
   const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
   const isAuthorized = useIsAuthorized();
 
-  const { action, buttonStyle, id, textResourceBindings } = useItemWhenType(node.baseId, 'ActionButton');
+  const { action, buttonStyle, id, textResourceBindings } = useItemWhenType(baseComponentId, 'ActionButton');
   const disabled = !isAuthorized(action) || isAnyProcessing;
 
   if (useIsSubformPage()) {
@@ -35,7 +33,7 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const { color, variant } = buttonStyles[buttonStyle];
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Button
         id={`action-button-${id}`}
         variant={variant}

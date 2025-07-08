@@ -7,12 +7,11 @@ import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function SubmitSigningButton({ node }: { node: LayoutNode<'SigningActions'> }) {
+export function SubmitSigningButton({ baseComponentId }: { baseComponentId: string }) {
   const processNext = useProcessNext();
 
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'SigningActions');
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
   const queryClient = useQueryClient();
   const isAnyProcessing = useIsMutating() > 0;
 

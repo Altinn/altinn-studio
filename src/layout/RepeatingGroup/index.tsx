@@ -28,7 +28,7 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
   render = forwardRef<HTMLDivElement, PropsFromGenericComponent<'RepeatingGroup'>>(
     function LayoutComponentRepeatingGroupRender(props, ref): JSX.Element | null {
       return (
-        <RepeatingGroupProvider baseComponentId={props.node.baseId}>
+        <RepeatingGroupProvider baseComponentId={props.baseComponentId}>
           <RepeatingGroupsFocusProvider>
             <RepeatingGroupContainer ref={ref} />
           </RepeatingGroupsFocusProvider>
@@ -51,13 +51,13 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     } as RepGroupInternal;
   }
 
-  renderSummary(props: SummaryRendererProps<'RepeatingGroup'>): JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <SummaryRepeatingGroup {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'RepeatingGroup'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
-      <RepeatingGroupProvider baseComponentId={props.target.baseId}>
+      <RepeatingGroupProvider baseComponentId={props.targetBaseComponentId}>
         <EmptyChildrenBoundary>
           <RepeatingGroupSummary {...props} />
         </EmptyChildrenBoundary>

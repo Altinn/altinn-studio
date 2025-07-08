@@ -14,14 +14,14 @@ export class Header extends HeaderDef {
     },
   );
 
-  renderSummary2(props: Summary2Props<'Header'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <SummaryFlex
-        target={props.target}
+        targetBaseId={props.targetBaseComponentId}
         content={SummaryContains.Presentational}
       >
         <HeaderComponent
-          node={props.target}
+          baseComponentId={props.targetBaseComponentId}
           containerDivRef={React.createRef()}
         />
       </SummaryFlex>

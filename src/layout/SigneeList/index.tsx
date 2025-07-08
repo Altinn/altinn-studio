@@ -33,12 +33,12 @@ export class SigneeList extends SigneeListDef {
     return null;
   }
 
-  renderSummary2({ target }: Summary2Props<'SigneeList'>): JSX.Element | null {
-    const { textResourceBindings } = useItemWhenType(target.baseId, 'SigneeList');
+  renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {
+    const { textResourceBindings } = useItemWhenType(targetBaseComponentId, 'SigneeList');
 
     return (
       <SigneeListSummary
-        componentNode={target}
+        targetBaseComponentId={targetBaseComponentId}
         titleOverride={textResourceBindings?.summaryTitle}
       />
     );

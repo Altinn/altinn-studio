@@ -6,7 +6,7 @@ import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/L
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
 import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
 import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
-import { NavigateToNodeProvider } from 'src/features/form/layout/NavigateToNode';
+import { NavigateToComponentProvider } from 'src/features/form/layout/NavigateToNode';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { RulesProvider } from 'src/features/form/rules/RulesContext';
@@ -73,7 +73,7 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
                           readOnly={readOnly}
                           isEmbedded={isEmbedded}
                         >
-                          <NavigateToNodeProvider>
+                          <NavigateToComponentProvider>
                             <PaymentInformationProvider>
                               <OrderDetailsProvider>
                                 <MaybePaymentProvider hasProcess={hasProcess}>
@@ -83,7 +83,7 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
                                 </MaybePaymentProvider>
                               </OrderDetailsProvider>
                             </PaymentInformationProvider>
-                          </NavigateToNodeProvider>
+                          </NavigateToComponentProvider>
                         </NodesProvider>
                       </ValidationProvider>
                     </FormDataWriteProvider>

@@ -4,6 +4,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -14,15 +15,16 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'node'>;
+type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
 
-export function NavigationButtonsComponent({ node }: Props) {
+export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const summaryNode = useSummaryNodeOfOrigin();
 
+  // TODO: Support returning to Summary2
   if (summaryNode && summaryNode.isType('Summary')) {
     return (
       <WithSummary
-        node={node}
+        baseComponentId={baseComponentId}
         summaryNode={summaryNode}
       />
     );
@@ -30,14 +32,14 @@ export function NavigationButtonsComponent({ node }: Props) {
 
   return (
     <NavigationButtonsComponentInner
-      node={node}
+      baseComponentId={baseComponentId}
       returnToViewText='form_filler.back_to_summary'
       showNextButtonSummary={false}
     />
   );
 }
 
-function WithSummary({ node, summaryNode }: Props & { summaryNode: LayoutNode<'Summary'> }) {
+function WithSummary({ baseComponentId, summaryNode }: Props & { summaryNode: LayoutNode<'Summary'> }) {
   const summaryItem = useItemWhenType(summaryNode.baseId, 'Summary');
   const returnToViewText =
     summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
@@ -45,7 +47,7 @@ function WithSummary({ node, summaryNode }: Props & { summaryNode: LayoutNode<'S
 
   return (
     <NavigationButtonsComponentInner
-      node={node}
+      baseComponentId={baseComponentId}
       returnToViewText={returnToViewText}
       showNextButtonSummary={showNextButtonSummary}
     />
@@ -53,12 +55,12 @@ function WithSummary({ node, summaryNode }: Props & { summaryNode: LayoutNode<'S
 }
 
 function NavigationButtonsComponentInner({
-  node,
+  baseComponentId,
   returnToViewText,
   showNextButtonSummary,
 }: Props & { returnToViewText: string; showNextButtonSummary: boolean }) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useItemWhenType(
-    node.baseId,
+    baseComponentId,
     'NavigationButtons',
   );
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
@@ -74,6 +76,7 @@ function NavigationButtonsComponentInner({
   const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
+  const layoutLookups = useLayoutLookups();
 
   const attachmentsPending = useHasPendingAttachments();
 
@@ -94,7 +97,12 @@ function NavigationButtonsComponentInner({
 
       const prevScrollPosition = getScrollPosition();
       if (validateOnPrevious) {
-        const hasErrors = await onPageNavigationValidation(node.page, validateOnPrevious);
+        const pageKey = layoutLookups.componentToPage[baseComponentId];
+        if (!pageKey) {
+          throw new Error(`Could not find page key for component ${baseComponentId}`);
+        }
+
+        const hasErrors = await onPageNavigationValidation(pageKey, validateOnPrevious);
         if (hasErrors) {
           // Block navigation if validation fails
           resetScrollPosition(prevScrollPosition);
@@ -111,7 +119,11 @@ function NavigationButtonsComponentInner({
 
       const prevScrollPosition = getScrollPosition();
       if (validateOnNext && !returnToView) {
-        const hasErrors = await onPageNavigationValidation(node.page, validateOnNext);
+        const pageKey = layoutLookups.componentToPage[baseComponentId];
+        if (!pageKey) {
+          throw new Error(`Could not find page key for component ${baseComponentId}`);
+        }
+        const hasErrors = await onPageNavigationValidation(pageKey, validateOnNext);
         if (hasErrors) {
           // Block navigation if validation fails, unless returnToView is set (Back to summary)
           resetScrollPosition(prevScrollPosition);
@@ -134,7 +146,7 @@ function NavigationButtonsComponentInner({
    * will read Next before Previous, as this is the primary Button for the user.
    */
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div
         data-testid='NavigationButtons'
         className={classes.container}

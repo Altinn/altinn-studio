@@ -134,6 +134,7 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?
 
 Cypress.Commands.add('goto', (task, options) => {
   gotoFunctions[task](undefined, options);
+  cy.findByRole('progressbar').should('not.exist');
 });
 
 Cypress.Commands.add('gotoHiddenPage', (target) => {
@@ -154,4 +155,5 @@ Cypress.Commands.add('gotoHiddenPage', (target) => {
         { method: 'PUT', headers, body: JSON.stringify(dataModel) });`,
     ].join('\n'),
   }));
+  cy.findByRole('progressbar').should('not.exist');
 });

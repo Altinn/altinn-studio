@@ -98,6 +98,7 @@ Cypress.Commands.add('navPage', (page: string) => {
 Cypress.Commands.add('gotoNavPage', (page: string) => {
   cy.navPage(page).click();
   cy.navPage(page).should('have.attr', 'aria-current', 'page');
+  cy.findByRole('progressbar').should('not.exist');
 });
 
 Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {

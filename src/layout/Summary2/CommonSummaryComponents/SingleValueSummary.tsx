@@ -7,12 +7,11 @@ import { Lang } from 'src/features/language/Lang';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
 import type { BaseValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type SingleValueSummaryProps = {
   title: React.ReactNode;
   errors?: BaseValidation[];
-  componentNode: LayoutNode;
+  targetBaseComponentId: string;
   displayData?: string;
   hideEditButton?: boolean;
   multiline?: boolean;
@@ -23,7 +22,7 @@ type SingleValueSummaryProps = {
 export const SingleValueSummary = ({
   title,
   errors,
-  componentNode,
+  targetBaseComponentId,
   displayData,
   hideEditButton,
   multiline,
@@ -61,8 +60,7 @@ export const SingleValueSummary = ({
       {!hideEditButton && (
         <EditButton
           className={classes.editButton}
-          componentNode={componentNode}
-          summaryComponentId={componentNode.id}
+          targetBaseComponentId={targetBaseComponentId}
         />
       )}
     </div>

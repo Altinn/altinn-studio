@@ -1,6 +1,4 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
-import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
@@ -80,19 +78,4 @@ function findRepeatingParents(
     current = lookups.componentToParent[current.id];
   }
   return repeating;
-}
-
-export function useIndexedComponentIds(componentIds: string[]): string[] {
-  const lookups = useLayoutLookups();
-  const location = useCurrentDataModelLocation();
-  return componentIds.map((id) => {
-    const indexed = makeIndexedId(id, location, lookups);
-    if (indexed === undefined) {
-      throw new Error(
-        `Could not transpose component with id ${id}, it does not exist or is ` +
-          `not available in the current data model location`,
-      );
-    }
-    return indexed;
-  });
 }

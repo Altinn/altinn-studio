@@ -10,8 +10,8 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
-  const { textResourceBindings, value, icon, direction: _direction } = useItemWhenType(node.baseId, 'Text');
+export const TextComponent = ({ baseComponentId }: PropsFromGenericComponent<'Text'>) => {
+  const { id, textResourceBindings, value, icon, direction: _direction } = useItemWhenType(baseComponentId, 'Text');
   const direction = _direction ?? 'horizontal';
   const { langAsString } = useLanguage();
 
@@ -21,9 +21,9 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
 
   return (
     <ComponentStructureWrapper
-      node={node}
+      baseComponentId={baseComponentId}
       label={{
-        baseComponentId: node.baseId,
+        baseComponentId,
         renderLabelAs: 'span',
         className: cn(
           classes.label,
@@ -36,7 +36,7 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
         value={value}
         iconUrl={icon}
         iconAltText={langAsString(textResourceBindings.title)}
-        labelId={getLabelId(node.id)}
+        labelId={getLabelId(id)}
       />
     </ComponentStructureWrapper>
   );

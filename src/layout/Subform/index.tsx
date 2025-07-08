@@ -52,11 +52,11 @@ export class Subform extends SubformDef implements ValidateComponent, SubRouting
     return true;
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Subform'>): JSX.Element | null {
-    return <SubformSummaryComponent targetNode={targetNode} />;
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <SubformSummaryComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Subform'>) {
+  renderSummary2(props: Summary2Props) {
     return <SubformSummaryComponent2 {...props} />;
   }
 

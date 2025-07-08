@@ -44,12 +44,12 @@ export class Input extends InputDef {
     return text;
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Input'>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  renderSummary2(props: Summary2Props<'Input'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <InputSummary {...props} />;
   }
 

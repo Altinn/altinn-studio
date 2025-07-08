@@ -30,7 +30,7 @@ describe('SummaryGroupComponent', () => {
       <SummaryGroupComponent
         changeText='Change'
         onChangeClick={mockHandleDataChange}
-        targetNode={groupNode}
+        targetBaseComponentId={groupNode.baseId}
       />
     );
   }

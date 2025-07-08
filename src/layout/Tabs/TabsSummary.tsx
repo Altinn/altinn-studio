@@ -4,22 +4,16 @@ import { Heading } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
-import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-type TabsSummaryProps = {
-  componentNode: LayoutNode<'Tabs'>;
-};
-
-export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
+export const TabsSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const idMutator = useComponentIdMutator();
-  const { tabs } = useExternalItem(componentNode.baseId, 'Tabs');
+  const { tabs } = useExternalItem(targetBaseComponentId, 'Tabs');
   const canRender = useHasCapability('renderInTabs');
 
   if (!tabs || tabs.length === 0) {
@@ -28,7 +22,7 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
 
   return (
     <SummaryFlexForContainer
-      target={componentNode}
+      targetBaseId={targetBaseComponentId}
       hideWhen={hideEmptyFields}
     >
       <div
@@ -59,9 +53,9 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
                 alignItems='flex-start'
               >
                 {tab.children.filter(canRender).map((baseId) => (
-                  <ComponentSummaryById
+                  <ComponentSummary
                     key={baseId}
-                    componentId={idMutator?.(baseId) ?? baseId}
+                    targetBaseComponentId={baseId}
                   />
                 ))}
               </Flex>

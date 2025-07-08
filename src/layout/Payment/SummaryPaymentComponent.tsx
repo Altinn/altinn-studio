@@ -4,7 +4,7 @@ import { PaymentReceiptDetails } from 'src/layout/Payment/PaymentReceiptDetails/
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
-export const SummaryPaymentComponent = ({ targetNode }: SummaryRendererProps<'Payment'>) => {
-  const title = useItemWhenType(targetNode.baseId, 'Payment').textResourceBindings?.title;
+export const SummaryPaymentComponent = ({ targetBaseComponentId }: SummaryRendererProps) => {
+  const title = useItemWhenType(targetBaseComponentId, 'Payment').textResourceBindings?.title;
   return <PaymentReceiptDetails title={title} />;
 };

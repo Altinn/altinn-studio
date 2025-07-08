@@ -28,7 +28,7 @@ describe('EditButton', () => {
     await renderWithNode<true, LayoutNode<'Input'>>({
       nodeId: 'TestInput',
       inInstance: true,
-      renderer: ({ node }) => <EditButton componentNode={node} />,
+      renderer: ({ node }) => <EditButton targetBaseComponentId={node.baseId} />,
       queries: {
         fetchLayouts: async () => layoutMock(true),
       },
@@ -41,7 +41,7 @@ describe('EditButton', () => {
     await renderWithNode<true, LayoutNode<'Input'>>({
       nodeId: 'TestInput',
       inInstance: true,
-      renderer: ({ node }) => <EditButton componentNode={node} />,
+      renderer: ({ node }) => <EditButton targetBaseComponentId={node.baseId} />,
       queries: {
         fetchLayouts: async () => layoutMock(false),
       },

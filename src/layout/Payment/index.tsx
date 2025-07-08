@@ -16,12 +16,12 @@ export class Payment extends PaymentDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps<'Payment'>): React.JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): React.JSX.Element | null {
     return <SummaryPaymentComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Payment'>): React.JSX.Element | null {
-    return <PaymentSummary componentNode={props.target} />;
+  renderSummary2(props: Summary2Props): React.JSX.Element | null {
+    return <PaymentSummary {...props} />;
   }
 
   renderSummaryBoilerplate(): boolean {

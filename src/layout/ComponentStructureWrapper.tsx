@@ -5,41 +5,42 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/components/label/Label';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
+import { getComponentDef } from 'src/layout/index';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LabelProps } from 'src/components/label/Label';
-import type { CompTypes } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type ComponentStructureWrapperProps<Type extends CompTypes> = {
-  node: LayoutNode<Type>;
+type ComponentStructureWrapperProps = {
+  baseComponentId: string;
   label?: LabelProps;
   className?: string;
   style?: React.CSSProperties;
 };
 
-export function ComponentStructureWrapper<Type extends CompTypes = CompTypes>({
-  node,
+export function ComponentStructureWrapper({
+  baseComponentId,
   children,
   label,
   className,
   style,
-}: PropsWithChildren<ComponentStructureWrapperProps<Type>>) {
+}: PropsWithChildren<ComponentStructureWrapperProps>) {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const component = useExternalItem(node.baseId);
+  const component = useExternalItem(baseComponentId);
   const grid = overrideItemProps?.grid ?? component?.grid;
-  const layoutComponent = node.def;
+  const layoutComponent = getComponentDef(component.type);
   const showValidationMessages = layoutComponent.renderDefaultValidations();
+  const indexedId = useIndexedId(baseComponentId);
 
   const componentWithValidations = (
     <Flex
-      id={`form-content-${node.id}`}
+      id={`form-content-${indexedId}`}
       className={className}
       size={{ xs: 12, ...grid?.innerGrid }}
       style={style}
       item
     >
       {children}
-      {showValidationMessages && <AllComponentValidations baseComponentId={node.baseId} />}
+      {showValidationMessages && <AllComponentValidations baseComponentId={baseComponentId} />}
     </Flex>
   );
 

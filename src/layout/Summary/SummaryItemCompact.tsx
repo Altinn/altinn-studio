@@ -4,15 +4,14 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ICompactSummaryItem {
-  targetNode: LayoutNode;
+  targetBaseComponentId: string;
   displayData: string;
 }
 
-export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
-  const targetItem = useItemFor(targetNode.baseId);
+export function SummaryItemCompact({ targetBaseComponentId, displayData }: ICompactSummaryItem) {
+  const targetItem = useItemFor(targetBaseComponentId);
   const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
   const summaryTitleTrb =
     textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;

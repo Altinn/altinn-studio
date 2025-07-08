@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { ComponentSummaryById, HideWhenAllChildrenEmpty } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummary, HideWhenAllChildrenEmpty } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverridesForPage, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { Hidden, useGetPage } from 'src/utils/layout/NodesContext';
 
@@ -44,10 +44,10 @@ export function PageSummary({ pageId }: PageSummaryProps) {
             alignItems='flex-start'
             data-summary-pagekey={pageId}
           >
-            {children?.map((nodeId) => (
-              <ComponentSummaryById
-                key={nodeId}
-                componentId={nodeId}
+            {children?.map((baseId) => (
+              <ComponentSummary
+                key={baseId}
+                targetBaseComponentId={baseId}
               />
             ))}
           </Flex>

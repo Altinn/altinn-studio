@@ -13,7 +13,7 @@ import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/R
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import {
-  ComponentSummaryById,
+  ComponentSummary,
   SummaryContains,
   SummaryFlex,
   SummaryFlexForContainer,
@@ -24,18 +24,20 @@ import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'>) => {
-  const componentNode = target;
-  const overrides = useSummaryOverrides(componentNode);
+export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) => {
+  const overrides = useSummaryOverrides<'RepeatingGroup'>(targetBaseComponentId);
   const display = overrides?.display ?? 'list';
   const isCompact = useSummaryProp('isCompact');
-  const childIds = RepGroupHooks.useChildIds(target.baseId);
-  const rows = RepGroupHooks.useVisibleRows(target.baseId);
-  const validations = useUnifiedValidationsForNode(componentNode.baseId);
+  const childIds = RepGroupHooks.useChildIds(targetBaseComponentId);
+  const rows = RepGroupHooks.useVisibleRows(targetBaseComponentId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, dataModelBindings, minCount } = useItemWhenType(componentNode.baseId, 'RepeatingGroup');
+  const { textResourceBindings, dataModelBindings, minCount } = useItemWhenType(
+    targetBaseComponentId,
+    'RepeatingGroup',
+  );
   const title = textResourceBindings?.title;
-  const parent = useLayoutLookups().componentToParent[componentNode.baseId];
+  const parent = useLayoutLookups().componentToParent[targetBaseComponentId];
   const isNested = parent?.type === 'node';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
@@ -45,13 +47,13 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
   if (rows.length === 0) {
     return (
       <SummaryFlex
-        target={target}
+        targetBaseId={targetBaseComponentId}
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
         className={className}
       >
         <SingleValueSummary
           title={<Lang id={title} />}
-          componentNode={componentNode}
+          targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           isCompact={isCompact}
           emptyFieldText={overrides?.emptyFieldText}
@@ -60,13 +62,13 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
     );
   }
 
-  if (display === 'table' && componentNode) {
+  if (display === 'table') {
     return (
       <SummaryFlexForContainer
         hideWhen={hideEmptyFields}
-        target={target}
+        targetBaseId={targetBaseComponentId}
       >
-        <RepeatingGroupTableSummary componentNode={componentNode} />
+        <RepeatingGroupTableSummary baseComponentId={targetBaseComponentId} />
       </SummaryFlexForContainer>
     );
   }
@@ -74,7 +76,7 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
   return (
     <SummaryFlexForContainer
       hideWhen={hideEmptyFields}
-      target={target}
+      targetBaseId={targetBaseComponentId}
     >
       <div
         className={cn(classes.summaryWrapper, { [classes.nestedSummaryWrapper]: isNested })}
@@ -105,10 +107,10 @@ export const RepeatingGroupSummary = ({ target }: Summary2Props<'RepeatingGroup'
                   spacing={6}
                   alignItems='flex-start'
                 >
-                  {childIds.map((nodeId) => (
-                    <ComponentSummaryById
-                      key={`${nodeId}-${row.index}`}
-                      componentId={`${nodeId}-${row.index}`}
+                  {childIds.map((baseId) => (
+                    <ComponentSummary
+                      key={baseId}
+                      targetBaseComponentId={baseId}
                     />
                   ))}
                 </Flex>

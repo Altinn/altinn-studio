@@ -12,7 +12,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useNavigateTo, useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -32,7 +32,7 @@ import { getComponentCapabilities } from 'src/layout';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
-import type { NavigateToNodeOptions } from 'src/features/form/layout/NavigateToNode';
+import type { NavigateToComponentOptions } from 'src/features/form/layout/NavigateToNode';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 interface FormState {
@@ -66,11 +66,12 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 
   useRedirectToStoredPage();
   useSetExpandedWidth();
+  const layoutLookups = useLayoutLookups();
 
-  useRegisterNodeNavigationHandler(async (targetNode, options) => {
-    const targetView = targetNode?.pageKey;
-    if (targetView && targetView !== currentPageId) {
-      await navigateToPage(targetView, {
+  useRegisterNavigationHandler(async (_indexedId, baseComponentId, options) => {
+    const targetPage = layoutLookups.componentToPage[baseComponentId];
+    if (targetPage && targetPage !== currentPageId) {
+      await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
         shouldFocusComponent: options?.shouldFocus ?? options?.pageNavOptions?.shouldFocusComponent ?? true,
         replace:
@@ -268,7 +269,7 @@ function HandleNavigationFocusComponent() {
   const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
   const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
   const focusNode = useNode(componentId ?? undefined);
-  const navigateTo = useNavigateToNode();
+  const navigateTo = useNavigateTo();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -286,18 +287,18 @@ function HandleNavigationFocusComponent() {
 
       // Set validation visibility to the equivalent of trying to submit
       if (validate) {
-        onFormSubmitValidation();
+        await onFormSubmitValidation();
       }
 
       // Focus on node?
       if (focusNode) {
-        const nodeNavOptions: NavigateToNodeOptions = {
+        const nodeNavOptions: NavigateToComponentOptions = {
           shouldFocus: true,
           pageNavOptions: {
             resetReturnToView: !exitSubform,
           },
         };
-        await navigateTo(focusNode, nodeNavOptions);
+        await navigateTo(focusNode.id, focusNode.baseId, nodeNavOptions);
       }
     })();
   }, [navigateTo, focusNode, navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);

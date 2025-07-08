@@ -1,15 +1,15 @@
 import type React from 'react';
 
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
+import type { PropsFromGenericComponent } from 'src/layout';
 
-export const useRadioButtons = ({ node }: IControlledRadioGroupProps) => {
+export const useRadioButtons = ({ baseComponentId }: PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>) => {
   const {
     options: calculatedOptions,
     isFetching: fetchingOptions,
     setData,
     selectedValues,
-  } = useGetOptions(node.baseId, 'single');
+  } = useGetOptions(baseComponentId, 'single');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setData([event.target.value]);

@@ -18,31 +18,32 @@ import {
 } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function LikertSummary({ target }: Summary2Props<'Likert'>) {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
+  const emptyFieldText = useSummaryOverrides<'Likert'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const rows = useLikertRows(target);
-  const { textResourceBindings, dataModelBindings, readOnly, required } = useItemWhenType(target.baseId, 'Likert');
+  const rows = useLikertRows(targetBaseComponentId);
+  const { textResourceBindings, dataModelBindings, readOnly, required } = useItemWhenType(
+    targetBaseComponentId,
+    'Likert',
+  );
 
-  const validations = useUnifiedValidationsForNode(target.baseId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
   if (!rows.length || rows.length <= 0) {
     return (
       <SummaryFlex
-        target={target}
+        targetBaseId={targetBaseComponentId}
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
           title={<Lang id={textResourceBindings?.title} />}
-          componentNode={target}
+          targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           hideEditButton={readOnly}
           isCompact={isCompact}
@@ -55,7 +56,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
   return (
     <EmptyChildrenBoundary>
       <SummaryFlexForContainer
-        target={target}
+        targetBaseId={targetBaseComponentId}
         hideWhen={hideEmptyFields}
       >
         <div className={classes.summaryItemWrapper}>
@@ -74,7 +75,7 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
               rowIndex={row.index}
             >
               <LikertRowSummary
-                rowNodeId={makeLikertChildId(target.id, row.index)}
+                rowBaseId={makeLikertChildId(targetBaseComponentId)}
                 emptyFieldText={emptyFieldText}
                 readOnly={readOnly}
                 isCompact={isCompact}
@@ -96,37 +97,16 @@ export function LikertSummary({ target }: Summary2Props<'Likert'>) {
 }
 
 type LikertRowSummaryProps = {
-  rowNodeId?: string;
+  rowBaseId: string;
   emptyFieldText?: string;
   readOnly?: boolean;
   isCompact?: boolean;
 };
 
-function LikertRowSummary(props: LikertRowSummaryProps) {
-  const rowNode = useNode(props.rowNodeId) as LayoutNode | undefined;
-  if (!rowNode || !rowNode.isType('LikertItem')) {
-    return null;
-  }
-
-  return (
-    <LikertRowSummaryInner
-      node={rowNode}
-      {...props}
-    />
-  );
-}
-
-function LikertRowSummaryInner({
-  node,
-  emptyFieldText,
-  readOnly,
-  isCompact,
-}: LikertRowSummaryProps & {
-  node: LayoutNode<'LikertItem'>;
-}) {
-  const { textResourceBindings, required } = useItemWhenType(node.baseId, 'LikertItem');
-  const displayData = useDisplayData(node);
-  const validations = useUnifiedValidationsForNode(node.baseId);
+function LikertRowSummary({ rowBaseId, emptyFieldText, readOnly, isCompact }: LikertRowSummaryProps) {
+  const { textResourceBindings, required } = useItemWhenType(rowBaseId, 'LikertItem');
+  const displayData = useDisplayData(rowBaseId);
+  const validations = useUnifiedValidationsForNode(rowBaseId);
   const errors = validationsOfSeverity(validations, 'error');
 
   useReportSummaryRender(
@@ -141,7 +121,7 @@ function LikertRowSummaryInner({
     <SingleValueSummary
       title={<Lang id={textResourceBindings?.title} />}
       isCompact={isCompact}
-      componentNode={node}
+      targetBaseComponentId={rowBaseId}
       displayData={displayData}
       errors={errors}
       hideEditButton={readOnly}

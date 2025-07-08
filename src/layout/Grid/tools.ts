@@ -11,26 +11,25 @@ import type {
   GridRows,
 } from 'src/layout/common.generated';
 import type { IdMutator } from 'src/utils/layout/DataModelLocation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IsHiddenSelector } from 'src/utils/layout/NodesContext';
 
 const emptyArray: never[] = [];
 
-export function useNodeIdsFromGrid(grid: LayoutNode<'Grid'>, enabled = true) {
+export function useBaseIdsFromGrid(baseComponentId: string, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
-  const rows = useExternalItem(grid.baseId, 'Grid').rows;
+  const rows = useExternalItem(baseComponentId, 'Grid').rows;
   const idMutator = useComponentIdMutator();
-  return enabled && grid && rows ? nodeIdsFromGridRows(rows, isHiddenSelector, idMutator) : emptyArray;
+  return enabled && rows ? baseIdsFromGridRows(rows, isHiddenSelector, idMutator) : emptyArray;
 }
 
-export function useNodeIdsFromGridRows(rows: GridRows | undefined, enabled = true) {
+export function useBaseIdsFromGridRows(rows: GridRows | undefined, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
   const idMutator = useComponentIdMutator();
   const canRender = useHasCapability('renderInTable');
-  return enabled && rows ? nodeIdsFromGridRows(rows, isHiddenSelector, idMutator).filter(canRender) : emptyArray;
+  return enabled && rows ? baseIdsFromGridRows(rows, isHiddenSelector, idMutator).filter(canRender) : emptyArray;
 }
 
-function nodeIdsFromGridRows(
+function baseIdsFromGridRows(
   rows: GridRows,
   isHiddenSelector: IsHiddenSelector,
   idMutator: IdMutator | undefined,
@@ -41,18 +40,18 @@ function nodeIdsFromGridRows(
       continue;
     }
 
-    out.push(...nodeIdsFromGridRow(row, idMutator));
+    out.push(...baseIdsFromGridRow(row));
   }
 
   return out.length ? out : emptyArray;
 }
 
-export function nodeIdsFromGridRow(row: GridRow, idMutator: IdMutator | undefined): string[] {
+export function baseIdsFromGridRow(row: GridRow): string[] {
   const out: string[] = [];
   for (const cell of row.cells) {
     if (isGridCellNode(cell)) {
       const baseId = cell.component ?? '';
-      out.push(idMutator ? idMutator(baseId) : baseId);
+      out.push(baseId);
     }
   }
 

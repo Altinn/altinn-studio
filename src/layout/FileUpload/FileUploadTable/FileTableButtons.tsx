@@ -12,24 +12,33 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IFileTableButtonsProps {
-  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+  baseComponentId: string;
   attachment: IAttachment;
   mobileView: boolean;
   editWindowIsOpen: boolean;
 }
 
-export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpen }: IFileTableButtonsProps) {
-  const { alertOnDelete, type, dataModelBindings, readOnly } = useItemWhenType(node.baseId, node.type);
+export function FileTableButtons({
+  baseComponentId,
+  attachment,
+  mobileView,
+  editWindowIsOpen,
+}: IFileTableButtonsProps) {
+  const { alertOnDelete, type, dataModelBindings, readOnly } = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
+    baseComponentId,
+    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
+  );
   const hasTag = type === 'FileUploadWithTag';
   const showEditButton = hasTag && !editWindowIsOpen && !readOnly;
   const { langAsString } = useLanguage();
   const { index, setEditIndex, editIndex } = useFileTableRow();
   const removeAttachment = useAttachmentsRemover();
+  const nodeId = useIndexedId(baseComponentId);
 
   // Edit button
   const handleEdit = (index: number) => {
@@ -45,7 +54,7 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
       return;
     }
 
-    await removeAttachment({ attachment, nodeId: node.id, dataModelBindings });
+    await removeAttachment({ attachment, nodeId, dataModelBindings });
     editWindowIsOpen && setEditIndex(-1);
   };
 

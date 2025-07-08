@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
@@ -136,7 +136,7 @@ describe('RepeatingGroupTableSummary', () => {
   });
 
   function NavigationHook({ fn, children }: PropsWithChildren<{ fn: jest.Mock }>) {
-    useRegisterNodeNavigationHandler((node, _options) => fn(node.id));
+    useRegisterNavigationHandler((indexedId, _baseComponentId, _options) => fn(indexedId));
     return children;
   }
 
@@ -152,7 +152,7 @@ describe('RepeatingGroupTableSummary', () => {
       renderer: ({ node }) => (
         <NavigationHook fn={navigate}>
           <RepeatingGroupProvider baseComponentId={node.baseId}>
-            <RepeatingGroupTableSummary componentNode={node} />
+            <RepeatingGroupTableSummary baseComponentId={node.baseId} />
           </RepeatingGroupProvider>
         </NavigationHook>
       ),

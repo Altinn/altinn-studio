@@ -201,7 +201,7 @@ function addLikertItemToLayout(layouts: ILayouts) {
     for (const comp of page.values()) {
       if (comp.type === 'Likert') {
         const likertItem: CompExternal<'LikertItem'> = {
-          id: makeLikertChildId(comp.id, undefined),
+          id: makeLikertChildId(comp.id),
           type: 'LikertItem',
           textResourceBindings: {
             title: comp.textResourceBindings?.questions,

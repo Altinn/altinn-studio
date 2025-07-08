@@ -15,7 +15,7 @@ export class Accordion extends AccordionDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps<'Accordion'>): React.JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): React.JSX.Element | null {
     return <SummaryAccordionComponent {...props} />;
   }
 
@@ -23,7 +23,7 @@ export class Accordion extends AccordionDef {
     return false;
   }
 
-  renderSummary2(props: Summary2Props<'Accordion'>): React.JSX.Element | null {
+  renderSummary2(props: Summary2Props): React.JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
         <SummaryAccordionComponent2 {...props} />

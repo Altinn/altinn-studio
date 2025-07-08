@@ -153,10 +153,10 @@ function RepeatingGroupsEditContainerInternal({
           style={{ flexBasis: 'auto' }}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
-          {childIds.map((nodeId) => (
+          {childIds.map((baseId) => (
             <ChildComponent
-              key={nodeId}
-              nodeId={nodeId}
+              key={baseId}
+              baseId={baseId}
               multiPageIndex={multiPageIndex}
               multiPageEnabled={multiPageEnabled}
               tableColumns={tableColumns}
@@ -243,17 +243,17 @@ function RepeatingGroupsEditContainerInternal({
 }
 
 function ChildComponent({
-  nodeId,
+  baseId,
   multiPageIndex,
   multiPageEnabled,
   tableColumns,
 }: {
-  nodeId: string;
+  baseId: string;
   multiPageEnabled: boolean;
   multiPageIndex: number | undefined;
   tableColumns: CompInternal<'RepeatingGroup'>['tableColumns'] | undefined;
 }) {
-  const node = useNode(nodeId);
+  const node = useNode(useIndexedId(baseId));
   if (!node) {
     return null;
   }

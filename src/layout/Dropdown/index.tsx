@@ -46,12 +46,12 @@ export class Dropdown extends DropdownDef {
     };
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Dropdown'>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  renderSummary2(props: Summary2Props<'Dropdown'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <DropdownSummary {...props} />;
   }
 

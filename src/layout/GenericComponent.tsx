@@ -4,7 +4,7 @@ import classNames from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { ExprVal } from 'src/features/expressions/types';
-import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
+import { NavigationResult, useFinishNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
@@ -81,8 +81,8 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (
-      <ErrorList
-        node={node}
+      <ComponentErrorList
+        baseComponentId={node.baseId}
         errors={Object.keys(generatorErrors)}
       />
     );
@@ -146,8 +146,8 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     [grid, node, overrideItemProps, overrideDisplay],
   );
 
-  useFinishNodeNavigation(async (targetNode, options, onHit) => {
-    if (targetNode.id !== id) {
+  useFinishNavigation(async (indexedId, _baseComponentId, options, onHit) => {
+    if (indexedId !== id) {
       return undefined;
     }
     onHit();
@@ -209,7 +209,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
 
   const componentProps: PropsFromGenericComponent<Type> = {
     containerDivRef,
-    node: node as unknown as LayoutNode<Type>,
+    baseComponentId: node.baseId,
     overrideItemProps,
     overrideDisplay,
   };
@@ -222,7 +222,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
 
     return (
       <SummaryComponentFor
-        targetNode={node}
+        targetBaseComponentId={node.baseId}
         overrides={{
           display: { hideChangeButton: true, hideValidationMessages: true },
         }}
@@ -274,8 +274,7 @@ const gridToClasses = (labelGrid: IGridStyling | undefined, classes: { [key: str
   };
 };
 
-const ErrorList = ({ node, errors }: { node: LayoutNode; errors: string[] }) => {
-  const id = node.id;
+export function ComponentErrorList({ baseComponentId, errors }: { baseComponentId: string; errors: string[] }) {
   if (!isDev()) {
     return null;
   }
@@ -285,7 +284,7 @@ const ErrorList = ({ node, errors }: { node: LayoutNode; errors: string[] }) => 
       <h3>
         <Lang
           id='config_error.component_has_errors'
-          params={[id]}
+          params={[baseComponentId]}
         />
       </h3>
       <ul>
@@ -298,4 +297,4 @@ const ErrorList = ({ node, errors }: { node: LayoutNode; errors: string[] }) => 
       </p>
     </div>
   );
-};
+}

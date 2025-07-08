@@ -18,8 +18,11 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const CheckboxContainerComponent = ({ node, overrideDisplay }: PropsFromGenericComponent<'Checkboxes'>) => {
-  const item = useItemWhenType(node.baseId, 'Checkboxes');
+export const CheckboxContainerComponent = ({
+  baseComponentId,
+  overrideDisplay,
+}: PropsFromGenericComponent<'Checkboxes'>) => {
+  const item = useItemWhenType(baseComponentId, 'Checkboxes');
   const {
     id,
     layout,
@@ -37,11 +40,11 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: PropsFromG
     isFetching,
     setData,
     selectedValues: selectedFromSimpleBinding,
-  } = useGetOptions(node.baseId, 'multi');
+  } = useGetOptions(baseComponentId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
 
-  const isValid = useIsValid(node.baseId);
+  const isValid = useIsValid(baseComponentId);
   const horizontal = shouldUseRowLayout({
     layout,
     optionsCount: calculatedOptions.length,
@@ -78,7 +81,7 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: PropsFromG
   );
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       {isFetching ? (
         <AltinnSpinner />
       ) : (

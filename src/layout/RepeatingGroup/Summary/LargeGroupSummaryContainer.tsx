@@ -8,13 +8,14 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IDisplayRepAsLargeGroup {
-  groupNode: LayoutNode<'RepeatingGroup'>;
+  baseComponentId: string;
   id?: string;
   restriction?: number | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
@@ -28,18 +29,25 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-s
   [6]: 'xs',
 };
 
-export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderLayoutNode }: IDisplayRepAsLargeGroup) {
-  const item = useItemWhenType(groupNode.baseId, 'RepeatingGroup');
-  const isHidden = Hidden.useIsHidden(groupNode);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
-  const children = useNodeDirectChildren(groupNode, restriction);
+export function LargeGroupSummaryContainer({
+  baseComponentId,
+  id,
+  restriction,
+  renderLayoutNode,
+}: IDisplayRepAsLargeGroup) {
+  const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
+  const indexedId = useIndexedId(baseComponentId, true);
+  const isHidden = Hidden.useIsHidden(indexedId);
+  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
+  const node = useNode(indexedId);
+  const children = useNodeDirectChildren(node, restriction);
   const layoutLookups = useLayoutLookups();
-  if (isHidden) {
+  if (isHidden || typeof depth !== 'number') {
     return null;
   }
   const { title, summaryTitle } = item.textResourceBindings || {};
 
-  const parent = layoutLookups.componentToParent[groupNode.baseId];
+  const parent = layoutLookups.componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const headingLevel = Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];

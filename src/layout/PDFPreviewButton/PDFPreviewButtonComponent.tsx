@@ -37,7 +37,7 @@ export function PDFPreviewButtonRenderLayoutValidator({ node }: NodeValidationPr
   return null;
 }
 
-export function PDFPreviewButtonComponent({ node }: PropsFromGenericComponent<'PDFPreviewButton'>) {
-  const { textResourceBindings } = useItemWhenType(node.baseId, 'PDFPreviewButton');
+export function PDFPreviewButtonComponent({ baseComponentId }: PropsFromGenericComponent<'PDFPreviewButton'>) {
+  const { textResourceBindings } = useItemWhenType(baseComponentId, 'PDFPreviewButton');
   return <PDFGeneratorPreview buttonTitle={textResourceBindings?.title} />;
 }

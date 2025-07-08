@@ -10,27 +10,27 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export const TextSummary = ({ target }: Summary2Props<'Text'>) => {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export const TextSummary = ({ targetBaseComponentId }: Summary2Props) => {
+  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const displayData = useDisplayData(target);
-  const validations = useUnifiedValidationsForNode(target.baseId);
+  const displayData = useDisplayData(targetBaseComponentId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, direction } = useItemWhenType(target.baseId, 'Text');
+  const { textResourceBindings, direction } = useItemWhenType(targetBaseComponentId, 'Text');
   const title = textResourceBindings?.title;
 
   const compact = (direction === 'horizontal' && isCompact == undefined) || isCompact;
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={displayData ? SummaryContains.SomeUserContent : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
         title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
-        componentNode={target}
+        targetBaseComponentId={targetBaseComponentId}
         hideEditButton
         isCompact={compact}
         emptyFieldText={emptyFieldText}

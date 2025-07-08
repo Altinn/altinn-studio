@@ -195,15 +195,14 @@ export const RepGroupHooks = {
 
   useChildIds(baseComponentId: string) {
     const component = useExternalItem(baseComponentId, 'RepeatingGroup');
-    const idMutator = useComponentIdMutator();
     if (!component?.edit?.multiPage) {
-      return component?.children.map(idMutator) ?? [];
+      return component?.children ?? [];
     }
 
     const childIds: string[] = [];
     for (const id of component.children) {
       const [_, baseId] = id.split(':', 2);
-      childIds.push(idMutator(baseId));
+      childIds.push(baseId);
     }
 
     return childIds;

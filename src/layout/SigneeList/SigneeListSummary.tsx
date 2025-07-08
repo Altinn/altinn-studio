@@ -13,18 +13,17 @@ import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-interface SigneeListSummaryProps {
-  componentNode: LayoutNode<'SigneeList'>;
+interface SigneeListSummaryProps extends Summary2Props {
   titleOverride: string | null | undefined;
 }
 
-export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSummaryProps) {
+export function SigneeListSummary({ targetBaseComponentId, titleOverride }: SigneeListSummaryProps) {
   const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
   const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 
-  const originalTitle = useItemWhenType(componentNode.baseId, 'SigneeList').textResourceBindings?.title;
+  const originalTitle = useItemWhenType(targetBaseComponentId, 'SigneeList').textResourceBindings?.title;
   const title = titleOverride === undefined ? originalTitle : titleOverride;
   const heading = title ? <Lang id={title} /> : undefined;
 
@@ -34,7 +33,7 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
     return (
       <SigneeListSummaryContainer
         heading={heading}
-        target={componentNode}
+        baseComponentId={targetBaseComponentId}
         content={SummaryContains.Presentational}
       >
         <Paragraph>
@@ -48,7 +47,7 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
     return (
       <SigneeListSummaryContainer
         heading={heading}
-        target={componentNode}
+        baseComponentId={targetBaseComponentId}
         content={SummaryContains.SomeUserContent}
       >
         <Paragraph>
@@ -62,7 +61,7 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
     return (
       <SigneeListSummaryContainer
         heading={heading}
-        target={componentNode}
+        baseComponentId={targetBaseComponentId}
         content={SummaryContains.EmptyValueNotRequired}
       >
         <Paragraph>
@@ -75,7 +74,7 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
   return (
     <SigneeListSummaryContainer
       heading={heading}
-      target={componentNode}
+      baseComponentId={targetBaseComponentId}
       content={SummaryContains.SomeUserContent}
     >
       <ul className={classes.signeeList}>
@@ -113,14 +112,14 @@ export function SigneeListSummary({ componentNode, titleOverride }: SigneeListSu
 
 interface SigneeListSummaryContentProps extends PropsWithChildren {
   heading: ReactElement | undefined;
-  target: LayoutNode<'SigneeList'>;
+  baseComponentId: string;
   content: SummaryContains;
 }
 
-function SigneeListSummaryContainer({ target, content, heading, children }: SigneeListSummaryContentProps) {
+function SigneeListSummaryContainer({ baseComponentId, content, heading, children }: SigneeListSummaryContentProps) {
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={baseComponentId}
       content={content}
     >
       <div>

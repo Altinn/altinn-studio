@@ -51,22 +51,22 @@ export class SimpleTable extends SimpleTableDef {
   isDataModelBindingsRequired() {
     return false;
   }
-  renderSummary2(props: Summary2Props<'SimpleTable'>): React.JSX.Element | null {
-    const { externalApi, dataModelBindings } = useItemWhenType(props.target.baseId, 'SimpleTable');
+  renderSummary2(props: Summary2Props): React.JSX.Element | null {
+    const { externalApi, dataModelBindings } = useItemWhenType(props.targetBaseComponentId, 'SimpleTable');
 
     if (externalApi) {
-      return <ApiTableSummary componentNode={props.target} />;
+      return <ApiTableSummary {...props} />;
     }
 
     if (dataModelBindings) {
-      return <SimpleTableSummary componentNode={props.target} />;
+      return <SimpleTableSummary {...props} />;
     }
 
     return null;
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
-      const { dataModelBindings, externalApi } = useItemWhenType(props.node.baseId, 'SimpleTable');
+      const { dataModelBindings, externalApi } = useItemWhenType(props.baseComponentId, 'SimpleTable');
       if (dataModelBindings) {
         return (
           <SimpleTableComponent
@@ -93,7 +93,7 @@ export class SimpleTable extends SimpleTableDef {
     return <SimpleTableFeatureFlagLayoutValidator {...props} />;
   }
 
-  renderSummary(_: SummaryRendererProps<'SimpleTable'>): React.JSX.Element | null {
+  renderSummary(_: SummaryRendererProps): React.JSX.Element | null {
     return null;
   }
 }

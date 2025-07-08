@@ -64,11 +64,11 @@ export class MultipleSelect extends MultipleSelectDef {
     };
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {
-    return <MultipleChoiceSummary targetNode={targetNode} />;
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <MultipleChoiceSummary {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'MultipleSelect'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <MultipleSelectSummary {...props} />;
   }
 

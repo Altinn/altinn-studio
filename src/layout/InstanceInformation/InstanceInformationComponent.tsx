@@ -99,12 +99,12 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
 }
 
 export function InstanceInformationComponent({
-  node,
+  baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'InstanceInformation'>) {
-  const { grid, elements } = useExternalItem(node.baseId, 'InstanceInformation');
+  const { grid, elements } = useExternalItem(baseComponentId, 'InstanceInformation');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideDisplay,
   });
 
@@ -115,7 +115,7 @@ export function InstanceInformationComponent({
       description={getDescriptionComponent()}
       help={getHelpTextComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <InstanceInformation elements={elements} />
       </ComponentStructureWrapper>
     </Fieldset>

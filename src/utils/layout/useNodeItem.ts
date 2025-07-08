@@ -7,7 +7,7 @@ import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { typedBoolean } from 'src/utils/typing';
 import type { FormDataSelector } from 'src/layout';
-import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
+import type { CompInternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -101,14 +101,17 @@ export function useNodeDirectChildren(parent: LayoutNode | undefined, restrictio
   );
 }
 
-type NodeFormData<N extends LayoutNode | undefined> = N extends undefined
-  ? IComponentFormData<TypeFromNode<Exclude<N, undefined>>> | undefined
-  : IComponentFormData<TypeFromNode<Exclude<N, undefined>>>;
+type FormDataFromType<T extends CompTypes | undefined> = T extends undefined
+  ? IComponentFormData<Exclude<T, undefined>> | undefined
+  : IComponentFormData<Exclude<T, undefined>>;
 
 const emptyObject = {};
-export function useNodeFormData<N extends LayoutNode>(node: N): NodeFormData<N> {
-  const dataModelBindings = useDataModelBindingsFor(node.baseId) as IDataModelBindings<TypeFromNode<N>>;
-  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as NodeFormData<N>;
+export function useFormDataFor<T extends CompTypes>(
+  baseComponentId: string,
+  type?: T | ((type: CompTypes) => boolean),
+): FormDataFromType<T> {
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, type) as IDataModelBindings<T>;
+  return FD.useDebouncedSelect((pick) => getNodeFormDataInner(dataModelBindings, pick)) as FormDataFromType<T>;
 }
 
 export function useNodeFormDataWhenType<Type extends CompTypes>(

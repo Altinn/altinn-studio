@@ -16,19 +16,19 @@ import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTab
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>) => {
+export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
   const processNext = useProcessNext();
   const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'reject'>();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
-  const { title, description } = useItemWhenType(node.baseId, 'Payment').textResourceBindings ?? {};
+  const { title, description } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use PaymentComponent in a subform');
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div className={classes.paymentContainer}>
         <PaymentDetailsTable
           orderDetails={paymentInfo?.orderDetails}

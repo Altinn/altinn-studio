@@ -3,15 +3,11 @@ import type { JSX } from 'react';
 
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNode } from 'src/utils/layout/NodesContext';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
-type Props = Pick<SummaryRendererProps<'Tabs'>, 'targetNode' | 'overrides'>;
-
-export function TabsSummaryComponent({ targetNode, overrides }: Props): JSX.Element | null {
-  const { tabs } = useExternalItem(targetNode.baseId, 'Tabs');
+export function TabsSummaryComponent({ targetBaseComponentId, overrides }: SummaryRendererProps): JSX.Element | null {
+  const { tabs } = useExternalItem(targetBaseComponentId, 'Tabs');
   const childIds = tabs.map((card) => card.children).flat();
 
   return (
@@ -27,18 +23,15 @@ export function TabsSummaryComponent({ targetNode, overrides }: Props): JSX.Elem
   );
 }
 
-function Child({ baseId, overrides }: { baseId: string } & Pick<Props, 'overrides'>) {
-  const nodeId = useIndexedId(baseId);
-  const node = useNode(nodeId);
+function Child({ baseId, overrides }: { baseId: string } & Pick<SummaryRendererProps, 'overrides'>) {
   const canRender = useHasCapability('renderInTabs');
-  if (!node || !canRender(baseId)) {
+  if (!canRender(baseId)) {
     return null;
   }
 
   return (
     <SummaryComponentFor
-      key={node.id}
-      targetNode={node}
+      targetBaseComponentId={baseId}
       overrides={{
         ...overrides,
         grid: {},

@@ -768,7 +768,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
 
   const Wrapper = ({ node }: { node: LayoutNode<T> }) => {
     const props: PropsFromGenericComponent<T> = {
-      node,
+      baseComponentId: node.baseId,
       ...(mockGenericComponentProps as unknown as IComponentProps),
       ...genericProps,
     };

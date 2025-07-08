@@ -2,10 +2,9 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface CardContext {
-  node: LayoutNode<'Cards'>;
+  baseComponentId: string;
   renderedInMedia: boolean;
   minMediaHeight?: string;
 }

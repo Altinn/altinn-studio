@@ -10,18 +10,18 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export const DropdownSummary = ({ target }: Summary2Props<'Dropdown'>) => {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export const DropdownSummary = ({ targetBaseComponentId }: Summary2Props) => {
+  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const displayData = useDisplayData(target);
-  const validations = useUnifiedValidationsForNode(target.baseId);
+  const displayData = useDisplayData(targetBaseComponentId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const item = useItemWhenType(target.baseId, 'Dropdown');
+  const item = useItemWhenType(targetBaseComponentId, 'Dropdown');
   const title = item.textResourceBindings?.title;
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={
         displayData
           ? SummaryContains.SomeUserContent
@@ -34,7 +34,7 @@ export const DropdownSummary = ({ target }: Summary2Props<'Dropdown'>) => {
         title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
-        componentNode={target}
+        targetBaseComponentId={targetBaseComponentId}
         isCompact={isCompact}
         emptyFieldText={emptyFieldText}
       />

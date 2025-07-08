@@ -7,19 +7,22 @@ import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompTypes } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
-export interface IAttachmentSummaryComponent {
-  targetNode: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+type ValidTypes = 'FileUpload' | 'FileUploadWithTag';
+
+function isValidType(type: CompTypes): boolean {
+  return type === 'FileUpload' || type === 'FileUploadWithTag';
 }
 
-export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {
-  const attachments = useUploaderSummaryData(targetNode.baseId);
+export function AttachmentSummaryComponent({ targetBaseComponentId }: SummaryRendererProps) {
+  const attachments = useUploaderSummaryData(targetBaseComponentId);
   const { langAsString } = useLanguage();
-  const component = useItemWhenType(targetNode.baseId, targetNode.type);
+  const component = useItemWhenType<ValidTypes>(targetBaseComponentId, isValidType);
   const hasTag = component.type === 'FileUploadWithTag';
 
-  const { options: allOptions } = useOptionsFor(targetNode.baseId, 'single');
+  const { options: allOptions } = useOptionsFor(targetBaseComponentId, 'single');
   const options = hasTag ? allOptions : undefined;
 
   const tryToGetTextResource = (tag: string) => {

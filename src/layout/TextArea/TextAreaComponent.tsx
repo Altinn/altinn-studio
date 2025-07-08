@@ -17,9 +17,9 @@ import 'src/styles/shared.css';
 
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
-export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
+export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
   const { langAsString } = useLanguage();
-  const isValid = useIsValid(node.baseId);
+  const isValid = useIsValid(baseComponentId);
   const {
     id,
     readOnly,
@@ -30,7 +30,7 @@ export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
     maxLength,
     grid,
     required,
-  } = useItemWhenType(node.baseId, 'TextArea');
+  } = useItemWhenType(baseComponentId, 'TextArea');
   const characterLimit = useCharacterLimit(maxLength);
   const {
     formData: { simpleBinding: value },
@@ -39,7 +39,7 @@ export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
   const debounce = FD.useDebounceImmediately();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId: node.baseId, overrideDisplay });
+    useLabel({ baseComponentId, overrideDisplay });
 
   return (
     <Label
@@ -52,7 +52,7 @@ export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
       help={getHelpTextComponent()}
       description={getDescriptionComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <TextArea
           id={id}
           value={value}

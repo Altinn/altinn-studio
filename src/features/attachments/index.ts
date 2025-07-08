@@ -2,9 +2,7 @@ import type { AxiosError } from 'axios';
 
 import type { IDataModelPairResponse } from 'src/features/formData/types';
 import type { BackendValidationIssue, BackendValidationIssueGroupListItem } from 'src/features/validation';
-import type { CompWithBehavior } from 'src/layout/layout';
 import type { IData, IInstance, ProblemDetails } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IAttachmentTemporary {
   temporaryId: string;
@@ -31,8 +29,6 @@ export interface IAttachmentsMap<T extends IAttachment = IAttachment> {
 export function isAttachmentUploaded(attachment: IAttachment): attachment is UploadedAttachment {
   return attachment.uploaded;
 }
-
-export type FileUploaderNode = LayoutNode<CompWithBehavior<'canHaveAttachments'>>;
 
 export type DataPostResponse = {
   newDataElementId: string;

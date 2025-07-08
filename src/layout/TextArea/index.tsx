@@ -27,8 +27,8 @@ export class TextArea extends TextAreaDef {
     return formData?.simpleBinding ?? '';
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'TextArea'>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(props.targetBaseComponentId);
     return (
       <SummaryItemSimple
         formDataAsString={displayData}
@@ -37,7 +37,7 @@ export class TextArea extends TextAreaDef {
     );
   }
 
-  renderSummary2(props: Summary2Props<'TextArea'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <TextAreaSummary {...props} />;
   }
 

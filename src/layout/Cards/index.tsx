@@ -20,20 +20,15 @@ export class Cards extends CardsDef {
     return false;
   }
 
-  renderSummary2(props: Summary2Props<'Cards'>): React.JSX.Element | null {
+  renderSummary2(props: Summary2Props): React.JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
-        <CardsSummary2 target={props.target} />
+        <CardsSummary2 {...props} />
       </EmptyChildrenBoundary>
     );
   }
 
-  renderSummary({ targetNode, overrides }: SummaryRendererProps<'Cards'>): JSX.Element | null {
-    return (
-      <CardsSummary
-        targetNode={targetNode}
-        overrides={overrides}
-      />
-    );
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <CardsSummary {...props} />;
   }
 }

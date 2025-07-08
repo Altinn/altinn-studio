@@ -21,18 +21,16 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { optionSearchFilter } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
-
-export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
-  const item = useItemWhenType(node.baseId, 'Dropdown');
-  const isValid = useIsValid(node.baseId);
+export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Dropdown'>) {
+  const item = useItemWhenType(baseComponentId, 'Dropdown');
+  const isValid = useIsValid(baseComponentId);
   const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
   const { langAsString, lang } = useLanguage();
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId: node.baseId, overrideDisplay });
+    useLabel({ baseComponentId, overrideDisplay });
 
-  const { options, isFetching, selectedValues, setData } = useGetOptions(node.baseId, 'single');
+  const { options, isFetching, selectedValues, setData } = useGetOptions(baseComponentId, 'single');
   const debounce = FD.useDebounceImmediately();
 
   const changeMessageGenerator = useCallback(
@@ -69,7 +67,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
       help={getHelpTextComponent()}
       description={getDescriptionComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <ConditionalWrapper
           condition={Boolean(alertOnChange)}
           wrapper={(children) => (

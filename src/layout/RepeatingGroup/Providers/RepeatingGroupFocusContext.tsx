@@ -2,14 +2,14 @@ import React, { useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { useNode } from 'src/utils/layout/NodesContext';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
+import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 
 type FocusableHTMLElement =
   | HTMLButtonElement
@@ -44,23 +44,27 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   const { baseComponentId, openForEditing, changePageToRow } = useRepeatingGroup();
   const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
   const rowsSelector = FD.useDebouncedRowsSelector();
-  const node = useNode(useIndexedId(baseComponentId));
+  const layoutLookups = useLayoutLookups();
 
-  useRegisterNodeNavigationHandler(async (targetNode) => {
+  useRegisterNavigationHandler(async (targetIndexedId, targetBaseComponentId) => {
     // Figure out if we are a parent of the target component, setting the targetChild to the target
     // component (or a nested repeating group containing the target component).
-    let targetChild: LayoutNode | undefined;
-    let subject: LayoutNode | LayoutPage | undefined = targetNode;
-
-    while (subject) {
-      if (!(subject instanceof LayoutNode)) {
+    let targetChild: string | undefined;
+    let negativeRowIndex = -1;
+    let subject: ParentRef = { type: 'node', id: targetBaseComponentId };
+    while (subject.type === 'node') {
+      const parent = layoutLookups.componentToParent[subject.id];
+      if (parent?.id === baseComponentId) {
+        targetChild = subject.id;
         break;
       }
-      if (subject.parent === node) {
-        targetChild = subject;
-        break;
+      const parentComponent = layoutLookups.allComponents[parent.id];
+      if (parentComponent && isRepeatingComponentType(parentComponent.type)) {
+        // For every repeating component type we encounter in the hierarchy above this target, we should look backwards
+        // in the indexed id for our actual row id.
+        negativeRowIndex -= 1;
       }
-      subject = subject.parent;
+      subject = parent;
     }
 
     if (!targetChild) {
@@ -69,7 +73,8 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
     }
 
     const rows = rowsSelector(dataModelBindings.group);
-    const row = rows.find((r) => r.index === targetChild?.rowIndex);
+    const { depth } = splitDashedKey(targetIndexedId);
+    const row = rows.find((r) => r.index === depth.at(negativeRowIndex));
 
     // If pagination is used, navigate to the correct page
     if (pagination) {
@@ -86,7 +91,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
     }
 
     // Check if we need to open the row containing targetChild for editing.
-    const tableColSetup = (tableColumns && targetChild.baseId && tableColumns[targetChild.baseId]) || {};
+    const tableColSetup = (tableColumns && tableColumns[targetChild]) || {};
 
     if (tableColSetup.editInTable || tableColSetup.showInExpandedEdit === false) {
       // No need to open rows or set editIndex for components that are rendered

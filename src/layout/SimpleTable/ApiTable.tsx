@@ -19,8 +19,8 @@ interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
   externalApi: DataConfig;
 }
 
-export function ApiTable({ node, externalApi }: ApiTableProps) {
-  const { textResourceBindings, zebra, size, columns } = useItemWhenType(node.baseId, 'SimpleTable');
+export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
+  const { textResourceBindings, zebra, size, columns } = useItemWhenType(baseComponentId, 'SimpleTable');
   const { title, description, help } = textResourceBindings ?? {};
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);

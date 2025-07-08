@@ -42,12 +42,12 @@ export class RadioButtons extends RadioButtonsDef {
     };
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'RadioButtons'>): JSX.Element | null {
-    const displayData = useDisplayData(targetNode);
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(props.targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  renderSummary2(props: Summary2Props<'RadioButtons'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <RadioButtonsSummary {...props} />;
   }
 

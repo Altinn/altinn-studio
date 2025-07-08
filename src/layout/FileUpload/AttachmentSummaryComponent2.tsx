@@ -11,17 +11,15 @@ import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export interface IAttachmentSummaryComponent {
-  targetNode: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
-}
-
-export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryComponent) {
-  const attachments = useUploaderSummaryData(targetNode.baseId);
-  const hasTag = targetNode.isType('FileUploadWithTag');
-  const { options, isFetching } = useOptionsFor(targetNode.baseId, 'single');
+export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
+  const attachments = useUploaderSummaryData(targetBaseComponentId);
+  const component = useExternalItem(targetBaseComponentId);
+  const hasTag = component?.type === 'FileUploadWithTag';
+  const { options, isFetching } = useOptionsFor(targetBaseComponentId, 'single');
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
   const isSmall = mobileView && !pdfModeActive;
@@ -36,13 +34,13 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
   const isEmpty = filteredAttachments.length === 0;
   const required =
     useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-      targetNode.baseId,
+      targetBaseComponentId,
       (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
     ).minNumberOfAttachments > 0;
 
   return (
     <SummaryFlex
-      target={targetNode}
+      targetBaseId={targetBaseComponentId}
       content={
         isEmpty
           ? required
@@ -52,8 +50,8 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
       }
     >
       <Label
-        baseComponentId={targetNode.baseId}
-        overrideId={`attachment-summary2-${targetNode.baseId}`}
+        baseComponentId={targetBaseComponentId}
+        overrideId={`attachment-summary2-${targetBaseComponentId}`}
         renderLabelAs='span'
         className={classes.summaryLabelMargin}
         weight='regular'
@@ -66,7 +64,7 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
         </Paragraph>
       ) : (
         <FileTable
-          node={targetNode}
+          baseComponentId={targetBaseComponentId}
           mobileView={isSmall}
           attachments={filteredAttachments}
           options={options}

@@ -5,10 +5,9 @@ import cn from 'classnames';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
 import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
-import { ComponentSummaryById, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -30,8 +29,8 @@ function getHeadingLevel(headingLevel: number | undefined) {
   }
 }
 
-export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'Accordion'>) {
-  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetNode.baseId, 'Accordion');
+export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRendererProps) {
+  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetBaseComponentId, 'Accordion');
   const { langAsString } = useLanguage();
 
   const title = langAsString(textResourceBindings?.title);
@@ -54,10 +53,9 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
   );
 }
 
-export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'>) {
-  const idMutator = useComponentIdMutator();
+export function SummaryAccordionComponent2({ targetBaseComponentId }: Summary2Props) {
   const canRenderInAccordion = useHasCapability('renderInAccordion');
-  const { textResourceBindings, headingLevel, children } = useItemWhenType(target.baseId, 'Accordion');
+  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetBaseComponentId, 'Accordion');
   const { langAsString } = useLanguage();
 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
@@ -68,7 +66,7 @@ export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'
   return (
     <SummaryFlexForContainer
       hideWhen={hideEmptyFields}
-      target={target}
+      targetBaseId={targetBaseComponentId}
     >
       <div className={cn(classes.container, classes.summary2width)}>
         <div className={cn(classes.header, classes.padding)}>
@@ -76,9 +74,9 @@ export function SummaryAccordionComponent2({ target }: Summary2Props<'Accordion'
         </div>
         <div className={classes.padding}>
           {children.filter(canRenderInAccordion).map((baseId) => (
-            <ComponentSummaryById
+            <ComponentSummary
               key={baseId}
-              componentId={idMutator?.(baseId) ?? baseId}
+              targetBaseComponentId={baseId}
             />
           ))}
         </div>

@@ -5,41 +5,49 @@ import { createContext } from 'src/core/contexts/context';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import type { NodeRefValidation } from 'src/features/validation';
 import type { NavigateToPageOptions } from 'src/hooks/useNavigatePage';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type NavigationHandler = (node: LayoutNode, options: NavigateToNodeOptions | undefined) => Promise<boolean>;
+type NavigationHandler = (
+  indexedId: string,
+  baseComponentId: string,
+  options: NavigateToComponentOptions | undefined,
+) => Promise<boolean>;
 type FinishNavigationHandler = (
-  node: LayoutNode,
-  options: NavigateToNodeOptions | undefined,
+  indexedId: string,
+  baseComponentId: string,
+  options: NavigateToComponentOptions | undefined,
   whenHit: () => void,
 ) => Promise<NavigationResult | void>;
 
 export enum NavigationResult {
   Timeout = 'timeout',
-  NodeIsHidden = 'nodeIsHidden',
+  ComponentIsHidden = 'componentIsHidden',
   SuccessfulNoFocus = 'successfulNoFocus',
   SuccessfulFailedToRender = 'successfulFailedToRender',
   SuccessfulWithFocus = 'successfulWithFocus',
 }
 
-export interface NavigateToNodeOptions {
+export interface NavigateToComponentOptions {
   shouldFocus?: boolean;
   pageNavOptions?: NavigateToPageOptions;
   error?: NodeRefValidation;
 }
 
-interface NodeNavigationContext {
+interface ComponentNavigationContext {
   /**
-   * Start navigating to the given node. If the node is not found, or is hidden, the navigation will be cancelled.
-   * If no navigation handler are registered to handle navigating to the node, the navigation will also be cancelled
+   * Start navigating to the given component. If it's not found or is hidden, the navigation will be canceled.
+   * If no navigation handlers are registered to handle navigating to it, the navigation will also be canceled
    * after a short delay.
    */
-  navigateTo: (node: LayoutNode, options?: NavigateToNodeOptions) => Promise<NavigationResult>;
+  navigateTo: (
+    indexedId: string,
+    baseComponentId: string,
+    options?: NavigateToComponentOptions,
+  ) => Promise<NavigationResult>;
 
   /**
    * Registers a function that tries to change some internal state in its own context in order to help navigate
-   * to a node. For example by navigating to a page, or opening a repeating group for editing. The callback
-   * runs as soon as possible whenever we're supposed to navigate to a node, and is forgotten after that.
+   * to a component. For example by navigating to a page, or opening a repeating group for editing. The callback
+   * runs as soon as possible whenever we're supposed to navigate to a component and is forgotten after that.
    */
   registerNavigationHandler: (handler: NavigationHandler) => void;
   unregisterNavigationHandler: (handler: NavigationHandler) => void;
@@ -52,7 +60,10 @@ interface NodeNavigationContext {
   unregisterFinishNavigation: (handler: FinishNavigationHandler) => void;
 }
 
-const { Provider, useCtx } = createContext<NodeNavigationContext>({ name: 'PageNavigationContext', required: true });
+const { Provider, useCtx } = createContext<ComponentNavigationContext>({
+  name: 'PageNavigationContext',
+  required: true,
+});
 
 interface NavigationRequest {
   onHandlerAdded: (handler: NavigationHandler) => Promise<void>;
@@ -61,17 +72,17 @@ interface NavigationRequest {
 
 type HandlerRegistry<T> = Set<T>;
 
-export function NavigateToNodeProvider({ children }: PropsWithChildren) {
+export function NavigateToComponentProvider({ children }: PropsWithChildren) {
   const request = useRef<NavigationRequest | undefined>();
   const navigationHandlers = useRef<HandlerRegistry<NavigationHandler>>(new Set());
   const finishHandlers = useRef<HandlerRegistry<FinishNavigationHandler>>(new Set());
   const isHidden = Hidden.useIsHiddenSelector();
 
   const navigateTo = useCallback(
-    async (node: LayoutNode, options?: NavigateToNodeOptions) =>
+    async (indexedId: string, baseComponentId: string, options?: NavigateToComponentOptions) =>
       new Promise<NavigationResult>((resolve) => {
-        if (isHidden(node)) {
-          resolve(NavigationResult.NodeIsHidden);
+        if (isHidden(indexedId)) {
+          resolve(NavigationResult.ComponentIsHidden);
           return;
         }
 
@@ -83,7 +94,7 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
             if (finished) {
               return;
             }
-            if (await handler(node, options)) {
+            if (await handler(indexedId, baseComponentId, options)) {
               lastTick = Date.now();
             }
           };
@@ -91,7 +102,7 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
             if (finished) {
               return;
             }
-            const result = await handler(node, options, () => {
+            const result = await handler(indexedId, baseComponentId, options, () => {
               // Mark as finished as soon as the component has been hit (i.e. rendered in GenericComponent), even if
               // we haven't actually focused it yet. The focussing requires a ref to the actual rendered element, and
               // it may take some time to reach that stage, and it may even fail if something downstream is hidden.
@@ -164,9 +175,9 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
   );
 }
 
-export const useNavigateToNode = () => useCtx().navigateTo;
+export const useNavigateTo = () => useCtx().navigateTo;
 
-export const useRegisterNodeNavigationHandler = (handler: NavigationHandler) => {
+export const useRegisterNavigationHandler = (handler: NavigationHandler) => {
   const { registerNavigationHandler, unregisterNavigationHandler } = useCtx();
 
   useEffect(() => {
@@ -175,7 +186,7 @@ export const useRegisterNodeNavigationHandler = (handler: NavigationHandler) => 
   }, [registerNavigationHandler, unregisterNavigationHandler, handler]);
 };
 
-export const useFinishNodeNavigation = (handler: FinishNavigationHandler) => {
+export const useFinishNavigation = (handler: FinishNavigationHandler) => {
   const { registerFinishNavigation, unregisterFinishNavigation } = useCtx();
 
   useEffect(() => {

@@ -65,12 +65,12 @@ async function fetchOrg(orgNr: string): Promise<{ org: Organisation; error: null
 }
 
 export function OrganisationLookupComponent({
-  node,
+  baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
-  const { id, dataModelBindings, required } = useItemWhenType(node.baseId, 'OrganisationLookup');
+  const { id, dataModelBindings, required } = useItemWhenType(baseComponentId, 'OrganisationLookup');
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideDisplay,
   });
   const [tempOrgNr, setTempOrgNr] = useState('');
@@ -131,7 +131,7 @@ export function OrganisationLookupComponent({
       help={getHelpTextComponent()}
       size='sm'
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <div className={classes.componentWrapper}>
           <div className={classes.orgnrLabel}>
             <Label

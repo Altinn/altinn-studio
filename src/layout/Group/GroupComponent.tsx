@@ -10,13 +10,14 @@ import { Panel } from 'src/app-components/Panel/Panel';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IGroupComponent {
-  groupNode: LayoutNode<'Group'>;
+  baseComponentId: string;
   containerDivRef?: React.Ref<HTMLDivElement>;
   id?: string;
   restriction?: number | undefined;
@@ -33,17 +34,18 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-s
 };
 
 export function GroupComponent({
-  groupNode,
+  baseComponentId,
   containerDivRef,
   id,
   restriction,
   isSummary,
   renderLayoutNode,
 }: IGroupComponent) {
-  const container = useItemWhenType(groupNode.baseId, 'Group');
+  const container = useItemWhenType(baseComponentId, 'Group');
   const { title, summaryTitle, description } = container.textResourceBindings ?? {};
-  const isHidden = Hidden.useIsHidden(groupNode);
+  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId));
 
+  const groupNode = useNode(useIndexedId(baseComponentId));
   const children = useNodeDirectChildren(groupNode, restriction);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
   const layoutLookups = useLayoutLookups();

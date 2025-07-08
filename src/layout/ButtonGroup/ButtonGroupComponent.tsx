@@ -13,10 +13,10 @@ import { useExternalItem } from 'src/utils/layout/hooks';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 
-export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
-  const { grid, children } = useExternalItem(node.baseId, 'ButtonGroup');
+export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
+  const { grid, children } = useExternalItem(baseComponentId, 'ButtonGroup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideDisplay,
   });
 
@@ -27,7 +27,7 @@ export function ButtonGroupComponent({ node, overrideDisplay }: PropsFromGeneric
       description={getDescriptionComponent()}
       help={getHelpTextComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <Flex
           item
           container

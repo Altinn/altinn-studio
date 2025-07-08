@@ -27,9 +27,9 @@ interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
   dataModelBindings: IDataModelBindingsForTable;
 }
 
-export function SimpleTableComponent({ node, dataModelBindings }: TableComponentProps) {
+export function SimpleTableComponent({ baseComponentId, dataModelBindings }: TableComponentProps) {
   const { textResourceBindings, enableDelete, enableEdit, zebra, size, columns } = useItemWhenType(
-    node.baseId,
+    baseComponentId,
     'SimpleTable',
   );
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');

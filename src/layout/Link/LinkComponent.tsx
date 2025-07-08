@@ -17,9 +17,7 @@ export const buttonStyles: {
   secondary: { variant: 'secondary', color: 'first' },
 };
 
-export type ILinkComponent = PropsFromGenericComponent<'Link'>;
-
-export function LinkComponent({ node }: ILinkComponent) {
+export function LinkComponent({ baseComponentId }: PropsFromGenericComponent<'Link'>) {
   const {
     id,
     style: linkStyle,
@@ -29,7 +27,7 @@ export function LinkComponent({ node }: ILinkComponent) {
     size,
     fullWidth,
     textAlign,
-  } = useItemWhenType(node.baseId, 'Link');
+  } = useItemWhenType(baseComponentId, 'Link');
   const { langAsString } = useLanguage();
 
   const downloadName = textResourceBindings?.download;
@@ -78,7 +76,7 @@ export function LinkComponent({ node }: ILinkComponent) {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       {linkStyle === 'link' ? <Link /> : <LinkButton />}
     </ComponentStructureWrapper>
   );

@@ -14,18 +14,17 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { GenericComponent, GenericComponentById } from 'src/layout/GenericComponent';
+import { GenericComponent, GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import {
   isGridCellLabelFrom,
   isGridCellNode,
   isGridCellText,
   isGridRowHidden,
-  useNodeIdsFromGrid,
+  useBaseIdsFromGrid,
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -33,16 +32,17 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { GridRow, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
-  const { node } = props;
-  const { rows, textResourceBindings, labelSettings } = useItemWhenType(node.baseId, 'Grid');
+  const { baseComponentId } = props;
+  const { rows, textResourceBindings, labelSettings } = useItemWhenType(baseComponentId, 'Grid');
   const { title, description, help } = textResourceBindings ?? {};
-  const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
-  const parent = useLayoutLookups().componentToParent[node.baseId];
+  const parent = useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
+  const shouldHaveFullWidth = parent?.type === 'page';
   const { elementAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
+  const indexedId = useIndexedId(baseComponentId);
 
   if (isMobile) {
     return <MobileGrid {...props} />;
@@ -54,7 +54,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
       wrapper={(child) => <FullWidthWrapper>{child}</FullWidthWrapper>}
     >
       <Table
-        id={node.id}
+        id={indexedId}
         className={css.table}
       >
         {title && (
@@ -283,28 +283,28 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
   );
 }
 
-function MobileGrid({ node, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
-  const nodeIds = useNodeIdsFromGrid(node);
+function MobileGrid({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
+  const baseIds = useBaseIdsFromGrid(baseComponentId);
   const isHidden = Hidden.useIsHiddenSelector();
 
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideDisplay,
   });
 
   return (
     <Fieldset
-      id={node.id}
+      id={useIndexedId(baseComponentId)}
       size='sm'
       legend={labelText}
       description={getDescriptionComponent()}
       help={getHelpTextComponent()}
       className={css.mobileFieldset}
     >
-      {nodeIds
+      {baseIds
         .filter((childId) => !isHidden(childId))
         .map((childId) => (
-          <GenericComponentById
+          <GenericComponentByBaseId
             key={childId}
             id={childId}
           />

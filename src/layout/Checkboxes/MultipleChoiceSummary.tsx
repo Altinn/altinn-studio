@@ -9,22 +9,18 @@ import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSep
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useNodeFormData } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { useFormDataFor } from 'src/utils/layout/useNodeItem';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 type Row = Record<string, string | number | boolean>;
 
-export interface IMultipleChoiceSummaryProps {
-  targetNode: LayoutNode<'Checkboxes' | 'MultipleSelect'>;
-}
-
-export function MultipleChoiceSummary({ targetNode }: IMultipleChoiceSummaryProps) {
-  const rawFormData = useNodeFormData(targetNode);
+export function MultipleChoiceSummary({ targetBaseComponentId }: SummaryRendererProps) {
+  const rawFormData = useFormDataFor<'Checkboxes' | 'MultipleSelect'>(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor<'Checkboxes' | 'MultipleSelect'>(
-    targetNode.baseId,
+    targetBaseComponentId,
     (t) => t === 'Checkboxes' || t === 'MultipleSelect',
   );
-  const options = useOptionsFor(targetNode.baseId, 'multi').options;
+  const options = useOptionsFor(targetBaseComponentId, 'multi').options;
   const { langAsString } = useLanguage();
 
   const relativeCheckedPath =

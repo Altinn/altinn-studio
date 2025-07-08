@@ -12,7 +12,7 @@ export class Summary extends SummaryDef {
     function LayoutComponentSummaryRender(props, _): JSX.Element | null {
       return (
         <SummaryComponent
-          summaryNode={props.node}
+          summaryBaseId={props.baseComponentId}
           ref={props.containerDivRef}
         />
       );

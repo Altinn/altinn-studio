@@ -31,10 +31,14 @@ interface PlainLayoutLookups {
   };
 }
 
+export type PageRef = { type: 'page'; id: string };
+export type NodeRef = { type: 'node'; id: string };
+export type ParentRef = PageRef | NodeRef;
+
 interface RelationshipLookups {
   // Map of all component ids to their parent component id
   componentToParent: {
-    [componentId: string]: { type: 'page'; id: string } | { type: 'node'; id: string } | undefined;
+    [componentId: string]: ParentRef | undefined;
   };
 
   // Map of all component ids to their children component ids

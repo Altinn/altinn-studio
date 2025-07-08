@@ -2,36 +2,25 @@ import React from 'react';
 
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-type IPanelProps = PropsFromGenericComponent<'Panel'>;
+export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'Panel'>) => {
+  const { textResourceBindings, variant, showIcon, grid } = useItemWhenType(baseComponentId, 'Panel');
+  const layoutLookups = useLayoutLookups();
+  const parent = layoutLookups.componentToParent[baseComponentId];
+  const fullWidth = !grid && parent?.type === 'page';
 
-export const PanelComponent = ({ node }: IPanelProps) => {
-  const { textResourceBindings, variant, showIcon, grid } = useItemWhenType(node.baseId, 'Panel');
-  const fullWidth = !grid && node.parent instanceof LayoutPage;
+  const childrenOfParent =
+    (parent && parent?.type === 'page'
+      ? layoutLookups.topLevelComponents[parent.id]
+      : parent && layoutLookups.componentToChildren[parent.id]) ?? [];
 
-  const { isOnBottom, isOnTop } = NodesInternal.useShallowSelector((state) => {
-    let children: string[] = [];
-    if (node.parent instanceof LayoutPage) {
-      children = Object.values(state.nodeData)
-        .filter((n) => n.pageKey === node.parent.pageKey && n.parentId === undefined)
-        .map((n) => n.id);
-    } else {
-      const parentId = node.parent.id;
-      children = Object.values(state.nodeData)
-        .filter((n) => n.parentId === parentId)
-        .map((n) => n.id);
-    }
-
-    const isOnBottom = children.indexOf(node.id) === children.length - 1;
-    const isOnTop = children.indexOf(node.id) === 0;
-    return { isOnBottom, isOnTop };
-  });
+  const isOnBottom = childrenOfParent.indexOf(baseComponentId) === childrenOfParent.length - 1;
+  const isOnTop = childrenOfParent.indexOf(baseComponentId) === 0;
 
   if (!textResourceBindings?.body && !textResourceBindings?.title) {
     window.logWarn('Unable to render panel component: no text resource binding found.');
@@ -39,7 +28,7 @@ export const PanelComponent = ({ node }: IPanelProps) => {
   }
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Panel
         title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : undefined}
         showIcon={showIcon ?? true}

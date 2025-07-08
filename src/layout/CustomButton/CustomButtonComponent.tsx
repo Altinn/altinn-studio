@@ -9,6 +9,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -26,8 +27,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type * as CBTypes from 'src/layout/CustomButton/config.generated';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
 import type { IInstance } from 'src/types/shared';
-
-type Props = PropsFromGenericComponent<'CustomButton'>;
 
 type UpdatedDataModels = {
   [dataModelGuid: string]: object;
@@ -199,9 +198,9 @@ function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
   }
 }
 
-export const CustomButtonComponent = ({ node }: Props) => {
+export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
   const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
-    node.baseId,
+    baseComponentId,
     'CustomButton',
   );
 
@@ -214,6 +213,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
+  const layoutLookups = useLayoutLookups();
 
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
@@ -253,7 +253,12 @@ export const CustomButtonComponent = ({ node }: Props) => {
       for (const action of actions) {
         if (action.validation) {
           const prevScrollPosition = getScrollPosition();
-          const hasErrors = await onPageNavigationValidation(node.page, action.validation);
+          const page = layoutLookups.componentToPage[baseComponentId];
+          if (!page) {
+            throw new Error('Could not find page for component');
+          }
+
+          const hasErrors = await onPageNavigationValidation(page, action.validation);
           if (hasErrors) {
             resetScrollPosition(prevScrollPosition);
             return;
@@ -271,7 +276,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const style = buttonStyles[interceptedButtonStyle];
 
   return (
-    <ComponentStructureWrapper node={node}>
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Button
         id={`custom-button-${id}`}
         disabled={disabled}

@@ -8,7 +8,7 @@ import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthW
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
-import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
+import { useNavigateTo } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
@@ -180,7 +180,7 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
   const node = useNode(error.nodeId);
-  const navigateTo = useNavigateToNode();
+  const navigateTo = useNavigateTo();
   const isHidden = Hidden.useIsHidden(node);
 
   const handleErrorClick = async (ev: React.KeyboardEvent | React.MouseEvent) => {
@@ -193,7 +193,7 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
       return;
     }
 
-    await navigateTo(node, { shouldFocus: true, error });
+    await navigateTo(node.id, node.baseId, { shouldFocus: true, error });
   };
 
   return (

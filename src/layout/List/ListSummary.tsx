@@ -19,14 +19,17 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 type Row = Record<string, string | number | boolean>;
 
-export const ListSummary = ({ target }: Summary2Props<'List'>) => {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
+  const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const displayData = useDisplayData(target);
-  const validations = useUnifiedValidationsForNode(target.baseId);
+  const displayData = useDisplayData(targetBaseComponentId);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
 
-  const { tableHeaders, dataModelBindings, required, textResourceBindings } = useItemWhenType(target.baseId, 'List');
+  const { tableHeaders, dataModelBindings, required, textResourceBindings } = useItemWhenType(
+    targetBaseComponentId,
+    'List',
+  );
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
 
@@ -45,15 +48,14 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
   if (displayRows?.length > 0) {
     return (
       <SummaryFlex
-        target={target}
+        targetBaseId={targetBaseComponentId}
         content={SummaryContains.SomeUserContent}
       >
         <div className={classes.listContainer}>
           <div className={classes.headerContainer}>
             <EditButton
               className={classes.editButton}
-              componentNode={target}
-              summaryComponentId=''
+              targetBaseComponentId={targetBaseComponentId}
             />
           </div>
           <Table>
@@ -107,14 +109,14 @@ export const ListSummary = ({ target }: Summary2Props<'List'>) => {
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
         title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
-        componentNode={target}
+        targetBaseComponentId={targetBaseComponentId}
         isCompact={isCompact}
         emptyFieldText={emptyFieldText}
       />

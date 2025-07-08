@@ -78,12 +78,12 @@ export class List extends ListDef {
     return '';
   }
 
-  renderSummary(props: SummaryRendererProps<'List'>): JSX.Element | null {
-    const displayData = useDisplayData(props.targetNode);
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    const displayData = useDisplayData(props.targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  renderSummary2(props: Summary2Props<'List'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <ListSummary {...props} />;
   }
 

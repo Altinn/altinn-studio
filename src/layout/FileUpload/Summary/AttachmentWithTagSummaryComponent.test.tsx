@@ -117,7 +117,15 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
 
   return await renderWithNode<true, LayoutNode<'FileUploadWithTag'>>({
     nodeId: 'myComponent',
-    renderer: ({ node }) => <AttachmentSummaryComponent targetNode={node} />,
+    renderer: ({ node }) => (
+      <AttachmentSummaryComponent
+        targetBaseComponentId={node.baseId}
+        changeText='whatever'
+        onChangeClick={() => {
+          throw new Error('Not implemented');
+        }}
+      />
+    ),
     inInstance: true,
     queries: {
       fetchInstanceData: async () => ({

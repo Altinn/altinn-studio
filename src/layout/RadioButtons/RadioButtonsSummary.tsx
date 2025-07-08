@@ -10,18 +10,18 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) => {
-  const emptyFieldText = useSummaryOverrides(target)?.emptyFieldText;
+export const RadioButtonsSummary = ({ targetBaseComponentId }: Summary2Props) => {
+  const emptyFieldText = useSummaryOverrides<'RadioButtons'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const validations = useUnifiedValidationsForNode(target.baseId);
-  const displayData = useDisplayData(target);
+  const validations = useUnifiedValidationsForNode(targetBaseComponentId);
+  const displayData = useDisplayData(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, required } = useItemWhenType(target.baseId, 'RadioButtons');
+  const { textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'RadioButtons');
   const title = textResourceBindings?.title;
 
   return (
     <SummaryFlex
-      target={target}
+      targetBaseId={targetBaseComponentId}
       content={
         displayData
           ? SummaryContains.SomeUserContent
@@ -34,7 +34,7 @@ export const RadioButtonsSummary = ({ target }: Summary2Props<'RadioButtons'>) =
         title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
-        componentNode={target}
+        targetBaseComponentId={targetBaseComponentId}
         isCompact={isCompact}
         emptyFieldText={emptyFieldText}
       />

@@ -14,7 +14,7 @@ import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorCondition, StageFormValidation } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeFormData } from 'src/utils/layout/useNodeItem';
+import { useFormDataFor } from 'src/utils/layout/useNodeItem';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachment } from 'src/features/attachments/index';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
@@ -71,7 +71,7 @@ function StoreAttachmentsInNodeWorker() {
 
 function useNodeAttachments(): AttachmentRecord {
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveAttachments'>>;
-  const nodeData = useNodeFormData(node);
+  const nodeData = useFormDataFor(node.baseId, node.type);
 
   const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
 

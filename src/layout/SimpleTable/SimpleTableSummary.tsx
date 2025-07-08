@@ -9,17 +9,13 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-type TableSummaryProps = {
-  componentNode: LayoutNode<'SimpleTable'>;
-};
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 const emptyArray: never[] = [];
 
-export function SimpleTableSummary({ componentNode }: TableSummaryProps) {
+export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const { dataModelBindings, textResourceBindings, columns, required } = useItemWhenType(
-    componentNode.baseId,
+    targetBaseComponentId,
     'SimpleTable',
   );
 
@@ -49,7 +45,7 @@ export function SimpleTableSummary({ componentNode }: TableSummaryProps) {
 
   return (
     <SummaryFlex
-      target={componentNode}
+      targetBaseId={targetBaseComponentId}
       content={
         !Array.isArray(data) || data.length === 0
           ? required

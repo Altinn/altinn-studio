@@ -10,7 +10,7 @@ import type { NodeValidationProps } from 'src/layout/layout';
 export class Summary2 extends Summary2Def {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Summary2'>>(
     function LayoutComponentSummaryRender(props, _): JSX.Element | null {
-      return <SummaryComponent2 summaryNode={props.node} />;
+      return <SummaryComponent2 {...props} />;
     },
   );
 

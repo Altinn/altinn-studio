@@ -24,7 +24,8 @@ import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformS
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
-import { isHidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useExternalItem } from 'src/utils/layout/hooks';
+import { isHidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompTypes } from 'src/layout/layout';
@@ -164,10 +165,10 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
         spacing={6}
         alignItems='flex-start'
       >
-        {children.map((nodeId) => (
+        {children.map((baseComponentId) => (
           <PdfForNode
-            key={nodeId}
-            nodeId={nodeId}
+            key={baseComponentId}
+            baseComponentId={baseComponentId}
           />
         ))}
       </Flex>
@@ -175,29 +176,24 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
   );
 }
 
-function PdfForNode({ nodeId }: { nodeId: string }) {
-  const node = useNode(nodeId);
-  const item = useItemIfType(node.baseId, 'Summary2');
+function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
+  const component = useExternalItem(baseComponentId);
+  const item = useItemIfType(baseComponentId, 'Summary2');
 
-  if (node.isType('Summary2') && item?.target?.taskId) {
-    return (
-      <SummaryComponent2
-        key={node.id}
-        summaryNode={node}
-      />
-    );
+  if (item?.target?.taskId) {
+    return <SummaryComponent2 baseComponentId={baseComponentId} />;
   }
 
   const betaEnabled = getFeature('betaPDFenabled');
   if (betaEnabled.value) {
-    return <ComponentSummary target={node} />;
+    return <ComponentSummary targetBaseComponentId={baseComponentId} />;
   }
 
   return (
     <SummaryComponentFor
-      targetNode={node}
+      targetBaseComponentId={baseComponentId}
       overrides={{
-        largeGroup: node.isType('Group'),
+        largeGroup: component.type === 'Group',
         display: {
           hideChangeButton: true,
           hideValidationMessages: true,

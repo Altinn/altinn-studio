@@ -28,11 +28,11 @@ export class Map extends MapDef {
     return location ? `${location.latitude}, ${location.longitude}` : '';
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {
-    return <MapComponentSummary targetNode={targetNode} />;
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <MapComponentSummary {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Map'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <MapSummary {...props} />;
   }
 

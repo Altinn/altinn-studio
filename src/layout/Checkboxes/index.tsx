@@ -65,11 +65,11 @@ export class Checkboxes extends CheckboxesDef {
     };
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Checkboxes'>): JSX.Element | null {
-    return <MultipleChoiceSummary targetNode={targetNode} />;
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <MultipleChoiceSummary {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Checkboxes'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <CheckboxesSummary {...props} />;
   }
 

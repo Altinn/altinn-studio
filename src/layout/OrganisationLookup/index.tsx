@@ -28,11 +28,11 @@ export class OrganisationLookup extends OrganisationLookupDef {
     return Object.values(formData ?? {}).join(', ');
   }
 
-  renderSummary2(props: Summary2Props<'OrganisationLookup'>): JSX.Element | null {
-    return <OrganisationLookupSummary componentNode={props.target} />;
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <OrganisationLookupSummary {...props} />;
   }
 
-  renderSummary(_props: SummaryRendererProps<'OrganisationLookup'>): JSX.Element | null {
+  renderSummary(_props: SummaryRendererProps): JSX.Element | null {
     return null;
   }
 

@@ -20,14 +20,14 @@ export class Grid extends GridDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps<'Grid'>): JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <GridSummaryComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'Grid'>): JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
-        <GridSummary componentNode={props.target} />
+        <GridSummary {...props} />
       </EmptyChildrenBoundary>
     );
   }

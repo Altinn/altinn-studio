@@ -16,9 +16,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 import 'react-day-picker/style.css';
 
-export type IDatepickerProps = PropsFromGenericComponent<'Datepicker'>;
-
-export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps) {
+export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Datepicker'>) {
   const { langAsString } = useLanguage();
   const languageLocale = useCurrentLanguage();
   const {
@@ -32,7 +30,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
     dataModelBindings,
     grid,
     autocomplete,
-  } = useItemWhenType(node.baseId, 'Datepicker');
+  } = useItemWhenType(baseComponentId, 'Datepicker');
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');
@@ -46,7 +44,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
   };
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({ baseComponentId: node.baseId, overrideDisplay });
+    useLabel({ baseComponentId, overrideDisplay });
 
   return (
     <Label
@@ -59,7 +57,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
       help={getHelpTextComponent()}
       description={getDescriptionComponent()}
     >
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <Flex
           container
           item

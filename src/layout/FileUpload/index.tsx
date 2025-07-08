@@ -41,12 +41,12 @@ export class FileUpload extends FileUploadDef implements ValidateComponent {
     };
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {
-    return <AttachmentSummaryComponent targetNode={targetNode} />;
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
+    return <AttachmentSummaryComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props<'FileUpload'>): JSX.Element | null {
-    return <AttachmentSummaryComponent2 targetNode={props.target} />;
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <AttachmentSummaryComponent2 {...props} />;
   }
 
   shouldRenderInAutomaticPDF() {

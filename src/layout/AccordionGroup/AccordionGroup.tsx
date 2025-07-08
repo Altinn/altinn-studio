@@ -8,14 +8,12 @@ import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-type IAccordionGroupProps = PropsFromGenericComponent<'AccordionGroup'>;
-
-export const AccordionGroup = ({ node }: IAccordionGroupProps) => {
-  const children = useExternalItem(node.baseId, 'AccordionGroup')?.children;
+export const AccordionGroup = ({ baseComponentId }: PropsFromGenericComponent<'AccordionGroup'>) => {
+  const children = useExternalItem(baseComponentId, 'AccordionGroup')?.children;
 
   return (
     <AccordionGroupProvider>
-      <ComponentStructureWrapper node={node}>
+      <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <Card data-color='neutral'>
           {children?.map((id) => (
             <GenericComponentByBaseId

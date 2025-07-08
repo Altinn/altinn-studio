@@ -16,20 +16,27 @@ import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTable
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { IAttachment } from 'src/features/attachments';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IFileUploadTableRowProps {
   attachment: IAttachment;
   mobileView: boolean;
-  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+  baseComponentId: string;
   tagLabel: string | undefined;
   isSummary?: boolean;
 }
 
-export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary }: IFileUploadTableRowProps) {
+export function FileTableRow({
+  baseComponentId,
+  attachment,
+  mobileView,
+  tagLabel,
+  isSummary,
+}: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
-  const hasTag = node.isType('FileUploadWithTag');
+  const component = useExternalItem(baseComponentId);
+  const hasTag = component?.type === 'FileUploadWithTag';
   const pdfModeActive = usePdfModeActive();
   const readableSize = getSizeWithUnit(attachment.data.size, 2);
 
@@ -92,7 +99,7 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
 
       {!isSummary && (
         <ButtonCellContent
-          node={node}
+          baseComponentId={baseComponentId}
           attachment={attachment}
           deleting={attachment.deleting}
           mobileView={mobileView}
@@ -102,8 +109,7 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
         <td>
           <EditButton
             className={classes.marginLeftAuto}
-            componentNode={node}
-            summaryComponentId=''
+            targetBaseComponentId={baseComponentId}
           />
         </td>
       )}
@@ -235,12 +241,12 @@ const StatusCellContent = ({
 
 interface IButtonCellContentProps {
   deleting: boolean;
-  node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+  baseComponentId: string;
   mobileView: boolean;
   attachment: IAttachment;
 }
 
-const ButtonCellContent = ({ deleting, node, mobileView, attachment }: IButtonCellContentProps) => {
+const ButtonCellContent = ({ deleting, baseComponentId, mobileView, attachment }: IButtonCellContentProps) => {
   const { langAsString } = useLanguage();
 
   if (deleting) {
@@ -258,7 +264,7 @@ const ButtonCellContent = ({ deleting, node, mobileView, attachment }: IButtonCe
   return (
     <td>
       <FileTableButtons
-        node={node}
+        baseComponentId={baseComponentId}
         mobileView={mobileView}
         attachment={attachment}
         editWindowIsOpen={false}
