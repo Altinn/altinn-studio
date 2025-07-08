@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import DOMPurify from 'dompurify';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import Markdown from 'markdown-to-jsx';
+import parseHtmlToReact from 'html-react-parser';
 import cn from 'classnames';
 import {
   StudioAlert,
@@ -149,14 +151,7 @@ export const ConsentPreview = ({
                 <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
-                <Markdown
-                  data-testid='consentPreviewMarkdown'
-                  options={{
-                    disableParsingRawHTML: true,
-                  }}
-                >
-                  {texts.resourceText}
-                </Markdown>
+                <div data-testid='consentPreviewMarkdown'>{transformText(texts.resourceText)}</div>
               </div>
             </div>
             <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
@@ -206,12 +201,23 @@ const getDummyDateString = (): string => {
   });
 };
 
-export const transformText = (text: string): string | React.JSX.Element | React.JSX.Element[] => {
+export const transformText = (markdownText: string): string | ReactElement | ReactElement[] => {
+  const htmlFromMarkdown = renderToStaticMarkup(
+    <Markdown
+      options={{
+        disableParsingRawHTML: true,
+      }}
+    >
+      {markdownText}
+    </Markdown>,
+  );
   const allowedTags = ['p', 'span', 'ul', 'ol', 'li', 'a', 'b', 'strong', 'em', 'i'];
-  const dirty = text;
+  const dirty = htmlFromMarkdown;
   const clean = DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: allowedTags,
   });
 
-  return clean;
+  // Parse the sanitized HTML to React elements
+  const returnVal = parseHtmlToReact(clean.toString().trim());
+  return returnVal;
 };
