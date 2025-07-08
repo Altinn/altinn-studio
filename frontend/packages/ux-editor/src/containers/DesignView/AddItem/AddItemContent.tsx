@@ -10,6 +10,7 @@ import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
 import { StudioParagraph, StudioSearch } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
+import { useSearchComponent } from './useSearchComponent/useSearchComponent';
 
 export type AddItemContentProps = {
   item: AddedItem | null;
@@ -17,6 +18,7 @@ export type AddItemContentProps = {
   onAddItem: (addedItem: AddedItem) => void;
   onCancel: () => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
+  disableDebounce?: boolean;
 };
 
 export const AddItemContent = ({
@@ -25,30 +27,36 @@ export const AddItemContent = ({
   onAddItem,
   onCancel,
   availableComponents,
+  disableDebounce,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
 
+  const { searchText, handleClear, handleEscape, handleSearchChange, filteredComponents } =
+    useSearchComponent({ availableComponents, disableDebounce, t });
+
   return (
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
-        {/* TODO: Add functionality for search */}
-        <StudioSearch
-          label={t('ux_editor.add_item.component_search_label')}
-          value={undefined}
-          onChange={undefined}
-          onKeyDown={undefined}
-          onClear={undefined}
-        />
-        <StudioParagraph spacing size='small' style={{ width: '100%' }}>
-          {t('ux_editor.add_item.component_more_info_description')}
-        </StudioParagraph>
-        {Object.keys(availableComponents).map((key) => {
+        <div className={classes.container}>
+          <StudioSearch
+            label={t('ux_editor.add_item.component_search_label')}
+            value={searchText}
+            onChange={handleSearchChange}
+            onKeyDown={handleEscape}
+            onClear={handleClear}
+          />
+          <StudioParagraph spacing size='small' style={{ width: '100%' }}>
+            {t('ux_editor.add_item.component_more_info_description')}
+          </StudioParagraph>
+        </div>
+
+        {Object.keys(filteredComponents).map((key) => {
           return (
             <ItemCategory
               key={key}
               category={key}
-              items={availableComponents[key]}
+              items={filteredComponents[key]}
               selectedItemType={item?.componentType}
               setAddedItem={setItem}
               generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}

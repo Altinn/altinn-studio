@@ -4,8 +4,14 @@
   flex-wrap: wrap;
   height: 75vh;
   flex: 3;
-  padding: 0 20px 20px;
+  padding: 20px;
   overflow-y: scroll;
+  gap: var(--fds-spacing-4);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
   gap: var(--fds-spacing-4);
 }
 
