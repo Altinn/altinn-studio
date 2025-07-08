@@ -84,7 +84,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 Application? app = await GetApplicationMetadata(directory);
                 if (app != null)
                 {
-                    ret.Add(directory, app);
+                    ret.Add(app.Id, app);
                 }
             }
 
