@@ -1,6 +1,6 @@
-import type { ForwardedRef } from 'react';
+import type { Ref } from 'react';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, RenderResult, screen } from '@testing-library/react';
 import { StudioDeleteButton } from './StudioDeleteButton';
 import type { StudioDeleteButtonProps } from './StudioDeleteButton';
 import userEvent from '@testing-library/user-event';
@@ -62,9 +62,9 @@ describe('StudioDeleteButton', () => {
     screen.getByRole('button', { name: buttonLabel });
 });
 
-const confirmMessage = 'Er du sikker på at du vil slette dette?';
+const confirmMessage: string = 'Er du sikker på at du vil slette dette?';
 const onDelete = jest.fn();
-const buttonLabel = 'Slett';
+const buttonLabel: string = 'Slett';
 const defaultProps: StudioDeleteButtonProps = {
   children: buttonLabel,
   confirmMessage,
@@ -72,5 +72,5 @@ const defaultProps: StudioDeleteButtonProps = {
 };
 const renderDeleteButton = (
   props: Partial<StudioDeleteButtonProps> = {},
-  ref?: ForwardedRef<HTMLButtonElement>,
-) => render(<StudioDeleteButton {...defaultProps} {...props} ref={ref} />);
+  ref?: Ref<HTMLButtonElement>,
+): RenderResult => render(<StudioDeleteButton {...defaultProps} {...props} ref={ref} />);
