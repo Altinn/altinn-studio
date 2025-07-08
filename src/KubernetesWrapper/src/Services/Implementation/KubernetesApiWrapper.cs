@@ -57,8 +57,8 @@ public class KubernetesApiWrapper : IKubernetesApiWrapper
                     mappedResources = MapDeployments(deployments.Items);
                     break;
                 case ResourceType.DaemonSet:
-                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
-                    mappedResources = MapDaemonSets(deamonSets.Items);
+                    V1DaemonSetList daemonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
+                    mappedResources = MapDaemonSets(daemonSets.Items);
                     break;
             }
         }

@@ -5,8 +5,8 @@ namespace KubernetesWrapper.Configuration;
 public class GeneralSettings
 {
     [Required]
-    public required string ApplicationLawWorkspaceId { get; init; }
+    public required string ApplicationLogAnalyticsWorkspaceId { get; init; }
 
     [Required]
-    public required string OperationalLawWorkspaceId { get; init; }
+    public required string OperationalLogAnalyticsWorkspaceId { get; init; }
 }
