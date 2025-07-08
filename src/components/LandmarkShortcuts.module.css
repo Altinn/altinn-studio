@@ -6,12 +6,17 @@
 
 .srOnly {
   position: absolute;
-  clip: rect(0, 0, 0, 0);
   border: 0;
+  z-index: -1;
 }
 
 .srOnly:focus {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: auto;
   height: auto;
+  clip: none;
+  z-index: 999;
+  padding: 8px;
 }
