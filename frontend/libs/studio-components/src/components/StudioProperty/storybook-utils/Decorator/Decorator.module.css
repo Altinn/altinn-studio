@@ -1,0 +1,5 @@
+.decorator {
+  border: 1px solid #000;
+  padding: var(--fds-spacing-5) 0;
+  width: 500px;
+}
