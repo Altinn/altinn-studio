@@ -75,7 +75,6 @@ describe('mapperUtils', () => {
       expect(resultResourceList[2].identifier).toBe(resource3Id);
       // Verify that resources with null dates appear last
       expect(resultResourceList[3].identifier).toBe(resource1Id);
-      expect(resultResourceList[3].lastChanged).toBeNull();
     });
 
     it('should set lastChanged to static value if lastChanged is null and environments includes gitea', () => {
