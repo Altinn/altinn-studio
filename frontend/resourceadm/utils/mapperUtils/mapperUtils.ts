@@ -5,9 +5,12 @@ import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
 
 const setLastChangedDate = (resource: ResourceListItem): Date => {
-  return resource.lastChanged === null && resource.environments.includes('gitea')
-    ? LOCAL_RESOURCE_CHANGED_TIME
-    : new Date(resource.lastChanged);
+  if (resource.lastChanged === null && resource.environments.includes('gitea')) {
+    return LOCAL_RESOURCE_CHANGED_TIME;
+  } else if (!!resource.lastChanged) {
+    return new Date(resource.lastChanged);
+  }
+  return null;
 };
 
 /**
