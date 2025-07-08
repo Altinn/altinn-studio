@@ -1,5 +1,4 @@
 using Azure;
-using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using KubernetesWrapper.Configuration;
@@ -33,13 +32,12 @@ public class OperationalLogsService(IOptions<GeneralSettings> generalSettings, L
 
         string appNameFilter = string.IsNullOrWhiteSpace(app)
             ? string.Empty
-            : $" | where PodName has '{app}'";
+            : $" | where PodName has '{app.Replace("'", "''")}'";
 
         var query = $@"
                 ContainerLogV2{appNameFilter}
                 | where LogSource == 'stderr'
                 | where ContainerName == 'deployment'
-                | serialize | extend RowNumber = row_number() | order by RowNumber asc
                 | project TimeGenerated, LogMessage
                 | take {take}";
 

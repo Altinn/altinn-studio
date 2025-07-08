@@ -19,16 +19,14 @@ public class ApplicationLogsController(IApplicationLogsService applicationLogsSe
     /// <summary>
     /// Get the list of application logs
     /// </summary>
-    /// <param name="app">app</param>
-    /// <param name="take">take</param>
-    /// <param name="time">time</param>
+    /// <param name="queryParameters">queryParameters</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of application logs</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult<IEnumerable<Log>>> GetLogs(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<Log>>> GetLogs([FromQuery] QueryParameters queryParameters, CancellationToken cancellationToken = default)
     {
-        var logs = await applicationLogsService.GetLogs(app, take, time, cancellationToken);
+        var logs = await applicationLogsService.GetLogs(queryParameters.App, queryParameters.Take, queryParameters.Time, cancellationToken);
         return Ok(logs);
     }
 }

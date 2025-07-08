@@ -19,16 +19,14 @@ public class FailedRequestsController(IFailedRequestsService failedRequestsServi
     /// <summary>
     /// Get the list of failed requests
     /// </summary>
-    /// <param name="app">app</param>
-    /// <param name="take">take</param>
-    /// <param name="time">time</param>
+    /// <param name="queryParameters">queryParameters</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of failed requests</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult<IEnumerable<Request>>> GetRequests(string app = null, int take = 50, double time = 24, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<Request>>> GetRequests([FromQuery] QueryParameters queryParameters, CancellationToken cancellationToken = default)
     {
-        var requests = await failedRequestsService.GetRequests(app, take, time, cancellationToken);
+        var requests = await failedRequestsService.GetRequests(queryParameters.App, queryParameters.Take, queryParameters.Time, cancellationToken);
         return Ok(requests);
     }
 }

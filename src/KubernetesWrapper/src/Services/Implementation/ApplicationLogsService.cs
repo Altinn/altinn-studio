@@ -1,5 +1,4 @@
 using Azure;
-using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using KubernetesWrapper.Configuration;
@@ -33,7 +32,7 @@ public class ApplicationLogsService(IOptions<GeneralSettings> generalSettings, L
 
         string appNameFilter = string.IsNullOrWhiteSpace(app)
             ? string.Empty
-            : $" | where AppRoleName has '{app}'";
+            : $" | where AppRoleName has '{app.Replace("'", "''")}'";
 
         var query = $@"
                 AppExceptions{appNameFilter}
