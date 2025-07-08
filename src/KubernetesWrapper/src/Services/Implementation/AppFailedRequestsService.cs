@@ -12,16 +12,16 @@ namespace KubernetesWrapper.Services.Implementation;
 /// Service containing all actions related to failed requests
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="FailedRequestsService"/> class
+/// Initializes a new instance of the <see cref="AppFailedRequestsService"/> class
 /// </remarks>
 /// <param name="generalSettings">The general settings</param>
 /// <param name="logsQueryClient">The logs query client for querying logs from Azure Monitor</param>
-public class FailedRequestsService(IOptions<GeneralSettings> generalSettings, LogsQueryClient logsQueryClient) : IFailedRequestsService
+public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings, LogsQueryClient logsQueryClient) : IAppFailedRequestsService
 {
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Request>> GetRequests(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AppFailedRequest>> GetAll(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
     {
         string logAnalyticsWorkspaceId = _generalSettings.ApplicationLogAnalyticsWorkspaceId;
 
@@ -42,7 +42,7 @@ public class FailedRequestsService(IOptions<GeneralSettings> generalSettings, Lo
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
-        return response.Value.Table.Rows.Select(row => new Request
+        return response.Value.Table.Rows.Select(row => new AppFailedRequest
         {
             TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
             Url = row.GetString("Url") ?? string.Empty,

@@ -1,7 +1,7 @@
 namespace KubernetesWrapper.Models;
 
-public class Log
+public class AppException
 {
     public DateTime TimeGenerated { get; set; }
-    public string Message { get; set; }
+    public string Details { get; set; }
 }

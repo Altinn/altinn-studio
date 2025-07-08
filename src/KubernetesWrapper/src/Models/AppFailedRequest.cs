@@ -1,6 +1,6 @@
 namespace KubernetesWrapper.Models;
 
-public class Request
+public class AppFailedRequest
 {
     public DateTime TimeGenerated { get; set; }
     public string Url { get; set; }

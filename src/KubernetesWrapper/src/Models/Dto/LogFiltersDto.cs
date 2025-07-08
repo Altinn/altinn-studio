@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace KubernetesWrapper.Models;
+namespace KubernetesWrapper.Models.Dto;
 
-public class QueryParameters
+public class LogFiltersDto
 {
     public string App { get; set; }
 
