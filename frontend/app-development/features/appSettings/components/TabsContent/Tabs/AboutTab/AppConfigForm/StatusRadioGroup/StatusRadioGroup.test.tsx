@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { StatusRadioGroup, StatusRadioGroupProps } from './StatusRadioGroup';
+import { StatusRadioGroup } from './StatusRadioGroup';
+import type { StatusRadioGroupProps } from './StatusRadioGroup';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LabelAndValue } from 'app-development/features/appSettings/types/LabelAndValue';
 import { getStatusOptions } from '../../utils/appConfigStatusUtils';
