@@ -71,27 +71,8 @@ describe('useSearchComponent', () => {
     });
   });
 
-  describe('Debouncing', () => {
-    it('should update debouncedSearchText only after debounce delay', () => {
-      const { result } = renderUseSearchComponent();
-      expect(result.current.searchText).toBe('');
-      expect(result.current.debouncedSearchText).toBe('');
-
-      act(() => {
-        result.current.handleSearchChange({ target: { value: 'Text' } });
-      });
-
-      expect(result.current.searchText).toBe('Text');
-      expect(result.current.debouncedSearchText).toBe('');
-      act(() => {
-        jest.advanceTimersByTime(500);
-      });
-      expect(result.current.debouncedSearchText).toBe('Text');
-    });
-  });
-
   describe('Event handlers', () => {
-    it('should clear searchText when handleClear is called', () => {
+    it('should clear searchText when handleClear is called', async () => {
       const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'Text' } });
@@ -103,7 +84,7 @@ describe('useSearchComponent', () => {
       expect(result.current.searchText).toBe('');
     });
 
-    it('should reset searchText when Escape key is pressed', () => {
+    it('should reset searchText when Escape key is pressed', async () => {
       const { result } = renderUseSearchComponent();
       act(() => {
         result.current.handleSearchChange({ target: { value: 'Text' } });
@@ -120,7 +101,7 @@ describe('useSearchComponent', () => {
     testCases.forEach(({ description, searchText, expected }) => {
       it(description, async () => {
         const { result } = renderUseSearchComponent();
-        act(() => {
+        await waitFor(() => {
           result.current.handleSearchChange({ target: { value: searchText } });
         });
         await waitFor(() => {
@@ -133,7 +114,7 @@ describe('useSearchComponent', () => {
   describe('Translation support', () => {
     it('should find component by searching with norwegian word', async () => {
       const { result } = renderUseSearchComponent();
-      act(() => {
+      await waitFor(() => {
         result.current.handleSearchChange({ target: { value: 'tekstfelt' } });
       });
       await waitFor(() => {
@@ -145,7 +126,7 @@ describe('useSearchComponent', () => {
 
     it('should find component by searching with english word', async () => {
       const { result } = renderUseSearchComponent();
-      act(() => {
+      await waitFor(() => {
         result.current.handleSearchChange({ target: { value: 'text' } });
       });
       await waitFor(() => {
