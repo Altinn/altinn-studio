@@ -25,6 +25,11 @@ public class OperationalLogsService(IOptions<GeneralSettings> generalSettings) :
     {
         string operationalLawWorkspaceId = _generalSettings.OperationalLawWorkspaceId;
 
+        if (string.IsNullOrWhiteSpace(operationalLawWorkspaceId))
+        {
+            throw new InvalidOperationException("Configuration value 'OperationalLawWorkspaceId' is missing or empty.");
+        }
+
         var client = new LogsQueryClient(new DefaultAzureCredential());
 
         string appNameFilter = string.IsNullOrWhiteSpace(app)

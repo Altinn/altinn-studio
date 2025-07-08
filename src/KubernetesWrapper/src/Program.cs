@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOptions<GeneralSettings>().Bind(builder.Configuration.GetSection("GeneralSettings")).ValidateDataAnnotations().ValidateOnStart();
+builder.Services.Configure<GeneralSettings>(builder.Configuration.GetSection("GeneralSettings"));
 
 RegisterServices(builder.Services);
 
