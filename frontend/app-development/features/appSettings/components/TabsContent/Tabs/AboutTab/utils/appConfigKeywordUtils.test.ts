@@ -1,16 +1,8 @@
-import { getKeywordValue, mapStringToKeywords } from './appConfigKeywordUtils';
+import { mapKeywordsArrayToString, mapStringToKeywords } from './appConfigKeywordUtils';
 import type { Keyword } from 'app-shared/types/AppConfig';
 
 describe('appConfigKeywordUtils', () => {
-  describe('getKeywordValue', () => {
-    it('returns empty string when keyword is undefined', () => {
-      expect(getKeywordValue(undefined)).toBe('');
-    });
-
-    it('returns empty string when keyword is an empty array', () => {
-      expect(getKeywordValue([])).toBe('');
-    });
-
+  describe('mapKeywordsArrayToString', () => {
     it('returns a comma-separated string of keyword values', () => {
       const word1: string = 'test1';
       const word2: string = 'test2';
@@ -18,7 +10,7 @@ describe('appConfigKeywordUtils', () => {
         { language: 'nb', word: word1 },
         { language: 'nb', word: word2 },
       ];
-      expect(getKeywordValue(keywords)).toBe(`${word1}, ${word2}`);
+      expect(mapKeywordsArrayToString(keywords)).toBe(`${word1}, ${word2}`);
     });
 
     it('handles extra spaces in words correctly', () => {
@@ -28,7 +20,7 @@ describe('appConfigKeywordUtils', () => {
         { language: 'nb', word: word1 },
         { language: 'nb', word: word2 },
       ];
-      expect(getKeywordValue(keywords)).toBe(`${word1}, ${word2}`);
+      expect(mapKeywordsArrayToString(keywords)).toBe(`${word1}, ${word2}`);
     });
   });
 

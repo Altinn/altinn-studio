@@ -18,7 +18,7 @@ import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
-import { getKeywordValue, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
+import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 
@@ -31,6 +31,9 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const { t } = useTranslation();
   const [updatedAppConfig, setUpdatedAppConfig] = useState<AppConfigNew>(appConfig);
   const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
+  const [keywordsInputValue, setKeywordsInputValue] = useState(
+    mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
+  );
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -138,6 +141,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const onChangeKeywords = (e: ChangeEvent<HTMLInputElement>): void => {
     const keywordsString: string = e.target.value;
+    setKeywordsInputValue(keywordsString);
+
     const keywords: Keyword[] = mapStringToKeywords(keywordsString);
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
@@ -246,7 +251,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
         <StudioTextfield
           label={t('app_settings.about_tab_keywords_label')}
           description={t('app_settings.about_tab_keywords_description')}
-          value={getKeywordValue(updatedAppConfig.keywords)}
+          value={keywordsInputValue}
           onChange={onChangeKeywords}
           required={false}
           tagText={t('general.optional')}

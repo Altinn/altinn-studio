@@ -1,13 +1,6 @@
 import type { Keyword } from 'app-shared/types/AppConfig';
 
-export function getKeywordValue(keyword?: Keyword[]): string {
-  const noKeywords: boolean = !keyword || keyword.length === 0;
-
-  if (noKeywords) return '';
-  return mapKeywordsArrayToString(keyword);
-}
-
-function mapKeywordsArrayToString(keywords: Keyword[]): string {
+export function mapKeywordsArrayToString(keywords: Keyword[]): string {
   return keywords.map((keyword: Keyword) => keyword.word).join(', ');
 }
 
