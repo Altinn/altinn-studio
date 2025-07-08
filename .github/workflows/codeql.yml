@@ -6,11 +6,15 @@ on:
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/StudioAdmin/**'
+      - 'src/KubernetesWrapper/**'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'testdata/**'
       - 'backend/**'
+      - 'src/StudioAdmin/**'
+      - 'src/KubernetesWrapper/**'
   schedule:
     - cron: "55 4 * * 6"
 
@@ -36,15 +40,15 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@fca7ace96b7d713c7035871441bd52efbe39e27e # v3
+        uses: github/codeql-action/init@181d5eefc20863364f96762470ba6f862bdef56b # v3
         with:
           languages: csharp
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@fca7ace96b7d713c7035871441bd52efbe39e27e # v3
+        uses: github/codeql-action/autobuild@181d5eefc20863364f96762470ba6f862bdef56b # v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@fca7ace96b7d713c7035871441bd52efbe39e27e # v3
+        uses: github/codeql-action/analyze@181d5eefc20863364f96762470ba6f862bdef56b # v3
         with:
           category: "/language:csharp"

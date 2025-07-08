@@ -6,6 +6,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
 using Altinn.Studio.PolicyAdmin.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PolicyAdmin.Models;
 
@@ -48,13 +49,14 @@ namespace Altinn.Studio.Designer.Controllers
 
 
         /// <summary>
-        /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}.
+        /// Gets the resource policy, url GET "/designer/api/org/app/{resourceid}.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resourceid">The resource Id for the connected policy</param>
         /// <returns>The updated application metadata</returns>
         [HttpGet]
+        [Authorize]
         [Route("{resourceid}")]
         public ActionResult GetResourcePolicy(string org, string app, string resourceid)
         {

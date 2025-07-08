@@ -13,7 +13,8 @@ import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import cn from 'classnames';
-import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
+import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -24,6 +25,7 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
+  groupIndex?: number;
 };
 
 /**
@@ -48,6 +50,7 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
+  groupIndex,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -61,30 +64,21 @@ export const PageAccordion = ({
   );
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
 
-  const isUsingGroups = !!pages.groups;
+  const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
     if (!confirm(t('ux_editor.page_delete_text'))) return;
     if (selectedItem?.id === pageName) setSelectedItem(null);
 
     if (isUsingGroups) {
-      const updatedGroups = getUpdatedGroupsExcludingPage(pages.groups, pageName);
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: pageName,
+        groups: pages.groups,
+        groupIndex,
+      });
       changePageGroups({ ...pages, groups: updatedGroups });
     } else {
       deletePage(pageName);
     }
-  };
-
-  const getUpdatedGroupsExcludingPage = (groups: GroupModel[], pageId: string): GroupModel[] => {
-    const groupsWithPageRemoved = groups.map((group) => {
-      const filteredOrder = group.order.filter((page) => page.id !== pageId);
-      const updatedName =
-        filteredOrder.length === 1 && group.name ? filteredOrder[0].id : group.name;
-
-      return { ...group, order: filteredOrder, name: updatedName };
-    });
-
-    const nonEmptyGroups = groupsWithPageRemoved.filter((group) => group.order.length > 0);
-    return nonEmptyGroups;
   };
 
   return (
