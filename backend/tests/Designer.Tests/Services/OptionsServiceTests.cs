@@ -281,17 +281,20 @@ public class OptionsServiceTests : IDisposable
         AltinnStudioSettings expectedAppSettings = new()
         {
             RepoType = AltinnRepositoryType.App,
-            ImportedResources = new ImportedResources
+            Imports = new ImportedResources
             {
-                CodeLists = [
-                    new ImportMetadata
+                CodeLists = new Dictionary<string, ImportMetadata>
+                {
                     {
-                        ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
-                        ImportSource = $"{TargetOrgName}/{targetOrgRepository}",
-                        Name = OptionListId,
-                        Version = ""
+                        OptionListId,
+                        new ImportMetadata
+                        {
+                            ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
+                            ImportSource = $"{TargetOrgName}/{targetOrgRepository}",
+                            Version = ""
+                        }
                     }
-                ]
+                }
             }
         };
 

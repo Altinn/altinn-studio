@@ -289,13 +289,12 @@ public class OptionsService : IOptionsService
         {
             ImportDate = $"{DateTime.UtcNow:yyyy-MM-dd}",
             ImportSource = ImportSourceName(org),
-            Name = optionListId,
             Version = version,
         };
 
-        settings.ImportedResources ??= new ImportedResources();
-        settings.ImportedResources.CodeLists ??= [];
-        settings.ImportedResources.CodeLists.Add(importMetadata);
+        settings.Imports ??= new ImportedResources();
+        settings.Imports.CodeLists ??= [];
+        settings.Imports.CodeLists.Add(optionListId, importMetadata);
 
         await altinnGitRepository.SaveAltinnStudioSettings(settings);
     }

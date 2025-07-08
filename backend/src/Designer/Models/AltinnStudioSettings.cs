@@ -14,14 +14,14 @@ public class AltinnStudioSettings
     /// </summary>
     [JsonPropertyName("repoType")]
     public AltinnRepositoryType RepoType { get; set; }
-    [JsonPropertyName("importedResources")]
-    public ImportedResources ImportedResources { get; set; }
+    [JsonPropertyName("imports")]
+    public ImportedResources Imports { get; set; }
 }
 
 public class ImportedResources
 {
     [JsonPropertyName("codeLists")]
-    public List<ImportMetadata> CodeLists { get; set; }
+    public Dictionary<string, ImportMetadata> CodeLists { get; set; }
 }
 
 public class ImportMetadata
@@ -30,8 +30,6 @@ public class ImportMetadata
     public string ImportDate { get; set; }
     [JsonPropertyName("importSource")]
     public string ImportSource { get; set; }
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
     [JsonPropertyName("version")]
     public string Version { get; set; }
 }
