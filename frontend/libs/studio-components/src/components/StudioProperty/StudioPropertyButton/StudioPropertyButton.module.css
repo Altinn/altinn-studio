@@ -1,0 +1,68 @@
+.propertyButton {
+  border-radius: 0;
+  border: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  justify-content: flex-start;
+  margin: calc(-1 * var(--studio-property-button-vertical-spacing)) 0;
+  overflow: hidden;
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+}
+
+.propertyButton.withValue .content {
+  color: var(--fds-semantic-text-neutral-default);
+  text-align: left;
+}
+
+.propertyButton .property {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+}
+
+.propertyButton.withValue .property {
+  font-weight: 500;
+}
+
+.content {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.readOnly:hover {
+  cursor: auto !important;
+  background-color: transparent !important;
+}
+
+.property,
+.value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.readOnlyWrapper,
+.editIconWrapper {
+  flex: 1;
+  text-align: right;
+  display: none;
+}
+
+.readOnlyWrapper,
+.propertyButton:hover .editIconWrapper,
+.propertyButton:focus .editIconWrapper {
+  display: inline-block;
+}
+
+.readOnlyWrapper {
+  color: black;
+}
+
+.propertyButton.compact {
+  padding-left: var(--fds-spacing-3);
+  padding-right: var(--fds-spacing-3);
+}
+
+.propertyButton.withoutNegativeMargin {
+  margin: 0;
+}
