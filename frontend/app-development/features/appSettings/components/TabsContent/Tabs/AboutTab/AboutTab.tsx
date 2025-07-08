@@ -109,6 +109,7 @@ function AboutTabContent(): ReactElement {
 }
 
 const mockAppConfig: AppConfigNew = {
+  resourceType: 'altinnapp',
   repositoryName: 'example-repo',
   serviceName: { nb: 'test', nn: '', en: '' },
   serviceId: 'example-service-id',

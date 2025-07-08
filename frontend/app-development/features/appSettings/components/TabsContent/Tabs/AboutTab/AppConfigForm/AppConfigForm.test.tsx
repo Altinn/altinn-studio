@@ -365,6 +365,16 @@ describe('AppConfigForm', () => {
       ),
     ).not.toBeInTheDocument();
 
+    const statusRadio = getLabelText(textMock('app_settings.about_tab_status_under_development'));
+    await user.click(statusRadio);
+    expect(queryLink('app_settings.about_tab_status_field_error')).not.toBeInTheDocument();
+
+    const availableForTypeCheckbox = getLabelText(
+      textMock('app_settings.about_tab_available_for_type_private'),
+    );
+    await user.click(availableForTypeCheckbox);
+    expect(queryLink('app_settings.about_tab_error_available_for_type')).not.toBeInTheDocument();
+
     expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 });
@@ -387,11 +397,13 @@ const mockServiceNameComplete: SupportedLanguage = {
   en: 'Service',
 };
 const mockAppConfig: AppConfigNew = {
+  resourceType: 'altinnapp',
   serviceId: 'some-id',
   serviceName: mockServiceName,
   repositoryName: 'my-repo',
 };
 const mockAppConfigComplete: AppConfigNew = {
+  resourceType: 'altinnapp',
   serviceId: 'some-id',
   serviceName: mockServiceNameComplete,
   repositoryName: 'my-repo',
@@ -399,6 +411,8 @@ const mockAppConfigComplete: AppConfigNew = {
   homepage: mockHomepage,
   isDelegable: false,
   rightDescription: mockRightDescription,
+  status: 'UnderDevelopment',
+  availableForType: ['PrivatePerson'],
 };
 
 const defaultProps: AppConfigFormProps = {
@@ -433,6 +447,7 @@ const queryErrorHeader = (): HTMLHeadingElement | null =>
     level: 2,
   });
 const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch', { name });
+const getLabelText = (name: string): HTMLLabelElement => screen.getByLabelText(name);
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');
