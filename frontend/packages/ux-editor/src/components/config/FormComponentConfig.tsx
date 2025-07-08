@@ -14,6 +14,7 @@ import {
 } from './ConfigProperties';
 import { useText } from '../../hooks';
 import type { FormItem } from '../../types/FormItem';
+import classes from './FormComponentConfig.module.css';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -64,7 +65,7 @@ export const FormComponentConfig = ({
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
       {!hideUnsupported && (
-        <Heading level={3} size='xxsmall'>
+        <Heading level={3} size='xxsmall' className={classes.elementWrapper}>
           {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
@@ -76,12 +77,17 @@ export const FormComponentConfig = ({
           schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
         />
       )}
 
       {/** Grid Property */}
       {properties?.grid && (
-        <ConfigGridProperties component={component} handleComponentUpdate={handleComponentUpdate} />
+        <ConfigGridProperties
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
+        />
       )}
 
       {/** String properties */}
@@ -91,6 +97,7 @@ export const FormComponentConfig = ({
           schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
         />
       )}
 
@@ -101,6 +108,7 @@ export const FormComponentConfig = ({
           schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
         />
       )}
 
@@ -111,6 +119,7 @@ export const FormComponentConfig = ({
           schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
         />
       )}
 
@@ -122,12 +131,13 @@ export const FormComponentConfig = ({
           schema={schema}
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={classes.elementWrapper}
         />
       )}
 
       {/* Show information about unsupported properties if there are any */}
       {unsupportedKeys.length > 0 && !hideUnsupported && (
-        <Alert severity='info'>
+        <Alert severity='info' className={classes.elementWrapper}>
           {t('ux_editor.edit_component.unsupported_properties_message')}
           <ul>
             {unsupportedKeys.map((propertyKey) => (

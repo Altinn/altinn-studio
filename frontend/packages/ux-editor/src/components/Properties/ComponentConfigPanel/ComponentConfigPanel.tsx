@@ -75,7 +75,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
             >
               {t(formItem.type === 'Image' ? 'right_menu.text_and_image' : 'right_menu.text')}
             </Accordion.Header>
-            <Accordion.Content className={classes.texts}>
+            <Accordion.Content className={classes.accordionContent}>
               <Text />
             </Accordion.Content>
           </Accordion.Item>
@@ -83,7 +83,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
             <Accordion.Header onHeaderClick={() => toggleOpen('dataModel')}>
               {t('right_menu.data_model_bindings')}
             </Accordion.Header>
-            <Accordion.Content className={classes.dataModelBindings}>
+            <Accordion.Content className={classes.accordionContent}>
               <DataModelBindings />
             </Accordion.Content>
           </Accordion.Item>
@@ -91,7 +91,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
             <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
               {t('right_menu.content')}
             </Accordion.Header>
-            <Accordion.Content>
+            <Accordion.Content className={classes.accordionContent}>
               <EditFormComponent
                 editFormId={formItemId}
                 component={formItem}
