@@ -29,9 +29,11 @@ export const GenerateModelsButton = ({
         onSetSchemaGenerationErrorMessages([]);
       },
       onError: (error) => {
-        const errorMessages = error?.response?.data?.customErrorMessages;
-        if (errorMessages) {
-          onSetSchemaGenerationErrorMessages(errorMessages);
+        const customErrorMessages = error?.response?.data?.customErrorMessages;
+        if (customErrorMessages) {
+          onSetSchemaGenerationErrorMessages(customErrorMessages);
+        } else {
+          onSetSchemaGenerationErrorMessages([]);
         }
       },
     });
