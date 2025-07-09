@@ -32,12 +32,12 @@ export function StatusRadioGroup({
   const options: LabelAndValue[] = getStatusOptions(t);
 
   return (
-    <StudioRadioGroup id={id}>
-      <StudioRadioGroup.Heading
-        label={t('app_settings.about_tab_status_field_label')}
-        required
-        tagText={t('general.required')}
-      />
+    <StudioRadioGroup
+      id={id}
+      legend={t('app_settings.about_tab_status_field_label')}
+      required
+      tagText={t('general.required')}
+    >
       {options.map((option: LabelAndValue) => (
         <StudioRadioGroup.Item
           key={option.value}

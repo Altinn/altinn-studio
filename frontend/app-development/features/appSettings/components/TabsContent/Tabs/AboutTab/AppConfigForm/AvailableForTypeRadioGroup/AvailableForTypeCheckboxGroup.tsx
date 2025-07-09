@@ -32,13 +32,13 @@ export function AvailableForTypeCheckboxGroup({
   const options: LabelAndValue[] = getAvailableForTypeOptions(t);
 
   return (
-    <StudioCheckboxGroup id={id}>
-      <StudioCheckboxGroup.Heading
-        label={t('app_settings.about_tab_available_for_type_field_label')}
-        description={t('app_settings.about_tab_available_for_type_field_description')}
-        required
-        tagText={t('general.required')}
-      />
+    <StudioCheckboxGroup
+      id={id}
+      legend={t('app_settings.about_tab_available_for_type_field_label')}
+      description={t('app_settings.about_tab_available_for_type_field_description')}
+      required
+      tagText={t('general.required')}
+    >
       {options.map((option: LabelAndValue) => (
         <StudioCheckboxGroup.Item
           key={option.value}
