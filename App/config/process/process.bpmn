@@ -53,6 +53,9 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>fail</altinn:taskType>
+          <altinn:actions>
+              <altinn:action>reject</altinn:action>
+            </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1yq6g64</bpmn:incoming>
