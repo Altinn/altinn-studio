@@ -113,6 +113,7 @@ describe('OnProcessTaskAddHandler', () => {
       taskId: 'testElementId',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      allowedContributers: ['app:owned'],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
