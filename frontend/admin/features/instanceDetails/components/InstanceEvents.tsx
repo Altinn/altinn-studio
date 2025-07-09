@@ -23,14 +23,14 @@ export const InstanceEvents = ({ org, env, app, instanceId }: InstanceEventsProp
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <InstaneEventsWithData events={data} />;
+      return <InstanceEventsWithData events={data} />;
   }
 };
 
 type InstanceEventsWithDataProps = {
   events: InstanceEvent[];
 };
-const InstaneEventsWithData = ({ events }: InstanceEventsWithDataProps) => {
+const InstanceEventsWithData = ({ events }: InstanceEventsWithDataProps) => {
   return events.map((entry, i) => (
     <li key={i}>
       {formatDateAndTime(entry.created)} - {entry.eventType} {entry.dataId}{' '}

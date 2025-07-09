@@ -5,7 +5,7 @@ type ProcessEventType =
   | 'process_EndTask'
   | 'process_AbandonTask';
 
-type ProcessHistoryEntry = {
+export type ProcessHistoryItem = {
   eventType: ProcessEventType;
   elementId: string;
   occured: string;
@@ -13,5 +13,3 @@ type ProcessHistoryEntry = {
   ended: string | null;
   performedBy: string;
 };
-
-type ProcessHistory = ProcessHistoryEntry[];

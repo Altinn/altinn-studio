@@ -4,6 +4,7 @@ import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
 import { StudioError } from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { type ProcessHistoryItem } from 'admin/types/ProcessHistory';
 
 type ProcessHistoryProps = {
   org: string;
@@ -27,7 +28,7 @@ export const ProcessHistory = ({ org, env, app, instanceId }: ProcessHistoryProp
 };
 
 type ProcessHistoryWithDataProps = {
-  history: ProcessHistory;
+  history: ProcessHistoryItem[];
 };
 const ProcessHistoryWithData = ({ history }: ProcessHistoryWithDataProps) => {
   return history.map((entry, i) => (
