@@ -2,14 +2,43 @@
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
-        {
-            "size": "L",
-            "id": "Header-IIkZPf",
-            "type": "Header",
-            "textResourceBindings": {
-            "title": "Uff da! Det gikk ikke helt som planlagt."
-            }
+      {
+        "size": "L",
+        "id": "Header-IIkZPf",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Uff da! Det gikk ikke helt som planlagt."
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "fail",
+            "dataType": "Model3"
+          },
+          "metadata": {
+            "field": "fail",
+            "dataType": "Model3"
+          }
         },
+        "id": "RadioButtons-aoZwvK",
+        "type": "RadioButtons",
+        "required": true,
+        "options": [
+          {
+            "value": true,
+            "label": "id_B7xyV6j6PmmR"
+          },
+          {
+            "value": false,
+            "label": "id_6SGllQXPgInV"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "Side1.RadioButtons-aoZwvK.title"
+        },
+        "preselectedOptionIndex": 1
+      },
       {
         "id": "Button-BddG51",
         "type": "Button",
