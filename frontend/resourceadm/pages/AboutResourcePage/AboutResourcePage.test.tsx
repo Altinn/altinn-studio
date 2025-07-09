@@ -5,20 +5,19 @@ import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
-  ConsentTemplate,
   Resource,
   ResourceContactPoint,
   ResourceStatusOption,
   ResourceTypeOption,
 } from 'app-shared/types/ResourceAdm';
 import {
-  getMissingInputLanguageString,
   mapKeywordsArrayToString,
   resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { testConsentTemplates } from '../../testing/utils/testUtils';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -64,6 +63,8 @@ const mockConsentResource: Resource = {
   },
   isOneTimeConsent: true,
 };
+
+const consentTemplates = testConsentTemplates;
 
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
@@ -122,10 +123,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const titleNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_title_label'),
-      { exact: false },
-    );
+    const titleNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
     await user.type(titleNbInput, mockNewTitleInput);
@@ -140,21 +140,45 @@ describe('AboutResourcePage', () => {
     });
   });
 
+  it('handles title input change for english', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const titleEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_resource_title_label')}`,
+    );
+    await user.click(titleEnTab);
+
+    const titleEnInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
+    expect(titleEnInput).toHaveValue(mockResource1.title.en);
+
+    await user.type(titleEnInput, mockNewTitleInput);
+    await waitFor(() => titleEnInput.blur());
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      title: {
+        ...mockResource1.title,
+        en: `${mockResource1.title.en}${mockNewTitleInput}`,
+      },
+    });
+  });
+
   it('calls onSaveResource when going from one input field to another', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const titleNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_title_label'),
-      { exact: false },
-    );
+    const titleNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_title_label'),
+    });
     await user.type(titleNbInput, mockNewTitleInput);
     expect(mockOnSaveResource).not.toHaveBeenCalled();
 
-    const descriptionNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_description_label'),
-      { exact: false },
-    );
+    const descriptionNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
     await user.type(descriptionNbInput, mockNewDescriptionInput);
     expect(mockOnSaveResource).toHaveBeenCalled();
   });
@@ -163,10 +187,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const descriptionNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_resource_description_label'),
-      { exact: false },
-    );
+    const descriptionNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_resource_description_label'),
+    });
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
     await user.type(descriptionNbInput, mockNewDescriptionInput);
@@ -240,10 +263,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const rightDescriptionInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_rights_description_label'),
-      { exact: false },
-    );
+    const rightDescriptionInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_rights_description_label'),
+    });
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
     await user.clear(rightDescriptionInput);
@@ -323,10 +345,9 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
 
-    const consentTextNbInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_consent_text_label'),
-      { exact: false },
-    );
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
     expect(consentTextNbInput).toHaveValue(mockConsentResource.consentText.nb);
 
     await user.type(consentTextNbInput, mockNewConsentTextInput);
@@ -341,27 +362,111 @@ describe('AboutResourcePage', () => {
     });
   });
 
-  it('handles consentTemplate changes', async () => {
+  it('handles language change for consentText field', async () => {
     const user = userEvent.setup();
-    const consentTemplateTitle = 'Fullmakt til å utføre en tjeneste';
     render(
       <AboutResourcePage
         {...defaultProps}
         resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
-        consentTemplates={[
-          {
-            id: 'poa',
-            title: consentTemplateTitle,
-          } as ConsentTemplate,
-          {
-            id: 'sblanesoknad',
-            title: 'Samtykkebasert lånesøknad',
-          } as ConsentTemplate,
-        ]}
+        consentTemplates={consentTemplates}
       />,
     );
 
-    const consentTemplateRadio = screen.getByLabelText(consentTemplateTitle);
+    const languageEnTab = screen.getByLabelText(
+      `${textMock('language.en')} ${textMock('resourceadm.about_resource_consent_text_label')}`,
+    );
+    await user.click(languageEnTab);
+
+    const consentEnText = screen.getByText(mockConsentResource.consentText.en, {
+      ignore: 'textarea',
+    });
+    expect(consentEnText).toBeInTheDocument();
+  });
+
+  it('should insert markdown list when markdown list button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const listMarkdownButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_list'),
+    );
+    await user.click(listMarkdownButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const listMarkdown = `- Item1\n- Item2\n- Item3\n`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${listMarkdown}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
+  it('should insert markdown link when markdown link button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const linkMarkdownButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_link'),
+    );
+    await user.click(linkMarkdownButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const linkMarkdown = `[Link](https://altinn.no)`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${linkMarkdown}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
+  it('should insert metadata when metadata button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
+
+    const consentTextNbInput = screen.getByRole('textbox', {
+      name: textMock('resourceadm.about_resource_consent_text_label'),
+    });
+    const metadataButton = screen.getByLabelText(
+      textMock('resourceadm.about_resource_consent_add_metadata'),
+    );
+    await user.click(metadataButton);
+    await waitFor(() => consentTextNbInput.blur());
+
+    const metadataString = `{metadata}`;
+
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockConsentResource,
+      consentText: {
+        ...mockConsentResource.consentText,
+        nb: `${metadataString}${mockConsentResource.consentText.nb}`,
+      },
+    });
+  });
+
+  it('handles consentTemplate changes', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockConsentResource, consentTemplate: 'sblanesoknad' }}
+        consentTemplates={consentTemplates}
+      />,
+    );
+
+    const consentTemplateRadio = screen.getByLabelText(consentTemplates[0].title);
     await user.click(consentTemplateRadio);
 
     expect(consentTemplateRadio).toBeChecked();
@@ -381,7 +486,7 @@ describe('AboutResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('handles consentMetadata changes', async () => {
+  it('handles consentMetadata changes and cleans value', async () => {
     const user = userEvent.setup();
     render(
       <AboutResourcePage
@@ -393,7 +498,7 @@ describe('AboutResourcePage', () => {
     const consentMetadataField = screen.getByLabelText(
       textMock('resourceadm.about_resource_consent_metadata'),
     );
-    await user.type(consentMetadataField, ', year');
+    await user.type(consentMetadataField, ', 1yearå-.., persON');
     await waitFor(() => consentMetadataField.blur());
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
@@ -401,6 +506,7 @@ describe('AboutResourcePage', () => {
       consentMetadata: {
         org: { optional: false },
         year: { optional: false },
+        pers: { optional: false },
       },
     });
   });
@@ -460,66 +566,22 @@ describe('AboutResourcePage', () => {
           {
             field: 'title',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.title,
-              textMock('resourceadm.about_resource_error_usage_string_title'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_title_nb',
           },
-
           {
             field: 'description',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.description,
-              textMock('resourceadm.about_resource_error_usage_string_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_description_nb',
           },
           {
             field: 'rightDescription',
             index: 'nb',
-            error: getMissingInputLanguageString(
-              mockResource2.rightDescription,
-              textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-              textMock,
-            ),
+            error: 'resource_error_translation_missing_rights_description_nb',
           },
         ]}
         resourceData={mockResource2}
       />,
     );
-
-    expect(
-      screen.getAllByText(textMock('resourceadm.about_resource_resource_type_error')),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.title,
-          textMock('resourceadm.about_resource_error_usage_string_title'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.description,
-          textMock('resourceadm.about_resource_error_usage_string_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
-    ).toHaveLength(2);
   });
 
   it('does not display error message for rights description when delegable is false', async () => {
@@ -532,13 +594,7 @@ describe('AboutResourcePage', () => {
     );
 
     expect(
-      screen.queryByText(
-        getMissingInputLanguageString(
-          mockResource2.rightDescription,
-          textMock('resourceadm.about_resource_error_usage_string_rights_description'),
-          textMock,
-        ),
-      ),
+      screen.queryByText('resource_error_translation_missing_rights_description_nb'),
     ).not.toBeInTheDocument();
   });
 

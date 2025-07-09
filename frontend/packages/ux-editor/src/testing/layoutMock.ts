@@ -8,10 +8,14 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type {
+  PagesModelWithPageGroups,
+  PagesModelWithPageOrder,
+} from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
+export const layout3NameMock = 'Side3';
 export const pagelayout1NameMock = 'Sideoppsett 1';
 export const pagelayout2NameMock = 'Sideoppsett 2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
@@ -178,24 +182,23 @@ const layout2Mock: ExternalFormLayout = {
     layout: [],
   },
 };
-export const pagesModelMock: PagesModel = {
+export const pagesModelMock: PagesModelWithPageOrder = {
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
 };
 
-export const groupsPagesModelMock: PagesModel = {
+export const groupsPagesModelMock: PagesModelWithPageGroups = {
   groups: [
     {
       name: pagelayout1NameMock,
       order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
     {
-      name: layout2NameMock,
       markWhenCompleted: true,
-      order: [{ id: layout2NameMock }],
+      order: [{ id: layout3NameMock }],
     },
   ],
 };
-export const pageGroupsMultiplePagesMock: PagesModel = {
+export const pageGroupsMultiplePagesMock: PagesModelWithPageGroups = {
   groups: [
     {
       name: pagelayout1NameMock,

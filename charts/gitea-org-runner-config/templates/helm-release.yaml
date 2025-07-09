@@ -3,10 +3,10 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: {{ .Values.releaseName }}
-  namespace: default
+  namespace: studio-runners
 spec:
   releaseName: {{ .Values.releaseName }}
-  targetNamespace: default
+  targetNamespace: studio-runners
   interval: 5m
   install:
     remediation:
@@ -39,3 +39,10 @@ spec:
           secretKeyRef:
             name: {{ .Values.registrationTokenSecretName }}
             key: token
+    tolerations:
+      - key: "purpose"
+        operator: "Equal"
+        value: "runner"
+        effect: "NoSchedule"
+    nodeSelector:
+      purpose: runner

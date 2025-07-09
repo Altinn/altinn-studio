@@ -275,9 +275,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             List<string> languages = new();
             string pathToTexts = GetPathToTexts();
-            if (!Directory.Exists(pathToTexts))
+            if (!DirectoryExistsByRelativePath(pathToTexts))
             {
-                Directory.CreateDirectory(pathToTexts);
+                Directory.CreateDirectory(GetAbsoluteFileOrDirectoryPathSanitized(pathToTexts));
             }
 
             string[] directoryFiles = GetFilesByRelativeDirectory(
@@ -945,7 +945,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
-        public Definitions GetDefinitions()
+        public Definitions GetProcessDefinitions()
         {
             using Stream processDefinitionStream = GetProcessDefinitionFile();
             XmlSerializer serializer = new(typeof(Definitions));

@@ -203,3 +203,6 @@ export const previewWebSocketHub = () => `/hubs/preview`;
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
+
+// Can use feature
+export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;

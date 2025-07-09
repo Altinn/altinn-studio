@@ -72,7 +72,7 @@ jobs:
                                 --password-stdin
 
       - name: Setup Flux CLI
-        uses: fluxcd/flux2/action@b73c7f7191086ca7629840e680e71873349787f8 # v2.6.1
+        uses: fluxcd/flux2/action@bda4c8187e436462be0d072e728b67afa215c593 # v2.6.3
 
       - name: Generate cofiguration file
         run: |

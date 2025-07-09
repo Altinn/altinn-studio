@@ -40,6 +40,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
+import { FeedbackForm } from './FeedbackForm';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -116,6 +117,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
+  const { t } = useTranslation();
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -144,6 +146,7 @@ function OrgContentLibraryWithContextAndData({
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
+    heading: t('org_content_library.library_heading'),
     pages: {
       codeList: {
         props: {
@@ -161,7 +164,12 @@ function OrgContentLibraryWithContextAndData({
     },
   });
 
-  return <div>{getContentResourceLibrary()}</div>;
+  return (
+    <div>
+      {getContentResourceLibrary()}
+      <FeedbackForm />
+    </div>
+  );
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
