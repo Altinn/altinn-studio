@@ -39,7 +39,7 @@ describe('grafanaPodLogsUrl', () => {
     });
 
     expect(result).toBe(
-      'https://ttd.apps.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-prod-rg&var-PodName=ttd-app-v2&from=1&to=2',
+      'https://ttd.apps.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-prod-rg&var-PodName=ttd-app-deployment-v2&from=1&to=2',
     );
   });
 
@@ -54,7 +54,7 @@ describe('grafanaPodLogsUrl', () => {
     });
 
     expect(result).toBe(
-      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-v2&from=1&to=2',
+      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-deployment-v2&from=1&to=2',
     );
   });
 
@@ -67,7 +67,7 @@ describe('grafanaPodLogsUrl', () => {
     });
 
     expect(result).toBe(
-      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-v2',
+      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-deployment-v2',
     );
   });
 });

@@ -40,7 +40,7 @@ export const grafanaPodLogsUrl = ({
 
   const queryParams = new URLSearchParams({
     'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : env}-rg`,
-    'var-PodName': `${org}-${app}-v2`,
+    'var-PodName': `${org}-${app}-deployment-v2`,
     ...(buildStartTime ? { from: buildStartTime.toString() } : {}),
     ...(buildFinishTime ? { to: buildFinishTime.toString() } : {}),
   }).toString();
