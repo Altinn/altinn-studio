@@ -5,7 +5,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../../types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 
 describe('AddItemContent', () => {
   beforeEach(() => {
