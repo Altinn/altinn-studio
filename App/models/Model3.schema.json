@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/service-task/App/models/Model3.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "Model3",
+  "type": "object",
+  "required": [
+    "fail"
+  ],
+  "$defs": {
+    "fail": {
+      "type": "string"
+    }
+  },
+  "properties": {
+    "fail": {
+      "type": "boolean",
+      "title": "Kjør feilende service task Model 3"
+    }
+  }
+}
