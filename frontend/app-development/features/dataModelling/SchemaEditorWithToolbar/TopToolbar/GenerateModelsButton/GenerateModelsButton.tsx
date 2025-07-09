@@ -29,12 +29,8 @@ export const GenerateModelsButton = ({
         onSetSchemaGenerationErrorMessages([]);
       },
       onError: (error) => {
-        const customErrorMessages = error?.response?.data?.customErrorMessages;
-        if (customErrorMessages) {
-          onSetSchemaGenerationErrorMessages(customErrorMessages);
-        } else {
-          onSetSchemaGenerationErrorMessages([]);
-        }
+        const customErrorMessages = error?.response?.data?.customErrorMessages || [];
+        onSetSchemaGenerationErrorMessages(customErrorMessages);
       },
     });
   };
