@@ -6,6 +6,13 @@
   flex: 3;
   padding: 20px;
   overflow-y: scroll;
+  gap: var(--fds-spacing-4);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
 }
 
 .componentCategory {
