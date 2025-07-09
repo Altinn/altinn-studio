@@ -82,6 +82,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
+      allowedContributers: [AllowedContributor.AppOwned],
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
