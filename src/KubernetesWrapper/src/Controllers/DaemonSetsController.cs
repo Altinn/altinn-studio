@@ -8,23 +8,15 @@ namespace KubernetesWrapper.Controllers
     /// <summary>
     ///  Controller containing all actions related to kubernetes deamon set
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="DaemonSetsController"/> class
+    /// </remarks>
+    /// <param name="apiWrapper">The kubernetes api wrapper client</param>
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class DaemonSetsController : ControllerBase
+    public class DaemonSetsController(IKubernetesApiWrapper apiWrapper) : ControllerBase
     {
-        private readonly IKubernetesApiWrapper _apiWrapper;
-        private readonly ILogger _logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DaemonSetsController"/> class
-        /// </summary>
-        /// <param name="apiWrapper">The kubernetes api wrapper client</param>
-        /// <param name="logger">The logger</param>
-        public DaemonSetsController(IKubernetesApiWrapper apiWrapper, ILogger<DaemonSetsController> logger)
-        {
-            _apiWrapper = apiWrapper;
-            _logger = logger;
-        }
+        private readonly IKubernetesApiWrapper _apiWrapper = apiWrapper;
 
         /// <summary>
         /// Get a list of daemonSets. For a more detailed spec of parameters see Kubernetes API DOC
@@ -36,16 +28,8 @@ namespace KubernetesWrapper.Controllers
         [EnableCors]
         public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
         {
-            try
-            {
-                var daemonSets = await _apiWrapper.GetDeployedResources(Models.ResourceType.DaemonSet, null, null, fieldSelector, labelSelector);
-                return Ok(daemonSets);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to GetDaemonSets");
-                return StatusCode(500);
-            }
+            var daemonSets = await _apiWrapper.GetDeployedResources(Models.ResourceType.DaemonSet, null, null, fieldSelector, labelSelector);
+            return Ok(daemonSets);
         }
     }
 }
