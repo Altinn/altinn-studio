@@ -1,16 +1,16 @@
 .propertyFieldset {
   align-items: center;
-  background-color: var(--fds-semantic-surface-action-first-no_fill);
-  border-radius: var(--fds-border_radius-medium);
-  box-shadow: var(--fds-shadow-small);
+  background-color: var(--ds-color-neutral-background-default);
+  border-radius: var(--ds-border-radius-md);
+  box-shadow: var(--ds-shadow-sm);
   box-sizing: border-box;
   display: grid;
   gap: var(--studio-property-fieldset-spacing);
   grid-template-columns: [start] 1fr auto [end];
-  margin: 0 var(--fds-spacing-5);
+  margin: 0 var(--ds-size-5);
   overflow: auto;
   padding: 0;
-  border: 1px solid var(--fds-semantic-border-first-default);
+  border: 1px solid var(--ds-color-accent-border-default);
 }
 
 .propertyFieldset legend > * {
@@ -33,7 +33,7 @@
 }
 
 .propertyFieldset.compact {
-  --studio-property-fieldset-spacing: var(--fds-spacing-2);
-  margin: 0 var(--fds-spacing-3);
+  --studio-property-fieldset-spacing: var(--ds-size-2);
+  margin: 0 var(--ds-size-3);
   box-shadow: none;
 }
