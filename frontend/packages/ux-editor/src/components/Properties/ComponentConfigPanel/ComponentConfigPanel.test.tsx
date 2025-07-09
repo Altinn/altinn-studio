@@ -274,12 +274,13 @@ describe('ComponentConfigPanel', () => {
       expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     });
 
-    it('renders properties when formItem is not a Subform component', () => {
-      renderComponentConfig();
-      expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    it('should not render properties accordions when subform component is selected but not linked to a subform layoutSet', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Subform],
+        formItemId: componentMocks[ComponentType.Subform].id,
+      });
+      const contentAccordion = screen.queryByText(textMock('right_menu.content'));
+      expect(contentAccordion).not.toBeInTheDocument();
     });
 
     it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
@@ -289,9 +290,19 @@ describe('ComponentConfigPanel', () => {
         formItemId: componentMocks[ComponentType.Subform].id,
       });
       expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    });
+
+    it('does not render text and data model accordions when these properties is not available', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Summary2],
+        formItemId: componentMocks[ComponentType.Summary2].id,
+      });
+      expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(textMock('right_menu.data_model_bindings')),
+      ).not.toBeInTheDocument();
     });
   });
 });
