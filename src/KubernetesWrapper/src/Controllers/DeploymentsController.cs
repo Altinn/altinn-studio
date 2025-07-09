@@ -8,23 +8,15 @@ namespace KubernetesWrapper.Controllers
     /// <summary>
     ///  Controller containing all actions related to kubernetes deployments
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="DeploymentsController"/> class
+    /// </remarks>
+    /// <param name="apiWrapper">The kubernetes api wrapper client</param>
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class DeploymentsController : ControllerBase
+    public class DeploymentsController(IKubernetesApiWrapper apiWrapper) : ControllerBase
     {
-        private readonly IKubernetesApiWrapper _apiWrapper;
-        private readonly ILogger _logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentsController"/> class
-        /// </summary>
-        /// <param name="apiWrapper">The kubernetes api wrapper client</param>
-        /// <param name="logger">The logger</param>
-        public DeploymentsController(IKubernetesApiWrapper apiWrapper, ILogger<DeploymentsController> logger)
-        {
-            _apiWrapper = apiWrapper;
-            _logger = logger;
-        }
+        private readonly IKubernetesApiWrapper _apiWrapper = apiWrapper;
 
         /// <summary>
         /// Get a list of deployments. For a more detailed spec of parameters see Kubernetes API DOC
@@ -36,16 +28,8 @@ namespace KubernetesWrapper.Controllers
         [EnableCors]
         public async Task<ActionResult> GetDeployments(string labelSelector, string fieldSelector)
         {
-            try
-            {
-                var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
-                return Ok(deployments);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to GetDeployments");
-                return StatusCode(500);
-            }
+            var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
+            return Ok(deployments);
         }
     }
 }
