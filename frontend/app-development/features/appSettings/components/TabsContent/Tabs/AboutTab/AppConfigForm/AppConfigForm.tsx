@@ -22,7 +22,7 @@ import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
-import { ContactPointFields } from './ContactPointFields';
+import { ContactPoints } from './ContactPoints';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -305,12 +305,11 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           errors={availableForTypeErrors}
           id={AppResourceFormFieldIds.AvailableForType}
         />
-        <ContactPointFields
+        <ContactPoints
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
           errors={contactPointErrors}
-          required
-          id={AppResourceFormFieldIds.ContactPoints}
+          id={AppResourceFormFieldIds.ContactPointsId}
         />
       </div>
       <ActionButtons
@@ -328,7 +327,7 @@ enum AppResourceFormFieldIds {
   RightDescription = 'rightDescription',
   Status = 'status',
   AvailableForType = 'availableForType',
-  ContactPoints = 'contactPoints',
+  ContactPointsId = 'contactPoints',
 }
 
 function getValidationErrorsForField(

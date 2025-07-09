@@ -1,31 +1,40 @@
 import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
+import classes from './ContactPointCard.module.css';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
-import { StudioCard, StudioFieldset, StudioTag, StudioTextfield } from '@studio/components';
+import {
+  StudioCard,
+  StudioDeleteButton,
+  StudioFieldset,
+  StudioTag,
+  StudioTextfield,
+  StudioValidationMessage,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ContactPointCardProps = {
   contactPoint: ContactPoint;
   onContactPointsChanged: (contactPoint: ContactPoint) => void;
   errors: AppConfigFormError[];
-  required?: boolean;
   index: number;
   id: string;
+  onRemoveButtonClick?: (index: number) => void;
 };
 
 export function ContactPointCard({
   contactPoint,
   onContactPointsChanged,
   errors,
-  required = false,
   index,
   id,
+  onRemoveButtonClick,
 }: ContactPointCardProps): ReactElement {
   const { t } = useTranslation();
 
-  const fieldErrors: AppConfigFormError[] = getErrorForContactPoint(errors, index);
-  const hasError: boolean = fieldErrors.length > 0;
+  console.log('errors', errors);
+  const fieldErrors: AppConfigFormError | undefined = getErrorForContactPoint(errors, index);
+  const hasError: boolean = !!fieldErrors;
 
   const handleChangeCategory = (event: ChangeEvent<HTMLInputElement>): void => {
     const updatedContactPoint = { ...contactPoint, category: event.target.value };
@@ -50,17 +59,9 @@ export function ContactPointCard({
   return (
     <StudioCard id={`${id}-${index}`} data-color='neutral'>
       <StudioFieldset
-      // Todo, change to legend={t('')} and description={t('')}
+        legend={<FieldsetWithTag cardNumber={index + 1} />}
+        description={t('app_settings.about_tab_contact_point_fieldset_description')}
       >
-        <StudioFieldset.Legend>
-          {t('app_settings.about_tab_contact_point_fieldset_legend', {
-            index: index + 1,
-          })}
-          <StudioTag data-color='warning'>{t('general.required')}</StudioTag>
-        </StudioFieldset.Legend>
-        <StudioFieldset.Description>
-          {t('app_settings.about_tab_contact_point_fieldset_description')}
-        </StudioFieldset.Description>
         <StudioTextfield
           label={t('app_settings.about_tab_contact_point_fieldset_category_label')}
           description={t('app_settings.about_tab_contact_point_fieldset_category_description')}
@@ -86,17 +87,45 @@ export function ContactPointCard({
           onChange={handleChangeContactPage}
           aria-invalid={hasError}
         />
-        <p>fieldErrors: {JSON.stringify(fieldErrors)}</p>
+        {onRemoveButtonClick && (
+          <StudioDeleteButton
+            onDelete={() => onRemoveButtonClick(index)}
+            confirmMessage={t('app_settings.about_tab_contact_point_delete_confirm')}
+          >
+            {t('app_settings.about_tab_contact_point_delete_button_text')}
+          </StudioDeleteButton>
+        )}
+        {hasError && (
+          <StudioValidationMessage>
+            {t('app_settings.about_tab_error_contact_points')}
+          </StudioValidationMessage>
+        )}
       </StudioFieldset>
     </StudioCard>
+  );
+}
+
+type FieldsetWithTagProps = {
+  cardNumber: number;
+};
+
+function FieldsetWithTag({ cardNumber }: FieldsetWithTagProps): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <span className={classes.fieldsetLegend}>
+      {t('app_settings.about_tab_contact_point_fieldset_legend', {
+        index: cardNumber,
+      })}
+      <StudioTag data-color='warning'>{t('general.required')}</StudioTag>
+    </span>
   );
 }
 
 function getErrorForContactPoint(
   errors: AppConfigFormError[],
   index: number,
-): AppConfigFormError[] {
-  return errors.filter(
+): AppConfigFormError | undefined {
+  return errors?.find(
     (error: AppConfigFormError) => isFieldContactPoints(error) && error.index === index,
   );
 }
