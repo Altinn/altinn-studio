@@ -32,7 +32,6 @@ export function ContactPointCard({
 }: ContactPointCardProps): ReactElement {
   const { t } = useTranslation();
 
-  console.log('errors', errors);
   const fieldErrors: AppConfigFormError | undefined = getErrorForContactPoint(errors, index);
   const hasError: boolean = !!fieldErrors;
 
@@ -57,7 +56,7 @@ export function ContactPointCard({
   };
 
   return (
-    <StudioCard id={`${id}-${index}`} data-color='neutral'>
+    <StudioCard id={`${id}-${index}`} data-color='neutral' variant='tinted'>
       <StudioFieldset
         legend={<FieldsetWithTag cardNumber={index + 1} />}
         description={t('app_settings.about_tab_contact_point_fieldset_description')}
