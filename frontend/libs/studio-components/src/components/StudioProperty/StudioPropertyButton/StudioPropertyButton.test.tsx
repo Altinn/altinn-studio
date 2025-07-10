@@ -3,6 +3,7 @@ import React from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
 import { render, screen } from '@testing-library/react';
+import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../../test-utils/testRefForwarding';
@@ -71,6 +72,6 @@ describe('StudioPropertyButton', () => {
 const renderButton = (
   props: Partial<StudioPropertyButtonProps> = {},
   ref?: ForwardedRef<HTMLButtonElement>,
-) => render(<StudioPropertyButton {...defaultProps} {...props} ref={ref} />);
+): RenderResult => render(<StudioPropertyButton {...defaultProps} {...props} ref={ref} />);
 
 const getButton = (): HTMLButtonElement => screen.getByRole('button');
