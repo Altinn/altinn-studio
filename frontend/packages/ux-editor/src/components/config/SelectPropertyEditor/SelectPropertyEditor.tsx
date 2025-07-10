@@ -10,6 +10,7 @@ export type SelectPropertyEditorProps = {
   value?: string | React.ReactNode;
   property?: string;
   title?: string;
+  className?: string;
 };
 
 export const SelectPropertyEditor = ({
@@ -17,6 +18,7 @@ export const SelectPropertyEditor = ({
   value,
   property,
   title,
+  className,
 }: SelectPropertyEditorProps) => {
   const { t } = useTranslation();
   const [dataTypeSelectVisible, setDataTypeSelectVisible] = useState(false);
@@ -24,7 +26,7 @@ export const SelectPropertyEditor = ({
   return (
     <div className={cn(dataTypeSelectVisible ? classes.container : classes.viewMode)}>
       {dataTypeSelectVisible ? (
-        <div className={classes.editSelectProperty}>
+        <div className={cn(classes.editSelectProperty, className)}>
           <div className={classes.selectProperty}>{children}</div>
           <StudioButton
             icon={<XMarkIcon />}
@@ -39,7 +41,7 @@ export const SelectPropertyEditor = ({
           property={property}
           title={title}
           value={value}
-          className={classes.viewSelectProperty}
+          className={cn(classes.viewSelectProperty, className)}
         />
       )}
     </div>

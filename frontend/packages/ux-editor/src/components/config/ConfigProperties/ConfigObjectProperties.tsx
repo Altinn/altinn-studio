@@ -8,10 +8,12 @@ import { useComponentPropertyDescription } from '../../../hooks/useComponentProp
 import type { FormComponent } from '../../../types/FormComponent';
 import classes from './ConfigObjectProperties.module.css';
 import type { SchemaConfigProps } from './types';
+import cn from 'classnames';
 
 export interface ConfigObjectPropertiesProps extends SchemaConfigProps {
   objectPropertyKeys: string[];
   editFormId: string;
+  className?: string;
 }
 
 export const ConfigObjectProperties = ({
@@ -20,6 +22,7 @@ export const ConfigObjectProperties = ({
   component,
   editFormId,
   handleComponentUpdate,
+  className,
 }: ConfigObjectPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
@@ -72,7 +75,7 @@ export const ConfigObjectProperties = ({
               </StudioCard>
             ) : (
               <StudioProperty.Button
-                className={classes.gridButton}
+                className={cn(classes.gridButton, className)}
                 icon={<PlusCircleIcon />}
                 onClick={() => toggleObjectCard(propertyKey)}
                 property={componentPropertyLabel(propertyKey)}
