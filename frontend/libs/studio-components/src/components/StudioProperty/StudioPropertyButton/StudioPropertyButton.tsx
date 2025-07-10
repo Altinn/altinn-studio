@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import React, { useCallback, forwardRef } from 'react';
 import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
@@ -22,6 +22,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
       compact,
       readOnly,
       icon: givenIcon,
+      onClick,
       property,
       value,
       withoutNegativeMargin,
@@ -29,6 +30,13 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
     },
     ref,
   ) => {
+    const handleClick = useCallback(
+      (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+        if (!readOnly) onClick?.(event);
+      },
+      [onClick, readOnly],
+    );
+
     const hasValue = ValidationUtils.valueExists(value);
 
     const icon = hasValue || givenIcon ? givenIcon : <PlusCircleIcon />;
@@ -42,15 +50,13 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
       givenClass,
     );
 
-    if (readOnly) {
-      rest.onClick = null;
-    }
-
     return (
       <StudioButton
         aria-label={property}
         aria-readonly={readOnly ? true : null}
         className={className}
+        fullWidth
+        onClick={handleClick}
         ref={ref}
         title={property}
         variant='tertiary'
