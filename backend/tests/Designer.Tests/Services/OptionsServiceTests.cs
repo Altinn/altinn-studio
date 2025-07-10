@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
@@ -293,6 +294,15 @@ public class OptionsServiceTests : IDisposable
         }
 
         Assert.Equal(2, textResources.Keys.Count);
+
+        string actualAppSettingsString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetAppRepository, Developer, ".altinnstudio/settings.json");
+        AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
+            actualAppSettingsString,
+            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
+        );
+        Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
+        Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
+        Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
     }
 
     [Fact]
