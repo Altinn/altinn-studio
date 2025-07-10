@@ -3,8 +3,8 @@
  * This abstract the needs to manually serialize and deserialize values.
  */
 export type TypedStorage = {
-  setItem: <T>(key: string, value: T) => void;
-  getItem: <T>(key: string) => T | undefined;
+  setItem: <T>(key: string, value?: T) => void;
+  getItem: <T>(key: string) => T | null | undefined;
   removeItem: (key: string) => void;
 };
 
@@ -21,7 +21,7 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
     setItem: <T>(key: string, value: T): void => {
       if (value !== undefined) storage.setItem(key, JSON.stringify(value));
     },
-    getItem: <T>(key: string): T | undefined => {
+    getItem: <T>(key: string): T | null | undefined => {
       const storedItem = storage.getItem(key);
       if (!storedItem) {
         return null;
