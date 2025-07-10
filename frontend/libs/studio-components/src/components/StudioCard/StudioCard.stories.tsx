@@ -1,16 +1,29 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
-import { StudioCard } from './StudioCard';
-
-type Story = StoryFn<typeof StudioCard>;
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { StudioCard } from './';
 
 const meta: Meta<typeof StudioCard> = {
   title: 'Components/StudioCard',
   component: StudioCard,
 };
-export const Preview: Story = (args): React.ReactElement => <StudioCard {...args} />;
 
-Preview.args = {
-  children: 'Lorem ipsum dolor sit amet.',
+type Story = StoryObj<typeof meta>;
+
+export const Simple: Story = {
+  args: {
+    children: 'Lorem ipsum dolor sit amet.',
+  },
 };
+
+export const WithBlocks: Story = {
+  args: {
+    children: (
+      <>
+        <StudioCard.Block>Duis diam dui, pellentesque et.</StudioCard.Block>
+        <StudioCard.Block>Aliquam et lectus at ante.</StudioCard.Block>
+      </>
+    ),
+  },
+};
+
 export default meta;
