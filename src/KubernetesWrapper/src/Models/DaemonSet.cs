@@ -1,9 +1,8 @@
-namespace KubernetesWrapper.Models
+namespace KubernetesWrapper.Models;
+
+/// <summary>
+/// Class describing a daemon set
+/// </summary>
+public class DaemonSet : DeployedResource
 {
-    /// <summary>
-    /// Class describing a daemon set
-    /// </summary>
-    public class DaemonSet : DeployedResource
-    {
-    }
 }
