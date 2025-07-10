@@ -30,31 +30,31 @@ div[class*='bpmn-icon-task-generic']:hover {
 }
 
 div[class*='bpmn-icon-data-task'] {
-  -webkit-mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/DataTask.svg') var(--mask-icon-size);
+  mask: url('/assets/DataTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-confirmation-task'] {
-  -webkit-mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/ConfirmationTask.svg') var(--mask-icon-size);
+  mask: url('/assets/ConfirmationTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-feedback-task'] {
-  -webkit-mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/FeedbackTask.svg') var(--mask-icon-size);
+  mask: url('/assets/FeedbackTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-signing-task'] {
-  -webkit-mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/SignTask.svg') var(--mask-icon-size);
+  mask: url('/assets/SignTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-user-controlled-signing-task'] {
-  -webkit-mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/UserSignTask.svg') var(--mask-icon-size);
+  mask: url('/assets/UserSignTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-payment-task'] {
-  -webkit-mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
-  mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
+  -webkit-mask: url('/assets/PaymentTask.svg') var(--mask-icon-size);
+  mask: url('/assets/PaymentTask.svg') var(--mask-icon-size);
 }

@@ -1,0 +1,30 @@
+{
+    "lang": "no",
+    "dir": "ltr",
+    "name": "tjenester 3.0",
+    "description": "Neste generasjon offentlige tjenester",
+    "short_name": "3.0",
+    "icons": [
+        {
+            "src": "/assets/icon64x64.png",
+            "sizes": "64x64"
+        },
+        {
+            "src": "/assets/icon96x96.png",
+            "sizes": "96x96"
+        },
+        {
+            "src": "/assets/icon144x144.png",
+            "sizes": "144x144"
+        },
+        {
+            "src": "/assets/icon192x192.png",
+            "sizes": "192x192"
+        }
+    ],
+    "scope": "/",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "rgb(30,174,247)"
+}

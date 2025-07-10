@@ -16,6 +16,7 @@ import {
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';
+import pageBackgroundSvg from '/assets/page-background.svg';
 
 type ContactSectionMetadata = {
   shouldHideSection?: boolean;
@@ -76,7 +77,7 @@ export const ContactPage = (): React.ReactElement => {
   ];
 
   return (
-    <StudioPageImageBackgroundContainer image='/designer/img/page-background.svg'>
+    <StudioPageImageBackgroundContainer image={pageBackgroundSvg}>
       <div className={classes.container}>
         <div className={classes.content}>
           <div>

@@ -28,7 +28,7 @@
 
 @media only screen and (min-width: 1200px) {
   .documentation::before {
-    background-image: url('/designer/img/Altinn-studio-3.svg');
+    background-image: url('/assets/Altinn-studio-3.svg');
     background-position: center center;
     background-size: 64px auto;
     background-repeat: no-repeat;
