@@ -44,12 +44,23 @@ export class FormLayoutSettings {
   }
 
   public addPageToOrder(layoutName: string): void {
-    this.layoutSettings.pages.order.push(layoutName);
+    if (this.layoutSettings.pages.groups) {
+      this.layoutSettings.pages.groups[0].order.push(layoutName);
+    } else {
+      this.layoutSettings.pages.order.push(layoutName);
+    }
   }
 
   public deletePageFromOrder(layoutName: string): void {
-    const indexOfPage = this.layoutSettings.pages.order.indexOf(layoutName);
-    this.layoutSettings.pages.order.splice(indexOfPage, 1);
+    if (this.layoutSettings.pages.groups) {
+      this.layoutSettings.pages.groups = this.layoutSettings.pages.groups.map((group) => ({
+        ...group,
+        order: group.order.filter((page) => page !== layoutName),
+      }));
+    } else {
+      const indexOfLayout = this.layoutSettings.pages.order.indexOf(layoutName);
+      this.layoutSettings.pages.order.splice(indexOfLayout, 1);
+    }
   }
 
   public deleteLayoutByName(layoutName: string): FormLayoutSettings {
