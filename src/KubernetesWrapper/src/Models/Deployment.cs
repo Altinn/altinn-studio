@@ -1,9 +1,8 @@
-namespace KubernetesWrapper.Models
+namespace KubernetesWrapper.Models;
+
+/// <summary>
+/// Class describing a deployment
+/// </summary>
+public class Deployment : DeployedResource
 {
-    /// <summary>
-    /// Class describing a deployment
-    /// </summary>
-    public class Deployment : DeployedResource
-    {
-    }
 }
