@@ -1,11 +1,10 @@
-namespace KubernetesWrapper.Models
+namespace KubernetesWrapper.Models;
+
+/// <summary>
+/// Enum class descibing deployed entity types
+/// </summary>
+public enum ResourceType
 {
-    /// <summary>
-    /// Enum class descibing deployed entity types
-    /// </summary>
-    public enum ResourceType
-    {
-        Deployment,
-        DaemonSet
-    }
+    Deployment,
+    DaemonSet
 }
