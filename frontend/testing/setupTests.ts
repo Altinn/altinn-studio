@@ -9,6 +9,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
+import { TextEncoder, TextDecoder } from 'util';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -35,6 +36,9 @@ Object.defineProperty(window, 'scrollTo', {
   writable: true,
   value: jest.fn(),
 });
+
+// polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
+Object.assign(global, { TextDecoder, TextEncoder });
 
 // ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
 class ResizeObserver {

@@ -24,7 +24,8 @@ export { StudioTextfield } from './StudioTextfield';
 export { StudioSpinner } from './StudioSpinner';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioFormGroup } from './StudioFormGroup';
-export { StudioCheckbox, useStudioCheckboxGroup } from './StudioCheckbox';
+export { StudioCheckbox } from './StudioCheckbox';
+export { StudioCheckboxGroup, useStudioCheckboxGroup } from './StudioCheckboxGroup';
 export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTable';
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
@@ -34,5 +35,6 @@ export { type StudioCallToActionBarProps, StudioCallToActionBar } from './Studio
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
 export { StudioDetails } from './StudioDetails';
-export { StudioRadio, useStudioRadioGroup } from './StudioRadio';
+export { StudioRadio } from './StudioRadio';
+export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
 export { StudioToggleGroup } from './StudioToggleGroup';

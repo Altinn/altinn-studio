@@ -27,10 +27,11 @@ static void ConfigureApp(WebApplication app)
     if (!app.Environment.IsDevelopment())
     {
         app.UseHsts();
+        app.UseExceptionHandler("/error");
     }
     else
     {
-        app.UseDeveloperExceptionPage();
+        app.UseExceptionHandler("/error-development");
     }
 
     app.UseSwagger(o => o.RouteTemplate = "kuberneteswrapper/swagger/{documentName}/swagger.json");

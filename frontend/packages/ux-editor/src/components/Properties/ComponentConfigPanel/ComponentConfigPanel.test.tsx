@@ -141,10 +141,6 @@ describe('ComponentConfigPanel', () => {
         name: textMock('right_menu.dynamics'),
       });
       expect(dynamicsAccordion).toHaveAttribute('aria-expanded', 'false');
-      const calculationsAccordion = screen.getByRole('button', {
-        name: textMock('right_menu.calculations'),
-      });
-      expect(calculationsAccordion).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
@@ -264,21 +260,6 @@ describe('ComponentConfigPanel', () => {
     });
   });
 
-  describe('Calculations', () => {
-    it('Closes calculations on load', () => {
-      renderComponentConfig();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.calculations') });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
-    });
-
-    it('Toggles calculations when clicked', async () => {
-      const user = userEvent.setup();
-      const name = textMock('right_menu.calculations');
-      renderComponentConfig();
-      await expectToggleAccordion(name, user);
-    });
-  });
-
   describe('formItem is selected', () => {
     it('Renders properties accordions when formItem is selected', () => {
       editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
@@ -287,23 +268,19 @@ describe('ComponentConfigPanel', () => {
       expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
       expect(screen.getByTestId(textTestId)).toBeInTheDocument();
       expect(screen.getByTestId(DataModelBindingsTestId)).toBeInTheDocument();
       expect(screen.getByTestId(editFormComponentTestId)).toBeInTheDocument();
       expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
-      expect(
-        screen.getByText(textMock('right_menu.rules_calculations_deprecated_info_title')),
-      ).toBeInTheDocument();
     });
 
-    it('renders properties when formItem is not a Subform component', () => {
-      renderComponentConfig();
-      expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+    it('should not render properties accordions when subform component is selected but not linked to a subform layoutSet', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Subform],
+        formItemId: componentMocks[ComponentType.Subform].id,
+      });
+      const contentAccordion = screen.queryByText(textMock('right_menu.content'));
+      expect(contentAccordion).not.toBeInTheDocument();
     });
 
     it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
@@ -313,10 +290,19 @@ describe('ComponentConfigPanel', () => {
         formItemId: componentMocks[ComponentType.Subform].id,
       });
       expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
-      expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+    });
+
+    it('does not render text and data model accordions when these properties is not available', () => {
+      renderComponentConfig({
+        formItem: componentMocks[ComponentType.Summary2],
+        formItemId: componentMocks[ComponentType.Summary2].id,
+      });
+      expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(textMock('right_menu.data_model_bindings')),
+      ).not.toBeInTheDocument();
     });
   });
 });

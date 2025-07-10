@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
+import DOMPurify from 'dompurify';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { useTranslation } from 'react-i18next';
 import Markdown from 'markdown-to-jsx';
+import parseHtmlToReact from 'html-react-parser';
 import cn from 'classnames';
 import {
   StudioAlert,
@@ -18,6 +21,7 @@ import type {
   ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import classes from './ConsentPreview.module.css';
+import { resourceAdmConsentPreview } from '@studio/testing/testids';
 
 const buttonText = {
   nb: {
@@ -46,6 +50,7 @@ interface ConsentPreviewProps {
   consentText: SupportedLanguage;
   consentMetadata: ConsentMetadata;
   isOneTimeConsent: boolean;
+  language: ValidLanguage;
 }
 
 export const ConsentPreview = ({
@@ -54,9 +59,9 @@ export const ConsentPreview = ({
   consentText,
   consentMetadata,
   isOneTimeConsent,
+  language,
 }: ConsentPreviewProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const [language, setLanguage] = React.useState<ValidLanguage>('nb');
   const [reporteeType, setReporteeType] = React.useState<'person' | 'org'>('person');
   const [isDummyMetadataEnabled, setIsDummyMetadataEnabled] = React.useState<boolean>(false);
   const [isMobileViewEnabled, setIsMobileViewEnabled] = React.useState<boolean>(false);
@@ -102,10 +107,17 @@ export const ConsentPreview = ({
   return (
     <div className={classes.consentPreviewPanel}>
       <div className={classes.consentPreviewInner}>
-        <StudioHeading level={2} data-size='md'>
-          {t('resourceadm.about_resource_consent_preview')}
-        </StudioHeading>
         <div className={classes.previewControls}>
+          <StudioSwitch
+            label={t('resourceadm.about_resource_consent_preview_mobile_view')}
+            checked={isMobileViewEnabled}
+            onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
+          />
+          <StudioSwitch
+            label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
+            checked={isDummyMetadataEnabled}
+            onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
+          />
           <StudioToggleGroup
             data-size='sm'
             value={reporteeType}
@@ -118,31 +130,6 @@ export const ConsentPreview = ({
               {t('resourceadm.about_resource_consent_preview_org')}
             </StudioToggleGroup.Item>
           </StudioToggleGroup>
-          <StudioToggleGroup
-            data-size='sm'
-            value={language}
-            onChange={(newValue: string) => setLanguage(newValue as ValidLanguage)}
-          >
-            <StudioToggleGroup.Item value='nb'>
-              {t('resourceadm.about_resource_consent_preview_language_nb')}
-            </StudioToggleGroup.Item>
-            <StudioToggleGroup.Item value='nn'>
-              {t('resourceadm.about_resource_consent_preview_language_nn')}
-            </StudioToggleGroup.Item>
-            <StudioToggleGroup.Item value='en'>
-              {t('resourceadm.about_resource_consent_preview_language_en')}
-            </StudioToggleGroup.Item>
-          </StudioToggleGroup>
-          <StudioSwitch
-            label={t('resourceadm.about_resource_consent_preview_dummy_metadata')}
-            checked={isDummyMetadataEnabled}
-            onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
-          />
-          <StudioSwitch
-            label={t('resourceadm.about_resource_consent_preview_mobile_view')}
-            checked={isMobileViewEnabled}
-            onChange={(event) => setIsMobileViewEnabled(event.target.checked)}
-          />
         </div>
         <div
           data-testid='consentPreviewContainer'
@@ -165,7 +152,9 @@ export const ConsentPreview = ({
                 <StudioHeading level={3} data-size='2xs'>
                   {resourceName[language]}
                 </StudioHeading>
-                <Markdown>{texts.resourceText}</Markdown>
+                <div data-testid={resourceAdmConsentPreview}>
+                  {transformText(texts.resourceText)}
+                </div>
               </div>
             </div>
             <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
@@ -213,4 +202,25 @@ const getDummyDateString = (): string => {
     month: '2-digit',
     day: '2-digit',
   });
+};
+
+export const transformText = (markdownText: string): string | ReactElement | ReactElement[] => {
+  const htmlFromMarkdown = renderToStaticMarkup(
+    <Markdown
+      options={{
+        disableParsingRawHTML: true,
+      }}
+    >
+      {markdownText}
+    </Markdown>,
+  );
+  const allowedTags = ['p', 'span', 'ul', 'ol', 'li', 'a', 'b', 'strong', 'em', 'i'];
+  const dirty = htmlFromMarkdown;
+  const clean = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: allowedTags,
+  });
+
+  // Parse the sanitized HTML to React elements
+  const returnVal = parseHtmlToReact(clean.toString().trim());
+  return returnVal;
 };
