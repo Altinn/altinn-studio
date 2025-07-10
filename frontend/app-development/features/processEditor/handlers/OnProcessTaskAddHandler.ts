@@ -7,7 +7,7 @@ import type {
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
-enum AllowedContributor {
+export enum AllowedContributor {
   AppOwned = 'app:owned',
 }
 
@@ -82,6 +82,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
+      allowedContributers: [AllowedContributor.AppOwned],
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);

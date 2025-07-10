@@ -1,6 +1,6 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
+import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
@@ -108,11 +108,12 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
-      allowedContributers: ['app:owned'],
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentInformation-1234',
       taskId: 'testElementId',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
@@ -139,7 +140,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: ['app:owned'],
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
@@ -166,7 +167,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: ['app:owned'],
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'userControlledSigningInformation-1234',
       taskId: 'testElementId',
     });
