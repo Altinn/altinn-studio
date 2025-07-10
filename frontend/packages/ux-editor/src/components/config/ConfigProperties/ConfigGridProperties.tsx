@@ -5,13 +5,17 @@ import { StudioButton, StudioCard, StudioProperty } from '@studio/components-leg
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';
+import cn from 'classnames';
 import type { BaseConfigProps } from './types';
 
-export interface ConfigGridPropertiesProps extends BaseConfigProps {}
+export interface ConfigGridPropertiesProps extends BaseConfigProps {
+  className?: string;
+}
 
 export const ConfigGridProperties = ({
   component,
   handleComponentUpdate,
+  className,
 }: ConfigGridPropertiesProps) => {
   const [showGrid, setShowGrid] = useState(false);
   const t = useText();
@@ -19,7 +23,7 @@ export const ConfigGridProperties = ({
   return (
     <>
       {showGrid ? (
-        <StudioCard className={classes.objectPropertyContainer}>
+        <StudioCard className={cn(classes.objectPropertyContainer, className)}>
           <StudioCard.Header className={classes.gridHeader}>
             <div className={classes.flexContainer}>
               <Heading size='xs' className={classes.heading}>
@@ -44,7 +48,7 @@ export const ConfigGridProperties = ({
         </StudioCard>
       ) : (
         <StudioProperty.Button
-          className={classes.gridButton}
+          className={cn(classes.gridButton, className)}
           icon={<PlusCircleIcon />}
           onClick={() => setShowGrid(true)}
           property={t('ux_editor.component_properties.grid')}
