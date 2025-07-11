@@ -210,7 +210,8 @@ namespace Altinn.App.logic.DataProcessing
                 }
 
                 if (model?.MapData != null) {
-                  model.MapData.Geometries = GeometryData.GetGeometryData(model.MapData.Selected);
+                  model.MapData.Geometries ??= new List<Geometry>();
+                  GeometryData.UpdateGeometryData(model.MapData.Geometries, model.MapData.Selected);
                 }
 
                 // Concatenating nested group comment labels into a single string
