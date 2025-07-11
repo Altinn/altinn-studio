@@ -7,6 +7,7 @@ import type { SchemaConfigProps } from './types';
 
 export interface ConfigArrayPropertiesProps extends SchemaConfigProps {
   arrayPropertyKeys: string[];
+  className?: string;
 }
 
 export const ConfigArrayProperties = ({
@@ -14,6 +15,7 @@ export const ConfigArrayProperties = ({
   component,
   arrayPropertyKeys,
   handleComponentUpdate,
+  className,
 }: ConfigArrayPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
 
@@ -38,6 +40,7 @@ export const ConfigArrayProperties = ({
             property={componentPropertyLabel(propertyKey)}
             title={componentPropertyLabel(propertyKey)}
             value={memoizedGetSelectedValuesDisplay(propertyKey)}
+            className={className}
           >
             <EditStringValue
               component={component}
