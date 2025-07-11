@@ -1,6 +1,6 @@
+using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.App.Core.Internal.AccessManagement;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;

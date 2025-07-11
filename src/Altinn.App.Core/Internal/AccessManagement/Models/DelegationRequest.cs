@@ -11,13 +11,13 @@ namespace Altinn.App.Core.Internal.AccessManagement.Models;
 public sealed class DelegationRequest
 {
     /// <summary>
-    /// Gets or sets the delegator.
+    /// Gets or sets the delegators instanceOwnerPartyUuid.
     /// </summary>
     [JsonPropertyName("from")]
     public DelegationParty? From { get; set; }
 
     /// <summary>
-    /// Gets or sets the delegatee.
+    /// Gets or sets the delegatees instanceOwnerPartyUuid.
     /// </summary>
     [JsonPropertyName("to")]
     public DelegationParty? To { get; set; }
@@ -62,15 +62,22 @@ public sealed class DelegationRequest
                 Value = delegation.To.Value,
             },
             Rights = delegation
-                .Rights.Select(r => new RightDto
+                .Rights.Select(right => new RightDto
                 {
-                    Resource = r.Resource.Select(rr => new Resource { Type = rr.Type, Value = rr.Value }).ToList(),
+                    Resource =
+                    [
+                        .. right.Resource.Select(resource => new Resource
+                        {
+                            Type = resource.Type,
+                            Value = resource.Value,
+                        }),
+                    ],
                     Action = new AltinnAction
                     {
-                        Type = r.Action is not null
-                            ? r.Action.Type
+                        Type = right.Action is not null
+                            ? right.Action.Type
                             : throw new AccessManagementArgumentException("Action is required"),
-                        Value = r.Action.Value,
+                        Value = right.Action.Value,
                     },
                 })
                 .ToList(),
