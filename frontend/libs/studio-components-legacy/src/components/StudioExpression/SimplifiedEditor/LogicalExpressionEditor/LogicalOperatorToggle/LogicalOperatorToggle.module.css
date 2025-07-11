@@ -2,6 +2,6 @@
   align-items: center;
   display: flex;
   flex-direction: row;
-  gap: var(--studio-expression-spacing);
+  gap: var(--studio-legacy-expression-spacing);
   width: 100%;
 }
