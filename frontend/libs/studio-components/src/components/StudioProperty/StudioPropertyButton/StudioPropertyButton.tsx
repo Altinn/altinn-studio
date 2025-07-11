@@ -53,7 +53,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
     return (
       <StudioButton
         aria-label={property}
-        aria-readonly={readOnly ? true : null}
+        aria-readonly={readOnly}
         className={className}
         fullWidth
         onClick={handleClick}
