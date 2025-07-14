@@ -13,6 +13,7 @@ export interface ILayoutSettings {
 
 export interface IPagesSettings {
   order?: string[];
+  groups?: any;
   excludeFromPdf?: string[];
   pdfLayoutName?: string;
 }
