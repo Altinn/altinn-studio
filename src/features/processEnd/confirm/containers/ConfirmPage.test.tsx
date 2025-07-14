@@ -2,15 +2,22 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
-import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
-import { fetchProcessState } from 'src/queries/queries';
+import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { IProcess } from 'src/types/shared';
+
+jest.mock('src/features/instance/useProcessQuery', () => ({
+  ...jest.requireActual<typeof import('src/features/instance/useProcessQuery')>(
+    'src/features/instance/useProcessQuery',
+  ),
+  useIsAuthorized: jest.fn().mockReturnValue(() => true),
+}));
 
 describe('ConfirmPage', () => {
   const personParty = getPartyMock();
@@ -73,30 +80,24 @@ describe('ConfirmPage', () => {
     expect(contentLoader).not.toBeInTheDocument();
   });
 
-  it('should show loading when clicking submit', async () => {
-    jest.mocked(fetchProcessState).mockImplementation(async () =>
-      getProcessDataMock((p) => {
-        p.currentTask!.actions = {
-          confirm: true,
-        };
-      }),
-    );
+  it('should show loading when clicking submit and process/next has not resolved', async () => {
+    const user = userEvent.setup();
+    jest.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}) as Promise<IProcess>);
 
-    const { mutations } = await renderWithInstanceAndLayout({
+    await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,
     });
-
     const submitBtnText = /send inn/i;
     const loadingText = /laster innhold/i;
 
     const submitBtn = screen.getByRole('button', { name: submitBtnText });
 
-    expect(mutations.doProcessNext.mock).toHaveBeenCalledTimes(0);
+    expect(doProcessNext).toHaveBeenCalledTimes(0);
     expect(screen.queryByText(loadingText)).not.toBeInTheDocument();
     expect(submitBtn).toBeInTheDocument();
-    await userEvent.click(submitBtn);
+    await user.click(submitBtn);
 
-    expect(mutations.doProcessNext.mock).toHaveBeenCalledTimes(1);
+    expect(doProcessNext).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: submitBtnText })).toBeInTheDocument();
 
     await waitFor(() => {

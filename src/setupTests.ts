@@ -16,7 +16,7 @@ import { TextDecoder, TextEncoder } from 'util';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import type { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
+import type { doProcessNext, fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
 
 // Importing CSS for jest-preview to look nicer
@@ -110,6 +110,7 @@ jest.mock('src/queries/queries', () => ({
     .fn<typeof fetchApplicationMetadata>()
     .mockImplementation(async () => getIncomingApplicationMetadataMock()),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
+  doProcessNext: jest.fn<typeof doProcessNext>(async () => getProcessDataMock()),
 }));
 
 jest.mock('react-helmet-async', () => ({

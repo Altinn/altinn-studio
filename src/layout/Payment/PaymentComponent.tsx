@@ -17,8 +17,9 @@ import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
-  const processNext = useProcessNext();
-  const { performProcess, isAnyProcessing, process } = useIsProcessing<'next' | 'reject'>();
+  const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
+  const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
+  const { isAnyProcessing } = useIsProcessing<'next' | 'reject'>();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
   const { title, description } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
@@ -26,6 +27,8 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   if (useIsSubformPage()) {
     throw new Error('Cannot use PaymentComponent in a subform');
   }
+
+  const disabled = isAnyProcessing || isConfirming || isRejecting;
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
@@ -52,9 +55,9 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
             <>
               <Button
                 variant='secondary'
-                disabled={isAnyProcessing}
-                isLoading={process === 'reject'}
-                onClick={() => performProcess('reject', () => processNext({ action: 'reject' }))}
+                disabled={disabled}
+                isLoading={isRejecting}
+                onClick={() => processReject()}
               >
                 <Lang id='general.back' />
               </Button>
@@ -69,9 +72,9 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
           {paymentInfo?.status === PaymentStatus.Paid && (
             <Button
               variant='secondary'
-              disabled={isAnyProcessing}
-              isLoading={process === 'next'}
-              onClick={() => performProcess('next', () => processNext({ action: 'confirm' }))}
+              disabled={disabled}
+              isLoading={isConfirming}
+              onClick={() => processConfirm()}
             >
               <Lang id='general.next' />
             </Button>

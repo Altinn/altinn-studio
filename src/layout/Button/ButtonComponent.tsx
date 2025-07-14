@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAttachmentState } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
@@ -30,20 +29,14 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useProcessQuery().data?.currentTask || {};
   const attachmentState = useAttachmentState();
-  const processNext = useProcessNext();
-  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
+  const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
+  const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
+
   const setReturnToView = useSetReturnToView();
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
   }
-
-  const disabled =
-    isAnyProcessing ||
-    attachmentState.hasPending ||
-    attachmentState.state === 'Infected' ||
-    (currentTaskType === ProcessTaskType.Data && !write) ||
-    (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
@@ -58,15 +51,20 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
     );
   }
 
-  const submitTask = () =>
-    performProcess(async () => {
-      setReturnToView?.(undefined);
-      if (currentTaskType === ProcessTaskType.Data) {
-        await processNext();
-      } else if (currentTaskType === ProcessTaskType.Confirm) {
-        await processNext({ action: 'confirm' });
-      }
-    });
+  function submitTask() {
+    setReturnToView?.(undefined);
+    if (currentTaskType === ProcessTaskType.Data) {
+      processNext();
+    } else if (currentTaskType === ProcessTaskType.Confirm) {
+      processConfirm();
+    }
+  }
+
+  const disabled =
+    attachmentState.hasPending ||
+    attachmentState.state === 'Infected' ||
+    (currentTaskType === ProcessTaskType.Data && !write) ||
+    (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
@@ -77,7 +75,7 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
         fullWidth={item.fullWidth}
         id={item.id}
         onClick={submitTask}
-        isLoading={isThisProcessing}
+        isLoading={isProcessingNext || isConfirming}
         disabled={disabled}
         color='success'
       >

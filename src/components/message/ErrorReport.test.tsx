@@ -2,12 +2,12 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { AxiosError } from 'axios';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
+import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
@@ -69,14 +69,11 @@ describe('ErrorReport', () => {
   });
 
   it('should list task errors as unclickable', async () => {
-    const { mutations } = await render();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    mutations.doProcessNext.reject({
-      name: 'AxiosError',
-      message: 'Request failed with status code 409',
-      response: {
+    jest.mocked(doProcessNext).mockImplementationOnce(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = new Error('Request failed with status code 409') as any;
+      error.name = 'AxiosError';
+      error.response = {
         status: 409,
         data: {
           validationIssues: [
@@ -87,8 +84,13 @@ describe('ErrorReport', () => {
             } as BackendValidationIssue,
           ],
         },
-      },
-    } as AxiosError);
+      };
+      throw error;
+    });
+    const user = userEvent.setup();
+    await render();
+
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
 
     await screen.findByTestId('ErrorReport');
 
@@ -99,14 +101,11 @@ describe('ErrorReport', () => {
   });
 
   it('should list unbound mapped error as unclickable', async () => {
-    const { mutations } = await render();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    mutations.doProcessNext.reject({
-      name: 'AxiosError',
-      message: 'Request failed with status code 409',
-      response: {
+    jest.mocked(doProcessNext).mockImplementationOnce(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = new Error('Request failed with status code 409') as any;
+      error.name = 'AxiosError';
+      error.response = {
         status: 409,
         data: {
           validationIssues: [
@@ -119,8 +118,12 @@ describe('ErrorReport', () => {
             } as BackendValidationIssue,
           ],
         },
-      },
-    } as AxiosError);
+      };
+      throw error;
+    });
+    await render();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     await screen.findByTestId('ErrorReport');
 

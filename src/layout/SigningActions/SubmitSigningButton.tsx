@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
-import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
@@ -9,33 +9,23 @@ import { signingQueries } from 'src/layout/SigneeList/api';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export function SubmitSigningButton({ baseComponentId }: { baseComponentId: string }) {
-  const processNext = useProcessNext();
+  const { mutate: processNext, isPending: isSubmitting, isSuccess } = useProcessNext();
 
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
   const queryClient = useQueryClient();
-  const isAnyProcessing = useIsMutating() > 0;
 
-  const {
-    mutate: handleSubmit,
-    isPending: isSubmitting,
-    isSuccess,
-  } = useMutation({
-    mutationFn: async () => {
-      await processNext();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: signingQueries.all });
-    },
-  });
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: signingQueries.all });
+  }, [isSuccess, queryClient]);
 
   const submitButtonText = textResourceBindings?.submitButton ?? 'signing.submit_button';
 
   return (
     <Button
-      onClick={() => handleSubmit()}
+      onClick={() => processNext()}
       size='md'
       color='success'
-      disabled={isAnyProcessing || isSuccess}
+      disabled={isSuccess}
       isLoading={isSubmitting}
     >
       <Lang id={submitButtonText} />

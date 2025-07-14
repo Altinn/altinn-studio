@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Dialog, Heading, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
-import { useIsMutating, useMutation } from '@tanstack/react-query';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Panel } from 'src/app-components/Panel/Panel';
@@ -67,30 +66,13 @@ type RejectTextProps = {
 
 function RejectButton({ baseComponentId }: RejectTextProps) {
   const modalRef = useRef<HTMLDialogElement>(null);
-  const rejectButtonRef = useRef<HTMLButtonElement>(null);
-  const processNext = useProcessNext();
+  const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
 
   const modalTitle = textResourceBindings?.rejectModalTitle ?? 'signing.reject_modal_title';
   const modalDescription = textResourceBindings?.rejectModalDescription ?? 'signing.reject_modal_description';
   const modalButton = textResourceBindings?.rejectModalButton ?? 'signing.reject_modal_button';
   const modalTriggerButton = textResourceBindings?.rejectModalTriggerButton ?? 'signing.reject_modal_trigger_button';
-
-  const isAnyProcessing = useIsMutating() > 0;
-
-  const { mutate: handleReject, isPending: isRejecting } = useMutation({
-    mutationFn: async () => {
-      if (rejectButtonRef.current) {
-        rejectButtonRef.current.disabled = true;
-      }
-      await processNext({ action: 'reject' });
-    },
-    onSettled: () => {
-      if (rejectButtonRef.current) {
-        rejectButtonRef.current.disabled = false;
-      }
-    },
-  });
 
   return (
     <Dialog.TriggerContext>
@@ -120,11 +102,10 @@ function RejectButton({ baseComponentId }: RejectTextProps) {
         <Dialog.Block>
           <Button
             color='danger'
-            disabled={isAnyProcessing}
+            disabled={isRejecting}
             size='md'
-            ref={rejectButtonRef}
             isLoading={isRejecting}
-            onClick={() => handleReject()}
+            onClick={() => processReject()}
           >
             <Lang id={modalButton} />
           </Button>

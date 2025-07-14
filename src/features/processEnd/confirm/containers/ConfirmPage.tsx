@@ -4,10 +4,9 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from 'src/app-components/Button/Button';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
@@ -78,19 +77,16 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
 };
 
 const ConfirmButton = () => {
-  const { actions } = useProcessQuery().data?.currentTask || {};
-  const processNext = useProcessNext();
-  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
-
-  const disabled = !actions?.confirm || isAnyProcessing;
+  const canConfirm = useIsAuthorized()('confirm');
+  const { mutateAsync: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
 
   return (
     <div style={{ marginTop: 'var(--button-margin-top)' }}>
       <Button
         id='confirm-button'
-        isLoading={isThisProcessing}
-        onClick={() => performProcess(() => processNext({ action: 'confirm' }))}
-        disabled={disabled}
+        onClick={() => processConfirm()}
+        disabled={!canConfirm}
+        isLoading={isConfirming}
         color='success'
       >
         <Lang id='confirm.button_text' />

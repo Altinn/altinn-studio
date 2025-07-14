@@ -125,7 +125,6 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   doPostStatelessFormData: makeMock('doPostStatelessFormData'),
   doSetSelectedParty: makeMock('doSetSelectedParty'),
   doInstantiate: makeMock('doInstantiate'),
-  doProcessNext: makeMock('doProcessNext'),
   doInstantiateWithPrefill: makeMock('doInstantiateWithPrefill'),
   doPerformAction: makeMock('doPerformAction'),
   doSubformEntryAdd: makeMock('doSubformEntryAdd'),
@@ -271,7 +270,12 @@ export function InstanceRouter({
     },
   );
 
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider
+      router={router}
+      future={{ v7_startTransition: true }}
+    />
+  );
 }
 
 interface ProvidersProps extends PropsWithChildren {
