@@ -7,6 +7,7 @@ import type { SchemaConfigProps } from './types';
 
 export interface ConfigStringPropertiesProps extends SchemaConfigProps {
   stringPropertyKeys: string[];
+  className?: string;
 }
 
 export const ConfigStringProperties = ({
@@ -14,6 +15,7 @@ export const ConfigStringProperties = ({
   schema,
   component,
   handleComponentUpdate,
+  className,
 }: ConfigStringPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
   const selectedDataType = useComponentPropertyEnumValue();
@@ -35,6 +37,7 @@ export const ConfigStringProperties = ({
           property={componentPropertyLabel(propertyKey)}
           title={componentPropertyLabel(propertyKey)}
           value={memoizedSelectedStringPropertiesDisplay(propertyKey)}
+          className={className}
         >
           <EditStringValue
             key={propertyKey}

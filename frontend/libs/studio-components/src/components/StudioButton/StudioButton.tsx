@@ -7,6 +7,7 @@ import type { IconPlacement } from '../../types/IconPlacement';
 import { TextWithIcon } from '../TextWithIcon';
 
 export type StudioButtonProps = {
+  fullWidth?: boolean;
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
 } & Omit<ButtonProps, 'asChild' | 'icon'>;
@@ -14,6 +15,7 @@ export type StudioButtonProps = {
 export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(
   (
     {
+      fullWidth,
       icon,
       iconPlacement = 'left',
       'data-size': dataSize,
@@ -25,6 +27,7 @@ export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(
   ): ReactElement => {
     const classNames = cn(givenClassName, classes.studioButton, {
       [classes.smallWithIconOnly]: dataSize === 'sm' && !children,
+      [classes.fullWidth]: fullWidth,
     });
 
     return (
