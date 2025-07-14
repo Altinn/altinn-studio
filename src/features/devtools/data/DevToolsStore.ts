@@ -24,6 +24,7 @@ export const DevToolsStore = createStore<Store>((set) => ({
   exprPlayground: {
     expression: undefined,
     forPage: undefined,
+    baseId: undefined,
     nodeId: undefined,
   },
   logs: [],

@@ -4,7 +4,7 @@ import { Card } from '@digdir/designsystemet-react';
 
 import { AccordionGroupProvider } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -16,9 +16,9 @@ export const AccordionGroup = ({ baseComponentId }: PropsFromGenericComponent<'A
       <ComponentStructureWrapper baseComponentId={baseComponentId}>
         <Card data-color='neutral'>
           {children?.map((id) => (
-            <GenericComponentByBaseId
+            <GenericComponent
               key={id}
-              id={id}
+              baseComponentId={id}
             />
           ))}
         </Card>

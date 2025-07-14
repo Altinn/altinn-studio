@@ -7,7 +7,7 @@ import { Caption } from 'src/components/form/caption/Caption';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
@@ -223,9 +223,9 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
         <Table.Row>
           <Table.Cell className={classes.mobileTableCell}>
             {mobileBaseIds.map((childId) => (
-              <GenericComponentByBaseId
+              <GenericComponent
                 key={childId}
-                id={childId}
+                baseComponentId={childId}
               />
             ))}
           </Table.Cell>

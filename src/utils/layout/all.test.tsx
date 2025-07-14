@@ -11,12 +11,12 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { quirks } from 'src/features/form/layout/quirks';
-import { GenericComponentById } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
 const env = dotenv.config();
@@ -59,19 +59,15 @@ function TestApp() {
 
 function RenderAllComponents() {
   const state = NodesInternal.useStore().getState();
-  const nodes = useNodes();
-  if (!nodes) {
-    throw new Error('No nodes found');
-  }
   const all = Object.values(state.nodeData)
-    .filter((nodeData) => nodeData.isValid)
+    .filter((nodeData) => nodeData.isValid && nodeData.parentId === undefined)
     .map((nodeData) => nodeData.id);
 
   return (
     <>
       {all.map((id) => (
-        <GenericComponentById
-          id={id}
+        <GenericComponent
+          baseComponentId={id}
           key={id}
         />
       ))}

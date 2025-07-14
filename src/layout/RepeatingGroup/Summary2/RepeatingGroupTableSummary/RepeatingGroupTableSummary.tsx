@@ -24,9 +24,8 @@ import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildre
 import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useNode } from 'src/utils/layout/NodesContext';
-import { useItemFor, useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -134,8 +133,7 @@ type DataRowProps = {
 function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRowProps) {
   const layoutLookups = useLayoutLookups();
   const ids = useTableComponentIds(baseComponentId);
-  const node = useNode(useIndexedId(baseComponentId));
-  const otherChildren = useNodeDirectChildren(node, row?.index)?.map((n) => n.baseId);
+  const children = RepGroupHooks.useChildIds(baseComponentId);
 
   if (!row) {
     return null;
@@ -162,7 +160,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
           className={tableClasses.buttonCell}
         >
           <EditButtonFirstVisible
-            ids={[...ids, ...otherChildren]}
+            ids={[...ids, ...children]}
             fallback={baseComponentId}
           />
         </Table.Cell>

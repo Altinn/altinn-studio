@@ -4,8 +4,6 @@ import { createStore } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useNode } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type PageNavigationContext = {
   /**
@@ -62,10 +60,9 @@ export const useSetReturnToView = () => {
   return func === ContextNotProvided ? undefined : func;
 };
 
-export const useSummaryNodeOfOrigin = (): LayoutNode | undefined => {
-  const func = useLaxSelector((ctx) => ctx.summaryNodeOfOrigin);
-  const node = useNode(func === ContextNotProvided ? undefined : func);
-  return func === ContextNotProvided ? undefined : (node as LayoutNode);
+export const useSummaryNodeIdOfOrigin = (): string | undefined => {
+  const ref = useLaxSelector((ctx) => ctx.summaryNodeOfOrigin);
+  return ref === ContextNotProvided ? undefined : ref;
 };
 
 export const useSetSummaryNodeOfOrigin = () => {

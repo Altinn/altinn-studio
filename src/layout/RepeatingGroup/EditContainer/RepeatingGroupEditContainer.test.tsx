@@ -13,11 +13,10 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('RepeatingGroupsEditContainer', () => {
   const options: IRawOption[] = [{ value: 'option.value', label: 'option.label' }];
@@ -87,11 +86,9 @@ describe('RepeatingGroupsEditContainer', () => {
     const multiPageGroup = getMultiPageGroupMock({ id: 'group' });
     multiPageGroup.edit!.saveAndNextButton = true;
 
-    return await renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
-      nodeId: 'group',
-      inInstance: true,
-      renderer: ({ node }) => (
-        <RepeatingGroupProvider baseComponentId={node.baseId}>
+    return await renderWithInstanceAndLayout({
+      renderer: (
+        <RepeatingGroupProvider baseComponentId='group'>
           <TestRenderer />
         </RepeatingGroupProvider>
       ),

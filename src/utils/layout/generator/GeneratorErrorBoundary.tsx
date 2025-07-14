@@ -1,13 +1,10 @@
 import React, { Component, useEffect } from 'react';
 import type { MutableRefObject, PropsWithChildren } from 'react';
 
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 
-interface IErrorBoundary {
+interface IErrorBoundary extends ContextData {
   lastError?: Error;
-  nodeRef: MutableRefObject<LayoutPage | LayoutNode | undefined>;
 }
 
 export class GeneratorErrorBoundary extends Component<PropsWithChildren, IErrorBoundary> {
@@ -15,7 +12,7 @@ export class GeneratorErrorBoundary extends Component<PropsWithChildren, IErrorB
     super(props);
     this.state = {
       lastError: undefined,
-      nodeRef: { current: undefined },
+      ref: { current: undefined },
     };
   }
 
@@ -28,49 +25,43 @@ export class GeneratorErrorBoundary extends Component<PropsWithChildren, IErrorB
       return (
         <StoreErrorAndBail
           error={this.state.lastError}
-          node={this.state.nodeRef.current}
+          ref={this.state.ref.current}
         />
       );
     }
 
-    return <Context.Provider value={{ nodeRef: this.state.nodeRef }}>{this.props.children}</Context.Provider>;
+    return <Context.Provider value={{ ref: this.state.ref }}>{this.props.children}</Context.Provider>;
   }
 }
 
+type Ref = { type: 'node' | 'page'; id: string } | undefined;
+
 interface ContextData {
-  nodeRef: MutableRefObject<LayoutPage | LayoutNode | undefined>;
+  ref: MutableRefObject<Ref>;
 }
 
 const Context = React.createContext<ContextData>({
-  nodeRef: { current: undefined },
+  ref: { current: undefined },
 });
 
 export function useGeneratorErrorBoundaryNodeRef() {
-  return React.useContext(Context).nodeRef;
+  return React.useContext(Context).ref;
 }
 
-function StoreErrorAndBail({ error, node }: { error: Error; node: LayoutPage | LayoutNode | undefined }) {
+function StoreErrorAndBail({ error, ref }: { error: Error; ref: Ref }) {
   const addError = NodesInternal.useAddError();
 
   useEffect(() => {
-    if (isNode(node)) {
-      addError(error.message, node);
-      window.logError(`Exception thrown when generating node "${node.id}":\n`, error);
-    } else if (isPage(node)) {
-      addError(error.message, node);
-      window.logError(`Exception thrown when generating page "${node.pageKey}":\n`, error);
-    } else {
+    if (!ref) {
       window.logError('Exception thrown when generating unknown node:\n', error);
+    } else if (ref.type === 'node') {
+      addError(error.message, ref.id, 'node');
+      window.logError(`Exception thrown when generating node "${ref.id}":\n`, error);
+    } else {
+      addError(error.message, ref.id, 'page');
+      window.logError(`Exception thrown when generating page "${ref.id}":\n`, error);
     }
-  }, [addError, error, node]);
+  }, [addError, error, ref]);
 
   return null;
-}
-
-function isPage(node: LayoutPage | LayoutNode | undefined): node is LayoutPage {
-  return node !== undefined && node instanceof LayoutPage;
-}
-
-function isNode(node: LayoutPage | LayoutNode | undefined): node is LayoutNode {
-  return node !== undefined && node instanceof LayoutNode;
 }

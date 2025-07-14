@@ -8,6 +8,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -20,11 +21,10 @@ import {
   useQueryKeysAsString,
 } from 'src/features/routing/AppRoutingContext';
 import { useIsCurrentTask, useIsValidTaskId, useNavigateToTask, useStartUrl } from 'src/hooks/useNavigatePage';
-import { implementsSubRouting } from 'src/layout';
+import { getComponentDef, implementsSubRouting } from 'src/layout';
 import { RedirectBackToMainForm } from 'src/layout/Subform/SubformWrapper';
 import { ProcessTaskType } from 'src/types';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import { useNode } from 'src/utils/layout/NodesContext';
 
 interface NavigationErrorProps {
   label: string;
@@ -144,28 +144,24 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
 export const ComponentRouting = () => {
   const componentId = useNavigationParam('componentId');
-  const node = useNode(componentId);
+  const layoutLookups = useLayoutLookups();
 
   // Wait for props to sync, needed for now
   if (!componentId) {
     return <Loader reason='component-routing' />;
   }
 
-  if (!node) {
+  const component = layoutLookups.allComponents[componentId];
+  if (!component) {
     // Consider adding a 404 page?
     return <RedirectBackToMainForm />;
   }
 
-  const def = node.def;
+  const def = getComponentDef(component.type);
   if (implementsSubRouting(def)) {
     const SubRouting = def.subRouting;
 
-    return (
-      <SubRouting
-        key={node.id}
-        baseComponentId={node.baseId}
-      />
-    );
+    return <SubRouting baseComponentId={componentId} />;
   }
 
   // If node exists but does not implement sub routing

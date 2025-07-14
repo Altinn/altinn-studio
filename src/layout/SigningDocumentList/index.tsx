@@ -27,8 +27,8 @@ export class SigningDocumentList extends SigningDocumentListDef {
 
     if (taskType !== ProcessTaskType.Signing) {
       const error = langAsString('signing.wrong_task_error', ['SigningDocumentList']);
-      addError(error, _props.node);
-      window.logErrorOnce(`Validation error for '${_props.node.id}': ${error}`);
+      addError(error, _props.intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${_props.intermediateItem.id}': ${error}`);
     }
 
     return null;

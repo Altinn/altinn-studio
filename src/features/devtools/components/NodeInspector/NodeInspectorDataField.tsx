@@ -8,9 +8,10 @@ import { useNodeInspectorContext } from 'src/features/devtools/components/NodeIn
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 
 interface NodeInspectorDataFieldParams {
@@ -37,7 +38,7 @@ export function Value({ children, className, property, collapsible, wasExpressio
 
   const editExpression = () => {
     setExpression(JSON.stringify(wasExpression, null, 2));
-    setExprContext(context.node?.id);
+    setExprContext(context.selectedNodeId, context.selectedBaseId);
     setActiveTab(DevToolsTab.Expressions);
   };
 
@@ -100,26 +101,6 @@ function ExpandObject(props: { path: string[]; property: string; object: object 
   );
 }
 
-function OtherNode(props: { property: string; node: LayoutNode }) {
-  const context = useNodeInspectorContext();
-
-  return (
-    <Value property={props.property}>
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a
-        href='#'
-        role='button'
-        onClick={(e) => {
-          e.preventDefault();
-          context.selectNode(props.node.id);
-        }}
-      >
-        {props.node.id}
-      </a>
-    </Value>
-  );
-}
-
 function ExpandArray(props: { path: string[]; property: string; elements: unknown[] }) {
   return (
     <Value
@@ -141,19 +122,21 @@ function ExpandArray(props: { path: string[]; property: string; elements: unknow
 }
 
 export function NodeInspectorDataField(props: NodeInspectorDataFieldParams) {
-  const { node } = useNodeInspectorContext();
-  if (node && node.isType('RepeatingGroup')) {
+  const { selectedNodeId } = useNodeInspectorContext();
+  const { baseComponentId } = splitDashedKey(selectedNodeId ?? '');
+  const layoutLookups = useLayoutLookups();
+  if (baseComponentId && layoutLookups.getComponent(baseComponentId).type === 'RepeatingGroup') {
     return (
       <NodeInspectorDataFieldForFirstRow
-        node={node}
+        baseComponentId={baseComponentId}
         {...props}
       />
     );
   }
-  if (node) {
+  if (baseComponentId) {
     return (
       <NodeInspectorDataFieldInner
-        node={node}
+        baseComponentId={baseComponentId}
         {...props}
       />
     );
@@ -163,14 +146,14 @@ export function NodeInspectorDataField(props: NodeInspectorDataFieldParams) {
 }
 
 function NodeInspectorDataFieldForFirstRow({
-  node,
+  baseComponentId,
   ...rest
-}: NodeInspectorDataFieldParams & { node: LayoutNode<'RepeatingGroup'> }) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node.baseId, 'first');
+}: NodeInspectorDataFieldParams & { baseComponentId: string }) {
+  const firstRowExpr = RepGroupHooks.useRowWithExpressions(baseComponentId, 'first');
 
   return (
     <NodeInspectorDataFieldInner
-      node={node}
+      baseComponentId={baseComponentId}
       firstRowExpr={firstRowExpr}
       {...rest}
     />
@@ -178,13 +161,13 @@ function NodeInspectorDataFieldForFirstRow({
 }
 
 function NodeInspectorDataFieldInner({
-  node,
+  baseComponentId,
   firstRowExpr,
   path,
   property,
   value: inputValue,
-}: NodeInspectorDataFieldParams & { node: LayoutNode; firstRowExpr?: GroupExpressions }) {
-  const itemWithExpressions = useIntermediateItem(node.baseId);
+}: NodeInspectorDataFieldParams & { baseComponentId: string; firstRowExpr?: GroupExpressions }) {
+  const itemWithExpressions = useIntermediateItem(baseComponentId);
   let value = inputValue;
   const preEvaluatedValue = dot.pick(path.join('.'), itemWithExpressions);
   const isExpression =
@@ -242,15 +225,6 @@ function NodeInspectorDataFieldInner({
       >
         [uttrykk med ukjent verdi]
       </Value>
-    );
-  }
-
-  if (typeof value === 'object' && value instanceof LayoutNode) {
-    return (
-      <OtherNode
-        property={property}
-        node={value}
-      />
     );
   }
 

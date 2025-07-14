@@ -1,9 +1,7 @@
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { CompDef } from 'src/layout';
-import type { CompExternal, CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
+import type { CompExternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { ChildIdMutator } from 'src/utils/layout/generator/GeneratorContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 /**
  * A row (from the data model) in a repeating group, or other components using such a structure (object[]).
@@ -20,7 +18,6 @@ export interface StateFactoryProps<T extends CompTypes = CompTypes> {
   pageKey: string;
   id: string;
   baseId: string;
-  parent: LayoutNode | LayoutPage;
   parentId: string | undefined;
   depth: number;
   rowIndex: number | undefined;
@@ -52,6 +49,3 @@ export interface BaseNodeData<T extends CompTypes = CompTypes> {
 }
 
 export type NodeData<Type extends CompTypes = CompTypes> = ReturnType<CompDef<Type>['stateFactory']>;
-
-export type NodeDataFromNode<N extends LayoutNode | undefined> = NodeData<TypeFromNode<Exclude<N, undefined>>>;
-export type NodeItemFromNode<N extends LayoutNode | undefined> = CompInternal<TypeFromNode<Exclude<N, undefined>>>;

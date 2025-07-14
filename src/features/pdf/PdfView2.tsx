@@ -18,7 +18,7 @@ import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
 import { getFeature } from 'src/features/toggles';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
-import { GenericComponentById } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
@@ -129,10 +129,10 @@ function PlainPage({ pageKey }: { pageKey: string }) {
         spacing={6}
         alignItems='flex-start'
       >
-        {children.map((nodeId) => (
-          <GenericComponentById
-            key={nodeId}
-            id={nodeId}
+        {children.map((baseId) => (
+          <GenericComponent
+            key={baseId}
+            baseComponentId={baseId}
           />
         ))}
       </Flex>

@@ -1,14 +1,13 @@
 import React, { Component, useEffect } from 'react';
 
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IErrorBoundary {
   lastError?: Error;
 }
 
 interface Props extends React.PropsWithChildren {
-  node: LayoutNode;
+  nodeId: string;
 }
 
 export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
@@ -28,7 +27,7 @@ export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
       return (
         <StoreErrorAndBail
           error={this.state.lastError}
-          node={this.props.node}
+          nodeId={this.props.nodeId}
         />
       );
     }
@@ -37,13 +36,13 @@ export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
   }
 }
 
-function StoreErrorAndBail({ error, node }: { error: Error; node: LayoutNode }) {
+function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) {
   const addError = NodesInternal.useAddError();
 
   useEffect(() => {
-    window.logError(`Exception thrown when rendering node "${node.id}":\n`, error);
-    addError(error.message, node);
-  }, [addError, error, node]);
+    window.logError(`Exception thrown when rendering node "${nodeId}":\n`, error);
+    addError(error.message, nodeId, 'node');
+  }, [addError, error, nodeId]);
 
   return null;
 }

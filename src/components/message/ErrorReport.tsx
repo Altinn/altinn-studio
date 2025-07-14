@@ -14,7 +14,7 @@ import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
-import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { Hidden } from 'src/utils/layout/NodesContext';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -179,21 +179,20 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 }
 
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
-  const node = useNode(error.nodeId);
   const navigateTo = useNavigateTo();
-  const isHidden = Hidden.useIsHidden(node);
+  const isHidden = Hidden.useIsHidden(error.nodeId, 'node');
 
   const handleErrorClick = async (ev: React.KeyboardEvent | React.MouseEvent) => {
     if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
       return;
     }
     ev.preventDefault();
-    if (isHidden || !node) {
+    if (isHidden) {
       // No point in trying to focus on a hidden component
       return;
     }
 
-    await navigateTo(node.id, node.baseId, { shouldFocus: true, error });
+    await navigateTo(error.nodeId, error.baseComponentId, { shouldFocus: true, error });
   };
 
   return (

@@ -15,12 +15,11 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 global.ResizeObserver = ResizeObserverModule;
 
@@ -174,11 +173,9 @@ describe('RepeatingGroupTable', () => {
   });
 
   const render = async (layout = getLayout(group, components)) =>
-    await renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
-      nodeId: group.id,
-      inInstance: true,
-      renderer: ({ node }) => (
-        <RepeatingGroupProvider baseComponentId={node.baseId}>
+    await renderWithInstanceAndLayout({
+      renderer: (
+        <RepeatingGroupProvider baseComponentId={group.id}>
           <LeakEditIndex />
           <RepeatingGroupTable />
         </RepeatingGroupProvider>

@@ -7,7 +7,7 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function SubformValidator(props: NodeValidationProps<'Subform'>) {
-  const { node, externalItem } = props;
+  const { intermediateItem, externalItem } = props;
   const { langAsString } = useLanguage();
   const applicationMetadata = useApplicationMetadata();
 
@@ -30,10 +30,10 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
     }
 
     if (error) {
-      addError(error, node);
-      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, dataType, externalItem, langAsString, node, targetType]);
+  }, [addError, dataType, externalItem, langAsString, intermediateItem.id, targetType]);
 
   return null;
 }

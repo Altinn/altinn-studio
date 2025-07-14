@@ -5,9 +5,7 @@ import { jest } from '@jest/globals';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
-import { renderWithNode } from 'src/test/renderWithProviders';
-import { useNode } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('SummaryRepeatingGroup', () => {
   let mockHandleDataChange: () => void;
@@ -21,26 +19,15 @@ describe('SummaryRepeatingGroup', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  function TestComponent({ groupId }: { groupId: string }) {
-    const groupNode = useNode(groupId);
-    if (!groupNode || !groupNode.isType('RepeatingGroup')) {
-      throw new Error('Could not find group node or wrong type');
-    }
-
-    return (
-      <SummaryRepeatingGroup
-        changeText='Change'
-        onChangeClick={mockHandleDataChange}
-        targetBaseComponentId={groupNode.baseId}
-      />
-    );
-  }
-
   async function render() {
-    return await renderWithNode<true, LayoutNode<'Summary'>>({
-      nodeId: 'mySummary',
-      inInstance: true,
-      renderer: () => <TestComponent groupId='groupComponent' />,
+    return await renderWithInstanceAndLayout({
+      renderer: (
+        <SummaryRepeatingGroup
+          changeText='Change'
+          onChangeClick={mockHandleDataChange}
+          targetBaseComponentId='groupComponent'
+        />
+      ),
       queries: {
         fetchFormData: async () => ({
           mockGroup: [

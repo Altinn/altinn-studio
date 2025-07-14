@@ -4,7 +4,7 @@ import cn from 'classnames';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
@@ -43,9 +43,9 @@ export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRend
       </div>
       <div className={classes.padding}>
         {children.map((baseId) => (
-          <GenericComponentByBaseId
+          <GenericComponent
             key={baseId}
-            id={baseId}
+            baseComponentId={baseId}
           />
         ))}
       </div>

@@ -11,7 +11,7 @@ import type { CompExternal, NodeValidationProps } from 'src/layout/layout';
 export function FileUploadLayoutValidator(
   props: NodeValidationProps<'FileUpload' | 'FileUploadWithTag'>,
 ): JSX.Element | null {
-  const { node, externalItem } = props;
+  const { intermediateItem, externalItem } = props;
   const allPages = useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
@@ -21,7 +21,7 @@ export function FileUploadLayoutValidator(
   if (binding) {
     for (const page of Object.values(allPages)) {
       for (const component of page ?? []) {
-        if (component.id === node.baseId) {
+        if (component.id === externalItem.id) {
           continue;
         }
         if (component.type !== 'FileUpload' && component.type !== 'FileUploadWithTag') {
@@ -45,10 +45,10 @@ export function FileUploadLayoutValidator(
     }
 
     if (error) {
-      addError(error, node);
-      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, langAsString, node, othersWithSameBindingMemo]);
+  }, [addError, langAsString, intermediateItem.id, othersWithSameBindingMemo]);
 
   return null;
 }

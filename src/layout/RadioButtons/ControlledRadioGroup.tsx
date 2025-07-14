@@ -57,7 +57,7 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
 
   const labelText = (
     <LabelContent
-      componentId={id}
+      id={id}
       label={
         <>
           {leftColumnHeader ? (

@@ -15,10 +15,8 @@ import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSu
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useFormDataFor } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValidTypes = 'MultipleSelect' | 'Checkboxes';
-type ValidNodes = LayoutNode<ValidTypes>;
 
 type Row = Record<string, string | number | boolean>;
 

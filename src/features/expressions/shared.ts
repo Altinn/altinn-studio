@@ -29,6 +29,7 @@ interface SharedTest {
   };
   externalApis?: ExternalApisResult;
   codeLists?: Record<string, IRawOption[]>;
+  stateless?: boolean;
 }
 
 export interface SharedTestContext {

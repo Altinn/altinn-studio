@@ -34,10 +34,10 @@ function useRepeatingGroupEditRowState(
   const children = RepGroupHooks.useChildIdsWithMultiPage(baseComponentId);
 
   const hiddenState = NodesInternal.useMemoSelector((state) =>
-    children.map(({ id, multiPageIndex }) => ({
-      nodeId: id,
+    children.map(({ indexedId, multiPageIndex }) => ({
+      nodeId: indexedId,
       page: multiPageIndex,
-      hidden: isHidden(state, 'node', id, lookups),
+      hidden: isHidden(state, 'node', indexedId, lookups),
     })),
   );
 

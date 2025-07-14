@@ -13,12 +13,10 @@ import {
 } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import { GeneratorCondition, StageAddNodes, StageMarkHidden } from 'src/utils/layout/generator/GeneratorStages';
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
-import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { Hidden, NodesInternal, NodesStore, useNodes } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal, NodesStore } from 'src/utils/layout/NodesContext';
 import type { CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 const style: React.CSSProperties = GeneratorDebug.displayState
   ? {
@@ -38,7 +36,6 @@ const style: React.CSSProperties = GeneratorDebug.displayState
 
 export function LayoutSetGenerator() {
   const layouts = GeneratorInternal.useLayouts();
-  const pages = useNodes();
 
   const children = (
     <>
@@ -57,7 +54,6 @@ export function LayoutSetGenerator() {
               <PageGenerator
                 name={key}
                 layout={layout}
-                layoutSet={pages}
               />
             </GeneratorErrorBoundary>
           );
@@ -82,12 +78,10 @@ function ExportStores() {
 interface PageProps {
   layout: ILayout;
   name: string;
-  layoutSet: LayoutPages;
 }
 
-function PageGenerator({ layout, name, layoutSet }: PageProps) {
-  const page = useMemo(() => new LayoutPage(), []);
-  useGeneratorErrorBoundaryNodeRef().current = page;
+function PageGenerator({ layout, name }: PageProps) {
+  useGeneratorErrorBoundaryNodeRef().current = { type: 'page', id: name };
   const layoutLookups = useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
   const pageOrder = useRawPageOrder();
@@ -108,20 +102,13 @@ function PageGenerator({ layout, name, layoutSet }: PageProps) {
 
   return (
     <>
-      <AddPage
-        layoutSet={layoutSet}
-        page={page}
-        name={name}
-      />
+      <AddPage name={name} />
       <GeneratorCondition stage={StageMarkHidden}>
-        <MarkPageHidden
-          page={page}
-          name={name}
-        />
+        <MarkPageHidden name={name} />
       </GeneratorCondition>
       {GeneratorDebug.displayState && <h2>Page: {name}</h2>}
       <GeneratorPageProvider
-        parent={page}
+        pageKey={name}
         isValid={isValid}
       >
         <GenerateNodeChildren
@@ -134,27 +121,22 @@ function PageGenerator({ layout, name, layoutSet }: PageProps) {
 }
 
 interface CommonProps {
-  layoutSet: LayoutPages;
-  page: LayoutPage;
   name: string;
 }
 
-function AddPage({ layoutSet, page, name }: CommonProps) {
+function AddPage({ name }: CommonProps) {
   const addPage = NodesInternal.useAddPage();
 
   useEffect(() => {
     addPage(name);
-    if (!page.isRegisteredInCollection(layoutSet)) {
-      page.registerCollection(name, layoutSet);
-    }
-  }, [addPage, page, name, layoutSet]);
+  }, [addPage, name]);
 
   return null;
 }
 
-function MarkPageHidden({ name, page }: Omit<CommonProps, 'layoutSet'>) {
+function MarkPageHidden({ name }: Pick<CommonProps, 'name'>) {
   const inOrder = Hidden.useIsPageInOrder(name);
-  const hidden = useIsHiddenPage(page);
+  const hidden = useIsHiddenPage(name);
 
   const hiddenIsSet = NodesStore.useSelector((state) => state.pagesData.pages[name]?.hidden === hidden);
   const inOrderIsSet = NodesStore.useSelector((state) => state.pagesData.pages[name]?.inOrder === inOrder);
@@ -216,13 +198,13 @@ export function GenerateNodeChildren({ claims, pluginKey }: NodeChildrenProps) {
   );
 }
 
-function useIsHiddenPage(page: LayoutPage): boolean {
+function useIsHiddenPage(pageKey: string): boolean {
   const hiddenExpr = useHiddenLayoutsExpressions();
   return (
-    useEvalExpressionInGenerator(hiddenExpr[page.pageKey], {
+    useEvalExpressionInGenerator(hiddenExpr[pageKey], {
       returnType: ExprVal.Boolean,
       defaultValue: false,
-      errorIntroText: `Invalid hidden expression for page ${page.pageKey}`,
+      errorIntroText: `Invalid hidden expression for page ${pageKey}`,
     }) ?? false
   );
 }

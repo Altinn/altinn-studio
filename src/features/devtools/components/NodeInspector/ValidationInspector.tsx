@@ -8,14 +8,14 @@ import classes from 'src/features/devtools/components/NodeInspector/ValidationIn
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
-import { implementsAnyValidation } from 'src/layout';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { getComponentDef, implementsAnyValidation } from 'src/layout';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface ValidationInspectorProps {
-  node: LayoutNode;
+  baseComponentId: string;
 }
 
 const categories = [
@@ -27,14 +27,16 @@ const categories = [
   { name: 'Standard backend', category: ValidationMask.Backend },
 ] as const;
 
-export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
-  const validations = NodesInternal.useRawValidations(node);
-  const nodeVisibility = NodesInternal.useRawValidationVisibility(node);
-  const dataModelBindings = useDataModelBindingsFor(node.baseId);
-  const type = node.type;
-  const attachments = useAttachmentsFor(node.baseId);
+export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProps) => {
+  const indexedId = useIndexedId(baseComponentId);
+  const validations = NodesInternal.useRawValidations(indexedId);
+  const nodeVisibility = NodesInternal.useRawValidationVisibility(indexedId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
+  const type = useExternalItem(baseComponentId).type;
+  const attachments = useAttachmentsFor(baseComponentId);
 
-  if (!implementsAnyValidation(node.def)) {
+  const def = getComponentDef(type);
+  if (!implementsAnyValidation(def)) {
     return (
       <div style={{ padding: 4 }}>
         <b>{type}</b> implementerer ikke validering.
@@ -43,7 +45,7 @@ export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
   }
 
   const componentValidations: NodeRefValidation[] =
-    validations.map((validation) => ({ ...validation, nodeId: node.id, baseComponentId: node.baseId })) ?? [];
+    validations.map((validation) => ({ ...validation, nodeId: indexedId, baseComponentId })) ?? [];
 
   // Validations that are not bound to any data model field or attachment
   const unboundComponentValidations = componentValidations.filter(
@@ -74,7 +76,11 @@ export const ValidationInspector = ({ node }: ValidationInspectorProps) => {
     const key = `Datamodell ${bindingKey}`;
 
     const validationsForKey = componentValidations.filter((v) => 'bindingKey' in v && v.bindingKey === bindingKey);
-    bindingValidations[key] = validationsForKey.map((validation) => ({ ...validation, node }));
+    bindingValidations[key] = validationsForKey.map((validation) => ({
+      ...validation,
+      nodeId: indexedId,
+      baseComponentId,
+    }));
   }
 
   return (

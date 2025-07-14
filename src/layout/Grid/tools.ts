@@ -64,7 +64,7 @@ export function isGridRowHidden(row: GridRow, isHiddenSelector: IsHiddenSelector
     if (isGridCellNode(cell)) {
       atLeastNoneNodeExists = true;
       const baseId = cell.component ?? '';
-      return isHiddenSelector(idMutator ? idMutator(baseId) : baseId);
+      return isHiddenSelector(idMutator ? idMutator(baseId) : baseId, 'node');
     }
 
     // Non-component cells always collapse and hide if components in other cells are hidden

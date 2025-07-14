@@ -8,7 +8,6 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
   valueType: OptionsValueType;
@@ -22,8 +21,8 @@ interface Props {
  * is gone, we should not save stale/invalid data, so we clear it.
  */
 export function EffectRemoveStaleValues({ valueType, options }: Props) {
-  const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
-  const isNodeHidden = Hidden.useIsHidden(node);
+  const parent = GeneratorInternal.useParent();
+  const isHidden = Hidden.useIsHidden(parent.indexedId, parent.type);
 
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
@@ -35,7 +34,7 @@ export function EffectRemoveStaleValues({ valueType, options }: Props) {
   NodesInternal.useEffectWhenReady(() => {
     const { unsafeSelectedValues, setData } = setResultAsRef.current;
     const options = optionsAsRef.current;
-    if (itemsToRemove.length === 0 || isNodeHidden || !options) {
+    if (itemsToRemove.length === 0 || isHidden || !options) {
       return;
     }
 
@@ -43,7 +42,7 @@ export function EffectRemoveStaleValues({ valueType, options }: Props) {
     if (freshItemsToRemove.length > 0 && deepEqual(freshItemsToRemove, itemsToRemove)) {
       setData(unsafeSelectedValues.filter((v) => !itemsToRemove.includes(v)));
     }
-  }, [isNodeHidden, itemsToRemove, optionsAsRef, setResultAsRef]);
+  }, [isHidden, itemsToRemove, optionsAsRef, setResultAsRef]);
 
   return null;
 }

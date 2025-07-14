@@ -4,15 +4,13 @@ import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
 const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = true) =>
-  await renderWithNode({
-    nodeId: component.id ?? 'mockId',
-    renderer: ({ node }) => <GenericComponent node={node} />,
+  await renderWithInstanceAndLayout({
+    renderer: <GenericComponent baseComponentId={component.id ?? 'mockId'} />,
     waitUntilLoaded,
-    inInstance: true,
     queries: {
       fetchLayouts: async () => ({
         FormLayout: {

@@ -2,8 +2,10 @@ import React, { useCallback, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 export type IdMutator = (id: string) => string;
 
@@ -53,12 +55,9 @@ function useDataModelLocationForNodeRaw(nodeId: string | undefined) {
     while (parentId) {
       const child = state.nodeData[childId];
       const parent = state.nodeData[parentId];
-      const groupBinding =
-        parent.nodeType === 'RepeatingGroup'
-          ? parent.dataModelBindings.group
-          : parent.nodeType === 'Likert'
-            ? parent.dataModelBindings.questions
-            : undefined;
+      const groupBinding = isRepeatingComponentType(parent.nodeType)
+        ? getRepeatingBinding(parent.nodeType, parent.dataModelBindings as IDataModelBindings<typeof parent.nodeType>)
+        : undefined;
       if (groupBinding && child?.rowIndex !== undefined) {
         return { groupBinding, rowIndex: child.rowIndex };
       }
@@ -69,11 +68,6 @@ function useDataModelLocationForNodeRaw(nodeId: string | undefined) {
 
     return { groupBinding: undefined, rowIndex: undefined };
   });
-}
-
-export function useDataModelLocationForNode(nodeId: string | undefined): IDataModelReference | undefined {
-  const { groupBinding, rowIndex } = useDataModelLocationForNodeRaw(nodeId);
-  return useDataModelLocationForRow(groupBinding, rowIndex);
 }
 
 export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWithChildren<{ nodeId: string }>) {
@@ -90,17 +84,6 @@ export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWit
     >
       {children}
     </DataModelLocationProvider>
-  );
-}
-
-export function useDataModelLocationForRow(
-  groupBinding: IDataModelReference | undefined,
-  rowIndex: number | undefined,
-) {
-  const { dataType, field } = groupBinding ?? {};
-  return useMemo(
-    () => (dataType && field && rowIndex !== undefined ? { dataType, field: `${field}[${rowIndex}]` } : undefined),
-    [dataType, field, rowIndex],
   );
 }
 

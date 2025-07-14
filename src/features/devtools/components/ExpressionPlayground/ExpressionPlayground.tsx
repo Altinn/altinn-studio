@@ -10,11 +10,13 @@ import { DevToolsTab } from 'src/features/devtools/data/types';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { Expression, ExprFunctionName } from 'src/features/expressions/types';
 
 interface ExpressionResult {
@@ -44,13 +46,14 @@ function usePlaygroundState() {
 export const ExpressionPlayground = () => {
   const input = useDevToolsStore((state) => state.exprPlayground.expression);
   const nodeId = useDevToolsStore((state) => state.exprPlayground.nodeId);
+  const baseId = useDevToolsStore((state) => state.exprPlayground.baseId);
   const setExpression = useDevToolsStore((state) => state.actions.exprPlaygroundSetExpression);
   const setContext = useDevToolsStore((state) => state.actions.exprPlaygroundSetContext);
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
   const nodeInspectorSet = useDevToolsStore((state) => state.actions.nodeInspectorSet);
   const currentPageId = useNavigationParam('pageKey');
-  const node = useNode(nodeId);
-  const nodePage = node?.page.pageKey;
+  const layoutLookups = useLayoutLookups();
+  const nodePage = (baseId && layoutLookups.componentToPage[baseId]) ?? '';
 
   const { showAllSteps, setShowAllSteps, activeOutputTab, setActiveOutputTab, outputs, setOutputs } =
     usePlaygroundState();
@@ -141,7 +144,8 @@ export const ExpressionPlayground = () => {
               onValueChange={(values) => {
                 const selected = values.at(0);
                 if (selected) {
-                  setContext(selected);
+                  const { baseComponentId } = splitDashedKey(selected);
+                  setContext(selected, baseComponentId);
                 }
               }}
               className={comboboxClasses.container}

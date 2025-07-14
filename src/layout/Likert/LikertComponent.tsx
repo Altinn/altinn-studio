@@ -13,7 +13,7 @@ import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
@@ -71,7 +71,7 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
                 groupBinding={groupBinding}
                 rowIndex={row.index}
               >
-                <GenericComponentByBaseId id={makeLikertChildId(baseComponentId)} />
+                <GenericComponent baseComponentId={makeLikertChildId(baseComponentId)} />
               </DataModelLocationProvider>
             ) : null,
           )}
@@ -155,8 +155,8 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
                   groupBinding={groupBinding}
                   rowIndex={row.index}
                 >
-                  <GenericComponentByBaseId
-                    id={makeLikertChildId(baseComponentId)}
+                  <GenericComponent
+                    baseComponentId={makeLikertChildId(baseComponentId)}
                     overrideDisplay={{ directRender: true }}
                     overrideItemProps={override}
                   />

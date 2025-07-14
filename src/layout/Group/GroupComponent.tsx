@@ -11,18 +11,16 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
-import { useItemWhenType, useNodeDirectChildren } from 'src/utils/layout/useNodeItem';
+import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IGroupComponent {
   baseComponentId: string;
   containerDivRef?: React.Ref<HTMLDivElement>;
   id?: string;
-  restriction?: number | undefined;
   isSummary?: boolean;
-  renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
+  renderLayoutComponent: (baseComponentId: string) => JSX.Element | null;
 }
 
 const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-size'] } = {
@@ -37,24 +35,22 @@ export function GroupComponent({
   baseComponentId,
   containerDivRef,
   id,
-  restriction,
   isSummary,
-  renderLayoutNode,
+  renderLayoutComponent,
 }: IGroupComponent) {
   const container = useItemWhenType(baseComponentId, 'Group');
   const { title, summaryTitle, description } = container.textResourceBindings ?? {};
-  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId));
+  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node');
 
-  const groupNode = useNode(useIndexedId(baseComponentId));
-  const children = useNodeDirectChildren(groupNode, restriction);
-  const depth = NodesInternal.useSelector((state) => state.nodeData?.[groupNode.id]?.depth);
+  const indexedId = useIndexedId(baseComponentId);
+  const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
   const layoutLookups = useLayoutLookups();
 
   if (isHidden) {
     return null;
   }
 
-  const parent = layoutLookups.componentToParent[groupNode.baseId];
+  const parent = layoutLookups.componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const isPanel = container.groupingIndicator === 'panel';
   const isIndented = container.groupingIndicator === 'indented';
@@ -89,16 +85,16 @@ export function GroupComponent({
           }
         >
           <div
-            data-componentid={groupNode.id}
-            data-componentbaseid={groupNode.baseId}
+            data-componentid={indexedId}
+            data-componentbaseid={baseComponentId}
             ref={containerDivRef}
-            id={id ?? groupNode.id}
+            id={id ?? indexedId}
             data-testid='display-group-container'
             className={cn(classes.groupContainer, {
               [classes.indented]: isIndented && !isNested,
             })}
           >
-            {children.map((n) => renderLayoutNode(n))}
+            {container.children.map((id) => renderLayoutComponent(id))}
           </div>
         </Fieldset>
       </ConditionalWrapper>

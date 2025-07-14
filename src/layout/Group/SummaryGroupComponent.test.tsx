@@ -4,9 +4,7 @@ import { jest } from '@jest/globals';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
-import { renderWithNode } from 'src/test/renderWithProviders';
-import { useNode } from 'src/utils/layout/NodesContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;
@@ -20,26 +18,15 @@ describe('SummaryGroupComponent', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  function TestComponent({ groupId }: { groupId: string }) {
-    const groupNode = useNode(groupId);
-    if (!groupNode || !groupNode.isType('Group')) {
-      throw new Error('Group node not found or wrong type');
-    }
-
-    return (
-      <SummaryGroupComponent
-        changeText='Change'
-        onChangeClick={mockHandleDataChange}
-        targetBaseComponentId={groupNode.baseId}
-      />
-    );
-  }
-
   async function render() {
-    return await renderWithNode<true, LayoutNode<'Summary'>>({
-      nodeId: 'mySummary',
-      inInstance: true,
-      renderer: () => <TestComponent groupId='groupComponent' />,
+    return await renderWithInstanceAndLayout({
+      renderer: (
+        <SummaryGroupComponent
+          changeText='Change'
+          onChangeClick={mockHandleDataChange}
+          targetBaseComponentId='groupComponent'
+        />
+      ),
       queries: {
         fetchFormData: async () => ({
           mockGroup: {

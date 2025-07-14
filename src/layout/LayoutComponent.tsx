@@ -29,7 +29,6 @@ import type {
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { NodeData, StateFactoryProps } from 'src/utils/layout/types';
@@ -129,8 +128,8 @@ export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
    */
-  renderDevToolsInspector(node: LayoutNode<Type>): JSX.Element | null {
-    return <DefaultNodeInspector node={node} />;
+  renderDevToolsInspector(baseComponentId: string): JSX.Element | null {
+    return <DefaultNodeInspector baseComponentId={baseComponentId} />;
   }
 
   /**

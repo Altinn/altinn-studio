@@ -98,7 +98,7 @@ export function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId));
+  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node');
   if (isHidden || !HtmlTag) {
     return null;
   }

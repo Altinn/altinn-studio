@@ -8,7 +8,7 @@ import classes from 'src/layout/Accordion/Accordion.module.css';
 import { AccordionItem as AltinnAcordionItem } from 'src/layout/Accordion/AccordionItem';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -34,9 +34,9 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
         alignItems='flex-start'
       >
         {children.filter(canRender).map((id) => (
-          <GenericComponentByBaseId
+          <GenericComponent
             key={id}
-            id={id}
+            baseComponentId={id}
           />
         ))}
       </Flex>

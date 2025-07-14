@@ -81,7 +81,7 @@ export function NavigateToComponentProvider({ children }: PropsWithChildren) {
   const navigateTo = useCallback(
     async (indexedId: string, baseComponentId: string, options?: NavigateToComponentOptions) =>
       new Promise<NavigationResult>((resolve) => {
-        if (isHidden(indexedId)) {
+        if (isHidden(indexedId, 'node')) {
           resolve(NavigationResult.ComponentIsHidden);
           return;
         }

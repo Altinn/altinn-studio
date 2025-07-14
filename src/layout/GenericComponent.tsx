@@ -8,6 +8,7 @@ import { NavigationResult, useFinishNavigation } from 'src/features/form/layout/
 import { Lang } from 'src/features/language/Lang';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
+import { getComponentDef } from 'src/layout/index';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { isDev } from 'src/utils/isDev';
@@ -15,87 +16,41 @@ import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary'
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
-import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { AnyComponent } from 'src/layout/LayoutComponent';
 
-interface OverrideProps<Type extends CompTypes> {
+export interface IGenericComponentProps<Type extends CompTypes> {
+  baseComponentId: string;
   overrideItemProps?: Partial<Omit<CompInternal<Type>, 'id'>>;
   overrideDisplay?: GenericComponentOverrideDisplay;
 }
 
-export interface IGenericComponentProps<Type extends CompTypes> extends OverrideProps<Type> {
-  node: LayoutNode<Type>;
-}
-
-export interface IGenericComponentByIdProps<Type extends CompTypes> extends OverrideProps<Type> {
-  id: string;
-}
-
-/**
- * This works like GenericComponentById, but lets you pass a baseId instead (a plain component id without
- * indexes if inside a repeating group)
- */
-export function GenericComponentByBaseId<Type extends CompTypes = CompTypes>(props: IGenericComponentByIdProps<Type>) {
-  const id = useIndexedId(props.id);
-
-  return (
-    <GenericComponentById
-      {...props}
-      id={id}
-    />
-  );
-}
-
-/**
- * Lazily renders a component referenced by a component ID. This is useful when you want to optimize rendering
- * (for example in Form.tsx) where it's important that a component does not re-render when other nodes in the
- * node hierarchy have been re-created.
- */
-export function GenericComponentById<Type extends CompTypes = CompTypes>(props: IGenericComponentByIdProps<Type>) {
-  const node = useNode(props.id);
-  if (!node) {
-    return false;
-  }
-
-  return (
-    <GenericComponent
-      node={node}
-      overrideItemProps={props.overrideItemProps}
-      overrideDisplay={props.overrideDisplay}
-    />
-  );
-}
-
 function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
-  node,
+  baseComponentId,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
-  const generatorErrors = NodesInternal.useNodeData(node, (node) => node.errors);
+  const nodeId = useIndexedId(baseComponentId);
+  const generatorErrors = NodesInternal.useNodeData(nodeId, undefined, (node) => node.errors);
 
   if (generatorErrors && Object.keys(generatorErrors).length > 0) {
     return (
       <ComponentErrorList
-        baseComponentId={node.baseId}
+        baseComponentId={baseComponentId}
         errors={Object.keys(generatorErrors)}
       />
     );
   }
 
-  if (!node) {
-    return false;
-  }
-
   return (
-    <ComponentErrorBoundary node={node}>
+    <ComponentErrorBoundary nodeId={nodeId}>
       <ActualGenericComponent<Type>
-        node={node}
+        baseComponentId={baseComponentId}
         overrideItemProps={overrideItemProps}
         overrideDisplay={overrideDisplay}
       />
@@ -107,15 +62,11 @@ MemoGenericComponent.displayName = 'GenericComponent';
 export const GenericComponent = MemoGenericComponent as typeof NonMemoGenericComponent;
 
 function ActualGenericComponent<Type extends CompTypes = CompTypes>({
-  node,
+  baseComponentId,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
-  if (!node) {
-    throw new Error(`Node not found`);
-  }
-
-  const component = useExternalItem(node.baseId);
+  const component = useExternalItem(baseComponentId);
   const grid = overrideItemProps?.grid ?? component?.grid;
   const renderAsSummary =
     overrideItemProps && 'renderAsSummary' in overrideItemProps && overrideItemProps.renderAsSummary !== undefined
@@ -127,27 +78,27 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const options: EvalExprOptions<ExprVal.String> = {
     returnType: ExprVal.String,
     defaultValue: '',
-    errorIntroText: `Invalid expression for component ${node.baseId}`,
+    errorIntroText: `Invalid expression for component ${baseComponentId}`,
   };
   const breakBefore = useEvalExpression(pageBreakUnresolved?.breakBefore, options);
   const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, options);
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
-  const id = node.id;
+  const nodeId = useIndexedId(baseComponentId);
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
-  const isHidden = Hidden.useIsHidden(node);
+  const isHidden = Hidden.useIsHidden(nodeId, 'node');
 
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
       grid,
-      baseComponentId: node.baseId,
+      baseComponentId,
       overrideItemProps,
       overrideDisplay,
     }),
-    [grid, node, overrideItemProps, overrideDisplay],
+    [grid, baseComponentId, overrideItemProps, overrideDisplay],
   );
 
   useFinishNavigation(async (indexedId, _baseComponentId, options, onHit) => {
-    if (indexedId !== id) {
+    if (indexedId !== nodeId) {
       return undefined;
     }
     onHit();
@@ -204,25 +155,26 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     return null;
   }
 
-  const layoutComponent = node.def as unknown as LayoutComponent<Type>;
-  const RenderComponent = layoutComponent.render;
+  const layoutComponent = getComponentDef(component.type);
+  const RenderComponent = layoutComponent.render as AnyComponent<Type>['render'];
 
   const componentProps: PropsFromGenericComponent<Type> = {
     containerDivRef,
-    baseComponentId: node.baseId,
+    baseComponentId,
     overrideItemProps,
     overrideDisplay,
   };
 
   if (renderAsSummary) {
-    const RenderSummary = 'renderSummary' in node.def ? node.def.renderSummary.bind(node.def) : null;
+    const RenderSummary =
+      'renderSummary' in layoutComponent ? layoutComponent.renderSummary.bind(layoutComponent) : null;
     if (!RenderSummary) {
       return null;
     }
 
     return (
       <SummaryComponentFor
-        targetBaseComponentId={node.baseId}
+        targetBaseComponentId={baseComponentId}
         overrides={{
           display: { hideChangeButton: true, hideValidationMessages: true },
         }}
@@ -244,14 +196,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   return (
     <FormComponentContextProvider value={formComponentContext}>
       <Flex
-        data-componentbaseid={node.baseId}
-        data-componentid={node.id}
-        data-componenttype={node.type}
+        data-componentbaseid={baseComponentId}
+        data-componentid={nodeId}
+        data-componenttype={component.type}
         ref={containerDivRef}
         item
         container
         size={grid}
-        key={`grid-${id}`}
+        key={`grid-${nodeId}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
       >
         <RenderComponent {...componentProps} />

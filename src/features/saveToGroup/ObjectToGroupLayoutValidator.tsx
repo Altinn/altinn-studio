@@ -5,7 +5,7 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' | 'Checkboxes' | 'MultipleSelect'>) {
-  const { node, externalItem } = props;
+  const { intermediateItem, externalItem } = props;
   const { langAsString } = useLanguage();
   const group = externalItem.dataModelBindings?.group;
   const deletionStrategy = externalItem.deletionStrategy;
@@ -33,10 +33,10 @@ export function ObjectToGroupLayoutValidator(props: NodeValidationProps<'List' |
     }
 
     if (error) {
-      addError(error, node);
-      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, node, deletionStrategy, checkedBinding, langAsString, group]);
+  }, [addError, intermediateItem.id, deletionStrategy, checkedBinding, langAsString, group]);
 
   return null;
 }

@@ -5,11 +5,10 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
+import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
 import { ProcessTaskType } from 'src/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeItemFromNode } from 'src/utils/layout/types';
 
 const mockDocumentList: SigningDocument[] = [
   {
@@ -66,7 +65,7 @@ jest.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
 describe('SigningDocumentList', () => {
   const mockedUseDocumentList = jest.mocked(useDocumentList);
 
-  const textResourceBindings: NodeItemFromNode<LayoutNode<'SigningDocumentList'>>['textResourceBindings'] = {
+  const textResourceBindings: ITextResourceBindings<'SigningDocumentList'> = {
     title: 'Signing Document List',
     description: 'description',
     help: 'help',

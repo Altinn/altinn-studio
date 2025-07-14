@@ -14,7 +14,7 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { GenericComponent, GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import css from 'src/layout/Grid/Grid.module.css';
 import {
   isGridCellLabelFrom,
@@ -25,7 +25,7 @@ import {
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -139,13 +139,23 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
             />
           );
         }
+
         const baseComponentId = isGridCellNode(cell) ? cell.component : undefined;
-        const componentId = baseComponentId && idMutator ? idMutator(baseComponentId) : baseComponentId;
+        if (!baseComponentId) {
+          const CellComponent = row.header ? Table.HeaderCell : Table.Cell;
+          return (
+            <CellComponent
+              key={cellIdx}
+              className={className}
+            />
+          );
+        }
+
         return (
           <CellWithComponent
             rowReadOnly={row.readOnly}
-            key={`${componentId}/${cellIdx}`}
-            nodeId={componentId}
+            key={`${baseComponentId}/${cellIdx}`}
+            baseComponentId={baseComponentId}
             isHeader={row.header}
             className={className}
             columnStyleOptions={mutableColumnSettings[cellIdx]}
@@ -180,7 +190,7 @@ interface CellProps {
 }
 
 interface CellWithComponentProps extends CellProps {
-  nodeId: string | undefined;
+  baseComponentId: string;
 }
 
 interface CellWithTextProps extends PropsWithChildren, CellProps {
@@ -192,17 +202,17 @@ interface CellWithLabelProps extends CellProps {
 }
 
 function CellWithComponent({
-  nodeId,
+  baseComponentId,
   className,
   columnStyleOptions,
   isHeader = false,
   rowReadOnly,
 }: CellWithComponentProps) {
-  const node = useNode(nodeId);
-  const isHidden = Hidden.useIsHidden(node);
+  const indexedId = useIndexedId(baseComponentId);
+  const isHidden = Hidden.useIsHidden(indexedId, 'node');
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
-  if (node && !isHidden) {
+  if (!isHidden) {
     const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
     return (
       <CellComponent
@@ -210,7 +220,7 @@ function CellWithComponent({
         style={columnStyles}
       >
         <GenericComponent
-          node={node}
+          baseComponentId={baseComponentId}
           overrideDisplay={{
             renderLabel: false,
             renderLegend: false,
@@ -255,8 +265,7 @@ function CellWithText({ children, className, columnStyleOptions, help, isHeader 
 
 function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = false }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const labelFromNode = useNode(labelFrom);
-  const item = useItemFor(labelFromNode.baseId);
+  const item = useItemFor(labelFrom);
   const trb = item.textResourceBindings;
   const required = 'required' in item && item.required;
 
@@ -270,15 +279,13 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
       className={cn(css.tableCellFormatting, className)}
       style={columnStyles}
     >
-      {labelFromNode && (
-        <LabelContent
-          componentId={labelFromNode.id}
-          label={title}
-          required={required}
-          help={help}
-          description={description}
-        />
-      )}
+      <LabelContent
+        id={useIndexedId(labelFrom)}
+        label={title}
+        required={required}
+        help={help}
+        description={description}
+      />
     </CellComponent>
   );
 }
@@ -286,6 +293,7 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
 function MobileGrid({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
   const baseIds = useBaseIdsFromGrid(baseComponentId);
   const isHidden = Hidden.useIsHiddenSelector();
+  const idMutator = useComponentIdMutator();
 
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
@@ -302,11 +310,11 @@ function MobileGrid({ baseComponentId, overrideDisplay }: PropsFromGenericCompon
       className={css.mobileFieldset}
     >
       {baseIds
-        .filter((childId) => !isHidden(childId))
+        .filter((childId) => !isHidden(idMutator(childId), 'node'))
         .map((childId) => (
-          <GenericComponentByBaseId
+          <GenericComponent
             key={childId}
-            id={childId}
+            baseComponentId={childId}
           />
         ))}
     </Fieldset>

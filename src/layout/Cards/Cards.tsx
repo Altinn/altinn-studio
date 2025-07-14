@@ -10,7 +10,6 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNode } from 'src/utils/layout/NodesContext';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -102,10 +101,9 @@ type CardItemProps = {
 
 function CardItem({ baseComponentId, parentBaseId, isMedia, minMediaHeight }: CardItemProps) {
   const id = useIndexedId(baseComponentId);
-  const itemNode = useNode(id);
   const canRenderInMedia = useHasCapability('renderInCardsMedia');
   const canRenderInCard = useHasCapability('renderInCards');
-  if (!itemNode || (isMedia && !canRenderInMedia(baseComponentId)) || (!isMedia && !canRenderInCard(baseComponentId))) {
+  if ((isMedia && !canRenderInMedia(baseComponentId)) || (!isMedia && !canRenderInCard(baseComponentId))) {
     return null;
   }
 
@@ -121,14 +119,14 @@ function CardItem({ baseComponentId, parentBaseId, isMedia, minMediaHeight }: Ca
           data-componentbaseid={baseComponentId}
         >
           <GenericComponent
-            node={itemNode}
+            baseComponentId={baseComponentId}
             overrideDisplay={{
               directRender: true,
             }}
           />
         </div>
       ) : (
-        <GenericComponent node={itemNode} />
+        <GenericComponent baseComponentId={baseComponentId} />
       )}
     </CardProvider>
   );

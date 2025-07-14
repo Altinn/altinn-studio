@@ -9,7 +9,6 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import * as NodesContext from 'src/utils/layout/NodesContext';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { FieldValidations, IExpressionValidationConfig } from 'src/features/validation';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -72,7 +71,6 @@ describe('Expression validation shared tests', () => {
   beforeEach(() => {
     jest.spyOn(FD, 'useDebounced').mockRestore();
     jest.spyOn(DataModels, 'useExpressionValidationConfig').mockRestore();
-    jest.spyOn(NodesContext, 'useNodes').mockRestore();
     jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
   });
 

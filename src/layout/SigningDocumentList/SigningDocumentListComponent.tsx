@@ -12,13 +12,12 @@ import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListError } from 'src/layout/SigningDocumentList/SigningDocumentListError';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodeItemFromNode } from 'src/utils/layout/types';
+import type { ITextResourceBindings } from 'src/layout/layout';
 
 export function SigningDocumentListComponent({
   textResourceBindings,
 }: {
-  textResourceBindings: NodeItemFromNode<LayoutNode<'SigningDocumentList'>>['textResourceBindings'];
+  textResourceBindings: ITextResourceBindings<'SigningDocumentList'>;
 }) {
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const { langAsString } = useLanguage();

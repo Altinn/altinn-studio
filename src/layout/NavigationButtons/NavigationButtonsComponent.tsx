@@ -5,27 +5,30 @@ import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { useReturnToView, useSummaryNodeIdOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;
 
 export function NavigationButtonsComponent({ baseComponentId }: Props) {
-  const summaryNode = useSummaryNodeOfOrigin();
+  const summaryNodeId = useSummaryNodeIdOfOrigin();
+  const { baseComponentId: summaryBaseComponentId } = splitDashedKey(summaryNodeId ?? '');
+  const layoutLookups = useLayoutLookups();
+  const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
   // TODO: Support returning to Summary2
-  if (summaryNode && summaryNode.isType('Summary')) {
+  if (origin && origin.type === 'Summary') {
     return (
       <WithSummary
         baseComponentId={baseComponentId}
-        summaryNode={summaryNode}
+        summaryBaseComponentId={summaryBaseComponentId}
       />
     );
   }
@@ -39,8 +42,8 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
   );
 }
 
-function WithSummary({ baseComponentId, summaryNode }: Props & { summaryNode: LayoutNode<'Summary'> }) {
-  const summaryItem = useItemWhenType(summaryNode.baseId, 'Summary');
+function WithSummary({ baseComponentId, summaryBaseComponentId }: Props & { summaryBaseComponentId: string }) {
+  const summaryItem = useItemWhenType(summaryBaseComponentId, 'Summary');
   const returnToViewText =
     summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
   const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;

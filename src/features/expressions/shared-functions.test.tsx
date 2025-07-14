@@ -14,25 +14,27 @@ import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext }
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { getRepeatingBinding, isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import {
+  getRepeatingBinding,
+  isRepeatingComponent,
+  RepeatingComponents,
+} from 'src/features/form/layout/utils/repeating';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
-import { NodesInternal, useNode } from 'src/utils/layout/NodesContext';
+import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
-import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 jest.mock('src/features/externalApi/useExternalApi');
 
 interface Props {
-  nodeId: string;
+  context: SharedTestFunctionContext | undefined;
   expression: ExprValToActualOrExpr<ExprVal.Any>;
   positionalArguments?: ExprPositionalArgs;
   valueArguments?: ExprValueArgs;
@@ -49,61 +51,72 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
-  return (
-    <DataModelLocationFromNode nodeId={props.nodeId}>
-      <InnerExpressionRunner {...props} />
-    </DataModelLocationFromNode>
-  );
-}
-
-function DataModelLocationFromNode({ nodeId, children }: PropsWithChildren<{ nodeId: string }>) {
-  const realNode = useNode(nodeId);
-  if (!realNode) {
-    throw new Error(`Node not found: ${nodeId}`);
+  if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
+    return <InnerExpressionRunner {...props} />;
   }
 
-  const [closestRepeating, rowIndex] = getClosestRepeating(realNode);
-  const dataModelBindings = NodesInternal.useNodeData(closestRepeating, (d) => d.dataModelBindings) as
-    | IDataModelBindings<RepeatingComponents>
-    | undefined;
-  const repeatingBinding = closestRepeating && getRepeatingBinding(closestRepeating.type, dataModelBindings);
+  // Skipping this hook to make sure we can eval expressions without a layout as well. Some tests need to run
+  // without layout, and in those cases this hook will crash when we're missing the context. Breaking the rule of hooks
+  // eslint rule makes this conditional, and that's fine here.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const layoutLookups = useLayoutLookups();
 
-  if (closestRepeating === undefined || rowIndex === undefined || !repeatingBinding) {
-    return children;
+  const parentIds: string[] = [];
+  let currentParent = layoutLookups.componentToParent[props.context.component];
+  while (currentParent && currentParent.type === 'node') {
+    const parentComponent = layoutLookups.getComponent(currentParent.id);
+    if (isRepeatingComponent(parentComponent)) {
+      parentIds.push(parentComponent.id);
+    }
+    currentParent = layoutLookups.componentToParent[currentParent.id];
+  }
+
+  if (parentIds.length !== props.context.rowIndices.length) {
+    throw new Error(
+      `Component '${props.context.component}' has ${parentIds.length} repeating parent components, ` +
+        `but rowIndices contains ${props.context.rowIndices.length} indices.`,
+    );
+  }
+
+  let result = <InnerExpressionRunner {...props} />;
+  for (const [i, parentId] of parentIds.entries()) {
+    const reverseIndex = props.context.rowIndices.length - i - 1;
+    const rowIndex = props.context.rowIndices[reverseIndex];
+
+    result = (
+      <DataModelLocationFor
+        id={parentId}
+        rowIndex={rowIndex}
+      >
+        {result}
+      </DataModelLocationFor>
+    );
+  }
+
+  return result;
+}
+
+function DataModelLocationFor<T extends RepeatingComponents>({
+  id,
+  rowIndex,
+  children,
+}: PropsWithChildren<{ id: string; rowIndex: number }>) {
+  const component = useExternalItem(id) as { type: T };
+  const bindings = useDataModelBindingsFor(id) as IDataModelBindings<T>;
+  const groupBinding = getRepeatingBinding(component.type, bindings);
+
+  if (!groupBinding) {
+    throw new Error(`No group binding found for ${id}`);
   }
 
   return (
     <DataModelLocationProvider
-      groupBinding={repeatingBinding}
+      groupBinding={groupBinding}
       rowIndex={rowIndex}
     >
       {children}
     </DataModelLocationProvider>
   );
-}
-
-function getClosestRepeating(node: LayoutNode): [LayoutNode<RepeatingComponents>, number] | [undefined, undefined] {
-  let subject: LayoutNode | LayoutPage = node;
-  while (subject.parent instanceof LayoutNode && !isRepeatingComponentType(subject.parent.type)) {
-    subject = subject.parent;
-  }
-
-  const parent = subject.parent;
-  if (parent instanceof LayoutNode && isRepeatingComponentType(parent.type)) {
-    return [parent as LayoutNode<RepeatingComponents>, subject.rowIndex!];
-  }
-
-  return [undefined, undefined];
-}
-
-function nodeIdFromContext(context: SharedTestFunctionContext | undefined) {
-  if (!context?.component) {
-    return 'default';
-  }
-  if (context.rowIndices) {
-    return `${context.component}-${context.rowIndices.join('-')}`;
-  }
-  return context.component;
 }
 
 function getDefaultLayouts(): ILayoutCollection {
@@ -173,6 +186,7 @@ describe('Expressions shared function tests', () => {
         valueArguments,
         testCases,
         codeLists,
+        stateless,
       } = test;
 
       if (disabledFrontend) {
@@ -211,10 +225,6 @@ describe('Expressions shared function tests', () => {
 
       // This decides whether we load this in an instance or not. There are more things to load and more to
       // do in an instance, so it's slower, but also required for some functions.
-      const inInstance = Boolean(
-        dataModels || codeLists || instanceDataElements || permissions || instance || _layouts,
-      );
-
       const layouts: ILayoutCollection = _layouts ? structuredClone(_layouts) : getDefaultLayouts();
 
       // Frontend will look inside the layout for data model bindings, expressions with dataModel and expressions with
@@ -241,7 +251,7 @@ describe('Expressions shared function tests', () => {
       });
 
       const applicationMetadata = getIncomingApplicationMetadataMock(
-        inInstance ? {} : { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] },
+        stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
       );
       if (instanceDataElements) {
         for (const element of instanceDataElements) {
@@ -317,18 +327,16 @@ describe('Expressions shared function tests', () => {
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
 
-      const nodeId = nodeIdFromContext(context);
-      const { rerender } = await renderWithNode({
-        nodeId,
+      const renderFunc = stateless ? renderWithoutInstanceAndLayout : renderWithInstanceAndLayout;
+      const { rerender } = await renderFunc({
         renderer: () => (
           <ExpressionRunner
-            nodeId={nodeId}
+            context={context}
             expression={expression}
             positionalArguments={positionalArguments}
             valueArguments={valueArguments}
           />
         ),
-        inInstance,
         queries: {
           fetchLayoutSets: async () => ({
             sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
@@ -359,7 +367,7 @@ describe('Expressions shared function tests', () => {
         for (const testCase of testCases) {
           rerender(
             <ExpressionRunner
-              nodeId={nodeId}
+              context={context}
               expression={testCase.expression}
               positionalArguments={positionalArguments}
               valueArguments={valueArguments}

@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
-export function Summary2LayoutValidator({ node, externalItem }: NodeValidationProps<'Summary2'>) {
+export function Summary2LayoutValidator({ intermediateItem, externalItem }: NodeValidationProps<'Summary2'>) {
   const addError = NodesInternal.useAddError();
 
   const errors = useMemo(() => {
@@ -40,10 +40,10 @@ export function Summary2LayoutValidator({ node, externalItem }: NodeValidationPr
   useEffect(() => {
     if (errors.length > 0) {
       const error = `Summary overrides contain errors: \n- ${errors.join('\n- ')}`;
-      addError(error, node);
-      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [errors, node, addError]);
+  }, [errors, intermediateItem.id, addError]);
 
   return null;
 }

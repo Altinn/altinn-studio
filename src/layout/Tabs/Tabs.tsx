@@ -8,7 +8,7 @@ import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateT
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
@@ -73,9 +73,9 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
               alignItems='flex-start'
             >
               {tab.children.filter(typedBoolean).map((baseId) => (
-                <GenericComponentByBaseId
+                <GenericComponent
                   key={baseId}
-                  id={baseId}
+                  baseComponentId={baseId}
                 />
               ))}
             </Flex>

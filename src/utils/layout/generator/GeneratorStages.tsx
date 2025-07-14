@@ -4,7 +4,6 @@ import type { MutableRefObject, PropsWithChildren } from 'react';
 import { SetWaitForCommits, useCommit } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug, generatorLog } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { LayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal, NodesReadiness, NodesStore } from 'src/utils/layout/NodesContext';
 import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { RegistryCommitQueues } from 'src/utils/layout/generator/CommitQueue';
@@ -495,10 +494,10 @@ interface WhenProps extends PropsWithChildren {
 
 function WhenParentAdded({ id, stage, registryRef, children }: WhenProps) {
   const parent = GeneratorInternal.useParent();
-  const ready = NodesInternal.useIsAdded(parent);
+  const ready = NodesInternal.useIsAdded(parent.indexedId, parent.type);
   useMarkFinished(id, stage, ready);
   registryRef.current.conditions =
-    parent instanceof LayoutNode ? `node ${parent.id} must be added` : `page ${parent?.pageKey} must be added`;
+    parent.type === 'node' ? `node ${parent.indexedId} must be added` : `page ${parent?.indexedId} must be added`;
 
   return ready ? children : null;
 }
@@ -506,13 +505,13 @@ function WhenParentAdded({ id, stage, registryRef, children }: WhenProps) {
 function WhenAllAdded({ id, stage, registryRef, children }: WhenProps) {
   const parent = GeneratorInternal.useParent();
   const allAdded = GeneratorStages.useIsDoneAddingNodes();
-  const parentAdded = NodesInternal.useIsAdded(parent);
+  const parentAdded = NodesInternal.useIsAdded(parent.indexedId, parent.type);
   const ready = allAdded && parentAdded;
   useMarkFinished(id, stage, ready);
   registryRef.current.conditions =
-    parent instanceof LayoutNode
-      ? `node ${parent.id} and all others are added`
-      : `page ${parent?.pageKey} and all others are added`;
+    parent.type === 'node'
+      ? `node ${parent.indexedId} and all others are added`
+      : `page ${parent?.indexedId} and all others are added`;
 
   return ready ? children : null;
 }

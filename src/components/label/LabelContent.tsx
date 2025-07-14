@@ -14,7 +14,7 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export type LabelContentProps = Readonly<{
-  componentId: string;
+  id: string;
   label?: React.ReactNode;
   description?: string;
   required?: boolean;
@@ -24,7 +24,7 @@ export type LabelContentProps = Readonly<{
 }> & { className?: string };
 
 export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(function LabelContent(
-  { componentId, label, description, required, readOnly, help, labelSettings, className },
+  { id, label, description, required, readOnly, help, labelSettings, className },
   ref,
 ) {
   const { overrideDisplay } = useFormComponentCtx() ?? {};
@@ -51,7 +51,7 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
         </span>
         {help && (
           <HelpTextContainer
-            id={componentId}
+            id={id}
             helpText={<Lang id={help} />}
             title={typeof label === 'string' ? label : elementAsString(label)}
           />
@@ -60,8 +60,8 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
       {description && (
         <Description
           className={classes.description}
-          componentId={componentId}
-          key={getDescriptionId(componentId)}
+          componentId={id}
+          key={getDescriptionId(id)}
           description={<Lang id={description} />}
         />
       )}

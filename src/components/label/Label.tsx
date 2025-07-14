@@ -66,7 +66,7 @@ export function LabelInner(props: LabelInnerProps) {
 
   const labelId = getLabelId(id);
   const labelContentProps: LabelContentProps = {
-    componentId: id,
+    id,
     label: textResourceBindings.title,
     description: textResourceBindings.description,
     help: textResourceBindings.help,
@@ -107,7 +107,7 @@ export function LabelInner(props: LabelInnerProps) {
             >
               <LabelContent
                 {...labelContentProps}
-                componentId={id}
+                id={id}
               />
             </DesignsystemetLabel>
           </LabelGridItemWrapper>

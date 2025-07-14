@@ -3,14 +3,13 @@ import React from 'react';
 import deepEqual from 'fast-deep-equal';
 
 import { useNodeValidation } from 'src/features/validation/nodeValidation/useNodeValidation';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorCondition, StageFormValidation } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AnyValidation, AttachmentValidation } from 'src/features/validation/index';
-import type { CompCategory } from 'src/layout/common';
-import type { CompExternal, CompIntermediate, TypesFromCategory } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompExternal, CompIntermediate } from 'src/layout/layout';
 
 export function StoreValidationsInNode() {
   return (
@@ -23,34 +22,40 @@ export function StoreValidationsInNode() {
   );
 }
 
-type Node = LayoutNode<TypesFromCategory<CompCategory.Form | CompCategory.Container>>;
-
 function StoreValidationsInNodeWorker() {
   const item = GeneratorInternal.useIntermediateItem()!;
-  const node = GeneratorInternal.useParent() as Node;
+  const parent = GeneratorInternal.useParent();
   const shouldValidate = shouldValidateNode(item);
 
   // We intentionally break the rules of hooks eslint rule here. The shouldValidateNode function depends on the
   // component configuration (specifically, the renderAsSummary property), which cannot change over time (it is not an
   // expression). Therefore, we can safely ignore lint rule here, as we'll always re-render with the same number of
   // hooks. If the property changes (from DevTools, for example), the entire form will re-render anyway.
-  if (shouldValidate) {
+  if (shouldValidate && parent.baseId) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useStoreValidations(node);
+    useStoreValidations(parent.baseId);
   }
 
   return null;
 }
 
-function useStoreValidations(node: Node) {
-  const freshValidations = useNodeValidation(node);
-  const validations = useUpdatedValidations(freshValidations, node);
+function useStoreValidations(baseComponentId: string) {
+  const indexedId = useIndexedId(baseComponentId);
+  const freshValidations = useNodeValidation(baseComponentId);
+  const validations = useUpdatedValidations(freshValidations, indexedId);
 
-  const shouldSetValidations = NodesInternal.useNodeData(node, (data) => !deepEqual(data.validations, validations));
-  NodesStateQueue.useSetNodeProp({ node, prop: 'validations', value: validations }, shouldSetValidations);
+  const shouldSetValidations = NodesInternal.useNodeData(
+    indexedId,
+    undefined,
+    (data) => !deepEqual('validations' in data ? data.validations : undefined, validations),
+  );
+  NodesStateQueue.useSetNodeProp({ nodeId: indexedId, prop: 'validations', value: validations }, shouldSetValidations);
 
   // Reduce visibility as validations are fixed
-  const visibilityToSet = NodesInternal.useNodeData(node, (data) => {
+  const visibilityToSet = NodesInternal.useNodeData(indexedId, undefined, (data) => {
+    if (!('validationVisibility' in data)) {
+      return undefined;
+    }
     const currentValidationMask = validations.reduce((mask, { category }) => mask | category, 0);
     const newVisibilityMask = currentValidationMask & data.validationVisibility;
     if ((newVisibilityMask | data.initialVisibility) !== data.validationVisibility) {
@@ -60,14 +65,14 @@ function useStoreValidations(node: Node) {
   });
 
   NodesStateQueue.useSetNodeProp(
-    { node, prop: 'validationVisibility', value: visibilityToSet },
+    { nodeId: indexedId, prop: 'validationVisibility', value: visibilityToSet },
     visibilityToSet !== undefined,
   );
 }
 
-function useUpdatedValidations(validations: AnyValidation[], node: Node) {
-  return NodesInternal.useNodeData(node, (data) => {
-    if (!data.validations) {
+function useUpdatedValidations(validations: AnyValidation[], nodeId: string) {
+  return NodesInternal.useNodeData(nodeId, undefined, (data) => {
+    if (!('validations' in data) || !data.validations) {
       return validations;
     }
 

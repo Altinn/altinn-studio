@@ -3,13 +3,10 @@ import { getComponentDef } from 'src/layout';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { useExpressionResolverProps } from 'src/utils/layout/generator/NodeGenerator';
 import { useDataModelBindingsFor, useIntermediateItem } from 'src/utils/layout/hooks';
-import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { typedBoolean } from 'src/utils/typing';
 import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
  * This evaluates all expressions for a given component configuration. If the type is not correct, things will crash.
@@ -79,26 +76,6 @@ export function useItemFor<T extends CompTypes = CompTypes>(baseComponentId: str
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);
   return def.evalExpressions(props as never) as CompInternal<T>;
-}
-
-const emptyArray: LayoutNode[] = [];
-export function useNodeDirectChildren(parent: LayoutNode | undefined, restriction?: number | undefined): LayoutNode[] {
-  const nodes = useNodes();
-  return (
-    NodesInternal.useMemoSelector((state) => {
-      if (!parent) {
-        return emptyArray;
-      }
-
-      const out: (LayoutNode | undefined)[] = [];
-      for (const n of Object.values(state.nodeData)) {
-        if (n.parentId === parent.id && (restriction === undefined || restriction === n.rowIndex)) {
-          out.push(nodes.findById(n.id));
-        }
-      }
-      return out.filter(typedBoolean);
-    }) ?? emptyArray
-  );
 }
 
 type FormDataFromType<T extends CompTypes | undefined> = T extends undefined

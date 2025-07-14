@@ -208,17 +208,21 @@ export const RepGroupHooks = {
     return childIds;
   },
 
-  useChildIdsWithMultiPage(baseComponentId: string): { id: string; multiPageIndex: number | undefined }[] {
+  useChildIdsWithMultiPage(
+    baseComponentId: string,
+  ): { baseId: string; indexedId: string; multiPageIndex: number | undefined }[] {
     const component = useExternalItem(baseComponentId, 'RepeatingGroup');
     const idMutator = useComponentIdMutator();
     if (!component?.edit?.multiPage) {
-      return component?.children.map(idMutator).map((id) => ({ id, multiPageIndex: undefined })) ?? [];
+      return (
+        component?.children.map((baseId) => ({ baseId, indexedId: idMutator(baseId), multiPageIndex: undefined })) ?? []
+      );
     }
 
-    const children: { id: string; multiPageIndex: number | undefined }[] = [];
+    const children: { baseId: string; indexedId: string; multiPageIndex: number | undefined }[] = [];
     for (const id of component.children) {
       const [multiPageIndex, baseId] = id.split(':', 2);
-      children.push({ id: idMutator(baseId), multiPageIndex: parseInt(multiPageIndex) });
+      children.push({ baseId, indexedId: idMutator(baseId), multiPageIndex: parseInt(multiPageIndex) });
     }
 
     return children;

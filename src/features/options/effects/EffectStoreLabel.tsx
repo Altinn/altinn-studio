@@ -11,7 +11,6 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
   valueType: OptionsValueType;
@@ -23,8 +22,8 @@ interface Props {
  */
 export function EffectStoreLabel({ valueType, options }: Props) {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
-  const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveOptions'>>;
-  const isNodeHidden = Hidden.useIsHidden(node);
+  const parent = GeneratorInternal.useParent();
+  const isHidden = Hidden.useIsHidden(parent.indexedId, parent.type);
   const { langAsString } = useLanguage();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
@@ -40,7 +39,7 @@ export function EffectStoreLabel({ valueType, options }: Props) {
   );
 
   const labelsHaveChanged = !deepEqual(translatedLabels, 'label' in formData ? formData.label : undefined);
-  const shouldSetData = labelsHaveChanged && !isNodeHidden && dataModelBindings && 'label' in dataModelBindings;
+  const shouldSetData = labelsHaveChanged && !isHidden && dataModelBindings && 'label' in dataModelBindings;
 
   NodesInternal.useEffectWhenReady(() => {
     if (!shouldSetData) {

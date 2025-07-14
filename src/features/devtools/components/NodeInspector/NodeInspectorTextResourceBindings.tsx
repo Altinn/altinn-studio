@@ -6,56 +6,43 @@ import { canBeExpression } from 'src/features/expressions/validation';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Props {
-  node: LayoutNode;
+  baseComponentId: string;
   textResourceBindings: ITextResourceBindings;
 }
 
-export function NodeInspectorTextResourceBindings({ node, textResourceBindings }: Props) {
-  if (node.isType('RepeatingGroup')) {
-    return (
-      <NodeNodeInspectorTextResourceBindingsForFirstRow
-        node={node}
-        textResourceBindings={textResourceBindings}
-      />
-    );
+export function NodeInspectorTextResourceBindings(props: Props) {
+  const component = useExternalItem(props.baseComponentId);
+  if (component.type === 'RepeatingGroup') {
+    return <NodeNodeInspectorTextResourceBindingsForFirstRow {...props} />;
   }
 
-  return (
-    <NodeInspectorTextResourceBindingsInner
-      node={node}
-      textResourceBindings={textResourceBindings}
-    />
-  );
+  return <NodeInspectorTextResourceBindingsInner {...props} />;
 }
 
-function NodeNodeInspectorTextResourceBindingsForFirstRow({
-  node,
-  textResourceBindings,
-}: Props & { node: LayoutNode<'RepeatingGroup'> }) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(node.baseId, 'first');
+function NodeNodeInspectorTextResourceBindingsForFirstRow(props: Props) {
+  const firstRowExpr = RepGroupHooks.useRowWithExpressions(props.baseComponentId, 'first');
   return (
     <NodeInspectorTextResourceBindingsInner
-      node={node}
-      textResourceBindings={textResourceBindings}
+      {...props}
       firstRowExpr={firstRowExpr}
     />
   );
 }
 
 function NodeInspectorTextResourceBindingsInner({
-  node,
+  baseComponentId,
   textResourceBindings,
   firstRowExpr,
 }: Props & { firstRowExpr?: GroupExpressions }) {
   const textResources = useTextResources();
   const { langAsString } = useLanguage();
-  const item = useItemIfType(node.baseId, 'RepeatingGroup');
+  const item = useItemIfType(baseComponentId, 'RepeatingGroup');
 
   let actualTextResourceBindings = textResourceBindings || {};
   let isRepGroup = false;

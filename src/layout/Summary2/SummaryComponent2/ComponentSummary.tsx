@@ -68,7 +68,7 @@ function useIsHidden(baseComponentId: string) {
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support
   // on its own, by also supporting 'greying out' hidden components from Summary2.
-  const hidden = Hidden.useIsHidden(useIndexedId(baseComponentId), { respectDevTools: false });
+  const hidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node', { respectDevTools: false });
 
   return !!(hidden || hiddenInOverride);
 }

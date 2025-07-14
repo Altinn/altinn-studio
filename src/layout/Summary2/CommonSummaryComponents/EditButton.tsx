@@ -33,7 +33,7 @@ export function EditButtonFirstVisible({
 }: { ids: string[]; fallback: string } & Omit<EditButtonProps, 'targetBaseComponentId'>) {
   const first = Hidden.useFirstVisibleBaseId(ids);
   const indexedFallbackId = useIndexedId(fallback, true);
-  const isFallbackHidden = Hidden.useIsHidden(indexedFallbackId);
+  const isFallbackHidden = Hidden.useIsHidden(indexedFallbackId, 'node');
   if (!first && isFallbackHidden) {
     return null;
   }

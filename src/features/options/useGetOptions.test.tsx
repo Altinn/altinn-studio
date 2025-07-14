@@ -8,13 +8,13 @@ import type { AxiosResponse } from 'axios';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -28,8 +28,12 @@ interface RenderProps {
   extraLayout?: ILayout;
 }
 
-function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'> }) {
-  const { options, setData, selectedValues } = useGetOptions(node.baseId, node.isType('Dropdown') ? 'single' : 'multi');
+function TestOptions({ baseComponentId }: { baseComponentId: string }) {
+  const component = useExternalItem(baseComponentId);
+  const { options, setData, selectedValues } = useGetOptions(
+    baseComponentId,
+    component.type === 'Dropdown' ? 'single' : 'multi',
+  );
 
   const setterFor = (index: number) => () => setData([options[index].value]);
 
@@ -62,10 +66,8 @@ async function render(props: RenderProps) {
     preselectedOptionIndex: props.preselectedOptionIndex,
   };
 
-  return renderWithNode({
-    renderer: ({ node }) => <TestOptions node={node as LayoutNode<'Dropdown' | 'MultipleSelect'>} />,
-    nodeId: 'myComponent',
-    inInstance: true,
+  return renderWithInstanceAndLayout({
+    renderer: <TestOptions baseComponentId='myComponent' />,
     queries: {
       fetchLayouts: async () => ({
         FormLayout: {

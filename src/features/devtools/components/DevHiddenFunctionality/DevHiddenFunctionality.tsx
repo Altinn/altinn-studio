@@ -53,7 +53,7 @@ function MarkHiddenComponents() {
       if (ref.style.filter === pseudoHiddenCssFilter && state !== 'disabled') {
         ref.style.filter = '';
       } else if (state === 'disabled') {
-        const isHidden = isHiddenSelector(id, isHiddenOptions);
+        const isHidden = isHiddenSelector(id, 'node', isHiddenOptions);
         if (isHidden) {
           ref.style.filter = pseudoHiddenCssFilter;
         }

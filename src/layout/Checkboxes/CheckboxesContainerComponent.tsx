@@ -14,6 +14,7 @@ import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.c
 import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { shouldUseRowLayout } from 'src/utils/layout';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -71,7 +72,7 @@ export const CheckboxContainerComponent = ({
 
   const labelTextGroup = (
     <LabelContent
-      componentId={id}
+      id={useIndexedId(baseComponentId)}
       label={textResourceBindings?.title}
       readOnly={readOnly}
       required={required}

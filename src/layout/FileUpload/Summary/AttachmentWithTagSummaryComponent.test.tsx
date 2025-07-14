@@ -7,10 +7,9 @@ import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplication
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { fetchApplicationMetadata } from 'src/queries/queries';
-import { renderWithNode } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const availableOptions = {
   'https://local.altinn.cloud/ttd/test/api/options/a?language=nb': {
@@ -115,18 +114,16 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     }),
   );
 
-  return await renderWithNode<true, LayoutNode<'FileUploadWithTag'>>({
-    nodeId: 'myComponent',
-    renderer: ({ node }) => (
+  return await renderWithInstanceAndLayout({
+    renderer: (
       <AttachmentSummaryComponent
-        targetBaseComponentId={node.baseId}
+        targetBaseComponentId={component.id}
         changeText='whatever'
         onChangeClick={() => {
           throw new Error('Not implemented');
         }}
       />
     ),
-    inInstance: true,
     queries: {
       fetchInstanceData: async () => ({
         ...getInstanceDataMock((i) => {

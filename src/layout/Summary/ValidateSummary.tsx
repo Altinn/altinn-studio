@@ -4,15 +4,15 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { NodeValidationProps } from 'src/layout/layout';
 
-export function ValidateSummary({ node, externalItem }: NodeValidationProps<'Summary'>) {
+export function ValidateSummary({ intermediateItem, externalItem }: NodeValidationProps<'Summary'>) {
   const addError = NodesInternal.useAddError();
   const targetType = useLayoutLookups().allComponents[externalItem.componentRef]?.type;
 
   useEffect(() => {
     if (!targetType) {
       const error = `Målet for oppsummeringen (${externalItem.componentRef}) ble ikke funnet`;
-      addError(error, node);
-      window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
+      addError(error, intermediateItem.id, 'node');
+      window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
     // TODO: This would be nice to have, but it would possibly fail in prod for 'ssb/ra0709-01'. Investigate the
     // effects of point a Summary to another Summary first.
@@ -21,7 +21,7 @@ export function ValidateSummary({ node, externalItem }: NodeValidationProps<'Sum
     //   addError(error, node);
     //   window.logErrorOnce(`Validation error for '${node.id}': ${error}`);
     // }
-  }, [addError, externalItem.componentRef, node, targetType]);
+  }, [addError, externalItem.componentRef, intermediateItem.id, targetType]);
 
   return null;
 }

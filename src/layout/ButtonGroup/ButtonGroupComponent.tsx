@@ -10,7 +10,6 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNode } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 
 export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
@@ -48,20 +47,18 @@ export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: Props
 
 function Child({ baseId }: { baseId: string }) {
   const id = useIndexedId(baseId);
-  const node = useNode(id);
   const canRender = useHasCapability('renderInButtonGroup');
-  if (!node || !canRender(baseId)) {
+  if (!canRender(baseId)) {
     return null;
   }
 
   return (
     <div
-      key={node.id}
-      data-componentid={node.id}
-      data-componentbaseid={node.baseId}
+      data-componentid={id}
+      data-componentbaseid={baseId}
     >
       <GenericComponent
-        node={node}
+        baseComponentId={baseId}
         overrideDisplay={{ directRender: true }}
       />
     </div>

@@ -16,7 +16,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { getComponentDef } from 'src/layout';
-import { GenericComponentByBaseId } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
@@ -141,8 +141,8 @@ export const RepeatingGroupTableRow = React.memo(function ({
               className={classes.tableCell}
             >
               <div ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}>
-                <GenericComponentByBaseId
-                  id={item.baseId}
+                <GenericComponent
+                  baseComponentId={item.baseId}
                   overrideDisplay={{
                     renderedInTable: true,
                     renderLabel: false,
@@ -180,8 +180,8 @@ export const RepeatingGroupTableRow = React.memo(function ({
                     key={item.baseId}
                     ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
                   >
-                    <GenericComponentByBaseId
-                      id={item.baseId}
+                    <GenericComponent
+                      baseComponentId={item.baseId}
                       overrideItemProps={{
                         grid: {},
                       }}

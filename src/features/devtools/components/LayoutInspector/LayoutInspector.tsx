@@ -13,7 +13,6 @@ import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidati
 import { useLayouts, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import { useNode } from 'src/utils/layout/NodesContext';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 export const LayoutInspector = () => {
@@ -38,7 +37,6 @@ export const LayoutInspector = () => {
   }, [componentProperties]);
 
   const currentLayout = currentView ? layouts?.[currentView] : undefined;
-  const matchingNode = useNode(selectedComponent);
   const validationErrorsForPage = useLayoutValidationForPage() || {};
 
   useEffect(() => {
@@ -154,8 +152,8 @@ export const LayoutInspector = () => {
               </Alert>
             )}
             <div className={classes.headerLink}>
-              {!matchingNode && 'Ingen aktive komponenter funnet'}
-              {matchingNode && <NodeLink nodeId={matchingNode.id} />}
+              {!selectedComponent && 'Ingen aktive komponenter funnet'}
+              {selectedComponent && <NodeLink nodeId={selectedComponent} />}
             </div>
           </div>
           <textarea

@@ -19,7 +19,6 @@ import {
 } from 'src/layout/Subform/utils';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNode } from 'src/utils/layout/NodesContext';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
@@ -30,31 +29,31 @@ export function SubformsForPage({ pageKey }: { pageKey: string }) {
     return null;
   }
 
-  return subformIds.map((nodeId) => (
+  return subformIds.map((baseId) => (
     <SubformGroup
-      key={nodeId}
-      nodeId={nodeId}
+      key={baseId}
+      baseId={baseId}
     />
   ));
 }
 
-function SubformGroup({ nodeId }: { nodeId: string }) {
+function SubformGroup({ baseId }: { baseId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const node = useNode(nodeId);
-  if (!node?.isType('Subform')) {
-    // This should never happen, @see SubformsForPage
-    throw new Error(`Navigation expected component: "${nodeId}" to exist and be of type: "Subform"`);
+  const pageKey = useLayoutLookups().componentToPage[baseId];
+  if (!pageKey) {
+    throw new Error(`Unable to find page for subform with id ${baseId}`);
   }
-  const subformIdsWithError = useComponentValidationsFor(node.baseId).find(isSubformValidation)?.subformDataElementIds;
-  const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(node.baseId, 'Subform') ?? {};
+
+  const subformIdsWithError = useComponentValidationsFor(baseId).find(isSubformValidation)?.subformDataElementIds;
+  const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(baseId, 'Subform');
   const title = useEvalExpression(textResourceBindings?.title, {
     returnType: ExprVal.String,
     defaultValue: '',
-    errorIntroText: `Invalid expression for Subform title in ${node.baseId}`,
+    errorIntroText: `Invalid expression for Subform title in ${baseId}`,
   });
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   if (!dataType) {
-    throw new Error(`Unable to find data type for subform with id ${nodeId}`);
+    throw new Error(`Unable to find data type for subform with id ${baseId}`);
   }
   const dataElements = useStrictDataElements(dataType);
 
@@ -92,9 +91,9 @@ function SubformGroup({ nodeId }: { nodeId: string }) {
         {dataElements.map((dataElement) => (
           <SubformLink
             key={dataElement.id}
-            page={node.pageKey}
+            page={pageKey}
             entryDisplayName={entryDisplayName}
-            nodeId={nodeId}
+            nodeId={baseId}
             dataElement={dataElement}
             hasErrors={Boolean(subformIdsWithError?.includes(dataElement.id))}
           />

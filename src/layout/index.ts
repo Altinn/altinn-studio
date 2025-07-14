@@ -7,8 +7,6 @@ import type { BaseValidation, ComponentValidation } from 'src/features/validatio
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
-import type { AnyComponent } from 'src/layout/LayoutComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BaseRow } from 'src/utils/layout/types';
 
 type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
@@ -31,11 +29,6 @@ export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> exte
   baseComponentId: string;
   overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
-}
-
-export function getNodeDef<T extends CompTypes>(node: LayoutNode<T>): CompClassMap[T] & AnyComponent<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return node.def as any;
 }
 
 export function getComponentDef<T extends keyof CompClassMap>(type: T): CompClassMap[T] {

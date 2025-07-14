@@ -448,7 +448,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.isHiddenSelector(targetId)) {
+    if (this.dataSources.isHiddenSelector(targetId, 'node')) {
       // Not related to the current path, or currently hidden
       return null;
     }
@@ -533,7 +533,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.isHiddenSelector(targetId)) {
+    if (this.dataSources.isHiddenSelector(targetId, 'node')) {
       // Not related to the current path, or currently hidden
       return null;
     }

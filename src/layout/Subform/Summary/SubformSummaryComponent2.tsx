@@ -31,7 +31,6 @@ import type { IData } from 'src/types/shared';
 const SummarySubformWrapperInner = ({
   targetBaseComponentId,
 }: PropsWithChildren<{ targetBaseComponentId: string }>) => {
-  // const node = useNode(nodeId) as LayoutNode<'Subform'>;
   const { layoutSet, id, textResourceBindings, entryDisplayName } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
   const dataElements = useStrictDataElements(dataType);
