@@ -97,7 +97,7 @@
             "maxCount": 10,
             "appLogic": {
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
-                "diallowUserDelete": true
+                "disallowUserDelete": true
             },
             "taskId": "Task_1"
         }

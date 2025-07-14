@@ -54,7 +54,7 @@ public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebAppl
     [Theory]
     [InlineData("userInteractionUnspecified", false, HttpStatusCode.OK)]
     [InlineData("userInteractionUnspecified", true, HttpStatusCode.OK)]
-    [InlineData("disallowUserDelete", false, HttpStatusCode.OK)]
+    [InlineData("disallowUserDelete", false, HttpStatusCode.BadRequest)]
     [InlineData("disallowUserDelete", true, HttpStatusCode.OK)]
     public async Task DeleteDataElement_ImplementsAndValidates_AllowUserDeleteProperty(
         string dataModelId,
