@@ -4,11 +4,14 @@ import { EditStringValue } from '../editModal/EditStringValue';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { BaseConfigProps } from './types';
 
-export interface ConfigCustomFileEndingProps extends BaseConfigProps {}
+export interface ConfigCustomFileEndingProps extends BaseConfigProps {
+  className?: string;
+}
 
 export const ConfigCustomFileEnding = ({
   component,
   handleComponentUpdate,
+  className,
 }: ConfigCustomFileEndingProps) => {
   const handleChange = (updatedComponent: FormComponent) => {
     if (!updatedComponent.hasCustomFileEndings) {
@@ -28,12 +31,14 @@ export const ConfigCustomFileEnding = ({
         component={component}
         handleComponentChange={handleChange}
         defaultValue={true}
+        className={className}
       />
       {component['hasCustomFileEndings'] && (
         <EditStringValue
           component={component}
           handleComponentChange={handleComponentUpdate}
           propertyKey='validFileEndings'
+          className={className}
         />
       )}
     </>

@@ -5,6 +5,7 @@ import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
+import classes from './ComponentMainConfig.module.css';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -18,11 +19,19 @@ export const ComponentMainConfig = ({
   switch (component.type) {
     case ComponentType.Summary2:
       return (
-        <SummaryMainConfig component={component} handleComponentChange={handleComponentChange} />
+        <SummaryMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     case ComponentType.Subform:
       return (
-        <SubformMainConfig component={component} handleComponentChange={handleComponentChange} />
+        <SubformMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     case ComponentType.Checkboxes:
     case ComponentType.RadioButtons:
