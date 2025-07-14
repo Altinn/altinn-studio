@@ -193,6 +193,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     }));
   };
 
+  const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      visible: e.target.checked,
+    }));
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.formWrapper}>
@@ -310,6 +317,17 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           onContactPointsChanged={onChangeContactPoints}
           errors={contactPointErrors}
           id={AppResourceFormFieldIds.ContactPointsId}
+        />
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_visible_show_text', {
+            shouldText: !updatedAppConfig.visible
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          cardHeading={t('app_settings.about_tab_visible_label')}
+          description={t('app_settings.about_tab_visible_description')}
+          checked={updatedAppConfig?.visible ?? false}
+          onChange={onChangeVisible}
         />
       </div>
       <ActionButtons

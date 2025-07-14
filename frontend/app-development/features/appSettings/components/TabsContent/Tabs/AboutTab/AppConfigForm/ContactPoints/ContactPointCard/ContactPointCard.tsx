@@ -13,7 +13,7 @@ import {
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-type ContactPointCardProps = {
+export type ContactPointCardProps = {
   contactPoint: ContactPoint;
   onContactPointsChanged: (contactPoint: ContactPoint) => void;
   errors: AppConfigFormError[];
@@ -56,7 +56,7 @@ export function ContactPointCard({
   };
 
   return (
-    <StudioCard id={`${id}-${index}`} data-color='neutral' variant='tinted'>
+    <StudioCard data-color='neutral' id={id}>
       <StudioFieldset
         legend={<FieldsetWithTag cardNumber={index + 1} />}
         description={t('app_settings.about_tab_contact_point_fieldset_description')}
@@ -91,7 +91,7 @@ export function ContactPointCard({
             onDelete={() => onRemoveButtonClick(index)}
             confirmMessage={t('app_settings.about_tab_contact_point_delete_confirm')}
           >
-            {t('app_settings.about_tab_contact_point_delete_button_text')}
+            {t('app_settings.about_tab_contact_point_delete_button_text', { index })}
           </StudioDeleteButton>
         )}
         {hasError && (

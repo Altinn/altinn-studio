@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { AppConfigForm } from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
-import type { AppConfigNew } from 'app-shared/types/AppConfig';
+import type { AppConfigNew, ContactPoint } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -235,6 +235,22 @@ describe('AppConfigForm', () => {
     expect(enterpriseUserEnabled).toBeChecked();
   });
 
+  it('updates "visible" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const visible = getSwitch(
+      textMock('app_settings.about_tab_visible_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(visible).not.toBeChecked();
+
+    await user.click(visible);
+
+    expect(visible).toBeChecked();
+  });
+
   it('disables the action buttons when no changes are made', () => {
     renderAppConfigForm();
 
@@ -260,7 +276,6 @@ describe('AppConfigForm', () => {
     expect(cancelButton).not.toBeDisabled();
   });
 
-  // Test that the save button calls saveAppConfig with correct data when fields are changed
   it('does not call saveAppConfig when fields are changed but there are errors', async () => {
     const user = userEvent.setup();
     const saveAppConfig = jest.fn();
@@ -420,6 +435,12 @@ describe('AppConfigForm', () => {
     await user.click(availableForTypeCheckbox);
     expect(queryLink('app_settings.about_tab_error_available_for_type')).not.toBeInTheDocument();
 
+    const contactPointCategory = getTextbox(
+      textMock('app_settings.about_tab_contact_point_fieldset_category_label'),
+    );
+    await user.type(contactPointCategory, 'category');
+    expect(queryLink('app_settings.about_tab_error_contact_points')).not.toBeInTheDocument();
+
     expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 });
@@ -447,6 +468,12 @@ const mockAppConfig: AppConfigNew = {
   serviceName: mockServiceName,
   repositoryName: 'my-repo',
 };
+const mockContactPoints: ContactPoint = {
+  category: 'category',
+  email: 'email',
+  telephone: '12345678',
+  contactPage: 'https://example.com',
+};
 const mockAppConfigComplete: AppConfigNew = {
   resourceType: 'altinnapp',
   serviceId: 'some-id',
@@ -458,6 +485,7 @@ const mockAppConfigComplete: AppConfigNew = {
   rightDescription: mockRightDescription,
   status: 'UnderDevelopment',
   availableForType: ['PrivatePerson'],
+  contactPoints: [mockContactPoints],
 };
 
 const defaultProps: AppConfigFormProps = {

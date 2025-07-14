@@ -23,6 +23,7 @@ export type AppConfigNew = {
   enterpriseUserEnabled?: boolean;
   availableForType?: AvailableForTypeOption[];
   contactPoints?: ContactPoint[];
+  visible?: boolean;
 };
 
 export type Keyword = {
