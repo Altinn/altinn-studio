@@ -8,7 +8,7 @@ import {
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';
-import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
+import { useSavableFormLayoutSettings } from '../../../../../hooks/useSavableFormLayoutSettings';
 
 export type PdfConfigCardProps = {
   onClickConvert: () => void;
