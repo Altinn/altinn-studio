@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useSearchParams } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import classes from 'src/components/form/Form.module.css';
@@ -50,6 +51,20 @@ export function Form() {
 }
 
 export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
+  const onFormSubmitValidation = useOnFormSubmitValidation();
+
+  useEffect(() => {
+    if (shouldValidateFormPage) {
+      onFormSubmitValidation();
+      setSearchParams((params) => {
+        params.delete(SearchParams.Validate);
+        return searchParams;
+      });
+    }
+  }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage]);
+
   const { isValidPageId, navigateToPage } = useNavigatePage();
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -279,15 +294,9 @@ function HandleNavigationFocusComponent() {
         const location = new URLSearchParams(searchStringRef.current);
         location.delete(SearchParams.FocusComponentId);
         location.delete(SearchParams.ExitSubform);
-        location.delete(SearchParams.Validate);
         const baseHash = window.location.hash.slice(1).split('?')[0];
         const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
         navigate(nextLocation, { replace: true });
-      }
-
-      // Set validation visibility to the equivalent of trying to submit
-      if (validate) {
-        await onFormSubmitValidation();
       }
 
       // Focus on node?
