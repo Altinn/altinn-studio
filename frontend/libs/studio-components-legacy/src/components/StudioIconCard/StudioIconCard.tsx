@@ -9,13 +9,13 @@ import classes from './StudioIconCard.module.css';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon } from '@studio/icons';
-import { studioIconCardPopoverTrigger } from '@studio/testing/testids';
 
 export type StudioIconCardIconColors = 'blue' | 'red' | 'green' | 'grey' | 'yellow';
 
 export type StudioIconCardProps = {
   icon: ReactElement;
   iconColor?: StudioIconCardIconColors;
+  menuButtonTitle?: string;
   header?: string;
   headerOptions?: HeadingProps;
   contextButtons?: ReactNode;
@@ -26,6 +26,7 @@ export type StudioIconCardProps = {
 export const StudioIconCard = ({
   icon,
   iconColor = 'grey',
+  menuButtonTitle,
   contextButtons,
   children,
   className,
@@ -35,7 +36,7 @@ export const StudioIconCard = ({
       {contextButtons && (
         <StudioPopover placement='bottom-start' size='sm'>
           <StudioPopoverTrigger
-            data-testid={studioIconCardPopoverTrigger}
+            title={menuButtonTitle}
             variant='tertiary'
             className={classes.editIcon}
           >
