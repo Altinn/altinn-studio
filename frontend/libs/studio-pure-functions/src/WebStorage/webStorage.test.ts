@@ -54,7 +54,7 @@ describe('typedLocalStorage', () => {
     const key = 'invalidValueKey';
     const value = undefined;
     const warSpy = jest.spyOn(global.console, 'warn').mockImplementation();
-    window?.localStorage.setItem(key, value);
+    window?.localStorage.setItem(key, value as unknown as string);
     expect(typedLocalStorage.getItem(key)).toBe(value);
     expect(window?.localStorage.getItem(key)).toBe(null);
     expect(warSpy).toHaveBeenCalledTimes(1);

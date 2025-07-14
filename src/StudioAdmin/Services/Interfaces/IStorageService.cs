@@ -20,7 +20,12 @@ public interface IStorageService
     /// <param name="app">The application identifier.</param>
     /// <returns>The task result contains a list of <see cref="SimpleInstance"/> objects representing the instances.
     /// </returns>
-    public Task<List<SimpleInstance>> GetInstances(string org, string env, string app);
+    public Task<List<SimpleInstance>> GetInstances(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    );
 
     /// <summary>
     /// Retrieves an instance by its ID within a specified organization and environment.
@@ -31,7 +36,12 @@ public interface IStorageService
     /// <param name="instanceId">The unique ID of the instance to retrieve.</param>
     /// <returns>The task result contains an Instance object with details about the specified instance if found.
     /// </returns>
-    public Task<Instance> GetInstance(string org, string env, string instanceId);
+    public Task<Instance> GetInstance(
+        string org,
+        string env,
+        string instanceId,
+        CancellationToken ct
+    );
 
     /// <summary>
     /// Retrieves an instance data element.
@@ -49,7 +59,8 @@ public interface IStorageService
         string org,
         string env,
         string instanceId,
-        string dataElementId
+        string dataElementId,
+        CancellationToken ct
     );
 
     /// <summary>
@@ -62,7 +73,8 @@ public interface IStorageService
     public Task<List<ProcessHistoryItem>> GetProcessHistory(
         string org,
         string env,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     );
 
     /// <summary>
@@ -72,5 +84,10 @@ public interface IStorageService
     /// <param name="env">The environment identifier.</param>
     /// <param name="instanceId">The unique identifier of the instance.</param>
     /// <returns>The task result contains a list of instance events.</returns>
-    public Task<List<InstanceEvent>> GetInstanceEvents(string org, string env, string instanceId);
+    public Task<List<InstanceEvent>> GetInstanceEvents(
+        string org,
+        string env,
+        string instanceId,
+        CancellationToken ct
+    );
 }
