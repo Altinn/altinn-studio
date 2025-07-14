@@ -99,7 +99,11 @@ export const EditStringValue = ({
   );
 };
 
-const NoValueSelectOption = ({ disabled }: { disabled: boolean }): ReactElement => {
+type NoValueSelectOptionProps = {
+  disabled: boolean;
+};
+
+const NoValueSelectOption = ({ disabled }: NoValueSelectOptionProps): ReactElement => {
   const { t } = useTranslation();
 
   return (
