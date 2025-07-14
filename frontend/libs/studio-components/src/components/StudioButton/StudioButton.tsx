@@ -7,12 +7,14 @@ import type { IconPlacement } from '../../types/IconPlacement';
 import { TextWithIcon } from '../TextWithIcon';
 
 export type StudioButtonProps = {
+  fullWidth?: boolean;
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
 } & Omit<ButtonProps, 'asChild' | 'icon'>;
 
 function StudioButton(
   {
+    fullWidth,
     icon,
     iconPlacement = 'left',
     'data-size': dataSize,
@@ -24,6 +26,7 @@ function StudioButton(
 ): ReactElement {
   const classNames = cn(givenClassName, classes.studioButton, {
     [classes.smallWithIconOnly]: dataSize === 'sm' && !children,
+    [classes.fullWidth]: fullWidth,
   });
 
   return (
