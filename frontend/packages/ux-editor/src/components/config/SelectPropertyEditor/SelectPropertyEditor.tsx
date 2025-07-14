@@ -9,7 +9,6 @@ export type SelectPropertyEditorProps = {
   value?: string | React.ReactNode;
   property?: string;
   title?: string;
-  className?: string;
 };
 
 export const SelectPropertyEditor = ({
@@ -17,7 +16,6 @@ export const SelectPropertyEditor = ({
   value,
   property,
   title,
-  className,
 }: SelectPropertyEditorProps) => {
   const { t } = useTranslation();
   const [dataTypeSelectVisible, setDataTypeSelectVisible] = useState(false);
