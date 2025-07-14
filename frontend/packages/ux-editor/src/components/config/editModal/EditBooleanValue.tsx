@@ -7,6 +7,7 @@ import { FormField } from '../../FormField';
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
   defaultValue?: boolean;
+  className?: string;
 }
 
 export const EditBooleanValue = ({
@@ -14,6 +15,7 @@ export const EditBooleanValue = ({
   handleComponentChange,
   propertyKey,
   defaultValue,
+  className,
 }: EditBooleanValueProps) => {
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -44,6 +46,7 @@ export const EditBooleanValue = ({
       propertyPath={component.propertyPath}
       componentType={component.type}
       helpText={helpText}
+      className={className}
       renderField={({ fieldProps }) => {
         return (
           <Switch

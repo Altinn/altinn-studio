@@ -1,7 +1,7 @@
 export enum RoutePaths {
   Root = '',
   Apps = 'apps',
-  App = 'apps/:app',
-  Instances = 'apps/:app/instances',
-  Instance = 'apps/:app/instances/:instanceId',
+  App = 'apps/:env/:app/',
+  Instances = 'apps/:env/:app/instances',
+  Instance = 'apps/:env/:app/instances/:instanceId',
 }

@@ -6,10 +6,12 @@ import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import classes from './ConfigBooleanProperties.module.css';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { SchemaConfigProps } from './types';
+import cn from 'classnames';
 
 export interface ConfigBooleanPropertiesProps extends SchemaConfigProps {
   booleanPropertyKeys: string[];
   defaultDisplayCount?: number;
+  className?: string;
 }
 
 export const ConfigBooleanProperties = ({
@@ -18,6 +20,7 @@ export const ConfigBooleanProperties = ({
   component,
   handleComponentUpdate,
   defaultDisplayCount = 3,
+  className,
 }: ConfigBooleanPropertiesProps) => {
   const t = useText();
   const [showAll, setShowAll] = useState(false);
@@ -43,6 +46,7 @@ export const ConfigBooleanProperties = ({
           handleComponentChange={handleComponentUpdate}
           propertyKey={propertyKey}
           defaultValue={schema.properties[propertyKey]?.default}
+          className={className}
         />
       ))}
 
@@ -51,6 +55,7 @@ export const ConfigBooleanProperties = ({
         <ConfigCustomFileEnding
           component={component}
           handleComponentUpdate={handleComponentUpdate}
+          className={className}
         />
       )}
 
@@ -63,11 +68,12 @@ export const ConfigBooleanProperties = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             defaultValue={schema.properties[propertyKey]?.default}
+            className={className}
           />
         ))}
       {additionalKeys.length > 0 && (
         <StudioProperty.Button
-          className={classes.button}
+          className={cn(classes.button, className)}
           icon={renderIcon}
           onClick={() => setShowAll(!showAll)}
           property={toggleText}
