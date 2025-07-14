@@ -6,29 +6,57 @@ const appFrontend = new AppFrontend();
 
 describe('saving multiple data models', () => {
   beforeEach(() => {
+    // These tests rely on form data to be saved when we're done typing, but if we save immediately after blurring
+    // a field we wouldn't ever know if the save requests can be batched up to save two different data models at the
+    // same time.
+    cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.startAppInstance(appFrontend.apps.multipleDatamodelsTest);
+    cy.setCookie('FEATURE_saveOnBlur', 'false');
   });
 
   it('Calls save on individual data models', () => {
-    cy.intercept('PATCH', '**/data*').as('saveFormData');
+    cy.intercept('GET', 'https://api.bring.com/shippingguide/api/postalCode.json**', (req) => {
+      req.reply((res) => {
+        res.send({
+          body: {
+            postalCodeType: 'NORMAL',
+            result: 'BARTEBYEN', // Intentionally wrong, to test that our mock is used
+            valid: true,
+          },
+        });
+      });
+    }).as('zipCodeApi');
 
-    cy.findByRole('textbox', { name: /tekstfelt 1/i }).type('første');
+    cy.waitUntilSaved();
+    cy.get('@saveFormData.all').should('have.length', 1); // PreselectedOptionIndex
+
+    cy.findByRole('textbox', { name: /tekstfelt 1/i }).type('første', { delay: 0 });
     cy.findByRole('textbox', { name: /tekstfelt 1/i }).clear();
-    cy.findByRole('textbox', { name: /tekstfelt 1/i }).type('andre');
-    cy.findByRole('textbox', { name: /tekstfelt 2/i }).type('tredje');
+    cy.findByRole('textbox', { name: /tekstfelt 1/i }).type('andre', { delay: 0 });
+    cy.findByRole('textbox', { name: /tekstfelt 2/i }).type('tredje', { delay: 0 });
     cy.findByRole('textbox', { name: /tekstfelt 2/i }).clear();
-    cy.findByRole('textbox', { name: /tekstfelt 2/i }).type('fjerde');
+    cy.findByRole('textbox', { name: /tekstfelt 2/i }).type('fjerde', { delay: 0 });
 
-    cy.get('@saveFormData.all').should('have.length', 2); // Check that a total of two saves happened
+    // At this point we've typed into two field in two diffrent data models, but we've done it fast enough to not
+    // go beyond the debounce timeout. We should only end up with one more save request, since multiple models can
+    // be saved in one request.
+    cy.waitUntilSaved();
+    cy.get('@saveFormData.all').should('have.length', 2);
     cy.get('@saveFormData.all').should(haveTheSameUrls); // And that they were to the same url (multipatch)
 
     cy.findByRole('textbox', { name: /adresse/i }).type('Brattørgata 3');
+
+    cy.waitUntilSaved();
     cy.get('@saveFormData.all').should('have.length', 3);
 
     cy.findByRole('textbox', { name: /postnr/i }).type('7010');
-    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'TRONDHEIM');
+    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'BARTEBYEN');
 
-    cy.get('@saveFormData.all').should('have.length', 4);
+    // The number of requests we get here depends on how long time it took for the post code API request to get back
+    // to us and store the data in the data model. It will be 4 (when it was fast) or 5 (when it was slow).
+    cy.waitUntilSaved();
+    cy.get('@saveFormData.all').should('have.length.at.least', 4);
+    cy.get('@saveFormData.all').should('have.length.at.most', 5);
     cy.get('@saveFormData.all').should(haveTheSameUrls);
 
     cy.get(appFrontend.altinnError).should('not.exist');
@@ -119,7 +147,6 @@ describe('saving multiple data models', () => {
     cy.findAllByRole('button', { name: /slett/i }).first().click();
 
     cy.waitUntilSaved();
-    cy.waitUntilNodesReady();
     cy.findByRole('table').find('td').first().should('have.text', 'Hanne');
 
     cy.findByRole('button', { name: /rediger/i }).click();
@@ -186,7 +213,6 @@ describe('saving multiple data models', () => {
   });
 
   it('Likert component', () => {
-    cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.gotoNavPage('Side4');
 
     // The 'choose-sector' radio component has a 'preselectedOptionIndex' which will auto-select an option before
@@ -217,7 +243,6 @@ describe('saving multiple data models', () => {
   });
 
   it('Dynamic options', () => {
-    cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.gotoNavPage('Side2');
 
     // The 'choose-sector' radio component has a 'preselectedOptionIndex' which will auto-select an option before

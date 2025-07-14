@@ -4,7 +4,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLayoutLookups, useLayoutLookupsLax } from 'src/features/form/layout/LayoutsContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { selectValidations } from 'src/features/validation/utils';
-import { isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
+import { nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
@@ -15,7 +15,7 @@ import type {
   NodeVisibility,
   ValidationSeverity,
 } from 'src/features/validation/index';
-import type { IsHiddenOptions, NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
+import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 
 export type ValidationsSelector = (
@@ -70,7 +70,6 @@ export interface ValidationStorePluginConfig {
 }
 
 const emptyArray: never[] = [];
-const hiddenOptions: IsHiddenOptions = { respectTracks: true };
 
 export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginConfig> {
   extraFunctions(set: NodeDataPluginSetState) {
@@ -324,7 +323,7 @@ function getValidations({
     return emptyArray;
   }
 
-  if (!includeHidden && lookups && isHidden(state, 'node', id, lookups, hiddenOptions)) {
+  if (!includeHidden && lookups && nodeData.hidden) {
     return emptyArray;
   }
 

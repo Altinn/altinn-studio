@@ -57,7 +57,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           id={id}
           value={value}
           onChange={(newValue) => setValue('simpleBinding', newValue)}
-          onBlur={debounce}
+          onBlur={() => debounce(`blur`)}
           readOnly={readOnly}
           characterLimit={!readOnly ? characterLimit : undefined}
           error={!isValid}

@@ -4,10 +4,10 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { isHidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 
 interface RepeatingGroupEditRowContext {
@@ -29,19 +29,12 @@ function useRepeatingGroupEditRowState(
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
   const edit = useExternalItem(baseComponentId, 'RepeatingGroup').edit;
   const multiPageEnabled = edit?.multiPage ?? false;
-  const lookups = useLayoutLookups();
+  const childrenNotMemoized = RepGroupHooks.useChildIdsWithMultiPageAndHidden(baseComponentId);
+  const children = useMemoDeepEqual(() => childrenNotMemoized, [childrenNotMemoized]);
 
-  const children = RepGroupHooks.useChildIdsWithMultiPage(baseComponentId);
-
-  const hiddenState = NodesInternal.useMemoSelector((state) =>
-    children.map(({ indexedId, multiPageIndex }) => ({
-      nodeId: indexedId,
-      page: multiPageIndex,
-      hidden: isHidden(state, 'node', indexedId, lookups),
-    })),
-  );
-
-  const visiblePages = [...new Set(hiddenState.filter(({ hidden }) => !hidden).map(({ page }) => page ?? 0))];
+  const visiblePages = [
+    ...new Set(children.filter(({ hidden }) => !hidden).map(({ multiPageIndex }) => multiPageIndex ?? 0)),
+  ];
   const firstVisiblePage = Math.min(...visiblePages);
   const lastVisiblePage = Math.max(...visiblePages);
 
@@ -50,13 +43,13 @@ function useRepeatingGroupEditRowState(
   const findNextVisiblePage = useCallback(
     (start: number, step: number): number | undefined => {
       for (let page = start; step > 0 ? page <= lastVisiblePage : page >= firstVisiblePage; page += step) {
-        if (hiddenState.some((state) => state.page === page && !state.hidden)) {
+        if (children.some((state) => state.multiPageIndex === page && !state.hidden)) {
           return page;
         }
       }
       return undefined;
     },
-    [firstVisiblePage, hiddenState, lastVisiblePage],
+    [firstVisiblePage, children, lastVisiblePage],
   );
 
   const nextMultiPage = useCallback(() => {

@@ -10,18 +10,16 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
 function FormDataValue() {
   const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
   const [delayedValue, setDelayedValue] = useState(formDataValue);
-  const waitUntilReady = NodesInternal.useWaitUntilReady();
 
   // This will ensure that the validation state gets updated in the error report by the time this value gets written to the DOM
   useEffect(() => {
-    waitUntilReady().then(() => setDelayedValue(formDataValue));
-  }, [formDataValue, waitUntilReady]);
+    setDelayedValue(formDataValue);
+  }, [formDataValue]);
 
   return <div data-testid='formDataValue'>{delayedValue ? delayedValue.toString() : '<empty>'}</div>;
 }

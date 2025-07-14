@@ -641,7 +641,7 @@ function useSetAttachmentInDataModel() {
             newValue: attachmentId,
           });
         }
-        debounce();
+        attachmentIds.length && debounce('listChanges');
       } else if (dataModelBindings && 'simpleBinding' in dataModelBindings) {
         for (const attachmentId of attachmentIds) {
           setLeafValue({
@@ -649,7 +649,7 @@ function useSetAttachmentInDataModel() {
             newValue: attachmentId,
           });
         }
-        debounce();
+        attachmentIds.length && debounce('listChanges');
       }
     },
     [appendToListUnique, debounce, setLeafValue],

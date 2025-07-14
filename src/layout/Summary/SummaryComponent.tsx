@@ -18,7 +18,7 @@ import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -130,7 +130,7 @@ const SummaryComponentInner = React.forwardRef(function (
 
   const targetView = useLayoutLookups().componentToPage[targetBaseComponentId];
   const indexedId = useIndexedId(targetBaseComponentId);
-  const targetIsHidden = Hidden.useIsHidden(indexedId, 'node');
+  const targetIsHidden = useIsHidden(targetBaseComponentId);
 
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');

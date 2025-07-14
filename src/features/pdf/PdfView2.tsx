@@ -24,8 +24,9 @@ import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformS
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
+import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { isHidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompTypes } from 'src/layout/layout';
@@ -149,7 +150,6 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
           data.pageKey === pageKey &&
           data.parentId === undefined &&
           data.nodeType !== 'Subform' &&
-          !isHidden(state, 'node', data.id, lookups) &&
           !pdfSettings?.excludedComponents.includes(data.id),
       )
       .filter(<T extends CompTypes>(data: NodeData<T>) =>
@@ -157,6 +157,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
       )
       .map((data) => data.id),
   );
+  const hidden = useIsHiddenMulti(children);
 
   return (
     <div className={classes.page}>
@@ -165,12 +166,18 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
         spacing={6}
         alignItems='flex-start'
       >
-        {children.map((baseComponentId) => (
-          <PdfForNode
-            key={baseComponentId}
-            baseComponentId={baseComponentId}
-          />
-        ))}
+        {children.map((baseComponentId) => {
+          if (hidden[baseComponentId]) {
+            return null;
+          }
+
+          return (
+            <PdfForNode
+              key={baseComponentId}
+              baseComponentId={baseComponentId}
+            />
+          );
+        })}
       </Flex>
     </div>
   );

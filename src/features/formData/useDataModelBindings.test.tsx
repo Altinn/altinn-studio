@@ -90,7 +90,7 @@ describe('useDataModelBindings', () => {
         >
           Set multiple values at once, using real types
         </button>
-        <button onClick={() => debounce()}>Debounce</button>
+        <button onClick={() => debounce('forced')}>Debounce</button>
       </>
     );
   }

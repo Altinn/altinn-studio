@@ -8,6 +8,7 @@ import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel'
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
+import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
@@ -45,7 +46,7 @@ export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
     parentComponent?.type !== 'FileUploadWithTag' && !('renderAsSummary' in item && item.renderAsSummary);
 
   return (
-    <>
+    <WhenParentAdded>
       {shouldRemoveStaleValues && (
         <EffectRemoveStaleValues
           valueType={valueType}
@@ -71,6 +72,6 @@ export function RunOptionsEffects({ valueType }: RunOptionEffectsProps) {
           options={options}
         />
       ) : null}
-    </>
+    </WhenParentAdded>
   );
 }

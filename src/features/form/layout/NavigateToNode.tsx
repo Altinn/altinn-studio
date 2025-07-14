@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { Hidden } from 'src/utils/layout/NodesContext';
 import type { NodeRefValidation } from 'src/features/validation';
 import type { NavigateToPageOptions } from 'src/hooks/useNavigatePage';
 
@@ -20,7 +19,6 @@ type FinishNavigationHandler = (
 
 export enum NavigationResult {
   Timeout = 'timeout',
-  ComponentIsHidden = 'componentIsHidden',
   SuccessfulNoFocus = 'successfulNoFocus',
   SuccessfulFailedToRender = 'successfulFailedToRender',
   SuccessfulWithFocus = 'successfulWithFocus',
@@ -76,16 +74,10 @@ export function NavigateToComponentProvider({ children }: PropsWithChildren) {
   const request = useRef<NavigationRequest | undefined>();
   const navigationHandlers = useRef<HandlerRegistry<NavigationHandler>>(new Set());
   const finishHandlers = useRef<HandlerRegistry<FinishNavigationHandler>>(new Set());
-  const isHidden = Hidden.useIsHiddenSelector();
 
   const navigateTo = useCallback(
     async (indexedId: string, baseComponentId: string, options?: NavigateToComponentOptions) =>
       new Promise<NavigationResult>((resolve) => {
-        if (isHidden(indexedId, 'node')) {
-          resolve(NavigationResult.ComponentIsHidden);
-          return;
-        }
-
         (async () => {
           let finished = false;
           let lastTick = Date.now();
@@ -139,7 +131,7 @@ export function NavigateToComponentProvider({ children }: PropsWithChildren) {
           }, 500);
         })();
       }),
-    [isHidden],
+    [],
   );
 
   const registerNavigationHandler = useCallback((handler: NavigationHandler) => {

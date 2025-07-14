@@ -13,7 +13,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 
@@ -31,9 +31,9 @@ export function EditButtonFirstVisible({
   fallback,
   ...rest
 }: { ids: string[]; fallback: string } & Omit<EditButtonProps, 'targetBaseComponentId'>) {
-  const first = Hidden.useFirstVisibleBaseId(ids);
-  const indexedFallbackId = useIndexedId(fallback, true);
-  const isFallbackHidden = Hidden.useIsHidden(indexedFallbackId, 'node');
+  const hiddenIds = useIsHiddenMulti(ids);
+  const first = ids.find((id) => hiddenIds[id] === false);
+  const isFallbackHidden = useIsHidden(fallback);
   if (!first && isFallbackHidden) {
     return null;
   }

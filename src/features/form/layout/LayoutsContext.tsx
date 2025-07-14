@@ -106,14 +106,21 @@ export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
 
 const emptyLayouts: ILayouts = {};
 export const LayoutsProvider = Provider;
-export const useLayouts = (): ILayouts => useCtx()?.layouts ?? emptyLayouts;
+export const useLayouts = (): ILayouts => {
+  const ctx = useLaxCtx();
+  return ctx === ContextNotProvided ? emptyLayouts : (ctx.layouts ?? emptyLayouts);
+};
 export const useLayoutLookups = () => useCtx().lookups;
 export const useLayoutLookupsLax = () => {
   const ctx = useLaxCtx();
   return ctx === ContextNotProvided ? undefined : ctx.lookups;
 };
 
-export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
+const noExpressions: IHiddenLayoutsExternal = {};
+export const useHiddenLayoutsExpressions = () => {
+  const ctx = useLaxCtx();
+  return ctx === ContextNotProvided ? noExpressions : ctx.hiddenLayoutsExpressions;
+};
 
 export const useExpandedWidthLayouts = () => useCtx().expandedWidthLayouts;
 

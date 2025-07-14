@@ -10,7 +10,7 @@ import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettings
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useHiddenPages } from 'src/utils/layout/hidden';
 
 export function DevNavigationButtons() {
   const isInForm = useIsInFormContext();
@@ -24,7 +24,7 @@ export function DevNavigationButtons() {
 const InnerDevNavigationButtons = () => {
   const pageKey = useNavigationParam('pageKey');
   const { navigateToPage } = useNavigatePage();
-  const isHiddenPage = Hidden.useIsHiddenPageSelector();
+  const hiddenPages = useHiddenPages();
   const rawOrder = useRawPageOrder();
   const allPages = Object.keys(useLayouts() ?? {});
 
@@ -36,11 +36,11 @@ const InnerDevNavigationButtons = () => {
   }
 
   function isHidden(page: string) {
-    return isHiddenPage(page) || !rawOrder.includes(page);
+    return hiddenPages.has(page) || !rawOrder.includes(page);
   }
 
   function hiddenText(page: string) {
-    if (isHiddenPage(page)) {
+    if (hiddenPages.has(page)) {
       return 'Denne siden er skjult for brukeren (via dynamikk)';
     } else if (!rawOrder.includes(page)) {
       return 'Denne siden er ikke med i siderekkefølgen';

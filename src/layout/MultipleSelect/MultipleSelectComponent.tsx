@@ -103,7 +103,7 @@ export function MultipleSelectComponent({
             data-size='sm'
             value={selectedValues}
             onValueChange={handleChange}
-            onBlur={debounce}
+            onBlur={() => debounce('blur')}
           >
             <EXPERIMENTAL_MultiSuggestion.Chips render={(e) => e.text} />
             {alertOnChange && (

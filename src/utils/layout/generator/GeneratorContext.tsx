@@ -34,10 +34,7 @@ type NodeGeneratorProps = {
   parentBaseId: string;
 };
 
-type RowGeneratorProps = Pick<
-  GeneratorContext,
-  'idMutators' | 'recursiveMutators' | 'multiPageMapping' | 'forceHidden'
-> & {
+type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'recursiveMutators' | 'multiPageMapping'> & {
   groupBinding: IDataModelReference;
   rowIndex: number;
 };
@@ -52,7 +49,6 @@ interface GeneratorContext {
   parentIndexedId: string | undefined;
   parentType: 'node' | 'page' | undefined;
   item: CompIntermediateExact<CompTypes> | undefined;
-  forceHidden: boolean;
   multiPageMapping?: MultiPageMapping;
   row:
     | {
@@ -138,7 +134,6 @@ function GeneratorRowProviderInner({
   idMutators,
   recursiveMutators,
   multiPageMapping,
-  forceHidden,
 }: PropsWithChildren<RowGeneratorProps>) {
   const parent = useCtx();
   const value: GeneratorContext = useMemo(
@@ -150,14 +145,13 @@ function GeneratorRowProviderInner({
         binding: groupBinding,
       },
 
-      forceHidden: forceHidden ? true : parent.forceHidden,
       multiPageMapping,
       idMutators: parent.idMutators ? [...parent.idMutators, ...(idMutators ?? [])] : idMutators,
       recursiveMutators: parent.recursiveMutators
         ? [...parent.recursiveMutators, ...(recursiveMutators ?? [])]
         : recursiveMutators,
     }),
-    [parent, rowIndex, groupBinding, forceHidden, multiPageMapping, idMutators, recursiveMutators],
+    [parent, rowIndex, groupBinding, multiPageMapping, idMutators, recursiveMutators],
   );
   return <Provider value={value}>{children}</Provider>;
 }
@@ -177,7 +171,6 @@ export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren
       parentIndexedId: undefined,
       parentType: undefined,
       pageKey: undefined,
-      forceHidden: false,
       ...rest,
     }),
     [rest],
@@ -203,5 +196,4 @@ export const GeneratorInternal = {
   useRowIndex: () => useCtx().row?.index,
   useIntermediateItem: () => useCtx().item,
   useIsValid: () => useCtx().isValid ?? true,
-  useForceHidden: () => useCtx().forceHidden,
 };

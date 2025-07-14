@@ -15,7 +15,8 @@ import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useIsReceiptPage } from 'src/features/routing/AppRoutingContext';
 import { ValidationMask } from 'src/features/validation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useHiddenPages } from 'src/utils/layout/hidden';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type {
   NavigationPageGroup,
   NavigationPageGroupSingle,
@@ -37,7 +38,7 @@ export function isSingleGroup(group: NavigationPageGroup): group is NavigationPa
 }
 
 export function useVisiblePages(order: string[]) {
-  const hiddenPages = Hidden.useHiddenPages();
+  const hiddenPages = useHiddenPages();
   return useMemo(() => order.filter((page) => !hiddenPages.has(page)), [order, hiddenPages]);
 }
 

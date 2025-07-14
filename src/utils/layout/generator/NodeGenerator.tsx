@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
@@ -7,19 +7,11 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import {
-  GeneratorCondition,
-  GeneratorRunProvider,
-  StageAddNodes,
-  StageMarkHidden,
-} from 'src/utils/layout/generator/GeneratorStages';
-import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
+import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { NodesInternal, NodesStore } from 'src/utils/layout/NodesContext';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
@@ -51,61 +43,32 @@ export function NodeGenerator({ children, externalItem }: PropsWithChildren<Node
   const commonProps: CommonProps<CompTypes> = { baseComponentId: externalItem.id, externalItem };
 
   return (
-    // Adding id as a key to make it easier to see which component is being rendered in the React DevTools
-    <GeneratorRunProvider key={intermediateItem.id}>
-      <GeneratorCondition
-        stage={StageAddNodes}
-        mustBeAdded='parent'
-      >
+    <>
+      <WhenParentAdded>
         <AddRemoveNode
           {...commonProps}
           intermediateItem={intermediateItem}
         />
-      </GeneratorCondition>
-      <GeneratorCondition
-        stage={StageMarkHidden}
-        mustBeAdded='parent'
-      >
-        <MarkAsHidden {...commonProps} />
-      </GeneratorCondition>
+      </WhenParentAdded>
       <GeneratorNodeProvider
         parentBaseId={externalItem.id}
         item={intermediateItem}
       >
-        <GeneratorCondition
-          stage={StageMarkHidden}
-          mustBeAdded='parent'
-        >
+        <WhenParentAdded>
           <NodePropertiesValidation
             {...commonProps}
             intermediateItem={intermediateItem}
           />
-        </GeneratorCondition>
+        </WhenParentAdded>
         {children}
       </GeneratorNodeProvider>
-    </GeneratorRunProvider>
+    </>
   );
 }
 
 interface CommonProps<T extends CompTypes> {
   baseComponentId: string;
   externalItem: CompExternalExact<T>;
-}
-
-function MarkAsHidden<T extends CompTypes>({ baseComponentId, externalItem }: CommonProps<T>) {
-  const indexedId = useIndexedId(baseComponentId);
-  const forceHidden = GeneratorInternal.useForceHidden();
-  const hiddenResult =
-    useEvalExpressionInGenerator(externalItem.hidden, {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: `Invalid hidden expression for ${baseComponentId}`,
-    }) ?? false;
-  const hidden = forceHidden ? true : hiddenResult;
-  const isSet = NodesInternal.useNodeData(indexedId, undefined, (data) => data.hidden === hidden);
-  NodesStateQueue.useSetNodeProp({ nodeId: indexedId, prop: 'hidden', value: hidden }, !isSet);
-
-  return null;
 }
 
 function AddRemoveNode<T extends CompTypes>({
@@ -116,35 +79,65 @@ function AddRemoveNode<T extends CompTypes>({
   const depth = GeneratorInternal.useDepth();
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage() ?? '';
-  const idMutators = GeneratorInternal.useIdMutators() ?? [];
+  const idMutators = GeneratorInternal.useIdMutators();
   const layoutMap = useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
-  const getCapabilities = (type: CompTypes) => getComponentCapabilities(type);
-  const stateFactoryProps = {
-    id: intermediateItem.id,
-    baseId: baseComponentId,
-    parentId: parent?.type === 'node' ? parent.indexedId : undefined,
-    depth,
-    rowIndex,
-    pageKey,
-    idMutators,
-    layoutMap,
-    getCapabilities,
-    isValid,
-    dataModelBindings: intermediateItem.dataModelBindings as never,
-  } satisfies StateFactoryProps;
+  const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
+  const stateFactoryProps = useMemo(
+    () =>
+      ({
+        id: intermediateItem.id,
+        baseId: baseComponentId,
+        parentId: parent?.type === 'node' ? parent.indexedId : undefined,
+        depth,
+        rowIndex,
+        pageKey,
+        idMutators,
+        layoutMap,
+        getCapabilities,
+        isValid,
+        dataModelBindings: intermediateItem.dataModelBindings as never,
+      }) satisfies StateFactoryProps,
+    [
+      baseComponentId,
+      depth,
+      getCapabilities,
+      idMutators,
+      intermediateItem.dataModelBindings,
+      intermediateItem.id,
+      isValid,
+      layoutMap,
+      pageKey,
+      parent.indexedId,
+      parent?.type,
+      rowIndex,
+    ],
+  );
+
   const isAdded = NodesInternal.useIsAdded(intermediateItem.id, 'node');
 
   const def = getComponentDef(intermediateItem.type);
-  NodesStateQueue.useAddNode(
-    {
-      nodeId: intermediateItem.id,
-      targetState: def.stateFactory(stateFactoryProps as never),
-    },
-    !isAdded,
-  );
+  const addNode = NodesInternal.useAddNode();
+  const removeNode = NodesInternal.useRemoveNode();
 
-  NodesStateQueue.useRemoveNode({ nodeId: intermediateItem.id });
+  // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
+  // so that we don't accidentally remove a node with the same ID from a future/different layout.
+  const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
+
+  useEffect(() => {
+    !isAdded &&
+      addNode({
+        nodeId: intermediateItem.id,
+        targetState: def.stateFactory(stateFactoryProps as never),
+      });
+  }, [addNode, def, intermediateItem.id, isAdded, layoutsWas, stateFactoryProps]);
+
+  useEffect(
+    () => () => {
+      removeNode({ nodeId: intermediateItem.id, layouts: layoutsWas });
+    },
+    [intermediateItem.id, layoutsWas, removeNode],
+  );
 
   return null;
 }

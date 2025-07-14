@@ -12,8 +12,8 @@ import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -28,7 +28,6 @@ export function SummaryGroupComponent({
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { langAsString } = useLanguage();
-  const isHidden = Hidden.useIsHiddenSelector();
 
   const idMutator = useComponentIdMutator();
   const inExcludedChildren = useCallback(
@@ -46,7 +45,8 @@ export function SummaryGroupComponent({
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
-  const children = targetItem.children.filter((id) => !inExcludedChildren(id));
+  const isHidden = useIsHiddenMulti(targetItem.children);
+  const children = targetItem.children.filter((id) => !inExcludedChildren(id) && !isHidden[id]);
   const layoutLookups = useLayoutLookups();
 
   const largeGroup = overrides?.largeGroup ?? false;
@@ -72,8 +72,7 @@ export function SummaryGroupComponent({
   const childSummaryComponents = children.map((child) => {
     const childLayout = layoutLookups.getComponent(child);
     const def = getComponentDef(childLayout.type);
-    const indexedId = idMutator(child);
-    if (def.category !== CompCategory.Form || isHidden(indexedId, 'node')) {
+    if (def.category !== CompCategory.Form) {
       return;
     }
     const RenderCompactSummary = def.renderCompactSummary.bind(def) as React.FC<SummaryRendererProps>;
@@ -140,8 +139,7 @@ function SummaryComponentFromNode({
   inExcludedChildren,
   overrides,
 }: SummaryComponentFromRefProps) {
-  const indexedId = useIndexedId(targetBaseComponentId);
-  const isHidden = Hidden.useIsHidden(indexedId, 'node');
+  const isHidden = useIsHidden(targetBaseComponentId);
   if (inExcludedChildren(targetBaseComponentId) || isHidden) {
     return null;
   }

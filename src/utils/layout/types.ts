@@ -42,7 +42,6 @@ export interface BaseNodeData<T extends CompTypes = CompTypes> {
   parentId: string | undefined; // String if parent is a node, undefined if parent is a page (on the top level)
   isValid: boolean; // False when page is not in the page order, and not a pdf page
   depth: number;
-  hidden: boolean | undefined;
   rowIndex: number | undefined;
   errors: GeneratorErrors | undefined;
   dataModelBindings: IDataModelBindings<T>;

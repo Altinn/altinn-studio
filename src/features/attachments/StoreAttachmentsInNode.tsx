@@ -10,9 +10,8 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
-import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorCondition, StageFormValidation } from 'src/utils/layout/generator/GeneratorStages';
+import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useFormDataFor } from 'src/utils/layout/useNodeItem';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -26,12 +25,9 @@ type AttachmentRecord = Record<string, IAttachment>;
 
 export function StoreAttachmentsInNode() {
   return (
-    <GeneratorCondition
-      stage={StageFormValidation}
-      mustBeAdded='parent'
-    >
+    <WhenParentAdded>
       <StoreAttachmentsInNodeWorker />
-    </GeneratorCondition>
+    </WhenParentAdded>
   );
 }
 
@@ -56,7 +52,11 @@ function StoreAttachmentsInNodeWorker() {
   const hasBeenSet = NodesInternal.useNodeData(parent.indexedId, undefined, (data) =>
     deepEqual('attachments' in data ? data.attachments : undefined, attachments),
   );
-  NodesStateQueue.useSetNodeProp({ nodeId: parent.indexedId, prop: 'attachments', value: attachments }, !hasBeenSet);
+
+  const setNodeProp = NodesInternal.useSetNodeProp();
+  useEffect(() => {
+    !hasBeenSet && setNodeProp({ nodeId: parent.indexedId!, prop: 'attachments', value: attachments });
+  }, [attachments, hasBeenSet, parent.indexedId, setNodeProp]);
 
   if (hasErrors) {
     // If there are errors, we don't want to run the effects. It could be the case that multiple FileUpload components

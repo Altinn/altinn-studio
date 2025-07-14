@@ -10,7 +10,7 @@ import { Loader as DefaultLoader } from 'src/core/loading/Loader';
 import type { LaxContextProps, StrictContextProps } from 'src/core/contexts/context';
 
 type Err = Error | AxiosError;
-type QueryResult<T> = Pick<UseQueryResult<T, Err>, 'data' | 'isLoading' | 'error'>;
+type QueryResult<T> = Pick<UseQueryResult<T, Err>, 'data' | 'isPending' | 'error'>;
 type QueryResultOptional<T> = QueryResult<T> & { enabled: boolean };
 type Query<Req extends boolean, QueryData> = () => Req extends true
   ? QueryResult<QueryData>
@@ -54,12 +54,12 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
   const defaultValue = ('default' in rest ? rest.default : undefined) as CD;
 
   const WrappingProvider = ({ children }: PropsWithChildren) => {
-    const { data, isLoading, error, ...rest } = query();
+    const { data, isPending, error, ...rest } = query();
     const enabled = 'enabled' in rest && !required ? rest.enabled : true;
 
     const value = useMemo(() => (typeof data !== 'undefined' ? process(data) : undefined), [data]);
 
-    if (enabled && isLoading) {
+    if (enabled && isPending) {
       return <Loader reason={`query-${name}`} />;
     }
 

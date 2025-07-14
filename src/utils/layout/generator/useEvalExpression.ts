@@ -3,18 +3,9 @@ import { useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { EvalExprOptions } from 'src/features/expressions';
 import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
-
-export function useEvalExpressionInGenerator<V extends ExprVal>(
-  expr: ExprValToActualOrExpr<V> | undefined,
-  options: EvalExprOptions<V>,
-) {
-  const enabled = GeneratorStages.useIsDoneAddingNodes();
-  return useEvalExpression(expr, options, enabled);
-}
 
 /**
  * Resolves one expression and returns the result. This is a hook version of the evalExpr function, and it's probably
@@ -37,19 +28,14 @@ export function useEvalExpressionInGenerator<V extends ExprVal>(
 export function useEvalExpression<V extends ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
   _options: EvalExprOptions<V>,
-  enabled = true,
 ): ExprValToActual<V> {
   const dataSources = useExpressionDataSources(expr);
   const options = useShallowMemo(_options);
   return useMemo(() => {
-    if (!enabled) {
-      return options.defaultValue;
-    }
-
     if (!ExprValidation.isValidOrScalar(expr, options.returnType)) {
       return options.defaultValue;
     }
 
     return evalExpr(expr, dataSources, options);
-  }, [enabled, dataSources, expr, options]);
+  }, [dataSources, expr, options]);
 }

@@ -11,7 +11,8 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIsHidden } from 'src/utils/layout/hidden';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -40,13 +41,13 @@ export function GroupComponent({
 }: IGroupComponent) {
   const container = useItemWhenType(baseComponentId, 'Group');
   const { title, summaryTitle, description } = container.textResourceBindings ?? {};
-  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node');
+  const isHidden = useIsHidden(baseComponentId);
 
   const indexedId = useIndexedId(baseComponentId);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
   const layoutLookups = useLayoutLookups();
 
-  if (isHidden) {
+  if (isHidden || typeof depth !== 'number') {
     return null;
   }
 

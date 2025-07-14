@@ -10,7 +10,8 @@ import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContaine
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIsHiddenMulti } from 'src/utils/layout/hidden';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { HeadingLevel } from 'src/layout/common.generated';
 
@@ -36,11 +37,11 @@ export function LargeRowSummaryContainer({
   inExcludedChildren,
 }: IDisplayRepAsLargeGroup) {
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const isHidden = Hidden.useIsHiddenSelector();
   const indexedId = useIndexedId(baseComponentId, true);
   const depth = NodesInternal.useSelector((state) => state.nodeData?.[indexedId]?.depth);
   const layoutLookups = useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
+  const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
 
   if (typeof depth !== 'number') {
@@ -72,12 +73,12 @@ export function LargeRowSummaryContainer({
         id={id || item.id}
         className={classes.largeGroupContainer}
       >
-        {children.map((id) => {
-          if (inExcludedChildren(idMutator(id), id) || isHidden(idMutator(id), 'node')) {
+        {children.map((baseId) => {
+          if (inExcludedChildren(idMutator(baseId), baseId) || isHidden[baseId]) {
             return null;
           }
 
-          return renderLayoutComponent(id);
+          return renderLayoutComponent(baseId);
         })}
       </div>
     </Fieldset>

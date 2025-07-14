@@ -20,12 +20,12 @@ import {
   isGridCellLabelFrom,
   isGridCellNode,
   isGridCellText,
-  isGridRowHidden,
   useBaseIdsFromGrid,
+  useIsGridRowHidden,
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
-import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -86,9 +86,8 @@ interface GridRowProps {
 }
 
 export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
-  const isHiddenSelector = Hidden.useIsHiddenSelector();
-  const idMutator = useComponentIdMutator();
-  if (isGridRowHidden(row, isHiddenSelector, idMutator)) {
+  const rowHidden = useIsGridRowHidden(row);
+  if (rowHidden) {
     return null;
   }
 
@@ -208,8 +207,7 @@ function CellWithComponent({
   isHeader = false,
   rowReadOnly,
 }: CellWithComponentProps) {
-  const indexedId = useIndexedId(baseComponentId);
-  const isHidden = Hidden.useIsHidden(indexedId, 'node');
+  const isHidden = useIsHidden(baseComponentId);
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
   if (!isHidden) {
@@ -292,8 +290,6 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
 
 function MobileGrid({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
   const baseIds = useBaseIdsFromGrid(baseComponentId);
-  const isHidden = Hidden.useIsHiddenSelector();
-  const idMutator = useComponentIdMutator();
 
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
@@ -309,14 +305,12 @@ function MobileGrid({ baseComponentId, overrideDisplay }: PropsFromGenericCompon
       help={getHelpTextComponent()}
       className={css.mobileFieldset}
     >
-      {baseIds
-        .filter((childId) => !isHidden(idMutator(childId), 'node'))
-        .map((childId) => (
-          <GenericComponent
-            key={childId}
-            baseComponentId={childId}
-          />
-        ))}
+      {baseIds.map((childId) => (
+        <GenericComponent
+          key={childId}
+          baseComponentId={childId}
+        />
+      ))}
     </Fieldset>
   );
 }

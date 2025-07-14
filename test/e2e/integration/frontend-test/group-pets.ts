@@ -24,7 +24,6 @@ function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number
   cy.log(`Call number: ${callNum}`);
   editingIndex !== undefined && cy.log(`Editing index: ${editingIndex}`);
   cy.waitUntilSaved();
-  cy.waitUntilNodesReady();
 
   const visibleLength = pets.filter((pet) => pet.visible === true || pet.visible === undefined).length;
   cy.get(appFrontend.pets.group().tableRows).should(

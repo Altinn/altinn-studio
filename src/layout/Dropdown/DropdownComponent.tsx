@@ -91,7 +91,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
             value={selectedValues}
             readOnly={readOnly}
             onValueChange={handleChange}
-            onBlur={debounce}
+            onBlur={() => debounce(`blur`)}
             error={!isValid}
             label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
             aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}

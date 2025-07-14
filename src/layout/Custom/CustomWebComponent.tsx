@@ -6,8 +6,7 @@ import dot from 'dot-object';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -98,7 +97,7 @@ export function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  const isHidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node');
+  const isHidden = useIsHidden(baseComponentId);
   if (isHidden || !HtmlTag) {
     return null;
   }

@@ -128,7 +128,6 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.wait('@upload');
-    cy.waitUntilNodesReady();
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should('not.exist');
     cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);

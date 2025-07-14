@@ -32,7 +32,6 @@ import { SchemaValidation } from 'src/features/validation/schemaValidation/Schem
 import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 
 interface Internals {
   individualValidations: {
@@ -173,7 +172,6 @@ export function ValidationProvider({ children }: PropsWithChildren) {
 }
 
 function useWaitForValidation(): WaitForValidation {
-  const waitForNodesReady = NodesInternal.useWaitUntilReady();
   const waitForSave = FD.useWaitForSave();
   const waitForState = useWaitForState<ValidationsProcessedLast['initial'], ValidationContext & Internals>(useStore());
   const hasPendingAttachments = useHasPendingAttachments();
@@ -196,7 +194,6 @@ function useWaitForValidation(): WaitForValidation {
       await waitForAttachments((state) => !state);
 
       // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
-      await waitForNodesReady();
       const validationsFromSave = await waitForSave(forceSave);
       // If validationsFromSave is not defined, we check if initial validations are done processing
       await waitForState(async (state) => {
@@ -214,14 +211,12 @@ function useWaitForValidation(): WaitForValidation {
 
         return false;
       });
-      await waitForNodesReady();
     },
     [
       enabled,
       getCachedInitialValidations,
       hasWritableDataTypes,
       waitForAttachments,
-      waitForNodesReady,
       waitForNodesToValidate,
       waitForSave,
       waitForState,

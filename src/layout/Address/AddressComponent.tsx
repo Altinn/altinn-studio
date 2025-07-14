@@ -91,7 +91,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
               error={hasValidationErrors(bindingValidations?.address)}
               value={address}
               onChange={(ev) => setValue('address', ev.target.value)}
-              onBlur={debounce}
+              onBlur={() => debounce('blur')}
               readOnly={readOnly}
               required={required}
               autoComplete={simplified ? 'street-address' : 'address-line1'}
@@ -132,7 +132,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
                 error={hasValidationErrors(bindingValidations?.careOf)}
                 value={careOf}
                 onChange={(ev) => setValue('careOf', ev.target.value)}
-                onBlur={debounce}
+                onBlur={() => debounce('blur')}
                 readOnly={readOnly}
                 autoComplete='address-line2'
               />
@@ -179,7 +179,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
                 error={hasValidationErrors(bindingValidations?.zipCode)}
                 value={zipCode}
                 onChange={(ev) => setValue('zipCode', ev.target.value)}
-                onBlur={debounce}
+                onBlur={() => debounce('blur')}
                 readOnly={readOnly}
                 required={required}
                 inputMode='numeric'
@@ -265,7 +265,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
                   error={hasValidationErrors(bindingValidations?.houseNumber)}
                   value={houseNumber}
                   onChange={(ev) => setValue('houseNumber', ev.target.value)}
-                  onBlur={debounce}
+                  onBlur={() => debounce('blur')}
                   readOnly={readOnly}
                   autoComplete='address-line3'
                 />

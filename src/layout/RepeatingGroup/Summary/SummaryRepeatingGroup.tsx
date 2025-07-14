@@ -13,9 +13,9 @@ import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.mod
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { DataModelLocationProvider, useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { Hidden } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -139,18 +139,18 @@ function RegularRepeatingGroupRow({
   onChangeClick,
   changeText,
 }: FullRowProps) {
-  const isHidden = Hidden.useIsHiddenSelector();
   const children = RepGroupHooks.useChildIds(targetBaseComponentId);
+  const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
   const layoutLookups = useLayoutLookups();
 
   const childSummaryComponents = children
-    .filter((id) => !inExcludedChildren(idMutator(id), id))
-    .map((id) => {
-      const component = layoutLookups.getComponent(id);
+    .filter((baseId) => !inExcludedChildren(idMutator(baseId), baseId))
+    .map((baseId) => {
+      const component = layoutLookups.getComponent(baseId);
       const def = getComponentDef(component.type);
-      if (!isHidden(idMutator(id), 'node') && def.category === CompCategory.Form) {
-        return { component: def.renderCompactSummary.bind(def), id };
+      if (!isHidden[baseId] && def.category === CompCategory.Form) {
+        return { component: def.renderCompactSummary.bind(def), id: baseId };
       }
     })
     .filter(typedBoolean);
@@ -176,8 +176,7 @@ function RegularRepeatingGroupRow({
 
 function LargeRepeatingGroup({ targetBaseComponentId, overrides, inExcludedChildren, rows }: FullProps) {
   const groupBinding = useDataModelBindingsFor(targetBaseComponentId, 'RepeatingGroup').group;
-  const indexedId = useIndexedId(targetBaseComponentId);
-  const isHidden = Hidden.useIsHidden(indexedId, 'node');
+  const isHidden = useIsHidden(targetBaseComponentId);
 
   if (isHidden) {
     return null;

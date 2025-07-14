@@ -2,15 +2,12 @@ import React, { Fragment, useMemo } from 'react';
 
 import dot from 'dot-object';
 
-import { ExprVal } from 'src/features/expressions/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorCondition, GeneratorRunProvider, StageAddNodes } from 'src/utils/layout/generator/GeneratorStages';
+import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
-import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompIntermediate } from 'src/layout/layout';
 import type { ChildClaims, ChildIdMutator, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
 import type { RepeatingChildrenPlugin } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
@@ -21,12 +18,9 @@ interface Props {
 
 export function NodeRepeatingChildren(props: Props) {
   return (
-    <GeneratorCondition
-      stage={StageAddNodes}
-      mustBeAdded='parent'
-    >
+    <WhenParentAdded>
       <NodeRepeatingChildrenWorker {...props} />
-    </GeneratorCondition>
+    </WhenParentAdded>
   );
 }
 
@@ -43,7 +37,7 @@ function NodeRepeatingChildrenWorker({ claims, plugin }: Props) {
   );
 
   return (
-    <GeneratorRunProvider>
+    <>
       {Array.from({ length: numRows }).map((_, index) => (
         <Fragment key={index}>
           {/* Do not remove this space.
@@ -61,7 +55,7 @@ function NodeRepeatingChildrenWorker({ claims, plugin }: Props) {
           />
         </Fragment>
       ))}
-    </GeneratorRunProvider>
+    </>
   );
 }
 
@@ -84,16 +78,7 @@ const GenerateRow = React.memo((props: GenerateRowProps) => (
 GenerateRow.displayName = 'GenerateRow';
 
 function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping, plugin }: GenerateRowProps) {
-  const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<'RepeatingGroup'> | undefined;
-  const hiddenRow =
-    useEvalExpressionInGenerator(item?.hiddenRow, {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: `Invalid hiddenRow expression for ${item?.id ?? 'unknown node'}`,
-    }) ?? false;
-
   const depth = GeneratorInternal.useDepth();
-
   const recursiveMutators = useMemo(
     () => [
       mutateComponentId(rowIndex),
@@ -110,7 +95,6 @@ function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping, pl
       groupBinding={groupBinding}
       idMutators={[mutateComponentIdPlain(rowIndex)]}
       recursiveMutators={recursiveMutators}
-      forceHidden={hiddenRow}
     >
       <GenerateNodeChildren
         claims={claims}

@@ -2,14 +2,9 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompTypes } from 'src/layout/layout';
 import type { TabConfig } from 'src/layout/Tabs/config.generated';
-import type {
-  DefPluginChildClaimerProps,
-  DefPluginState,
-  NodeDefChildrenPlugin,
-} from 'src/utils/layout/plugins/NodeDefPlugin';
+import type { DefPluginChildClaimerProps, NodeDefChildrenPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 
 interface Config<Type extends CompTypes> {
   componentType: Type;
@@ -73,9 +68,5 @@ export class TabsPlugin<Type extends CompTypes>
       from: 'src/utils/layout/generator/LayoutSetGenerator',
     });
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
-  }
-
-  isChildHidden(_state: DefPluginState<Config<Type>>, _childId: string, _lookups: LayoutLookups): boolean {
-    return false;
   }
 }

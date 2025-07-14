@@ -10,6 +10,7 @@ import type { DefPluginExtraState, DefPluginStateFactoryProps } from 'src/utils/
 interface Config {
   componentType: TypesFromCategory<CompCategory.Form | CompCategory.Container>;
   extraState: {
+    hidden: boolean;
     validations: ComponentValidation[];
     validationVisibility: number;
     initialVisibility: number;
@@ -45,6 +46,7 @@ export class ValidationPlugin extends NodeDefPlugin<Config> {
 
   stateFactory(props: DefPluginStateFactoryProps): DefPluginExtraState<Config> {
     return {
+      hidden: false,
       validations: emptyArray,
       validationVisibility: 0,
       initialVisibility: getInitialMask(props),

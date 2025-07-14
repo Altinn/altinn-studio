@@ -32,7 +32,6 @@ beforeEach(() => {
 afterEach(function () {
   if (this.currentTest?.state !== 'failed') {
     cy.waitUntilSaved();
-    cy.waitUntilNodesReady();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (this.currentTest && (this.currentTest as any).__allowFailureOnEnd === undefined) {

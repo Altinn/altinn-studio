@@ -177,11 +177,6 @@ declare global {
       waitUntilSaved(): Chainable<null>;
 
       /**
-       * Wait until the node generation/hierarchy is ready after processing changes
-       */
-      waitUntilNodesReady(): Chainable<null>;
-
-      /**
        * Check a checkbox/radio from the design system.
        * Our design system radios/checkboxes are a little special, as they hide the HTML input element and provide
        * their own stylized variant. Cypress can't check/uncheck a hidden input field, and although we can tell

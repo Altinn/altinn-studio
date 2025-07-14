@@ -169,7 +169,7 @@ export const ExprFunctionDefinitions = {
     needs: dataSources(
       'layoutLookups',
       'currentDataModelPath',
-      'isHiddenSelector',
+      'hiddenComponents',
       'dataModelNames',
       'formDataSelector',
     ),
@@ -192,7 +192,7 @@ export const ExprFunctionDefinitions = {
   displayValue: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
-    needs: dataSources('displayValues', 'isHiddenSelector', 'currentDataModelPath', 'layoutLookups'),
+    needs: dataSources('displayValues', 'hiddenComponents', 'currentDataModelPath', 'layoutLookups'),
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
@@ -443,13 +443,11 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Component ${id} does not have a simpleBinding`);
     }
 
-    const targetId = makeIndexedId(target.id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups);
-    if (!targetId) {
+    if (!makeIndexedId(target.id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups)) {
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.isHiddenSelector(targetId, 'node')) {
-      // Not related to the current path, or currently hidden
+    if (this.dataSources.hiddenComponents[id] === true) {
       return null;
     }
 
@@ -528,13 +526,11 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
     }
 
-    const targetId = makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups);
-    if (!targetId) {
+    if (!makeIndexedId(id, this.dataSources.currentDataModelPath, this.dataSources.layoutLookups)) {
       throw new NodeRelationNotFound(this, id);
     }
 
-    if (this.dataSources.isHiddenSelector(targetId, 'node')) {
-      // Not related to the current path, or currently hidden
+    if (this.dataSources.hiddenComponents[id] === true) {
       return null;
     }
 
@@ -817,6 +813,13 @@ export const ExprFunctionValidationExtensions: { [K in ExprFunctionName]?: FuncV
       if (!validOperators.includes(op)) {
         const validList = validOperators.map((o) => `"${o}"`).join(', ');
         addError(ctx, [...path, `[${opIdx + 1}]`], 'Invalid operator "%s", valid operators are %s', op, validList);
+      }
+    },
+  },
+  component: {
+    validator({ rawArgs, ctx, path }) {
+      if (rawArgs.length > 1 && rawArgs[1] !== null && typeof rawArgs[1] !== 'string') {
+        addError(ctx, [...path, '[2]'], 'The second argument must be a component id (expressions cannot be used here)');
       }
     },
   },

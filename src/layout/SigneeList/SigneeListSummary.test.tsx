@@ -11,22 +11,22 @@ import { Lang } from 'src/features/language/Lang';
 import { CompInternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/layout/SigneeList/api');
 jest.mock('react-router-dom');
 jest.mock('src/utils/layout/useNodeItem');
-jest.mock('src/utils/layout/NodesContext');
 jest.mock('src/features/language/Lang');
 jest.mock('src/features/form/layout/LayoutsContext');
+jest.mock('src/utils/layout/hidden');
 
 describe('SigneeListSummary', () => {
   const mockedUseSigneeList = jest.mocked(useSigneeList);
   const mockedUseLayoutLookups = jest.mocked(useLayoutLookups);
   const mockedUseItemWhenType = jest.mocked(useItemWhenType);
   const mockedUseItemFor = jest.mocked(useItemFor);
-  const mockedUseIsHidden = jest.mocked(Hidden.useIsHidden);
+  const mockedUseIsHidden = jest.mocked(useIsHidden);
   const mockedItem: CompInternal<'SigneeList'> = {
     id: 'mock-id',
     type: 'SigneeList',

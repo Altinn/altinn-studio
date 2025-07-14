@@ -1,11 +1,9 @@
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { SerializableSetting } from 'src/codegen/SerializableSetting';
-import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
-import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
+import type { StateFactoryProps } from 'src/utils/layout/types';
 
 interface DefPluginConfig {
   componentType: CompTypes;
@@ -23,7 +21,6 @@ type DefPluginCompType<Config extends DefPluginConfig> = Config['componentType']
 export type DefPluginExtraState<Config extends DefPluginConfig> = Config['extraState'] extends undefined
   ? unknown
   : Config['extraState'];
-export type DefPluginState<Config extends DefPluginConfig> = BaseNodeData & DefPluginExtraState<Config>;
 export type DefPluginStateFactoryProps = StateFactoryProps;
 export type DefPluginCompExternal<Config extends DefPluginConfig> = Config['expectedFromExternal'];
 export type DefPluginChildClaimerProps<Config extends DefPluginConfig> = Omit<
@@ -161,14 +158,6 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
   }
 
   /**
-   * Checks if the state is ready. This can be overridden to add custom checks to ensure the state in this plugin
-   * is ready for use.
-   */
-  stateIsReady(_state: DefPluginState<Config>, _fullState: NodesContext): boolean {
-    return true;
-  }
-
-  /**
    * Outputs the code to render any child components that are needed for this plugin to work.
    * The reason this expects a string instead of JSX is because the code generator will run this function
    * and insert the output into the generated code. If we just output a reference to this function, the code
@@ -193,17 +182,11 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
  */
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-  isChildHidden(state: DefPluginState<Config>, childId: string, lookups: LayoutLookups): boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isNodeDefChildrenPlugin(plugin: unknown): plugin is NodeDefChildrenPlugin<any> {
   return (
-    !!plugin &&
-    typeof plugin === 'object' &&
-    'claimChildren' in plugin &&
-    typeof plugin.claimChildren === 'function' &&
-    'isChildHidden' in plugin &&
-    typeof plugin.isChildHidden === 'function'
+    !!plugin && typeof plugin === 'object' && 'claimChildren' in plugin && typeof plugin.claimChildren === 'function'
   );
 }

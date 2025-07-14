@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
@@ -6,7 +6,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSetOptions } from 'src/features/options/useGetOptions';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -23,7 +23,7 @@ interface Props {
 export function EffectStoreLabel({ valueType, options }: Props) {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
   const parent = GeneratorInternal.useParent();
-  const isHidden = Hidden.useIsHidden(parent.indexedId, parent.type);
+  const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
@@ -41,7 +41,7 @@ export function EffectStoreLabel({ valueType, options }: Props) {
   const labelsHaveChanged = !deepEqual(translatedLabels, 'label' in formData ? formData.label : undefined);
   const shouldSetData = labelsHaveChanged && !isHidden && dataModelBindings && 'label' in dataModelBindings;
 
-  NodesInternal.useEffectWhenReady(() => {
+  useEffect(() => {
     if (!shouldSetData) {
       return;
     }

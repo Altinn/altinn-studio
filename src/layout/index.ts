@@ -123,3 +123,11 @@ export function isDataModelBindingsRequired(baseComponentId: string, lookups: La
 export function implementsSubRouting<T extends CompTypes>(def: CompDef<T>): def is CompDef<T> & SubRouting {
   return 'subRouting' in def;
 }
+
+export function implementsIsChildHidden<T extends CompTypes>(
+  def: CompDef<T>,
+): def is CompDef<T> & {
+  isChildHidden: (parentBaseId: string, childBaseId: string, layoutLookups: LayoutLookups) => boolean;
+} {
+  return 'isChildHidden' in def;
+}

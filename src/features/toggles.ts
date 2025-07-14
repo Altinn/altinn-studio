@@ -17,16 +17,18 @@ export const FeatureToggles = {
     description: '',
     links: ['https://github.com/Altinn/app-frontend-react/pull/2745'],
   },
+  saveOnBlur: {
+    defaultValue: true,
+    title: 'Rush to save form data when leaving/unfocusing an input field',
+    description:
+      "This is on by default, but can be disabled if you want less network traffic and don't need to run backend dynamics immediately when leaving an input field.",
+  },
 };
 
 export type FeatureToggleSource = 'window' | 'cookie' | 'default';
 export type IFeatureToggles = keyof typeof FeatureToggles;
 export type IFeatureTogglesOptionalMap = { [key in IFeatureToggles]?: boolean };
-export type IFeatureTogglesMap = { [key in IFeatureToggles]: boolean };
 export type FeatureValue = { value: boolean; source: FeatureToggleSource };
-export type AugmentedFeatureToggles = {
-  [key in IFeatureToggles]: (typeof FeatureToggles)[key] & FeatureValue & { key: IFeatureToggles };
-};
 
 export function getFeature(feature: IFeatureToggles): FeatureValue {
   if (
@@ -50,22 +52,3 @@ export function getFeature(feature: IFeatureToggles): FeatureValue {
 
   return { value: FeatureToggles[feature].defaultValue, source: 'default' };
 }
-
-export function getAugmentedFeatures(): AugmentedFeatureToggles {
-  const augmentedFeatures: AugmentedFeatureToggles = {} as AugmentedFeatureToggles;
-  for (const feature of Object.keys(FeatureToggles) as IFeatureToggles[]) {
-    augmentedFeatures[feature] = {
-      ...FeatureToggles[feature],
-      ...getFeature(feature),
-      key: feature,
-    };
-  }
-
-  return augmentedFeatures;
-}
-
-export const featureToggleValues: IFeatureTogglesMap = {
-  betaPDFenabled: getFeature('betaPDFenabled').value,
-  simpleTableEnabled: getFeature('simpleTableEnabled').value,
-  addToListEnabled: getFeature('addToListEnabled').value,
-};

@@ -11,8 +11,8 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { Hidden } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridRows } from 'src/layout/common.generated';
 
@@ -66,7 +66,7 @@ const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProp
   const layoutLookups = useLayoutLookups();
   const children = layoutLookups.componentToChildren[baseId] ?? [];
   const hasChildren = children.length > 0;
-  const isHidden = Hidden.useIsHidden(nodeId, 'node', { respectDevTools: false });
+  const isHidden = useIsHidden(baseId, { respectDevTools: false });
 
   const el = useRef<HTMLLIElement>(null);
   useEffect(() => {

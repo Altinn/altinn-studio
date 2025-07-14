@@ -24,8 +24,8 @@ import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Provid
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { Hidden } from 'src/utils/layout/NodesContext';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ButtonPosition } from 'src/layout/common.generated';
@@ -36,7 +36,7 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
 
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
   const id = useIndexedId(baseComponentId);
-  const isHidden = Hidden.useIsHidden(id, 'node');
+  const isHidden = useIsHidden(baseComponentId);
 
   if (isHidden) {
     return null;

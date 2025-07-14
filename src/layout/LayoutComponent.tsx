@@ -29,9 +29,8 @@ import type {
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
-import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { NodeData, StateFactoryProps } from 'src/utils/layout/types';
+import type { StateFactoryProps } from 'src/utils/layout/types';
 
 export interface NodeGeneratorProps {
   externalItem: CompExternalExact<CompTypes>;
@@ -92,19 +91,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return Object.values(this.plugins).some((plugin: NodeDefPlugin<any>) => plugin instanceof constructor);
   }
-
-  /**
-   * This is called to figure out if the nodes state is ready to be rendered. This can be overridden to add
-   * additional checks for any component.
-   */
-  public stateIsReady(state: NodeData<Type>): boolean {
-    return state.hidden !== undefined;
-  }
-
-  /**
-   * Same as the above, but implemented by plugins automatically in the generated code.
-   */
-  abstract pluginStateIsReady(state: NodeData<Type>, fullState: NodesContext): boolean;
 
   /**
    * Creates the zustand store default state for a node of this component type. Usually this is implemented

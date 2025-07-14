@@ -39,7 +39,7 @@ import type {
   FormDataContext,
   UpdatedDataModel,
 } from 'src/features/formData/FormDataWriteStateMachine';
-import type { IPatchListItem } from 'src/features/formData/types';
+import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
 import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
@@ -179,7 +179,7 @@ function useFormDataSaveMutation() {
       // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
       // at the moment we're saving. This is especially important when automatically saving (and debouncing) when
       // navigating away from the form context.
-      debounce();
+      debounce('beforeSave');
       const { next, prev } = await waitFor((state, setReturnValue) => {
         if (!hasUnDebouncedCurrentChanges(state)) {
           setReturnValue({
@@ -447,7 +447,7 @@ function FormDataEffects() {
   useEffect(() => {
     const timer = shouldDebounce
       ? setTimeout(() => {
-          debounce();
+          debounce('timeout');
         }, debounceTimeout)
       : undefined;
 
@@ -532,11 +532,14 @@ const useRequestManualSave = () => {
 
 const useDebounceImmediately = () => {
   const debounce = useLaxSelector((s) => s.debounce);
-  return useCallback(() => {
-    if (debounce !== ContextNotProvided) {
-      debounce();
-    }
-  }, [debounce]);
+  return useCallback(
+    (reason: DebounceReason) => {
+      if (debounce !== ContextNotProvided) {
+        debounce(reason);
+      }
+    },
+    [debounce],
+  );
 };
 
 function hasDebouncedUnsavedChanges(state: FormDataContext) {

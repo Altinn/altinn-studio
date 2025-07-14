@@ -12,8 +12,8 @@ import classes from 'src/layout/Summary2/Summary2.module.css';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { Hidden } from 'src/utils/layout/NodesContext';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompTypes } from 'src/layout/layout';
 
@@ -63,12 +63,12 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
   };
 }
 
-function useIsHidden(baseComponentId: string) {
+function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support
   // on its own, by also supporting 'greying out' hidden components from Summary2.
-  const hidden = Hidden.useIsHidden(useIndexedId(baseComponentId), 'node', { respectDevTools: false });
+  const hidden = useIsHidden(baseComponentId, { respectDevTools: false });
 
   return !!(hidden || hiddenInOverride);
 }
@@ -130,7 +130,7 @@ export function SummaryFlex({ targetBaseId, className, content, children }: Summ
     );
   }
 
-  const isHidden = useIsHidden(targetBaseId);
+  const isHidden = useIsHiddenInSummary(targetBaseId);
   const isHiddenBecauseEmpty = useIsHiddenBecauseEmpty(targetBaseId, component.type, content);
   const { className: hiddenClass, leafCanReturnNull } = useSummarySoftHidden(isHidden);
 
@@ -170,7 +170,7 @@ export function SummaryFlexForContainer({
     throw new Error(`SummaryFlexForContainer rendered with ${component.type} target. Use SummaryFlex instead.`);
   }
 
-  const isHidden = useIsHidden(targetBaseId);
+  const isHidden = useIsHiddenInSummary(targetBaseId);
   const hasOnlyEmptyChildren = useHasOnlyEmptyChildren();
   const { className, forceShow } = useSummarySoftHidden(hasOnlyEmptyChildren && hideWhen === true);
 

@@ -127,6 +127,7 @@ export const InputVariant = ({
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
   const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
   const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
+  const debounce = FD.useDebounceImmediately();
 
   const inputProps: InputProps = {
     id,
@@ -138,7 +139,7 @@ export const InputVariant = ({
     readOnly,
     textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
-    onBlur: FD.useDebounceImmediately(),
+    onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
     prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
     suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,

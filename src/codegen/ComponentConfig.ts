@@ -375,16 +375,6 @@ export class ComponentConfig {
       from: 'src/utils/layout/generator/NodeGenerator',
     });
 
-    const NodeData = new CG.import({
-      import: 'NodeData',
-      from: 'src/utils/layout/types',
-    });
-
-    const NodesContext = new CG.import({
-      import: 'NodesContext',
-      from: 'src/utils/layout/NodesContext',
-    });
-
     const DisplayData = new CG.import({
       import: 'DisplayData',
       from: 'src/features/displayData/index',
@@ -393,11 +383,6 @@ export class ComponentConfig {
     const IDataModelBindings = new CG.import({
       import: 'IDataModelBindings',
       from: 'src/layout/layout',
-    });
-
-    const LayoutLookups = new CG.import({
-      import: 'LayoutLookups',
-      from: 'src/features/form/layout/makeLayoutLookups.ts',
     });
 
     const isFormComponent = this.config.category === CompCategory.Form;
@@ -471,33 +456,14 @@ export class ComponentConfig {
       implementsInterfaces.push(`${DisplayData}`);
     }
 
-    const readyCheckers: string[] = [];
     for (const plugin of this.plugins) {
       const extraMethodsFromPlugin = plugin.extraMethodsInDef();
       additionalMethods.push(...extraMethodsFromPlugin);
-
-      readyCheckers.push(`${pluginRef(plugin)}.stateIsReady(state as any, fullState)`);
-    }
-
-    if (readyCheckers.length === 0) {
-      additionalMethods.push(
-        `// No plugins in this component
-        pluginStateIsReady(_state: ${NodeData}<'${this.type}'>): boolean {
-          return true;
-        }`,
-      );
-    } else {
-      additionalMethods.push(
-        `pluginStateIsReady(state: ${NodeData}<'${this.type}'>, fullState: ${NodesContext}): boolean {
-          return ${readyCheckers.join(' && ')};
-        }`,
-      );
     }
 
     const childrenPlugins = this.plugins.filter((plugin) => isNodeDefChildrenPlugin(plugin));
     if (childrenPlugins.length > 0) {
       const ChildClaimerProps = new CG.import({ import: 'ChildClaimerProps', from: 'src/layout/LayoutComponent' });
-      const NodeData = new CG.import({ import: 'NodeData', from: 'src/utils/layout/types' });
 
       const claimChildrenBody = childrenPlugins.map((plugin) =>
         `${pluginRef(plugin)}.claimChildren({
@@ -506,16 +472,9 @@ export class ComponentConfig {
          });`.trim(),
       );
 
-      const isChildHiddenBody = childrenPlugins.map(
-        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childId, lookups)`,
-      );
-
       additionalMethods.push(
         `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
           ${claimChildrenBody.join('\n')}
-        }`,
-        `isChildHidden(state: ${NodeData}<'${this.type}'>, childId: string, lookups: ${LayoutLookups}) {
-          return [${isChildHiddenBody.join(', ')}].some((h) => h);
         }`,
       );
     }
@@ -545,7 +504,6 @@ export class ComponentConfig {
           parentId: props.parentId,
           depth: props.depth,
           isValid: props.isValid,
-          hidden: undefined,
           rowIndex: props.rowIndex,
           errors: undefined,
           dataModelBindings: props.dataModelBindings,

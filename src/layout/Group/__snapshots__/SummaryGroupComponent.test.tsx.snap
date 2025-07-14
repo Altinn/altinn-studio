@@ -6,9 +6,6 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
     lang="nb"
   >
     <div
-      style="display: none;"
-    />
-    <div
       data-testid="summary-group-component"
       style="width: 100%;"
     >

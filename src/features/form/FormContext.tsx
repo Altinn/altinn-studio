@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
@@ -46,16 +46,6 @@ export function FormProvider({ children, readOnly = false }: React.PropsWithChil
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
-
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-
-  if (renderCount.current > 1) {
-    console.error(
-      `FormProvider re-rendered. This may cause all nodes to be re-created and may trash ` +
-        `performance. Consider optimizing routes and components to avoid this.`,
-    );
-  }
 
   return (
     <LoadingRegistryProvider>

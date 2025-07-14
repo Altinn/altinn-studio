@@ -18,6 +18,19 @@ import type { IInstance } from 'src/types/shared';
 export const DEFAULT_DEBOUNCE_TIMEOUT = 400;
 
 /**
+ * We make sure to gather the reason for every debounce so that we can skip debouncing in some cases. It is
+ * configurable whether you want to debounce (and thus automatically save) when blurring a field.
+ */
+export type DebounceReason =
+  | 'blur'
+  | 'timeout'
+  | 'backendChanges'
+  | 'listChanges'
+  | 'unmount'
+  | 'beforeSave'
+  | 'forced';
+
+/**
  * This field always exists in the data model for objects inside arrays (i.e. repeating groups). It's used to
  * identify the object in the array in a way that's more stable than the index. This is important because the
  * index can change when the array is sorted, and we want to be able to sort the array without losing track of

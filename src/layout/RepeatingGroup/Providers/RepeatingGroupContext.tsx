@@ -14,7 +14,6 @@ import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onG
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { CompInternal } from 'src/layout/layout';
 import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
@@ -321,12 +320,10 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
 
   const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
   const waitUntilSaved = FD.useWaitForSave();
-  const waitUntilReady = NodesInternal.useWaitUntilReady();
   const appendToList = FD.useAppendToList();
   const removeFromList = FD.useRemoveFromListCallback();
   const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
   const onGroupCloseValidation = useOnGroupCloseValidation();
-  const markNodesNotReady = NodesInternal.useMarkNotReady();
 
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
   const getState = useCallback(() => produceStateFromRows(getRows() ?? []), [getRows]);
@@ -440,7 +437,6 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
       newValue: { [ALTINN_ROW_ID]: uuid },
     });
 
-    markNodesNotReady(); // Doing this early to prevent re-renders when this is added to the data model
     startAddingRow(uuid);
     if (autoSaving) {
       // When auto-saving is on, we can detect if backend datamodel changes will cause this row to be hidden right
@@ -463,7 +459,6 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
       }
     }
 
-    await waitUntilReady();
     endAddingRow(uuid);
 
     const index = found?.index ?? -1;
@@ -473,18 +468,7 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
     }
 
     return { result: 'addedAndHidden', uuid, index };
-  }, [
-    stateRef,
-    groupBinding,
-    maybeValidateRow,
-    appendToList,
-    markNodesNotReady,
-    autoSaving,
-    waitUntilReady,
-    waitUntilSaved,
-    getState,
-    openForEditing,
-  ]);
+  }, [stateRef, groupBinding, maybeValidateRow, appendToList, autoSaving, waitUntilSaved, getState, openForEditing]);
 
   const deleteRow = useCallback(
     async (row: BaseRow) => {
@@ -495,7 +479,6 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
         return false;
       }
 
-      markNodesNotReady(); // Doing this early to prevent re-renders when this is removed from the data model
       startDeletingRow(row);
       const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
       if (attachmentDeletionSuccessful && groupBinding) {
@@ -512,7 +495,7 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
       endDeletingRow(row, false);
       return false;
     },
-    [getState, stateRef, markNodesNotReady, onBeforeRowDeletion, groupBinding, removeFromList],
+    [getState, stateRef, onBeforeRowDeletion, groupBinding, removeFromList],
   );
 
   const isDeleting = useCallback((uuid: string) => stateRef.current.deletingIds.includes(uuid), [stateRef]);

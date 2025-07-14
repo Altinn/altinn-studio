@@ -346,7 +346,6 @@ describe('Options', () => {
 
     cy.get(rows).eq(0).findByRole('button', { name: `Slett-0` }).click();
     cy.waitUntilSaved();
-    cy.waitUntilNodesReady();
 
     assertRows(1, 2, 3, 4, 5, 6, 7, 8, 9);
   });

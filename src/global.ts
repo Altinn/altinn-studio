@@ -3,7 +3,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { IRuleObject } from 'src/types';
-import type { NodesContextStore } from 'src/utils/layout/NodesContext';
 
 ///<reference types="cypress-iframe" />
 
@@ -28,7 +27,6 @@ declare global {
       dataElementIds?: { [dataType: string]: string | null };
       attachments?: IAttachmentsMap;
       formData?: { [key: string]: unknown };
-      nodesStore?: NodesContextStore;
     };
 
     // Calling this function will safely log to the Cypress log (if running in Cypress), without triggering a
