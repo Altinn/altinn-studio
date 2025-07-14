@@ -69,6 +69,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     <StudioIconCard
       icon={taskIcon.icon}
       iconColor={taskIcon.iconColor}
+      menuButtonTitle={t('general.menu')}
       contextButtons={contextButtons}
     >
       <div className={classes.details}>
