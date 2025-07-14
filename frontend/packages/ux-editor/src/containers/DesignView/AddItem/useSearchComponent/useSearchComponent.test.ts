@@ -5,6 +5,7 @@ import type { IToolbarElement } from '../../../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHookWithProviders } from '../../../../testing/mocks';
 import { waitFor } from '@testing-library/react';
+import type { TestCase } from './types';
 
 const MockIcon = () => null;
 const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
@@ -16,7 +17,7 @@ const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
   category2: [{ type: ComponentType.Image, label: 'Image Component', icon: MockIcon }],
 };
 
-const testCases = [
+const testCases: TestCase[] = [
   {
     description: 'should filter by partial text match',
     searchText: 'text',

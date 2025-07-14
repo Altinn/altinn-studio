@@ -3,6 +3,23 @@ import { useDebounce } from '@studio/hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
 
+const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => string): string[] => {
+  const translatedLabel = t('ux_editor.component_title.' + toolbarItem.type).toLowerCase();
+  const englishLabel = toolbarItem.label.toLowerCase();
+  return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
+};
+
+const filterToolbarItems = (
+  items: IToolbarElement[],
+  search: string,
+  t: (key: string) => string,
+): IToolbarElement[] => {
+  if (!search) return items;
+  return items.filter((toolbarItem) =>
+    getAllLabelWords(toolbarItem, t).some((word) => word.startsWith(search)),
+  );
+};
+
 type UseSearchComponentProps = {
   availableComponents: KeyValuePairs<IToolbarElement[]>;
   disableDebounce?: boolean;
@@ -26,23 +43,6 @@ export function useSearchComponent({
   const handleEscape = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
-
-  const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => string): string[] => {
-    const translatedLabel = t('ux_editor.component_title.' + toolbarItem.type).toLowerCase();
-    const englishLabel = toolbarItem.label.toLowerCase();
-    return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
-  };
-
-  const filterToolbarItems = (
-    items: IToolbarElement[],
-    search: string,
-    t: (key: string) => string,
-  ): IToolbarElement[] => {
-    if (!search) return items;
-    return items.filter((toolbarItem) =>
-      getAllLabelWords(toolbarItem, t).some((word) => word.startsWith(search)),
-    );
-  };
 
   const filteredComponents = Object.entries(availableComponents).reduce(
     (acc, [category, items]) => {
