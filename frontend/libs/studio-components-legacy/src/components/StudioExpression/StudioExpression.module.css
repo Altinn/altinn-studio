@@ -3,5 +3,5 @@
 }
 
 .validExpression .tabContent {
-  padding: var(--studio-expression-spacing);
+  padding: var(--studio-legacy-expression-spacing);
 }

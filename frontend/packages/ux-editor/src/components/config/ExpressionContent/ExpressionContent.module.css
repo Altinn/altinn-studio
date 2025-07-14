@@ -5,7 +5,7 @@
   border: 0;
   box-shadow: var(--fds-shadow-small);
   display: grid;
-  gap: var(--studio-expression-spacing);
+  gap: var(--studio-legacy-expression-spacing);
   grid-template-columns: [start] 1fr auto [end];
   margin: 0;
   overflow: auto;
@@ -19,18 +19,18 @@
 .legendContent {
   display: flex;
   gap: var(--fds-spacing-1);
-  margin-left: var(--studio-expression-spacing);
+  margin-left: var(--studio-legacy-expression-spacing);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .deleteButton {
-  margin-right: var(--studio-expression-spacing);
+  margin-right: var(--studio-legacy-expression-spacing);
 }
 
 .legendContent,
 .deleteButton {
-  margin-top: var(--studio-expression-spacing);
+  margin-top: var(--studio-legacy-expression-spacing);
 }
 
 .expressionWrapper {
