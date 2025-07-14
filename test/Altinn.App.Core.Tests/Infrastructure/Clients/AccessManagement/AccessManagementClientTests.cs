@@ -38,6 +38,43 @@ public class AccessManagementClientTests
         ],
     };
 
+    [Theory]
+    [InlineData(
+        "Initial error",
+        """{"detail": "One or more validation errors occurred.", "validationErrors": [{"code": "AM.VLD-00004", "detail": "Policy error"}], "code": "STD-00000"}""",
+        "One or more validation errors occurred. ValidationErrors: [{\"code\": \"AM.VLD-00004\", \"detail\": \"Policy error\"}] Code: STD-00000"
+    )]
+    [InlineData("Initial error", """{"detail": "Something went wrong"}""", "Something went wrong")]
+    [InlineData(
+        "Initial error",
+        """{"validationErrors": [{"field": "name", "message": "Name is required"}]}""",
+        "Initial error ValidationErrors: [{\"field\": \"name\", \"message\": \"Name is required\"}]"
+    )]
+    [InlineData("Initial error", """{"code": "ERR-001"}""", "Initial error Code: ERR-001")]
+    [InlineData("Initial error", """{"detail": null, "code": "ERR-001"}""", "Initial error Code: ERR-001")]
+    [InlineData("Initial error", """{}""", "Initial error")]
+    [InlineData(
+        "Original error",
+        """{"detail": "Access denied", "code": "AUTH-403"}""",
+        "Access denied Code: AUTH-403"
+    )]
+    [InlineData(
+        "Bad request",
+        """{"validationErrors": [{"field": "id", "error": "Invalid format"}], "code": "VAL-400"}""",
+        "Bad request ValidationErrors: [{\"field\": \"id\", \"error\": \"Invalid format\"}] Code: VAL-400"
+    )]
+    public void FormatErrorDetails_ReturnsExpectedResult(string initialErrorDetails, string json, string expected)
+    {
+        // Arrange
+        var problemDetails = JsonSerializer.Deserialize<JsonElement>(json);
+
+        // Act
+        var result = AccessManagementClient.FormatErrorDetails(initialErrorDetails, problemDetails);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
     [Fact]
     public async Task DelegateRights_VerifyHttpCall()
     {

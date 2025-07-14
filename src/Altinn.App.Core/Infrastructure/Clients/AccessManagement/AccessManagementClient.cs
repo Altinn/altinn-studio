@@ -110,7 +110,20 @@ internal sealed class AccessManagementClient(
     {
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
-            throw new HttpRequestException("Got error status code for access management request.");
+            string errorDetails = "Unknown error";
+            try
+            {
+                var problemDetails = JsonSerializer.Deserialize<JsonElement>(httpContent);
+                errorDetails = FormatErrorDetails(errorDetails, problemDetails);
+            }
+            catch (JsonException ex)
+            {
+                errorDetails = $"Failed to parse error details: {ex.Message}";
+            }
+
+            throw new HttpRequestException(
+                $"Access Management API error ({httpResponseMessage.StatusCode}): {errorDetails}. Full response: {httpContent}"
+            );
         }
         DelegationResponse? response = JsonSerializer.Deserialize<DelegationResponse>(httpContent);
         return response ?? throw new JsonException("Couldn't deserialize access management response.");
@@ -123,11 +136,28 @@ internal sealed class AccessManagementClient(
             Content = new StringContent(body, new MediaTypeHeaderValue(ApplicationJsonMediaType)),
         };
         httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(ApplicationJsonMediaType));
-        httpRequestMessage.Headers.Add(
-            "PlatformAccessToken",
-            accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
-        );
+        var token = accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App);
+        httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+
         return httpRequestMessage;
+    }
+
+    internal static string FormatErrorDetails(string errorDetails, JsonElement problemDetails)
+    {
+        if (problemDetails.TryGetProperty("detail", out var detail))
+        {
+            errorDetails = detail.GetString() ?? errorDetails;
+        }
+        if (problemDetails.TryGetProperty("validationErrors", out var errors))
+        {
+            errorDetails += $" ValidationErrors: {errors.GetRawText()}";
+        }
+        if (problemDetails.TryGetProperty("code", out var code))
+        {
+            errorDetails += $" Code: {code.GetString()}";
+        }
+
+        return errorDetails;
     }
 
     private static AccessManagementRequestException CreateAccessManagementException(
