@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("admin/api/v1/[controller]")]
 public class ApplicationsController : ControllerBase
 {
     private readonly IApplicationsService _applicationsService;
@@ -21,11 +21,14 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}")]
-    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetApps(string org)
+    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetApps(
+        string org,
+        CancellationToken ct
+    )
     {
         try
         {
-            var runningApps = await _applicationsService.GetRunningApplications(org);
+            var runningApps = await _applicationsService.GetRunningApplications(org, ct);
             return Ok(runningApps);
         }
         catch (HttpRequestException ex)
@@ -35,6 +38,10 @@ public class ApplicationsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
         }
     }
 }

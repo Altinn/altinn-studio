@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
 }
 
 .iconLabel {

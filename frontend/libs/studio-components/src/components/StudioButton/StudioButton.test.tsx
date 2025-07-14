@@ -52,6 +52,19 @@ describe('StudioButton', () => {
   it('Forwards the ref to the button element if given', () => {
     testRefForwarding<HTMLButtonElement>((ref) => renderButton({}, ref));
   });
+
+  it.each([false, undefined])(
+    'Renders without fullWidth class when fullWidth is %s',
+    (fullWidth) => {
+      renderButton({ fullWidth });
+      expect(screen.getByRole('button')).not.toHaveClass('fullWidth');
+    },
+  );
+
+  it('Renders with fullWidth class when fullWidth is true', () => {
+    renderButton({ fullWidth: true });
+    expect(screen.getByRole('button')).toHaveClass('fullWidth');
+  });
 });
 
 const renderButton = (
