@@ -20,7 +20,7 @@ function StudioDeleteButton(
 
   return (
     <StudioButton
-      color='danger'
+      data-color='danger'
       icon={<TrashIcon />}
       onClick={handleClick}
       variant={variant}
