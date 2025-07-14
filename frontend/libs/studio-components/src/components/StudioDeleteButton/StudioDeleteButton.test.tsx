@@ -8,7 +8,10 @@ import userEvent from '@testing-library/user-event';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioDeleteButton', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
 
   it('Renders the button', () => {
     renderDeleteButton();
