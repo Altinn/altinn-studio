@@ -1,4 +1,5 @@
 import type { GroupModel, PageModel } from './PageModel';
+import type { TaskNavigationGroup } from './TaskNavigationGroup';
 
 export type PagesModelWithPageGroups = {
   groups: GroupModel[];
@@ -12,4 +13,14 @@ export const isPagesModelWithGroups = (model: PagesModel): model is PagesModelWi
   return 'groups' in model;
 };
 
-export type PagesModel = PagesModelWithPageGroups | PagesModelWithPageOrder;
+export type PagesModel = {
+  pdfLayoutName?: string;
+  hideCloseButton?: boolean;
+  showLanguageSelector?: boolean;
+  showExpandWidthButton?: boolean;
+  expandedWidth?: boolean;
+  showProgress?: boolean;
+  autoSaveBehaviour?: string;
+  taskNavigation?: TaskNavigationGroup[];
+  excludeFromPdf?: string[];
+} & (PagesModelWithPageGroups | PagesModelWithPageOrder);
