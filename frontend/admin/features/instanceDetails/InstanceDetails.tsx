@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { InstancesTable } from './components/InstancesTable';
+import { InstanceDataView } from './components/InstanceDataView';
 import { StudioBreadcrumbs } from '@studio/components';
 
-export const Instances = () => {
-  const { org, env, app } = useParams();
+export const InstanceDetails = () => {
+  const { org, env, app, instanceId } = useParams();
   return (
     <div>
       <StudioBreadcrumbs>
@@ -17,15 +17,18 @@ export const Instances = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
-              <Link to=''>{app}</Link>
+              <Link to={`/${org}/apps/${env}/${app}/instances`}>{app}</Link>
+            </StudioBreadcrumbs.Link>
+          </StudioBreadcrumbs.Item>
+          <StudioBreadcrumbs.Item>
+            <StudioBreadcrumbs.Link asChild>
+              <Link to=''>{instanceId}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
-      <h1>
-        {env} / {app}
-      </h1>
-      <InstancesTable org={org} env={env} app={app} />
+      <h1>{instanceId}</h1>
+      <InstanceDataView org={org} env={env} app={app} id={instanceId} />
     </div>
   );
 };

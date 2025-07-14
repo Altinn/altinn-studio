@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("admin/api/v1/[controller]")]
 public class InstancesController : ControllerBase
 {
     private readonly IStorageService _storageService;
@@ -22,12 +22,13 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<IEnumerable<SimpleInstance>>> GetInstances(
         string org,
         string env,
-        string app
+        string app,
+        CancellationToken ct
     )
     {
         try
         {
-            return Ok(await _storageService.GetInstances(org, env, app));
+            return Ok(await _storageService.GetInstances(org, env, app, ct));
         }
         catch (HttpRequestException ex)
         {
@@ -37,6 +38,10 @@ public class InstancesController : ControllerBase
         {
             return NotFound();
         }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
     }
 
     [HttpGet("{org}/{env}/{app}/{instanceId}")]
@@ -44,12 +49,13 @@ public class InstancesController : ControllerBase
         string org,
         string env,
         string app,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     )
     {
         try
         {
-            var instance = await _storageService.GetInstance(org, env, instanceId);
+            var instance = await _storageService.GetInstance(org, env, instanceId, ct);
             if (instance.AppId != $"{org}/{app}")
             {
                 return NotFound();
@@ -65,6 +71,10 @@ public class InstancesController : ControllerBase
         {
             return NotFound();
         }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
     }
 
     [HttpGet("{org}/{env}/{app}/{instanceId}/data/{dataElementId}")]
@@ -73,12 +83,13 @@ public class InstancesController : ControllerBase
         string env,
         string app,
         string instanceId,
-        string dataElementId
+        string dataElementId,
+        CancellationToken ct
     )
     {
         try
         {
-            var instance = await _storageService.GetInstance(org, env, instanceId);
+            var instance = await _storageService.GetInstance(org, env, instanceId, ct);
             if (
                 instance.AppId != $"{org}/{app}"
                 || !instance.Data.Exists(d => d.Id == dataElementId)
@@ -91,7 +102,8 @@ public class InstancesController : ControllerBase
                 org,
                 env,
                 instanceId,
-                dataElementId
+                dataElementId,
+                ct
             );
 
             return File(stream, contentType, fileName);
@@ -104,6 +116,10 @@ public class InstancesController : ControllerBase
         {
             return NotFound();
         }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
     }
 
     [HttpGet("{org}/{env}/{app}/{instanceId}/process-history")]
@@ -111,18 +127,19 @@ public class InstancesController : ControllerBase
         string org,
         string env,
         string app,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     )
     {
         try
         {
-            var instance = await _storageService.GetInstance(org, env, instanceId);
+            var instance = await _storageService.GetInstance(org, env, instanceId, ct);
             if (instance.AppId != $"{org}/{app}")
             {
                 return NotFound();
             }
 
-            var processHistory = await _storageService.GetProcessHistory(org, env, instanceId);
+            var processHistory = await _storageService.GetProcessHistory(org, env, instanceId, ct);
 
             return Ok(processHistory);
         }
@@ -134,6 +151,10 @@ public class InstancesController : ControllerBase
         {
             return NotFound();
         }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
+        }
     }
 
     [HttpGet("{org}/{env}/{app}/{instanceId}/events")]
@@ -141,18 +162,19 @@ public class InstancesController : ControllerBase
         string org,
         string env,
         string app,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     )
     {
         try
         {
-            var instance = await _storageService.GetInstance(org, env, instanceId);
+            var instance = await _storageService.GetInstance(org, env, instanceId, ct);
             if (instance.AppId != $"{org}/{app}")
             {
                 return NotFound();
             }
 
-            var instanceEvents = await _storageService.GetInstanceEvents(org, env, instanceId);
+            var instanceEvents = await _storageService.GetInstanceEvents(org, env, instanceId, ct);
 
             return Ok(instanceEvents);
         }
@@ -163,6 +185,10 @@ public class InstancesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(499);
         }
     }
 }
