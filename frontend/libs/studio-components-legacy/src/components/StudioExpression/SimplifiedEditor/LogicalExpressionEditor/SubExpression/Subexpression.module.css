@@ -15,11 +15,11 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--studio-expression-spacing);
+  gap: var(--studio-legacy-expression-spacing);
 }
 
 .subexpression.editMode .fieldsetContent > * {
-  padding: var(--studio-expression-spacing);
+  padding: var(--studio-legacy-expression-spacing);
 }
 
 .subexpression.editMode .fieldsetContent > *:not(:first-child) {
@@ -31,7 +31,7 @@
 }
 
 .subexpression:not(.editMode) {
-  padding: var(--studio-expression-spacing);
+  padding: var(--studio-legacy-expression-spacing);
 }
 
 .subexpression.hasError {

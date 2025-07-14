@@ -12,5 +12,5 @@ public interface IApplicationsService
     /// </summary>
     /// <param name="org">The organization identifier.</param>
     /// <returns>The task result contains a list of running applications.</returns>
-    public Task<List<RunningApplication>> GetRunningApplications(string org);
+    public Task<List<RunningApplication>> GetRunningApplications(string org, CancellationToken ct);
 }

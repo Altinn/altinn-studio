@@ -1,7 +1,6 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '@testing-library/react';
-import { studioIconCardPopoverTrigger } from '@studio/testing/testids';
 import { StudioIconCard } from './StudioIconCard';
 import { ClipboardIcon } from '@studio/icons';
 
@@ -30,12 +29,17 @@ describe('StudioIconCard', () => {
     const user = userEvent.setup();
     const buttonText = 'button-text';
     const contextButtons = <button>{buttonText}</button>;
+    const menuButtonTitle = 'Menu';
     render(
-      <StudioIconCard contextButtons={contextButtons} icon={<ClipboardIcon />}>
+      <StudioIconCard
+        contextButtons={contextButtons}
+        icon={<ClipboardIcon />}
+        menuButtonTitle={menuButtonTitle}
+      >
         <div></div>
       </StudioIconCard>,
     );
-    await user.click(screen.getByTestId(studioIconCardPopoverTrigger));
+    await user.click(screen.getByRole('button', { name: menuButtonTitle }));
     expect(screen.getByRole('button', { name: buttonText })).toBeInTheDocument();
   });
 });
