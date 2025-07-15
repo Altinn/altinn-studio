@@ -91,7 +91,7 @@ export function ContactPointCard({
             onDelete={() => onRemoveButtonClick(index)}
             confirmMessage={t('app_settings.about_tab_contact_point_delete_confirm')}
           >
-            {t('app_settings.about_tab_contact_point_delete_button_text', { index })}
+            {t('app_settings.about_tab_contact_point_delete_button_text', { index: index + 1 })}
           </StudioDeleteButton>
         )}
         {hasError && (

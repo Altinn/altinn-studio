@@ -101,7 +101,7 @@ describe('ContactPointCard', () => {
     const user = userEvent.setup();
 
     const deleteButton = getButton(
-      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 0 }),
+      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 1 }),
     );
     await user.click(deleteButton);
 

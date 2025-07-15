@@ -49,10 +49,10 @@ describe('ContactPoints', () => {
     const user = userEvent.setup();
 
     const deleteButton1 = getButton(
-      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 0 }),
+      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 1 }),
     );
     const deleteButton2 = getButton(
-      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 1 }),
+      textMock('app_settings.about_tab_contact_point_delete_button_text', { index: 2 }),
     );
     expect(deleteButton1).toBeInTheDocument();
     expect(deleteButton2).toBeInTheDocument();
