@@ -8,7 +8,7 @@ import type { LabelAndValue } from 'app-development/features/appSettings/types/L
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { getAvailableForTypeOptions } from '../../utils/appConfigAvailableForTypeUtils';
 
-describe('AvailableForTypeRadioGroup', () => {
+describe('AvailableForTypeCheckboxGroup', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the checkbox group heading and tag', () => {
@@ -98,7 +98,7 @@ const selfRegisteredUserText: string = textMock(
 );
 
 const error: AppConfigFormError = {
-  field: 'status',
-  error: textMock('app_settings.about_tab_status_field_error'),
+  field: 'availableForType',
+  error: textMock('app_settings.about_tab_error_available_for_type'),
 };
 const errors: AppConfigFormError[] = [error];
