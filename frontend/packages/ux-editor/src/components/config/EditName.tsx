@@ -1,55 +1,53 @@
-import React, { type KeyboardEvent } from 'react';
 import { StudioButton, StudioLabel, StudioParagraph, StudioTextfield } from '@studio/components';
-import { useTranslation } from 'react-i18next';
-import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from '@studio/icons';
-import classes from './EditGroupName.module.css';
+import React, { type KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import classes from './EditName.module.css';
 
-export type EditGroupNameProps = {
-  group: GroupModel;
+export type EditNameProps = {
+  label: string;
+  name: string;
   onChange: (name: string) => void;
 };
 
-export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
+export function EditName({ name, label, onChange }: EditNameProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = React.useState(false);
-
-  const [groupName, setGroupName] = React.useState(group.name);
+  const [inputValue, setInputValue] = React.useState(name);
 
   if (!isEditing) {
-    const pageGroupNameTranslationKey = t('ux_editor.page_group.name');
     return (
       <StudioButton
         variant='tertiary'
         className={classes.reading}
         onClick={() => setIsEditing(true)}
-        aria-label={pageGroupNameTranslationKey}
+        aria-label={label}
       >
         <div>
-          <StudioLabel>{pageGroupNameTranslationKey}</StudioLabel>
-          <StudioParagraph>{groupName || pageGroupNameTranslationKey}</StudioParagraph>
+          <StudioLabel>{label}</StudioLabel>
+          <StudioParagraph>{name}</StudioParagraph>
         </div>
         <StudioEditIcon />
       </StudioButton>
     );
   }
 
-  const saveGroupName = () => {
-    onChange(groupName);
+  const saveName = () => {
+    onChange(inputValue);
     setIsEditing(false);
   };
 
   const cancelEditing = () => {
-    setGroupName(group.name);
+    setInputValue(name);
     setIsEditing(false);
   };
 
   const onChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGroupName(event.target.value);
+    setInputValue(event.target.value);
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') saveGroupName();
+    if (event.key === 'Enter') saveName();
     if (event.key === 'Escape') cancelEditing();
   };
 
@@ -58,16 +56,12 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
       <StudioTextfield
         autoFocus={true}
         className={classes.editingTextfield}
-        label={t('ux_editor.page_group.name')}
-        value={groupName}
+        label={label}
+        value={inputValue}
         onChange={onChangeName}
         onKeyDown={onKeyDown}
       ></StudioTextfield>
-      <StudioButton
-        aria-label={t('general.save')}
-        icon={<StudioSaveIcon />}
-        onClick={saveGroupName}
-      />
+      <StudioButton aria-label={t('general.save')} icon={<StudioSaveIcon />} onClick={saveName} />
       <StudioButton
         aria-label={t('general.cancel')}
         variant='tertiary'
@@ -76,4 +70,4 @@ export const EditGroupName = ({ group, onChange }: EditGroupNameProps) => {
       />
     </div>
   );
-};
+}

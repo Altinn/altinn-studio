@@ -13,6 +13,10 @@
   place-items: start;
 }
 
+.editGroupNameWrapper {
+  margin-inline: calc(var(--fds-spacing-4) * -1);
+}
+
 .alertMessage {
   margin-top: var(--fds-spacing-4);
 }
