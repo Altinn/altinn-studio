@@ -6,7 +6,6 @@ import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hook
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
-import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 import {
@@ -20,6 +19,7 @@ import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
+import { EditName } from '../../config/EditName';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -67,7 +67,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
         }}
       />
       <Fragment key={selectedItem.id}>
-        <EditPageId layoutName={selectedItem.id} />
+        <EditName label='Name' onChange={console.log} name={selectedItem.id} />
         <Accordion color='subtle'>
           <Accordion.Item>
             <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
