@@ -12,6 +12,7 @@ import { ItemType } from '../ItemType';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner } from '@studio/components';
+import { EditName } from '../../config/EditName';
 
 export interface EditPageIdProps {
   layoutName: string;
@@ -70,23 +71,22 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
     setSelectedItem({ type: ItemType.Page, id: newName });
   };
 
+  const validationFn = (value: string) => {
+    const validationResult = getPageNameErrorKey(
+      value,
+      pageName,
+      pageNames.map(({ id }) => id),
+    );
+    return validationResult && t(validationResult);
+  };
+
   return (
-    <div className={classes.changePageId}>
-      <StudioToggleableTextfield
-        customValidation={(value: string) => {
-          const validationResult = getPageNameErrorKey(
-            value,
-            pageName,
-            pageNames.map(({ id }) => id),
-          );
-          return validationResult && t(validationResult);
-        }}
-        disabled={isPending}
-        label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        onBlur={(event) => handleSaveNewName(event.target.value)}
-        title={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        value={pageName}
-      />
-    </div>
+    <EditName
+      className={classes.editName}
+      label={t('ux_editor.page')}
+      name={pageName}
+      onChange={handleSaveNewName}
+      validationFn={validationFn}
+    />
   );
 };
