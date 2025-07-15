@@ -6,3 +6,7 @@
 .smallWithIconOnly {
   min-height: var(--ds-size-8);
 }
+
+.fullWidth {
+  width: 100%;
+}
