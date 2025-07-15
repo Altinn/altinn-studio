@@ -15,6 +15,11 @@ class TestStorageService : IStorageService
     private readonly ICdnConfigService _cdnConfigService;
     private readonly TestToolsTokenGeneratorService _tokenGeneratorService;
 
+    // TODO: We don't have good pagination support in Storage yet,
+    // and some apps have so many instances that it is impractical to fetch them all,
+    // this is a completely arbitrary limit to the number of pages to fetch before stopping.
+    private const int MAX_INSTANCE_FETCH = 20;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TestStorageService"/> class.
     /// </summary>
@@ -33,7 +38,12 @@ class TestStorageService : IStorageService
     }
 
     /// <inheritdoc />
-    public async Task<List<SimpleInstance>> GetInstances(string org, string env, string app)
+    public async Task<List<SimpleInstance>> GetInstances(
+        string org,
+        string env,
+        string app,
+        CancellationToken ct
+    )
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
         var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
@@ -64,8 +74,11 @@ class TestStorageService : IStorageService
             queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
         );
 
-        while (!string.IsNullOrEmpty(queryResponse.Next))
+        int numFetch = 1;
+        while (!string.IsNullOrEmpty(queryResponse.Next) && numFetch < MAX_INSTANCE_FETCH)
         {
+            ct.ThrowIfCancellationRequested();
+
             request = new HttpRequestMessage(HttpMethod.Get, queryResponse.Next);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             response = await _httpClient.SendAsync(request);
@@ -84,13 +97,19 @@ class TestStorageService : IStorageService
             instances.AddRange(
                 queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
             );
+            numFetch++;
         }
 
         return instances;
     }
 
     /// <inheritdoc />
-    public async Task<Instance> GetInstance(string org, string env, string instanceId)
+    public async Task<Instance> GetInstance(
+        string org,
+        string env,
+        string instanceId,
+        CancellationToken ct
+    )
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
         var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
@@ -124,7 +143,8 @@ class TestStorageService : IStorageService
         string org,
         string env,
         string instanceId,
-        string dataElementId
+        string dataElementId,
+        CancellationToken ct
     )
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
@@ -156,7 +176,8 @@ class TestStorageService : IStorageService
     public async Task<List<ProcessHistoryItem>> GetProcessHistory(
         string org,
         string env,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     )
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
@@ -192,7 +213,8 @@ class TestStorageService : IStorageService
     public async Task<List<InstanceEvent>> GetInstanceEvents(
         string org,
         string env,
-        string instanceId
+        string instanceId,
+        CancellationToken ct
     )
     {
         var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);

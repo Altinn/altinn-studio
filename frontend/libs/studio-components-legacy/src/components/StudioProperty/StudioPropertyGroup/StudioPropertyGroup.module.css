@@ -1,5 +1,5 @@
 .listWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--studio-property-vertical-gap);
+  gap: var(--studio-legacy-property-vertical-gap);
 }

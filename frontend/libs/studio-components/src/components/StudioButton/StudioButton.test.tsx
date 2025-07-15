@@ -1,5 +1,5 @@
-import type { ForwardedRef } from 'react';
 import React from 'react';
+import type { Ref } from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';
 import { render, screen } from '@testing-library/react';
@@ -49,14 +49,27 @@ describe('StudioButton', () => {
     testRootClassNameAppending((className) => renderButton({ className }));
   });
 
-  it('Forwards the ref to the button element if given', () => {
-    testRefForwarding<HTMLButtonElement>((ref) => renderButton({}, ref));
+  it('Forwards the ref', () => {
+    const children = 'Button content';
+    testRefForwarding<HTMLButtonElement>((ref) => renderButton({ children }, ref), getButton);
+  });
+
+  it.each([false, undefined])(
+    'Renders without fullWidth class when fullWidth is %s',
+    (fullWidth) => {
+      renderButton({ fullWidth });
+      expect(screen.getByRole('button')).not.toHaveClass('fullWidth');
+    },
+  );
+
+  it('Renders with fullWidth class when fullWidth is true', () => {
+    renderButton({ fullWidth: true });
+    expect(screen.getByRole('button')).toHaveClass('fullWidth');
   });
 });
 
-const renderButton = (
-  props: StudioButtonProps,
-  ref?: ForwardedRef<HTMLButtonElement>,
-): RenderResult => render(<StudioButton {...props} ref={ref} />);
+const renderButton = (props: StudioButtonProps, ref?: Ref<HTMLButtonElement>): RenderResult =>
+  render(<StudioButton {...props} ref={ref} />);
 
 const getButtonByName = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+const getButton = (): HTMLButtonElement => screen.getByRole('button');

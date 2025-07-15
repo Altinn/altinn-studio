@@ -58,5 +58,6 @@ const addGroupsWithPages = (
   updatedPages: PagesModelWithPageGroups,
   newGroup: GroupModel,
 ): PagesModelWithPageGroups => ({
+  ...updatedPages,
   groups: [...(updatedPages.groups || []), newGroup],
 });
