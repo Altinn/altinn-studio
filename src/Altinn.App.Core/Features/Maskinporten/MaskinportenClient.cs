@@ -277,7 +277,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient
                 General.SubscriptionKeyHeaderName,
                 _platformSettings.SubscriptionKey
             );
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", maskinportenToken.Value);
+            request.Headers.Authorization = new AuthenticationHeaderValue(
+                AuthorizationSchemes.Bearer,
+                maskinportenToken.Value
+            );
 
             using HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();

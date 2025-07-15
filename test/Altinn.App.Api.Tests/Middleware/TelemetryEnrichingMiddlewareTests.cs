@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         HttpClient client = GetRootedClient(org, app, includeTraceContext);
         var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         if (includePdfHeader)
             client.DefaultRequestHeaders.Add("X-Altinn-IsPdf", "true");
 

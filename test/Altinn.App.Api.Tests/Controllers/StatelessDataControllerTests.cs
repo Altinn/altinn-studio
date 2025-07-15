@@ -146,7 +146,7 @@ public class StatelessDataControllerTests
 
         var client = factory.CreateClient();
         string token = TestAuthentication.GetUserToken(1337);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
         request.Headers.Add("party", new string[] { "partyid:234", "partyid:234" }); // Double header
 
@@ -174,7 +174,7 @@ public class StatelessDataControllerTests
 
         var client = factory.CreateClient();
         string token = TestAuthentication.GetUserToken(1337);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
         request.Headers.Add("party", new string[] { "partyid:234" });
 

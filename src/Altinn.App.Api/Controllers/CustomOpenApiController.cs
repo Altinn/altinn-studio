@@ -1,3 +1,5 @@
+using Altinn.App.Core.Constants;
+
 namespace Altinn.App.Api.Controllers;
 
 using System.Collections.Generic;
@@ -1268,10 +1270,10 @@ public static class Snippets
     /// <summary>
     /// Security scheme for Altinn token
     /// </summary>
-    public static readonly OpenApiSecurityScheme AltinnTokenSecurityScheme = new OpenApiSecurityScheme()
+    public static readonly OpenApiSecurityScheme AltinnTokenSecurityScheme = new()
     {
-        Reference = new OpenApiReference() { Id = "AltinnToken", Type = ReferenceType.SecurityScheme },
-        Scheme = "Bearer",
+        Reference = new OpenApiReference() { Id = General.AppTokenName, Type = ReferenceType.SecurityScheme },
+        Scheme = AuthorizationSchemes.Bearer,
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,

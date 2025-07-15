@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.Platform.Register.Models;
 using FluentAssertions;
@@ -281,7 +282,7 @@ public class LookupPersonControllerTests : ApiTestBase, IClassFixture<WebApplica
     {
         HttpClient client = GetRootedClient(Org, App);
         string token = TestAuthentication.GetUserToken(1337);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         return client;
     }
 }

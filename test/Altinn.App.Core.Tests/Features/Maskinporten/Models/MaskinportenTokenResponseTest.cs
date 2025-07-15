@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using FluentAssertions;
@@ -15,7 +16,7 @@ public class MaskinportenTokenResponseTest
         var json = $$"""
             {
                 "access_token": "{{encodedToken.AccessToken}}",
-                "token_type": "Bearer",
+                "token_type": "{{AuthorizationSchemes.Bearer}}",
                 "expires_in": 120,
                 "scope": "anything"
             }
@@ -27,7 +28,7 @@ public class MaskinportenTokenResponseTest
         // Assert
         Assert.NotNull(tokenResponse);
         tokenResponse.AccessToken.Should().Be(JwtToken.Parse(encodedToken.AccessToken));
-        tokenResponse.TokenType.Should().Be("Bearer");
+        tokenResponse.TokenType.Should().Be(AuthorizationSchemes.Bearer);
         tokenResponse.Scope.Should().Be("anything");
         tokenResponse.ExpiresIn.Should().Be(120);
     }
@@ -43,7 +44,7 @@ public class MaskinportenTokenResponseTest
         {
             AccessToken = JwtToken.Parse(encodedToken.AccessToken),
             Scope = "yep",
-            TokenType = "Bearer",
+            TokenType = AuthorizationSchemes.Bearer,
             ExpiresIn = 120,
         };
 

@@ -80,8 +80,14 @@ public class PersonClient : IPersonClient
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         string issuer = application.Org;
         string appName = application.AppIdentifier.App;
-        request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(issuer, appName));
-        request.Headers.Add("Authorization", "Bearer " + _userTokenProvider.GetUserToken());
+        request.Headers.Add(
+            General.PlatformAccessTokenHeaderName,
+            _accessTokenGenerator.GenerateAccessToken(issuer, appName)
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            _userTokenProvider.GetUserToken()
+        );
     }
 
     private static async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)

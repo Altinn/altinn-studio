@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
@@ -90,7 +91,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         OutputHelper.WriteLine($"Calling PATCH {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = TestAuthentication.GetUserToken(userId: 1337);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            token
+        );
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators },
             _jsonSerializerOptions
@@ -856,7 +860,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         OutputHelper.WriteLine($"Calling GET {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = TestAuthentication.GetUserToken(userId: UserId, InstanceOwnerPartyId);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            token
+        );
         var response = await httpClient.GetAsync(url);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);

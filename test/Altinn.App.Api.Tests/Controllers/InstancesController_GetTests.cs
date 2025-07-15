@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Constants;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplic
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
         string token = TestAuthentication.GetUserToken(userId: userId, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         var (createdInstance, createdResponse) = await InstancesControllerFixture.CreateInstanceSimplified(
             org,
@@ -48,7 +49,7 @@ public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplic
                 $$"""
                     {
                         "createdResponse": {{createdResponse}},
-                        "readResponse": {{readResponseContent}},
+                        "readResponse": {{readResponseContent}}
                     }
                 """
             )
@@ -72,7 +73,7 @@ public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplic
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
         string token = TestAuthentication.GetUserToken(userId: userId, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         var (createdInstance, createdResponse) = await InstancesControllerFixture.CreateInstanceSimplified(
             org,

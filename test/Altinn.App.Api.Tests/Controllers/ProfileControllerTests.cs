@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -28,7 +29,7 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
         string token = TestAuthentication.GetUserToken(userId: userId, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         using var response = await client.GetAsync($"{org}/{app}/api/v1/profile/user");
 
@@ -60,7 +61,7 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
 
         using HttpClient client = GetRootedClient(org, app, includeTraceContext: true);
         string token = TestAuthentication.GetUserToken(userId: userId, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"{org}/{app}/api/v1/profile/user");
         request.Headers.Add("Cookie", $"AltinnPartyId={selectedPartyId}");

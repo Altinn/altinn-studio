@@ -104,8 +104,8 @@ internal sealed class RegisterClient : IRegisterClient
             application.AppIdentifier.App
         );
         using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
-        request.Headers.Add("Authorization", "Bearer " + token);
-        request.Headers.Add("PlatformAccessToken", platformAccessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        request.Headers.Add(General.PlatformAccessTokenHeaderName, platformAccessToken);
 
         request.Content = new StringContent(JsonSerializer.Serialize(partyIds), Encoding.UTF8, "application/json");
 

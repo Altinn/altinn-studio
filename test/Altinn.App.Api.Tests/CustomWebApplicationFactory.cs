@@ -5,6 +5,7 @@ using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -98,7 +99,7 @@ public class ApiTestBase
     {
         var client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId, partyId, authenticationLevel);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         return client;
     }
 
@@ -112,7 +113,7 @@ public class ApiTestBase
     {
         var client = GetRootedClient(org, app);
         string token = TestAuthentication.GetServiceOwnerToken(orgNumber, org: serviceOwnerOrg, scope: scope);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         return client;
     }
 

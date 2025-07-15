@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using FluentAssertions;
 using Moq;
@@ -26,7 +27,7 @@ public class MaskinportenDelegatingHandlerTest
         // Assert
         client.Verify(c => c.GetAccessToken(scopes, It.IsAny<CancellationToken>()), Times.Once);
         Assert.NotNull(request.Headers.Authorization);
-        request.Headers.Authorization.Scheme.Should().Be("Bearer");
+        request.Headers.Authorization.Scheme.Should().Be(AuthorizationSchemes.Bearer);
         request.Headers.Authorization.Parameter.Should().Be(accessToken.ToStringUnmasked());
     }
 }

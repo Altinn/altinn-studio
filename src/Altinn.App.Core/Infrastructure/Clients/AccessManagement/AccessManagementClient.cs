@@ -137,8 +137,7 @@ internal sealed class AccessManagementClient(
         };
         httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(ApplicationJsonMediaType));
         var token = accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App);
-        httpRequestMessage.Headers.Add("PlatformAccessToken", token);
-
+        httpRequestMessage.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, token);
         return httpRequestMessage;
     }
 

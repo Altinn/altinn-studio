@@ -6,7 +6,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
-using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -144,7 +143,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         _logger.LogDebug("Constructing authorized http request for target uri {TargetEndpoint}", uri);
         HttpRequestMessage request = new(method, uri) { Content = content };
 
-        request.Headers.Authorization = new AuthenticationHeaderValue(TokenTypes.Bearer, accessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, accessToken);
         request.Headers.TryAddWithoutValidation(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
 
         return request;

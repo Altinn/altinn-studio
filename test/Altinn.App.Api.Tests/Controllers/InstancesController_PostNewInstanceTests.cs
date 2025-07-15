@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.Platform.Storage.Interface.Models;
@@ -47,7 +48,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         using var content = new MultipartFormDataContent();
@@ -204,7 +205,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         using var content = new MultipartFormDataContent();
@@ -230,7 +231,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         using var content = new MultipartFormDataContent();
@@ -267,7 +268,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         using var content = new MultipartFormDataContent();
@@ -395,7 +396,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         // Create instance data
         var body = $$"""
@@ -456,7 +457,10 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var sourceInstanceId = sourceInstance.Id;
 
         // Copy instance
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            userToken
+        );
 
         // Create instance data
         var body = $$"""
@@ -494,7 +498,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         JsonPatch patch
     )
     {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = [] },
@@ -511,7 +515,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
     private async Task CompleteInstance(string org, string app, HttpClient client, string token, string instanceId)
     {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
 
         using var nextResponse = await client.PutAsync($"{org}/{app}/instances/{instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();

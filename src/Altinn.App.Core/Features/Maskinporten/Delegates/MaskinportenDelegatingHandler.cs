@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -54,7 +55,7 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
             _ => throw new MaskinportenAuthenticationException($"Unknown authority `{Authorities}`"),
         };
 
-        request.Headers.Authorization = new AuthenticationHeaderValue(TokenTypes.Bearer, token.Value);
+        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token.Value);
 
         return await base.SendAsync(request, cancellationToken);
     }

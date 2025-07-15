@@ -91,7 +91,7 @@ public class DefaultEFormidlingService : IEFormidlingService
 
         var requestHeaders = new Dictionary<string, string>
         {
-            { "Authorization", $"Bearer {authzToken}" },
+            { "Authorization", $"{AuthorizationSchemes.Bearer} {authzToken}" },
             { General.EFormidlingAccessTokenHeaderName, accessToken },
             { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
         };
