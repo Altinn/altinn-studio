@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
@@ -119,9 +118,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 
   return (
     <>
-      <Helmet>
-        <title>{`${getPageTitle(appName, hasSetCurrentPageId ? langAsString(currentPageId) : undefined, appOwner)}`}</title>
-      </Helmet>
+      <title>{`${getPageTitle(appName, hasSetCurrentPageId ? langAsString(currentPageId) : undefined, appOwner)}`}</title>
       {hasRequired && (
         <MessageBanner
           error={requiredFieldsMissing}

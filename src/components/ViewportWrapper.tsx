@@ -12,13 +12,14 @@ export const ViewportWrapper = ({ children }: PropsWithChildren) => {
 
   const isRtl = rightToLeftISOLanguageCodes.includes(selectedLanguage);
   const direction = isRtl ? 'rtl' : 'ltr';
-  document.documentElement.lang = selectedLanguage;
-  document.documentElement.dir = direction;
 
   // Using a layout effect to make sure the whole app is re-rendered as we want it before taking screenshots
   // for visual testing. This is needed because the visual testing library takes screenshots as soon as the viewport
   // is resized and these classes are set.
   React.useLayoutEffect(() => {
+    document.documentElement.lang = selectedLanguage;
+    document.documentElement.dir = direction;
+
     const documentClasses = {
       'viewport-is-mobile': isMobile,
       'viewport-is-tablet': isTablet && !isMobile,
@@ -32,7 +33,7 @@ export const ViewportWrapper = ({ children }: PropsWithChildren) => {
         document.documentElement.classList.remove(key);
       }
     }
-  }, [isMobile, isTablet]);
+  }, [direction, isMobile, isTablet, selectedLanguage]);
 
   return (
     <div

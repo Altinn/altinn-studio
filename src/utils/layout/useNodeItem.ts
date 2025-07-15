@@ -50,10 +50,13 @@ export function useItemIfType<T extends CompTypes>(
   ) {
     return undefined;
   }
+  // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = useCurrentDataModelLocation();
+  // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const dataSources = useExpressionDataSources(intermediate, { dataSources: { currentDataModelPath: () => location } });
+  // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const props = useExpressionResolverProps(`Invalid expression for ${baseComponentId}`, intermediate, dataSources);
   const def = getComponentDef(intermediate.type);

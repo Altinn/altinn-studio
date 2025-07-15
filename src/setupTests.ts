@@ -1,5 +1,3 @@
-import React from 'react';
-
 import '@testing-library/jest-dom';
 import '@testing-library/jest-dom/jest-globals';
 import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issues/3363
@@ -111,9 +109,4 @@ jest.mock('src/queries/queries', () => ({
     .mockImplementation(async () => getIncomingApplicationMetadataMock()),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
   doProcessNext: jest.fn<typeof doProcessNext>(async () => getProcessDataMock()),
-}));
-
-jest.mock('react-helmet-async', () => ({
-  Helmet: () => null,
-  HelmetProvider: ({ children }) => React.createElement(React.Fragment, null, children),
 }));

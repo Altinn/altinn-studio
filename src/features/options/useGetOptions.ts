@@ -120,21 +120,25 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   // three (source, optionsId or static options).
 
   if (source) {
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const unsorted = useSourceOptions(source);
     return { unsorted, isFetching: false, downstreamParameters: undefined };
   }
 
   if (optionsId) {
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const url = useOptionsUrl(item);
     if (!url) {
       throw new Error(`Failed to fetch options for node ${item.id}: Unable to construct URL`);
     }
 
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { error, isFetching, data } = useGetOptionsQuery(url);
 
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useLogFetchError(error, item);
 
@@ -146,6 +150,7 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   }
 
   if (options) {
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const unsorted = useMemo(() => castOptionsToStrings(options), [options]);
     return { unsorted, isFetching: false, downstreamParameters: undefined };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { matchPath, useLocation, useNavigate as useNativeNavigate } from 'react-router-dom';
-import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
 import type { NavigateOptions } from 'react-router-dom';
 
 import { createStore } from 'zustand';
@@ -31,7 +31,7 @@ interface Context {
   updateHash: (hash: string) => void;
   effectCallback: NavigationEffectCb | null;
   setEffectCallback: (cb: NavigationEffectCb | null) => void;
-  navigateRef: MutableRefObject<SimpleNavigate | undefined>;
+  navigateRef: RefObject<SimpleNavigate | undefined>;
 }
 
 export type SimpleNavigate = (target: string, options?: NavigateOptions) => void;
@@ -72,6 +72,7 @@ const { Provider, useSelector, useStaticSelector, useMemoSelector, useStore } = 
  * the wrong state (and thus rendered the wrong thing) at first, only to correct itself after the useEffect had run.
  */
 export function AppRoutingProvider({ children }: PropsWithChildren) {
+  // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const location = window.inUnitTest ? useLocation() : undefined;
   const initialLocation = location ? location.pathname + location.search : undefined;
@@ -214,6 +215,7 @@ function UpdateNavigate() {
   const navigateRef = useStaticSelector((ctx) => ctx.navigateRef);
   const nativeNavigate = useNativeNavigate();
 
+  // eslint-disable-next-line react-compiler/react-compiler
   navigateRef.current = (target, options) => {
     if (target && !target.startsWith('/')) {
       // Used for relative navigation, e.g. navigating to a subform page

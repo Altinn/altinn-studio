@@ -4,7 +4,6 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { HelmetProvider } from 'react-helmet-async';
 import { createHashRouter, RouterProvider, ScrollRestoration } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
@@ -105,21 +104,19 @@ function Root() {
                     <ApplicationSettingsProvider>
                       <PartyProvider>
                         <KeepAliveProvider>
-                          <HelmetProvider>
-                            <TaskStoreProvider>
-                              <DisplayErrorProvider>
-                                <ProcessingProvider>
-                                  <App />
-                                </ProcessingProvider>
-                              </DisplayErrorProvider>
-                            </TaskStoreProvider>
-                            <ToastContainer
-                              position='top-center'
-                              theme='colored'
-                              transition={Slide}
-                              draggable={false}
-                            />
-                          </HelmetProvider>
+                          <TaskStoreProvider>
+                            <DisplayErrorProvider>
+                              <ProcessingProvider>
+                                <App />
+                              </ProcessingProvider>
+                            </DisplayErrorProvider>
+                          </TaskStoreProvider>
+                          <ToastContainer
+                            position='top-center'
+                            theme='colored'
+                            transition={Slide}
+                            draggable={false}
+                          />
                           <ScrollRestoration />
                         </KeepAliveProvider>
                       </PartyProvider>

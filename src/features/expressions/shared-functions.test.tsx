@@ -58,6 +58,7 @@ function ExpressionRunner(props: Props) {
   // Skipping this hook to make sure we can eval expressions without a layout as well. Some tests need to run
   // without layout, and in those cases this hook will crash when we're missing the context. Breaking the rule of hooks
   // eslint rule makes this conditional, and that's fine here.
+  // eslint-disable-next-line react-compiler/react-compiler
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const layoutLookups = useLayoutLookups();
 

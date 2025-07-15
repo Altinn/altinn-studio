@@ -1,5 +1,4 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 
 import { Button } from 'src/app-components/Button/Button';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
@@ -50,9 +49,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
 
   return (
     <>
-      <Helmet>
-        <title>{`${getPageTitle(appName, langTools.langAsString('confirm.title'), appOwner)}`}</title>
-      </Helmet>
+      <title>{`${getPageTitle(appName, langTools.langAsString('confirm.title'), appOwner)}`}</title>
       <ReceiptComponent
         attachments={displayAttachments}
         body={

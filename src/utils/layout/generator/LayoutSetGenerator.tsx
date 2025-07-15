@@ -44,7 +44,9 @@ interface PageProps {
 }
 
 function PageGenerator({ layout, name }: PageProps) {
+  // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'page', id: name };
+
   const layoutLookups = useLayoutLookups();
   const topLevel = layoutLookups.topLevelComponents[name];
   const pageOrder = useRawPageOrder();

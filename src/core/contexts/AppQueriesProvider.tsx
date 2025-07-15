@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -44,7 +44,9 @@ export const AppQueriesProvider = ({
 
   // Lets us access the query client from the console, and inject data into the cache (for example for use in
   // Cypress tests)
-  window.queryClient = queryClient;
+  useEffect(() => {
+    window.queryClient = queryClient;
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

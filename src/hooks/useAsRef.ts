@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { MutableRefObject } from 'react';
+import type { RefObject } from 'react';
 
 /**
  * Returns a mutable ref object whose `.current` property is always set to the most recent value passed to `useAsRef`.
@@ -9,7 +9,7 @@ import type { MutableRefObject } from 'react';
  * re-create the function) every time the value changes. You can use `useAsRef` and read the value from the
  * `.current` property of the returned ref object instead.
  */
-export function useAsRef<T>(value: T): MutableRefObject<T> {
+export function useAsRef<T>(value: T): RefObject<T> {
   const ref = useRef(value);
   ref.current = value;
   return ref;

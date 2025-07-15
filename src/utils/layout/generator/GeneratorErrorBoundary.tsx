@@ -1,5 +1,5 @@
 import React, { Component, useEffect } from 'react';
-import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
 
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 
@@ -37,7 +37,7 @@ export class GeneratorErrorBoundary extends Component<PropsWithChildren, IErrorB
 type Ref = { type: 'node' | 'page'; id: string } | undefined;
 
 interface ContextData {
-  ref: MutableRefObject<Ref>;
+  ref: RefObject<Ref>;
 }
 
 const Context = React.createContext<ContextData>({

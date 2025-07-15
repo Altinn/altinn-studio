@@ -295,6 +295,7 @@ function SummaryCellInner({
   isSmall,
 }: CellProps & { headerTitle: string }) {
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
+    // eslint-disable-next-line react-compiler/react-compiler
     mutableColumnSettings[idx] = cell.columnOptions;
   }
 

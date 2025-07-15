@@ -5,6 +5,7 @@ import pluginCypress from 'eslint-plugin-cypress/flat';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import reactPlugin from 'eslint-plugin-react';
+import reactCompiler from 'eslint-plugin-react-compiler';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
 import testingLibrary from 'eslint-plugin-testing-library';
@@ -61,6 +62,7 @@ export default tseslint.config(
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
       react: fixupPluginRules(reactPlugin),
+      'react-compiler': reactCompiler,
       local: {
         rules: {
           'language-key': langKey,
@@ -148,6 +150,8 @@ export default tseslint.config(
       'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: false }],
 
       'preferred-import-path/preferred-import-path': ['warn', { '^/src': 'src', '^/test/': 'test/' }],
+
+      'react-compiler/react-compiler': 'error',
 
       'simple-import-sort/imports': [
         'error',

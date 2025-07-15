@@ -59,6 +59,7 @@ export function useIsProcessing<T extends string = string>(): ProcessingResult<T
     },
     // If this is processing when the component unmounts, clean up the state since we don't know if the calback will finish now,
     // if e.g. it depends on a useWaitForState it will unsubscribe from changes at this point and never resolve.
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );

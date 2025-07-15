@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import type { MouseEventHandler } from 'react';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
@@ -245,10 +244,7 @@ function InstanceSelection() {
 
   return (
     <TaskStoreProvider>
-      <Helmet>
-        <title>{`${getPageTitle(appName, langAsString('instance_selection.left_of'), appOwner)}`}</title>
-      </Helmet>
-
+      <title>{`${getPageTitle(appName, langAsString('instance_selection.left_of'), appOwner)}`}</title>
       <div id='instance-selection-container'>
         <div>
           <Heading

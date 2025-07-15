@@ -31,7 +31,8 @@ function DataModelValidation<T extends CompTypes>({ externalItem, intermediateIt
   const def = getComponentDef(intermediateItem.type);
   const errors =
     implementsDataModelBindingValidation(def, intermediateItem) && window.forceNodePropertiesValidation !== 'off'
-      ? def.useDataModelBindingValidation(externalItem.id, intermediateItem.dataModelBindings)
+      ? // eslint-disable-next-line react-compiler/react-compiler
+        def.useDataModelBindingValidation(externalItem.id, intermediateItem.dataModelBindings)
       : emptyArray;
 
   // Must run after nodes have been added for the errors to actually be added

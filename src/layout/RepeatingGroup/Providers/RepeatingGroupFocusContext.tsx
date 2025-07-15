@@ -18,7 +18,7 @@ type FocusableHTMLElement =
   | HTMLTextAreaElement
   | HTMLAnchorElement;
 
-export type RefSetter = (rowIndex: number, key: string, node: HTMLElement | null) => void;
+export type RefSetter = (rowIndex: number, key: string, div: HTMLElement | null) => void;
 export type FocusTrigger = (rowIndex: number) => void;
 
 interface Context {

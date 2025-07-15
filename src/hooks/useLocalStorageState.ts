@@ -78,7 +78,7 @@ export function useLocalStorageState<K extends keyof LocalStorageEntries, D exte
 ): [T, (valueOrSetter: T | ((prev: T) => T)) => void] {
   const key = getFullKey(entryKey, scopeKeys);
 
-  const state = useRef<LocalStorageController<T>>();
+  const state = useRef<LocalStorageController<T>>(undefined);
   if (!state.current) {
     state.current = new LocalStorageController<T>();
   }

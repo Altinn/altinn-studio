@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import { produce } from 'immer';
@@ -261,7 +261,7 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
   );
 };
 
-function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: MutableRefObject<Registry> }>) {
+function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
   const latestLayouts = useLayouts();
   const layouts = Store.useSelector((s) => s.layouts);
   const reset = Store.useSelector((s) => s.reset);

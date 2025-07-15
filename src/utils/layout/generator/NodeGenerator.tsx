@@ -38,6 +38,8 @@ import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSo
  */
 export function NodeGenerator({ children, externalItem }: PropsWithChildren<NodeGeneratorProps>) {
   const intermediateItem = useIntermediateItem(externalItem) as CompIntermediateExact<CompTypes>;
+
+  // eslint-disable-next-line react-compiler/react-compiler
   useGeneratorErrorBoundaryNodeRef().current = { type: 'node', id: intermediateItem.id };
 
   const commonProps: CommonProps<CompTypes> = { baseComponentId: externalItem.id, externalItem };

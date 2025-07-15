@@ -34,7 +34,7 @@ export const createTaskStore = () =>
 const StoreContext = createContext<ReturnType<typeof createTaskStore> | null>(null);
 
 export function TaskStoreProvider({ children }: React.PropsWithChildren) {
-  const storeRef = useRef<ReturnType<typeof createTaskStore>>();
+  const storeRef = useRef<ReturnType<typeof createTaskStore>>(undefined);
   if (!storeRef.current) {
     storeRef.current = createTaskStore();
   }

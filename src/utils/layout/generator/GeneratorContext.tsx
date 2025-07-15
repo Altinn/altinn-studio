@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { PropsWithChildren, RefObject } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -40,7 +40,7 @@ type RowGeneratorProps = Pick<GeneratorContext, 'idMutators' | 'recursiveMutator
 };
 
 interface GeneratorContext {
-  registry: MutableRefObject<Registry>;
+  registry: RefObject<Registry>;
   idMutators?: ChildIdMutator[];
   recursiveMutators?: ChildMutator[];
   layouts: ILayouts;

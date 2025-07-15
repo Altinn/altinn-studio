@@ -35,10 +35,12 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   // the same validator hooks (and thus in practice we will never actually break the rule of hooks, only the linter).
   const unfiltered: AnyValidation[] = [];
   if (implementsValidateEmptyField(def)) {
+    // eslint-disable-next-line react-compiler/react-compiler
     unfiltered.push(...def.useEmptyFieldValidation(baseComponentId));
   }
 
   if (implementsValidateComponent(def)) {
+    // eslint-disable-next-line react-compiler/react-compiler
     unfiltered.push(...def.useComponentValidation(baseComponentId));
   }
 

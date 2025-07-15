@@ -59,7 +59,7 @@ export const NavigationBarComponent = ({ baseComponentId }: PropsFromGenericComp
   const { performProcess, isAnyProcessing, process } = useIsProcessing<string>();
   const layoutLookups = useLayoutLookups();
 
-  const firstPageLink = React.useRef<HTMLButtonElement>();
+  const firstPageLink = React.useRef<HTMLButtonElement>(undefined);
 
   const handleNavigationClick = (pageId: string) =>
     performProcess(pageId, async () => {

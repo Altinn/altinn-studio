@@ -1,4 +1,4 @@
-import type { MutableRefObject, ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { DisplayData } from 'src/features/displayData';
@@ -22,7 +22,7 @@ export type CompClassMapCategories = {
 export type CompDef<T extends CompTypes = CompTypes> = ComponentConfigs[T]['def'];
 
 export interface IComponentProps {
-  containerDivRef: MutableRefObject<HTMLDivElement | null>;
+  containerDivRef: RefObject<HTMLDivElement | null>;
 }
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line react-compiler/react-compiler
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 

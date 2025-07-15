@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import cn from 'classnames';
@@ -46,7 +46,10 @@ export const PresentationComponent = ({
 
   const isProcessStepsArchived = Boolean(type === ProcessTaskType.Archived);
   const backgroundColor = isProcessStepsArchived ? AltinnPalette.greenLight : AltinnPalette.greyLight;
-  document.body.style.background = backgroundColor;
+
+  useLayoutEffect(() => {
+    document.body.style.background = backgroundColor;
+  }, [backgroundColor]);
 
   return (
     <RenderStart>

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Outlet } from 'react-router-dom';
 
 import { formatDate } from 'date-fns';
@@ -193,9 +192,7 @@ export const ReceiptContainer = () => {
 
   return (
     <div id='ReceiptContainer'>
-      <Helmet>
-        <title>{`${getPageTitle(appName, langAsString('receipt.title'), appOwner)}`}</title>
-      </Helmet>
+      <title>{`${getPageTitle(appName, langAsString('receipt.title'), appOwner)}`}</title>
 
       {!applicationMetadata.autoDeleteOnProcessEnd && (
         <ReceiptComponent

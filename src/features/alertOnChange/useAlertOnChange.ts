@@ -27,7 +27,7 @@ export function useAlertOnChange<Fn extends ChangeFn>(
 ): AlertOnChange<Fn> {
   const [alertOpen, _setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<ReactNode>('');
-  const argsRef = useRef<Parameters<Fn>>();
+  const argsRef = useRef<Parameters<Fn>>(undefined);
 
   const handleChange = useCallback(
     (...args: Parameters<Fn>) => {

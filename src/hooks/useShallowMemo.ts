@@ -5,7 +5,7 @@ import { useRef } from 'react';
  * only this works on objects directly instead of selectors.
  */
 export function useShallowMemo<T extends ObjectOrArray>(next: T): T {
-  const prev = useRef<T>();
+  const prev = useRef<T>(undefined);
   return objectOrArrayShallowEqual(next, prev.current) ? prev.current : (prev.current = next);
 }
 
@@ -15,7 +15,7 @@ export function useShallowMemo<T extends ObjectOrArray>(next: T): T {
  * See: https://github.com/pmndrs/zustand/blob/f540ca8294bbca568a97020e0f0acc7042820218/src/vanilla/shallow.ts
  */
 export function useShallow<S, T extends ObjectOrArray>(selector: (state: S) => T): (state: S) => T {
-  const prev = useRef<T>();
+  const prev = useRef<T>(undefined);
   return (state) => {
     const next = selector(state);
     return objectOrArrayShallowEqual(next, prev.current) ? prev.current : (prev.current = next);

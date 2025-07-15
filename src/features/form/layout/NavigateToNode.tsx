@@ -71,7 +71,7 @@ interface NavigationRequest {
 type HandlerRegistry<T> = Set<T>;
 
 export function NavigateToComponentProvider({ children }: PropsWithChildren) {
-  const request = useRef<NavigationRequest | undefined>();
+  const request = useRef<NavigationRequest | undefined>(undefined);
   const navigationHandlers = useRef<HandlerRegistry<NavigationHandler>>(new Set());
   const finishHandlers = useRef<HandlerRegistry<FinishNavigationHandler>>(new Set());
 

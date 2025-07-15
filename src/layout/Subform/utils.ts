@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
@@ -71,8 +70,11 @@ function useOverriddenDataSourcesForSubform(
   return {
     defaultDataType: () => dataType,
     currentDataModelPath: () => undefined,
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     dataModelNames: () => useDataModelNamesForSubform(dataType),
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     formDataSelector: () => useFormDataSelectorForSubform(dataType, subformData),
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     langToolsSelector: () => useLangToolsSelectorForSubform(dataType, subformData),
   };
 }

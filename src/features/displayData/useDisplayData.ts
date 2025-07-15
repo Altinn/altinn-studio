@@ -13,6 +13,7 @@ export function useDisplayData(baseComponentId: string): string {
     return '';
   }
 
+  // eslint-disable-next-line react-compiler/react-compiler
   return def.useDisplayData(baseComponentId);
 }
 
@@ -33,6 +34,7 @@ export function useDisplayDataFor(componentIds: string[]): { [componentId: strin
     if (!implementsDisplayData(def)) {
       continue;
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     output[id] = def.useDisplayData(id);
   }
 

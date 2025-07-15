@@ -237,10 +237,12 @@ const getPlainTextFromNode = (node: ReactNode, langAsString: IUseLanguage['langA
   for (const innerNode of Children.toArray(node)) {
     if (isValidElement(innerNode)) {
       if (innerNode.type === Lang) {
-        return langAsString(innerNode.props.id, innerNode.props.params);
+        const props = innerNode.props as { id: string; params?: ValidLangParam[] };
+        return langAsString(props.id, props.params);
       }
 
-      Children.forEach(innerNode.props.children, (child) => {
+      const props = innerNode.props as { children?: ReactNode };
+      Children.forEach(props.children, (child) => {
         text += getPlainTextFromNode(child, langAsString);
       });
     }

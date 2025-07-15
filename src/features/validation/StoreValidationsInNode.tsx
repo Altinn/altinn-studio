@@ -29,6 +29,7 @@ function StoreValidationsInNodeWorker() {
   // expression). Therefore, we can safely ignore lint rule here, as we'll always re-render with the same number of
   // hooks. If the property changes (from DevTools, for example), the entire form will re-render anyway.
   if (shouldValidate && parent.baseId) {
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useStoreValidations(parent.baseId);
   }

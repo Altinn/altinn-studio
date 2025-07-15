@@ -59,6 +59,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
           ref.current = selector(state);
         }),
       // The selector is not expected to change, so we don't need to include it in the dependency array.
+      // eslint-disable-next-line react-compiler/react-compiler
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [store],
     );
@@ -145,14 +146,14 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     const _store = useLaxCtx();
     const store = _store === ContextNotProvided ? dummyStore : _store;
     const selector = _store === ContextNotProvided ? () => ContextNotProvided : _selector;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,react-compiler/react-compiler
     const _useShallow = _store === ContextNotProvided ? (s: any) => s : useShallow;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any,react-compiler/react-compiler
     return useStore(store, _useShallow(selector as any));
   };
 
   function MyProvider({ children, ...props }: PropsWithChildren<Props>) {
-    const storeRef = useRef<Store>();
+    const storeRef = useRef<Store>(undefined);
     if (!storeRef.current) {
       storeRef.current = initialCreateStore(props as Props);
     }

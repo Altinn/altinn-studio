@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
 import type { PropsWithChildren } from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
@@ -40,9 +39,7 @@ function NavigationError({ label }: NavigationErrorProps) {
 
   return (
     <>
-      <Helmet>
-        <title>{`${getPageTitle(appName, langAsString(label), appOwner)}`}</title>
-      </Helmet>
+      <title>{`${getPageTitle(appName, langAsString(label), appOwner)}`}</title>
       <Flex
         item
         size={{ xs: 12 }}

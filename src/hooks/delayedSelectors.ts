@@ -28,7 +28,7 @@ type ModeFromConf<C extends DSConfig> = C extends DSConfig<any, infer M> ? M : n
  * will not be able to be used as a cache key.
  */
 export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSReturn<C> {
-  const state = useRef<SingleDelayedSelectorController<C>>();
+  const state = useRef<SingleDelayedSelectorController<C>>(undefined);
   if (!state.current) {
     state.current = new SingleDelayedSelectorController(props);
   }
@@ -40,7 +40,7 @@ export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSRet
 }
 
 export function useMultipleDelayedSelectors<P extends MultiDSProps>(...props: P): { [I in keyof P]: DSReturn<P[I]> } {
-  const state = useRef<MultiDelayedSelectorController<P>>();
+  const state = useRef<MultiDelayedSelectorController<P>>(undefined);
   if (!state.current) {
     state.current = new MultiDelayedSelectorController(props);
   }

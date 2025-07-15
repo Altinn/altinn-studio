@@ -1,5 +1,4 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
@@ -118,9 +117,7 @@ export const PartySelection = () => {
 
   return (
     <InstantiationContainer>
-      <Helmet>
-        <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
-      </Helmet>
+      <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
       <Flex
         container
         direction='row'

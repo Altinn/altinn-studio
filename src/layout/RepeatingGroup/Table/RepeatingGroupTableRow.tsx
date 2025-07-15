@@ -395,7 +395,7 @@ function DeleteElement({
       <Button
         variant='tertiary'
         color='danger'
-        popovertarget={`delete-warning-popover-${uuid}`}
+        popoverTarget={`delete-warning-popover-${uuid}`}
         disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
         aria-label={`${deleteButtonText}-${firstCellData}`}

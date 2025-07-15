@@ -41,7 +41,7 @@ interface ModalDynamicFormProps {
   locale?: string;
   backdropClose?: boolean;
   onClose?: () => void;
-  modalRef?: React.RefObject<HTMLDialogElement>;
+  modalRef?: React.RefObject<HTMLDialogElement | null>;
   DropdownCaption: typeof MonthCaption;
 }
 
@@ -54,7 +54,7 @@ export function AddToListModal({
   DropdownCaption,
 }: ModalDynamicFormProps) {
   const appendToList = FD.useAppendToList();
-  let addToListModalRef = useRef<HTMLDialogElement>(null);
+  let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
   const { schemaLookup } = DataModels.useFullStateRef().current;

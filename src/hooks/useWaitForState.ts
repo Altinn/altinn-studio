@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import type { MutableRefObject } from 'react';
+import type { RefObject } from 'react';
 
 import type { StoreApi } from 'zustand';
 
@@ -13,8 +13,8 @@ type Subscriber = (state: any) => boolean | Promise<boolean>;
 // If ContextNotProvided is a valid state, it will possibly be provided as a direct
 // input (not wrapped in a ref or store)
 type ValidInputs<T> = T extends typeof ContextNotProvided
-  ? [MutableRefObject<T> | StoreApi<T> | typeof ContextNotProvided]
-  : [MutableRefObject<T> | StoreApi<T>];
+  ? [RefObject<T> | StoreApi<T> | typeof ContextNotProvided]
+  : [RefObject<T> | StoreApi<T>];
 
 /**
  * This hook gives you an async function that you can use to wait for a specific state to be set.
@@ -98,10 +98,10 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
   );
 }
 
-function isRef<T>(state: MutableRefObject<T> | StoreApi<T> | typeof ContextNotProvided): state is MutableRefObject<T> {
+function isRef<T>(state: RefObject<T> | StoreApi<T> | typeof ContextNotProvided): state is RefObject<T> {
   return state !== ContextNotProvided && 'current' in state && !('subscribe' in state);
 }
 
-function isStore<T>(state: MutableRefObject<T> | StoreApi<T> | typeof ContextNotProvided): state is StoreApi<T> {
+function isStore<T>(state: RefObject<T> | StoreApi<T> | typeof ContextNotProvided): state is StoreApi<T> {
   return state !== ContextNotProvided && 'subscribe' in state && !('current' in state);
 }
