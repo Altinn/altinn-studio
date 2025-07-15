@@ -1,123 +1,123 @@
 {
-    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-    "data": {
-      "hidden": false,
-      "layout": [
-        {
-          "id": "DividerPage-NavigationBar",
-          "type": "NavigationBar"
-        },
-        {
-          "id": "DividerPage-Header",
-          "type": "Header",
-          "size": "h2",
-          "textResourceBindings": {
-            "title": "DividerPage"
-          }
-        },
-        {
-          "id": "DividerPage-Header-Component",
-          "type": "Header",
-          "size": "h3",
-          "textResourceBindings": {
-            "title": "Header.Component"
-          }
-        },
-        {
-          "id": "DividerPage-Input",
-          "required": false,
-          "type": "Input",
-          "textResourceBindings": {
-            "title": "InputPage.Input.title"
-          },
-          "dataModelBindings": {
-            "simpleBinding": "shortAnswerInput"
-          },
-          "showValidations": [
-            "All"
-          ]
-        },
-        {
-            "id": "DividerPage-Divider",
-            "type": "Divider"
-        },
-        {
-          "id": "DividerPage-Input-grid1",
-          "type": "Input",
-          "textResourceBindings": {
-            "title": "InputPage.Input.Grid.title-1"
-          },
-          "dataModelBindings": {
-            "simpleBinding": "shortAnswerInput"
-          },
-          "grid": {
-            "xs": 12,
-            "md": 6
-          }
-        },
-        {
-          "id": "InputPage-Input-grid2",
-          "type": "Input",
-          "textResourceBindings": {
-            "title": "InputPage.Input.Grid.title-2"
-          },
-          "dataModelBindings": {
-            "simpleBinding": "shortAnswerInput"
-          },
-          "grid": {
-            "xs": 12,
-            "md": 6
-          }
-        },
-        {
-            "id": "DividerPage-Divider2",
-            "type": "Divider"
-        },
-        {
-          "id": "DividerPage-Input-long",
-          "type": "Input",
-          "textResourceBindings": {
-            "title": "InputPage.Input.Grid.title.long"
-          },
-          "dataModelBindings": {
-            "simpleBinding": "shortAnswerInput"
-          },
-          "required": false,
-          "grid": {
-            "innerGrid": {
-              "xs": 12,
-              "md": 6
-            }
-          }
-        },
-        {
-            "size": "h3",
-            "id": "DividerPage-Header-Summary",
-            "type": "Header",
-            "textResourceBindings": {
-              "title": "Header.Summary"
-            }
-        },
-        {
-            "id": "DividerPage-Summary2",
-            "type": "Summary2",
-            "target": {
-              "type": "page",
-              "id": "DividerPage"
-            },
-            "overrides": [
-                {
-                    "componentId": "DividerPage-Header-Summary",
-                    "hidden": true
-                }
-            ]
-          },
-        {
-          "id": "DividerPage-NavigationButtons",
-          "type": "NavigationButtons",
-          "showBackButton": true,
-          "textResourceBindings": {}
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "DividerPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "DividerPage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "DividerPage"
         }
-      ]
-    }
+      },
+      {
+        "id": "DividerPage-Header-Component",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "DividerPage-Input",
+        "required": false,
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "showValidations": [
+          "All"
+        ]
+      },
+      {
+        "id": "DividerPage-Divider",
+        "type": "Divider"
+      },
+      {
+        "id": "DividerPage-Input-grid1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title-1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "DividerPage-Input-grid2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title-2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "DividerPage-Divider2",
+        "type": "Divider"
+      },
+      {
+        "id": "DividerPage-Input-long",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "InputPage.Input.Grid.title.long"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        },
+        "required": false,
+        "grid": {
+          "innerGrid": {
+            "xs": 12,
+            "md": 6
+          }
+        }
+      },
+      {
+        "size": "h3",
+        "id": "DividerPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "DividerPage-Summary2",
+        "type": "Summary2",
+        "target": {
+          "type": "page",
+          "id": "DividerPage"
+        },
+        "overrides": [
+          {
+            "componentId": "DividerPage-Header-Summary",
+            "hidden": true
+          }
+        ]
+      },
+      {
+        "id": "DividerPage-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
   }
+}
