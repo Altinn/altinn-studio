@@ -29,7 +29,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { GridRow, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
+import type { GridCell, GridRow, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { baseComponentId } = props;
@@ -66,36 +66,70 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             labelSettings={labelSettings}
           />
         )}
-        {rows.map((row, rowIdx) => (
-          <GridRowRenderer
-            key={rowIdx}
-            row={row}
-            isNested={isNested}
-            mutableColumnSettings={columnSettings}
-          />
-        ))}
+        <GridRowsRenderer
+          rows={rows}
+          isNested={isNested}
+          mutableColumnSettings={columnSettings}
+        />
       </Table>
     </ConditionalWrapper>
   );
 }
 
-interface GridRowProps {
-  row: GridRow;
+interface GridRowsProps {
+  rows: GridRow[];
+  extraCells?: GridCell[];
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
 }
 
-export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
+export function GridRowsRenderer({ rows, extraCells = [], isNested, mutableColumnSettings }: GridRowsProps) {
+  const batches: { type: 'header' | 'body'; rows: GridRow[] }[] = [];
+
+  for (const row of rows) {
+    const type = row.header ? 'header' : 'body';
+    const lastBatch = batches.at(-1);
+    if (lastBatch?.type === type) {
+      lastBatch.rows.push(row);
+    } else {
+      batches.push({ type, rows: [row] });
+    }
+  }
+
+  return (
+    <>
+      {batches.map((batch, batchIdx) => {
+        const WrapperComponent = batch.type === 'header' ? Table.Head : Table.Body;
+
+        return (
+          <WrapperComponent key={batchIdx}>
+            {batch.rows.map((row, rowIdx) => (
+              <GridRowRenderer
+                key={rowIdx}
+                row={{ ...row, cells: [...row.cells, ...extraCells] }}
+                isNested={isNested}
+                mutableColumnSettings={mutableColumnSettings}
+              />
+            ))}
+          </WrapperComponent>
+        );
+      })}
+    </>
+  );
+}
+
+interface GridRowProps extends Omit<GridRowsProps, 'rows'> {
+  row: GridRow;
+}
+
+function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRowProps) {
   const rowHidden = useIsGridRowHidden(row);
   if (rowHidden) {
     return null;
   }
 
   return (
-    <InternalRow
-      header={row.header}
-      readOnly={row.readOnly}
-    >
+    <Table.Row className={row.readOnly ? css.rowReadOnly : undefined}>
       {row.cells.map((cell, cellIdx) => {
         const isFirst = cellIdx === 0;
         const isLast = cellIdx === row.cells.length - 1;
@@ -162,24 +196,8 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings }: GridRo
           />
         );
       })}
-    </InternalRow>
+    </Table.Row>
   );
-}
-
-type InternalRowProps = PropsWithChildren<Pick<GridRow, 'header' | 'readOnly'>>;
-
-function InternalRow({ header, readOnly, children }: InternalRowProps) {
-  const className = readOnly ? css.rowReadOnly : undefined;
-
-  if (header) {
-    return (
-      <Table.Head>
-        <Table.Row className={className}>{children}</Table.Row>
-      </Table.Head>
-    );
-  }
-
-  return <Table.Row className={className}>{children}</Table.Row>;
 }
 
 interface CellProps {

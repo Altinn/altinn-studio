@@ -8,7 +8,7 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
+import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
 import { useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
@@ -237,16 +237,12 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   }
 
   return (
-    <>
-      {rows.map((row, index) => (
-        <GridRowRenderer
-          key={`grid${where}-${index}`}
-          row={{ ...row, cells: [...row.cells, ...extraCells] }}
-          isNested={isNested}
-          mutableColumnSettings={columnSettings}
-        />
-      ))}
-    </>
+    <GridRowsRenderer
+      rows={rows}
+      extraCells={extraCells}
+      isNested={isNested}
+      mutableColumnSettings={columnSettings}
+    />
   );
 }
 
