@@ -3,14 +3,14 @@ import { useDebounce } from '@studio/hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
 
+const DEBOUNCE_DISABLED_TIME_MS = 1;
+const DEFAULT_DEBOUNCE_TIME_MS = 500;
+
 const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => string): string[] => {
   const translatedLabel = t('ux_editor.component_title.' + toolbarItem.type).toLowerCase();
   const englishLabel = toolbarItem.label.toLowerCase();
   return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
 };
-
-const DEBOUNCE_DISABLED_TIME_MS = 1;
-const DEFAULT_DEBOUNCE_TIME_MS = 500;
 
 const filterToolbarItems = (
   items: IToolbarElement[],
