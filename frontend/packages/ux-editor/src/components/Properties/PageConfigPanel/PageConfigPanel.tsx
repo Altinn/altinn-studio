@@ -19,7 +19,7 @@ import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
-import { EditName } from '../../config/EditName';
+import { EditPageId } from './EditPageId';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -60,7 +60,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
         }}
       />
       <Fragment key={selectedItem.id}>
-        <EditName label='Name' onChange={console.log} name={selectedItem.id} />
+        <EditPageId layoutName={selectedItem.id} />
         <Accordion color='subtle'>
           <Accordion.Item>
             <Accordion.Header>{t('right_menu.text')}</Accordion.Header>

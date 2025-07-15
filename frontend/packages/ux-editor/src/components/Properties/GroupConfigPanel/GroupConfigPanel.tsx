@@ -87,7 +87,12 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
       <div className={classes.configPanel}>
         {selectedGroup.order.length > 1 && (
           <div className={classes.editGroupNameWrapper}>
-            <EditName label='todo' name={selectedGroup.name} onChange={onChangeGroupName} />
+            <EditName
+              className={classes.editName}
+              label={t('ux_editor.page_group.name')}
+              name={selectedGroup.name}
+              onChange={onChangeGroupName}
+            />
           </div>
         )}
         <div className={classes.fieldSetWrapper}>

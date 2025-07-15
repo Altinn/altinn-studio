@@ -1,9 +1,31 @@
 .editing {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: var(--fds-spacing-2);
-  padding: var(--fds-spacing-2);
+}
+
+.editingTextfield {
+  display: contents;
+}
+
+.editingTextfield * {
+  grid-column: 1;
+}
+
+.editingTextfield p {
+  grid-column: 1 / -1;
+}
+
+.saveButton {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+}
+
+.cancelButton {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: end;
 }
 
 .reading {
@@ -15,8 +37,4 @@
   padding-bottom: var(--fds-spacing-2);
   color: var(--ds-color-text-default);
   font-weight: var(--fds-font-weight-regular);
-}
-
-.editingTextfield {
-  flex-grow: 1;
 }
