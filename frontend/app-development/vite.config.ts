@@ -1,12 +1,13 @@
 import { mergeConfig } from 'vite';
 import common from '../vite.config';
+import ports from '../ports.json';
 
 export default mergeConfig(common, {
   base: '/editor',
   server: {
-    port: 2004,
+    port: ports['app-development'],
   },
   preview: {
-    port: 2004,
+    port: ports['app-development'],
   },
 });

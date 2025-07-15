@@ -10,6 +10,9 @@ export interface StudioDeleteButtonProps extends StudioButtonProps {
   confirmMessage?: string;
 }
 
+/**
+ * @deprecated use `StudioDeleteButton` from `@studio/components` instead.
+ */
 const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButtonElement> =
   forwardRef<HTMLButtonElement, StudioDeleteButtonProps>(
     ({ confirmMessage, onClick, onDelete, variant = 'secondary', ...rest }, ref) => {
