@@ -8,6 +8,8 @@ import { waitFor } from '@testing-library/react';
 import type { TestCase } from './types';
 
 const MockIcon = () => null;
+const textInputValue = 'Text';
+
 const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
   category1: [
     { type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon },
@@ -76,9 +78,9 @@ describe('useSearchComponent', () => {
     it('should clear searchText when handleClear is called', async () => {
       const { result } = renderUseSearchComponent();
       act(() => {
-        result.current.handleSearchChange({ target: { value: 'Text' } });
+        result.current.handleSearchChange({ target: { value: textInputValue } });
       });
-      expect(result.current.searchText).toBe('Text');
+      expect(result.current.searchText).toBe(textInputValue);
       act(() => {
         result.current.handleClear();
       });
@@ -88,9 +90,9 @@ describe('useSearchComponent', () => {
     it('should reset searchText when Escape key is pressed', async () => {
       const { result } = renderUseSearchComponent();
       act(() => {
-        result.current.handleSearchChange({ target: { value: 'Text' } });
+        result.current.handleSearchChange({ target: { value: textInputValue } });
       });
-      expect(result.current.searchText).toBe('Text');
+      expect(result.current.searchText).toBe(textInputValue);
       act(() => {
         result.current.handleEscape({ code: 'Escape' } as KeyboardEvent);
       });
@@ -128,7 +130,7 @@ describe('useSearchComponent', () => {
     it('should find component by searching with english word', async () => {
       const { result } = renderUseSearchComponent();
       await waitFor(() => {
-        result.current.handleSearchChange({ target: { value: 'text' } });
+        result.current.handleSearchChange({ target: { value: textInputValue } });
       });
       await waitFor(() => {
         expect(result.current.filteredComponents).toEqual({

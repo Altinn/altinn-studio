@@ -9,6 +9,9 @@ const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => stri
   return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
 };
 
+const DEBOUNCE_DISABLED_TIME_MS = 1;
+const DEFAULT_DEBOUNCE_TIME_MS = 500;
+
 const filterToolbarItems = (
   items: IToolbarElement[],
   search: string,
@@ -33,7 +36,9 @@ export function useSearchComponent({
 }: UseSearchComponentProps) {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
+  const { debounce } = useDebounce({
+    debounceTimeInMs: disableDebounce ? DEBOUNCE_DISABLED_TIME_MS : DEFAULT_DEBOUNCE_TIME_MS,
+  });
 
   useEffect(() => {
     debounce(() => setDebouncedSearchText(searchText));
