@@ -89,10 +89,11 @@ export const PageGroupAccordion = ({
 
     const handleConfirmDelete = () => {
       if (confirm(t('ux_editor.component_group_navigation_deletion_text'))) {
-        const updatedGroups = pages.groups.filter((_, i) => i !== groupIndex);
-        deletePageGroup({
-          groups: updatedGroups,
-        });
+        const updatedGroups = {
+          ...pages,
+          groups: pages.groups.filter((_, i) => i !== groupIndex),
+        };
+        deletePageGroup(updatedGroups);
         if (selectedItem?.id === groupIndex) setSelectedItem(null);
       }
     };
