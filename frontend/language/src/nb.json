@@ -229,7 +229,7 @@
   "app_settings.about_tab_switch_should_not": "ikke",
   "app_settings.about_tab_translation_box_alert": "For å kunne publisere appen må du legge til nynorsk og engelsk oversettelse.",
   "app_settings.about_tab_visible_description": "Etter publisering blir appen synlig på Altinn.no.",
-  "app_settings.about_tab_visible_label": " Synlighet",
+  "app_settings.about_tab_visible_label": "Synlighet",
   "app_settings.about_tab_visible_show_text": "Appen er {{shouldText}} synlig.",
   "app_settings.access_control_tab_checkbox_description": "Her velger du hvem som eier og kan starte appen. “Alle” er valgt som standard. Du må minst velge én.",
   "app_settings.access_control_tab_checkbox_legend_label": "Velg hvem som kan starte appen",

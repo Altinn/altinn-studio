@@ -74,16 +74,17 @@ export const validateAppConfig = (
       index: 0,
       error: t('app_settings.about_tab_error_contact_points'),
     });
+  } else {
+    appConfig.contactPoints?.map((contactPoint: ContactPoint, index: number) => {
+      if (isContactPointEmpty(contactPoint)) {
+        errors.push({
+          field: 'contactPoints',
+          index: index,
+          error: t('app_settings.about_tab_error_contact_points'),
+        });
+      }
+    });
   }
-  appConfig.contactPoints?.map((contactPoint: ContactPoint, index: number) => {
-    if (isContactPointEmpty(contactPoint)) {
-      errors.push({
-        field: 'contactPoints',
-        index: index,
-        error: t('app_settings.about_tab_error_contact_points'),
-      });
-    }
-  });
 
   return errors;
 };
