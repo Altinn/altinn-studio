@@ -6,7 +6,6 @@ import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hook
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
-import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 import {
@@ -20,6 +19,7 @@ import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
+import { EditPageId } from './EditPageId';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
