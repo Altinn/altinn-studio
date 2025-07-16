@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';

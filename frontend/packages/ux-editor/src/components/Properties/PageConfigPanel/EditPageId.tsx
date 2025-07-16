@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';
@@ -21,7 +20,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutateAsync: modifyPageMutation, isPending } = useModifyPageMutation(
+  const { mutateAsync: modifyPageMutation } = useModifyPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -42,8 +41,8 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
   const isUsingGroups = isPagesModelWithGroups(pagesModel);
   const pageNames = isUsingGroups
-    ? pagesModel?.groups.flatMap((group) => group.order)
-    : pagesModel?.pages;
+    ? pagesModel.groups.flatMap((group) => group.order)
+    : pagesModel.pages;
 
   const handleSaveNewName = async (newName: string) => {
     if (newName === pageName) return;
