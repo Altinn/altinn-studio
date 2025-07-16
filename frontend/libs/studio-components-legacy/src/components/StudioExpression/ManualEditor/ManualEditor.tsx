@@ -19,22 +19,17 @@ export const ManualEditor = ({
   isManualExpressionValidRef,
 }: ManualEditorProps) => {
   const { texts } = useStudioExpressionContext();
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
-  const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const [currentInput, setCurrentInput] = useState(expressionToString(givenExpression));
+  const isValid = isStringValidAsExpression(currentInput);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.target;
-    setExpressionString(value);
-    if (isStringValidAsExpression(value)) {
-      const expression = stringToExpression(value);
-      onChange(expression);
-      setIsValid(true);
-      isManualExpressionValidRef.current = true;
-    } else {
-      setIsValid(false);
-      isManualExpressionValidRef.current = false;
+    setCurrentInput(value);
+    const isValueValid = isStringValidAsExpression(value);
+    isManualExpressionValidRef.current = isValueValid;
+
+    if (isValueValid) {
+      onChange(stringToExpression(value));
     }
   };
 
@@ -48,7 +43,7 @@ export const ManualEditor = ({
       label={texts.expression}
       onChange={handleChange}
       rows={12}
-      value={expressionString}
+      value={currentInput}
     />
   );
 };
