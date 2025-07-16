@@ -20,13 +20,11 @@ export const TitleMainConfig = ({
   className,
 }: TitleMainConfigProps): JSX.Element => {
   const { data: schema } = useComponentSchemaQuery(component.type);
+
   const titlePropertySet = new Set<string>(Object.values(TitleProperties));
   const stringPropertyKeys = Object.keys(schema.properties).filter((key) =>
     titlePropertySet.has(key),
   );
-  if (stringPropertyKeys.length === 0) {
-    return null;
-  }
 
   return (
     <ConfigStringProperties
