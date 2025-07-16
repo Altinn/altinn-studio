@@ -32,10 +32,9 @@
 }
 
 .fileUpload:focus {
-  border-color: var(--colors-primary-blueDark) !important;
-  border-style: solid !important;
-  outline: 2px solid var(--colors-primary-blueDark);
-  outline-offset: 0px;
+  box-shadow: var(--_ds--focus, var(--dsc-focus-boxShadow));
+  outline: var(--_ds--focus, var(--dsc-focus-outline));
+  outline-offset: var(--_ds--focus, var(--ds-border-width-focus));
 }
 
 .uploadIcon {

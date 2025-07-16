@@ -1,3 +1,4 @@
 .paragraphWrapper {
   display: flex;
+  align-items: center;
 }

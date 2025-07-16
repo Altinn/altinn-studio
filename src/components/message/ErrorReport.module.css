@@ -20,6 +20,11 @@
 .errorList button:hover {
   border-bottom: 2px solid black;
 }
+.errorList button:focus-visible {
+  color: var(--ds-color-focus-inner);
+  background: var(--ds-color-focus-outer);
+  outline: transparent solid 2px;
+}
 
 .buttonAsInvisibleLink {
   display: inline;
