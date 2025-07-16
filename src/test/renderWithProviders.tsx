@@ -33,7 +33,6 @@ import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvi
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -302,9 +301,7 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                               <SetShouldFetchAppLanguages />
                               <ProfileProvider>
                                 <PartyProvider>
-                                  <TextResourcesProvider>
-                                    <InstantiationProvider>{children}</InstantiationProvider>
-                                  </TextResourcesProvider>
+                                  <TextResourcesProvider>{children}</TextResourcesProvider>
                                 </PartyProvider>
                               </ProfileProvider>
                             </LayoutSetsProvider>

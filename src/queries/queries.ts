@@ -60,7 +60,7 @@ import type {
   IDataModelPatchRequest,
   IDataModelPatchResponse,
 } from 'src/features/formData/types';
-import type { Instantiation } from 'src/features/instantiate/InstantiationContext';
+import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';

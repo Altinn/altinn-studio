@@ -4,15 +4,17 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createHashRouter, RouterProvider, ScrollRestoration } from 'react-router-dom';
+import { createHashRouter, RouterProvider, ScrollRestoration, useLocation } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
-import 'src/features/baseurlinjection';
-import 'src/features/toggles';
-import 'src/features/logging';
-import 'src/features/styleInjection';
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
+import 'src/features/baseurlinjection';
+import 'src/features/logging';
+import 'src/features/styleInjection';
+import 'src/features/toggles';
+
+import { useQueryClient } from '@tanstack/react-query';
 
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
@@ -27,7 +29,6 @@ import { ApplicationSettingsProvider } from 'src/features/applicationSettings/Ap
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
-import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -44,26 +45,6 @@ import 'leaflet/dist/leaflet.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 
-const router = createHashRouter(
-  [
-    {
-      path: '*',
-      element: (
-        <AppRoutingProvider>
-          <ErrorBoundary>
-            <Root />
-          </ErrorBoundary>
-        </AppRoutingProvider>
-      ),
-    },
-  ],
-  {
-    future: {
-      v7_relativeSplatPath: true,
-    },
-  },
-);
-
 document.addEventListener('DOMContentLoaded', () => {
   propagateTraceWhenPdf();
 
@@ -78,7 +59,25 @@ document.addEventListener('DOMContentLoaded', () => {
             <ViewportWrapper>
               <UiConfigProvider>
                 <RouterProvider
-                  router={router}
+                  router={createHashRouter(
+                    [
+                      {
+                        path: '*',
+                        element: (
+                          <AppRoutingProvider>
+                            <ErrorBoundary>
+                              <Root />
+                            </ErrorBoundary>
+                          </AppRoutingProvider>
+                        ),
+                      },
+                    ],
+                    {
+                      future: {
+                        v7_relativeSplatPath: true,
+                      },
+                    },
+                  )}
                   future={{ v7_startTransition: true }}
                 />
               </UiConfigProvider>
@@ -92,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function Root() {
   return (
-    <InstantiationProvider>
+    <>
+      <InstantiationUrlReset />
       <TaskStoreProvider>
         <ApplicationMetadataProvider>
           <GlobalFormDataReadersProvider>
@@ -129,6 +129,20 @@ function Root() {
           </GlobalFormDataReadersProvider>
         </ApplicationMetadataProvider>
       </TaskStoreProvider>
-    </InstantiationProvider>
+    </>
   );
+}
+
+function InstantiationUrlReset() {
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (!location.pathname.includes('/instance/')) {
+      const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });
+      mutations.forEach((mutation) => queryClient.getMutationCache().remove(mutation));
+    }
+  }, [location.pathname, queryClient]);
+
+  return null;
 }
