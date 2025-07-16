@@ -33,6 +33,7 @@ export const SelectPropertyEditor = ({
             onClick={() => setDataTypeSelectVisible(false)}
             title={t('general.close')}
             variant='secondary'
+            className={classes.closeButton}
           />
         </div>
       ) : (

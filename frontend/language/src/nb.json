@@ -1729,6 +1729,7 @@
   "ux_editor.delete.subform.confirm": "Er du sikker på at du vil slette dette underskjemaet?",
   "ux_editor.edit_component.loading_schema": "Laster inn skjema",
   "ux_editor.edit_component.no_value_selected_for_select": "Ingen verdi valgt",
+  "ux_editor.edit_component.select_value": "Velg en verdi...",
   "ux_editor.edit_component.show_beta_func": "Vis ny konfigurasjon (BETA)",
   "ux_editor.edit_component.unknown_component": "Altinn Studio kjenner ikke igjen denne komponenten, {{componentName}}. Du kan derfor ikke velge egenskaper for den her.",
   "ux_editor.edit_component.unsupported_properties_message": "Vi jobber med å få på plass støtte for å redigere alle innstillinger. Følgende innstillinger er ikke støttet i skjemaeditor ennå, men kan konfigureres manuelt:",
