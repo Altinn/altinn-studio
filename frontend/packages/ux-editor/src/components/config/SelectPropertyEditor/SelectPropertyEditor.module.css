@@ -13,7 +13,7 @@
 .editSelectProperty {
   display: flex;
   flex-direction: row;
-  align-items: end;
+  align-items: flex-start;
   gap: var(--fds-spacing-4);
   margin-bottom: var(--fds-spacing-3);
 }
@@ -24,4 +24,8 @@
 
 .viewSelectProperty {
   padding-left: 0;
+}
+
+.closeButton {
+  margin-top: var(--ds-size-9);
 }
