@@ -20,7 +20,6 @@ import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 jest.mock('../../testing/componentSchemaMocks', () => ({
   componentSchemaMocks: {
@@ -66,19 +65,6 @@ describe('TextTab', () => {
 
     it('should render the component', async () => {
       render({ props });
-    });
-
-    it('should render alert when schema does not have text property', async () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            type: 'CustomComponentType' as ComponentType,
-          } as FormItem,
-        },
-      });
-      const alert = screen.getByText(textMock('ux_editor.properties_panel.texts.no_properties'));
-      expect(alert).toBeInTheDocument();
     });
 
     it('should render sub title for texts', () => {

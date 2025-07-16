@@ -2,7 +2,7 @@
   background-color: white;
   border-radius: var(--fds-border_radius-medium);
   box-shadow: var(--fds-shadow-small);
-  margin: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  margin: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
   padding: var(--data-model-binding-spacing);
   gap: var(--data-model-binding-spacing);
 }

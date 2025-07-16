@@ -6,6 +6,7 @@ import type { SchemaConfigProps } from './types';
 
 export interface ConfigNumberPropertiesProps extends SchemaConfigProps {
   numberPropertyKeys: string[];
+  className?: string;
 }
 
 export const ConfigNumberProperties = ({
@@ -13,6 +14,7 @@ export const ConfigNumberProperties = ({
   component,
   numberPropertyKeys,
   handleComponentUpdate,
+  className,
 }: ConfigNumberPropertiesProps) => {
   const componentPropertyLabel = useComponentPropertyLabel();
 
@@ -27,6 +29,7 @@ export const ConfigNumberProperties = ({
             )}
             title={componentPropertyLabel(propertyKey)}
             value={component[propertyKey]}
+            className={className}
           >
             <EditNumberValue
               component={component}
