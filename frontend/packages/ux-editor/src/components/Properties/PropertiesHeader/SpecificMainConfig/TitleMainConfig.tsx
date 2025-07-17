@@ -3,10 +3,10 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
+import type { properties } from '../../../../testing/schemas/json/component/Header.schema.v1.json';
 
-export enum TitleProperties {
-  size = 'size',
-}
+type TitleMainProperties = (keyof typeof properties)[];
+export const titleMainProperties: TitleMainProperties = ['size'];
 
 export type TitleMainConfigProps = {
   component: FormItem<ComponentType.Header>;
@@ -21,17 +21,12 @@ export const TitleMainConfig = ({
 }: TitleMainConfigProps): JSX.Element => {
   const { data: schema } = useComponentSchemaQuery(component.type);
 
-  const titlePropertySet = new Set<string>(Object.values(TitleProperties));
-  const stringPropertyKeys = Object.keys(schema.properties).filter((key) =>
-    titlePropertySet.has(key),
-  );
-
   return (
     <ConfigStringProperties
       component={component}
       handleComponentUpdate={handleComponentChange}
       schema={schema}
-      stringPropertyKeys={stringPropertyKeys}
+      stringPropertyKeys={titleMainProperties}
       className={className}
     />
   );
