@@ -116,15 +116,12 @@ table > tbody > tr.editingRow:hover {
 }
 
 .contentFormatting {
-  --cell-max-number-of-lines: 2;
   --cell-text-alignment: left;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--cell-max-number-of-lines);
-  line-clamp: var(--cell-max-number-of-lines);
   text-align: var(--cell-text-alignment);
 }
 
