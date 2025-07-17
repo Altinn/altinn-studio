@@ -38,11 +38,11 @@
 }
 
 .previewControls {
-  display: grid;
-  gap: var(--ds-size-2);
-  align-self: flex-start;
-  align-items: flex-start;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  align-self: flex-end;
+  margin-top: var(--ds-size-2);
   margin-bottom: var(--ds-size-4);
 }
 

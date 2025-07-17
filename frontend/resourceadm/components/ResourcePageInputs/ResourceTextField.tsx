@@ -35,6 +35,10 @@ type ResourceTextFieldProps = {
    * Whether this field is read only or not
    */
   readOnly?: boolean;
+  /**
+   * Whether the value in this field can only satisfy regex
+   */
+  regexp?: RegExp;
 };
 
 /**
@@ -48,6 +52,7 @@ type ResourceTextFieldProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[required] - Whether this field is required or not
  * @property {boolean}[readOnly] - Whether this field is read only or not
+ * @property {boolean}[regex] - Whether the value in this field can only satisfy regex
  *
  * @returns {ReactElement} - The rendered component
  */
@@ -59,6 +64,7 @@ export const ResourceTextField = ({
   onBlur,
   required,
   readOnly,
+  regexp,
 }: ResourceTextFieldProps): ReactElement => {
   const [val, setVal] = useState(value);
 
@@ -70,7 +76,12 @@ export const ResourceTextField = ({
         description={description}
         value={val}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          setVal(e.target.value);
+          if (regexp) {
+            const cleanValue = e.target.value.replace(regexp, '');
+            setVal(cleanValue);
+          } else {
+            setVal(e.target.value);
+          }
         }}
         onBlur={() => onBlur(val)}
         required={required}

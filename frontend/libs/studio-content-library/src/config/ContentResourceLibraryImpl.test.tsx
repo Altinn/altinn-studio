@@ -4,14 +4,15 @@ import { ResourceContentLibraryImpl } from './ContentResourceLibraryImpl';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import { mockPagesConfig } from '../../mocks/mockPagesConfig';
+import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 
 describe('ContentResourceLibraryImpl', () => {
   it('renders ContentResourceLibraryImpl with given pages', () => {
-    const pagesConfig: PagesConfig = {
+    const pages: PagesConfig = {
       codeList: mockPagesConfig.codeList,
       images: mockPagesConfig.images,
     };
-    renderContentResourceLibraryImpl(pagesConfig);
+    renderContentResourceLibraryImpl({ pages, heading: 'Lorem ipsum' });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -25,7 +26,7 @@ describe('ContentResourceLibraryImpl', () => {
   });
 
   it('renders ContentResourceLibraryImpl with landingPage when no pages are passed', () => {
-    renderContentResourceLibraryImpl({});
+    renderContentResourceLibraryImpl({ pages: {}, heading: 'Lorem ipsum' });
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -37,10 +38,17 @@ describe('ContentResourceLibraryImpl', () => {
     expect(codeListMenuElement).not.toBeInTheDocument();
     expect(imagesMenuElement).not.toBeInTheDocument();
   });
+
+  it('Renders the given heading', () => {
+    const heading = 'The test library';
+    const config: ContentLibraryConfig = { pages: mockPagesConfig, heading };
+    renderContentResourceLibraryImpl(config);
+    expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+  });
 });
 
-const renderContentResourceLibraryImpl = (pages: PagesConfig) => {
-  const contentResourceLibraryImpl = new ResourceContentLibraryImpl({ pages });
+const renderContentResourceLibraryImpl = (config: ContentLibraryConfig): void => {
+  const contentResourceLibraryImpl = new ResourceContentLibraryImpl(config);
   const { getContentResourceLibrary } = contentResourceLibraryImpl;
   renderWithProviders(getContentResourceLibrary());
 };

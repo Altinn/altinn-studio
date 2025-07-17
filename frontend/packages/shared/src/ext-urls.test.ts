@@ -1,4 +1,4 @@
-import { altinnDocsUrl } from './ext-urls';
+import { altinnDocsUrl, grafanaPodLogsUrl } from './ext-urls';
 
 describe('altinnDocsUrl', () => {
   it('should return the URL with the default language "nb" when no language is provided', () => {
@@ -24,5 +24,50 @@ describe('altinnDocsUrl', () => {
   it('should return the URL with language "en" and no relativeUrl', () => {
     const result = altinnDocsUrl({ language: 'en' });
     expect(result).toBe('https://docs.altinn.studio/');
+  });
+});
+
+describe('grafanaPodLogsUrl', () => {
+  it('should return the production URL when env is production', () => {
+    const result = grafanaPodLogsUrl({
+      org: 'ttd',
+      env: 'production',
+      app: 'app',
+      isProduction: true,
+      buildStartTime: 1,
+      buildFinishTime: 2,
+    });
+
+    expect(result).toBe(
+      'https://ttd.apps.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-prod-rg&var-PodName=ttd-app-deployment-v2&from=1&to=2',
+    );
+  });
+
+  it('should return the tt02 URL when env is tt02', () => {
+    const result = grafanaPodLogsUrl({
+      org: 'ttd',
+      env: 'tt02',
+      app: 'app',
+      isProduction: false,
+      buildStartTime: 1,
+      buildFinishTime: 2,
+    });
+
+    expect(result).toBe(
+      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-deployment-v2&from=1&to=2',
+    );
+  });
+
+  it('should not return build time when build time are undefined', () => {
+    const result = grafanaPodLogsUrl({
+      org: 'ttd',
+      env: 'tt02',
+      app: 'app',
+      isProduction: false,
+    });
+
+    expect(result).toBe(
+      'https://ttd.apps.tt02.altinn.no/monitor/d/ae1906c2hbjeoe/pod-console-error-logs?var-rg=altinnapps-ttd-tt02-rg&var-PodName=ttd-app-deployment-v2',
+    );
   });
 });

@@ -34,11 +34,15 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   const componentPropertyHelpText = useComponentPropertyHelpText();
 
   const handleValueChange = async (newValue: number) => {
-    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue), {
-      onSuccess: async () => {
-        await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+    const nonNullValue = newValue ?? undefined;
+    handleComponentChange(
+      setComponentProperty<T, number, K>(component, propertyKey, nonNullValue),
+      {
+        onSuccess: async () => {
+          await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+        },
       },
-    });
+    );
   };
 
   return (

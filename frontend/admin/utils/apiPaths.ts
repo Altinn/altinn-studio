@@ -1,4 +1,4 @@
-const adminApiBasePath = `/admin/api`;
+const adminApiBasePath = `/admin/api/v1`;
 
 export const runningAppsPath = (org: string) => `${adminApiBasePath}/applications/${org}`; // Get
 export const instancesListPath = (org: string, env: string, app: string) =>

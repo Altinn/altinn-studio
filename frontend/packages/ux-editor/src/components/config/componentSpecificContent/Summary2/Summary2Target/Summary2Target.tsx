@@ -28,10 +28,10 @@ import cn from 'classnames';
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
   onChange: (target: Summary2TargetConfig) => void;
-  mainConfigClass?: string;
+  className?: string;
 };
 
-export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2TargetProps) => {
+export const Summary2Target = ({ target, onChange, className }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -71,12 +71,7 @@ export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2Ta
   };
 
   return (
-    <div
-      className={cn(
-        mainConfigClass ? mainConfigClass : classes.targetConfig,
-        classes.wrapperConfig,
-      )}
-    >
+    <div className={cn(className ? className : classes.targetConfig, classes.wrapperConfig)}>
       <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}

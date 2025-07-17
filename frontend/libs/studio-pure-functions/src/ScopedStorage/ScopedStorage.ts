@@ -24,7 +24,7 @@ export class ScopedStorageImpl implements ScopedStorage {
   }
 
   public setItem<T>(key: string, value: T): void {
-    const storageRecords: T = this.getAllRecordsInStorage();
+    const storageRecords: T | null = this.getAllRecordsInStorage();
     this.saveToStorage(
       JSON.stringify({
         ...storageRecords,
@@ -34,7 +34,7 @@ export class ScopedStorageImpl implements ScopedStorage {
   }
 
   public getItem<T>(key: string) {
-    const records: T = this.getAllRecordsInStorage();
+    const records: T | null = this.getAllRecordsInStorage();
 
     if (!records) {
       return null;
