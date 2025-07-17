@@ -14,8 +14,6 @@ type PanelMainConfigProps = {
   handleComponentChange: (component: FormItem<ComponentType.Panel>) => void;
 };
 
-const PanelMainProperties = ['variant'];
-
 export const PanelMainConfig = ({
   component,
   className,
@@ -25,7 +23,7 @@ export const PanelMainConfig = ({
 
   return (
     <ConfigStringProperties
-      stringPropertyKeys={PanelMainProperties}
+      stringPropertyKeys={panelMainProperties}
       schema={schema}
       component={component}
       handleComponentUpdate={handleComponentChange}
