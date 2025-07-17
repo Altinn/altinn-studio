@@ -59,7 +59,7 @@ describe('ComponentMainConfig', () => {
   });
 
   it('should render header config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header));
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header), true);
     const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
     expect(titleConfigSize).toBeInTheDocument();
   });
@@ -71,17 +71,18 @@ describe('ComponentMainConfig', () => {
   });
 });
 
-const renderComponentMainConfig = (component: FormItem) => {
+const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
-  if (component.type === ComponentType.Header) {
+  if (setSchemaData) {
     queryClient.setQueryData(
       [QueryKey.FormComponent, componentMocks[component.type].type],
       componentSchemaMocks[componentMocks[component.type].type],
     );
   }
+
   return renderWithProviders(
     <div data-testid='component-wrapper'>
       <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />
