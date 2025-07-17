@@ -7,7 +7,7 @@ import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/hooks/navigation';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';

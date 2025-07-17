@@ -1,4 +1,4 @@
-import { SearchParams, useQueryKey } from 'src/features/routing/AppRoutingContext';
+import { SearchParams, useQueryKey } from 'src/hooks/navigation';
 
 /**
  * Hook checking whether we are in PDF generation mode

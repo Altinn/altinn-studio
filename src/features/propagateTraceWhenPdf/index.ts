@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { getSearch, SearchParams } from 'src/features/routing/AppRoutingContext';
+import { SearchParams } from 'src/hooks/navigation';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 
 function getCookies(): { [key: string]: string } {
@@ -14,7 +14,9 @@ function getCookies(): { [key: string]: string } {
 
 export function propagateTraceWhenPdf() {
   try {
-    const isPdf = new URLSearchParams(getSearch('')).get(SearchParams.Pdf) === '1';
+    const hash = window.location.hash;
+    const search = hash.split('?')[1] ?? '';
+    const isPdf = new URLSearchParams(search).get(SearchParams.Pdf) === '1';
 
     if (isPdf) {
       const cookies = getCookies();

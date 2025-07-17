@@ -12,7 +12,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
-import { useIsReceiptPage, useIsSubformPage } from 'src/features/routing/AppRoutingContext';
+import { useIsReceiptPage, useIsSubformPage } from 'src/hooks/navigation';
 import type { NavigationReceipt, NavigationTask } from 'src/layout/common.generated';
 
 export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {

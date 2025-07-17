@@ -7,7 +7,7 @@ import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

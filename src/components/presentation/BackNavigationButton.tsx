@@ -12,7 +12,7 @@ import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsSubformPage, useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';

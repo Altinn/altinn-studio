@@ -32,11 +32,11 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider, SetShouldFetchAppLanguages } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
+import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import { AppRoutingProvider } from 'src/features/routing/AppRoutingContext';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
@@ -64,11 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
                       {
                         path: '*',
                         element: (
-                          <AppRoutingProvider>
+                          <NavigationEffectProvider>
                             <ErrorBoundary>
                               <Root />
                             </ErrorBoundary>
-                          </AppRoutingProvider>
+                          </NavigationEffectProvider>
                         ),
                       },
                     ],

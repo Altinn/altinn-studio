@@ -38,7 +38,9 @@ describe('Navigation', () => {
     cy.scrollTo(0, 1000);
 
     cy.findByRole('button', { name: /Neste/ }).click();
+    cy.window().its('scrollY').should('equal', 0);
 
+    cy.findByRole('button', { name: /Legg til ny referanse/ }).should('be.visible');
     cy.window().its('scrollY').should('equal', 0);
   });
 
@@ -48,7 +50,9 @@ describe('Navigation', () => {
     cy.findByText(/Aktiver preutfylling/).should('exist');
 
     cy.findByRole('button', { name: /Neste/ }).click();
+    cy.get('#main-content').should('be.focused');
 
+    cy.findByRole('button', { name: /Legg til ny referanse/ }).should('be.visible');
     cy.get('#main-content').should('be.focused');
   });
 
@@ -58,7 +62,9 @@ describe('Navigation', () => {
     cy.findByText('Appen for test av app frontend').should('exist');
 
     cy.findByRole('button', { name: /Send inn/ }).click();
+    cy.get('#main-content').should('be.focused');
 
+    cy.findByRole('textbox', { name: /Nytt mellomnavn/ }).should('be.visible');
     cy.get('#main-content').should('be.focused');
   });
 

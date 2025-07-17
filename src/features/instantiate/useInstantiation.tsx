@@ -1,8 +1,12 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { MutateOptions } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useNavigate } from 'src/features/routing/AppRoutingContext';
+import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface Prefill {
@@ -30,9 +34,9 @@ function useInstantiateMutation() {
     onError: (error: HttpClientError) => {
       window.logError('Instantiation failed:\n', error);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       navigate(`/instance/${data.id}`);
-      queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
+      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
     },
   });
 }
@@ -49,12 +53,14 @@ function useInstantiateWithPrefillMutation() {
     onError: (error: HttpClientError) => {
       window.logError('Instantiation with prefill failed:\n', error);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       navigate(`/instance/${data.id}`);
-      queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
+      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
     },
   });
 }
+
+type Options<Vars> = MutateOptions<IInstance, AxiosError, Vars, unknown> & { force?: boolean };
 
 export const useInstantiation = () => {
   const queryClient = useQueryClient();
@@ -64,14 +70,14 @@ export const useInstantiation = () => {
   const hasAlreadyInstantiated = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] }).length > 0;
 
   return {
-    instantiate: async (instanceOwnerPartyId: number, force: boolean = false) => {
+    instantiate: async (instanceOwnerPartyId: number, { force = false, ...options }: Options<number> = {}) => {
       if (!hasAlreadyInstantiated || force) {
-        await instantiate.mutateAsync(instanceOwnerPartyId).catch(() => {});
+        await instantiate.mutateAsync(instanceOwnerPartyId, options).catch(() => {});
       }
     },
-    instantiateWithPrefill: async (value: Instantiation, force: boolean = false) => {
+    instantiateWithPrefill: async (value: Instantiation, { force = false, ...options }: Options<Instantiation>) => {
       if (!hasAlreadyInstantiated || force) {
-        await instantiateWithPrefill.mutateAsync(value).catch(() => {});
+        await instantiateWithPrefill.mutateAsync(value, options).catch(() => {});
       }
     },
 

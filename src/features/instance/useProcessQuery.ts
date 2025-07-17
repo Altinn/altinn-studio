@@ -5,7 +5,7 @@ import { queryOptions, skipToken, useQuery } from '@tanstack/react-query';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';

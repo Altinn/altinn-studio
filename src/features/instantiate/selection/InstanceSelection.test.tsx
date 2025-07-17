@@ -76,37 +76,35 @@ describe('InstanceSelection', () => {
   });
 
   it('should trigger openInstance on editButton click', async () => {
-    const { mutations } = await render();
+    const { mutations, routerRef } = await render();
     const row = screen.getByRole('row', {
       name: /10\/05\/2021 navn navnesen fortsett her/i,
     });
-    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test');
 
     const button = within(row).getByRole('button', {
       name: /fortsett her/i,
     });
 
     await userEvent.click(button);
-    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-id');
     expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
     // Set screen size to mobile
     setScreenWidth(600);
-    const { mutations } = await render();
+    const { mutations, routerRef } = await render();
 
     const row = screen.getByRole('row', {
       name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
     });
-    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
 
     const button = within(row).getByRole('button', {
       name: /fortsett her/i,
     });
 
     await userEvent.click(button);
-    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-other-id');
+    expect(routerRef.current!.state.location.pathname).toBe('/ttd/test/instance/some-other-id');
     expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(0);
   });
 });

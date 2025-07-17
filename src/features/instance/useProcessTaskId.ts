@@ -1,6 +1,6 @@
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 
 export function useProcessTaskId() {
   const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);

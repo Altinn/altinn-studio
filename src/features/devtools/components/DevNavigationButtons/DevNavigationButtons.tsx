@@ -7,7 +7,7 @@ import classes from 'src/features/devtools/components/DevNavigationButtons/DevNa
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { useHiddenPages } from 'src/utils/layout/hidden';

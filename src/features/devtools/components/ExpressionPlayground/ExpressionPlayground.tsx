@@ -11,7 +11,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

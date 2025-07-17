@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 
 interface TaskSummaryProps {
   taskId?: string;

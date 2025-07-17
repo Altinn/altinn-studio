@@ -12,8 +12,8 @@ import {
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
-import { useIsReceiptPage } from 'src/features/routing/AppRoutingContext';
 import { ValidationMask } from 'src/features/validation';
+import { useIsReceiptPage } from 'src/hooks/navigation';
 import { useVisitedPages } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

@@ -54,6 +54,7 @@ function fillOutChangeName() {
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.navPage('grid').click();
+    cy.get(appFrontend.grid.kredittkort.percent).should('be.visible');
   });
 }
 

@@ -6,7 +6,7 @@ import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
-import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated';

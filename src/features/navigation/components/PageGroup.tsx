@@ -14,7 +14,7 @@ import { Page } from 'src/features/navigation/components/Page';
 import classes from 'src/features/navigation/components/PageGroup.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
 import { getTaskIcon, isSingleGroup, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import type {
   NavigationPageGroup,

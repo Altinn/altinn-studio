@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
-import { Form, FormFirstPage } from 'src/components/form/Form';
+import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
@@ -41,7 +41,7 @@ export const App = () => (
       />
       <Route
         index
-        element={<FormFirstPage />}
+        element={<NavigateToStartUrl forceCurrentTask={false} />}
       />
     </Route>
 
@@ -78,7 +78,7 @@ export const App = () => (
       >
         <Route
           index
-          element={<FormFirstPage />}
+          element={<NavigateToStartUrl forceCurrentTask={false} />}
         />
         <Route path=':pageKey'>
           <Route
@@ -114,7 +114,7 @@ export const App = () => (
       >
         <Route
           index
-          element={<FormFirstPage />}
+          element={<NavigateToStartUrl forceCurrentTask={false} />}
         />
         <Route path=':pageKey'>
           <Route

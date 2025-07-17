@@ -6,7 +6,9 @@ import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
+import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
@@ -18,6 +20,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useSelectedParty();
+  const setNavigationEffect = useSetNavigationEffect();
 
   return (
     <ErrorReport
@@ -36,7 +39,15 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
                   partyId: party?.partyId.toString(),
                 },
               },
-              true,
+              {
+                force: true,
+                onSuccess: (data) =>
+                  setNavigationEffect({
+                    targetLocation: `/instance/${data.id}`,
+                    matchStart: true,
+                    callback: focusMainContent,
+                  }),
+              },
             ),
           )
         }

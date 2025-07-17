@@ -64,8 +64,10 @@ describe('Expression validation', () => {
 
     cy.findByRole('button', { name: /send inn/i }).click();
     cy.get(appFrontend.errorReport).should('be.visible');
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 6);
     cy.findByText(/skriftlige samtykke/i).should('be.visible');
     cy.gotoNavPage('Skjul felter');
+    cy.findByText(/basert på stilling/i).should('be.visible');
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut fornavn');
     cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { MouseEventHandler } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
@@ -21,8 +21,8 @@ import classes from 'src/features/instantiate/selection/InstanceSelection.module
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useSetNavigationEffect } from 'src/features/routing/AppRoutingContext';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
@@ -66,8 +66,9 @@ function InstanceSelection() {
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
   const selectedParty = useSelectedParty();
-  const storeCallback = useSetNavigationEffect();
+  const setNavigationEffect = useSetNavigationEffect();
   const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const navigate = useNavigate();
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -103,42 +104,36 @@ function InstanceSelection() {
         className={classes.table}
       >
         <Table.Body>
-          {paginatedInstances.map((instance) => {
-            const handleOpenInstance: MouseEventHandler<HTMLButtonElement> = (ev) => {
-              storeCallback(focusMainContent);
-              openInstance(instance.id, ev);
-            };
-            return (
-              <Table.Row key={instance.id}>
-                <Table.Cell className={classes.mobileTableCell}>
-                  <div>
-                    <b>{langAsString('instance_selection.last_changed')}:</b>
-                    <br />
-                    <span>{getDateDisplayString(instance.lastChanged)}</span>
-                  </div>
-                  <div>
-                    <b>{langAsString('instance_selection.changed_by')}:</b>
-                    <br />
-                    <span>{instance.lastChangedBy}</span>
-                  </div>
-                </Table.Cell>
-                <Table.Cell>
-                  <div className={classes.tableButtonWrapper}>
-                    <Button
-                      variant='tertiary'
-                      color='second'
-                      icon={true}
-                      onClick={handleOpenInstance}
-                      onMouseDown={handleOpenInstance}
-                      aria-label={`${langAsString('instance_selection.continue')}`}
-                    >
-                      <PencilIcon fontSize='1rem' />
-                    </Button>
-                  </div>
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
+          {paginatedInstances.map((instance) => (
+            <Table.Row key={instance.id}>
+              <Table.Cell className={classes.mobileTableCell}>
+                <div>
+                  <b>{langAsString('instance_selection.last_changed')}:</b>
+                  <br />
+                  <span>{getDateDisplayString(instance.lastChanged)}</span>
+                </div>
+                <div>
+                  <b>{langAsString('instance_selection.changed_by')}:</b>
+                  <br />
+                  <span>{instance.lastChangedBy}</span>
+                </div>
+              </Table.Cell>
+              <Table.Cell>
+                <div className={classes.tableButtonWrapper}>
+                  <Button
+                    variant='tertiary'
+                    color='second'
+                    icon={true}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    onMouseDown={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
+                    aria-label={`${langAsString('instance_selection.continue')}`}
+                  >
+                    <PencilIcon fontSize='1rem' />
+                  </Button>
+                </div>
+              </Table.Cell>
+            </Table.Row>
+          ))}
         </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
@@ -196,10 +191,7 @@ function InstanceSelection() {
                   <Button
                     variant='tertiary'
                     color='second'
-                    onClick={(ev) => {
-                      storeCallback(focusMainContent);
-                      openInstance(instance.id, ev);
-                    }}
+                    onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
                   >
                     <Lang id='instance_selection.continue' />
                     <PencilIcon
@@ -275,8 +267,15 @@ function InstanceSelection() {
               onClick={() =>
                 performProcess(async () => {
                   if (selectedParty) {
-                    storeCallback(focusMainContent);
-                    await instantiation.instantiate(selectedParty.partyId, true);
+                    await instantiation.instantiate(selectedParty.partyId, {
+                      force: true,
+                      onSuccess: (data) =>
+                        setNavigationEffect({
+                          targetLocation: `/instance/${data.id}`,
+                          matchStart: true,
+                          callback: focusMainContent,
+                        }),
+                    });
                   }
                 })
               }
@@ -316,7 +315,12 @@ const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElemen
  * Opens the instance in a new tab if the user holds down ctrl or meta (cmd) while clicking, otherwise
  * behaves like a normal link.
  */
-const openInstance = (instanceId: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+const openInstance = (
+  instanceId: string,
+  originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  navigate: ReturnType<typeof useNavigate>,
+  setNavigationEffect: ReturnType<typeof useSetNavigationEffect>,
+) => {
   if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {
     originalEvent.stopPropagation();
     originalEvent.preventDefault();
@@ -328,5 +332,10 @@ const openInstance = (instanceId: string, originalEvent: React.MouseEvent<HTMLBu
     return;
   }
 
-  window.location.href = getInstanceUiUrl(instanceId);
+  setNavigationEffect({
+    targetLocation: `/instance/${instanceId}`,
+    matchStart: true,
+    callback: focusMainContent,
+  });
+  navigate(`/instance/${instanceId}`);
 };

@@ -9,7 +9,7 @@ import { usePaymentInformation } from 'src/features/payment/PaymentInformationPr
 import { PaymentStatus } from 'src/features/payment/types';
 import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useIsPayment } from 'src/features/payment/utils';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';

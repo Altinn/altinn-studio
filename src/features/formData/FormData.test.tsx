@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { afterAll, beforeAll, expect, jest } from '@jest/globals';
@@ -22,7 +22,6 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { AppRoutingProvider, useNavigate } from 'src/features/routing/AppRoutingContext';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import {
   makeFormDataMethodProxies,
@@ -122,15 +121,15 @@ async function statelessRender(props: RenderProps) {
           <Routes>
             <Route
               path='/'
-              element={<AppRoutingProvider>{children}</AppRoutingProvider>}
+              element={children}
             />
             <Route
               path='/different'
               element={
-                <AppRoutingProvider>
+                <>
                   <div>something different</div>
                   <NavigateBackButton />
-                </AppRoutingProvider>
+                </>
               }
             />
           </Routes>

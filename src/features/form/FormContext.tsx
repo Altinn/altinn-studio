@@ -15,8 +15,8 @@ import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { ValidationProvider } from 'src/features/validation/validationContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 

@@ -9,7 +9,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
 import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
