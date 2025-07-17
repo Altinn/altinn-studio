@@ -58,7 +58,7 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
-  it('should render link config when the component type matches', async () => {
+  it('should render link config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Link), true);
     const linkConfigStyle = screen.getByText(textMock('ux_editor.component_properties.style'));
     expect(linkConfigStyle).toBeInTheDocument();
