@@ -197,6 +197,11 @@ const summary2Component: FormComponent<ComponentType.Summary2> = {
   },
 };
 
+const linkComponent: FormComponent<ComponentType.Link> = {
+  ...commonProps(ComponentType.Link),
+  style: 'link',
+};
+
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
@@ -216,6 +221,7 @@ export const componentMocks = {
   [ComponentType.Header]: headerComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
+  [ComponentType.Link]: linkComponent,
   [ComponentType.Map]: mapComponent,
   [ComponentType.NavigationBar]: navigationBarComponent,
   [ComponentType.Panel]: panelComponent,
