@@ -10,6 +10,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
   ({
@@ -56,6 +58,12 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
+  it('should render panel config when the component type matches', async () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Panel), true);
+    const panelConfigVariant = screen.getByText(textMock('ux_editor.component_properties.variant'));
+    expect(panelConfigVariant).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', async () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
@@ -63,10 +71,18 @@ describe('ComponentMainConfig', () => {
   });
 });
 
-const renderComponentMainConfig = (component: FormItem) => {
+const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+
+  if (setSchemaData) {
+    queryClient.setQueryData(
+      [QueryKey.FormComponent, componentMocks[component.type].type],
+      componentSchemaMocks[componentMocks[component.type].type],
+    );
+  }
+
   return renderWithProviders(
     <div data-testid='component-wrapper'>
       <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />
