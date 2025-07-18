@@ -32,7 +32,7 @@ const simpleArrayItemsPointer = '#/properties/simpleArray/items/properties/simpl
 const defNodeWithChildrenPointer = '#/$defs/parentDef';
 const defNodeWithChildrenChildPointer = '#/$defs/parentDef/properties/child';
 const defNodeWithChildrenGrandchildPointer =
-  '#/$defs/parentDef/properties/child/properties/grandchild';
+  '#/$defs/parentDef/properties/child/items/properties/grandchild';
 const referenceToObjectNodePointer = '#/properties/referenceToParent';
 
 const unusedDefinitionPointer = '#/$defs/unusedDef';
@@ -216,6 +216,7 @@ export const defNodeWithChildrenChildMock: FieldNode = {
   schemaPointer: defNodeWithChildrenChildPointer,
   fieldType: FieldType.Object,
   children: [defNodeWithChildrenGrandchildPointer],
+  isArray: true,
 };
 
 export const defNodeWithChildrenGrandchildMock: FieldNode = {
