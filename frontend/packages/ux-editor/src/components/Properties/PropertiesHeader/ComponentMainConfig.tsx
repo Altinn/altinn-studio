@@ -10,6 +10,7 @@ import { AlertMainConfig } from './SpecificMainConfig/AlertMainConfig';
 import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
 import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
+import { CustomButtonMainConfig } from './SpecificMainConfig/CustomButtonMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -76,6 +77,14 @@ export const ComponentMainConfig = ({
     case ComponentType.Header:
       return (
         <TitleMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.CustomButton:
+      return (
+        <CustomButtonMainConfig
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}

@@ -81,6 +81,14 @@ describe('ComponentMainConfig', () => {
     expect(titleConfigSize).toBeInTheDocument();
   });
 
+  it('should render custom button config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.CustomButton), true);
+    const customButtonConfigStyle = screen.getByText(
+      textMock('ux_editor.component_properties.buttonStyle'),
+    );
+    expect(customButtonConfigStyle).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
