@@ -2,6 +2,7 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
+import { statusMap } from './appConfigStatusUtils';
 
 const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
 
@@ -49,6 +50,22 @@ export const validateAppConfig = (
       });
     }
   });
+
+  // validate status
+  if (!Object.keys(statusMap).includes(appConfig.status)) {
+    errors.push({
+      field: 'status',
+      error: t('app_settings.about_tab_status_field_error'),
+    });
+  }
+
+  // validate availableForType
+  if (!appConfig.availableForType?.length) {
+    errors.push({
+      field: 'availableForType',
+      error: t('app_settings.about_tab_error_available_for_type'),
+    });
+  }
 
   return errors;
 };

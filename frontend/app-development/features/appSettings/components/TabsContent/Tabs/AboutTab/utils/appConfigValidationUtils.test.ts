@@ -43,6 +43,7 @@ describe('appConfigValidationUtils', () => {
 });
 
 const appConfigComplete: AppConfigNew = {
+  resourceType: 'altinnapp',
   repositoryName: 'test-repo',
   serviceId: 'id',
   serviceName: {
@@ -61,4 +62,6 @@ const appConfigComplete: AppConfigNew = {
     nn: 'test rd nn',
     en: 'test rd en',
   },
+  status: 'UnderDevelopment',
+  availableForType: ['PrivatePerson'],
 };
