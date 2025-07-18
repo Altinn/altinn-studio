@@ -7,6 +7,7 @@ import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
 import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
+import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 
 export type ComponentMainConfigProps = {
@@ -50,6 +51,15 @@ export const ComponentMainConfig = ({
     case ComponentType.Link:
       return (
         <LinkMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+
+    case ComponentType.Panel:
+      return (
+        <PanelMainConfig
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}
