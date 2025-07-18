@@ -10,7 +10,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
