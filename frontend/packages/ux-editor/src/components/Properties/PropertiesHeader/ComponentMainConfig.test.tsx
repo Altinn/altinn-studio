@@ -10,6 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
   ({
@@ -22,13 +23,13 @@ const mainConfigComponentMock = (type: ComponentType) =>
 describe('ComponentMainConfig', () => {
   afterEach(() => jest.clearAllMocks);
 
-  it('should render summary2 config when the component type matches', async () => {
+  it('should render summary2 config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Summary2));
     const targetHeader = screen.getByText(textMock('ux_editor.component_properties.target'));
     expect(targetHeader).toBeInTheDocument();
   });
 
-  it('should render subform config when the component type matches', async () => {
+  it('should render subform config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Subform));
     const subformHeader = screen.getByText(
       textMock('ux_editor.properties_panel.subform_table_columns.heading'),
@@ -48,7 +49,7 @@ describe('ComponentMainConfig', () => {
     expect(optionsHeader).toBeInTheDocument();
   });
 
-  it('should render image config when the component type matches', async () => {
+  it('should render image config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Image));
     const imageHeader = screen.getByText(
       textMock('ux_editor.properties_panel.texts.sub_title_images'),
@@ -56,17 +57,37 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
-  it('should not render any config when the component type does not match', async () => {
+  it('should render panel config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Panel), true);
+    const panelConfigVariant = screen.getByText(textMock('ux_editor.component_properties.variant'));
+    expect(panelConfigVariant).toBeInTheDocument();
+  });
+
+  it('should render header config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header), true);
+    const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
+    expect(titleConfigSize).toBeInTheDocument();
+  });
+
+  it('should not render any config when the component type does not match', () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
     expect(wrapper).toBeEmptyDOMElement();
   });
 });
 
-const renderComponentMainConfig = (component: FormItem) => {
+const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+
+  if (setSchemaData) {
+    queryClient.setQueryData(
+      [QueryKey.FormComponent, component.type],
+      componentSchemaMocks[component.type],
+    );
+  }
+
   return renderWithProviders(
     <div data-testid='component-wrapper'>
       <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />
