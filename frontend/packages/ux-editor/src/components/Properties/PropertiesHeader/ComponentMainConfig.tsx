@@ -7,6 +7,9 @@ import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
 import { ActionButtonMainConfig } from './SpecificMainConfig/ActionButtonMainConfig';
+import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
+import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
+import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -46,7 +49,6 @@ export const ComponentMainConfig = ({
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
-
     case ComponentType.ActionButton:
       return (
         <ActionButtonMainConfig
@@ -54,6 +56,26 @@ export const ComponentMainConfig = ({
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}
         />
+      );
+    case ComponentType.Link:
+      return (
+        <LinkMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Panel:
+      return (
+        <PanelMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Header:
+      return (
+        <TitleMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
       return null;
