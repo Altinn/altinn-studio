@@ -217,7 +217,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 foreach (GiteaCommit commit in commitResponse)
                 {
-                    IEnumerable<string> fileNames = commit.Files.Select(f => f.Filename);
+                    IEnumerable<string> fileNames = commit.Files.Select(f => f.Filename).Where(f => f.EndsWith("_resource.json", StringComparison.OrdinalIgnoreCase));
                     foreach (string fileName in fileNames)
                     {
                         if (!commitDictionary.ContainsKey(fileName))
@@ -230,23 +230,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 
                 foreach (KeyValuePair<string, IEnumerable<GiteaCommit>> commitEntry in commitDictionary)
                 {
-                    string fileName = commitEntry.Key;
+                    string resourceIdentifier = commitEntry.Key.Split("/")[0];
                     IEnumerable<GiteaCommit> commits = commitEntry.Value;
 
-                    if (fileName.EndsWith("_resource.json"))
+                    string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
+                    string userFullName = await GetCachedUserFullName(commitUserName);
+                    
+                    ListviewServiceResource listviewResource = new ListviewServiceResource
                     {
-                        string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
-                        string userFullName = await GetCachedUserFullName(commitUserName);
-
-                        string resourceIdentifier = fileName.Split("/")[0];
-                        ListviewServiceResource listviewResource = new ListviewServiceResource
-                        {
-                            Identifier = resourceIdentifier,
-                            CreatedBy = userFullName,
-                            LastChanged = DateTime.Parse(commits.FirstOrDefault()?.Created),
-                        };
-                        listviewServiceResources.Add(listviewResource);
-                    }
+                        Identifier = resourceIdentifier,
+                        CreatedBy = userFullName,
+                        LastChanged = DateTime.Parse(commits.FirstOrDefault()?.Created),
+                    };
+                    listviewServiceResources.Add(listviewResource);
                 }
             }
 
