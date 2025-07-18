@@ -3,8 +3,8 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
 import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
 import type { properties } from '../../../../testing/schemas/json/component/Alert.schema.v1.json';
-import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
-import { EditTextResourceBindings } from '@altinn/ux-editor/components/config/editModal/EditTextResourceBindings/EditTextResourceBindings';
+import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
+import { EditTextResourceBindings } from '../../../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 
 type AlertMainContentProperties = (keyof typeof properties)[];
 const alertMainContentProperties: AlertMainContentProperties = ['severity'];
