@@ -10,6 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
   ({
@@ -56,6 +57,17 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
+  it.each([ComponentType.FileUpload, ComponentType.FileUploadWithTag])(
+    'should render file upload config when the component type is %s',
+    (type) => {
+      renderComponentMainConfig(mainConfigComponentMock(type), true);
+      const displayModeText = screen.getByText(
+        textMock('ux_editor.component_properties.displayMode'),
+      );
+      expect(displayModeText).toBeInTheDocument();
+    },
+  );
+
   it('should not render any config when the component type does not match', async () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
@@ -63,10 +75,18 @@ describe('ComponentMainConfig', () => {
   });
 });
 
-const renderComponentMainConfig = (component: FormItem) => {
+const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+
+  if (setSchemaData) {
+    queryClient.setQueryData(
+      [QueryKey.FormComponent, component.type],
+      componentSchemaMocks[component.type],
+    );
+  }
+
   return renderWithProviders(
     <div data-testid='component-wrapper'>
       <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />
