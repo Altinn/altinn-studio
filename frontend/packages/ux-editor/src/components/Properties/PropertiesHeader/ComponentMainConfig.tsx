@@ -6,6 +6,7 @@ import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
+import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 
 export type ComponentMainConfigProps = {
@@ -45,6 +46,15 @@ export const ComponentMainConfig = ({
     case ComponentType.Image:
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
+
+    case ComponentType.Panel:
+      return (
+        <PanelMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     case ComponentType.Header:
       return (
