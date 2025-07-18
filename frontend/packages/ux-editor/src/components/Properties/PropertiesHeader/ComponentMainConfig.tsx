@@ -6,6 +6,7 @@ import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
+import { FileUploadMainConfig } from './SpecificMainConfig/FileUploadMainConfig';
 import { AlertMainConfig } from './SpecificMainConfig/AlertMainConfig';
 import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
 import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
@@ -48,6 +49,15 @@ export const ComponentMainConfig = ({
     case ComponentType.Image:
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
+    case ComponentType.FileUpload:
+    case ComponentType.FileUploadWithTag:
+      return (
+        <FileUploadMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     case ComponentType.Alert:
       return (
