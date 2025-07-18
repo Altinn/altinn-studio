@@ -57,6 +57,17 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
+  it.each([ComponentType.FileUpload, ComponentType.FileUploadWithTag])(
+    'should render file upload config when the component type is %s',
+    (type) => {
+      renderComponentMainConfig(mainConfigComponentMock(type), true);
+      const displayModeText = screen.getByText(
+        textMock('ux_editor.component_properties.displayMode'),
+      );
+      expect(displayModeText).toBeInTheDocument();
+    },
+  );
+
   it('should render alert config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert), true);
     const alertTextSeverity = screen.getByText(textMock('ux_editor.component_properties.severity'));
