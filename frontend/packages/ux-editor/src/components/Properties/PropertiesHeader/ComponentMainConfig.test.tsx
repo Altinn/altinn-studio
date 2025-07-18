@@ -78,8 +78,8 @@ const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean =
 
   if (setSchemaData) {
     queryClient.setQueryData(
-      [QueryKey.FormComponent, componentMocks[component.type].type],
-      componentSchemaMocks[componentMocks[component.type].type],
+      [QueryKey.FormComponent, component.type],
+      componentSchemaMocks[component.type],
     );
   }
 
