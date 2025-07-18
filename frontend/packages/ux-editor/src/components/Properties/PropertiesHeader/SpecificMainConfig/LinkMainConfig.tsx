@@ -6,7 +6,7 @@ import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComp
 import type { properties } from '../../../../testing/schemas/json/component/Link.schema.v1.json';
 
 type LinkMainProperties = (keyof typeof properties)[];
-export const LinkMainProperties: LinkMainProperties = ['style'];
+const linkMainProperties: LinkMainProperties = ['style'];
 
 type LinkMainConfigProps = {
   component: FormItem<ComponentType.Link>;
@@ -26,7 +26,7 @@ export const LinkMainConfig = ({
       component={component}
       handleComponentUpdate={handleComponentChange}
       schema={schema}
-      stringPropertyKeys={LinkMainProperties}
+      stringPropertyKeys={linkMainProperties}
       className={className}
     />
   );
