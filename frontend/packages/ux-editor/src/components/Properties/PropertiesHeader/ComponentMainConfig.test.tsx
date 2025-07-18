@@ -92,6 +92,14 @@ describe('ComponentMainConfig', () => {
     expect(titleConfigSize).toBeInTheDocument();
   });
 
+  it('should render custom button config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.CustomButton), true);
+    const customButtonConfigStyle = screen.getByText(
+      textMock('ux_editor.component_properties.buttonStyle'),
+    );
+    expect(customButtonConfigStyle).toBeInTheDocument();
+  });
+
   it('should render action button config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.ActionButton), true);
     const actionButtonConfigText = screen.getByText(
