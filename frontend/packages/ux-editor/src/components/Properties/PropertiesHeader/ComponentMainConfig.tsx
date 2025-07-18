@@ -6,6 +6,7 @@ import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
+import { ActionButtonMainConfig } from './SpecificMainConfig/ActionButtonMainConfig';
 import { FileUploadMainConfig } from './SpecificMainConfig/FileUploadMainConfig';
 import { AlertMainConfig } from './SpecificMainConfig/AlertMainConfig';
 import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
@@ -50,6 +51,14 @@ export const ComponentMainConfig = ({
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
+    case ComponentType.ActionButton:
+      return (
+        <ActionButtonMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
     case ComponentType.FileUpload:
     case ComponentType.FileUploadWithTag:
       return (
@@ -85,11 +94,7 @@ export const ComponentMainConfig = ({
       );
     case ComponentType.Header:
       return (
-        <TitleMainConfig
-          component={component}
-          handleComponentChange={handleComponentChange}
-          className={classes.mainConfigWrapper}
-        />
+        <TitleMainConfig component={component} handleComponentChange={handleComponentChange} />
       );
     default:
       return null;

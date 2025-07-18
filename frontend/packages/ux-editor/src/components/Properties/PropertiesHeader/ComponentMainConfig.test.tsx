@@ -92,6 +92,14 @@ describe('ComponentMainConfig', () => {
     expect(titleConfigSize).toBeInTheDocument();
   });
 
+  it('should render action button config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ActionButton), true);
+    const actionButtonConfigText = screen.getByText(
+      textMock('ux_editor.component_properties.action'),
+    );
+    expect(actionButtonConfigText).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
