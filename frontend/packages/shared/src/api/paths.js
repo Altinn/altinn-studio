@@ -162,7 +162,7 @@ export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
-export const resourceListPath = (org) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true`; // Get
+export const resourceListPath = (org, useNewApi) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&useNewApi=${useNewApi}`; // Get
 export const resourceCreatePath = (org) => `${apiBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${apiBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${apiBasePath}/${org}/resources/updateresource/${id}`; // Put

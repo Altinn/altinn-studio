@@ -122,6 +122,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource);
 
         /// <summary>
+        /// Gets list of enriched files in the repository.
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="repo">The repository</param>
+        /// <returns>Returns ListviewServiceResources</returns>
+        Task<List<ListviewServiceResource>> MapResourceRepoFilesToListViewResource(string org, string repo);
+
+        /// <summary>
         /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
