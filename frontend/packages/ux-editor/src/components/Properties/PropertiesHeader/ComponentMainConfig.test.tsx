@@ -23,13 +23,13 @@ const mainConfigComponentMock = (type: ComponentType) =>
 describe('ComponentMainConfig', () => {
   afterEach(() => jest.clearAllMocks);
 
-  it('should render summary2 config when the component type matches', async () => {
+  it('should render summary2 config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Summary2));
     const targetHeader = screen.getByText(textMock('ux_editor.component_properties.target'));
     expect(targetHeader).toBeInTheDocument();
   });
 
-  it('should render subform config when the component type matches', async () => {
+  it('should render subform config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Subform));
     const subformHeader = screen.getByText(
       textMock('ux_editor.properties_panel.subform_table_columns.heading'),
@@ -49,7 +49,7 @@ describe('ComponentMainConfig', () => {
     expect(optionsHeader).toBeInTheDocument();
   });
 
-  it('should render image config when the component type matches', async () => {
+  it('should render image config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Image));
     const imageHeader = screen.getByText(
       textMock('ux_editor.properties_panel.texts.sub_title_images'),
@@ -63,7 +63,13 @@ describe('ComponentMainConfig', () => {
     expect(linkConfigStyle).toBeInTheDocument();
   });
 
-  it('should not render any config when the component type does not match', async () => {
+  it('should render header config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header), true);
+    const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
+    expect(titleConfigSize).toBeInTheDocument();
+  });
+
+  it('should not render any config when the component type does not match', () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
     expect(wrapper).toBeEmptyDOMElement();
