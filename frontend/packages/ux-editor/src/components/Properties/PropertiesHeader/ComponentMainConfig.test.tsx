@@ -63,6 +63,12 @@ describe('ComponentMainConfig', () => {
     expect(alertTextSeverity).toBeInTheDocument();
   });
 
+  it('should render link config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Link), true);
+    const linkConfigStyle = screen.getByText(textMock('ux_editor.component_properties.style'));
+    expect(linkConfigStyle).toBeInTheDocument();
+  });
+
   it('should render panel config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Panel), true);
     const panelConfigVariant = screen.getByText(textMock('ux_editor.component_properties.variant'));
