@@ -68,6 +68,12 @@ describe('ComponentMainConfig', () => {
     },
   );
 
+  it('should render alert config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert), true);
+    const alertTextSeverity = screen.getByText(textMock('ux_editor.component_properties.severity'));
+    expect(alertTextSeverity).toBeInTheDocument();
+  });
+
   it('should render link config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Link), true);
     const linkConfigStyle = screen.getByText(textMock('ux_editor.component_properties.style'));
