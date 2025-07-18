@@ -7,6 +7,7 @@ import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
 import { FileUploadMainConfig } from './SpecificMainConfig/FileUploadMainConfig';
+import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
 import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
 import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
 
@@ -52,6 +53,14 @@ export const ComponentMainConfig = ({
     case ComponentType.FileUploadWithTag:
       return (
         <FileUploadMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Link:
+      return (
+        <LinkMainConfig
           component={component}
           handleComponentChange={handleComponentChange}
           className={classes.mainConfigWrapper}
