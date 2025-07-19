@@ -95,7 +95,11 @@ export const ComponentMainConfig = ({
       );
     case ComponentType.Header:
       return (
-        <TitleMainConfig component={component} handleComponentChange={handleComponentChange} />
+        <TitleMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     case ComponentType.CustomButton:
       return (
