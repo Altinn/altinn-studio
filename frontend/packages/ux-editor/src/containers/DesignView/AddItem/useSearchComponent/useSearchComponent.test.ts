@@ -9,11 +9,13 @@ import type { TestCase } from './types';
 
 const MockIcon = () => null;
 const textInputValue = 'Text';
+const textLabelValue = 'Text Component';
+const textButtonValue = 'Button Component';
 
 const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
   category1: [
-    { type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon },
-    { type: ComponentType.Button, label: 'Button Component', icon: MockIcon },
+    { type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon },
+    { type: ComponentType.Button, label: textButtonValue, icon: MockIcon },
     { type: ComponentType.Checkboxes, label: 'Avmerkingsbokser', icon: MockIcon },
   ],
   category2: [{ type: ComponentType.Image, label: 'Image Component', icon: MockIcon }],
@@ -24,14 +26,14 @@ const testCases: TestCase[] = [
     description: 'should filter by partial text match',
     searchText: 'text',
     expected: {
-      category1: [{ type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon }],
+      category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
     },
   },
   {
     description: 'should filter by button match',
     searchText: 'button',
     expected: {
-      category1: [{ type: ComponentType.Button, label: 'Button Component', icon: MockIcon }],
+      category1: [{ type: ComponentType.Button, label: textButtonValue, icon: MockIcon }],
     },
   },
   {
@@ -43,7 +45,7 @@ const testCases: TestCase[] = [
     description: 'should be case insensitive',
     searchText: 'TEXT',
     expected: {
-      category1: [{ type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon }],
+      category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
     },
   },
 ];
@@ -58,11 +60,9 @@ const translations = {
 jest.useFakeTimers();
 
 describe('useSearchComponent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   afterEach(() => {
     jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
   describe('Initial state', () => {
@@ -122,7 +122,7 @@ describe('useSearchComponent', () => {
       });
       await waitFor(() => {
         expect(result.current.filteredComponents).toEqual({
-          category1: [{ type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon }],
+          category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
         });
       });
     });
@@ -134,7 +134,7 @@ describe('useSearchComponent', () => {
       });
       await waitFor(() => {
         expect(result.current.filteredComponents).toEqual({
-          category1: [{ type: ComponentType.TextArea, label: 'Text Component', icon: MockIcon }],
+          category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
         });
       });
     });

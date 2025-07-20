@@ -8,7 +8,8 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph, StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useSearchComponent } from './useSearchComponent/useSearchComponent';
 
@@ -46,23 +47,24 @@ export const AddItemContent = ({
             onKeyDown={handleEscape}
             onClear={handleClear}
           />
-          <StudioParagraph spacing size='small' style={{ width: '100%' }}>
+          <StudioParagraph>
             {t('ux_editor.add_item.component_more_info_description')}
           </StudioParagraph>
         </div>
-
-        {Object.keys(filteredComponents).map((key) => {
-          return (
-            <ItemCategory
-              key={key}
-              category={key}
-              items={filteredComponents[key]}
-              selectedItemType={item?.componentType}
-              setAddedItem={setItem}
-              generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
-            />
-          );
-        })}
+        <div className={classes.componentsGrid}>
+          {Object.keys(filteredComponents).map((key) => {
+            return (
+              <ItemCategory
+                key={key}
+                category={key}
+                items={filteredComponents[key]}
+                selectedItemType={item?.componentType}
+                setAddedItem={setItem}
+                generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
+              />
+            );
+          })}
+        </div>
       </div>
       <div className={classes.componentsInfoWrapper}>
         <ItemInfo onAddItem={onAddItem} onCancel={onCancel} item={item} setItem={setItem} />

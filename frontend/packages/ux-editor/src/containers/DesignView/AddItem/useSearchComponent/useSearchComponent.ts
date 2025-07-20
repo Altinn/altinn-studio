@@ -12,15 +12,21 @@ const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => stri
   return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
 };
 
+const doesToolbarItemMatchSearch = (
+  toolbarItem: IToolbarElement,
+  search: string,
+  t: (key: string) => string,
+): boolean => {
+  return getAllLabelWords(toolbarItem, t).some((word) => word.includes(search));
+};
+
 const filterToolbarItems = (
   items: IToolbarElement[],
   search: string,
   t: (key: string) => string,
 ): IToolbarElement[] => {
   if (!search) return items;
-  return items.filter((toolbarItem) =>
-    getAllLabelWords(toolbarItem, t).some((word) => word.startsWith(search)),
-  );
+  return items.filter((toolbarItem) => doesToolbarItemMatchSearch(toolbarItem, search, t));
 };
 
 type UseSearchComponentProps = {
