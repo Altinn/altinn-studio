@@ -31,7 +31,7 @@ const iconByTaskTypeMap: Partial<Record<BpmnTaskType, IconMetaData>> = {
   data: { icon: <DataTaskIcon />, iconColor: 'blue' },
   signing: { icon: <SignTaskIcon />, iconColor: 'red' },
   payment: { icon: <CardIcon />, iconColor: 'yellow' },
-  userControlledSigning: { icon: <UserControlledSigningIcon />, iconColor: 'red' },
+  userControlledSigning: { icon: <UserControlledSigningIcon />, iconColor: 'green' },
 };
 
 const iconByTaskIdMap: Record<string, IconMetaData> = {
