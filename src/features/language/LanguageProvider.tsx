@@ -4,16 +4,15 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useGetAppLanguageQuery } from 'src/features/language/textResources/useGetAppLanguagesQuery';
-import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
+import { useProfileQuery } from 'src/features/profile/ProfileProvider';
+import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { isAtLeastVersion } from 'src/utils/versionCompare';
-import type { IProfile } from 'src/types/shared';
 
 interface LanguageCtx {
   current: string;
   languageResolved: boolean;
   appLanguages: string[] | undefined;
-  setProfileForLanguage: (profile: IProfile | null) => void;
   setWithLanguageSelector: (language: string) => void;
   setShouldFetchAppLanguages: (shouldFetch: boolean) => void;
 }
@@ -25,9 +24,6 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
     current: 'nb',
     languageResolved: false,
     appLanguages: undefined,
-    setProfileForLanguage: () => {
-      throw new Error('LanguageProvider not initialized');
-    },
     setWithLanguageSelector: () => {
       throw new Error('LanguageProvider not initialized');
     },
@@ -43,10 +39,10 @@ type Loading<T> = T | typeof IsLoading;
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   // LanguageProvider is provided so early that we cannot access much state directly, so we need to get them set externally.
   const [shouldFetchAppLanguages, setShouldFetchAppLanguages] = useState<Loading<boolean>>(IsLoading);
-  const [profile, setProfileForLanguage] = useState<Loading<IProfile | null>>(IsLoading);
+  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
-  const userId = profile !== IsLoading ? profile?.userId : undefined;
-  const languageFromProfile = profile !== IsLoading ? profile?.profileSettingPreference.language : undefined;
+  const userId = isProfileLoading ? undefined : profile?.userId;
+  const languageFromProfile = isProfileLoading ? undefined : profile?.profileSettingPreference.language;
 
   const languageFromUrl = getLanguageFromUrl();
   const [languageFromSelector, setWithLanguageSelector] = useLocalStorageState(['selectedLanguage', userId], null);
@@ -63,7 +59,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     languageFromProfile,
   });
 
-  const languageResolved = profile !== IsLoading && shouldFetchAppLanguages !== IsLoading && !isFetching;
+  const languageResolved = !isProfileLoading && shouldFetchAppLanguages !== IsLoading && !isFetching;
 
   return (
     <Provider
@@ -72,7 +68,6 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
         appLanguages,
         languageResolved,
         setShouldFetchAppLanguages,
-        setProfileForLanguage,
         setWithLanguageSelector,
       }}
     >
@@ -85,7 +80,6 @@ export const useCurrentLanguage = () => useCtx().current;
 export const useIsCurrentLanguageResolved = () => useCtx().languageResolved;
 export const useAppLanguages = () => useCtx().appLanguages;
 export const useSetLanguageWithSelector = () => useCtx().setWithLanguageSelector;
-export const useSetProfileForLanguage = () => useCtx().setProfileForLanguage;
 
 /**
  * This is only to prevent a lot of 401 requests for apps where we know the request will fail.
@@ -95,7 +89,7 @@ export const useSetProfileForLanguage = () => useCtx().setProfileForLanguage;
  */
 export const SetShouldFetchAppLanguages = () => {
   // We make the same assumption as in ProfileProvider that the user is logged in when the app does not allow anonymous.
-  const userIsAuthenticated = useAllowAnonymousIs(false);
+  const userIsAuthenticated = useIsAllowAnonymous(false);
   const { altinnNugetVersion } = useApplicationMetadata();
   const appSupportsFetchAppLanguagesInAnonymous =
     altinnNugetVersion &&

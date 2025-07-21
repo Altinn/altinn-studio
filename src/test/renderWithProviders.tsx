@@ -19,7 +19,6 @@ import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloa
 import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
-import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
@@ -138,7 +137,6 @@ const defaultQueryMocks: AppQueries = {
   fetchFooterLayout: async () => ({ footer: [] }) as IFooterLayout,
   fetchLayoutSets: async () => getLayoutSetsMock(),
   fetchOrgs: async () => ({ orgs: getOrgsMock() }),
-  fetchUserProfile: async () => getProfileMock(),
   fetchReturnUrl: async () => Promise.reject(),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],

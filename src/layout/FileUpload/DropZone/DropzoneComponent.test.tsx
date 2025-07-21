@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
-import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 import type { IDropzoneComponentProps } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 
 describe('DropzoneComponent', () => {
@@ -32,7 +32,7 @@ describe('DropzoneComponent', () => {
   };
 
   it('should include aria-describedby for description if textResourceBindings.description is present', async () => {
-    await renderWithoutInstanceAndLayout({
+    await renderWithMinimalProviders({
       renderer: () => (
         <>
           <label id={getLabelId(id)}>Enkel filopplasting</label>
@@ -53,7 +53,7 @@ describe('DropzoneComponent', () => {
   });
 
   it('should not include aria-describedby for description if textResourceBindings.description is not present', async () => {
-    await renderWithoutInstanceAndLayout({
+    await renderWithMinimalProviders({
       renderer: () => <DropzoneComponent {...defaultProps} />,
     });
 

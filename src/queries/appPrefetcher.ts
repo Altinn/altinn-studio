@@ -8,7 +8,6 @@ import { useInstanceDataQueryDef } from 'src/features/instance/InstanceContext';
 import { processQueries } from 'src/features/instance/useProcessQuery';
 import { useOrgsQueryDef } from 'src/features/orgs/OrgsProvider';
 import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
-import { useProfileQueryDef } from 'src/features/profile/ProfileProvider';
 
 /**
  * Prefetches requests that require no processed data to determine the url
@@ -22,7 +21,6 @@ export function AppPrefetcher() {
 
   usePrefetchQuery(getApplicationMetadataQueryDef(instanceGuid));
   usePrefetchQuery(useLayoutSetsQueryDef());
-  usePrefetchQuery(useProfileQueryDef(true), Boolean(instanceOwnerPartyId));
   usePrefetchQuery(useOrgsQueryDef());
   usePrefetchQuery(useApplicationSettingsQueryDef());
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));

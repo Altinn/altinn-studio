@@ -11,7 +11,7 @@ import { getMessageBoxUrl, returnUrlToAllForms, returnUrlToProfile } from 'src/u
 import type { IProfile } from 'src/types/shared';
 
 export interface InstantiateHeaderProps {
-  profile: IProfile | undefined;
+  profile: IProfile | null;
 }
 
 export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {

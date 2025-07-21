@@ -20,7 +20,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
 import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
@@ -327,6 +327,7 @@ describe('Expressions shared function tests', () => {
       jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
+      jest.mocked(fetchUserProfile).mockImplementation(async () => profile);
 
       const renderFunc = stateless ? renderWithoutInstanceAndLayout : renderWithInstanceAndLayout;
       const { rerender } = await renderFunc({
@@ -346,7 +347,6 @@ describe('Expressions shared function tests', () => {
           fetchFormData,
           fetchInstanceData,
           ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-          fetchUserProfile: async () => profile,
           fetchTextResources: async () => ({
             language: 'nb',
             resources: textResources || [],

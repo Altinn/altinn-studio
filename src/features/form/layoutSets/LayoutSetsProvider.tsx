@@ -18,7 +18,7 @@ export function useLayoutSetsQueryDef() {
   };
 }
 
-const useLayoutSetsQuery = () => {
+export const useLayoutSetsQuery = () => {
   const utils = useQuery(useLayoutSetsQueryDef());
 
   useEffect(() => {

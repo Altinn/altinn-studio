@@ -1,24 +1,20 @@
-import { useEffect } from 'react';
-
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useSetProfileForLanguage } from 'src/features/language/LanguageProvider';
-import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
+import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
+import { fetchUserProfile } from 'src/queries/queries';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { IProfile } from 'src/types/shared';
 
-// Also used for prefetching @see appPrefetcher.ts
-export function useProfileQueryDef(enabled: boolean) {
-  const { fetchUserProfile } = useAppQueries();
-  return {
+function profileQueryOptions(enabled: boolean) {
+  return queryOptions<IProfile | null>({
     queryKey: ['fetchUserProfile', enabled],
     queryFn: fetchUserProfile,
     enabled,
-  };
+    placeholderData: null,
+  });
 }
 
 const canHandleProfileQueryError = (error: UseQueryResult<IProfile | undefined>['error']) =>
@@ -26,46 +22,24 @@ const canHandleProfileQueryError = (error: UseQueryResult<IProfile | undefined>[
   // Altinn users have profiles, but organisations, service owners and system users do not, so this is expected
   isAxiosError(error) && error.response?.status === 400;
 
-const useProfileQuery = () => {
+export const useProfileQuery = () => {
   const enabled = useShouldFetchProfile();
-  const setProfileForLanguage = useSetProfileForLanguage();
+  const query = useQuery(profileQueryOptions(enabled));
 
-  const utils = useQuery(useProfileQueryDef(enabled));
-
-  useEffect(() => {
-    if (utils.error) {
-      if (canHandleProfileQueryError(utils.error)) {
-        setProfileForLanguage(null);
-        return;
-      }
-
-      window.logError('Fetching user profile failed:\n', utils.error);
-    }
-  }, [setProfileForLanguage, utils.error]);
-
-  useEffect(() => {
-    if (utils.data) {
-      setProfileForLanguage(utils.data);
-    }
-  }, [setProfileForLanguage, utils.data]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setProfileForLanguage(null);
-    }
-  }, [setProfileForLanguage, enabled]);
+  const shouldReturnNull = !enabled || (query.isError && canHandleProfileQueryError(query.error));
 
   return {
-    ...utils,
+    ...query,
+    data: shouldReturnNull ? null : query.data,
     enabled,
   };
 };
 
 const { Provider, useCtx } = delayedContext(() =>
-  createQueryContext<IProfile | undefined, false>({
+  createQueryContext<IProfile | null, false>({
     name: 'Profile',
     required: false,
-    default: undefined,
+    default: null,
     shouldDisplayError: (error) => !canHandleProfileQueryError(error),
     query: useProfileQuery,
   }),
@@ -73,4 +47,4 @@ const { Provider, useCtx } = delayedContext(() =>
 
 export const ProfileProvider = Provider;
 export const useProfile = () => useCtx();
-export const useShouldFetchProfile = () => useAllowAnonymousIs(false);
+export const useShouldFetchProfile = () => useIsAllowAnonymous(false);
