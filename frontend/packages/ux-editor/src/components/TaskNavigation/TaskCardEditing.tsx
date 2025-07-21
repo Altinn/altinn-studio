@@ -38,7 +38,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
 
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const [id, setId] = React.useState(layoutSetModel.id);
-  const [dataType, setDataType] = React.useState(layoutSetModel.dataType);
+  const [dataType, setDataType] = React.useState(layoutSetModel.dataType || '');
 
   const idChanged = id !== layoutSetModel.id;
   const dataTypeChanged = dataType !== layoutSetModel.dataType;

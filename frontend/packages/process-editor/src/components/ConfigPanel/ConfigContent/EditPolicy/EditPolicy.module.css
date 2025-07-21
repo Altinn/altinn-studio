@@ -1,6 +1,6 @@
 .configContent {
-  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
-  margin-bottom: var(--studio-property-button-vertical-spacing);
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
+  margin-bottom: var(--studio-legacy-property-button-vertical-spacing);
 }
 
 .alert {

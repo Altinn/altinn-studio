@@ -1,0 +1,27 @@
+name: "Integrationtests"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/KubernetesWrapper/**'
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+    paths:
+      - 'src/KubernetesWrapper/**'
+
+jobs:
+  integrationtests:
+    name: Deploy and run test against a kind cluster
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+    - name: Run integration tests
+      working-directory: src/KubernetesWrapper
+      run: |
+        make test

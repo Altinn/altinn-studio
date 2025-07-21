@@ -6,8 +6,7 @@
   padding: 8px;
 }
 
-.toolbar > *,
-.toolbar > {
+.toolbar > * {
   margin-right: 1rem;
 }
 

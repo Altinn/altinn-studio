@@ -162,7 +162,7 @@ const addUserToSomeTestDepTeams = async (env) => {
 
 const createContentRepo = async (user, pass, org) => {
   const repo = 'ttd-content';
-  const filePathCodeList = 'Codelists/exampleCodeList.json';
+  const filePathCodeList = 'CodeLists/exampleCodeList.json';
   const filePathTexts = 'Texts/exampleText.json';
 
   await giteaApi({

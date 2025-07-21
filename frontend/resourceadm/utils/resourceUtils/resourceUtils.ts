@@ -10,9 +10,12 @@ import type {
   ResourceFormError,
   ResourceError,
   ConsentMetadata,
+  AccessList,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 
 /**
  * The map of resource type
@@ -23,7 +26,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
-  ConsentResource: 'resourceadm.about_resource_resource_type_consentresource',
+  Consent: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -108,52 +111,6 @@ export const getEnvLabel = (env: EnvId): string => {
 };
 
 /**
- * Maps the language key to the text
- */
-export const mapLanguageKeyToLanguageText = (
-  val: ValidLanguage,
-  translationFunction: (key: string) => string,
-) => {
-  if (val === 'nb') return translationFunction('language.nb');
-  if (val === 'nn') return translationFunction('language.nn');
-  return translationFunction('language.en');
-};
-
-/**
- * Gets the correct text to display for input fields with missing value
- *
- * @param language the value
- * @param usageString the type of the field
- * @param translationFunction the translation function
- */
-export const getMissingInputLanguageString = (
-  language: SupportedLanguage,
-  usageString: string,
-  translationFunction: (key: string, params?: KeyValuePairs<string>) => string,
-): string => {
-  const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
-  const missingLanguages = supportedLanguages.filter((lang) => !language[lang]);
-
-  // Return different messages based on the length
-  if (missingLanguages.length === 1) {
-    return translationFunction('resourceadm.about_resource_language_error_missing_1', {
-      usageString,
-      lang: mapLanguageKeyToLanguageText(missingLanguages[0], translationFunction),
-    });
-  } else if (missingLanguages.length > 1) {
-    const lastLang = missingLanguages.pop();
-    return translationFunction('resourceadm.about_resource_language_error_missing_2', {
-      usageString,
-      lang1: missingLanguages
-        .map((lang) => mapLanguageKeyToLanguageText(lang, translationFunction))
-        .join(', '),
-      lang2: mapLanguageKeyToLanguageText(lastLang, translationFunction),
-    });
-  }
-  return '';
-};
-
-/**
  * ------------ Temporary functions -------------
  * The first one maps keyword to string, and the second from string to keyword
  *
@@ -234,20 +191,11 @@ export const validateResource = (
   }
 
   // validate title
-  const titleError = getMissingInputLanguageString(
-    {
-      nb: resourceData.title?.nb,
-      nn: resourceData.title?.nn,
-      en: resourceData.title?.en,
-    },
-    t('resourceadm.about_resource_error_usage_string_title'),
-    t,
-  );
-  if (titleError) {
+  if (!resourceData.title?.nb) {
     errors.push({
       field: 'title',
       index: 'nb',
-      error: titleError,
+      error: t('resourceadm.about_resource_error_translation_missing_title_nb'),
     });
   }
   if (!resourceData.title?.nn) {
@@ -266,20 +214,11 @@ export const validateResource = (
   }
 
   // validate description
-  const descriptionError = getMissingInputLanguageString(
-    {
-      nb: resourceData.description?.nb,
-      nn: resourceData.description?.nn,
-      en: resourceData.description?.en,
-    },
-    t('resourceadm.about_resource_error_usage_string_description'),
-    t,
-  );
-  if (descriptionError) {
+  if (!resourceData.description?.nb) {
     errors.push({
       field: 'description',
       index: 'nb',
-      error: descriptionError,
+      error: t('resourceadm.about_resource_error_translation_missing_description_nb'),
     });
   }
   if (!resourceData.description?.nn) {
@@ -299,20 +238,11 @@ export const validateResource = (
 
   // validate rightDescription
   if (resourceData.delegable) {
-    const rightDescriptionError = getMissingInputLanguageString(
-      {
-        nb: resourceData.rightDescription?.nb,
-        nn: resourceData.rightDescription?.nn,
-        en: resourceData.rightDescription?.en,
-      },
-      t('resourceadm.about_resource_error_usage_string_rights_description'),
-      t,
-    );
-    if (rightDescriptionError) {
+    if (!resourceData.rightDescription?.nb) {
       errors.push({
         field: 'rightDescription',
         index: 'nb',
-        error: rightDescriptionError,
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_nb'),
       });
     }
     if (!resourceData.rightDescription?.nn) {
@@ -382,27 +312,19 @@ export const validateResource = (
   }
 
   // validate consentTemplate
-  if (resourceData.resourceType === 'ConsentResource') {
+  if (resourceData.resourceType === 'Consent') {
     if (!resourceData.consentTemplate) {
       errors.push({
         field: 'consentTemplate',
         error: t('resourceadm.about_resource_consent_template_missing'),
       });
     }
-    const consentTextError = getMissingInputLanguageString(
-      {
-        nb: resourceData.consentText?.nb,
-        nn: resourceData.consentText?.nn,
-        en: resourceData.consentText?.en,
-      },
-      t('resourceadm.about_resource_error_usage_string_consent_text'),
-      t,
-    );
-    if (consentTextError) {
+
+    if (!resourceData.consentText?.nb) {
       errors.push({
         field: 'consentText',
         index: 'nb',
-        error: consentTextError,
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nb'),
       });
     }
     if (!resourceData.consentText?.nn) {
@@ -425,7 +347,7 @@ export const validateResource = (
       resourceData.consentMetadata,
       resourceData.consentText,
     );
-    const errorLanguages: string[] = [];
+
     Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
       if (unknowMetadataValues[language].length) {
         errors.push({
@@ -433,33 +355,11 @@ export const validateResource = (
           index: language,
           error: t('resourceadm.about_resource_error_unknown_metadata_language', {
             unknownMetadataValues: unknowMetadataValues[language].join(', '),
+            lang1: t(`language.${language}`),
           }),
         });
-        if (language !== 'nb') {
-          errorLanguages.push(t(`language.${language}`));
-        }
       }
     });
-    if (errorLanguages.length) {
-      const lastErrorLanguage = errorLanguages.pop();
-      let consentTextNbError = '';
-      if (errorLanguages.length > 0) {
-        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata_multiple', {
-          lang1: errorLanguages.join(', '),
-          lang2: lastErrorLanguage,
-        });
-      } else {
-        consentTextNbError = t('resourceadm.about_resource_error_unknown_metadata', {
-          lang1: lastErrorLanguage,
-        });
-      }
-
-      errors.push({
-        field: 'consentText',
-        index: 'nb',
-        error: consentTextNbError,
-      });
-    }
   }
 
   // validate contactPoints
@@ -572,4 +472,76 @@ const getUnknownMetadataValues = (
     nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
     en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
   };
+};
+
+const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [requestConsentRule, acceptConsentRule];
+};
+
+const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
+  return rule.actions.some((action) => action === targetAction);
+};
+const hasConsentRules = (policyData: Policy): boolean => {
+  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasRequestConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, 'requestconsent'),
+  );
+
+  return hasAcceptConsentAction && hasRequestConsentAction;
+};
+
+export const getResourcePolicyRules = (
+  policyData: Policy,
+  resourceId: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource && !hasConsentRules(policyData)) {
+    return {
+      ...policyData,
+      rules: getConsentResourceDefaultRules(resourceId),
+    };
+  } else if (!isConsentResource && hasConsentRules(policyData)) {
+    // remove consent only-rules if resource has consent rules but is not a consent resource
+    return {
+      ...policyData,
+      rules: policyData.rules.filter(
+        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+      ),
+    };
+  }
+  return policyData;
+};
+
+export const getResourceSubjects = (
+  accessLists: AccessList[],
+  subjectData: PolicySubject[],
+  org: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource) {
+    const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
+      return {
+        subjectId: `${accessList.identifier}`,
+        subjectSource: `altinn:accesslist:${org}`,
+        subjectTitle: accessList.name,
+        subjectDescription: accessList.description,
+      };
+    });
+    return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  return subjectData;
 };

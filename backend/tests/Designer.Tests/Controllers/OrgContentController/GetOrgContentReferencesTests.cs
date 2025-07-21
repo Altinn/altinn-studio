@@ -49,7 +49,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(8, contentList.Count);
+        Assert.Equal(10, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.CodeList);
         Assert.Contains(contentList, item => item.Type == LibraryContentType.TextResource);
@@ -80,7 +80,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(6, contentList.Count);
+        Assert.Equal(7, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(
             contentList,
@@ -113,7 +113,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(2, contentList.Count);
+        Assert.Equal(3, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(
             contentList,
@@ -146,7 +146,7 @@ public class GetOrgContentReferencesTests
         List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<
             List<LibraryContentReference>
         >();
-        Assert.Equal(2, contentList.Count);
+        Assert.Equal(3, contentList.Count);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.All(
             contentList,
@@ -200,6 +200,38 @@ public class GetOrgContentReferencesTests
         Assert.Equal($"{OrgName}-content repo does not exist", reasonHeader);
 
         _orgServiceMock.Verify(service => service.IsOrg(OrgName), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrgContentReferences_WhenContentRepoIsEmpty_ShouldReturnEmptyList()
+    {
+        // Arrange
+        _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
+
+        OrgAndRepoName orgAndRepoName = GenerateOrgAndRepoNames();
+        const string Username = "testUser";
+        const string SourceOrgName = "ttd";
+        const string SourceRepoName = "org-content-empty";
+        await CopyOrgRepositoryForTest(
+            Username,
+            SourceOrgName,
+            SourceRepoName,
+            orgAndRepoName.Org.Name,
+            orgAndRepoName.RepoName
+        );
+
+        string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
+        using var request = new HttpRequestMessage(HttpMethod.Get, apiBaseUrl);
+
+        // Act
+        var response = await HttpClient.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<LibraryContentReference> contentList = await response.Content.ReadAsAsync<List<LibraryContentReference>>();
+        Assert.Empty(contentList);
+
+        _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
     }
 
     [Fact]

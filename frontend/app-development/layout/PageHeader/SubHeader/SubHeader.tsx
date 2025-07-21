@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import classes from './SubHeader.module.css';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
-import { SettingsModalButton } from './SettingsModalButton';
+import { SettingsPageButton } from './SettingsPageButton';
 import { RepositoryType } from 'app-shared/types/global';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
@@ -64,7 +64,7 @@ export const LeftContent = ({ repositoryType }: LeftContentProps) => {
 const SubHeaderLeftContent = () => {
   return (
     <div className={classes.buttonWrapper}>
-      <SettingsModalButton />
+      <SettingsPageButton />
       <PreviewButton />
     </div>
   );

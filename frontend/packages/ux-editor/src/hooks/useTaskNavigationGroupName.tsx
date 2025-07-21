@@ -15,8 +15,9 @@ export const useTaskNavigationGroupName = (task: TaskNavigationGroup): ReturnTas
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const textResourceName = useTextResourceValue(task?.name);
+  const isReceiptWithoutName = task.taskType === TaskType.Receipt && !task?.name;
 
-  if (task.taskType === TaskType.Receipt) {
+  if (isReceiptWithoutName) {
     return {
       taskNavigationName: t('ux_editor.task_table_type.receipt'),
       taskIdName: undefined,

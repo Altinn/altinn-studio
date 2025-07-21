@@ -1,0 +1,25 @@
+.container {
+  --toolbar-height: 80px;
+  --subtoolbar-height: 60px;
+  --header-border-bottom-width: 1px;
+  --layout-sets-selector-height: 62px;
+  --header-height: calc(
+    var(--toolbar-height) + var(--subtoolbar-height) + var(--header-border-bottom-width)
+  );
+  --left-menu-width: 68px;
+
+  background: var(--fds-semantic-background-default);
+  width: 100%;
+}
+
+.appContainer {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    --header-height: calc(var(--toolbar-height) + var(--header-border-bottom-width));
+  }
+}

@@ -2,29 +2,28 @@ import React from 'react';
 import { useRouterContext } from '../contexts/RouterContext';
 import type { PageComponent } from '../utils/router/RouterRouteMapper';
 import { RouterRouteMapperImpl } from '../utils/router/RouterRouteMapper';
-import type { PagePropsMap, PagesConfig } from '../types/PagesProps';
+import type { PagePropsMap } from '../types/PagesProps';
 import classes from './ContentLibrary.module.css';
 import { LibraryHeader } from './LibraryHeader';
 import { StudioHeading } from '@studio/components-legacy';
 import type { PageName } from '../types/PageName';
 import { LibraryBody } from './LibraryBody';
+import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';
 
-type ContentLibraryProps = {
-  pages: PagesConfig;
-};
+export type ContentLibraryProps = ContentLibraryConfig;
 
-export function ContentLibrary({ pages }: ContentLibraryProps): React.ReactElement {
+export function ContentLibrary(props: ContentLibraryProps): React.ReactElement {
   const { currentPage = 'landingPage' } = useRouterContext();
-  return <ContentLibraryForPage pages={pages} currentPage={currentPage} />;
+  return <ContentLibraryForPage {...props} currentPage={currentPage} />;
 }
 
 type ContentLibraryForPageProps<T extends PageName> = {
-  pages: PagesConfig;
   currentPage: T;
-};
+} & ContentLibraryProps;
 
 function ContentLibraryForPage<T extends PageName>({
   pages,
+  heading,
   currentPage,
 }: ContentLibraryForPageProps<T>): React.ReactElement {
   const router = new RouterRouteMapperImpl(pages);
@@ -35,7 +34,7 @@ function ContentLibraryForPage<T extends PageName>({
   return (
     <div className={classes.libraryBackground}>
       <div className={classes.libraryContainer}>
-        <LibraryHeader />
+        <LibraryHeader>{heading}</LibraryHeader>
         <LibraryBody<T> Component={Component} pages={pages} currentPage={currentPage} />
       </div>
     </div>

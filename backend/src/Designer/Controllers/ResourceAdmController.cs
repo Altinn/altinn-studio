@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Interfaces;
+﻿using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -16,13 +15,5 @@ namespace Altinn.Studio.Designer.Controllers
             _sourceControl = sourceControl;
         }
 
-
-        [Route("/resourceadm/{org}/{repo:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public async Task<IActionResult> Index(string org, string repo)
-        {
-            await _sourceControl.VerifyCloneExists(org, repo);
-            ViewBag.App = "resourceadm";
-            return View();
-        }
     }
 }

@@ -33,7 +33,11 @@ export const DefaultItems = ({
         <StudioHeading level={4} size='xxsmall' className={classes.header}>
           {t('ux_editor.add_item.select_component_header')}
         </StudioHeading>
-        <StudioButton icon={<XMarkIcon />} onClick={onCancel} variant='tertiary' />
+        <StudioButton
+          icon={<XMarkIcon title={t('general.close')} />}
+          onClick={onCancel}
+          variant='tertiary'
+        />
       </div>
       <div className={classes.componentsWrapper}>
         {availableComponents.map((key) => {

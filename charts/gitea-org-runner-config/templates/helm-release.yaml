@@ -1,0 +1,48 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Values.releaseName }}
+  namespace: studio-runners
+spec:
+  releaseName: {{ .Values.releaseName }}
+  targetNamespace: studio-runners
+  interval: 5m
+  install:
+    remediation:
+      retries: 1
+  upgrade:
+    remediation:
+      retries: 1
+  chart:
+    spec:
+      version: "{{ .Values.chartVersion }}"
+      chart: gitea-org-runner
+      sourceRef:
+        kind: HelmRepository
+        name: studio-charts
+        namespace: default
+  values:
+    image:
+      tag: "{{ .Values.imageTag }}"
+    nameOverride: {{ .Values.releaseName }}
+    fullnameOverride: {{ .Values.releaseName }}
+    environmentVariables:
+      - name: GITEA_INSTANCE_URL
+        value: {{ .Values.giteaInstanceUrl }}
+      - name: GITEA_RUNNER_EPHEMERAL
+        value: "1"
+      - name: GITEA_RUNNER_LABELS
+        value: ubuntu-latest:host
+      - name: GITEA_RUNNER_REGISTRATION_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.registrationTokenSecretName }}
+            key: token
+    tolerations:
+      - key: "purpose"
+        operator: "Equal"
+        value: "runner"
+        effect: "NoSchedule"
+    nodeSelector:
+      purpose: runner

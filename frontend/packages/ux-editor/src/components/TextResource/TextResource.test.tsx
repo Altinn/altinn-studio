@@ -13,6 +13,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 const user = userEvent.setup();
 
@@ -184,7 +185,9 @@ describe('TextResource', () => {
   it('Mutates text resource when value is changed', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    const upsertTextResources = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(emptyTextResourceListMock(DEFAULT_LANGUAGE)));
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');

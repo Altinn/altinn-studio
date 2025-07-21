@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Link, Table } from '@digdir/designsystemet-react';
 import { DateUtils } from '@studio/pure-functions';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
@@ -12,9 +12,13 @@ import {
   ExclamationmarkTriangleFillIcon,
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
+  ExternalLinkIcon,
 } from '@studio/icons';
+import { StudioLink } from '@studio/components';
 import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
 
 export interface DeploymentEnvironmentLogListProps {
   envName: string;
@@ -23,32 +27,33 @@ export interface DeploymentEnvironmentLogListProps {
   kubernetesDeployment?: KubernetesDeployment;
 }
 
+const getIcon = (buildResult: BuildResult) => {
+  const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
+  switch (buildResult) {
+    case BuildResult.failed:
+      return <XMarkOctagonFillIcon className={classnames} />;
+    case BuildResult.canceled:
+    case BuildResult.partiallySucceeded:
+      return <ExclamationmarkTriangleFillIcon className={classnames} />;
+    case BuildResult.succeeded:
+      return <CheckmarkCircleFillIcon className={classnames} />;
+    case BuildResult.none:
+    default:
+      return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
+  }
+};
+
 export const DeploymentEnvironmentLogList = ({
   envName,
   isProduction,
   pipelineDeploymentList,
 }: DeploymentEnvironmentLogListProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
   const envTitle = isProduction
     ? t(`general.production_environment_alt`).toLowerCase()
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
-
-  const getIcon = (buildResult: BuildResult) => {
-    const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
-    switch (buildResult) {
-      case BuildResult.failed:
-        return <XMarkOctagonFillIcon className={classnames} />;
-      case BuildResult.canceled:
-      case BuildResult.partiallySucceeded:
-        return <ExclamationmarkTriangleFillIcon className={classnames} />;
-      case BuildResult.succeeded:
-        return <CheckmarkCircleFillIcon className={classnames} />;
-      case BuildResult.none:
-      default:
-        return <StudioSpinner size='small' spinnerTitle='' showSpinnerTitle={false} />;
-    }
-  };
 
   return (
     <div className={classes.container}>
@@ -84,6 +89,13 @@ export const DeploymentEnvironmentLogList = ({
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const tableCellStatusClassName = classes[deploy.build.result];
+                const buildStartTime = deploy.build.started
+                  ? new Date(deploy.build.started).getTime()
+                  : undefined;
+                const buildFinishTime = deploy.build.finished
+                  ? new Date(deploy.build.finished).getTime()
+                  : undefined;
+
                 return (
                   <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
                     <Table.Cell
@@ -96,7 +108,44 @@ export const DeploymentEnvironmentLogList = ({
                       {getIcon(deploy.build.result)}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
-                      {t(getStatusTextByDeploymentType(deploy))}
+                      <Trans
+                        i18nKey={getStatusTextByDeploymentType(deploy)}
+                        components={{
+                          grafana: (
+                            <StudioLink
+                              href={grafanaPodLogsUrl({
+                                org,
+                                env: envName,
+                                app,
+                                isProduction,
+                                buildStartTime,
+                                buildFinishTime,
+                              })}
+                              rel='noopener noreferrer'
+                              target='_blank'
+                              icon={
+                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                              }
+                              iconPlacement={'right'}
+                            >
+                              Grafana
+                            </StudioLink>
+                          ),
+                          buildLog: (
+                            <StudioLink
+                              href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                              rel='noopener noreferrer'
+                              target='_blank'
+                              icon={
+                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                              }
+                              iconPlacement={'right'}
+                            >
+                              Build log
+                            </StudioLink>
+                          ),
+                        }}
+                      />
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       {deploy.tagName}

@@ -13,5 +13,5 @@
 }
 
 .ruleModalWrapper {
-  border-bottom: var(--studio-border-divider);
+  border-bottom: var(--studio-legacy-border-divider);
 }

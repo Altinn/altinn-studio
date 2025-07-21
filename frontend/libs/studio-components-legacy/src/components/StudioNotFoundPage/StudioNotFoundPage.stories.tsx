@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioNotFoundPage } from './StudioNotFoundPage';
 
 type Story = StoryFn<typeof StudioNotFoundPage>;

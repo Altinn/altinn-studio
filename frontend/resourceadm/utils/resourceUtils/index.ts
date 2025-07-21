@@ -1,6 +1,4 @@
 export {
-  mapLanguageKeyToLanguageText,
-  getMissingInputLanguageString,
   getResourceIdentifierErrorMessage,
   deepCompare,
   getAvailableEnvironments,
@@ -14,5 +12,7 @@ export {
   getAltinn2Reference,
   getMigrationErrorMessage,
   convertMetadataStringToConsentMetadata,
+  getResourcePolicyRules,
+  getResourceSubjects,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

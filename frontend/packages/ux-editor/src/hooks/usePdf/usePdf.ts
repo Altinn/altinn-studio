@@ -1,5 +1,5 @@
-import { useAppContext } from '@altinn/ux-editor/hooks';
-import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
+import { useAppContext } from '../../hooks';
+import { useSavableFormLayoutSettings } from '../../hooks/useSavableFormLayoutSettings';
 
 export const usePdf = () => {
   const { selectedFormLayoutName } = useAppContext();

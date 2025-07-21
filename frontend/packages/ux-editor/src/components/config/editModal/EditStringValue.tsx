@@ -14,6 +14,7 @@ export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
   enumValues?: string[];
   multiple?: boolean;
+  className?: string;
 }
 
 export const EditStringValue = ({
@@ -22,6 +23,7 @@ export const EditStringValue = ({
   propertyKey,
   enumValues,
   multiple,
+  className,
 }: EditStringValueProps): ReactElement => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -43,6 +45,7 @@ export const EditStringValue = ({
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
       helpText={componentPropertyHelpText(propertyKey)}
+      className={className}
       customValidationMessages={(errorCode: string) => {
         if (errorCode === 'pattern') {
           return t('validation_errors.pattern');
@@ -68,7 +71,7 @@ export const EditStringValue = ({
           ) : (
             <StudioNativeSelect
               label={fieldProps.label}
-              value={fieldProps?.value}
+              value={fieldProps?.value ?? NO_VALUE_SELECTED_IN_NATIVE_SELECT}
               onChange={(e) => {
                 const newVal = e.target.value;
                 fieldProps.onChange(
@@ -78,7 +81,9 @@ export const EditStringValue = ({
               id={`component-${propertyKey}-select${component.id}`}
               size='sm'
             >
-              <NoValueSelectOption />
+              <NoValueSelectOption
+                disabled={fieldProps?.value !== NO_VALUE_SELECTED_IN_NATIVE_SELECT}
+              />
               <SelectOptions enumOptionsList={enumValues} componentEnumValue={componentEnumValue} />
             </StudioNativeSelect>
           )
@@ -94,12 +99,16 @@ export const EditStringValue = ({
   );
 };
 
-const NoValueSelectOption = (): ReactElement => {
+type NoValueSelectOptionProps = {
+  disabled: boolean;
+};
+
+const NoValueSelectOption = ({ disabled }: NoValueSelectOptionProps): ReactElement => {
   const { t } = useTranslation();
 
   return (
-    <option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT}>
-      {t('ux_editor.edit_component.no_value_selected_for_select')}
+    <option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT} disabled={disabled}>
+      {t('ux_editor.edit_component.select_value')}
     </option>
   );
 };

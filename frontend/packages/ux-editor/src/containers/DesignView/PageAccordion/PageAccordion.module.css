@@ -6,6 +6,10 @@
   border: 0.5px solid var(--fds-semantic-border-neutral-subtle);
 }
 
+.navigationMenuGroup {
+  border-bottom: 0;
+}
+
 .accordionHeader,
 .accordionHeaderWarning {
   flex: 1;
@@ -26,6 +30,7 @@
 
 .accordionHeaderRow {
   display: flex;
+  border-left: 0.5px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .pdfIcon {

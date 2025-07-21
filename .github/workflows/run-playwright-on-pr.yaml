@@ -4,6 +4,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
+      - '!frontend/admin/**'
       - '!frontend/stats/**'
       - 'backend/**'
       - '.github/workflows/run-playwright-on-pr.yaml'

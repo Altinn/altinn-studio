@@ -52,7 +52,7 @@ export const DeploymentEnvironmentStatus = ({
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
-        <Paragraph size='small' spacing={!!footer}>
+        <Paragraph size='small' spacing={!!footer} className={classes.content}>
           {content}
         </Paragraph>
         {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}

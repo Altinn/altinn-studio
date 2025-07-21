@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioExpression } from './StudioExpression';
 import { logicalExpression } from './test-data/expressions';
 import { texts } from './test-data/texts';

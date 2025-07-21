@@ -63,7 +63,6 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
   await uiEditorPage.waitForXAmountOfMilliseconds(1000); // Wait for the API call to be done
 
-  await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.writeTitleTextInTextarea(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnSaveNewLabelName();
@@ -99,7 +98,6 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
 
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextKeyIsVisible(UPDATED_TEXT_KEY);
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
@@ -149,7 +147,6 @@ test('That the newly added language with key is updated on ui-editor page', asyn
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 });

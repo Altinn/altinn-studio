@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ErrorPage.module.css';
 import { StudioHeading, StudioLink } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import { UrlConstants } from 'resourceadm/utils/urlUtils';
+import { UrlConstants } from '../../utils/urlUtils';
 
 /**
  * @component

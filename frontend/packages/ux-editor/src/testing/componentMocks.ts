@@ -197,10 +197,21 @@ const summary2Component: FormComponent<ComponentType.Summary2> = {
   },
 };
 
+const alertComponent: FormComponent<ComponentType.Alert> = {
+  ...commonProps(ComponentType.Alert),
+  severity: 'info',
+};
+
+const linkComponent: FormComponent<ComponentType.Link> = {
+  ...commonProps(ComponentType.Link),
+  style: 'link',
+};
+
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
   [ComponentType.Address]: addressComponent,
+  [ComponentType.Alert]: alertComponent,
   [ComponentType.AttachmentList]: attachmentListComponent,
   [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
@@ -216,6 +227,7 @@ export const componentMocks = {
   [ComponentType.Header]: headerComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
+  [ComponentType.Link]: linkComponent,
   [ComponentType.Map]: mapComponent,
   [ComponentType.NavigationBar]: navigationBarComponent,
   [ComponentType.Panel]: panelComponent,

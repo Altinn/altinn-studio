@@ -94,26 +94,35 @@ describe('FileNameUtils', () => {
   describe('findFileNameError', () => {
     it('Returns "FileNameIsEmpty" when file name is empty', () => {
       const fileName: string = '';
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
+        fileName,
+        [],
+      );
       expect(fileNameError).toBe(FileNameErrorResult.FileNameIsEmpty);
     });
 
     it('Returns "NoRegExMatch" when file name does not match file name regex', () => {
       const fileName: string = 'file/name';
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
+        fileName,
+        [],
+      );
       expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
     });
 
     it('Returns "NoRegExMatch" when file name does not match file name regex in terms of length', () => {
       const fileName: string = '12345678901234567890123456789';
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
+        fileName,
+        [],
+      );
       expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
     });
 
     it('Returns "FileExists" when file name matches regEx and name exists in list', () => {
       const fileName: string = 'fileName1';
       const invalidFileNames: string[] = [fileName, 'fileName2', 'fileName3'];
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
       );
@@ -124,7 +133,7 @@ describe('FileNameUtils', () => {
       const fileName: string = 'fileName1';
       const lowerCaseFileName: string = fileName.toLowerCase();
       const invalidFileNames: string[] = [lowerCaseFileName, 'fileName2', 'fileName3'];
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
       );
@@ -134,7 +143,7 @@ describe('FileNameUtils', () => {
     it('Returns null when file name matches regEx and does not exist in list of invalid names', () => {
       const fileName: string = 'fileName';
       const invalidFileNames: string[] = ['fileName2', 'fileName3'];
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
       );
@@ -143,7 +152,10 @@ describe('FileNameUtils', () => {
 
     it('Returns null when file name matches regEx and list of invalid names is empty', () => {
       const fileName: string = 'fileName';
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameError(
+        fileName,
+        [],
+      );
       expect(fileNameError).toBeNull();
     });
   });
@@ -152,7 +164,7 @@ describe('FileNameUtils', () => {
     it('Returns "FileNameIsEmpty" when file name is empty', () => {
       const fileName: string = '';
       const fileNameRegEx: RegExp = /^[a-z]+$/;
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameErrorByGivenRegEx(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameErrorByGivenRegEx(
         fileName,
         [],
         fileNameRegEx,
@@ -163,7 +175,7 @@ describe('FileNameUtils', () => {
     it('Returns "NoRegExMatch" when file name does not match given regex', () => {
       const fileName: string = 'ABC';
       const fileNameRegEx: RegExp = /^[a-z]+$/;
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameErrorByGivenRegEx(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameErrorByGivenRegEx(
         fileName,
         [],
         fileNameRegEx,
@@ -175,7 +187,7 @@ describe('FileNameUtils', () => {
       const fileName: string = 'fileName1';
       const invalidFileNames: string[] = [fileName, 'fileName2', 'fileName3'];
       const fileNameRegEx: RegExp = /^[a-zA-Z0-9]+$/;
-      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameErrorByGivenRegEx(
+      const fileNameError: FileNameErrorResult | null = FileNameUtils.findFileNameErrorByGivenRegEx(
         fileName,
         invalidFileNames,
         fileNameRegEx,

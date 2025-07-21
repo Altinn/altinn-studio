@@ -1,3 +1,15 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-left: var(--fds-spacing-3);
+  margin-right: var(--fds-spacing-3);
+}
+
+.root.center {
+  justify-content: center;
+}
+
 .addItemButtons {
   display: flex;
   flex-direction: row;

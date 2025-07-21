@@ -6,7 +6,7 @@
 
 .heading {
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
-  padding: var(--studio-modal-spacing);
+  padding: var(--studio-legacy-modal-spacing);
 }
 
 .heading > * {
@@ -17,7 +17,7 @@
 
 .icon {
   display: flex;
-  margin-right: var(--studio-modal-spacing);
+  margin-right: var(--studio-legacy-modal-spacing);
 }
 
 .icon > * {
@@ -30,7 +30,7 @@
 
 .dialog.withContentPadding .content,
 .footer {
-  padding: var(--studio-modal-spacing);
+  padding: var(--studio-legacy-modal-spacing);
 }
 
 .footer {

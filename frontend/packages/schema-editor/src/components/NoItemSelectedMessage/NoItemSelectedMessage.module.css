@@ -1,6 +1,6 @@
 .noItem {
   display: flex;
   padding-left: var(--fds-spacing-3);
-  border-bottom: var(--studio-border-divider);
+  border-bottom: var(--studio-legacy-border-divider);
   padding-block: var(--fds-spacing-4);
 }

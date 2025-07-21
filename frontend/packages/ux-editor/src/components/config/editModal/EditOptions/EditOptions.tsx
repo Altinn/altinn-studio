@@ -29,7 +29,7 @@ export function EditOptions<T extends SelectionComponentType>({
 
   return (
     <div className={classes.root}>
-      <Heading level={3} size='xxsmall' spacing={true} className={classes.optionsHeading}>
+      <Heading level={4} size='xxsmall' spacing={true} className={classes.optionsHeading}>
         {t('ux_editor.options.section_heading')}
       </Heading>
       {isPending ? (

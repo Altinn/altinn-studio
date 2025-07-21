@@ -23,7 +23,6 @@ export type BpmnApiContextProps = {
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
   saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
-  openPolicyEditor: () => void;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
   onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
 };

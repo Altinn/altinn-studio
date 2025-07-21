@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Expression } from '../types/Expression';
 import { isStringValidAsExpression } from '../validators/isStringValidAsExpression';
 import { stringToExpression } from '../converters/stringToExpression';
@@ -19,22 +19,24 @@ export const ManualEditor = ({
   isManualExpressionValidRef,
 }: ManualEditorProps) => {
   const { texts } = useStudioExpressionContext();
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
-  const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const expressionString = expressionToString(givenExpression);
+  const [isValid, setIsValid] = useState<boolean>(isStringValidAsExpression(expressionString));
+
+  // Sync local validity when the expression is cleared by external deletion
+  useEffect(() => {
+    const isValidAfterExternalChange = isStringValidAsExpression(expressionString);
+    setIsValid(isValidAfterExternalChange);
+    isManualExpressionValidRef.current = isValidAfterExternalChange;
+  }, [expressionString, isManualExpressionValidRef]);
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.target;
-    setExpressionString(value);
-    if (isStringValidAsExpression(value)) {
-      const expression = stringToExpression(value);
-      onChange(expression);
-      setIsValid(true);
-      isManualExpressionValidRef.current = true;
-    } else {
-      setIsValid(false);
-      isManualExpressionValidRef.current = false;
+    const isValueValid = isStringValidAsExpression(value);
+    isManualExpressionValidRef.current = isValueValid;
+    setIsValid(isValueValid);
+
+    if (isValueValid) {
+      onChange(stringToExpression(value));
     }
   };
 

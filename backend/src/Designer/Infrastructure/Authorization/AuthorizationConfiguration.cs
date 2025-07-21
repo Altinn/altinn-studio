@@ -1,5 +1,4 @@
 using Altinn.Studio.Designer.ModelBinding.Constants;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,12 +48,19 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
                     });
+
+                options.AddPolicy(AltinnPolicy.MustBelongToOrganization, policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new BelongsToOrganizationRequirement());
+                });
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaDeployPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaPublishResourcePermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, BelongsToOrganizationHandler>();
 
             return services;
         }

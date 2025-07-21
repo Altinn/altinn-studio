@@ -30,11 +30,11 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<RefToOptionListSpecifier> responseList = JsonSerializer.Deserialize<List<RefToOptionListSpecifier>>(responseBody);
+        List<OptionListReference> responseList = JsonSerializer.Deserialize<List<OptionListReference>>(responseBody);
 
-        List<RefToOptionListSpecifier> expectedResponseList = new()
+        List<OptionListReference> expectedResponseList = new()
         {
-            new RefToOptionListSpecifier
+            new OptionListReference
             {
                 OptionListId = "test-options", OptionListIdSources =
                 [

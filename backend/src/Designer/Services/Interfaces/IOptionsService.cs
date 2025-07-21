@@ -33,12 +33,14 @@ public interface IOptionsService
     public Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a list of sources, <see cref="RefToOptionListSpecifier"/>, for all OptionListIds.
+    /// Gets all option lists from the app repository.
     /// </summary>
-    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="org">Organisation</param>
+    /// <param name="repo">Repository</param>
+    /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>A list of <see cref="RefToOptionListSpecifier"/></returns>
-    public Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+    /// <returns>All option lists</returns>
+    public Task<List<OptionListData>> GetOptionLists(string org, string repo, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new options list in the app repository.
@@ -99,7 +101,8 @@ public interface IOptionsService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the option list</param>
+    /// <param name="overwriteTextResources">Override existing text resources</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The imported option list</returns>
-    public Task<List<Option>> ImportOptionListFromOrgIfIdIsVacant(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default);
+    /// <returns>The imported option list, null if option list id already exists</returns>
+    public Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default);
 }

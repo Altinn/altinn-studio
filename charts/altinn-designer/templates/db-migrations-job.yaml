@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: db-migrations-job
-          image: "{{ .Values.dbMigrationsJob.image.repository }}:{{ required "image.tag not set" .Values.dbMigrationsJob.image.tag }}"
+          image: "{{ .Values.dbMigrationsJob.image.repository }}:{{ required "dbMigrationsJob.image.tag not set" .Values.dbMigrationsJob.image.tag }}"
           imagePullPolicy: Always
           envFrom:
             - secretRef:

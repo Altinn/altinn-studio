@@ -4,9 +4,9 @@
   display: grid;
   grid-template-columns: 1fr auto;
   justify-content: flex-start;
-  margin: calc(-1 * var(--studio-property-button-vertical-spacing)) 0;
+  margin: calc(-1 * var(--studio-legacy-property-button-vertical-spacing)) 0;
   overflow: hidden;
-  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
 }
 
 .propertyButton.withValue .content {

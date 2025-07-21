@@ -1,0 +1,10 @@
+.wrapper {
+  --inline-spacing-size: var(--ds-size-6);
+
+  padding-bottom: var(--ds-size-15);
+  margin-bottom: var(--ds-size-15);
+}
+
+.headingWrapper {
+  padding-inline: var(--ds-size-6);
+}

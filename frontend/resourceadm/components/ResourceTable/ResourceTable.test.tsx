@@ -115,6 +115,18 @@ describe('ResourceTable', () => {
     expect(lastChangedCell).not.toBeInTheDocument();
   });
 
+  it('displays last changed date blank if resource has last changed date min date', () => {
+    render(
+      <ResourceTable
+        {...defaultProps}
+        list={[{ ...mockResourceListItem3, lastChanged: new Date(null) }]}
+      />,
+    );
+
+    const lastChangedCell = screen.queryByText('01.01.1970');
+    expect(lastChangedCell).not.toBeInTheDocument();
+  });
+
   it('displays environments for resource', () => {
     render(<ResourceTable {...defaultProps} />);
 

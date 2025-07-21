@@ -8,6 +8,7 @@ export enum QueryKey {
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',
+  CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
@@ -57,6 +58,13 @@ export enum QueryKey {
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
 
+  // Admin
+  AppInstances = 'AppInstances',
+  AppInstanceDetails = 'AppInstanceDetails',
+  ProcessHistory = 'ProcessHistory',
+  InstanceEvents = 'InstanceEvents',
+  RunningApps = 'RunningApps',
+
   // Resourceadm
   ResourceList = 'ResourceList',
   ResourcePolicy = 'ResourcePolicy',
@@ -71,6 +79,7 @@ export enum QueryKey {
   PublishResource = 'PublishResource',
   Altinn2Services = 'Altinn2Services',
   ImportAltinn2Resource = 'ImportAltinn2Resource',
+  AllAccessLists = 'AllAccessLists',
   AccessLists = 'AccessLists',
   AccessList = 'AccessList',
   AccessListMembers = 'AccessListMembers',

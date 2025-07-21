@@ -51,7 +51,7 @@ export const useValidateSchemaName = (
 
 export const DATA_MODEL_NAME_MAX_LENGTH = 100;
 
-const isCSharpReservedKeyword = (word: string): boolean => {
+export const isCSharpReservedKeyword = (word: string): boolean => {
   const cSharpKeywords = new Set([
     'abstract',
     'as',

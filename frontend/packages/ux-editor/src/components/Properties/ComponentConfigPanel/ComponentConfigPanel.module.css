@@ -1,0 +1,8 @@
+.accordionContent {
+  padding: var(--fds-spacing-5) 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
+}
+
+.unknownComponentAlert {
+  padding: var(--fds-spacing-5);
+}

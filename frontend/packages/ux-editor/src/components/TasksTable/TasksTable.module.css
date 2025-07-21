@@ -1,6 +1,7 @@
 .tasksTable {
   padding: var(--fds-spacing-2) 0;
   border: 1px solid var(--ds-color-neutral-border-subtle);
+  margin-bottom: var(--fds-spacing-5);
 }
 
 .tasksTable th {

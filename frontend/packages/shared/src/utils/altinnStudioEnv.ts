@@ -1,7 +1,7 @@
 /**
  * altinnStudioEnvironment is the facade object that should be used to access environment variables.
  */
-type AltinnStudioEnvironment = {
+export type AltinnStudioEnvironment = {
   aiConnectionString?: string;
 };
 

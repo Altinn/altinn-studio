@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         run: altinn-repositories
+        app: altinn-repositories
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
     spec:

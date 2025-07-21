@@ -10,7 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
 
 const mockOrg: string = 'org';
 const mockEnv: string = 'env1';

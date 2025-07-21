@@ -88,8 +88,7 @@ export function isOptionsIdReferenceId(
 
 export function hasStaticOptionList(
   optionListIds: string[],
-  optionsId: undefined | string,
-  options: undefined | OptionList,
+  { optionsId, options }: FormComponent<SelectionComponentType>,
 ): boolean {
   if (options) return true;
   return !!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId);
@@ -97,11 +96,4 @@ export function hasStaticOptionList(
 
 function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {
   return optionListIds.some((id: string) => id.toLowerCase() === optionsId?.toLowerCase());
-}
-
-export function isInitialOptionsSet(
-  previousOptions: OptionList,
-  currentOptions: OptionList,
-): boolean {
-  return !previousOptions && !!currentOptions;
 }

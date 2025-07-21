@@ -22,7 +22,7 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/task-navigation";
 
     [Theory]
-    [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task UpdateTaskNavigation_WhenValidPayload_ReturnsNoContent(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -59,7 +59,7 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task UpdateTaskNavigation_WhenEmptyPayload_ReturnsNoContent(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -84,7 +84,7 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-groups-and-taskNavigation", "testUser")]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task UpdateTaskNavigation_WhenInvalidPayload_ReturnsBadRequest(string org, string app, string developer)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();

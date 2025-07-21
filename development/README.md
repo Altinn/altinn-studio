@@ -19,6 +19,7 @@ These are created by the script and are found at the root in the `.env`-file.
 CYPRESS_TEST_APP=<cypress-test-app>
 DEVELOP_APP_DEVELOPMENT=0
 DEVELOP_RESOURCE_ADMIN=0
+DEVELOP_ADMIN_FRONTEND=0
 DEVELOP_BACKEND=1
 DEVELOP_DASHBOARD=0
 DEVELOP_PREVIEW=0

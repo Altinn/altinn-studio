@@ -1,5 +1,6 @@
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { usePagesQuery } from './queries/usePagesQuery';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 
 type UseGetPageByName = {
   layoutSetName: string;
@@ -13,7 +14,8 @@ export const useGetPageByName = ({ layoutSetName, org, app }: UseGetPageByName):
   const { data: pagesResponse } = usePagesQuery(org, app, layoutSetName);
 
   return (name) => {
-    if (pagesResponse?.groups) {
+    if (!pagesResponse) return undefined;
+    if (isPagesModelWithGroups(pagesResponse)) {
       return pagesResponse.groups.flatMap((group) => group.order).find((page) => page.id === name);
     }
     return pagesResponse?.pages.find((page) => page.id === name);

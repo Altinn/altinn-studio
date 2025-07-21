@@ -28,11 +28,6 @@ type ResourceCheckboxGroupProps = {
    */
   errors: ResourceFormError[];
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * Fucntion to execute on change
    * @param val the values selected
    * @returns void
@@ -58,7 +53,6 @@ type ResourceCheckboxGroupProps = {
  * @property {string}[description] - The description of the group
  * @property {ResourceFormError[]}[errors] -  Field errors
  * @property {function}[onChange] - Fucntion to execute on change
- * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
  * @property {boolean}[required] - Whether this field is required or not
  *
@@ -70,7 +64,6 @@ export const ResourceCheckboxGroup = ({
   legend,
   description,
   errors,
-  onFocus,
   onChange,
   value,
   required,
@@ -98,7 +91,6 @@ export const ResourceCheckboxGroup = ({
         size='sm'
         error={fieldErrors.length > 0 ? fieldErrors : undefined}
         onChange={onChange}
-        onFocus={onFocus}
         value={value}
       >
         {displayAvailableForCheckboxes()}

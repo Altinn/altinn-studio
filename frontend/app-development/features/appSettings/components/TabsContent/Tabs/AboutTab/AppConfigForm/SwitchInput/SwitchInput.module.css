@@ -1,0 +1,11 @@
+.topContentWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headingWrapper {
+  display: flex;
+  gap: var(--ds-size-2);
+  font-weight: bold;
+}

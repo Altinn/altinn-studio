@@ -1,4 +1,4 @@
 .buttons {
   display: flex;
-  gap: var(--studio-property-button-vertical-spacing);
+  gap: var(--studio-legacy-property-button-vertical-spacing);
 }

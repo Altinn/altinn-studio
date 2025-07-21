@@ -89,7 +89,18 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             GenerateFrozenSet(
                 nameof(PreviewController.Datamodel)
             )
-        }
+        },
+        {
+            TrimmedControllerName(nameof(LayoutController)),
+            GenerateFrozenSet(
+                nameof(LayoutController.UpdatePageGroups),
+                nameof(LayoutController.ConvertToPageOrder),
+                nameof(LayoutController.ConvertToPageGroups),
+                nameof(LayoutController.ModifyPages),
+                nameof(LayoutController.DeletePage),
+                nameof(LayoutController.ModifyPage)
+            )
+        },
     }.ToFrozenDictionary();
 
     private static FrozenSet<string> GenerateFrozenSet(params string[] actions)

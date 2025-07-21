@@ -1,4 +1,8 @@
-import { getPageNameErrorKey, pageNameExists } from './designViewUtils';
+import {
+  getPageNameErrorKey,
+  getUpdatedGroupsExcludingPage,
+  pageNameExists,
+} from './designViewUtils';
 
 const mockNewNameCandidateCorrect: string = 'newPage';
 const mockNewNameCandidateExists: string = 'page2';
@@ -102,6 +106,46 @@ describe('designViewUtils', () => {
         mockLayoutNames,
       );
       expect(nameError).toEqual(null);
+    });
+  });
+
+  describe('getUpdatedGroupsExcludingPage', () => {
+    const page = (id: string) => ({ id });
+    const group = (pages: string[], name?: string) => ({
+      order: pages.map(page),
+      ...(name ? { name } : {}),
+    });
+
+    it('should remove the page from the specified group', () => {
+      const groups = [group(['page1', 'page2'], 'Group 1'), group(['page3'])];
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: 'page1',
+        groups,
+        groupIndex: 0,
+      });
+
+      expect(updatedGroups).toEqual([group(['page2']), group(['page3'])]);
+    });
+
+    it('should remove the group if it becomes empty', () => {
+      const groups = [group(['page1', 'page2'], 'Group 1'), group(['page3'])];
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: 'page3',
+        groups,
+        groupIndex: 1,
+      });
+
+      expect(updatedGroups).toEqual([group(['page1', 'page2'], 'Group 1')]);
+    });
+    it('should keep the name of the group if it has more than one page left', () => {
+      const groups = [group(['page1', 'page2', 'page3'], 'Group 1')];
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: 'page1',
+        groups,
+        groupIndex: 0,
+      });
+
+      expect(updatedGroups).toEqual([group(['page2', 'page3'], 'Group 1')]);
     });
   });
 });

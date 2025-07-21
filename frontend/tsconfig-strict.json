@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictNullChecks": true
   },
-  "include": ["libs/studio-icons", "libs/studio-components"]
+  "include": ["libs/studio-icons", "libs/studio-components", "libs/studio-pure-functions"]
 }

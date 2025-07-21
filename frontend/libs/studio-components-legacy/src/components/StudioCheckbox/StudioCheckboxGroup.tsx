@@ -7,6 +7,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioCheckboxGroupProps = WithoutAsChild<CheckboxGroupProps>;
 
+/**
+ * @deprecated Use `StudioCheckboxGroup` from `@studio/components` instead.
+ */
 export const StudioCheckboxGroup = forwardRef<HTMLFieldSetElement, StudioCheckboxGroupProps>(
   ({ children, size = DEFAULT_CHECKBOX_SIZE, ...rest }, ref) => (
     <Checkbox.Group size={size} {...rest} ref={ref}>

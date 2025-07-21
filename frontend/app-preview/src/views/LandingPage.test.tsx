@@ -92,7 +92,10 @@ describe('LandingPage', () => {
     await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
 
     const iframe = screen.getByTitle(textMock('preview.title'));
-    expect(iframe).toHaveAttribute('src', `/app-specific-preview/${org}/${app}?`);
+    expect(iframe).toHaveAttribute(
+      'src',
+      expect.stringContaining(`/app-specific-preview/${org}/${app}?#/instance/`),
+    );
   });
 
   it('should display a warning message when previewing a subform', async () => {

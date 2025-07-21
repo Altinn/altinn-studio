@@ -86,6 +86,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<Branch> GetBranch(string org, string repository, string branch);
 
         /// <summary>
+        /// Returns a list of branches in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The list of branches</returns>
+        Task<List<Branch>> GetBranches(string org, string repository);
+
+        /// <summary>
         /// Creates a new branch in the given repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>

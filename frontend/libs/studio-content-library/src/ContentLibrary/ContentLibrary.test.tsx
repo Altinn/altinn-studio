@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ContentLibraryProps } from './ContentLibrary';
 import { ContentLibrary } from './ContentLibrary';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -10,12 +11,17 @@ import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 const navigateMock = jest.fn();
 
+// Test data:
+const heading = 'The test library';
+const defaultProps: ContentLibraryProps = {
+  heading,
+  pages: mockPagesConfig,
+};
+
 describe('ContentLibrary', () => {
   it('renders the ContentLibrary with landingPage by default', () => {
     renderContentLibrary();
-    const libraryHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.library_heading'),
-    });
+    const libraryHeader = screen.getByRole('heading', { name: heading });
     const landingPageTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -47,10 +53,10 @@ describe('ContentLibrary', () => {
   });
 });
 
-const renderContentLibrary = (currentPage: PageName = undefined) => {
+const renderContentLibrary = (currentPage: PageName = undefined): void => {
   renderWithProviders(
     <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
-      <ContentLibrary pages={mockPagesConfig} />
+      <ContentLibrary {...defaultProps} />
     </RouterContext.Provider>,
   );
 };

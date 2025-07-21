@@ -19,11 +19,6 @@ type ResourceContactPointFieldsetProps = {
    */
   onLeaveTextFields: (contactPoint: ResourceContactPoint) => void;
   /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
-  onFocus: () => void;
-  /**
    * List of error messages
    */
   errors: ResourceFormError[];
@@ -43,7 +38,6 @@ type ResourceContactPointFieldsetProps = {
  *
  * @property {ResourceContactPoint}[contactPoint] - The contact point to display in the fieldset
  * @property {function}[onLeaveTextFields] - Function to be executed when leaving a text field
- * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {ResourceFormError[]}[errors] - List of error messages
  * @property {boolean}[required] - Whether this field is required or not
  * @property {number}[index] - Index of fieldset
@@ -53,7 +47,6 @@ type ResourceContactPointFieldsetProps = {
 export const ResourceContactPointFieldset = ({
   contactPoint,
   onLeaveTextFields,
-  onFocus,
   errors,
   required,
   index,
@@ -94,7 +87,6 @@ export const ResourceContactPointFieldset = ({
           }
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          onFocus={onFocus}
           onBlur={() => onLeaveTextFields({ ...contactPoint, category })}
           error={hasError}
         />
@@ -102,7 +94,6 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onFocus={onFocus}
           onBlur={() => onLeaveTextFields({ ...contactPoint, email })}
           error={hasError}
         />
@@ -110,7 +101,6 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_telephone')}
           value={telephone}
           onChange={(e) => setTelephone(e.target.value)}
-          onFocus={onFocus}
           onBlur={() => onLeaveTextFields({ ...contactPoint, telephone })}
           error={hasError}
         />
@@ -118,7 +108,6 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_contactpage')}
           value={contactPage}
           onChange={(e) => setContactPage(e.target.value)}
-          onFocus={onFocus}
           onBlur={() => onLeaveTextFields({ ...contactPoint, contactPage })}
           error={hasError}
         />

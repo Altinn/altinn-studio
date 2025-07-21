@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@studio/icons';
 import type { StudioContentMenuStoryExampleProps } from './StudioContentMenuStoryExample';
 import { StudioContentMenuStoryExample } from './StudioContentMenuStoryExample';

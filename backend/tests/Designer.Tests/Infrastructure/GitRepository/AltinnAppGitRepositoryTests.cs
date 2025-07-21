@@ -13,8 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Infrastructure.GitRepository
 {
-    public class AltinnAppGitRepositoryTests
+    public class AltinnAppGitRepositoryTests : IDisposable
     {
+        private string TargetRepoName { get; set; }
+
         [Fact]
         public void Constructor_ValidParameters_ShouldInstantiate()
         {
@@ -236,25 +238,17 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string layoutName = "layoutFile2InSet1";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            try
-            {
-                await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
-                AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
-                var formLayoutToSave = JsonNode.Parse("{\"$schema\":\"some-string\",\"data\":{\"layout\":[{\"id\":\"some-id\",\"type\":\"some-type\"}]}}");
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
-                JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+            var formLayoutToSave = JsonNode.Parse("{\"$schema\":\"some-string\",\"data\":{\"layout\":[{\"id\":\"some-id\",\"type\":\"some-type\"}]}}");
+            await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, formLayoutToSave);
+            JsonNode formLayoutSaved = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
 
-                Assert.NotNull(formLayoutSaved);
-                Assert.NotNull(formLayoutSaved["data"]);
-                Assert.NotNull(formLayoutSaved["data"]["layout"]);
-                Assert.Single(formLayoutSaved["data"]["layout"] as JsonArray);
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
-
+            Assert.NotNull(formLayoutSaved);
+            Assert.NotNull(formLayoutSaved["data"]);
+            Assert.NotNull(formLayoutSaved["data"]["layout"]);
+            Assert.Single(formLayoutSaved["data"]["layout"] as JsonArray);
         }
 
         [Fact]
@@ -323,7 +317,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionName = "new-options";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
             var newOptionsList = new List<Option>
@@ -359,7 +353,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionName = "test-options"; // these options already exist in this repo
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
             var newOptionsList = new List<Option>
@@ -392,7 +386,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public async Task GetSchemaFiles_FilesExist_ShouldReturnFiles(string org, string repository, string developer, int expectedSchemaFiles)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
             var files = altinnAppGitRepository.GetSchemaFiles();
@@ -408,7 +402,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
             var file = altinnAppGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
@@ -425,7 +419,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             string targetRepository = TestDataHelper.GenerateTestRepoName();
 
-            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
             var files = altinnAppGitRepository.GetSchemaFiles();
@@ -441,6 +435,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
             return altinnAppGitRepository;
+        }
+
+        public void Dispose()
+        {
+            if (!string.IsNullOrEmpty(TargetRepoName))
+            {
+                TestDataHelper.DeleteDirectory(TargetRepoName);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { ReactElement } from 'react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioProperty } from '../index';
 
 type Story = StoryFn<typeof StudioProperty.Button>;
@@ -8,7 +9,7 @@ const meta: Meta = {
   title: 'Components/StudioProperty/Button',
   component: StudioProperty.Button,
   decorators: [
-    (Story) => (
+    (Story): ReactElement => (
       <div style={{ width: '300px' }}>
         <Story />
       </div>

@@ -21,7 +21,6 @@ describe('ResourceReferenceFields', () => {
   const defaultProps: ResourceReferenceFieldsProps = {
     resourceReferenceList: mockReferenceList,
     onResourceReferenceFieldChanged: mockOnResourceReferenceFieldChanged,
-    onFocus: jest.fn(),
     errors: [],
   };
 

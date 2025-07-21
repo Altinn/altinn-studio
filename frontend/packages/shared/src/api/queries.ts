@@ -69,7 +69,9 @@ import {
   taskNavigationGroupPath,
   availableResourcesInOrgLibraryPath,
   consentTemplatesPath,
+  allAccessListsPath,
   orgTextLanguagesPath,
+  canUseFeaturePath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -112,6 +114,8 @@ import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
+import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -159,6 +163,7 @@ export const getWidgetSettings = (owner: string, app: string) => get<WidgetSetti
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
+export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
 
 // Layout
 export const getPages = (org: string, app: string, layoutSet: string) => get<PagesModel>(layoutPagesPath(org, app, layoutSet));
@@ -181,6 +186,7 @@ export const getResourcePublishStatus = (org: string, repo: string, id: string) 
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getAccessLists = (org: string, environment: string, page?: string) => get<AccessListsResponse>(accessListsPath(org, environment, page));
+export const getAllAccessLists = (org: string) => get<AccessList[]>(allAccessListsPath(org));
 export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
 export const getAccessListMembers = (org: string, listId: string, environment: string, page?: string) => get<AccessListMembersResponse>(accessListMemberPath(org, listId, environment, page));
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));

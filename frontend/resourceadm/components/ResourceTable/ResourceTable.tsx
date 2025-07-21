@@ -20,6 +20,10 @@ const isDateEqualToLocalResourceChangedTime = (date: Date): boolean => {
   );
 };
 
+const isDateEqualToMinDate = (date: Date): boolean => {
+  return new Date(date).getTime() === 0;
+};
+
 export type ResourceTableProps = {
   /**
    * The list to display in the table
@@ -163,7 +167,7 @@ export const ResourceTable = ({
           return '';
         }
         const date = new Date(value);
-        if (isDateEqualToLocalResourceChangedTime(date)) {
+        if (isDateEqualToLocalResourceChangedTime(date) || isDateEqualToMinDate(date)) {
           return '';
         }
         return date.toLocaleDateString('no-NB', {

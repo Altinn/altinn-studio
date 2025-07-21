@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioFieldset } from './StudioFieldset';
 
 type Story = StoryFn<typeof StudioFieldset>;

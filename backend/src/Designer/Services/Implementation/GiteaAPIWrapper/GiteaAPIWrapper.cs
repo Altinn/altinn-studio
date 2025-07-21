@@ -385,6 +385,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
+            Guard.AssertValidateOrganization(org);
+            Guard.AssertValidAppRepoName(repository);
+            Guard.AssertValidRepoBranchName(branch);
+
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -392,6 +396,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
+
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<Branch>> GetBranches(string org, string repository)
+        {
+            Guard.AssertValidateOrganization(org);
+            Guard.AssertValidAppRepoName(repository);
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<List<Branch>>();
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository);
 
             return null;
         }
@@ -427,6 +449,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return await _httpClient.SendAsync(message);
         }
+
+
 
         /// <inheritdoc />
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)

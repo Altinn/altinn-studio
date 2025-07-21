@@ -56,7 +56,9 @@ describe('TasksTableBody', () => {
     const taskMockReceipt = tasksMock[2];
 
     expect(
-      screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
+      screen.getAllByText(
+        `${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`,
+      )[0],
     ).toBeInTheDocument();
     expect(screen.getByText(1)).toBeInTheDocument();
   });
@@ -79,7 +81,9 @@ describe('TasksTableBody', () => {
     const taskMockReceipt = tasksMock[2];
 
     expect(
-      screen.getByText(`${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`),
+      screen.getAllByText(
+        `${textMock('ux_editor.task_table_type.' + taskMockReceipt.taskType)}`,
+      )[0],
     ).toBeInTheDocument();
     expect(screen.getByText(layoutSetsExtended[0].pageCount)).toBeInTheDocument();
   });
@@ -117,7 +121,7 @@ describe('TasksTableBody', () => {
 const getCommonElements = () => ({
   task1: screen.queryByText(textMock('Task 1')),
   task2: screen.queryByText(textMock('Task 2')),
-  receipt: screen.queryByText(textMock('ux_editor.task_table_type.receipt')),
+  receipt: screen.queryAllByText(textMock('ux_editor.task_table_type.receipt'))[0],
   layoutSet2Id: screen.queryByText(/test-layout-set-2/),
   receiptId: screen.queryByText(/fake/),
   displayButtons: screen.queryAllByRole('button', {

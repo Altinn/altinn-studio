@@ -1,5 +1,5 @@
 .header {
-  border-bottom: var(--studio-border-divider);
+  border-bottom: var(--studio-legacy-border-divider);
   padding-bottom: var(--fds-spacing-3);
 }
 

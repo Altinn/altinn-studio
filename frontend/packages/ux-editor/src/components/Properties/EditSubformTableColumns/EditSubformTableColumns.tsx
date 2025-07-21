@@ -14,13 +14,13 @@ import { SubformMissingContentWarning } from './SubformMissingContentWarning/Sub
 import cn from 'classnames';
 
 export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform> & {
-  mainConfigClass?: string;
+  className?: string;
 };
 
 export const EditSubformTableColumns = ({
   component,
   handleComponentChange,
-  mainConfigClass,
+  className,
 }: EditSubformTableColumnsProps): ReactElement => {
   const [newColumnNumber, setNewColumnNumber] = useState<number>();
   const { t } = useTranslation();
@@ -54,14 +54,14 @@ export const EditSubformTableColumns = ({
 
   if (subformLayoutIsConfigured === false) {
     return (
-      <EditSubformTableColumnsWrapper mainConfigClass={mainConfigClass}>
+      <EditSubformTableColumnsWrapper className={className}>
         <SubformMissingContentWarning subformLayoutSetName={component.layoutSet} />
       </EditSubformTableColumnsWrapper>
     );
   }
 
   return (
-    <EditSubformTableColumnsWrapper mainConfigClass={mainConfigClass}>
+    <EditSubformTableColumnsWrapper className={className}>
       {tableColumns.length > 0 &&
         tableColumns.map((tableColumn: TableColumn, index: number) => (
           <ColumnElement
@@ -88,16 +88,16 @@ export const EditSubformTableColumns = ({
 
 type EditSubformTableColumnsWrapperProps = {
   children: ReactNode;
-  mainConfigClass?: string;
+  className?: string;
 };
 
 const EditSubformTableColumnsWrapper = ({
   children,
-  mainConfigClass,
+  className,
 }: EditSubformTableColumnsWrapperProps) => {
   const { t } = useTranslation();
   return (
-    <div className={cn(mainConfigClass ? mainConfigClass : classes.wrapper)}>
+    <div className={cn(className ? className : classes.wrapper)}>
       <StudioHeading size='2xs' level={2}>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>

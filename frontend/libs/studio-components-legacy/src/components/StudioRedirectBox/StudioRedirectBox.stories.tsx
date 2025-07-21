@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react-vite';
 import { StudioRedirectBox } from './StudioRedirectBox';
 import { StudioParagraph } from '../StudioParagraph';
 

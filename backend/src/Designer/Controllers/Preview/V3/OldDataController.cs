@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview.V3
 {
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/v3/instances/{partyId}/{instanceGuid}/data")]
+    [Route("{org:regex(^(?!designer|editor|dashboard|preview|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/v3/instances/{partyId}/{instanceGuid}/data")]
     public class OldDataController(
     ) : Controller
     {

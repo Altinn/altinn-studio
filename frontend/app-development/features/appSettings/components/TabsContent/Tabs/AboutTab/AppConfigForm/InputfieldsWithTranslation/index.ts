@@ -1,0 +1,1 @@
+export { InputfieldsWithTranslation } from './InputfieldsWithTranslation';

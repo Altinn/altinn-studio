@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,19 +24,19 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images")]
 public class ImageController : ControllerBase
 {
-
     private readonly IImagesService _imagesService;
-    private readonly ImageClient _imageClient;
+    private readonly IImageUrlValidationService _imageUrlValidationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ImageController"/> class.
     /// </summary>
     /// <param name="imagesService">The images service.</param>
-    /// <param name="imageClient">A http client to validate external image url</param>
-    public ImageController(IImagesService imagesService, ImageClient imageClient)
+    /// <param name="imageUrlValidationService"></param>
+    public ImageController(IImagesService imagesService,
+        IImageUrlValidationService imageUrlValidationService)
     {
         _imagesService = imagesService;
-        _imageClient = imageClient;
+        _imageUrlValidationService = imageUrlValidationService;
     }
 
     /// <summary>
@@ -83,9 +82,17 @@ public class ImageController : ControllerBase
     /// <returns>NotAnImage if url does not point at an image or NotValidUrl if url is invalid for any other reason</returns>
     [HttpGet("validate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ImageUrlValidationResult> ValidateExternalImageUrl([FromQuery] string url)
+    public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string url)
     {
-        return await _imageClient.ValidateUrlAsync(url);
+        ImageUrlValidationResult imageUrlValidationResult =
+            await _imageUrlValidationService.ValidateUrlAsync(url);
+
+        if (imageUrlValidationResult == ImageUrlValidationResult.NotValidImage)
+        {
+            return UnprocessableEntity(ImageUrlValidationResult.NotValidImage);
+        }
+
+        return Ok(ImageUrlValidationResult.Ok);
     }
 
     /// <summary>
@@ -98,12 +105,14 @@ public class ImageController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "file")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
+    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "file")] IFormFile image,
+        [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
     {
         if (image == null || image.Length == 0)
         {
             return BadRequest("No file uploaded.");
         }
+
         if (!IsValidImageContentType(image.ContentType))
         {
             throw new InvalidExtensionImageUploadException("The uploaded file is not a valid image.");
@@ -152,5 +161,4 @@ public class ImageController : ControllerBase
     {
         return contentType.ToLower().StartsWith("image/");
     }
-
 }

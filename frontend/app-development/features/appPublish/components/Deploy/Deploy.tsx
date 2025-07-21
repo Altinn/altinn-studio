@@ -72,7 +72,7 @@ export const Deploy = ({
               i18nKey={'app_deployment.technical_error_1'}
               components={{
                 a: (
-                  <Link href='/contact' inverted={true}>
+                  <Link href='/info/contact' inverted={true}>
                     {' '}
                   </Link>
                 ),

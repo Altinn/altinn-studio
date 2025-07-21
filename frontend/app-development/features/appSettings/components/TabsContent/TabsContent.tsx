@@ -1,19 +1,17 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import type { SettingsTabId } from '../../types/SettingsTabId';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { PolicyTab } from './Tabs/PolicyTab';
 import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
 import { MaskinportenTab } from './Tabs/MaskinportenTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
+import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
-export type TabsContentProps = {
-  currentTab: SettingsTabId;
-};
+export function TabsContent(): ReactElement {
+  const { tabToDisplay } = useCurrentSettingsTab();
 
-export function TabsContent({ currentTab }: TabsContentProps): ReactElement {
-  switch (currentTab) {
+  switch (tabToDisplay) {
     case 'about': {
       return <AboutTab />;
     }

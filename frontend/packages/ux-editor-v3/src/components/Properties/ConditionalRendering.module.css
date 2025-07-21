@@ -17,10 +17,10 @@
 }
 
 .alert {
-  border-top: var(--studio-border-divider);
+  border-top: var(--studio-legacy-border-divider);
   padding-block: var(--fds-spacing-8);
 }
 
 .conditionalRenderingWrapper {
-  border-bottom: var(--studio-border-divider);
+  border-bottom: var(--studio-legacy-border-divider);
 }

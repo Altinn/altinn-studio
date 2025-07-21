@@ -107,7 +107,3 @@ Cypress.Commands.add('selectElementInApplicationList', (appListHeaderText, eleme
 Cypress.Commands.add('ensureCreatePageIsLoaded', () => {
   cy.findByRole('button', { name: `${texts['ux_editor.pages_add']}` }).should('be.visible');
 });
-
-Cypress.Commands.add('openSettingsModal', () => {
-  cy.findByRole('button', { name: texts['settings_modal.heading'] }).click();
-});

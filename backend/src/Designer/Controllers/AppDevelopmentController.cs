@@ -59,20 +59,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Default action for the designer.
-        /// </summary>
-        /// <returns>default view for the app builder.</returns>
-        [HttpGet]
-        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public async Task<IActionResult> Index(string org, string app)
-        {
-            await _sourceControl.VerifyCloneExists(org, app);
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "app-development";
-            return View();
-        }
-
-        /// <summary>
         /// Get all form layouts
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

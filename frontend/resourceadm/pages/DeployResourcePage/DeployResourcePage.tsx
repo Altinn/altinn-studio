@@ -4,7 +4,6 @@ import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
 import {
   StudioTextfield,
-  StudioSpinner,
   StudioHeading,
   StudioLabelAsParagraph,
   StudioParagraph,
@@ -12,6 +11,7 @@ import {
   StudioAlert,
   StudioErrorMessage,
 } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {
@@ -25,13 +25,14 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { UrlConstants } from 'resourceadm/utils/urlUtils';
+import { UrlConstants } from '../../utils/urlUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   resourceVersionText: string;
   onSaveVersion: (version: string) => void;
   id: string;
+  isSavingResource: boolean;
 };
 
 /**
@@ -50,6 +51,7 @@ export const DeployResourcePage = ({
   resourceVersionText,
   onSaveVersion,
   id,
+  isSavingResource,
 }: DeployResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -58,7 +60,7 @@ export const DeployResourcePage = ({
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
   // Queries to get metadata
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
+  const { data: repoStatus, isFetching: isLoadingRepoStatus } = useRepoStatusQuery(org, app);
   const {
     status: publishStatusStatus,
     data: publishStatusData,
@@ -87,17 +89,23 @@ export const DeployResourcePage = ({
   };
 
   /**
-   * Gets either danger or success for the card type
+   * Gets either error, pending or success for the card type
    *
-   * @returns danger or success
+   * @returns error, pending or success
    */
-  const getStatusCardType = (): 'danger' | 'success' => {
-    const hasError =
+  const getStatusCardType = (): 'error' | 'success' | 'pending' => {
+    if (isSavingResource || isLoadingRepoStatus) {
+      return 'pending';
+    } else if (
       validateResourceData.status !== 200 ||
       validatePolicyData.status !== 200 ||
       !isLocalRepoInSync ||
-      resourceVersionText === '';
-    return hasError ? 'danger' : 'success';
+      resourceVersionText === ''
+    ) {
+      return 'error';
+    }
+
+    return 'success';
   };
 
   /**
@@ -154,18 +162,26 @@ export const DeployResourcePage = ({
    * Displays a spinner when loading the status or displays the status card
    */
   const displayStatusCard = () => {
-    return getStatusCardType() === 'success' ? (
+    const statusCardType = getStatusCardType();
+    if (statusCardType === 'pending') {
+      return (
+        <StudioSpinner data-size='xl' aria-label={t('resourceadm.deploy_status_card_loading')} />
+      );
+    } else if (statusCardType === 'error') {
+      return (
+        <ResourceDeployStatus
+          title={t('resourceadm.deploy_status_card_error_title')}
+          error={getStatusError()}
+          onNavigateToPageWithError={navigateToPageWithError}
+          resourceId={resourceId}
+        />
+      );
+    }
+    return (
       <ResourceDeployStatus
         title={t('resourceadm.deploy_status_card_success')}
         error={[]}
         isSuccess
-        resourceId={resourceId}
-      />
-    ) : (
-      <ResourceDeployStatus
-        title={t('resourceadm.deploy_status_card_error_title')}
-        error={getStatusError()}
-        onNavigateToPageWithError={navigateToPageWithError}
         resourceId={resourceId}
       />
     );
@@ -181,9 +197,16 @@ export const DeployResourcePage = ({
   const isDeployPossible = (envVersion: string): boolean => {
     const policyError =
       validatePolicyData === undefined || validatePolicyData.status !== ServerCodes.Ok;
+    const isLoading =
+      mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus) ===
+        'pending' ||
+      isSavingResource ||
+      isLoadingRepoStatus;
+
     const canDeploy =
       validateResourceData.status === 200 &&
       !policyError &&
+      !isLoading &&
       isLocalRepoInSync &&
       resourceVersionText !== '' &&
       envVersion !== resourceVersionText;
@@ -199,11 +222,7 @@ export const DeployResourcePage = ({
       case 'pending': {
         return (
           <div>
-            <StudioSpinner
-              size='xl'
-              variant='interaction'
-              spinnerTitle={t('resourceadm.deploy_spinner')}
-            />
+            <StudioSpinner data-size='xl' aria-label={t('resourceadm.deploy_spinner')} />
           </div>
         );
       }

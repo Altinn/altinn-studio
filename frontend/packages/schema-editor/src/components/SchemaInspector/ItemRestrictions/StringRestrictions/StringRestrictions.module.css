@@ -13,7 +13,7 @@
   flex-direction: row;
   gap: var(--fds-spacing-8);
   justify-content: space-between;
-  border-bottom: var(--studio-border-divider);
+  border-bottom: var(--studio-legacy-border-divider);
   padding-bottom: var(--fds-spacing-8);
 }
 

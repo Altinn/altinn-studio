@@ -9,6 +9,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
+import { TextEncoder, TextDecoder } from 'util';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -36,6 +37,9 @@ Object.defineProperty(window, 'scrollTo', {
   value: jest.fn(),
 });
 
+// polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
+Object.assign(global, { TextDecoder, TextEncoder });
+
 // ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
 class ResizeObserver {
   observe = jest.fn();
@@ -60,7 +64,11 @@ HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElemen
 });
 
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
-jest.mock('i18next', () => ({ use: () => ({ init: jest.fn() }) }));
+jest.mock('i18next', () => ({
+  use: () => ({ init: jest.fn() }),
+  t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+}));
+
 jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({

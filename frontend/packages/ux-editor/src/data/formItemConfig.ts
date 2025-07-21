@@ -390,6 +390,12 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/navigationButtonsComponent',
     icon: FingerButtonIcon,
   },
+  [ComponentType.OrganisationLookup]: {
+    name: ComponentType.OrganisationLookup,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: ShortTextIcon,
+  },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
     itemType: LayoutItemType.Component,
@@ -421,6 +427,12 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     icon: PaymentDetailsIcon,
+  },
+  [ComponentType.PersonLookup]: {
+    name: ComponentType.PersonLookup,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: ShortTextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
@@ -526,6 +538,8 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.RadioButtons],
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
+  formItemConfigs[ComponentType.OrganisationLookup],
+  formItemConfigs[ComponentType.PersonLookup],
   formItemConfigs[ComponentType.Likert],
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.Divider],
@@ -576,7 +590,13 @@ export const defaultComponents: ComponentType[] = [
 ];
 
 export const allComponents: KeyValuePairs<ComponentType[]> = {
-  form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
+  form: [
+    ComponentType.Input,
+    ComponentType.TextArea,
+    ComponentType.Datepicker,
+    ComponentType.OrganisationLookup,
+    ComponentType.PersonLookup,
+  ],
   text: [
     ComponentType.Header,
     ComponentType.Paragraph,

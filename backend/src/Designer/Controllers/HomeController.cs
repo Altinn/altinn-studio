@@ -42,7 +42,8 @@ namespace Altinn.Studio.Designer.Controllers
             GeneralSettings generalSettings,
             IGitea giteaWrapper,
             ISourceControl sourceControl,
-            ApplicationInsightsSettings applicationInsightsSettings)
+            ApplicationInsightsSettings applicationInsightsSettings
+        )
         {
             _logger = logger;
             _settings = repositorySettings;
@@ -72,29 +73,6 @@ namespace Altinn.Studio.Designer.Controllers
             Response.Cookies.Delete(General.DesignerCookieName);
             Response.Cookies.Delete(_settings.GiteaCookieName);
             return View("StartPage");
-
-        }
-
-        [Route("/{*AllValues:regex(^(?!designer).*$)}")]
-        public IActionResult Index()
-        {
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "studio-root";
-            return View();
-        }
-
-        /// <summary>
-        /// The default action presenting a list of available apps when the user is logged in
-        /// </summary>
-        /// <returns>The front page</returns>
-        [Route("/[controller]/[action]")]
-        [Authorize]
-        [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
-        public ActionResult Dashboard()
-        {
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "dashboard";
-            return View("Index");
         }
 
         /// <summary>
@@ -117,11 +95,8 @@ namespace Altinn.Studio.Designer.Controllers
             HttpContext.Response.Cookies.Append(
                 _generalSettings.SessionTimeoutCookieName,
                 string.Empty,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTime.Now.AddDays(-10)
-                });
+                new CookieOptions { HttpOnly = true, Expires = DateTime.Now.AddDays(-10) }
+            );
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");
