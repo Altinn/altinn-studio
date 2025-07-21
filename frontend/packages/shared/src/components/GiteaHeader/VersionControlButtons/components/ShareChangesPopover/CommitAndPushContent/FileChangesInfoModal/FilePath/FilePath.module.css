@@ -37,7 +37,7 @@ details[open] .chevronIcon {
 
 .gitDiffViewer {
   padding: var(--fds-spacing-4);
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--fds-sizing-2);
   margin-top: var(--fds-spacing-2);
   background-color: var(--fds-semantic-surface-action-first-no_fill);
   font-family: monospace;

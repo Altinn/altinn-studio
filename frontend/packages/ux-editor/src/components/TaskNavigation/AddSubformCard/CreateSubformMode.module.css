@@ -4,7 +4,7 @@
   gap: var(--fds-spacing-3);
   background-color: var(--fds-semantic-background-default);
   border: var(--fds-border_width-active) solid var(--fds-semantic-border-first-active);
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-lg);
 }
 
 .subformTabs {
@@ -12,7 +12,7 @@
   flex-direction: column;
   gap: var(--fds-spacing-3);
   border: 1px solid #bcbfc5;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-md);
   padding: var(--fds-spacing-1) var(--fds-spacing-6);
 }
 

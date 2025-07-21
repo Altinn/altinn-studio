@@ -4,7 +4,7 @@
   min-height: 320px;
   height: fit-content;
   gap: var(--fds-spacing-3);
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--fds-border_radius-large);
   border: var(--fds-border_width-active) solid var(--fds-semantic-border-first-active);
   flex-shrink: 0;
   flex-direction: column;

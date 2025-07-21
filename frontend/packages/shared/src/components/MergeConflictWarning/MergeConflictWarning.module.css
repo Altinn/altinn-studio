@@ -6,7 +6,7 @@
   padding: 50px 100px;
   width: 660px;
   border: 1px solid #c9c9c9;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--ds-border-radius-md);
 }
 
 .buttonContainer {
