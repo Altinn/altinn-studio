@@ -230,12 +230,20 @@ export interface IUserAction {
   type: 'ProcessAction' | 'ServerAction';
 }
 
+export const ELEMENT_TYPE = {
+  SERVICE_TASK: 'ServiceTask',
+  TASK: 'Task',
+} as const;
+
+type ElementType = (typeof ELEMENT_TYPE)[keyof typeof ELEMENT_TYPE];
+
 export type ITask = {
   flow: number;
   started: string;
   elementId: string;
   name: string;
   altinnTaskType: string;
+  elementType?: ElementType;
   ended?: string | null;
   validated?: IValidated | null;
 

@@ -154,6 +154,7 @@ async function render({ actions, actionAuthorization }: RenderProps = { actionAu
       flow: 2,
       started: '2024-01-03T06:37:22.7573522Z',
       elementId: 'Task_1',
+      elementType: 'Task',
       name: 'Utfylling',
       altinnTaskType: 'data',
       ended: null,

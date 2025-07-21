@@ -10,6 +10,7 @@ export function getProcessDataMock(mutate?: (process: IProcess) => void): IProce
       flow: 1,
       started: '2020-01-01',
       elementId: 'Task_1',
+      elementType: 'Task',
       name: 'Task_1',
       altinnTaskType: 'data',
       ended: null,

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export type HttpClientError = AxiosError;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type HttpClientError<T = unknown, D = any> = AxiosError<T, D>;
 
 export async function httpGet<T>(url: string, options?: AxiosRequestConfig): Promise<T> {
   const response: AxiosResponse = await axios.get(url, {

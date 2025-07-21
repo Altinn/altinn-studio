@@ -126,12 +126,12 @@ export function useInstanceDataQueryDef(
 
 function useGetInstanceDataQuery(
   hasResultFromInstantiation: boolean,
-  partyId: string | undefined,
+  instanceOwnerPartyId: string | undefined,
   instanceGuid: string | undefined,
   enablePolling: boolean = false,
   enabled: boolean = true,
 ) {
-  const queryDef = useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid);
+  const queryDef = useInstanceDataQueryDef(hasResultFromInstantiation, instanceOwnerPartyId, instanceGuid);
 
   const utils = useQuery({
     ...queryDef,
