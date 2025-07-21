@@ -24,12 +24,14 @@ public static class HttpClientExtension
         string? platformAccessToken = null
     )
     {
-        HttpRequestMessage request = new(HttpMethod.Post, requestUri);
+        using HttpRequestMessage request = new(HttpMethod.Post, requestUri);
+        request.Content = content;
+
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,
             authorizationToken
         );
-        request.Content = content;
+
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
@@ -55,12 +57,14 @@ public static class HttpClientExtension
         string? platformAccessToken = null
     )
     {
-        HttpRequestMessage request = new(HttpMethod.Put, requestUri);
+        using HttpRequestMessage request = new(HttpMethod.Put, requestUri);
+        request.Content = content;
+
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,
             authorizationToken
         );
-        request.Content = content;
+
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
@@ -84,11 +88,13 @@ public static class HttpClientExtension
         string? platformAccessToken = null
     )
     {
-        HttpRequestMessage request = new(HttpMethod.Get, requestUri);
+        using HttpRequestMessage request = new(HttpMethod.Get, requestUri);
+
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,
             authorizationToken
         );
+
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
@@ -112,11 +118,13 @@ public static class HttpClientExtension
         string? platformAccessToken = null
     )
     {
-        HttpRequestMessage request = new(HttpMethod.Delete, requestUri);
+        using HttpRequestMessage request = new(HttpMethod.Delete, requestUri);
+
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,
             authorizationToken
         );
+
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);

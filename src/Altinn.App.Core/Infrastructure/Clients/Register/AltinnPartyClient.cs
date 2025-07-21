@@ -49,39 +49,42 @@ public class AltinnPartyClient : IAltinnPartyClient
     )
     {
         _logger = logger;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        _client = httpClient;
         _appMetadata = appMetadata;
         _userTokenProvider = userTokenProvider;
         _accessTokenGenerator = accessTokenGenerator;
         _telemetry = telemetry;
+        _client = httpClient;
+        _client.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
+        _client.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
     /// <inheritdoc/>
     public async Task<Party?> GetParty(int partyId)
     {
         using var activity = _telemetry?.StartGetPartyActivity(partyId);
-        Party? party = null;
 
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         string endpointUrl = $"parties/{partyId}";
         string token = _userTokenProvider.GetUserToken();
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-        HttpResponseMessage response = await _client.GetAsync(
+
+        using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
             _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
         );
-        if (response.StatusCode == HttpStatusCode.OK)
+
+        Party? party = response.StatusCode switch
         {
-            party = await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
-        }
-        else if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            throw new ServiceException(HttpStatusCode.Unauthorized, "Unauthorized for party");
-        }
-        else
+            HttpStatusCode.OK => await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content),
+            HttpStatusCode.Unauthorized => throw new ServiceException(
+                HttpStatusCode.Unauthorized,
+                "Unauthorized for party"
+            ),
+            _ => null,
+        };
+
+        if (party is null)
         {
             _logger.LogError(
                 "// Getting party with partyID {PartyId} failed with statuscode {StatusCode}",
@@ -97,46 +100,33 @@ public class AltinnPartyClient : IAltinnPartyClient
     public async Task<Party> LookupParty(PartyLookup partyLookup)
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
-        Party party;
 
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         string endpointUrl = "parties/lookup";
         string token = _userTokenProvider.GetUserToken();
 
-        StringContent content = new StringContent(JsonSerializerPermissive.Serialize(partyLookup));
+        using StringContent content = new(JsonSerializerPermissive.Serialize(partyLookup));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        HttpRequestMessage request = new HttpRequestMessage
-        {
-            RequestUri = new Uri(endpointUrl, UriKind.Relative),
-            Method = HttpMethod.Post,
-            Content = content,
-        };
-
-        request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-        request.Headers.Add(
-            General.PlatformAccessTokenHeaderName,
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            endpointUrl,
+            content,
             _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
         );
 
-        HttpResponseMessage response = await _client.SendAsync(request);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            party = await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
-        }
-        else
-        {
-            string reason = await response.Content.ReadAsStringAsync();
-            _logger.LogError(
-                "// Getting party with orgNo: {OrgNo} or ssn: {Ssn} failed with statuscode {StatusCode} - {Reason}",
-                partyLookup.OrgNo,
-                partyLookup.Ssn,
-                response.StatusCode,
-                reason
-            );
-
-            throw await PlatformHttpException.CreateAsync(response);
+            return await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
         }
 
-        return party;
+        _logger.LogError(
+            "// Getting party with orgNo: {OrgNo} or ssn: {Ssn} failed with statuscode {StatusCode} - {Reason}",
+            partyLookup.OrgNo,
+            partyLookup.Ssn,
+            response.StatusCode,
+            await response.Content.ReadAsStringAsync()
+        );
+
+        throw await PlatformHttpException.CreateAsync(response);
     }
 }

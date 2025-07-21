@@ -57,7 +57,13 @@ public class EventsClientTest
         };
 
         HttpRequestMessage actualRequest = null;
-        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        CloudEvent actualEvent = null;
+        void SetRequest(HttpRequestMessage request)
+        {
+            actualRequest = request;
+            actualEvent = JsonSerializer.Deserialize<CloudEvent>(request.Content!.ReadAsStringAsync().Result);
+        }
+
         InitializeMocks(httpResponseMessage, SetRequest);
 
         HttpClient httpClient = new(handlerMock.Object);
@@ -79,10 +85,7 @@ public class EventsClientTest
         // Assert
         Assert.NotNull(actualRequest);
         Assert.Equal(HttpMethod.Post, actualRequest.Method);
-        Assert.EndsWith("app", actualRequest.RequestUri.OriginalString);
-
-        string requestContent = await actualRequest.Content.ReadAsStringAsync();
-        CloudEvent actualEvent = JsonSerializer.Deserialize<CloudEvent>(requestContent);
+        Assert.EndsWith("app", actualRequest.RequestUri!.OriginalString);
 
         Assert.NotNull(actualEvent);
         Assert.Equal("/party/123", actualEvent.Subject);
@@ -112,7 +115,13 @@ public class EventsClientTest
         };
 
         HttpRequestMessage actualRequest = null;
-        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        CloudEvent actualEvent = null;
+        void SetRequest(HttpRequestMessage request)
+        {
+            actualRequest = request;
+            actualEvent = JsonSerializer.Deserialize<CloudEvent>(request.Content!.ReadAsStringAsync().Result);
+        }
+
         InitializeMocks(httpResponseMessage, SetRequest);
 
         HttpClient httpClient = new HttpClient(handlerMock.Object);
@@ -133,10 +142,7 @@ public class EventsClientTest
         // Assert
         Assert.NotNull(actualRequest);
         Assert.Equal(HttpMethod.Post, actualRequest.Method);
-        Assert.EndsWith("app", actualRequest.RequestUri.OriginalString);
-
-        string requestContent = await actualRequest.Content.ReadAsStringAsync();
-        CloudEvent actualEvent = JsonSerializer.Deserialize<CloudEvent>(requestContent);
+        Assert.EndsWith("app", actualRequest.RequestUri!.OriginalString);
 
         Assert.NotNull(actualEvent);
         Assert.Equal("/party/321", actualEvent.Subject);

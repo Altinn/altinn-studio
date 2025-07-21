@@ -36,12 +36,17 @@ public class SignClientTests
         // Arrange
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(1337, Guid.NewGuid());
         HttpRequestMessage? platformRequest = null;
+        SignRequest? actualSignRequest = null;
         int callCount = 0;
         SignClient signClient = GetSignClient(
             (request, token) =>
             {
                 callCount++;
                 platformRequest = request;
+                actualSignRequest = JsonSerializerPermissive
+                    .DeserializeAsync<SignRequest>(platformRequest!.Content!)
+                    .Result;
+
                 return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Created });
             }
         );
@@ -80,8 +85,7 @@ public class SignClientTests
             .Be(
                 $"{apiStorageEndpoint}instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/sign"
             );
-        SignRequest actual = await JsonSerializerPermissive.DeserializeAsync<SignRequest>(platformRequest!.Content!);
-        actual.Should().BeEquivalentTo(expectedRequest);
+        actualSignRequest.Should().BeEquivalentTo(expectedRequest);
     }
 
     [Fact]
