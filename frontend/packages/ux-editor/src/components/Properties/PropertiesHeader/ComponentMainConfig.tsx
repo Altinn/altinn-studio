@@ -6,6 +6,13 @@ import { SubformMainConfig } from './SpecificMainConfig/SubformMainConfig';
 import { OptionsMainConfig } from './SpecificMainConfig/OptionsMainConfig';
 import { ImageMainConfig } from './SpecificMainConfig/ImageMainConfig';
 import classes from './ComponentMainConfig.module.css';
+import { ActionButtonMainConfig } from './SpecificMainConfig/ActionButtonMainConfig';
+import { FileUploadMainConfig } from './SpecificMainConfig/FileUploadMainConfig';
+import { AlertMainConfig } from './SpecificMainConfig/AlertMainConfig';
+import { LinkMainConfig } from './SpecificMainConfig/LinkMainConfig';
+import { PanelMainConfig } from './SpecificMainConfig/PanelMainConfig';
+import { TitleMainConfig } from './SpecificMainConfig/TitleMainConfig';
+import { CustomButtonMainConfig } from './SpecificMainConfig/CustomButtonMainConfig';
 
 export type ComponentMainConfigProps = {
   component: FormItem;
@@ -44,6 +51,63 @@ export const ComponentMainConfig = ({
     case ComponentType.Image:
       return (
         <ImageMainConfig component={component} handleComponentChange={handleComponentChange} />
+      );
+    case ComponentType.ActionButton:
+      return (
+        <ActionButtonMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.FileUpload:
+    case ComponentType.FileUploadWithTag:
+      return (
+        <FileUploadMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Alert:
+      return (
+        <AlertMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Link:
+      return (
+        <LinkMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Panel:
+      return (
+        <PanelMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.Header:
+      return (
+        <TitleMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
+      );
+    case ComponentType.CustomButton:
+      return (
+        <CustomButtonMainConfig
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.mainConfigWrapper}
+        />
       );
     default:
       return null;
