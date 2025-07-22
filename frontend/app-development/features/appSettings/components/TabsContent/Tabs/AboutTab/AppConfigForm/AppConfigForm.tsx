@@ -60,10 +60,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     AppResourceFormFieldIds.AvailableForType,
   );
 
-  const contactPointErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'contactPoints',
+  const contactPointErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.ContactPointsId,
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
