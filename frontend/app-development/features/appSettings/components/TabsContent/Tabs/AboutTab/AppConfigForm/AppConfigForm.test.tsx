@@ -7,6 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 jest.mock('../hooks/useScrollIntoView', () => ({
   useScrollIntoView: jest.fn(),
@@ -463,7 +464,7 @@ const mockServiceNameComplete: SupportedLanguage = {
   en: 'Service',
 };
 const mockAppConfig: AppConfigNew = {
-  resourceType: 'altinnapp',
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   serviceId: 'some-id',
   serviceName: mockServiceName,
   repositoryName: 'my-repo',
@@ -475,7 +476,7 @@ const mockContactPoints: ContactPoint = {
   contactPage: 'https://example.com',
 };
 const mockAppConfigComplete: AppConfigNew = {
-  resourceType: 'altinnapp',
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   serviceId: 'some-id',
   serviceName: mockServiceNameComplete,
   repositoryName: 'my-repo',

@@ -2,6 +2,7 @@ import { validateAppConfig } from './appConfigValidationUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew, ContactPoint } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 describe('appConfigValidationUtils', () => {
   describe('validateAppConfig', () => {
@@ -211,7 +212,7 @@ const completeContactPoint: ContactPoint = {
   contactPage: '',
 };
 const appConfigComplete: AppConfigNew = {
-  resourceType: 'altinnapp',
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   repositoryName: 'test-repo',
   serviceId: 'id',
   serviceName: {

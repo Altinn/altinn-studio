@@ -23,6 +23,7 @@ import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfi
 import { StatusRadioGroup } from './StatusRadioGroup';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
 import { ContactPoints } from './ContactPoints';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 export type AppConfigFormProps = {
   appConfig: AppConfigNew;
@@ -81,7 +82,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const persistAppDetails = (): void => {
     setShowAppConfigErrors(false);
-    saveAppConfig({ ...updatedAppConfig, resourceType: 'altinnapp' });
+    saveAppConfig({ ...updatedAppConfig, resourceType: APP_CONFIG_RESOURCE_TYPE });
     console.log('AppConfig saved: ', updatedAppConfig); // Will be removed when endpoint is implemented
   };
 
