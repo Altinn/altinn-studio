@@ -44,6 +44,7 @@ export function AvailableForTypeCheckboxGroup({
           key={option.value}
           label={option.label}
           getCheckboxProps={getCheckboxProps({ value: option.value })}
+          hasError={errors.length > 0}
         />
       ))}
       {errors.length > 0 && (

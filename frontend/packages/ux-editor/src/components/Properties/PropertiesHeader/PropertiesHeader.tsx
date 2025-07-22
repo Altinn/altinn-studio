@@ -75,6 +75,7 @@ export const PropertiesHeader = ({
               requiredDataModelBindings={dataModelBindings?.required || []}
             />
             <ComponentMainConfig
+              key={formItem.id}
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />
