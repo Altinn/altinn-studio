@@ -35,7 +35,7 @@ export const CreateNewSubformButtons = ({
         color='success'
         data-size='sm'
       >
-        {t('general.save')}
+        {t('ux_editor.component_properties.subform.create_save_button')}
       </StudioButton>
       {displayCloseButton && (
         <StudioButton
@@ -45,7 +45,7 @@ export const CreateNewSubformButtons = ({
           color='danger'
           data-size='sm'
         >
-          {t('general.cancel')}
+          {t('ux_editor.component_properties.subform.create_cancel_button')}
         </StudioButton>
       )}
     </div>

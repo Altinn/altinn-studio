@@ -30,8 +30,12 @@ describe('CreateNewSubformSection ', () => {
 
   it('displays the save button and cancel button', () => {
     renderCreateNewSubformLayoutSet({});
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
-    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_cancel_button'),
+    });
 
     expect(saveButton).toBeInTheDocument();
     expect(cancelButton).toBeInTheDocument();
@@ -39,7 +43,9 @@ describe('CreateNewSubformSection ', () => {
 
   it('displays not the cancel button when hasSubforms is false', () => {
     renderCreateNewSubformLayoutSet({ hasSubforms: false });
-    const cancelButton = screen.queryByRole('button', { name: textMock('general.cancel') });
+    const cancelButton = screen.queryByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_cancel_button'),
+    });
     expect(cancelButton).not.toBeInTheDocument();
   });
 
@@ -53,11 +59,15 @@ describe('CreateNewSubformSection ', () => {
     });
     await user.click(displayDataModelInput);
 
-    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_cancel_button'),
+    });
     await user.click(cancelButton);
 
     expect(
-      screen.queryByRole('button', { name: textMock('general.cancel') }),
+      screen.queryByRole('button', {
+        name: textMock('ux_editor.component_properties.subform.create_cancel_button'),
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -68,7 +78,9 @@ describe('CreateNewSubformSection ', () => {
     await user.type(input, 'NewSubform');
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, [dataModelIds[0]]);
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     await user.click(saveButton);
     expect(onComponentUpdate).toHaveBeenCalledTimes(1);
     expect(onComponentUpdate).toHaveBeenCalledWith('NewSubform');
@@ -88,7 +100,9 @@ describe('CreateNewSubformSection ', () => {
 
     await user.type(screen.getByRole('textbox'), 'NewSubform');
     await user.selectOptions(screen.getByRole('combobox'), [dataModelIds[0]]);
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     await user.click(saveButton);
 
     const spinner = await screen.findByText(textMock('general.loading'));
@@ -102,7 +116,9 @@ describe('CreateNewSubformSection ', () => {
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, [dataModelIds[0]]);
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     expect(saveButton).toBeDisabled();
 
     const input = screen.getByRole('textbox');
@@ -121,7 +137,9 @@ describe('CreateNewSubformSection ', () => {
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     expect(saveButton).toBeDisabled();
   });
 
@@ -132,7 +150,9 @@ describe('CreateNewSubformSection ', () => {
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
 
     const displayDataModelInput = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_new_data_model'),
@@ -160,7 +180,9 @@ describe('CreateNewSubformSection ', () => {
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, [dataModelIds[0]]);
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     expect(saveButton).not.toBeDisabled();
   });
 
@@ -175,7 +197,9 @@ describe('CreateNewSubformSection ', () => {
     });
     await user.click(createNewDataModel);
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_save_button'),
+    });
     expect(saveButton).toBeDisabled();
 
     const dataModelInput = screen.getByRole('textbox', {

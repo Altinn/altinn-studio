@@ -72,7 +72,7 @@ export const SelectSubformSection = ({
         variant='primary'
         data-size='sm'
       >
-        {t('general.save')}
+        {t('ux_editor.component_properties.subform.save.button')}
       </StudioButton>
     </StudioRecommendedNextAction>
   );

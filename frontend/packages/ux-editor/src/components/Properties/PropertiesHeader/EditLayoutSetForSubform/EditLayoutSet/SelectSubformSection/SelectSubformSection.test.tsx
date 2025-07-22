@@ -40,7 +40,11 @@ describe('SelectLayoutSet', () => {
     renderSelectSubformSection();
 
     await selectSubform();
-    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_properties.subform.save.button'),
+      }),
+    );
     expect(onComponentUpdate).toHaveBeenCalledTimes(1);
     expect(onComponentUpdate).toHaveBeenCalledWith(subform1);
   });
@@ -48,7 +52,9 @@ describe('SelectLayoutSet', () => {
   it('should disable save button until user has selected a subform', async () => {
     renderSelectSubformSection();
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.save.button'),
+    });
     expect(saveButton).toBeDisabled();
     await selectSubform();
     expect(saveButton).not.toBeDisabled();

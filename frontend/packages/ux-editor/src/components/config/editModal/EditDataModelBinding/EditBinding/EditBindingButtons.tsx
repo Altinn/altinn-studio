@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';
@@ -26,15 +26,18 @@ export const EditBindingButtons = ({
       <StudioButton
         icon={<XMarkIcon />}
         onClick={() => onSetDataModelSelectVisible(false)}
-        title={t('general.close')}
         variant='secondary'
-      />
+        data-size='sm'
+      >
+        {t('right_menu.data_model_bindings_cancel_button')}
+      </StudioButton>
       <StudioDeleteButton
         confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
         onDelete={handleDelete}
-        size='small'
-        title={t('general.delete')}
-      />
+        data-size='sm'
+      >
+        {t('right_menu.data_model_bindings_delete_button')}
+      </StudioDeleteButton>
     </div>
   );
 };
