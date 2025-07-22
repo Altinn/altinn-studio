@@ -1,5 +1,5 @@
 import { StudioAlert, StudioCard, StudioDivider, StudioProperty } from '@studio/components-legacy';
-import { CheckmarkIcon, TrashIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React from 'react';
@@ -12,7 +12,7 @@ import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowCompon
 import { Summary2OverrideDisplaySelect } from './OverrideFields/Summary2OverrideDisplaySelect';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import classes from './Summary2OverrideEntry.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 
 type Summary2OverrideEntryProps = {
   index: number;
@@ -111,15 +111,9 @@ export const Summary2OverrideEntry = ({
           >
             {t('ux_editor.component_properties.summary.override.save_button')}
           </StudioButton>
-          <StudioButton
-            onClick={onDelete}
-            icon={<TrashIcon />}
-            variant='secondary'
-            color='danger'
-            data-size='sm'
-          >
+          <StudioDeleteButton data-size='sm' onDelete={onDelete}>
             {t('ux_editor.component_properties.summary.override.delete_button')}
-          </StudioButton>
+          </StudioDeleteButton>
         </div>
       </StudioCard.Content>
     </StudioCard>
