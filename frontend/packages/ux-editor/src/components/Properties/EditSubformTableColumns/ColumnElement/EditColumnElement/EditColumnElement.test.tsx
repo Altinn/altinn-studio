@@ -224,7 +224,7 @@ describe('EditColumnElementComponentSelect', () => {
     );
     await user.click(
       screen.getByRole('button', {
-        name: textMock('general.close'),
+        name: textMock('general.cancel'),
       }),
     );
 
