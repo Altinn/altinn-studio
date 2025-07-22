@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './CreateNewSubformButtons.module.css';
-import { CheckmarkIcon, TrashIcon } from '@studio/icons';
-import { StudioButton, StudioSpinner } from '@studio/components-legacy';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type CreateNewSubformButtonsProps = {
@@ -20,7 +20,7 @@ export const CreateNewSubformButtons = ({
   const { t } = useTranslation();
 
   const saveIcon = isPendingNewSubformMutation ? (
-    <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
+    <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />
   ) : (
     <CheckmarkIcon />
   );
@@ -30,19 +30,23 @@ export const CreateNewSubformButtons = ({
       <StudioButton
         icon={saveIcon}
         type='submit'
-        title={t('general.save')}
         disabled={disableSaveButton}
-        variant='secondary'
+        variant='primary'
         color='success'
-      />
+        data-size='sm'
+      >
+        {t('general.save')}
+      </StudioButton>
       {displayCloseButton && (
         <StudioButton
           onClick={handleCloseButton}
-          title={t('general.close')}
-          icon={<TrashIcon />}
+          icon={<XMarkIcon />}
           variant='secondary'
           color='danger'
-        />
+          data-size='sm'
+        >
+          {t('general.cancel')}
+        </StudioButton>
       )}
     </div>
   );

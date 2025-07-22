@@ -77,7 +77,7 @@ describe('EditLayoutSet', () => {
     await user.click(createSubformButton);
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await user.click(closeButton);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });

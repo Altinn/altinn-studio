@@ -16,7 +16,7 @@ const setShowCreateSubformCardMock = jest.fn();
 const onComponentUpdate = jest.fn();
 const dataModelIds = ['dataModel1', 'dataModel2'];
 
-describe('CreateNewSubformLayoutSet ', () => {
+describe('CreateNewSubformSection ', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays the card with label, input field and data model select', () => {
@@ -28,22 +28,22 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(dataModelSelect).toBeInTheDocument();
   });
 
-  it('displays the save button and close button', () => {
+  it('displays the save button and cancel button', () => {
     renderCreateNewSubformLayoutSet({});
     const saveButton = screen.getByRole('button', { name: textMock('general.save') });
-    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
 
     expect(saveButton).toBeInTheDocument();
-    expect(closeButton).toBeInTheDocument();
+    expect(cancelButton).toBeInTheDocument();
   });
 
-  it('displays not the close button when hasSubforms is false', () => {
+  it('displays not the cancel button when hasSubforms is false', () => {
     renderCreateNewSubformLayoutSet({ hasSubforms: false });
-    const closeButton = screen.queryByRole('button', { name: textMock('general.close') });
-    expect(closeButton).not.toBeInTheDocument();
+    const cancelButton = screen.queryByRole('button', { name: textMock('general.cancel') });
+    expect(cancelButton).not.toBeInTheDocument();
   });
 
-  it('displays the close button when data model input is rendered', async () => {
+  it('displays the cancel button when data model input is rendered', async () => {
     const user = userEvent.setup();
 
     renderCreateNewSubformLayoutSet({ hasSubforms: false });
@@ -53,11 +53,11 @@ describe('CreateNewSubformLayoutSet ', () => {
     });
     await user.click(displayDataModelInput);
 
-    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeButton);
+    const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    await user.click(cancelButton);
 
     expect(
-      screen.queryByRole('button', { name: textMock('general.close') }),
+      screen.queryByRole('button', { name: textMock('general.cancel') }),
     ).not.toBeInTheDocument();
   });
 
@@ -160,7 +160,7 @@ describe('CreateNewSubformLayoutSet ', () => {
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, [dataModelIds[0]]);
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    const saveButton = screen.getByRole('button', { name: textMock('general.cancel') });
     expect(saveButton).not.toBeDisabled();
   });
 
