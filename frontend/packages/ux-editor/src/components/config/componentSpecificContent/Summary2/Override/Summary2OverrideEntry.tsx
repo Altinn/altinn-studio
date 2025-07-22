@@ -1,5 +1,5 @@
 import { StudioAlert, StudioCard, StudioDivider, StudioProperty } from '@studio/components-legacy';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, TrashIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React from 'react';
@@ -113,12 +113,12 @@ export const Summary2OverrideEntry = ({
           </StudioButton>
           <StudioButton
             onClick={onDelete}
-            icon={<XMarkIcon />}
+            icon={<TrashIcon />}
             variant='secondary'
             color='danger'
             data-size='sm'
           >
-            {t('ux_editor.component_properties.summary.override.cancel_button')}
+            {t('ux_editor.component_properties.summary.override.delete_button')}
           </StudioButton>
         </div>
       </StudioCard.Content>

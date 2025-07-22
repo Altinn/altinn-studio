@@ -42,7 +42,7 @@ describe('SelectLayoutSet', () => {
     await selectSubform();
     await user.click(
       screen.getByRole('button', {
-        name: textMock('ux_editor.component_properties.subform.save.button'),
+        name: textMock('ux_editor.component_properties.subform.save_button'),
       }),
     );
     expect(onComponentUpdate).toHaveBeenCalledTimes(1);
@@ -53,7 +53,7 @@ describe('SelectLayoutSet', () => {
     renderSelectSubformSection();
 
     const saveButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.save.button'),
+      name: textMock('ux_editor.component_properties.subform.save_button'),
     });
     expect(saveButton).toBeDisabled();
     await selectSubform();

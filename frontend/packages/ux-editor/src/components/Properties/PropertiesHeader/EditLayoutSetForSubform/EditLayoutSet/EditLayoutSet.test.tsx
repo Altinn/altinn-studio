@@ -59,7 +59,7 @@ describe('EditLayoutSet', () => {
     await user.selectOptions(subformSelector, [subformLayoutSetId]);
 
     const saveButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.save.button'),
+      name: textMock('ux_editor.component_properties.subform.save_button'),
     });
     await user.click(saveButton);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);

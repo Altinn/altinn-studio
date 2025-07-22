@@ -271,7 +271,7 @@ describe('Summary2Override', () => {
     const user = userEvent.setup();
     const textSaveButton = textMock('ux_editor.component_properties.summary.override.save_button');
     const textCancelButton = textMock(
-      'ux_editor.component_properties.summary.override.cancel_button',
+      'ux_editor.component_properties.summary.override.delete_button',
     );
     const component = {
       ...defaultProps.component,
@@ -329,7 +329,7 @@ describe('Summary2Override', () => {
 
 const overrideCloseButton = () =>
   screen.getByRole('button', {
-    name: textMock('ux_editor.component_properties.summary.override.cancel_button'),
+    name: textMock('ux_editor.component_properties.summary.override.delete_button'),
   });
 
 const overrideCollapsedButton = (n: number) =>
@@ -344,7 +344,7 @@ const addNewOverrideButton = () =>
 
 const removeOverrideButton = () =>
   screen.getByRole('button', {
-    name: textMock('ux_editor.component_properties.summary.override.cancel_button'),
+    name: textMock('ux_editor.component_properties.summary.override.delete_button'),
   });
 
 const overrideComponentSelect = () =>
