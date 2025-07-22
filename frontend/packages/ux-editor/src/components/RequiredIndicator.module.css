@@ -1,6 +1,5 @@
 .requiredIndicator {
   display: inline;
   height: var(--fds-sizing-7);
-  border-radius: var(--studio-border-radius-default);
   padding: var(--fds-spacing-2);
 }
