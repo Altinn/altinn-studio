@@ -1,7 +1,5 @@
 :root {
   --studio-font-family: 'Inter', sans-serif;
-  --studio-border-radius-default: var(--fds-border_radius-medium);
-  --studio-border-radius-container: 6px;
 }
 
 html,
