@@ -43,6 +43,8 @@ export function StatusRadioGroup({
           key={option.value}
           label={option.label}
           getRadioProps={getRadioProps({ value: option.value })}
+          error={errors.length}
+          hasError={errors.length > 0}
         />
       ))}
       {errors.length > 0 && (

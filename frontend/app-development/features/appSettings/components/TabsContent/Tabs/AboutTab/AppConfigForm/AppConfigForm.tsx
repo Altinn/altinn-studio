@@ -40,33 +40,22 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   );
 
   const validationErrors: AppConfigFormError[] = validateAppConfig(updatedAppConfig, t);
-  const serviceNameErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'serviceName',
-  );
-  const descriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'description',
-  );
+  const getFieldErrors = (field: AppResourceFormFieldIds): AppConfigFormError[] => {
+    return getValidationErrorsForField(!showAppConfigErrors, validationErrors, field);
+  };
 
-  const rightDescriptionErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'rightDescription',
+  const serviceNameErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.ServiceName,
   );
-
-  const statusErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'status',
+  const descriptionErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.Description,
   );
-
-  const availableForTypeErrors: AppConfigFormError[] = getValidationErrorsForField(
-    !showAppConfigErrors,
-    validationErrors,
-    'availableForType',
+  const rightDescriptionErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.RightDescription,
+  );
+  const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
+  const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.AvailableForType,
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -311,7 +300,7 @@ enum AppResourceFormFieldIds {
 function getValidationErrorsForField(
   hideErrors: boolean,
   validationErrors: AppConfigFormError[],
-  field: keyof AppConfigNew,
+  field: AppResourceFormFieldIds,
 ): AppConfigFormError[] {
   if (hideErrors) return [];
   return validationErrors.filter((error) => error.field === field);
