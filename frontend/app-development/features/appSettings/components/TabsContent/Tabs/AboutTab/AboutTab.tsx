@@ -19,6 +19,7 @@ import { CreatedFor } from './CreatedFor';
 import { InputFields } from './InputFields';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { AppConfigForm } from './AppConfigForm';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 export function AboutTab(): ReactElement {
   const { t } = useTranslation();
@@ -109,6 +110,7 @@ function AboutTabContent(): ReactElement {
 }
 
 const mockAppConfig: AppConfigNew = {
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   repositoryName: 'example-repo',
   serviceName: { nb: 'test', nn: '', en: '' },
   serviceId: 'example-service-id',
