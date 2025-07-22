@@ -967,6 +967,7 @@
   "process_editor.task_type.feedback": "Oppgave: Tilbakemelding",
   "process_editor.task_type.payment": "Oppgave: Betaling",
   "process_editor.task_type.signing": "Oppgave: Signering",
+  "process_editor.task_type.userControlledSigning": "Oppgave: Brukersignering",
   "process_editor.too_old_version_helptext_content": "Du har nå versjon {{version}} av app-biblioteket vårt.\n\nVi lanserer muligheten til å redigere arbeidsflyten sammen med versjon 8 av biblioteket. Når du har oppgradert til versjon 8, får du funksjonalitet for å redigere arbeidsflyten.\n\nFør det kan du bare se på flyten og eventuelle oppgaver som er knyttet til den.",
   "process_editor.too_old_version_helptext_title": "Informasjon om hvorfor du ikke kan redigere arbeidsflyten",
   "process_editor.too_old_version_title": "Du kan ikke redigere arbeidsflyten",

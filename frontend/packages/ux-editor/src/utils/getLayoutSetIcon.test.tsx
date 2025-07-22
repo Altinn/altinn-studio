@@ -65,6 +65,19 @@ describe('getLayoutSetIcon', () => {
     expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
     expect(result.iconColor).toBeTruthy();
   });
+
+  it('should return icon and iconColor for user controlled signing tasks', () => {
+    const layoutSet = constructLayoutSetModel({
+      task: {
+        id: '',
+        type: 'userControlledSigning',
+      },
+    });
+    const result = getLayoutSetIcon(layoutSet);
+    expect(result.icon).toBeTruthy();
+    expect(result.icon.type).not.toBe((<QuestionmarkIcon />).type);
+    expect(result.iconColor).toBeTruthy();
+  });
 });
 
 function constructLayoutSetModel(overrides: Partial<LayoutSetModel>): LayoutSetModel {

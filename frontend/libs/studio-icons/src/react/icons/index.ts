@@ -39,3 +39,4 @@ export { SignTaskIcon } from './SignTaskIcon';
 export { SlackIcon } from './SlackIcon';
 export { StringIcon } from './StringIcon';
 export { TitleIcon } from './TitleIcon';
+export { UserControlledSigningIcon } from './UserControlledSigningIcon';
