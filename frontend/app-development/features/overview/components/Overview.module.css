@@ -22,7 +22,7 @@
 
 .panel {
   background-color: white;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--studio-border-radius-container);
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   padding: var(--fds-spacing-10);
   position: relative;
@@ -43,15 +43,14 @@
 
 .mainSection {
   background-color: #f4f5f6;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--studio-border-radius-default);
   padding: var(--fds-spacing-4);
 }
 
 .asideSection {
   background-color: #fbfbfc;
   border: solid 2px #efefef;
-  border-radius: var(--fds-border_radius-medium);
-
+  border-radius: var(--studio-border-radius-default);
   padding: var(--fds-spacing-4);
 }
 

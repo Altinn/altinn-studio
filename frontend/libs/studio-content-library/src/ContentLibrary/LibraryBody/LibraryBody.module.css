@@ -5,5 +5,5 @@
 }
 
 .component {
-  padding: var(--padding-library);
+  padding: var(--studio-library-padding);
 }

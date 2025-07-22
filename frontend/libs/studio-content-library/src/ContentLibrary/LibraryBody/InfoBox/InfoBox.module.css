@@ -1,5 +1,5 @@
 .infoBoxContainer {
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--studio-library-border-radius-default);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   overflow: hidden;
   height: fit-content;
@@ -20,7 +20,7 @@
 .description {
   display: flex;
   flex-direction: column;
-  gap: var(--padding-library);
-  padding: var(--padding-library);
+  gap: var(--studio-library-padding);
+  padding: var(--studio-library-padding);
   background-color: var(--fds-semantic-surface-first-light);
 }

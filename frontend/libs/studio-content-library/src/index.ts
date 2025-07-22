@@ -11,3 +11,4 @@ export type { TextResourceWithLanguage } from './types/TextResourceWithLanguage'
 export type { TextResources } from './types/TextResources';
 export type { PagesConfig } from './types/PagesProps';
 export { CodeListUsageTaskType } from './types/CodeListUsageTaskType';
+export * from './styles/studio-variables.css';

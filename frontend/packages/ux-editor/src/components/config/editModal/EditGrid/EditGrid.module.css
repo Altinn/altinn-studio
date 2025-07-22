@@ -1,6 +1,6 @@
 .gridContainer {
   background-color: white;
-  border-radius: var(--fds-border_radius-medium);
+  border-radius: var(--studio-border-radius-default);
   display: grid;
 }
 
