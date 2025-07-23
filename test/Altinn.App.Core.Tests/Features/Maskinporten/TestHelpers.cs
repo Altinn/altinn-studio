@@ -62,9 +62,10 @@ internal static class TestHelpers
         Mock<IMaskinportenClient> client,
         MaskinportenDelegatingHandler handler
     ) MockMaskinportenDelegatingHandlerFactory(
-        TokenAuthorities authorities,
+        TokenAuthority authority,
         IEnumerable<string> scopes,
-        JwtToken accessToken
+        JwtToken maskinportenToken,
+        JwtToken altinnToken
     )
     {
         var mockProvider = new Mock<IServiceProvider>();
@@ -88,10 +89,13 @@ internal static class TestHelpers
 
         mockMaskinportenClient
             .Setup(c => c.GetAccessToken(scopes, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(accessToken);
+            .ReturnsAsync(maskinportenToken);
+        mockMaskinportenClient
+            .Setup(c => c.GetAltinnExchangedToken(scopes, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(altinnToken);
 
         var handler = new MaskinportenDelegatingHandler(
-            authorities,
+            authority,
             scopes,
             mockMaskinportenClient.Object,
             mockLogger.Object

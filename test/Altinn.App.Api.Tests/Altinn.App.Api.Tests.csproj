@@ -5,6 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
+    <!--
+      CS0618: This is a test project, so we usually continue testing [Obsolete] apis
+    -->
   </PropertyGroup>
 
   <ItemGroup>

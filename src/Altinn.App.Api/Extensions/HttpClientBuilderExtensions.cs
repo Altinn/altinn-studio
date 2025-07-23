@@ -18,13 +18,13 @@ public static class HttpClientBuilderExtensions
     /// <param name="builder">The Http client builder</param>
     /// <param name="scope">The scope to claim authorization for with Maskinporten</param>
     /// <param name="additionalScopes">Additional scopes as required</param>
-    public static IHttpClientBuilder UseMaskinportenAuthorisation(
+    public static IHttpClientBuilder UseMaskinportenAuthorization(
         this IHttpClientBuilder builder,
         string scope,
         params string[] additionalScopes
     )
     {
-        return builder.AddMaskinportenHttpMessageHandler(scope, additionalScopes, TokenAuthorities.Maskinporten);
+        return builder.AddMaskinportenHttpMessageHandler(scope, additionalScopes, TokenAuthority.Maskinporten);
     }
 
     /// <summary>
@@ -37,12 +37,28 @@ public static class HttpClientBuilderExtensions
     /// <param name="builder">The Http client builder</param>
     /// <param name="scope">The scope to claim authorization for with Maskinporten</param>
     /// <param name="additionalScopes">Additional scopes as required</param>
-    public static IHttpClientBuilder UseMaskinportenAltinnAuthorisation(
+    public static IHttpClientBuilder UseMaskinportenAltinnAuthorization(
         this IHttpClientBuilder builder,
         string scope,
         params string[] additionalScopes
     )
     {
-        return builder.AddMaskinportenHttpMessageHandler(scope, additionalScopes, TokenAuthorities.AltinnTokenExchange);
+        return builder.AddMaskinportenHttpMessageHandler(scope, additionalScopes, TokenAuthority.AltinnTokenExchange);
     }
+
+    /// <inheritdoc cref="UseMaskinportenAuthorization"/>
+    [Obsolete("Use UseMaskinportenAuthorization instead")]
+    public static IHttpClientBuilder UseMaskinportenAuthorisation(
+        this IHttpClientBuilder builder,
+        string scope,
+        params string[] additionalScopes
+    ) => UseMaskinportenAuthorization(builder, scope, additionalScopes);
+
+    /// <inheritdoc cref="UseMaskinportenAltinnAuthorization"/>
+    [Obsolete("Use UseMaskinportenAltinnAuthorization instead")]
+    public static IHttpClientBuilder UseMaskinportenAltinnAuthorisation(
+        this IHttpClientBuilder builder,
+        string scope,
+        params string[] additionalScopes
+    ) => UseMaskinportenAltinnAuthorization(builder, scope, additionalScopes);
 }

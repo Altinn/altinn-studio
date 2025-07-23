@@ -10,13 +10,13 @@ internal static class HttpClientBuilderExtensions
         this IHttpClientBuilder builder,
         string scope,
         IEnumerable<string> additionalScopes,
-        TokenAuthorities authorities
+        TokenAuthority authority
     )
     {
         var scopes = new[] { scope }.Concat(additionalScopes);
         var factory = ActivatorUtilities.CreateFactory<MaskinportenDelegatingHandler>(
-            [typeof(TokenAuthorities), typeof(IEnumerable<string>)]
+            [typeof(TokenAuthority), typeof(IEnumerable<string>)]
         );
-        return builder.AddHttpMessageHandler(provider => factory(provider, [authorities, scopes]));
+        return builder.AddHttpMessageHandler(provider => factory(provider, [authority, scopes]));
     }
 }

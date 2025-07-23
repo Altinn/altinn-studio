@@ -43,9 +43,8 @@ public class MaskinportenClientIntegrationTests
 
         var settings = optionsMonitor.CurrentValue;
         Assert.NotNull(settings);
-
-        settings.ClientId.Should().Be(clientId);
-        settings.Authority.Should().Be(authority);
+        Assert.Equal(clientId, settings.ClientId);
+        Assert.Equal(authority, settings.Authority);
     }
 
     [Fact]
@@ -77,9 +76,8 @@ public class MaskinportenClientIntegrationTests
 
         var settings = optionsMonitor.CurrentValue;
         Assert.NotNull(settings);
-
-        settings.ClientId.Should().Be(clientId);
-        settings.Authority.Should().Be(authority);
+        Assert.Equal(clientId, settings.ClientId);
+        Assert.Equal(authority, settings.Authority);
     }
 
     [Fact]
@@ -112,16 +110,16 @@ public class MaskinportenClientIntegrationTests
 
         var settings = optionsMonitor.CurrentValue;
         Assert.NotNull(settings);
-
-        settings.ClientId.Should().Be(clientId);
-        settings.Authority.Should().Be(authority);
-        settings.JwkBase64.Should().Be(jwkBase64);
+        Assert.Equal(clientId, settings.ClientId);
+        Assert.Equal(authority, settings.Authority);
+        Assert.Equal(jwkBase64, settings.JwkBase64);
     }
 
+    // TODO: Remove this test when the obsolete method is removed
     [Theory]
-    [InlineData(nameof(TokenAuthorities.Maskinporten), "client1", "scope1")]
-    [InlineData(nameof(TokenAuthorities.Maskinporten), "client2", "scope1", "scope2", "scope3")]
-    [InlineData(nameof(TokenAuthorities.AltinnTokenExchange), "doesntmatter")]
+    [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
+    [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
+    [InlineData(nameof(TokenAuthority.AltinnTokenExchange), "doesntmatter")]
     public void UseMaskinportenAuthorisation_AddsHandler_BindsToSpecifiedClient(
         string tokenAuthority,
         string scope,
@@ -129,15 +127,15 @@ public class MaskinportenClientIntegrationTests
     )
     {
         // Arrange
-        Enum.TryParse(tokenAuthority, false, out TokenAuthorities actualTokenAuthority);
+        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
         var app = AppBuilder.Build(registerCustomAppServices: services =>
         {
             _ = actualTokenAuthority switch
             {
-                TokenAuthorities.Maskinporten => services
+                TokenAuthority.Maskinporten => services
                     .AddHttpClient<DummyHttpClient>()
                     .UseMaskinportenAuthorisation(scope, additionalScopes),
-                TokenAuthorities.AltinnTokenExchange => services
+                TokenAuthority.AltinnTokenExchange => services
                     .AddHttpClient<DummyHttpClient>()
                     .UseMaskinportenAltinnAuthorisation(scope, additionalScopes),
                 _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
@@ -151,9 +149,47 @@ public class MaskinportenClientIntegrationTests
         Assert.NotNull(client);
         var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
         Assert.NotNull(delegatingHandler);
-        var inputScopes = new[] { scope }.Concat(additionalScopes);
-        delegatingHandler.Scopes.Should().BeEquivalentTo(inputScopes);
-        delegatingHandler.Authorities.Should().Be(actualTokenAuthority);
+        string[] inputScopes = [scope, .. additionalScopes];
+        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
+        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+    }
+
+    [Theory]
+    [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
+    [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
+    [InlineData(nameof(TokenAuthority.AltinnTokenExchange), "doesntmatter")]
+    public void UseMaskinportenAuthorization_AddsHandler_BindsToSpecifiedClient(
+        string tokenAuthority,
+        string scope,
+        params string[] additionalScopes
+    )
+    {
+        // Arrange
+        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
+        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        {
+            _ = actualTokenAuthority switch
+            {
+                TokenAuthority.Maskinporten => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAuthorization(scope, additionalScopes),
+                TokenAuthority.AltinnTokenExchange => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAltinnAuthorization(scope, additionalScopes),
+                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
+            };
+        });
+
+        // Act
+        var client = app.Services.GetRequiredService<DummyHttpClient>();
+
+        // Assert
+        Assert.NotNull(client);
+        var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
+        Assert.NotNull(delegatingHandler);
+        string[] inputScopes = [scope, .. additionalScopes];
+        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
+        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
     }
 
     private sealed class DummyHttpClient(HttpClient client)
