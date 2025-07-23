@@ -7,6 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 jest.mock('../hooks/useScrollIntoView', () => ({
   useScrollIntoView: jest.fn(),
@@ -190,6 +191,51 @@ describe('AppConfigForm', () => {
     expect(rightDescription).toHaveValue('');
   });
 
+  it('updates "keywords" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const keywords = getOptionalTextbox(textMock('app_settings.about_tab_keywords_label'));
+    expect(keywords).toHaveValue('');
+
+    const newText: string = 'keyword1, keyword2';
+    await user.type(keywords, newText);
+
+    expect(keywords).toHaveValue(newText);
+  });
+
+  it('updates "selfIdentifiedUser" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const selfIdentifiedUser = getSwitch(
+      textMock('app_settings.about_tab_self_identified_user_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(selfIdentifiedUser).not.toBeChecked();
+
+    await user.click(selfIdentifiedUser);
+
+    expect(selfIdentifiedUser).toBeChecked();
+  });
+
+  it('updates "enterpriseUserEnabled" input field with correct value on change', async () => {
+    const user = userEvent.setup();
+    renderAppConfigForm();
+
+    const enterpriseUserEnabled = getSwitch(
+      textMock('app_settings.about_tab_enterprise_user_show_text', {
+        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+      }),
+    );
+    expect(enterpriseUserEnabled).not.toBeChecked();
+
+    await user.click(enterpriseUserEnabled);
+
+    expect(enterpriseUserEnabled).toBeChecked();
+  });
+
   it('disables the action buttons when no changes are made', () => {
     renderAppConfigForm();
 
@@ -365,6 +411,16 @@ describe('AppConfigForm', () => {
       ),
     ).not.toBeInTheDocument();
 
+    const statusRadio = getLabelText(textMock('app_settings.about_tab_status_under_development'));
+    await user.click(statusRadio);
+    expect(queryLink('app_settings.about_tab_status_field_error')).not.toBeInTheDocument();
+
+    const availableForTypeCheckbox = getLabelText(
+      textMock('app_settings.about_tab_available_for_type_private'),
+    );
+    await user.click(availableForTypeCheckbox);
+    expect(queryLink('app_settings.about_tab_error_available_for_type')).not.toBeInTheDocument();
+
     expect(queryErrorHeader()).not.toBeInTheDocument();
   });
 });
@@ -387,11 +443,13 @@ const mockServiceNameComplete: SupportedLanguage = {
   en: 'Service',
 };
 const mockAppConfig: AppConfigNew = {
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   serviceId: 'some-id',
   serviceName: mockServiceName,
   repositoryName: 'my-repo',
 };
 const mockAppConfigComplete: AppConfigNew = {
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   serviceId: 'some-id',
   serviceName: mockServiceNameComplete,
   repositoryName: 'my-repo',
@@ -399,6 +457,8 @@ const mockAppConfigComplete: AppConfigNew = {
   homepage: mockHomepage,
   isDelegable: false,
   rightDescription: mockRightDescription,
+  status: 'UnderDevelopment',
+  availableForType: ['PrivatePerson'],
 };
 
 const defaultProps: AppConfigFormProps = {
@@ -433,6 +493,7 @@ const queryErrorHeader = (): HTMLHeadingElement | null =>
     level: 2,
   });
 const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch', { name });
+const getLabelText = (name: string): HTMLLabelElement => screen.getByLabelText(name);
 
 const optionalText: string = textMock('general.optional');
 const requiredText: string = textMock('general.required');

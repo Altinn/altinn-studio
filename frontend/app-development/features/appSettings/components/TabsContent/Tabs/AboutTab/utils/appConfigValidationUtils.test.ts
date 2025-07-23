@@ -2,6 +2,7 @@ import { validateAppConfig } from './appConfigValidationUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { AppConfigNew } from 'app-shared/types/AppConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 describe('appConfigValidationUtils', () => {
   describe('validateAppConfig', () => {
@@ -43,6 +44,7 @@ describe('appConfigValidationUtils', () => {
 });
 
 const appConfigComplete: AppConfigNew = {
+  resourceType: APP_CONFIG_RESOURCE_TYPE,
   repositoryName: 'test-repo',
   serviceId: 'id',
   serviceName: {
@@ -61,4 +63,6 @@ const appConfigComplete: AppConfigNew = {
     nn: 'test rd nn',
     en: 'test rd en',
   },
+  status: 'UnderDevelopment',
+  availableForType: ['PrivatePerson'],
 };

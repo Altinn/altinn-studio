@@ -24,7 +24,10 @@ public class ApplicationsService : IApplicationsService
     }
 
     /// <inheritdoc />
-    public async Task<List<RunningApplication>> GetRunningApplications(string org)
+    public async Task<List<RunningApplication>> GetRunningApplications(
+        string org,
+        CancellationToken ct
+    )
     {
         var orgEnvironments = await _cdnConfigService.GetOrgEnvironments(org);
 
@@ -33,6 +36,8 @@ public class ApplicationsService : IApplicationsService
 
         var tasks = orgEnvironments.Select(async env =>
         {
+            ct.ThrowIfCancellationRequested();
+
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(
                 $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments"

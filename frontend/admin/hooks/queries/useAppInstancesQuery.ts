@@ -5,13 +5,14 @@ import axios from 'axios';
 import type { SimpleInstance } from 'admin/types/SimpleInstance';
 import { instancesListPath } from 'admin/utils/apiPaths';
 
-export const useAppInstances = (
+export const useAppInstancesQuery = (
   org: string,
   env: string,
   app: string,
 ): UseQueryResult<SimpleInstance[]> => {
   return useQuery<SimpleInstance[]>({
     queryKey: [QueryKey.AppInstances, org, env, app],
-    queryFn: async () => (await axios.get<SimpleInstance[]>(instancesListPath(org, env, app))).data,
+    queryFn: async ({ signal }) =>
+      (await axios.get<SimpleInstance[]>(instancesListPath(org, env, app), { signal })).data,
   });
 };
