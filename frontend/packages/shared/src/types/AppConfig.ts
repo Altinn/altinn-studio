@@ -7,7 +7,7 @@ export type AppConfig = {
   serviceDescription?: string;
 };
 
-// This will replace the original AppConfig type in the codebase when feature is fully implemented
+// This will replace the original AppConfig type in the codebase when feature is fully implemented.
 export type AppConfigNew = {
   resourceType: ResourceType;
   repositoryName: string;
