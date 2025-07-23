@@ -11,7 +11,7 @@ import { generateComponentId } from '../../../utils/generateId';
 import { StudioSearch } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useSearchComponent } from './useSearchComponent/useSearchComponent';
+import { useSearchComponent } from './useSearchComponent';
 
 export type AddItemContentProps = {
   item: AddedItem | null;

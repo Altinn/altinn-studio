@@ -5,7 +5,7 @@
   flex: 3;
   padding: 20px;
   overflow-y: scroll;
-  gap: var(--fds-spacing-4);
+  gap: var(--ds-size-4);
 }
 
 .container {
