@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import type { Meta, StoryFn } from '@storybook/react-vite';
 import { ComposedComponent } from './test-data/ComposedComponent';
 import { buttons } from './test-data/buttons';
@@ -8,7 +9,7 @@ const meta: Meta = {
   title: 'Components/StudioProperty',
   component: ComposedComponent,
   decorators: [
-    (Story) => (
+    (Story): ReactElement => (
       <Decorator>
         <Story />
       </Decorator>
