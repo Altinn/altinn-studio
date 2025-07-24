@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Extensions;
-using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
@@ -56,6 +55,7 @@ public class DataController : ControllerBase
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -93,6 +93,7 @@ public class DataController : ControllerBase
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
     }
 
     /// <summary>
@@ -238,7 +239,7 @@ public class DataController : ControllerBase
             var (instance, dataType, _) = instanceResult.Ok;
 
             if (
-                DataElementAccessChecker.GetCreateProblem(instance, dataType, _authenticationContext.Current) is
+                await _dataElementAccessChecker.GetCreateProblem(instance, dataType, _authenticationContext.Current) is
                 { } accessProblem
             )
             {
@@ -525,10 +526,7 @@ public class DataController : ControllerBase
                 );
             }
 
-            if (
-                DataElementAccessChecker.GetReaderProblem(instance, dataTypeObject, _authenticationContext.Current) is
-                { } accessProblem
-            )
+            if (await _dataElementAccessChecker.GetReaderProblem(instance, dataTypeObject) is { } accessProblem)
             {
                 return Problem(accessProblem);
             }
@@ -605,7 +603,11 @@ public class DataController : ControllerBase
             }
 
             if (
-                DataElementAccessChecker.GetUpdateProblem(instance, dataTypeObject, _authenticationContext.Current) is
+                await _dataElementAccessChecker.GetUpdateProblem(
+                    instance,
+                    dataTypeObject,
+                    _authenticationContext.Current
+                ) is
                 { } accessProblem
             )
             {
@@ -667,7 +669,7 @@ public class DataController : ControllerBase
         {
             // Map the new response to the old response
             return Ok(
-                new DataPatchResponse()
+                new DataPatchResponse
                 {
                     ValidationIssues = newResponse.ValidationIssues.ToDictionary(d => d.Source, d => d.Issues),
                     NewDataModel = newResponse.NewDataModels.First(m => m.DataElementId == dataGuid).Data,
@@ -725,7 +727,11 @@ public class DataController : ControllerBase
             foreach (var dataType in dataTypes)
             {
                 if (
-                    DataElementAccessChecker.GetUpdateProblem(instance, dataType, _authenticationContext.Current) is
+                    await _dataElementAccessChecker.GetUpdateProblem(
+                        instance,
+                        dataType,
+                        _authenticationContext.Current
+                    ) is
                     { } accessProblem
                 )
                 {
@@ -745,7 +751,7 @@ public class DataController : ControllerBase
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
-                        Instance = res.Ok.Instance,
+                        Instance = await res.Ok.Instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),
                         NewDataModels = GetNewDataModels(res.Ok.FormDataChanges),
                         ValidationIssues = res.Ok.ValidationIssues,
                     }
@@ -805,7 +811,7 @@ public class DataController : ControllerBase
             }
 
             if (
-                DataElementAccessChecker.GetDeleteProblem(
+                await _dataElementAccessChecker.GetDeleteProblem(
                     instance,
                     dataTypeObject,
                     dataGuid,

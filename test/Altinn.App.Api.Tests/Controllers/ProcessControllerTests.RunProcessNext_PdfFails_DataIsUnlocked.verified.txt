@@ -120,6 +120,22 @@
       HasParent: true
     },
     {
+      Name: Authorization.Service.AuthorizeAction,
+      IdFormat: W3C,
+      Tags: [
+        {
+          authorization.action: customReadAction
+        },
+        {
+          instance.guid: Guid_1
+        },
+        {
+          instance.owner.party.id: 500600
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
       Kind: Server,
       IdFormat: W3C,

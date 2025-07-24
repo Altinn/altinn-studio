@@ -77,6 +77,7 @@ public sealed class ValidationServiceTests : IDisposable
     private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
 
     private readonly IInstanceDataAccessor _dataAccessor;
 
@@ -131,6 +132,10 @@ public sealed class ValidationServiceTests : IDisposable
 
     public ValidationServiceTests()
     {
+        _dataElementAccessCheckerMock
+            .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
+            .ReturnsAsync(true);
+
         _modelSerialization = new ModelSerializationService(_appModelMock.Object);
         _dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,
@@ -153,7 +158,7 @@ public sealed class ValidationServiceTests : IDisposable
         _serviceCollection.AddSingleton(_translationServiceMock.Object);
         _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_defaultAppMetadata);
         _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
-
+        _serviceCollection.AddSingleton(_dataElementAccessCheckerMock.Object);
         _serviceCollection.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GeneralSettings()));
 
         // NeverUsedValidators

@@ -134,6 +134,9 @@ public class AuthorizationClient : IAuthorizationClient
     )
     {
         using var activity = _telemetry?.StartClientAuthorizeActionActivity(instanceIdentifier, action, taskId);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(action, nameof(action));
+
         XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
             appIdentifier.Org,
             appIdentifier.App,

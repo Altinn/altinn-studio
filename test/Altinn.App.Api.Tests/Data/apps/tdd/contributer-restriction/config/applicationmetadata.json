@@ -100,6 +100,30 @@
                 "disallowUserDelete": true
             },
             "taskId": "Task_1"
+        },
+        {
+            "id": "requiresActionToRead",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "actionRequiredToRead": "customReadAction"
+        },
+        {
+            "id": "requiresActionToWrite",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "actionRequiredToWrite": "customWriteAction"
         }
     ]
 }

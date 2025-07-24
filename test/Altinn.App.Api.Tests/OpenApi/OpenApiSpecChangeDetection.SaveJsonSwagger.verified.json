@@ -7148,6 +7148,14 @@
             },
             "nullable": true
           },
+          "actionRequiredToRead": {
+            "type": "string",
+            "nullable": true
+          },
+          "actionRequiredToWrite": {
+            "type": "string",
+            "nullable": true
+          },
           "appLogic": {
             "$ref": "#/components/schemas/ApplicationLogic"
           },

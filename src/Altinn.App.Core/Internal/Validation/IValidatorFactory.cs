@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Features.Validation.Wrappers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,6 +29,7 @@ public class ValidatorFactory : IValidatorFactory
     private readonly IOptions<GeneralSettings> _generalSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidatorFactory"/> class.
@@ -41,6 +43,7 @@ public class ValidatorFactory : IValidatorFactory
         _generalSettings = generalSettings;
         _appMetadata = appMetadata;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
     }
 
     private IEnumerable<IValidator> GetIValidators(string taskId)
@@ -121,10 +124,12 @@ public class ValidatorFactory : IValidatorFactory
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
 
         validators.AddRange(
-            GetDataElementValidators(taskId, dataTypes).Select(dev => new DataElementValidatorWrapper(dev, taskId))
+            GetDataElementValidators(taskId, dataTypes)
+                .Select(dev => new DataElementValidatorWrapper(dev, taskId, _dataElementAccessChecker))
         );
         validators.AddRange(
-            GetFormDataValidators(taskId, dataTypes).Select(fdv => new FormDataValidatorWrapper(fdv, taskId))
+            GetFormDataValidators(taskId, dataTypes)
+                .Select(fdv => new FormDataValidatorWrapper(fdv, taskId, _dataElementAccessChecker))
         );
 
         // add legacy instance validators wrapped in IValidator wrappers

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;

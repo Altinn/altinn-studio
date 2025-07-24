@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -11,15 +12,18 @@ internal class DataElementValidatorWrapper : IValidator
 {
     private readonly IDataElementValidator _dataElementValidator;
     private readonly string _taskId;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
     public DataElementValidatorWrapper(
         /* altinn:injection:ignore */
         IDataElementValidator dataElementValidator,
-        string taskId
+        string taskId,
+        IDataElementAccessChecker dataElementAccessChecker
     )
     {
         _dataElementValidator = dataElementValidator;
         _taskId = taskId;
+        _dataElementAccessChecker = dataElementAccessChecker;
     }
 
     /// <inheritdoc />
@@ -47,6 +51,11 @@ internal class DataElementValidatorWrapper : IValidator
         var validateAllElements = _dataElementValidator.DataType == "*";
         foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsForTask(taskId))
         {
+            if (await _dataElementAccessChecker.CanRead(dataAccessor.Instance, dataType) is false)
+            {
+                continue;
+            }
+
             if (validateAllElements || _dataElementValidator.DataType == dataElement.DataType)
             {
                 var dataElementValidationResult = await _dataElementValidator.ValidateDataElement(

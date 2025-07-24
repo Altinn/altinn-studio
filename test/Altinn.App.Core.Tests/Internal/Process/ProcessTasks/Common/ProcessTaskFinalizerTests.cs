@@ -24,18 +24,24 @@ public class ProcessTaskFinalizerTests
     private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
 
     private readonly IOptions<AppSettings> _appSettings = Options.Create(new AppSettings());
     private readonly ServiceCollection _services = new();
 
     public ProcessTaskFinalizerTests(ITestOutputHelper output)
     {
+        _dataElementAccessCheckerMock
+            .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
+            .ReturnsAsync(true);
+
         _services.AddSingleton(_appSettings);
         _services.AddSingleton(_appMetadataMock.Object);
         _services.AddSingleton(_dataClientMock.Object);
         _services.AddSingleton(_instanceClientMock.Object);
         _services.AddSingleton(_appModelMock.Object);
         _services.AddSingleton(_appResourcesMock.Object);
+        _services.AddSingleton(_dataElementAccessCheckerMock.Object);
         _services.AddSingleton(Options.Create(new FrontEndSettings()));
         _services.AddFakeLoggingWithXunit(output);
         _services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();

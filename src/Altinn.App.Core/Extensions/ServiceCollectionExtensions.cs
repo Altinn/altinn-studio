@@ -181,6 +181,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IAppModel, DefaultAppModel>();
         services.TryAddTransient<DataListsFactory>();
         services.TryAddTransient<InstanceDataListsFactory>();
+        services.TryAddTransient<IDataElementAccessChecker, DataElementAccessChecker>();
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();

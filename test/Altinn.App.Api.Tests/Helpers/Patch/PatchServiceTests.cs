@@ -52,6 +52,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly TelemetrySink _telemetrySink = new();
     private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
+    private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -92,6 +93,10 @@ public sealed class PatchServiceTests : IDisposable
             .ReturnsAsync(_dataElement)
             .Verifiable();
 
+        _dataElementAccessCheckerMock
+            .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
+            .ReturnsAsync(true);
+
         _webHostEnvironment.SetupGet(whe => whe.EnvironmentName).Returns("Development");
         var services = new ServiceCollection();
         services.AddAppImplementationFactory();
@@ -104,6 +109,7 @@ public sealed class PatchServiceTests : IDisposable
         services.AddSingleton(_appResourcesMock.Object);
         services.AddSingleton(_dataClientMock.Object);
         services.AddSingleton(_instanceClientMock.Object);
+        services.AddSingleton(_dataElementAccessCheckerMock.Object);
         _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
         services.AddSingleton(_modelSerializationService);
         services.Configure<GeneralSettings>(_ => { });

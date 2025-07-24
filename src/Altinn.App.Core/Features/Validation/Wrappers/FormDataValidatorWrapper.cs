@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Validation.Wrappers;
@@ -12,15 +13,18 @@ internal class FormDataValidatorWrapper : IValidator
 {
     private readonly IFormDataValidator _formDataValidator;
     private readonly string _taskId;
+    private readonly IDataElementAccessChecker _dataElementAccessChecker;
 
     public FormDataValidatorWrapper(
         /* altinn:injection:ignore */
         IFormDataValidator formDataValidator,
-        string taskId
+        string taskId,
+        IDataElementAccessChecker dataElementAccessChecker
     )
     {
         _formDataValidator = formDataValidator;
         _taskId = taskId;
+        _dataElementAccessChecker = dataElementAccessChecker;
     }
 
     /// <inheritdoc />
@@ -42,6 +46,11 @@ internal class FormDataValidatorWrapper : IValidator
         var validateAllElements = _formDataValidator.DataType == "*";
         foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsWithFormData())
         {
+            if (await _dataElementAccessChecker.CanRead(dataAccessor.Instance, dataType) is false)
+            {
+                continue;
+            }
+
             if (!validateAllElements && _formDataValidator.DataType != dataType.Id)
             {
                 continue;

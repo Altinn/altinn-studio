@@ -4,6 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
@@ -41,12 +42,21 @@ public class ExpressionValidatorTests
 
     public ExpressionValidatorTests(ITestOutputHelper output)
     {
+        var accessCheckerMock = new Mock<IDataElementAccessChecker>();
+        accessCheckerMock.Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>())).ReturnsAsync(true);
+
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock
+            .Setup(x => x.GetService(typeof(IDataElementAccessChecker)))
+            .Returns(accessCheckerMock.Object);
+
         _output = output;
         _validator = new ExpressionValidator(
             _logger.Object,
             _appResources.Object,
             _layoutInitializer.Object,
-            _appMetadata.Object
+            _appMetadata.Object,
+            serviceProviderMock.Object
         );
     }
 

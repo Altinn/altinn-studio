@@ -28,6 +28,7 @@ public class ValidationServiceOldTests
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<ITranslationService> _translationServiceMock = new(MockBehavior.Loose);
+    private readonly Mock<IDataElementAccessChecker> _dataElementAccessCheckerMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
 
     private readonly ApplicationMetadata _applicationMetadata = new("tdd/test")
@@ -46,6 +47,10 @@ public class ValidationServiceOldTests
 
     public ValidationServiceOldTests()
     {
+        _dataElementAccessCheckerMock
+            .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
+            .ReturnsAsync(true);
+
         _serviceCollection.AddAppImplementationFactory();
         _serviceCollection.AddSingleton(_loggerMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
@@ -56,6 +61,7 @@ public class ValidationServiceOldTests
         _serviceCollection.AddSingleton<IDataElementValidator, DefaultDataElementValidator>();
         _serviceCollection.AddSingleton<ITaskValidator, DefaultTaskValidator>();
         _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
+        _serviceCollection.AddSingleton(_dataElementAccessCheckerMock.Object);
         _serviceCollection.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GeneralSettings()));
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
     }

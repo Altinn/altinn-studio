@@ -1,8 +1,6 @@
-using System.Globalization;
 using Altinn.App.Api.Controllers;
 using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
