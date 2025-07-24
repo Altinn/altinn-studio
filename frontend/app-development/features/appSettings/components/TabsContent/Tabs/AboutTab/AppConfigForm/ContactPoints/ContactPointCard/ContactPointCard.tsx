@@ -19,7 +19,7 @@ export type ContactPointCardProps = {
   errors: AppConfigFormError[];
   index: number;
   id: string;
-  onRemoveButtonClick?: (index: number) => void;
+  onRemoveButtonClick?: (contactPoint: ContactPoint) => void;
 };
 
 export function ContactPointCard({
@@ -88,7 +88,7 @@ export function ContactPointCard({
         />
         {onRemoveButtonClick && (
           <StudioDeleteButton
-            onDelete={() => onRemoveButtonClick(index)}
+            onDelete={() => onRemoveButtonClick(contactPoint)}
             confirmMessage={t('app_settings.about_tab_contact_point_delete_confirm')}
           >
             {t('app_settings.about_tab_contact_point_delete_button_text', { index: index + 1 })}
@@ -96,7 +96,7 @@ export function ContactPointCard({
         )}
         {hasError && (
           <StudioValidationMessage>
-            {t('app_settings.about_tab_error_contact_points')}
+            {t('app_settings.about_tab_error_contact_points', { index: String(index + 1) })}
           </StudioValidationMessage>
         )}
       </StudioFieldset>

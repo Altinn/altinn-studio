@@ -7,6 +7,7 @@ import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ContactPointCard } from './ContactPointCard';
 import { PlusIcon } from '@studio/icons';
+import { ArrayUtils } from '@studio/pure-functions';
 
 const emptyContactPoint: ContactPoint = {
   email: '',
@@ -43,15 +44,14 @@ export function ContactPoints({
     onContactPointsChanged(updatedList);
   };
 
-  const handleClickRemoveButton = (deleteId: number) => {
-    const updatedList: ContactPoint[] = listItems.filter((_item, index) => index !== deleteId);
+  const handleClickRemoveButton = (contactPoint: ContactPoint) => {
+    const updatedList: ContactPoint[] = ArrayUtils.removeItemByValue(listItems, contactPoint);
     setListItems(updatedList);
     onContactPointsChanged(updatedList);
   };
 
   const onChangeContactPointField = (listItem: ContactPoint, pos: number) => {
-    const updatedList: ContactPoint[] = [...listItems];
-    updatedList[pos] = listItem;
+    const updatedList: ContactPoint[] = ArrayUtils.replaceByIndex(listItems, pos, listItem);
     setListItems(updatedList);
     onContactPointsChanged(updatedList);
   };
@@ -80,7 +80,7 @@ export function ContactPoints({
 }
 
 type ContactPointFieldsProps = {
-  onRemoveContactPoint: (index: number) => void;
+  onRemoveContactPoint: (contactPoint: ContactPoint) => void;
   onChangeContactPoint: (contactPoint: ContactPoint, index: number) => void;
 } & ContactPointCommonProps;
 

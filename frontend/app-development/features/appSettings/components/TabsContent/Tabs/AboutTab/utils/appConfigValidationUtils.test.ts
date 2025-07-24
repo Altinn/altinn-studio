@@ -161,7 +161,7 @@ describe('appConfigValidationUtils', () => {
       );
     });
 
-    it('returns error for empty contactPoint fields', () => {
+    it('returns error if all contactPoint fields are empty', () => {
       const emptyContact: ContactPoint = {
         category: '',
         email: '',
@@ -187,7 +187,7 @@ describe('appConfigValidationUtils', () => {
       );
     });
 
-    it('does NOT return error for valid contactPoint', () => {
+    it('does NOT return error for valid contactPoint, if at least one field has content', () => {
       const appConfig: AppConfigNew = {
         ...appConfigComplete,
         contactPoints: [completeContactPoint],
