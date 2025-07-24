@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Heading } from '@digdir/designsystemet-react';
+import { Heading, Link } from '@digdir/designsystemet-react';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import {} from './ConfigProperties/ConfigNumberProperties';
@@ -16,6 +16,7 @@ import { useText } from '../../hooks';
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -57,6 +58,7 @@ export const FormComponentConfig = ({
 
   const { properties } = schema;
   const { layoutSet } = properties;
+  const docsUrl = getDocsUrl(component.type);
 
   return (
     <>
@@ -137,16 +139,22 @@ export const FormComponentConfig = ({
       )}
 
       {/* Show information about unsupported properties if there are any */}
-      {unsupportedKeys.length > 0 && !hideUnsupported && (
-        <Alert severity='info' className={classes.elementWrapper}>
-          {t('ux_editor.edit_component.unsupported_properties_message')}
-          <ul>
-            {unsupportedKeys.map((propertyKey) => (
-              <li key={propertyKey}>{propertyKey}</li>
-            ))}
-          </ul>
-        </Alert>
+      {unsupportedKeys.length > 0 && !hideUnsupported && docsUrl && (
+        <Link href={docsUrl} className={classes.elementWrapper}>
+          {t('ux_editor.edit_component.unsupported_properties_link')}
+        </Link>
       )}
     </>
   );
 };
+
+const relativeBaseUrl = 'altinn-studio/reference/ux/components';
+const docsLinks: Record<string, string> = {
+  Checkboxes: `${relativeBaseUrl}/checkboxes`,
+  RadioButtons: `${relativeBaseUrl}/radiobuttons`,
+  Likert: `${relativeBaseUrl}/likert`,
+};
+
+function getDocsUrl(componentType: string): string | undefined {
+  return docsLinks[componentType] && altinnDocsUrl({ relativeUrl: docsLinks[componentType] });
+}
