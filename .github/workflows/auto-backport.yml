@@ -257,6 +257,7 @@ jobs:
             # Push and create PR
             git push origin backport/${prNumber}
             \`\`\`
+            `;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
