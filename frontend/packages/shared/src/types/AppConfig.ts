@@ -7,7 +7,7 @@ export type AppConfig = {
   serviceDescription?: string;
 };
 
-// This will replace the original AppConfig type in the codebase when feature is fully implemented
+// This will replace the original AppConfig type in the codebase when feature is fully implemented.
 export type AppConfigNew = {
   resourceType: ResourceType;
   repositoryName: string;
@@ -22,6 +22,8 @@ export type AppConfigNew = {
   selfIdentifiedUserEnabled?: boolean;
   enterpriseUserEnabled?: boolean;
   availableForType?: AvailableForTypeOption[];
+  contactPoints?: ContactPoint[];
+  visible?: boolean;
 };
 
 export type Keyword = {
@@ -39,3 +41,10 @@ export type AvailableForTypeOption =
   | 'SelfRegisteredUser';
 
 export type ResourceType = 'altinnapp';
+
+export type ContactPoint = {
+  category: string;
+  email: string;
+  telephone: string;
+  contactPage: string;
+};
