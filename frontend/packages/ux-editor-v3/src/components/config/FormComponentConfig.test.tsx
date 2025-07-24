@@ -65,7 +65,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_link')),
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).toBeInTheDocument();
     expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
   });
@@ -86,7 +86,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_link')),
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).toBeInTheDocument();
     expect(screen.getByText('children')).toBeInTheDocument();
   });
@@ -110,7 +110,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_link')),
+      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });

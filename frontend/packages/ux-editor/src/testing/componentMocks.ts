@@ -207,11 +207,6 @@ const linkComponent: FormComponent<ComponentType.Link> = {
   style: 'link',
 };
 
-const LikertComponent: FormComponent<ComponentType.Likert> = {
-  ...commonProps(ComponentType.Likert),
-  dataModelBindings: { answer: '', questions: '' },
-};
-
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
@@ -244,5 +239,4 @@ export const componentMocks = {
   [ComponentType.Custom]: thirdPartyComponent,
   [ComponentType.Summary]: summaryComponent,
   [ComponentType.Summary2]: summary2Component,
-  [ComponentType.Likert]: LikertComponent,
 };

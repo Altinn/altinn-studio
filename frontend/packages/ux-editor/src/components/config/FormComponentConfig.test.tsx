@@ -106,6 +106,30 @@ describe('FormComponentConfig', () => {
     expect(screen.getByText(textMock('ux_editor.component_properties.subform.go_to_layout_set')));
   });
 
+  it('should render list of unsupported properties', () => {
+    renderFormComponentConfig({
+      props: {
+        hideUnsupported: false,
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            unsupportedProperty: {
+              type: 'array',
+              items: {
+                type: 'object',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
+    ).toBeInTheDocument();
+    expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
+  });
+
   it('should not render list of unsupported properties if hideUnsupported is true', () => {
     renderFormComponentConfig({
       props: {
@@ -125,8 +149,9 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_link')),
+      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
   });
 
   it('should render property text for the "sortOrder" property', async () => {
@@ -223,19 +248,6 @@ describe('FormComponentConfig', () => {
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({ timeStamp: false }),
     );
-  });
-
-  it.each([
-    ['RadioButtons', componentMocks.RadioButtons],
-    ['Checkboxes', componentMocks.Checkboxes],
-    ['Likert', { ...componentMocks.Likert, dataModelBindings: { answer: '', questions: '' } }],
-  ])('renders %s link to docs when component type is %s', ({}, component) => {
-    renderFormComponentConfig({
-      props: { component, schema: { properties: { unsupportedProperty: {} } } },
-    });
-    screen.getByRole('link', {
-      name: textMock('ux_editor.edit_component.unsupported_properties_link'),
-    });
   });
 
   const renderFormComponentConfig = ({

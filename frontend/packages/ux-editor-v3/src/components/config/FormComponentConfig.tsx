@@ -259,7 +259,7 @@ export const FormComponentConfig = ({
       {/* Show information about unsupported properties if there are any */}
       {unsupportedPropertyKeys.length > 0 && !hideUnsupported && (
         <Alert severity='info'>
-          {t('ux_editor.edit_component.unsupported_properties_link')}
+          {t('ux_editor.edit_component.unsupported_properties_message')}
           <ul>
             {unsupportedPropertyKeys.length > 0 &&
               unsupportedPropertyKeys.map((propertyKey) => (
