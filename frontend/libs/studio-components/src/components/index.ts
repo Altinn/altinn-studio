@@ -38,3 +38,4 @@ export { StudioDetails } from './StudioDetails';
 export { StudioRadio } from './StudioRadio';
 export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
 export { StudioToggleGroup } from './StudioToggleGroup';
+export { StudioDeleteButton } from './StudioDeleteButton';
