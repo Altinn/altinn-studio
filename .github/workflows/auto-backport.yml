@@ -1,0 +1,266 @@
+name: Auto Backport PR
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  backport:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'backport')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Find or create latest release branch
+        id: find-release-branch
+        run: |
+          # Get the latest release from GitHub
+          LATEST_RELEASE_TAG=$(gh release list --limit 1 --exclude-pre-releases --exclude-drafts --json tagName --jq '.[0].tagName')
+
+          if [ -z "$LATEST_RELEASE_TAG" ]; then
+            echo "No releases found"
+            exit 1
+          fi
+
+          echo "Latest release tag: $LATEST_RELEASE_TAG"
+
+          # Extract major.minor version from tag (e.g., v4.20.2 -> 4.20)
+          if [[ $LATEST_RELEASE_TAG =~ ^v([0-9]+)\.([0-9]+) ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            RELEASE_BRANCH="release/v${MAJOR}.${MINOR}"
+            echo "Extracted version: ${MAJOR}.${MINOR}"
+            echo "Expected release branch: $RELEASE_BRANCH"
+          else
+            echo "Could not parse version from release tag: $LATEST_RELEASE_TAG"
+            exit 1
+          fi
+
+          # Check if the release branch exists remotely
+          if git ls-remote --heads origin "$RELEASE_BRANCH" | grep -q "$RELEASE_BRANCH"; then
+            echo "Release branch $RELEASE_BRANCH exists remotely"
+            # Fetch and checkout the existing branch
+            if ! git fetch origin "$RELEASE_BRANCH"; then
+              echo "Failed to fetch release branch $RELEASE_BRANCH"
+              exit 1
+            fi
+            if ! git checkout "$RELEASE_BRANCH"; then
+              echo "Failed to checkout release branch $RELEASE_BRANCH"
+              exit 1
+            fi
+            if ! git pull origin "$RELEASE_BRANCH"; then
+              echo "Failed to pull latest changes for $RELEASE_BRANCH"
+              exit 1
+            fi
+            echo "branch_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Release branch $RELEASE_BRANCH does not exist, creating it"
+            # Create new branch from the latest release tag
+            if ! git checkout -b "$RELEASE_BRANCH" "$LATEST_RELEASE_TAG"; then
+              echo "Failed to create release branch $RELEASE_BRANCH from tag $LATEST_RELEASE_TAG"
+              exit 1
+            fi
+            if ! git push origin "$RELEASE_BRANCH"; then
+              echo "Failed to push new release branch $RELEASE_BRANCH to origin"
+              exit 1
+            fi
+            echo "branch_exists=false" >> $GITHUB_OUTPUT
+            echo "Created new release branch: $RELEASE_BRANCH"
+          fi
+
+          echo "release_branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "latest_release_tag=$LATEST_RELEASE_TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create backport branch and cherry-pick
+        id: cherry-pick
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          MERGE_COMMIT="${{ github.event.pull_request.merge_commit_sha }}"
+          RELEASE_BRANCH="${{ steps.find-release-branch.outputs.release_branch }}"
+          BACKPORT_BRANCH="backport/${PR_NUMBER}"
+
+          echo "PR Number: $PR_NUMBER"
+          echo "Merge Commit: $MERGE_COMMIT"
+          echo "Release Branch: $RELEASE_BRANCH"
+          echo "Backport Branch: $BACKPORT_BRANCH"
+
+          # Create backport branch from the current release branch
+          git checkout -b "$BACKPORT_BRANCH"
+
+          # Attempt cherry-pick
+          if git cherry-pick "$MERGE_COMMIT"; then
+            echo "Cherry-pick successful"
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "Cherry-pick failed with conflicts"
+            git cherry-pick --abort
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "backport_branch=$BACKPORT_BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Push backport branch
+        if: steps.cherry-pick.outputs.success == 'true'
+        run: |
+          BACKPORT_BRANCH="${{ steps.cherry-pick.outputs.backport_branch }}"
+          git push origin "$BACKPORT_BRANCH"
+
+      - name: Create backport PR
+        if: steps.cherry-pick.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const originalTitle = context.payload.pull_request.title;
+            const releaseBranch = '${{ steps.find-release-branch.outputs.release_branch }}';
+            const backportBranch = '${{ steps.cherry-pick.outputs.backport_branch }}';
+
+            const backportTitle = `[Backport] ${originalTitle}`;
+            const backportBody = `
+            ## Backport of #${prNumber}
+
+            This is an automated backport of PR #${prNumber} to the \`${releaseBranch}\` release branch.
+
+            ### Original PR
+            - **Title**: ${originalTitle}
+            - **Author**: @${{ github.event.pull_request.user.login }}
+            - **Merged by**: @${{ github.event.pull_request.merged_by.login }}
+            - **Merge commit**: ${{ github.event.pull_request.merge_commit_sha }}
+
+            ### Changes
+            Cherry-picked the merge commit from the original PR onto the release branch.
+
+            ---
+            🤖 This backport PR was created automatically by the Auto Backport workflow.
+            `;
+
+            try {
+              const response = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: backportTitle,
+                head: backportBranch,
+                base: releaseBranch,
+                body: backportBody,
+                draft: false
+              });
+
+              console.log(`Created backport PR: ${response.data.html_url}`);
+
+              // Add labels to the new PR
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: response.data.number,
+                labels: ['backport-ignore', 'automated', 'kind/other']
+              });
+
+              // Assign the person who merged the original PR
+              const mergedBy = '${{ github.event.pull_request.merged_by.login }}';
+              if (mergedBy && mergedBy !== 'null') {
+                try {
+                  await github.rest.issues.addAssignees({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: response.data.number,
+                    assignees: [mergedBy]
+                  });
+                  console.log(`Assigned backport PR to: ${mergedBy}`);
+                } catch (assignError) {
+                  console.error(`Failed to assign PR to ${mergedBy}:`, assignError);
+                  // Don't fail the workflow if assignment fails
+                }
+              }
+
+            } catch (error) {
+              console.error('Failed to create backport PR:', error);
+              throw error;
+            }
+
+      - name: Comment on original PR (success)
+        if: steps.cherry-pick.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const releaseBranch = '${{ steps.find-release-branch.outputs.release_branch }}';
+            const branchExists = '${{ steps.find-release-branch.outputs.branch_exists }}' === 'true';
+            const latestReleaseTag = '${{ steps.find-release-branch.outputs.latest_release_tag }}';
+
+            const branchStatus = branchExists
+              ? `The release branch \`${releaseBranch}\` already existed and was updated.`
+              : `A new release branch \`${releaseBranch}\` was created from release \`${latestReleaseTag}\`.`;
+
+            const comment = `✅ **Automatic backport successful!**
+
+            A backport PR has been automatically created for the \`${releaseBranch}\` release branch.
+
+            ${branchStatus}
+
+            The cherry-pick was clean with no conflicts. Please review the backport PR when it appears.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
+
+      - name: Comment on original PR (conflicts)
+        if: steps.cherry-pick.outputs.success == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const releaseBranch = '${{ steps.find-release-branch.outputs.release_branch }}';
+            const branchExists = '${{ steps.find-release-branch.outputs.branch_exists }}' === 'true';
+            const latestReleaseTag = '${{ steps.find-release-branch.outputs.latest_release_tag }}';
+            const prNumber = context.payload.pull_request.number;
+
+            const branchStatus = branchExists
+              ? `The release branch \`${releaseBranch}\` already existed and was updated.`
+              : `A new release branch \`${releaseBranch}\` was created from release \`${latestReleaseTag}\`.`;
+
+            const comment = `⚠️ **Automatic backport failed due to conflicts**
+
+            The automatic backport to \`${releaseBranch}\` failed because of merge conflicts.
+
+            ${branchStatus}
+
+            **Manual backport required:**
+            \`\`\`bash
+            # Checkout the release branch
+            git checkout ${releaseBranch}
+            git pull origin ${releaseBranch}
+
+            # Create backport branch
+            git checkout -b backport/${prNumber}
+
+            # Cherry-pick the merge commit
+            git cherry-pick ${{ github.event.pull_request.merge_commit_sha }}
+
+            # Resolve conflicts, then:
+            git add .
+            git cherry-pick --continue
+
+            # Push and create PR
+            git push origin backport/${prNumber}
+            \`\`\`
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: comment
+            });
