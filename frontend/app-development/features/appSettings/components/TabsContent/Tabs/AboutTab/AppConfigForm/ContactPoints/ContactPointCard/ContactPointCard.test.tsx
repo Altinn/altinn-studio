@@ -150,11 +150,13 @@ const telephoneLabel = textMock('app_settings.about_tab_contact_point_fieldset_t
 const contactPageLabel = textMock(
   'app_settings.about_tab_contact_point_fieldset_contact_page_label',
 );
-const errorMessage = textMock('app_settings.about_tab_error_contact_points');
-
+const cardIndex: number = 0;
+const errorMessage = textMock('app_settings.about_tab_error_contact_points', {
+  index: String(cardIndex + 1),
+});
 const error: AppConfigFormError = {
   field: 'contactPoints',
-  index: 0,
+  index: cardIndex,
   error: errorMessage,
 };
 
