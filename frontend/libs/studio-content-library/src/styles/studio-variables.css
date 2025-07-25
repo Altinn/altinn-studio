@@ -1,0 +1,5 @@
+:root {
+  --studio-library-padding: var(--fds-spacing-6);
+  --studio-library-border-radius-default: var(--fds-border_radius-medium);
+  --studio-library-border-radius-container: 6px;
+}

@@ -1,5 +1,5 @@
 .popover {
-  border-radius: 5px;
+  border-radius: var(--studio-border-radius-default);
   padding: 0;
 }
 

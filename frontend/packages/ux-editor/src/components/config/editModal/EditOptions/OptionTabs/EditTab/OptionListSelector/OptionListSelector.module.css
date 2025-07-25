@@ -4,7 +4,6 @@
 
   min-width: var(--code-list-modal-min-width);
   height: var(--code-list-modal-height);
-  border-radius: var(--fds-border_radius-xxlarge);
 }
 
 .content {

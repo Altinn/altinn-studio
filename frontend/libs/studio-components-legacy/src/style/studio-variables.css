@@ -12,6 +12,6 @@
   );
   --studio-legacy-property-fieldset-spacing: var(--fds-spacing-3);
   --studio-legacy-modal-spacing: var(--fds-spacing-6);
-
   --studio-legacy-border-divider: 1px solid var(--fds-semantic-border-divider-default);
+  --studio-legacy-border-radius-default: var(--fds-border_radius-medium);
 }
