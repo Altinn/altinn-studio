@@ -1337,6 +1337,7 @@
   "ux_editor.add_item.close": "Lukk",
   "ux_editor.add_item.component_info_generated_id_description": "Vi lager automatisk en unik ID for komponenten. Her kan du endre den til noe du selv ønsker, eller la den være som den er. Du kan også endre denne ID-en senere.",
   "ux_editor.add_item.component_more_info_description": "Klikk på en komponent for å se mer informasjon om den.",
+  "ux_editor.add_item.component_search_label": "Søk etter komponent",
   "ux_editor.add_item.new_component": "Ny komponent",
   "ux_editor.add_item.select_component_header": "Velg komponent",
   "ux_editor.add_item.show_all": "Vis alle",
