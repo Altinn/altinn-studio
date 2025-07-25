@@ -1,4 +1,5 @@
 .buttonGroup {
   display: flex;
   gap: var(--fds-spacing-2);
+  font-family: var(--studio-font-family);
 }
