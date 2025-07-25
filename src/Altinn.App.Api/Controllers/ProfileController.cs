@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Auth;
+using Altinn.Platform.Profile.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +26,8 @@ public class ProfileController : Controller
     /// <summary>
     /// Method that returns the user information about the user that is logged in
     /// </summary>
+    [ProducesResponseType(typeof(UserProfile), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [Authorize]
     [HttpGet("user")]
     public async Task<ActionResult> GetUser()

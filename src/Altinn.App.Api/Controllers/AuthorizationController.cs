@@ -2,6 +2,7 @@ using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,9 @@ public class AuthorizationController : Controller
     /// Gets current party by reading cookie value and validating.
     /// </summary>
     /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Party), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
     public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
@@ -120,6 +124,9 @@ public class AuthorizationController : Controller
     /// <param name="userId">The userId</param>
     /// <param name="partyId">The partyId</param>
     /// <returns>Boolean indicating if the selected party is valid.</returns>
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId)

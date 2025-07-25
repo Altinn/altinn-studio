@@ -62,6 +62,8 @@ public class PdfController : ControllerBase
     /// <summary>
     /// Generate a preview of the PDF for the current task
     /// </summary>
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
     public async Task<ActionResult> GetPdfPreview(
@@ -86,6 +88,9 @@ public class PdfController : ControllerBase
     /// Get the pdf formatting
     /// </summary>
     /// <returns>The lists of pages/components to exclude from PDF</returns>
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
     [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid}/pdf/format")]
     public async Task<ActionResult> GetPdfFormat(
         [FromRoute] string org,

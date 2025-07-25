@@ -29,6 +29,9 @@ public class TextsController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="language">The text language to use.</param>
     /// <returns>The text resource file content or 404</returns>
+    [ProducesResponseType(typeof(TextResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet]
     public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
     {

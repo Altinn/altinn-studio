@@ -128,7 +128,8 @@ public class HomeController : Controller
     /// Returns an HTML document with a small javascript that will set session variables in frontend and redirect to the app.
     /// </remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/html")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [Route("{org}/{app}/set-query-params")]
     public async Task<IActionResult> SetQueryParams(string org, string app)
     {

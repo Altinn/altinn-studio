@@ -47,6 +47,8 @@ public class PagesController : ControllerBase
     /// Get the page order based on the current state of the instance
     /// </summary>
     /// <returns>The pages sorted in the correct order</returns>
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [HttpPost("order")]
     public async Task<ActionResult<List<string>>> GetPageOrder(
         [FromRoute] string org,

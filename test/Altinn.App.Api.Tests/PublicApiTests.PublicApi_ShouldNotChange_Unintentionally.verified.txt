@@ -15,10 +15,15 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(409)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(403)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 401)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.UserActionResponse), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.UserActionResponse>> Perform([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.UserActionRequest actionRequest, System.Threading.CancellationToken ct, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/applicationlanguages")]
@@ -36,11 +41,19 @@ namespace Altinn.App.Api.Controllers
     {
         public ApplicationMetadataController(Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ApplicationMetadataController> logger) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/applicationmetadata")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.ApplicationMetadata), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ResponseCache(Duration=60, Location=Microsoft.AspNetCore.Mvc.ResponseCacheLocation.Any)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Models.ApplicationMetadata>> GetAction(string org, string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool checkOrgApp = true) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/xml", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<string>> GetPolicy(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/meta/process")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/xml", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<string>> GetProcess(string org, string app) { }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -48,6 +61,7 @@ namespace Altinn.App.Api.Controllers
     {
         public ApplicationSettingsController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.FrontEndSettings> frontEndSettings) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/applicationsettings")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Configuration.FrontEndSettings), 200)]
         public Microsoft.AspNetCore.Mvc.IActionResult GetAction(string org, string app) { }
     }
     public class AuthenticationController : Microsoft.AspNetCore.Mvc.ControllerBase
@@ -55,9 +69,12 @@ namespace Altinn.App.Api.Controllers
         public AuthenticationController(Altinn.App.Core.Internal.Auth.IAuthenticationClient authenticationClient, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPut("{org}/{app}/api/[controller]/invalidatecookie")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         public Microsoft.AspNetCore.Mvc.IActionResult InvalidateCookie() { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/[controller]/keepAlive")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> KeepAlive() { }
     }
     public class AuthorizationController : Microsoft.AspNetCore.Mvc.Controller
@@ -65,9 +82,15 @@ namespace Altinn.App.Api.Controllers
         public AuthorizationController(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorization, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/authorization/parties/current")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Register.Models.Party), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(int), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetCurrentParty(bool returnPartyObject = false) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(bool), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateSelectedParty(int userId, int partyId) { }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -183,9 +206,11 @@ namespace Altinn.App.Api.Controllers
         public EventsReceiverController(Altinn.App.Core.Internal.Events.IEventHandlerResolver eventHandlerResolver, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.EventsReceiverController> logger, System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(425)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(500)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Post([Microsoft.AspNetCore.Mvc.FromQuery] string code, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Core.Models.CloudEvent cloudEvent) { }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -195,8 +220,10 @@ namespace Altinn.App.Api.Controllers
         public ExternalApiController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ExternalApiController> logger, Altinn.App.Core.Features.ExternalApi.IExternalApiService externalApiService) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{externalApiId}")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string externalApiId, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams) { }
     }
@@ -219,7 +246,8 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/set-query-params")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetQueryParams(string org, string app) { }
         public class QueryParamInit : System.IEquatable<Altinn.App.Api.Controllers.HomeController.QueryParamInit>
@@ -360,6 +388,8 @@ namespace Altinn.App.Api.Controllers
     {
         public PagesController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Features.IPageOrder pageOrder, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.PagesController> logger) { }
         [Microsoft.AspNetCore.Mvc.HttpPost("order")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<string>), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<string>>> GetPageOrder([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string layoutSetId, [Microsoft.AspNetCore.Mvc.FromQuery] string currentPage, [Microsoft.AspNetCore.Mvc.FromQuery] string dataTypeId, [Microsoft.AspNetCore.Mvc.FromBody] dynamic formData) { }
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
@@ -369,12 +399,19 @@ namespace Altinn.App.Api.Controllers
         public PartiesController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/v1/parties")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Register.Models.Party>), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/plain", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> UpdateSelectedParty(int partyId) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.Validation.InstantiationValidationResult), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
         [System.Obsolete("Will be removed in the future")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateInstantiation(string org, string app, [Microsoft.AspNetCore.Mvc.FromQuery] int partyId) { }
     }
@@ -400,9 +437,14 @@ namespace Altinn.App.Api.Controllers
         public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
             "id}/pdf/format")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid) { }
         [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileStreamResult), 200, "application/pdf", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -453,6 +495,8 @@ namespace Altinn.App.Api.Controllers
         public ProfileController(Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("user")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Profile.Models.UserProfile), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetUser() { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -472,33 +516,46 @@ namespace Altinn.App.Api.Controllers
     {
         public ResourceController(Altinn.App.Core.Internal.App.IAppResources appResourcesService) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/footer")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetFooterLayout(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsets")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSets(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsettings")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSettings(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsettings/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSettings(string org, string app, string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layouts")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayouts(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layouts/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayouts(string org, string app, string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/jsonschema/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetModelJsonSchema([Microsoft.AspNetCore.Mvc.FromRoute] string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileContentResult), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/ruleconfiguration/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetRuleConfiguration(string org, string app, string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/javascript", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/rulehandler/{id}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetRulehandler(string org, string app, string id) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/validationconfig/{dataTypeId}")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetValidationConfiguration(string org, string app, string dataTypeId) { }
     }
@@ -584,6 +641,8 @@ namespace Altinn.App.Api.Controllers
     {
         public StatelessPagesController(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Features.IPageOrder pageOrder) { }
         [Microsoft.AspNetCore.Mvc.HttpPost("order")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<string>), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<System.Collections.Generic.List<string>>> GetPageOrder([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string layoutSetId, [Microsoft.AspNetCore.Mvc.FromQuery] string currentPage, [Microsoft.AspNetCore.Mvc.FromQuery] string dataTypeId, [Microsoft.AspNetCore.Mvc.FromBody] dynamic formData) { }
     }
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/v1/texts/{language}")]
@@ -591,6 +650,9 @@ namespace Altinn.App.Api.Controllers
     {
         public TextsController(Altinn.App.Core.Internal.App.IAppResources appResources) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.TextResource), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.Platform.Storage.Interface.Models.TextResource>> Get(string org, string app, [Microsoft.AspNetCore.Mvc.FromRoute] string language) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -617,13 +679,17 @@ namespace Altinn.App.Api.Controllers
     {
         public ValidateController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>), 200)]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid" +
             "}/validate")]
         [System.Obsolete("There is no longer any concept of validating a single data element. Use the /vali" +
             "date endpoint instead.")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateData([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.Validation.ValidationIssueWithSource), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(403)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>), 200)]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool? onlyIncrementalValidators = default, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }

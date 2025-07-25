@@ -32,6 +32,7 @@ public class ApplicationSettingsController : ControllerBase
     /// <summary>
     /// Returns the application settings
     /// </summary>
+    [ProducesResponseType(typeof(FrontEndSettings), StatusCodes.Status200OK)]
     [HttpGet("{org}/{app}/api/v1/applicationsettings")]
     public IActionResult GetAction(string org, string app)
     {

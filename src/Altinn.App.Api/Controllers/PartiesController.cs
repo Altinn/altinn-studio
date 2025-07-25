@@ -35,6 +35,8 @@ public class PartiesController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
     /// <returns>parties</returns>
+    [ProducesResponseType(typeof(IReadOnlyList<Party>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Authorize]
     [HttpGet("{org}/{app}/api/v1/parties")]
     public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
@@ -79,6 +81,8 @@ public class PartiesController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="partyId">The selected partyId</param>
     /// <returns>A validation status</returns>
+    [ProducesResponseType(typeof(InstantiationValidationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [Obsolete("Will be removed in the future")]
     [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
@@ -186,6 +190,9 @@ public class PartiesController : ControllerBase
     /// Updates the party the user represents
     /// </summary>
     /// <returns>Status code</returns>
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/plain")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
     public async Task<IActionResult> UpdateSelectedParty(int partyId)

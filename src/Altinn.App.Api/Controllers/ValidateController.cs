@@ -52,7 +52,9 @@ public class ValidateController : ControllerBase
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     [HttpGet]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
-    [ProducesResponseType(typeof(ValidationIssueWithSource), 200)]
+    [ProducesResponseType(typeof(List<ValidationIssueWithSource>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ValidateInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -114,6 +116,8 @@ public class ValidateController : ControllerBase
         "There is no longer any concept of validating a single data element. Use the /validate endpoint instead."
     )]
     [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
+    [ProducesResponseType(typeof(List<ValidationIssueWithSource>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ValidateData(
         [FromRoute] string org,
         [FromRoute] string app,
