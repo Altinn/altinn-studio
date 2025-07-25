@@ -28,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.OpenApi.Readers"/>
+    <PackageReference Include="PublicApiGenerator" />
   </ItemGroup>
 
   <ItemGroup>
