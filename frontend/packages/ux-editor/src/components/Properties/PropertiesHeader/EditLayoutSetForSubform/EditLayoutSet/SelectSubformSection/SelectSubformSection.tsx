@@ -70,7 +70,6 @@ export const SelectSubformSection = ({
         type='submit'
         disabled={!selectedSubform}
         variant='primary'
-        data-size='sm'
       >
         {t('ux_editor.component_properties.subform.save_button')}
       </StudioButton>

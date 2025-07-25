@@ -27,14 +27,12 @@ export const EditBindingButtons = ({
         icon={<XMarkIcon />}
         onClick={() => onSetDataModelSelectVisible(false)}
         variant='secondary'
-        data-size='sm'
       >
         {t('right_menu.data_model_bindings_cancel_button')}
       </StudioButton>
       <StudioDeleteButton
         confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
         onDelete={handleDelete}
-        data-size='sm'
       >
         {t('right_menu.data_model_bindings_delete_button')}
       </StudioDeleteButton>

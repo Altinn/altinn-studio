@@ -33,7 +33,6 @@ export const CreateNewSubformButtons = ({
         disabled={disableSaveButton}
         variant='primary'
         color='success'
-        data-size='sm'
       >
         {t('ux_editor.component_properties.subform.create_save_button')}
       </StudioButton>
@@ -43,7 +42,6 @@ export const CreateNewSubformButtons = ({
           icon={<XMarkIcon />}
           variant='secondary'
           color='danger'
-          data-size='sm'
         >
           {t('ux_editor.component_properties.subform.create_cancel_button')}
         </StudioButton>

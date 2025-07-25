@@ -107,11 +107,10 @@ export const Summary2OverrideEntry = ({
             disabled={!override.componentId}
             variant='primary'
             onClick={() => setOpen(false)}
-            data-size='sm'
           >
             {t('ux_editor.component_properties.summary.override.save_button')}
           </StudioButton>
-          <StudioDeleteButton data-size='sm' onDelete={onDelete}>
+          <StudioDeleteButton onDelete={onDelete}>
             {t('ux_editor.component_properties.summary.override.delete_button')}
           </StudioDeleteButton>
         </div>
