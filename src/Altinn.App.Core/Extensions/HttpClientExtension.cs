@@ -16,7 +16,7 @@ public static class HttpClientExtension
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static Task<HttpResponseMessage> PostAsync(
+    public static async Task<HttpResponseMessage> PostAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
@@ -37,7 +37,7 @@ public static class HttpClientExtension
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
         }
 
-        return httpClient.SendAsync(request, CancellationToken.None);
+        return await httpClient.SendAsync(request, CancellationToken.None);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class HttpClientExtension
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static Task<HttpResponseMessage> PutAsync(
+    public static async Task<HttpResponseMessage> PutAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
@@ -70,7 +70,7 @@ public static class HttpClientExtension
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
         }
 
-        return httpClient.SendAsync(request, CancellationToken.None);
+        return await httpClient.SendAsync(request, CancellationToken.None);
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static Task<HttpResponseMessage> GetAsync(
+    public static async Task<HttpResponseMessage> GetAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
@@ -100,7 +100,7 @@ public static class HttpClientExtension
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
         }
 
-        return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
+        return await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static Task<HttpResponseMessage> DeleteAsync(
+    public static async Task<HttpResponseMessage> DeleteAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
@@ -130,6 +130,6 @@ public static class HttpClientExtension
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
         }
 
-        return httpClient.SendAsync(request, CancellationToken.None);
+        return await httpClient.SendAsync(request, CancellationToken.None);
     }
 }
