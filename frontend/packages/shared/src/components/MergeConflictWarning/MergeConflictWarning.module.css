@@ -22,3 +22,7 @@
 .link {
   padding-bottom: var(--fds-spacing-3);
 }
+
+.textContent {
+  margin-bottom: var(--ds-size-4);
+}
