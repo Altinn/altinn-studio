@@ -7,8 +7,8 @@ import {
   StudioButton,
   StudioDeleteButton,
   StudioProperty,
-  StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
@@ -99,7 +99,7 @@ const ActionEditable = ({
   return (
     <StudioCard className={classes.container}>
       <StudioCard.Header className={classes.cardHeader}>
-        <StudioParagraph size='small'>
+        <StudioParagraph data-size='sm'>
           {t('process_editor.configuration_panel_actions_action_card_title', {
             actionIndex: actionIndex + 1,
           })}
