@@ -15,6 +15,7 @@ function StudioFileUploader(
   {
     className,
     color,
+    'data-size': dataSize,
     disabled,
     onSubmit,
     uploaderButtonText,
@@ -59,6 +60,7 @@ function StudioFileUploader(
       />
       <StudioButton
         color={color}
+        data-size={dataSize}
         disabled={disabled}
         icon={<UploadIcon />}
         onClick={handleButtonClick}
