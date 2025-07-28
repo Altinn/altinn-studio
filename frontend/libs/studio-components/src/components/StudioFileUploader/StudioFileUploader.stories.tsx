@@ -31,7 +31,7 @@ export const Preview: Story = (args): ReactElement => <StudioFileUploader {...ar
 Preview.args = {
   uploaderButtonText: 'Last opp fil',
   variant: 'tertiary',
-  onSubmit: () => {},
+  onSubmit: (): void => {},
   disabled: false,
 };
 

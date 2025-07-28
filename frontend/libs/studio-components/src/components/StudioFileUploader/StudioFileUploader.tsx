@@ -1,6 +1,5 @@
-import React, { ReactElement, forwardRef } from 'react';
-import type { InputHTMLAttributes, Ref, RefObject, FormEvent } from 'react';
-import { useForwardedRef } from '@studio/hooks';
+import React, { forwardRef, useRef, useImperativeHandle } from 'react';
+import type { InputHTMLAttributes, ReactElement, Ref, RefObject, FormEvent } from 'react';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
@@ -24,21 +23,27 @@ function StudioFileUploader(
   }: StudioFileUploaderProps,
   ref: Ref<HTMLInputElement>,
 ): ReactElement {
-  const internalRef = useForwardedRef(ref);
+  const internalRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle(ref, () => internalRef.current!);
 
-  const handleInputChange = () => {
+  const handleInputChange = (): void => {
     const file = getFile(internalRef);
     if (file) handleSubmit();
   };
 
-  const handleSubmit = (event?: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event?: FormEvent<HTMLFormElement>): void => {
     event?.preventDefault();
-    onSubmit?.(getFile(internalRef));
+    const file = getFile(internalRef);
+    if (file) {
+      onSubmit?.(file);
+    }
     resetRef(internalRef);
   };
 
-  const handleButtonClick = () => {
-    internalRef.current?.click();
+  const handleButtonClick = (): void => {
+    if (internalRef.current) {
+      internalRef.current.click();
+    }
   };
 
   return (
@@ -65,10 +70,14 @@ function StudioFileUploader(
   );
 }
 
-const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
+const getFile = (fileRef: RefObject<HTMLInputElement>): File | undefined => {
+  return fileRef?.current?.files?.item(0) || undefined;
+};
 
 const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {
-  fileRef.current.value = '';
+  if (fileRef.current) {
+    fileRef.current.value = '';
+  }
 };
 
 const ForwardedStudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(

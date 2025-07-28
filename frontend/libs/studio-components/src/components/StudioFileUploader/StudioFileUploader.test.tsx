@@ -72,7 +72,7 @@ describe('StudioFileUploader', () => {
   it('should not call submit callback when no file is uploaded', async () => {
     const user = userEvent.setup();
     renderFileUploader();
-    await user.upload(getFileInputElement(), undefined);
+    await user.upload(getFileInputElement(), []);
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
