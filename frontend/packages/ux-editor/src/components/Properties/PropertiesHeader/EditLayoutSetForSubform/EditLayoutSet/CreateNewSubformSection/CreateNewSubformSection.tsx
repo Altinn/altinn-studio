@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioCard,
-  StudioParagraph,
   StudioRecommendedNextAction,
   StudioTextfield,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
@@ -99,7 +99,7 @@ export const CreateNewSubformSection = ({
     >
       {!hasSubforms && (
         <>
-          <StudioParagraph size='sm'>
+          <StudioParagraph data-size='sm'>
             {t('ux_editor.component_properties.subform.no_existing_layout_set_empty_subform')}
           </StudioParagraph>
           <SubformInstructions />
