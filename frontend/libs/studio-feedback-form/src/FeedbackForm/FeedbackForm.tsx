@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
@@ -90,14 +91,12 @@ export function FeedbackForm({
         closeButtonTitle={buttonTexts.close}
         ref={modalRef}
       >
-        <StudioParagraph size='sm' spacing={true}>
-          {description}
-        </StudioParagraph>
+        <StudioParagraph className={classes.description}>{description}</StudioParagraph>
         {questions.map((question) => {
           return renderQuestion(question);
         })}
         {disclaimer && (
-          <StudioParagraph size='xs' spacing={true} className={classes.disclaimer}>
+          <StudioParagraph data-size='xs' className={classes.disclaimer}>
             {disclaimer}
           </StudioParagraph>
         )}
