@@ -1,5 +1,6 @@
 import React, { type ComponentType, type ReactElement, type ReactNode } from 'react';
-import { StudioHeading, StudioLink, StudioParagraph } from '@studio/components-legacy';
+import { StudioHeading, StudioLink } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { type IconProps } from '@studio/icons';
 import classes from './ContactSection.module.css';
 
@@ -29,7 +30,9 @@ export const ContactSection = ({
         <StudioHeading level={2} size='xs' spacing>
           {title}
         </StudioHeading>
-        <StudioParagraph spacing>{description}</StudioParagraph>
+        <StudioParagraph className={classes.description} data-size='md'>
+          {description}
+        </StudioParagraph>
         {additionalContent && <span>{additionalContent}</span>}
         {link && <StudioLink href={link.href}>{link.name}</StudioLink>}
       </div>

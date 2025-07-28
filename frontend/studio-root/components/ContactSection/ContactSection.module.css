@@ -27,6 +27,10 @@
   flex: 1;
 }
 
+.subcontent {
+  margin-bottom: var(--ds-size-4);
+}
+
 @media (min-width: 768px) {
   .section {
     padding: var(--fds-spacing-12);
