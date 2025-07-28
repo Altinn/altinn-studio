@@ -1,10 +1,6 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import {
-  StudioHeading,
-  StudioParagraph,
-  StudioNativeSelect,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioHeading, StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -73,9 +69,7 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
   return (
     <div className={cn(className ? className : classes.targetConfig, classes.wrapperConfig)}>
       <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      <StudioParagraph size='sm'>
-        {t('ux_editor.component_properties.target_description')}
-      </StudioParagraph>
+      <StudioParagraph>{t('ux_editor.component_properties.target_description')}</StudioParagraph>
       <StudioNativeSelect
         size='sm'
         label={t('ux_editor.component_properties.target_layoutSet_id')}
