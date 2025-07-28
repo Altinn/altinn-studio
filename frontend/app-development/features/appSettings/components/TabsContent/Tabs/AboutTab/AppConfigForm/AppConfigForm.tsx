@@ -7,6 +7,7 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type {
   AppConfigNew,
   AvailableForTypeOption,
+  ContactPoint,
   Keyword,
   StatusOption,
 } from 'app-shared/types/AppConfig';
@@ -21,6 +22,7 @@ import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';
 import { AvailableForTypeCheckboxGroup } from './AvailableForTypeRadioGroup';
+import { ContactPoints } from './ContactPoints';
 import { APP_CONFIG_RESOURCE_TYPE } from 'app-development/features/appSettings/constants/appConfigResourceType';
 
 export type AppConfigFormProps = {
@@ -57,6 +59,10 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const statusErrors: AppConfigFormError[] = getFieldErrors(AppResourceFormFieldIds.Status);
   const availableForTypeErrors: AppConfigFormError[] = getFieldErrors(
     AppResourceFormFieldIds.AvailableForType,
+  );
+
+  const contactPointErrors: AppConfigFormError[] = getFieldErrors(
+    AppResourceFormFieldIds.ContactPointsId,
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
@@ -165,6 +171,20 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
     setUpdatedAppConfig((oldVal: AppConfigNew) => ({
       ...oldVal,
       availableForType: availableForType,
+    }));
+  };
+
+  const onChangeContactPoints = (contactPoints: ContactPoint[]): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      contactPoints,
+    }));
+  };
+
+  const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
+    setUpdatedAppConfig((oldVal: AppConfigNew) => ({
+      ...oldVal,
+      visible: e.target.checked,
     }));
   };
 
@@ -280,6 +300,23 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           errors={availableForTypeErrors}
           id={AppResourceFormFieldIds.AvailableForType}
         />
+        <ContactPoints
+          contactPointList={updatedAppConfig.contactPoints}
+          onContactPointsChanged={onChangeContactPoints}
+          errors={contactPointErrors}
+          id={AppResourceFormFieldIds.ContactPointsId}
+        />
+        <SwitchInput
+          switchAriaLabel={t('app_settings.about_tab_visible_show_text', {
+            shouldText: !updatedAppConfig.visible
+              ? t('app_settings.about_tab_switch_should_not')
+              : '',
+          })}
+          cardHeading={t('app_settings.about_tab_visible_label')}
+          description={t('app_settings.about_tab_visible_description')}
+          checked={updatedAppConfig?.visible ?? false}
+          onChange={onChangeVisible}
+        />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
@@ -296,6 +333,7 @@ enum AppResourceFormFieldIds {
   RightDescription = 'rightDescription',
   Status = 'status',
   AvailableForType = 'availableForType',
+  ContactPointsId = 'contactPoints',
 }
 
 function getValidationErrorsForField(
