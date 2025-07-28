@@ -72,8 +72,8 @@ function StudioFileUploader(
   );
 }
 
-const getFile = (fileRef: RefObject<HTMLInputElement>): File | undefined => {
-  return fileRef?.current?.files?.item(0) || undefined;
+const getFile = (fileRef: RefObject<HTMLInputElement>): File | null | undefined => {
+  return fileRef?.current?.files?.item(0);
 };
 
 const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {

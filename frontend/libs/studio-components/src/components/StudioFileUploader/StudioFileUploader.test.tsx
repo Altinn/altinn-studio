@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { Ref } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
@@ -29,6 +29,14 @@ describe('StudioFileUploader', () => {
   it('should render studioButton with buttonText when provided', () => {
     renderFileUploader();
     expect(getUploadButton()).toBeInTheDocument();
+  });
+
+  it('should call input click method when clicking the studioButton', async () => {
+    const user = userEvent.setup();
+    renderFileUploader();
+    const clickSpy = jest.spyOn(getFileInputElement(), 'click');
+    await user.click(getUploadButton());
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should send uploaded file in callback', async () => {
