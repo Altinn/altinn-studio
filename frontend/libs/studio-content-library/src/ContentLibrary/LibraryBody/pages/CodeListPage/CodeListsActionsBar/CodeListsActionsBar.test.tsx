@@ -42,7 +42,7 @@ describe('CodeListsActionsBar', () => {
       name: textMock('general.search_clear_button_title'),
     });
     await user.click(clearSearchButton);
-    expect(onSetSearchStringMock).toHaveBeenCalledTimes(codeListSearchParam.length + 2); // +1 due to clearing search
+    expect(onSetSearchStringMock).toHaveBeenCalledTimes(codeListSearchParam.length + 2); // +2 due to clearing search
     expect(onSetSearchStringMock).toHaveBeenLastCalledWith('');
   });
 });
