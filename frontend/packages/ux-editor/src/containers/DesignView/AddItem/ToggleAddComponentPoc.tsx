@@ -1,7 +1,7 @@
 import React from 'react';
 import { FeedbackForm } from './FeedbackForm';
-import { StudioParagraph, StudioSwitch } from '@studio/components-legacy';
-import { StudioHelpText } from '@studio/components';
+import { StudioSwitch } from '@studio/components-legacy';
+import { StudioHelpText, StudioParagraph } from '@studio/components';
 import {
   addFeatureFlagToLocalStorage,
   FeatureFlag,
@@ -41,7 +41,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           aria-label='Prøv vårt nye design for å legge til komponenter'
           placement='bottom'
         >
-          <StudioParagraph spacing>
+          <StudioParagraph className={classes.helpTextContent}>
             Vi jobber med brukeropplevelsen i Studio. Vil du prøve vårt forslag til nytt design for
             å legge til komponenter?
           </StudioParagraph>

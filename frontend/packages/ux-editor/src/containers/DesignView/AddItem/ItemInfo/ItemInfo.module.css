@@ -11,7 +11,7 @@
 }
 
 .componentHelpText {
-  width: 100%;
+  margin-bottom: var(--ds-size-4);
 }
 
 .componentsInfoWrapper {

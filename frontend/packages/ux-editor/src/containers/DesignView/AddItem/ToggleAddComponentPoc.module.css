@@ -3,3 +3,7 @@
   flex-direction: row;
   gap: var(--fds-spacing-2);
 }
+
+.helpTextContent {
+  margin-bottom: var(--ds-size-4);
+}
