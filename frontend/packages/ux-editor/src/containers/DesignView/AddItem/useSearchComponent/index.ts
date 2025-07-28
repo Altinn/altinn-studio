@@ -1,0 +1,1 @@
+export { useSearchComponent } from './useSearchComponent';
