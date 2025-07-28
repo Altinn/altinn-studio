@@ -4,7 +4,8 @@ import classes from './InformationPanelComponent.module.css';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components-legacy';
+import { StudioLabelAsParagraph, StudioPopover } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
 
 export type InformationPanelProvidedProps = {
@@ -33,7 +34,7 @@ export const InformationPanelComponent = ({
           <StudioLabelAsParagraph size='small'>{componentTitle}</StudioLabelAsParagraph>
         </div>
         <div className={classNames(classes.informationPanelText)}>
-          <StudioParagraph size='small'>
+          <StudioParagraph data-size='sm'>
             {getComponentHelperTextByComponentType(componentType, t)}
           </StudioParagraph>
         </div>
