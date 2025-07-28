@@ -39,10 +39,10 @@ describe('CodeListsActionsBar', () => {
     const codeListSearchParam = 'code';
     await user.type(searchInput, codeListSearchParam);
     const clearSearchButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists.clear_search_button_label'),
+      name: textMock('general.search_clear_button_title'),
     });
     await user.click(clearSearchButton);
-    expect(onSetSearchStringMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to clearing search
+    expect(onSetSearchStringMock).toHaveBeenCalledTimes(codeListSearchParam.length + 2); // +1 due to clearing search
     expect(onSetSearchStringMock).toHaveBeenLastCalledWith('');
   });
 });

@@ -1,6 +1,6 @@
 .actionsBar {
-  display: grid;
-  grid-template-columns: auto auto auto;
+  display: flex;
+  flex-direction: row;
   align-items: flex-end;
   gap: var(--fds-spacing-3);
   justify-content: flex-start;

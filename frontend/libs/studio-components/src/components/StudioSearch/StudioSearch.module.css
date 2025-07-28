@@ -1,3 +1,9 @@
-.studioSearch div:empty {
-  display: contents;
+.studioSearch {
+  width: 100%;
+  max-width: 400px;
+}
+
+.label {
+  display: flex;
+  margin-bottom: var(--ds-size-1);
 }

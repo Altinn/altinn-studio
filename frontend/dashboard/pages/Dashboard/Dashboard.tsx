@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';
-import { StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
@@ -57,6 +57,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               onChange={handleChangeSearch}
               onKeyDown={handleKeyDown}
               onClear={handleClearSearch}
+              clearButtonLabel={t('general.search_clear_button_title')}
             />
             <Link
               href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
