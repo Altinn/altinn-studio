@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
-    "@digdir/designsystemet-theme": "^1.1.9",
+    "@digdir/designsystemet-theme": "^1.0.8",
     "@studio/components-legacy": "workspace:^"
   }
 }
