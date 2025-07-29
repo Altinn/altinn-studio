@@ -3,13 +3,13 @@
   flex-direction: column;
   gap: var(--ds-size-3);
   padding-inline: var(--ds-size-5);
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-surface-default);
 }
 
 .fieldSetWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-7);
+  gap: var(--ds-size-8);
   place-items: start;
 }
 
