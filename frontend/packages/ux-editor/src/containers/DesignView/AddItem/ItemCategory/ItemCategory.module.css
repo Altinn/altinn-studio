@@ -6,6 +6,10 @@
   align-items: start;
 }
 
+.categoryHeading {
+  margin-bottom: var(--ds-size-2);
+}
+
 .itemCategory {
   margin-bottom: var(--fds-spacing-1);
   margin-right: var(--fds-spacing-1);
