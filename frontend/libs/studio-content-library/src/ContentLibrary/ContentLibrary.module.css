@@ -8,7 +8,7 @@
 
 .libraryContainer {
   background-color: var(--fds-semantic-background-default);
-  border-radius: var(--fds-border_radius-xlarge);
+  border-radius: var(--fds-border_radius-large);
   border: solid 1px var(--fds-semantic-border-neutral-subtle);
   overflow: hidden;
   min-height: 80%;
