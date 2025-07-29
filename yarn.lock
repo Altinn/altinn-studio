@@ -3006,6 +3006,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
   dependencies:
+    "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components-legacy": "workspace:^"
   languageName: unknown
   linkType: soft
