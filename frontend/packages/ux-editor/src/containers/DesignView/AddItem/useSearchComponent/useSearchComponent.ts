@@ -1,10 +1,6 @@
-import { useEffect, useState, type ChangeEvent, type KeyboardEvent } from 'react';
-import { useDebounce } from '@studio/hooks';
+import { useState, type ChangeEvent } from 'react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
-
-const DEBOUNCE_DISABLED_TIME_MS = 1;
-const DEFAULT_DEBOUNCE_TIME_MS = 500;
 
 const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => string): string[] => {
   const translatedLabel = t('ux_editor.component_title.' + toolbarItem.type).toLowerCase();
@@ -35,29 +31,15 @@ type UseSearchComponentProps = {
   t: (key: string) => string;
 };
 
-export function useSearchComponent({
-  availableComponents,
-  disableDebounce,
-  t,
-}: UseSearchComponentProps) {
+export function useSearchComponent({ availableComponents, t }: UseSearchComponentProps) {
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  const { debounce } = useDebounce({
-    debounceTimeInMs: disableDebounce ? DEBOUNCE_DISABLED_TIME_MS : DEFAULT_DEBOUNCE_TIME_MS,
-  });
 
-  useEffect(() => {
-    debounce(() => setDebouncedSearchText(searchText));
-  }, [searchText, debounce]);
-
-  const handleClear = () => setSearchText('');
-  const handleEscape = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
 
   const filteredComponents = Object.entries(availableComponents).reduce(
     (acc, [category, items]) => {
-      const search = debouncedSearchText.trim().toLowerCase();
+      const search = searchText.trim().toLowerCase();
       const filteredItems = filterToolbarItems(items, search, t);
       if (filteredItems.length > 0) acc[category] = filteredItems;
       return acc;
@@ -67,10 +49,6 @@ export function useSearchComponent({
 
   return {
     searchText,
-    setSearchText,
-    debouncedSearchText,
-    handleClear,
-    handleEscape,
     handleSearchChange,
     filteredComponents,
   };

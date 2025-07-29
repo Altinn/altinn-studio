@@ -1,5 +1,4 @@
 import { useSearchComponent } from './useSearchComponent';
-import { act } from 'react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -69,33 +68,6 @@ describe('useSearchComponent', () => {
     it('should return all components when searchText is empty', () => {
       const { result } = renderUseSearchComponent();
       expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
-      expect(result.current.searchText).toBe('');
-      expect(result.current.debouncedSearchText).toBe('');
-    });
-  });
-
-  describe('Event handlers', () => {
-    it('should clear searchText when handleClear is called', async () => {
-      const { result } = renderUseSearchComponent();
-      act(() => {
-        result.current.handleSearchChange({ target: { value: textInputValue } });
-      });
-      expect(result.current.searchText).toBe(textInputValue);
-      act(() => {
-        result.current.handleClear();
-      });
-      expect(result.current.searchText).toBe('');
-    });
-
-    it('should reset searchText when Escape key is pressed', async () => {
-      const { result } = renderUseSearchComponent();
-      act(() => {
-        result.current.handleSearchChange({ target: { value: textInputValue } });
-      });
-      expect(result.current.searchText).toBe(textInputValue);
-      act(() => {
-        result.current.handleEscape({ code: 'Escape' } as KeyboardEvent);
-      });
       expect(result.current.searchText).toBe('');
     });
   });
