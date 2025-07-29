@@ -24,19 +24,13 @@ export function PolicySummary(): React.ReactElement {
         {t('policy_editor.summary_heading')}
       </StudioHeading>
       <StudioAlert severity='info' title='Tilbakemelding' className={classes.feedbackAlert}>
-        <StudioParagraph className={classes.summaryTextElements}>
-          {t('feedback.general_request')}
-        </StudioParagraph>
+        <StudioParagraph spacing>{t('feedback.general_request')}</StudioParagraph>
         <div className={classes.feedbackFormWrapper}>
           <FeedbackForm />
         </div>
       </StudioAlert>
-      <StudioParagraph className={classes.summaryTextElements}>
-        {t('policy_editor.summary_info_about')}
-      </StudioParagraph>
-      <StudioParagraph className={classes.summaryTextElements}>
-        {t('policy_editor.summary_info_edit')}
-      </StudioParagraph>
+      <StudioParagraph spacing>{t('policy_editor.summary_info_about')}</StudioParagraph>
+      <StudioParagraph spacing>{t('policy_editor.summary_info_edit')}</StudioParagraph>
       <StudioTable>
         <PolicySummaryTableHead uniqueActions={extractAllUniqueActions(policyRules)} />
         <PolicySummaryTableBody

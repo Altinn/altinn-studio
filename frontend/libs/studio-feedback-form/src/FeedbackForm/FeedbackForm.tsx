@@ -91,16 +91,16 @@ export function FeedbackForm({
         closeButtonTitle={buttonTexts.close}
         ref={modalRef}
       >
-        <StudioParagraph className={classes.description}>{description}</StudioParagraph>
+        <StudioParagraph spacing>{description}</StudioParagraph>
         {questions.map((question) => {
           return renderQuestion(question);
         })}
         {disclaimer && (
-          <StudioParagraph data-size='xs' className={classes.disclaimer}>
+          <StudioParagraph data-size='xs' className={classes.disclaimer} spacing>
             {disclaimer}
           </StudioParagraph>
         )}
-        <StudioButton className={classes.submit} onClick={handleSubmit} color='success'>
+        <StudioButton onClick={handleSubmit} color='success'>
           {buttonTexts.submit}
         </StudioButton>
       </StudioModal.Dialog>

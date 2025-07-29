@@ -2,10 +2,6 @@
   padding-inline: var(--fds-spacing-5);
 }
 
-.textContent {
-  margin-bottom: var(--ds-size-4);
-}
-
 .alert {
   margin-top: var(--fds-spacing-3);
 }

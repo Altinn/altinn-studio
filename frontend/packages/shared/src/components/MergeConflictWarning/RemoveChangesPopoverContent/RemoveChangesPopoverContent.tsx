@@ -62,7 +62,7 @@ export const RemoveChangesPopoverContent = ({
       <StudioHeading level={2} size='sm' spacing>
         {t('overview.reset_repo_confirm_heading')}
       </StudioHeading>
-      <StudioParagraph data-size='sm' className={classes.description}>
+      <StudioParagraph data-size='sm' spacing>
         <Trans
           i18nKey={'overview.reset_repo_confirm_info'}
           values={{ repositoryName: repoName }}

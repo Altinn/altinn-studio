@@ -9,7 +9,3 @@
 .errorMessage {
   display: inline;
 }
-
-.description {
-  margin-bottom: var(--ds-size-4);
-}

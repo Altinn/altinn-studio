@@ -14,7 +14,3 @@
   flex-direction: row;
   gap: var(--fds-spacing-2);
 }
-
-.popoverText {
-  margin-bottom: var(--ds-size-4);
-}

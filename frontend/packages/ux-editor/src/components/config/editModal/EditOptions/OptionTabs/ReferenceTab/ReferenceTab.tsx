@@ -46,10 +46,10 @@ export function ReferenceTab({
 
   return (
     <div className={classes.container}>
-      <StudioParagraph className={classes.textContent}>
+      <StudioParagraph spacing>
         {t('ux_editor.options.code_list_reference_id.description')}
       </StudioParagraph>
-      <StudioParagraph className={classes.textContent}>
+      <StudioParagraph spacing>
         {t('ux_editor.options.code_list_reference_id.description_details')}
       </StudioParagraph>
       <StudioTextfield

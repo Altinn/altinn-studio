@@ -41,7 +41,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           aria-label='Prøv vårt nye design for å legge til komponenter'
           placement='bottom'
         >
-          <StudioParagraph className={classes.helpTextContent}>
+          <StudioParagraph spacing>
             Vi jobber med brukeropplevelsen i Studio. Vil du prøve vårt forslag til nytt design for
             å legge til komponenter?
           </StudioParagraph>

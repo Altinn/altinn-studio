@@ -6,13 +6,5 @@
 }
 
 .disclaimer {
-  margin: var(--ds-size-4) 0;
-}
-
-.submit {
-  margin-top: var(--fds-spacing-2);
-}
-
-.description {
-  margin-bottom: var(--ds-size-4);
+  margin-top: var(--ds-size-4);
 }

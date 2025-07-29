@@ -34,7 +34,7 @@ export const DeployPopover = ({
         {t('app_deployment.btn_deploy_new_version')}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popover}>
-        <StudioParagraph data-size='sm' className={classes.popoverText}>
+        <StudioParagraph data-size='sm' spacing>
           {appDeployedVersion
             ? t('app_deployment.deploy_confirmation', {
                 selectedImageTag,

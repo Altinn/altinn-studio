@@ -30,7 +30,7 @@ export const ContactSection = ({
         <StudioHeading level={2} size='xs' spacing>
           {title}
         </StudioHeading>
-        <StudioParagraph className={classes.description} data-size='md'>
+        <StudioParagraph spacing data-size='md'>
           {description}
         </StudioParagraph>
         {additionalContent && <span>{additionalContent}</span>}

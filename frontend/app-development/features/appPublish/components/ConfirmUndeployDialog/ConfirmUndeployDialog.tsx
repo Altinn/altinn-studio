@@ -58,7 +58,7 @@ export const ConfirmUndeployDialog = ({
         heading={t('app_deployment.undeploy_confirmation_dialog_title')}
         ref={dialogRef}
       >
-        <StudioParagraph className={classes.description}>
+        <StudioParagraph spacing>
           {t('app_deployment.undeploy_confirmation_dialog_description')}
         </StudioParagraph>
         <StudioTextfield

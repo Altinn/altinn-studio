@@ -2,10 +2,6 @@
   padding: var(--fds-spacing-3);
 }
 
-.description {
-  margin-bottom: var(--ds-size-4);
-}
-
 .buttonContainer {
   display: flex;
   gap: var(--fds-spacing-3);

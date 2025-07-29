@@ -23,7 +23,7 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
       <StudioHeading level={1} spacing size='lg'>
         {t('merge_conflict.headline')}
       </StudioHeading>
-      <StudioParagraph className={classes.textContent}>
+      <StudioParagraph spacing>
         <Trans key='merge_conflict.body1'>
           Noen andre har endret appen på samme sted som deg. Hvis <strong>Del endringer</strong>{' '}
           ikke fungerer, kan du laste ned en zip-fil med endringene dine.
@@ -35,7 +35,7 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
       <StudioLink className={classes.link} href={repoDownloadPath(owner, repoName, true)}>
         {t('overview.download_repo_full')}
       </StudioLink>
-      <StudioParagraph className={classes.textContent}>
+      <StudioParagraph spacing>
         <Trans key='merge_conflict.body2'>
           Velg <strong>Slett mine endringer</strong> for å løse konflikten.
         </Trans>
