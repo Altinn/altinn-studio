@@ -1,11 +1,11 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -14,6 +14,10 @@ import type { ILayoutCollection } from 'src/layout/layout';
 type NodeId = 'input1' | 'input2' | 'input3' | 'repeating-group';
 
 describe('RepeatingGroupTableSummary', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const layoutWithHidden = (hidden: NodeId[]): ILayoutCollection => ({
     FormPage1: {
       data: {
@@ -92,7 +96,7 @@ describe('RepeatingGroupTableSummary', () => {
     await user.click(editButton);
 
     // Expect the third input to be navigated to, as that is in tableHeaders
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input3-0'));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input3-0', 'input3', expect.any(Object)));
   });
 
   test('should focus the next input when the first input is hidden', async () => {
@@ -105,7 +109,7 @@ describe('RepeatingGroupTableSummary', () => {
     await user.click(editButton);
 
     // Expect the next input (after input3) to be navigated to
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input1-0'));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input1-0', 'input1', expect.any(Object)));
   });
 
   test('should focus the last input when the other two are hidden', async () => {
@@ -118,7 +122,7 @@ describe('RepeatingGroupTableSummary', () => {
     await user.click(editButton);
 
     // Expect the last input to be navigated to
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input2-0'));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('input2-0', 'input2', expect.any(Object)));
   });
 
   test('should focus the repeating group itself when all inputs are hidden', async () => {
@@ -131,27 +135,26 @@ describe('RepeatingGroupTableSummary', () => {
     await user.click(editButton);
 
     // Expect the repeating group to be navigated to
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('repeating-group'));
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith('repeating-group', 'repeating-group', expect.any(Object)),
+    );
   });
-
-  function NavigationHook({ fn, children }: PropsWithChildren<{ fn: jest.Mock }>) {
-    useRegisterNavigationHandler((indexedId, _baseComponentId, _options) => fn(indexedId));
-    return children;
-  }
 
   type IRenderProps = {
     navigate?: jest.Mock;
     layout?: ILayoutCollection;
   };
 
-  const render = async ({ navigate = jest.fn(), layout = layoutWithHidden([]) }: IRenderProps = {}) =>
-    await renderWithInstanceAndLayout({
+  const render = async ({ navigate, layout = layoutWithHidden([]) }: IRenderProps = {}) => {
+    if (navigate) {
+      jest.spyOn(useNavigatePageModule, 'useNavigateToComponent').mockReturnValue(navigate);
+    }
+
+    return await renderWithInstanceAndLayout({
       renderer: (
-        <NavigationHook fn={navigate}>
-          <RepeatingGroupProvider baseComponentId='repeating-group'>
-            <RepeatingGroupTableSummary baseComponentId='repeating-group' />
-          </RepeatingGroupProvider>
-        </NavigationHook>
+        <RepeatingGroupProvider baseComponentId='repeating-group'>
+          <RepeatingGroupTableSummary baseComponentId='repeating-group' />
+        </RepeatingGroupProvider>
       ),
       initialPage: 'FormPage2',
       queries: {
@@ -159,6 +162,12 @@ describe('RepeatingGroupTableSummary', () => {
         fetchFormData: async () => ({
           group: [{ field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' }],
         }),
+        fetchLayoutSettings: async () => ({
+          pages: {
+            order: ['FormPage1', 'FormPage2'],
+          },
+        }),
       },
     });
+  };
 });

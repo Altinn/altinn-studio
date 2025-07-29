@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
@@ -100,10 +100,13 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-
-  const processNextKey = getProcessNextMutationKey();
   const queryClient = useQueryClient();
-  const isRunningProcessNext = queryClient.isMutating({ mutationKey: processNextKey });
+
+  const [isRunningProcessNext, setIsRunningProcessNext] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsRunningProcessNext(queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0);
+  }, [queryClient]);
 
   if (isRunningProcessNext) {
     return <Loader reason='process-wrapper' />;

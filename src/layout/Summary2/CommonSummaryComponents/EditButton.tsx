@@ -4,22 +4,20 @@ import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
-import { useNavigateTo } from 'src/features/form/layout/NavigateToNode';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useCurrentView } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
-import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 
 export type EditButtonProps = {
   targetBaseComponentId: string;
-  navigationOverride?: (() => Promise<NavigationResult> | void) | null;
+  navigationOverride?: (() => Promise<void> | void) | null;
   skipLastIdMutator?: boolean;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
@@ -53,7 +51,7 @@ export function EditButton({
   navigationOverride = null,
   skipLastIdMutator,
 }: EditButtonProps) {
-  const navigateTo = useNavigateTo();
+  const navigateToComponent = useNavigateToComponent();
   const { langAsString } = useLanguage();
   const setReturnToView = useSetReturnToView();
   const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
@@ -89,8 +87,7 @@ export function EditButton({
     if (navigationOverride) {
       await navigationOverride();
     } else {
-      await navigateTo(indexedId, targetBaseComponentId, {
-        shouldFocus: true,
+      await navigateToComponent(indexedId, targetBaseComponentId, {
         pageNavOptions: {
           resetReturnToView: false,
         },

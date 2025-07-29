@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { SearchParams } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -26,20 +28,29 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
   const layoutLookups = useLayoutLookups();
 
-  useRegisterNavigationHandler(async (_indexedId, targetBaseId) => {
-    let parent = layoutLookups.componentToParent[targetBaseId];
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const targetIndexedId = searchParams.get(SearchParams.FocusComponentId);
+    if (!targetIndexedId) {
+      return;
+    }
+    const targetBaseComponentId = getBaseComponentId(targetIndexedId);
+
+    let parent = layoutLookups.componentToParent[targetBaseComponentId];
     while (parent?.type === 'node') {
       if (parent.id === baseComponentId) {
-        const targetTabId = tabs.find((tab) => tab.children.some((childBaseId) => childBaseId === targetBaseId))?.id;
+        const targetTabId = tabs.find((tab) =>
+          tab.children.some((childBaseId) => childBaseId === targetBaseComponentId),
+        )?.id;
         if (targetTabId) {
           setActiveTab(targetTabId);
-          return true;
+          return;
         }
       }
       parent = layoutLookups.componentToParent[parent.id];
     }
-    return false;
-  });
+  }, [baseComponentId, layoutLookups.componentToParent, searchParams, tabs]);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>

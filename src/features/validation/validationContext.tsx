@@ -1,6 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -198,11 +199,10 @@ function useWaitForValidation(): WaitForValidation {
       // If validationsFromSave is not defined, we check if initial validations are done processing
       await waitForState(async (state) => {
         const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+        const incrementalMatch = deepEqual(state.processedLast.incremental, validationsFromSave);
+        const initialMatch = deepEqual(state.processedLast.initial, cachedInitialValidations);
 
-        const validationsReady =
-          state.processedLast.incremental === validationsFromSave &&
-          state.processedLast.initial === cachedInitialValidations &&
-          !isFetching;
+        const validationsReady = incrementalMatch && initialMatch && !isFetching;
 
         if (validationsReady) {
           await waitForNodesToValidate(state.processedLast);
@@ -236,8 +236,8 @@ export function ProvideWaitForValidation() {
 }
 
 export function LoadingBlockerWaitForValidation({ children }: PropsWithChildren) {
-  const validating = useSelector((state) => state.validating);
-  if (!validating) {
+  const validationFn = useSelector((state) => state.validating);
+  if (!validationFn) {
     return <Loader reason='validation-awaiter' />;
   }
 

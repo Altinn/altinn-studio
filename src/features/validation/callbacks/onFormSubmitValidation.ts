@@ -54,13 +54,13 @@ export function useOnFormSubmitValidation() {
 
   return useCallback(
     async (includeNonIncrementalValidations = false) => {
-      const validating = validation.current === ContextNotProvided ? undefined : validation.current?.validating;
-      if (!validating) {
+      const validateFn = validation.current === ContextNotProvided ? undefined : validation.current?.validating;
+      if (!validateFn) {
         // If the validation context is not provided, we cannot validate
         return false;
       }
 
-      await validating();
+      await validateFn();
       return callback(includeNonIncrementalValidations);
     },
     [callback, validation],

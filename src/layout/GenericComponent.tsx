@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import classNames from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { ExprVal } from 'src/features/expressions/types';
-import { NavigationResult, useFinishNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
+import { SearchParams } from 'src/hooks/navigation';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { getComponentDef } from 'src/layout/index';
@@ -90,6 +91,8 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
 
+  useHandleFocusComponent(nodeId, containerDivRef);
+
   useEffect(() => {
     if (containerDivRef.current && hiddenState.reason === 'forcedByDeVTools' && howToHide === 'disabled') {
       containerDivRef.current.style.filter = 'contrast(0.75)';
@@ -107,60 +110,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     }),
     [grid, baseComponentId, overrideItemProps, overrideDisplay],
   );
-
-  useFinishNavigation(async (indexedId, _baseComponentId, options, onHit) => {
-    if (indexedId !== nodeId) {
-      return undefined;
-    }
-    onHit();
-    let retryCount = 0;
-    while (!containerDivRef.current && retryCount < 100) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      retryCount++;
-    }
-    if (!containerDivRef.current) {
-      return NavigationResult.SuccessfulFailedToRender;
-    }
-    requestAnimationFrame(() => containerDivRef.current?.scrollIntoView());
-
-    const shouldFocus = options?.shouldFocus ?? false;
-    if (!shouldFocus) {
-      // Hooray, we've arrived at the component, but we don't need to focus it.
-      return NavigationResult.SuccessfulNoFocus;
-    }
-
-    const targetHtmlNodes = containerDivRef.current?.querySelectorAll('input,textarea,select,p');
-
-    if (targetHtmlNodes) {
-      if (targetHtmlNodes.length === 1) {
-        (targetHtmlNodes[0] as HTMLElement).focus();
-        return NavigationResult.SuccessfulWithFocus;
-      }
-
-      if (targetHtmlNodes.length > 1) {
-        let didBreak = false;
-        for (const node of Array.from(targetHtmlNodes)) {
-          const element = node as HTMLInputElement;
-          if (
-            options?.error &&
-            'bindingKey' in options.error &&
-            element?.dataset?.bindingkey === options.error.bindingKey
-          ) {
-            element.focus();
-            didBreak = true;
-            break;
-          }
-        }
-
-        if (didBreak) {
-          return NavigationResult.SuccessfulWithFocus;
-        } else {
-          (targetHtmlNodes[0] as HTMLElement).focus();
-          return NavigationResult.SuccessfulWithFocus;
-        }
-      }
-    }
-  });
 
   if (hiddenState.hidden) {
     return null;
@@ -260,4 +209,37 @@ export function ComponentErrorList({ baseComponentId, errors }: { baseComponentI
       </p>
     </div>
   );
+}
+
+function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const indexedId = searchParams.get(SearchParams.FocusComponentId);
+  const searchParamBindingError = searchParams.get(SearchParams.FocusErrorBinding);
+
+  useEffect(() => {
+    if (!indexedId || indexedId !== nodeId) {
+      return;
+    }
+
+    requestAnimationFrame(() => containerDivRef.current?.scrollIntoView({ behavior: 'instant' }));
+    const targetElements = containerDivRef.current?.querySelectorAll('input,textarea,select,p');
+    const targetHtmlElements = targetElements
+      ? Array.from(targetElements).filter((node) => node instanceof HTMLElement)
+      : [];
+
+    if (targetHtmlElements?.length > 0) {
+      const errorElement = searchParamBindingError
+        ? Array.from(targetHtmlElements).find(
+            (htmlElement) => htmlElement && htmlElement.dataset.bindingkey === searchParamBindingError,
+          )
+        : undefined;
+
+      // Focus error element or fallback to first element if no error or matching binding
+      (errorElement ?? targetHtmlElements[0]).focus();
+    }
+
+    searchParams.delete(SearchParams.FocusComponentId);
+    searchParams.delete(SearchParams.FocusErrorBinding);
+    setSearchParams(searchParams, { replace: true });
+  }, [nodeId, indexedId, searchParamBindingError, containerDivRef, searchParams, setSearchParams]);
 }

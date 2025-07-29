@@ -5,13 +5,13 @@ import cn from 'classnames';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useNavigateTo } from 'src/features/form/layout/NavigateToNode';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
@@ -135,7 +135,7 @@ const SummaryComponentInner = React.forwardRef(function (
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
 
-  const navigateTo = useNavigateTo();
+  const navigateToComponent = useNavigateToComponent();
   const setReturnToView = useSetReturnToView();
   const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
 
@@ -146,8 +146,7 @@ const SummaryComponentInner = React.forwardRef(function (
 
     setReturnToView?.(currentPageId);
     setNodeOfOrigin?.(originNodeId);
-    await navigateTo(indexedId, targetBaseComponentId, {
-      shouldFocus: true,
+    await navigateToComponent(indexedId, targetBaseComponentId, {
       pageNavOptions: {
         resetReturnToView: false,
       },

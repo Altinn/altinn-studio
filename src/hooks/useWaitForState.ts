@@ -23,7 +23,6 @@ type ValidInputs<T> = T extends typeof ContextNotProvided
  */
 export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForState<T, RetVal> {
   const subscribersRef = useRef<Set<Subscriber>>(new Set());
-
   // Call subscribers on every re-render/state change if state is a ref
   if (isRef(state)) {
     for (const subscriber of subscribersRef.current) {
@@ -52,48 +51,57 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
   }, [state]);
 
   return useCallback(
-    (callback) =>
-      new Promise((resolve) => {
-        let returnValue: RetVal | undefined = undefined;
+    async (callback) => {
+      let returnValue: RetVal | undefined = undefined;
 
-        function setReturnValue(val: RetVal) {
-          returnValue = val;
-        }
+      const setReturnValue = (val: RetVal) => {
+        returnValue = val;
+      };
 
-        if (state === ContextNotProvided) {
-          subscribersRef.current.add(async (state) => {
-            if (await callback(state, setReturnValue)) {
+      // Handle ContextNotProvided case - wait for subscription only
+      if (state === ContextNotProvided) {
+        return new Promise<RetVal>((resolve) => {
+          subscribersRef.current.add(async (state: T) => {
+            const shouldResolve = await callback(state, setReturnValue);
+            if (shouldResolve) {
               resolve(returnValue as RetVal);
               return true;
             }
             return false;
           });
-          return;
+        });
+      }
+
+      // Get current state and test it immediately
+      const currentState = isRef(state) ? state.current : state.getState();
+      const immediateResult = callback(currentState, setReturnValue);
+
+      // Handle synchronous result
+      if (immediateResult === true) {
+        return returnValue as RetVal;
+      }
+
+      // Handle async result
+      if (immediateResult instanceof Promise) {
+        const resolved = await immediateResult;
+        if (resolved) {
+          return returnValue as RetVal;
         }
+        // If async check failed, fall through to wait for subscription
+      }
 
-        const currentState = isRef(state) ? state.current : state.getState();
-
-        // If state is already correct, resolve immediately
-        const result = callback(currentState, setReturnValue);
-
-        if (result === true) {
-          resolve(returnValue as RetVal);
-          return;
-        }
-        if (result instanceof Promise) {
-          result.then((res) => {
-            res && resolve(returnValue as RetVal);
-          });
-        }
-
-        subscribersRef.current.add(async (state) => {
-          if (await callback(state, setReturnValue)) {
+      // Current state doesn't match - wait for subscription
+      return new Promise<RetVal>((resolve) => {
+        subscribersRef.current.add(async (state: T) => {
+          const shouldResolve = await callback(state, setReturnValue);
+          if (shouldResolve) {
             resolve(returnValue as RetVal);
             return true;
           }
           return false;
         });
-      }),
+      });
+    },
     [state],
   );
 }

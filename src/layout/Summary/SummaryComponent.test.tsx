@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
@@ -99,7 +99,9 @@ describe('SummaryComponent', () => {
 
     const button = screen.getByRole('button');
 
-    fireEvent.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
   });
 
   type IRenderProps = {
@@ -128,6 +130,11 @@ describe('SummaryComponent', () => {
       queries: {
         fetchLayouts: async () => layout,
         fetchBackendValidations: async () => validationIssues,
+        fetchLayoutSettings: async () => ({
+          pages: {
+            order: currentPageId ? ['FormLayout', currentPageId] : ['FormLayout'],
+          },
+        }),
       },
     });
   };

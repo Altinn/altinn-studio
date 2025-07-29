@@ -8,10 +8,10 @@ import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthW
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
-import { useNavigateTo } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
+import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -178,14 +178,16 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 }
 
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
-  const navigateTo = useNavigateTo();
-  const handleErrorClick = async (ev: React.KeyboardEvent | React.MouseEvent) => {
+  const navigateToComponent = useNavigateToComponent();
+
+  function handleErrorClick(ev: React.KeyboardEvent | React.MouseEvent) {
     if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
       return;
     }
     ev.preventDefault();
-    await navigateTo(error.nodeId, error.baseComponentId, { shouldFocus: true, error });
-  };
+
+    navigateToComponent(error.nodeId, error.baseComponentId, { error });
+  }
 
   return (
     <ErrorReportListItem>

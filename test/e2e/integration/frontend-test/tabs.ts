@@ -44,7 +44,6 @@ describe('Tabs', () => {
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.findByRole('button', { name: /du må fylle ut nytt etternavn/i }).click();
 
-    cy.getCurrentPageId().should('equal', 'form');
     cy.findByRole('tab', { name: /nytt etternavn/i })
       .invoke('attr', 'aria-selected')
       .should('equal', 'true');

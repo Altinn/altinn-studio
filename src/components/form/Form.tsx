@@ -12,7 +12,6 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useNavigateTo, useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -26,8 +25,6 @@ import { getComponentCapabilities } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { NavigateToComponentOptions } from 'src/features/form/layout/NavigateToNode';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 interface FormState {
@@ -59,7 +56,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
     }
   }, [onFormSubmitValidation, searchParams, setSearchParams, shouldValidateFormPage]);
 
-  const { isValidPageId, navigateToPage } = useNavigatePage();
+  const { isValidPageId } = useNavigatePage();
   const appName = useAppName();
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
@@ -75,22 +72,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
 
   useRedirectToStoredPage();
   useSetExpandedWidth();
-  const layoutLookups = useLayoutLookups();
-
-  useRegisterNavigationHandler(async (_indexedId, baseComponentId, options) => {
-    const targetPage = layoutLookups.componentToPage[baseComponentId];
-    if (targetPage && targetPage !== currentPageId) {
-      await navigateToPage(targetPage, {
-        ...options?.pageNavOptions,
-        shouldFocusComponent: options?.shouldFocus ?? options?.pageNavOptions?.shouldFocusComponent ?? true,
-        replace:
-          window.location.href.includes(SearchParams.FocusComponentId) ||
-          window.location.href.includes(SearchParams.ExitSubform),
-      });
-      return true;
-    }
-    return false;
-  });
 
   if (!currentPageId || !isValidPageId(currentPageId)) {
     return <NavigateToStartUrl forceCurrentTask={false} />;
@@ -256,38 +237,23 @@ function useFormState(currentPageId: string | undefined): FormState {
 
 function HandleNavigationFocusComponent() {
   const onFormSubmitValidation = useOnFormSubmitValidation();
-  const componentId = useQueryKey(SearchParams.FocusComponentId);
   const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
   const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
-  const navigateTo = useNavigateTo();
   const navigate = useNavigate();
   const searchStringRef = useAsRef(useLocation().search);
 
   React.useEffect(() => {
     (async () => {
       // Replace URL if we have query params
-      if (componentId || exitSubform || validate) {
+      if (exitSubform || validate) {
         const location = new URLSearchParams(searchStringRef.current);
-        location.delete(SearchParams.FocusComponentId);
         location.delete(SearchParams.ExitSubform);
         const baseHash = window.location.hash.slice(1).split('?')[0];
         const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
         navigate(nextLocation, { replace: true });
       }
-
-      // Focus on node?
-      if (componentId) {
-        const nodeNavOptions: NavigateToComponentOptions = {
-          shouldFocus: true,
-          pageNavOptions: {
-            resetReturnToView: !exitSubform,
-          },
-        };
-        const { baseComponentId } = splitDashedKey(componentId);
-        await navigateTo(componentId, baseComponentId, nodeNavOptions);
-      }
     })();
-  }, [navigateTo, navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation, componentId]);
+  }, [navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
 }

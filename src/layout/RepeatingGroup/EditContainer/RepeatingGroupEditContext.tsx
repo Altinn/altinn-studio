@@ -1,13 +1,15 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useRegisterNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { SearchParams } from 'src/hooks/navigation';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 
 interface RepeatingGroupEditRowContext {
@@ -81,12 +83,20 @@ export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
   const baseComponentId = useRepeatingGroupComponentId();
   const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(baseComponentId);
   const layoutLookups = useLayoutLookups();
+  const [searchParams] = useSearchParams();
 
-  useRegisterNavigationHandler(async (_targetIndexedId, targetBaseComponentId) => {
+  useEffect(() => {
     if (!state.multiPageEnabled) {
       // Nothing to do here. Other navigation handlers will make sure this row is opened for editing.
-      return false;
+      return;
     }
+    const targetIndexedId = searchParams.get(SearchParams.FocusComponentId);
+    if (!targetIndexedId) {
+      return;
+    }
+
+    const targetBaseComponentId = getBaseComponentId(targetIndexedId);
+
     let isOurChildDirectly = false;
     let isOurChildRecursively = false;
     let subject: ParentRef = { type: 'node', id: targetBaseComponentId };
@@ -101,28 +111,25 @@ export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
     }
 
     if (!isOurChildRecursively) {
-      return false;
+      return;
     }
 
-    const ourConfig = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
-    if (!ourConfig.edit?.multiPage) {
-      return true;
+    const componentConfig = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
+    if (!componentConfig.edit?.multiPage) {
+      return;
     }
 
     // It's our child, but not directly. We need to figure out which of our children contains the target,
     // and navigate there. Then it's a problem that can be forwarded there.
     const multiPageSubject = isOurChildDirectly ? targetBaseComponentId : subject.id;
 
-    for (const id of ourConfig.children) {
+    for (const id of componentConfig.children) {
       const [pageIndex, baseId] = id.split(':', 2);
       if (baseId === multiPageSubject) {
         setMultiPageIndex(parseInt(pageIndex, 10));
-        return true;
       }
     }
-
-    return false;
-  });
+  }, [searchParams, baseComponentId, layoutLookups, state.multiPageEnabled, setMultiPageIndex]);
 
   return <Provider value={state}>{children}</Provider>;
 }
