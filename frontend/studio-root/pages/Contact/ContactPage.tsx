@@ -40,13 +40,13 @@ export const ContactPage = (): React.ReactElement => {
       title: t('contact.slack.heading'),
       description: t('contact.slack.content'),
       additionalContent: (
-        <StudioParagraph data-size='md'>
-          <ul>
+        <ul>
+          <StudioParagraph data-size='md'>
             <Trans i18nKey='contact.slack.content_list'>
               <li />
             </Trans>
-          </ul>
-        </StudioParagraph>
+          </StudioParagraph>
+        </ul>
       ),
       link: {
         name: t('contact.slack.link'),
