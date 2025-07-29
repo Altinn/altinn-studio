@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@studio/icons';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
@@ -24,9 +24,9 @@ export const EditBindingButtons = ({
   return (
     <div className={classes.buttons}>
       <StudioButton
-        icon={<XMarkIcon />}
+        icon={<CheckmarkIcon />}
         onClick={() => onSetDataModelSelectVisible(false)}
-        variant='secondary'
+        variant='primary'
       >
         {t('right_menu.data_model_bindings_save_button')}
       </StudioButton>

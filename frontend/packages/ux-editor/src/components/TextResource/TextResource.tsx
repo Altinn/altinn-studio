@@ -4,7 +4,7 @@ import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
 import { StudioProperty, usePrevious } from '@studio/components-legacy';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -125,7 +125,7 @@ const TextResourceFieldset = ({
       menubar={
         <>
           <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
-          <StudioButton icon={<XMarkIcon />} onClick={onClose} variant='secondary'>
+          <StudioButton icon={<CheckmarkIcon />} onClick={onClose} variant='primary'>
             {t('general.save')}
           </StudioButton>
           <StudioDeleteButton
