@@ -119,7 +119,6 @@ const renderUseSearchComponent = (
   return renderHookWithProviders(() =>
     useSearchComponent({
       availableComponents: mockAvailableComponents,
-      disableDebounce: true,
       t: (key: string) => translations[key] || key,
       ...overrides,
     }),
