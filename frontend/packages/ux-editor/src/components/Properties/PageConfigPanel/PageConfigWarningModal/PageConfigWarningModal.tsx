@@ -1,26 +1,26 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './PageConfigWarningModal.module.css';
-import { Modal } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
+import { StudioDialog, StudioHeading } from '@studio/components';
 
 export interface PageConfigWarningModalProps {
-  modalRef: React.MutableRefObject<HTMLDialogElement>;
+  open: boolean;
 }
-export const PageConfigWarningModal = ({ modalRef }: PageConfigWarningModalProps): ReactNode => {
+
+export const PageConfigWarningModal = ({ open }: PageConfigWarningModalProps): ReactNode => {
   const { t } = useTranslation();
   return (
-    <Modal ref={modalRef} role='dialog'>
-      <Modal.Header closeButton={true}>
-        {t('ux_editor.modal_properties_warning_modal_title')}
-      </Modal.Header>
-      <Modal.Content>
+    <StudioDialog open={open}>
+      <StudioDialog.Block>
+        <StudioHeading>{t('ux_editor.modal_properties_warning_modal_title')}</StudioHeading>
+      </StudioDialog.Block>
+      <StudioDialog.Block>
         <div className={classes.subTitle}>
           {t('ux_editor.modal_properties_warning_modal_sub_title')}
         </div>
         {t('ux_editor.modal_properties_warning_modal_instructive_text_body')}
-      </Modal.Content>
-      <Modal.Footer />
-    </Modal>
+      </StudioDialog.Block>
+    </StudioDialog>
   );
 };
