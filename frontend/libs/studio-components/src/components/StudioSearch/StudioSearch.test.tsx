@@ -4,12 +4,6 @@ import { StudioSearch, type StudioSearchProps } from './StudioSearch';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioSearch', () => {
-  const defaultProps: StudioSearchProps = {
-    label: 'Search',
-    onClear: jest.fn(),
-    clearButtonLabel: 'Clear search',
-  };
-
   it('renders search input with label', () => {
     renderStudioSearch();
     const searchInput = screen.getByRole('searchbox', { name: 'Search' });
@@ -25,8 +19,13 @@ describe('StudioSearch', () => {
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
+  const defaultProps: StudioSearchProps = {
+    label: 'Search',
+    onClear: jest.fn(),
+    clearButtonLabel: 'Clear search',
+  };
+
   const renderStudioSearch = (props: Partial<StudioSearchProps> = {}): void => {
-    const mergedProps = { ...defaultProps, ...props };
-    render(<StudioSearch {...mergedProps} />);
+    render(<StudioSearch {...defaultProps} {...props} />);
   };
 });
