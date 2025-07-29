@@ -39,7 +39,7 @@ COPY . .
 RUN yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:a4eb48407ea8a1a4af92ee6630ec91af216365fdf45e7f08e1b5f4ce602407f4 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:2fe880002c458a6e95a3f8bb38b63c0f2e21ffefcb01c0223c4408cc91ad7d9d AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY backend .
