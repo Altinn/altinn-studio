@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
+import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
@@ -59,6 +60,10 @@ export const Entrypoint = () => {
         <Outlet />
       </FormProvider>
     );
+  }
+
+  if (!profile) {
+    return <Loader reason='loading-profile' />;
   }
 
   if (!partyIsValid) {
