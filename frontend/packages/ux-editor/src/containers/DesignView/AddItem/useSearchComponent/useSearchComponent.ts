@@ -27,7 +27,6 @@ const filterToolbarItems = (
 
 type UseSearchComponentProps = {
   availableComponents: KeyValuePairs<IToolbarElement[]>;
-  disableDebounce?: boolean;
   t: (key: string) => string;
 };
 
