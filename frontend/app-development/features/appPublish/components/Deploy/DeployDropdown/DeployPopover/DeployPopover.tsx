@@ -1,11 +1,7 @@
 import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
-import {
-  StudioButton,
-  StudioPopover,
-  StudioSpinner,
-  StudioParagraph,
-} from '@studio/components-legacy';
+import { StudioButton, StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph, StudioPopover } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type DeployPopoverProps = {
@@ -28,17 +24,23 @@ export const DeployPopover = ({
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
 
   return (
-    <StudioPopover variant='warning' placement='right' open={isConfirmDeployDialogOpen}>
+    <StudioPopover.TriggerContext>
       <StudioPopover.Trigger
         disabled={!selectedImageTag || disabled}
         onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
-        size='sm'
       >
         {isPending && <PopoverSpinner />}
         {t('app_deployment.btn_deploy_new_version')}
       </StudioPopover.Trigger>
-      <StudioPopover.Content className={classes.popover}>
-        <StudioParagraph size='sm' spacing>
+      <StudioPopover
+        className={classes.popover}
+        placement='right'
+        open={isConfirmDeployDialogOpen}
+        onClose={() => setIsConfirmDeployDialogOpen(false)}
+        data-color='warning'
+        variant='tinted'
+      >
+        <StudioParagraph spacing>
           {appDeployedVersion
             ? t('app_deployment.deploy_confirmation', {
                 selectedImageTag,
@@ -55,7 +57,6 @@ export const DeployPopover = ({
               onConfirm();
               setIsConfirmDeployDialogOpen(false);
             }}
-            size='sm'
           >
             {t('general.yes')}
           </StudioButton>
@@ -66,13 +67,12 @@ export const DeployPopover = ({
               event.stopPropagation();
               setIsConfirmDeployDialogOpen(false);
             }}
-            size='sm'
           >
             {t('general.cancel')}
           </StudioButton>
         </div>
-      </StudioPopover.Content>
-    </StudioPopover>
+      </StudioPopover>
+    </StudioPopover.TriggerContext>
   );
 };
 
