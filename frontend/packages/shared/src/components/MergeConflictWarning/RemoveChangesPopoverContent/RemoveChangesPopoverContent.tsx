@@ -5,8 +5,8 @@ import {
   StudioButton,
   StudioSpinner,
   StudioHeading,
-  StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
@@ -62,7 +62,7 @@ export const RemoveChangesPopoverContent = ({
       <StudioHeading level={2} size='sm' spacing>
         {t('overview.reset_repo_confirm_heading')}
       </StudioHeading>
-      <StudioParagraph size='sm' spacing>
+      <StudioParagraph spacing>
         <Trans
           i18nKey={'overview.reset_repo_confirm_info'}
           values={{ repositoryName: repoName }}
