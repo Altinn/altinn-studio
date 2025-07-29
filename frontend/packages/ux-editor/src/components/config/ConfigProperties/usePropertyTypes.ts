@@ -1,13 +1,7 @@
 import { useMemo } from 'react';
-import {
-  PropertyTypes,
-  getSupportedPropertyKeysForPropertyType,
-  propertyKeysToExcludeFromComponentConfig,
-} from '../../../utils/component';
+import { PropertyTypes, getSupportedPropertyKeysForPropertyType } from '../../../utils/component';
 
 export const usePropertyTypes = (schema, customProperties) => {
-  const allPropertyKeys = Object.keys(schema?.properties || {});
-
   return useMemo(() => {
     const properties = schema?.properties || {};
     const booleanKeys = getSupportedPropertyKeysForPropertyType(
@@ -39,28 +33,12 @@ export const usePropertyTypes = (schema, customProperties) => {
       [PropertyTypes.object],
       [...customProperties, 'source'],
     );
-
-    const supportedKeys = [
-      ...booleanKeys,
-      ...stringKeys,
-      ...numberKeys,
-      ...arrayKeys,
-      ...objectKeys,
-      ...customProperties,
-    ];
-
-    const unsupportedKeys = allPropertyKeys.filter(
-      (key) =>
-        !supportedKeys.includes(key) && !propertyKeysToExcludeFromComponentConfig.includes(key),
-    );
-
     return {
       booleanKeys,
       stringKeys,
       numberKeys,
       arrayKeys,
       objectKeys,
-      unsupportedKeys,
     };
-  }, [schema?.properties, customProperties, allPropertyKeys]);
+  }, [schema?.properties, customProperties]);
 };

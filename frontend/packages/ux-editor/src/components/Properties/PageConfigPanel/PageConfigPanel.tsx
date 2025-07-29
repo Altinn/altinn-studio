@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef } from 'react';
+import React, { Fragment } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components-legacy';
@@ -6,7 +6,6 @@ import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hook
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
-import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 import {
@@ -20,6 +19,7 @@ import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
+import { EditPageId } from './EditPageId';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -27,7 +27,6 @@ type PageConfigPanelProps = {
 
 export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const t = useText();
-  const modalRef = useRef<HTMLDialogElement>(null);
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
     selectedItem.id,
@@ -45,12 +44,6 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const duplicateLayouts: string[] =
     findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts?.length > 0;
-
-  useEffect(() => {
-    if (hasDuplicatedIdsInAllLayouts) {
-      modalRef.current?.showModal();
-    }
-  }, [hasDuplicatedIdsInAllLayouts]);
 
   if (hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
@@ -93,7 +86,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
           </Accordion.Item>
         </Accordion>
       </Fragment>
-      <PageConfigWarningModal modalRef={modalRef} />
+      <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
     </>
   );
 };
