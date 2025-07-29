@@ -4,8 +4,8 @@ import {
   StudioCard,
   StudioRecommendedNextAction,
   StudioTextfield,
+  StudioParagraph,
 } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
@@ -99,7 +99,7 @@ export const CreateNewSubformSection = ({
     >
       {!hasSubforms && (
         <>
-          <StudioParagraph data-size='sm'>
+          <StudioParagraph size='sm'>
             {t('ux_editor.component_properties.subform.no_existing_layout_set_empty_subform')}
           </StudioParagraph>
           <SubformInstructions />

@@ -1,7 +1,11 @@
 import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
-import { StudioButton, StudioPopover, StudioSpinner } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import {
+  StudioButton,
+  StudioPopover,
+  StudioSpinner,
+  StudioParagraph,
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type DeployPopoverProps = {
@@ -34,7 +38,7 @@ export const DeployPopover = ({
         {t('app_deployment.btn_deploy_new_version')}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popover}>
-        <StudioParagraph data-size='sm' spacing>
+        <StudioParagraph size='sm' spacing>
           {appDeployedVersion
             ? t('app_deployment.deploy_confirmation', {
                 selectedImageTag,

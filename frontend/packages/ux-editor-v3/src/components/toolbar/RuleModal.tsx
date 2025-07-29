@@ -8,7 +8,7 @@ import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutati
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components-legacy';
 
 export function RuleModal() {
   const { org, app } = useStudioEnvironmentParams();
@@ -30,7 +30,7 @@ export function RuleModal() {
 
   function renderRuleConnections(): JSX.Element {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
-      return <StudioParagraph data-size='sm'>{t('right_menu.rules_empty')}</StudioParagraph>;
+      return <StudioParagraph size='sm'>{t('right_menu.rules_empty')}</StudioParagraph>;
     }
     return (
       <>
