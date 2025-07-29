@@ -223,9 +223,9 @@ describe('EditColumnElementComponentSelect', () => {
       textKeyMock,
     );
     await user.click(
-      screen.getByRole('button', {
-        name: textMock('general.cancel'),
-      }),
+      screen.getAllByRole('button', {
+        name: textMock('general.save'),
+      })[0],
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });

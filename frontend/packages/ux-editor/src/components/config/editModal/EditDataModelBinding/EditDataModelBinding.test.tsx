@@ -123,7 +123,7 @@ describe('EditDataModelBinding', () => {
     await navigateAndVerifyEditBinding(user, labelText);
 
     const closeButton = screen.getByRole('button', {
-      name: textMock('right_menu.data_model_bindings_cancel_button'),
+      name: textMock('right_menu.data_model_bindings_save_button'),
     });
     expect(closeButton).toBeInTheDocument();
 

@@ -126,7 +126,7 @@ const TextResourceFieldset = ({
         <>
           <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
           <StudioButton icon={<XMarkIcon />} onClick={onClose} variant='secondary'>
-            {t('general.cancel')}
+            {t('general.save')}
           </StudioButton>
           <StudioDeleteButton
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}

@@ -168,7 +168,7 @@ describe('TextResource', () => {
     const label = 'Test';
     renderTextResource({ label });
     await user.click(screen.getByRole('button', { name: label }));
-    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
   });
 
@@ -211,7 +211,7 @@ describe('TextResource', () => {
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     await user.clear(textbox);
-    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 

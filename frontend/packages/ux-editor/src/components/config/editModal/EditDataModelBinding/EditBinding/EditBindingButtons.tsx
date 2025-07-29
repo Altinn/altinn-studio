@@ -28,7 +28,7 @@ export const EditBindingButtons = ({
         onClick={() => onSetDataModelSelectVisible(false)}
         variant='secondary'
       >
-        {t('right_menu.data_model_bindings_cancel_button')}
+        {t('right_menu.data_model_bindings_save_button')}
       </StudioButton>
       <StudioDeleteButton
         confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
