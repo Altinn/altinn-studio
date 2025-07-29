@@ -70,7 +70,7 @@ describe('DataModelMainConfig', () => {
     await user.click(dataModelButton);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
+      name: textMock('right_menu.data_model_bindings_delete_button'),
     });
     await user.click(deleteButton);
 
