@@ -18,6 +18,6 @@
 
 .cardFooter {
   display: flex;
-  gap: var(--fds-spacing-3);
-  padding: 0 0 var(--fds-spacing-3) var(--fds-spacing-3);
+  gap: var(--ds-size-3);
+  padding: 0 0 var(--ds-size-4) var(--ds-size-4);
 }
