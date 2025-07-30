@@ -4,5 +4,6 @@
 }
 
 .codeListUsages {
-  font: var(--fds-typography-paragraph-xsmall);
+  font-family: var(--ds-font-family), sans-serif;
+  font-size: var(--ds-body-xs-font-size);
 }

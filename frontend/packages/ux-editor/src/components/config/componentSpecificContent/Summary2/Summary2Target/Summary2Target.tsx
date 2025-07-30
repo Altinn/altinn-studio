@@ -69,7 +69,9 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
   return (
     <div className={cn(className ? className : classes.targetConfig, classes.wrapperConfig)}>
       <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      <StudioParagraph>{t('ux_editor.component_properties.target_description')}</StudioParagraph>
+      <StudioParagraph spacing>
+        {t('ux_editor.component_properties.target_description')}
+      </StudioParagraph>
       <StudioNativeSelect
         size='sm'
         label={t('ux_editor.component_properties.target_layoutSet_id')}

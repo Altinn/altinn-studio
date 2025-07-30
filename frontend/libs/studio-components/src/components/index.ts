@@ -3,6 +3,7 @@ import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
@@ -39,3 +40,5 @@ export { StudioRadio } from './StudioRadio';
 export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
 export { StudioToggleGroup } from './StudioToggleGroup';
 export { StudioDeleteButton } from './StudioDeleteButton';
+export { StudioFileUploader } from './StudioFileUploader';
+export type { StudioFileUploaderProps } from './StudioFileUploader';
