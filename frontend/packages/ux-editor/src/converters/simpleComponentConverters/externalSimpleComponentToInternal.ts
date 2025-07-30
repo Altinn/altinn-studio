@@ -2,7 +2,7 @@ import type { FormComponent } from '../../types/FormComponent';
 import { formItemConfigs } from '../../data/formItemConfig';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { convertDataBindingToInternalFormat } from '../../utils/dataModelUtils';
-import type { IDataModelBindings } from '../../types/global';
+import type { IDataModelBindings, IDataModelBindingsKeyValueExplicit } from '../../types/global';
 
 export const externalSimpleComponentToInternal = (
   externalComponent: ExternalSimpleComponent,
@@ -22,14 +22,16 @@ export const externalSimpleComponentToInternal = (
   } as FormComponent;
 };
 
-function convertAllDatamodelBindings(externalComponent: ExternalSimpleComponent) {
+function convertAllDatamodelBindings(
+  externalComponent: ExternalSimpleComponent,
+): IDataModelBindingsKeyValueExplicit {
   return externalComponent.dataModelBindings
     ? Object.entries(externalComponent.dataModelBindings).reduce(
         (acc, [key, value]) => ({
           ...acc,
           [key]: convertDataBindingToInternalFormat(value as IDataModelBindings),
         }),
-        {} as typeof externalComponent.dataModelBindings,
+        {},
       )
     : undefined;
 }

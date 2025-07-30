@@ -24,7 +24,7 @@ export type EditBindingProps = {
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
-  internalBindingFormat: ExplicitDataModelBinding;
+  internalBindingFormat?: ExplicitDataModelBinding;
 };
 
 export const EditBinding = ({
