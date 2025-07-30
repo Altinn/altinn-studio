@@ -28,10 +28,12 @@ export const EditFormComponent = ({
         editFormId={editFormId}
         handleComponentUpdate={handleComponentUpdate}
       />
-      <ComponentSpecificContent
-        component={component}
-        handleComponentChange={handleComponentUpdate}
-      />
+      <div className={classes.componentSpecificWrapper}>
+        <ComponentSpecificContent
+          component={component}
+          handleComponentChange={handleComponentUpdate}
+        />
+      </div>
     </Fieldset>
   );
 };
