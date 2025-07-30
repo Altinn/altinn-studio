@@ -31,7 +31,7 @@ const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
 const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
-  simpleBinding: 'some-path',
+  simpleBinding: { field: 'some-path', dataType: '' },
 };
 const updatedComponent: FormComponent = {
   id,
@@ -113,6 +113,7 @@ describe('useUpdateFormComponentMutation', () => {
       maxNumberOfAttachments: 2,
       minNumberOfAttachments: 1,
       type: ComponentType.FileUpload,
+      dataModelBindings: { list: { field: 'some-path', dataType: '' } },
     };
     const args: UpdateFormComponentMutationArgs = {
       ...defaultArgs,

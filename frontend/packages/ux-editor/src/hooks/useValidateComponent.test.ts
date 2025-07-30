@@ -16,7 +16,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -34,7 +34,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -49,7 +49,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[0],
         options: [],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -64,7 +64,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -78,7 +78,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -96,7 +96,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -111,7 +111,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[1],
         options: [],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -126,7 +126,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: { simpleBinding: 'somePath' },
+        dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       };
       expect(render(component)).toEqual({ isValid: true });
     });

@@ -75,7 +75,7 @@ describe('ColumnElement', () => {
     expect(onChangeMock).toHaveBeenCalledWith({
       ...mockTableColumn,
       cellContent: {
-        query: subformLayoutMock.component4.dataModelBindings.address,
+        query: subformLayoutMock.component4.dataModelBindings.address.field,
       },
       headerContent: subformLayoutMock.component4.textResourceBindings.title,
     });

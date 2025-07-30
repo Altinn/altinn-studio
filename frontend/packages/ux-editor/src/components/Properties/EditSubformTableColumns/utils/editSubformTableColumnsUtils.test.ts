@@ -33,7 +33,7 @@ const formLayouts: IFormLayouts = {
       ['componentId1']: {
         ...componentMocks[ComponentType.Input],
         textResourceBindings: { title: 'mockTitleId' },
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding' },
+        dataModelBindings: { simpleBinding: { field: 'mockDataModelBinding', dataType: '' } },
       },
       ['componentId2']: {
         ...componentMocks[ComponentType.Input],
@@ -41,7 +41,7 @@ const formLayouts: IFormLayouts = {
       },
       ['componentId3']: {
         ...componentMocks[ComponentType.Input],
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
+        dataModelBindings: { simpleBinding: { field: 'mockDataModelBinding3', dataType: '' } },
       },
       ['componentId4']: {
         ...componentMocks[ComponentType.Input],

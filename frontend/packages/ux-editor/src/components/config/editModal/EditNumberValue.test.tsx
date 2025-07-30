@@ -34,7 +34,7 @@ const renderEditNumberValue = async ({
         },
         maxLength,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       }}
     />,
   );
@@ -80,7 +80,7 @@ describe('EditNumberValue', () => {
       },
       maxLength: 2,
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
@@ -102,7 +102,7 @@ describe('EditNumberValue', () => {
       },
       maxLength: 1,
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
