@@ -123,7 +123,7 @@ describe('EditDataModelBinding', () => {
     await navigateAndVerifyEditBinding(user, labelText);
 
     const closeButton = screen.getByRole('button', {
-      name: textMock('general.close'),
+      name: textMock('right_menu.data_model_bindings_save_button'),
     });
     expect(closeButton).toBeInTheDocument();
 
@@ -198,7 +198,7 @@ describe('EditDataModelBinding', () => {
     await navigateAndVerifyEditBinding(user, definedButtonText);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
+      name: textMock('right_menu.data_model_bindings_delete_button'),
     });
     await user.click(deleteButton);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
