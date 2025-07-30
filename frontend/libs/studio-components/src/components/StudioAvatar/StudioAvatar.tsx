@@ -5,9 +5,6 @@ import { PersonCircleIcon } from '@studio/icons';
 
 export type StudioAvatarProps = ImgHTMLAttributes<HTMLImageElement>;
 
-/**
- * @deprecated use `StudioAvatar` from `@studio/components` instead
- */
 export const StudioAvatar = ({
   src,
   className: givenClass,
