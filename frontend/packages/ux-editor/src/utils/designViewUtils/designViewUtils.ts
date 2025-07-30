@@ -1,6 +1,6 @@
-import type { TranslationKey } from 'language/type';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
+import type { TranslationKey } from 'app-shared/types/language';
 
 /**
  * Checks if the new written page name already exists

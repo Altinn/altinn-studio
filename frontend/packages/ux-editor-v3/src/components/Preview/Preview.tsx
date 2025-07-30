@@ -74,7 +74,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(org, app, selectedLayoutSet, undefined, undefined)}
           />
         </div>
         <PreviewLimitationsInfo />

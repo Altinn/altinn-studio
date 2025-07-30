@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
-import type { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'app-shared/types/language';
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components-legacy';
 

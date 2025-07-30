@@ -1,20 +1,19 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "module": "commonjs",
+    "module": "esnext",
     "target": "es6",
     "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "rootDir": "./",
     "resolveJsonModule": true,
     "strictNullChecks": false,
     "noUnusedLocals": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
       "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],

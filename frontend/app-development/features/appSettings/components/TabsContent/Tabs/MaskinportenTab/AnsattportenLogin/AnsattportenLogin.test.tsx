@@ -8,6 +8,10 @@ import { settingsPageQueryParamKey } from 'app-development/features/appSettings/
 jest.mock('app-shared/api/paths');
 
 describe('AnsattportenLogin', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should render the description paragraphs', () => {
     render(<AnsattportenLogin />);
 
@@ -51,12 +55,12 @@ describe('getRedirectUrl', () => {
 
 function mockWindowLocationHref(): jest.Mock {
   const hrefMock = jest.fn();
-  delete window.location;
-  window.location = {
-    href: '',
-    origin: 'https://unit-test-com',
-    pathname: '/path/to/page',
-  } as Location;
+  Object.defineProperty(window, 'location', {
+    value: {
+      origin: 'https://unit-test-com',
+      pathname: '/path/to/page',
+    },
+  });
   Object.defineProperty(window.location, 'href', {
     set: hrefMock,
   });

@@ -40,7 +40,6 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
   deploymentsResponse,
@@ -77,6 +76,7 @@ import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
+import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
