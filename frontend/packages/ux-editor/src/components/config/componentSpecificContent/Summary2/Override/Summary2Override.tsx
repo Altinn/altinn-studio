@@ -14,6 +14,7 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import classes from './Summary2Override.module.css';
 
 export type Summary2OverrideProps = {
   component: FormItem<ComponentType.Summary2>;
@@ -62,7 +63,7 @@ export const Summary2Override = ({ component, onChange }: Summary2OverrideProps)
   return (
     <>
       {overrides?.length > 0 && (
-        <div style={{ marginBottom: 'var(--fds-spacing-4)' }}>
+        <div className={classes.overrideWrapper}>
           {overrides.map((override, index) => (
             <Summary2OverrideEntry
               index={index + 1}
