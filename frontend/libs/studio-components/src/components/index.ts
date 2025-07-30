@@ -3,6 +3,7 @@ import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
