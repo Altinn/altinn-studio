@@ -40,37 +40,41 @@ export const DeployPopover = ({
         data-color='warning'
         variant='tinted'
       >
-        <StudioParagraph spacing>
-          {appDeployedVersion
-            ? t('app_deployment.deploy_confirmation', {
-                selectedImageTag,
-                appDeployedVersion,
-              })
-            : t('app_deployment.deploy_confirmation_short', { selectedImageTag })}
-        </StudioParagraph>
-        <div className={classes.buttonContainer}>
-          <StudioButton
-            color='first'
-            variant='primary'
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.stopPropagation();
-              onConfirm();
-              setIsConfirmDeployDialogOpen(false);
-            }}
-          >
-            {t('general.yes')}
-          </StudioButton>
-          <StudioButton
-            color='second'
-            variant='tertiary'
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.stopPropagation();
-              setIsConfirmDeployDialogOpen(false);
-            }}
-          >
-            {t('general.cancel')}
-          </StudioButton>
-        </div>
+        {isConfirmDeployDialogOpen && (
+          <>
+            <StudioParagraph spacing>
+              {appDeployedVersion
+                ? t('app_deployment.deploy_confirmation', {
+                    selectedImageTag,
+                    appDeployedVersion,
+                  })
+                : t('app_deployment.deploy_confirmation_short', { selectedImageTag })}
+            </StudioParagraph>
+            <div className={classes.buttonContainer}>
+              <StudioButton
+                color='first'
+                variant='primary'
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event.stopPropagation();
+                  onConfirm();
+                  setIsConfirmDeployDialogOpen(false);
+                }}
+              >
+                {t('general.yes')}
+              </StudioButton>
+              <StudioButton
+                color='second'
+                variant='tertiary'
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event.stopPropagation();
+                  setIsConfirmDeployDialogOpen(false);
+                }}
+              >
+                {t('general.cancel')}
+              </StudioButton>
+            </div>
+          </>
+        )}
       </StudioPopover>
     </StudioPopover.TriggerContext>
   );

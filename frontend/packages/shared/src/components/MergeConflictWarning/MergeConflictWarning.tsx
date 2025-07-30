@@ -46,11 +46,13 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
             {t('merge_conflict.remove_my_changes')}
           </StudioPopover.Trigger>
           <StudioPopover open={resetRepoPopoverOpen} onClose={() => setResetRepoPopoverOpen(false)}>
-            <RemoveChangesPopoverContent
-              onClose={() => setResetRepoPopoverOpen(false)}
-              owner={owner}
-              repoName={repoName}
-            />
+            {resetRepoPopoverOpen && (
+              <RemoveChangesPopoverContent
+                onClose={() => setResetRepoPopoverOpen(false)}
+                owner={owner}
+                repoName={repoName}
+              />
+            )}
           </StudioPopover>
         </StudioPopover.TriggerContext>
       </div>
