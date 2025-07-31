@@ -103,12 +103,6 @@ jest.mock('@microsoft/signalr', () => ({
   ...SignalR,
 }));
 
-// Mock org and app params
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 jest.setTimeout(3000000);
 
 const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;

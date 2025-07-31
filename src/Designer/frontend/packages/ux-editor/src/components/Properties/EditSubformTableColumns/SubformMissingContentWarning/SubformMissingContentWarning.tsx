@@ -5,6 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import classes from './SubformMissingContentWarning.module.css';
+import { useNavigate } from 'react-router-dom';
 
 type SubformMissingContentWarningProps = {
   subformLayoutSetName: string;
@@ -13,11 +14,12 @@ type SubformMissingContentWarningProps = {
 export const SubformMissingContentWarning = ({
   subformLayoutSetName: subformLayoutSetName,
 }: SubformMissingContentWarningProps): ReactElement => {
-  const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
+  const { setSelectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleOnRedirectClick = (): void => {
-    setSelectedFormLayoutSetName(subformLayoutSetName);
+    navigate(`layoutSet/${subformLayoutSetName}`);
     setSelectedFormLayoutName(undefined);
   };
 

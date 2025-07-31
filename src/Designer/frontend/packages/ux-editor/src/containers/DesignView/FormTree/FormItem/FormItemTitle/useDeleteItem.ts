@@ -5,21 +5,13 @@ import { useMemo } from 'react';
 import { isContainer } from '../../../../../utils/formItemUtils';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
-import { useAppContext } from '../../../../../hooks';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const useDeleteItem = (formItem: FormComponent | FormContainer) => {
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { mutate: deleteContainer } = useDeleteFormContainerMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const { mutate: deleteComponent } = useDeleteFormComponentMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { layoutSet } = useUxEditorParams();
+  const { mutate: deleteContainer } = useDeleteFormContainerMutation(org, app, layoutSet);
+  const { mutate: deleteComponent } = useDeleteFormComponentMutation(org, app, layoutSet);
   return useMemo(
     () => (isContainer(formItem) ? deleteContainer : deleteComponent),
     [deleteContainer, deleteComponent, formItem],

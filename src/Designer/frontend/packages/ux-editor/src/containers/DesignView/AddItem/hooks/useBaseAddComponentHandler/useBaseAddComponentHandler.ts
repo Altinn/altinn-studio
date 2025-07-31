@@ -7,18 +7,16 @@ import type { ComponentType, CustomComponentType } from 'app-shared/types/Compon
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export const useBaseAddComponentHandler = (layout: IInternalLayout) => {
   const { handleEdit } = useFormItemContext();
   const { doReloadPreview } = usePreviewContext();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedItem } = useAppContext();
+  const { setSelectedItem } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
 
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, layoutSet);
 
   const addItem = (
     type: ComponentType | CustomComponentType,

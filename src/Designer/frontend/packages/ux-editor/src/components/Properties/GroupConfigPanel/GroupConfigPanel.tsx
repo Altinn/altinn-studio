@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
-import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
@@ -21,6 +20,7 @@ import { GroupType } from 'app-shared/types/api/dto/PageModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { changeGroupName } from '../../../utils/pageGroupUtils';
 import { EditName } from '../../config/EditName';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -28,18 +28,14 @@ export type GroupConfigPanelProps = {
 
 export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
   const { t } = useTranslation();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: pageGroupMutation, isPending: mutatingPages } = useChangePageGroupOrder(
     org,
     app,
-    selectedFormLayoutSetName,
+    layoutSet,
   );
-  const { data: pages, isPending: pageQueryPending } = usePagesQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { data: pages, isPending: pageQueryPending } = usePagesQuery(org, app, layoutSet);
 
   const selectedGroupType =
     !pageQueryPending && isPagesModelWithGroups(pages) && pages?.groups[selectedItem.id]?.type;

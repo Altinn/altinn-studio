@@ -8,14 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
 import { PlusCircleIcon } from '@studio/icons';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
-import { useAppContext, useComponentTitle } from '../../../../../hooks';
+import { useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import classes from './Summary2Override.module.css';
-import cn from 'classnames';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type Summary2OverrideProps = {
   component: FormItem<ComponentType.Summary2>;
@@ -103,7 +102,7 @@ const useTargetComponentOptions = (target: Summary2TargetConfig): any[] => {
   const layoutSetName = getTargetLayoutSetName({
     target,
     layoutSets,
-    selectedFormLayoutSetName: useAppContext().selectedFormLayoutSetName,
+    selectedFormLayoutSetName: useUxEditorParams().layoutSet,
   });
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, layoutSetName);
   const getComponentTitle = useComponentTitle();
