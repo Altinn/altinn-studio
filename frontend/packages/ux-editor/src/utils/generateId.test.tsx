@@ -18,7 +18,7 @@ describe('generateComponentId', () => {
           id: 'Input-1bd34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
-          dataModelBindings: { simpleBinding: 'somePath' },
+          dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
         },
       },
       order: {
@@ -41,7 +41,7 @@ describe('generateComponentId', () => {
           id: 'Input-abfr34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
-          dataModelBindings: { simpleBinding: 'somePath' },
+          dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
         },
       },
       order: {

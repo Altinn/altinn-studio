@@ -8,7 +8,7 @@ const component1Id = 'SubformComponent1';
 const component1: FormComponent = {
   id: component1Id,
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   textResourceBindings: { title: 'some-title' },
   itemType: 'COMPONENT',
 };
@@ -23,8 +23,8 @@ const component3: FormComponent = {
   id: component3Id,
   type: ComponentType.Dropdown,
   dataModelBindings: {
-    simpleBinding: 'Nedtrekksliste',
-    metadata: 'Metadata',
+    simpleBinding: { field: 'Nedtrekksliste', dataType: '' },
+    metadata: { field: 'Metadata', dataType: '' },
   },
   textResourceBindings: { title: 'some-title' },
   itemType: 'COMPONENT',
@@ -34,9 +34,9 @@ const component4: FormComponent = {
   id: component4Id,
   type: ComponentType.Address,
   dataModelBindings: {
-    address: 'Address',
-    postPlace: 'PostPlace',
-    zipCode: '',
+    address: { field: 'Address', dataType: '' },
+    postPlace: { field: 'PostPlace', dataType: '' },
+    zipCode: { field: '', dataType: '' },
   },
   textResourceBindings: { title: 'address' },
   itemType: 'COMPONENT',

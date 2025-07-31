@@ -14,7 +14,7 @@ const optionsComponent: FormItem = {
   itemType: 'COMPONENT',
   target: {},
   dataModelBindings: {
-    simpleBinding: 'simpleBinding',
+    simpleBinding: { field: 'simpleBinding', dataType: '' },
   },
 };
 

@@ -29,7 +29,7 @@ const renderEditStringValue = ({
         },
         maxLength: maxLength || '',
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       }}
     />,
   );
@@ -68,7 +68,7 @@ describe('EditStringValue', () => {
         title: 'ServiceName',
       },
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
@@ -85,7 +85,7 @@ describe('EditStringValue', () => {
       },
       maxLength: 'one',
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 
@@ -111,7 +111,7 @@ describe('EditStringValue', () => {
         },
         maxLength: ['one'],
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });
 
@@ -167,7 +167,7 @@ describe('EditStringValue', () => {
         title: 'ServiceName',
       },
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     });
   });
 });

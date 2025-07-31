@@ -28,7 +28,10 @@ export const SelectDataFieldBinding = ({
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
 
-  const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat;
+  const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat || {
+    dataType: '',
+    field: '',
+  };
   const { dataModelMetadata, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
 
