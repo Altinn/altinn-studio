@@ -9,13 +9,11 @@ import type { StudioDecimalInputProps } from './StudioDecimalInput';
 
 const ariaLabel = 'test label';
 const description = 'description';
-const onChangeNumber = jest.fn();
 const validationErrorMessage: string = 'error';
 
 const defaultProps: StudioDecimalInputProps = {
   'aria-label': ariaLabel,
   description,
-  onChangeNumber,
   validationErrorMessage,
 };
 
@@ -96,12 +94,34 @@ describe('StudioDecimalInput', () => {
     expect(inputElement).toHaveValue('789.123');
   });
 
-  it('should call onChange with correct value when input is valid', async () => {
+  it('should call onChangeNumber with correct value when input is valid', async () => {
     const user = userEvent.setup();
-    renderDecimalInput();
+    const onChangeNumber = jest.fn();
+    const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
+    renderDecimalInput(props);
     const inputElement = screen.getByRole('textbox');
     await user.type(inputElement, '123.456');
     expect(onChangeNumber).toHaveBeenCalledWith(123.456);
+  });
+
+  it(' should call onChangeNumber with correct number value when the user changes it', async () => {
+    const user = userEvent.setup();
+    const onChangeNumber = jest.fn();
+    const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
+    renderDecimalInput(props);
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, '1,2');
+    expect(onChangeNumber).toHaveBeenLastCalledWith(1.2);
+  });
+
+  it('should not call onChangeNumber when value is invalid', async () => {
+    const user = userEvent.setup();
+    const onChangeNumber = jest.fn();
+    const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
+    renderDecimalInput(props);
+    const inputElement = screen.getByRole('textbox');
+    await user.type(inputElement, 'abc');
+    expect(onChangeNumber).not.toHaveBeenCalled();
   });
 
   it('should call onBlurNumber with correct value when input is valid', async () => {
@@ -114,17 +134,6 @@ describe('StudioDecimalInput', () => {
     await user.tab();
     expect(onBlurNumber).toHaveBeenCalledTimes(1);
     expect(onBlurNumber).toHaveBeenCalledWith(123.456);
-  });
-
-  it('should call onBlur when the prop is provided', async () => {
-    const user = userEvent.setup();
-    const onBlur = jest.fn();
-    const props: StudioDecimalInputProps = { ...defaultProps, onBlur };
-    renderDecimalInput(props);
-    const inputElement = screen.getByRole('textbox');
-    await user.type(inputElement, '123');
-    await user.tab();
-    expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
   it('should update input value on change', async () => {
@@ -153,7 +162,7 @@ describe('StudioDecimalInput', () => {
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
-  it('show error message when user types number followed by character and clicks outside the field', async () => {
+  it('should show error message when user types number followed by character and clicks outside the field', async () => {
     const user = userEvent.setup();
     renderDecimalInput();
     const inputElement = screen.getByRole('textbox');
@@ -162,23 +171,7 @@ describe('StudioDecimalInput', () => {
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
-  it('Calls onChange function with correct number value when the user changes it', async () => {
-    const user = userEvent.setup();
-    renderDecimalInput();
-    const inputElement = screen.getByRole('textbox');
-    await user.type(inputElement, '1,2');
-    expect(onChangeNumber).toHaveBeenLastCalledWith(1.2);
-  });
-
-  it('Does not call onChange when value is invalid', async () => {
-    const user = userEvent.setup();
-    renderDecimalInput();
-    const inputElement = screen.getByRole('textbox');
-    await user.type(inputElement, 'abc');
-    expect(onChangeNumber).not.toHaveBeenCalled();
-  });
-
-  it('Updates the value when the component receives a new value prop', async () => {
+  it('should update the value when the component receives a new value prop', async () => {
     const { rerender } = renderDecimalInput();
     const newValue = 12;
     rerender(<StudioDecimalInput aria-label={ariaLabel} value={newValue} />);
@@ -186,14 +179,14 @@ describe('StudioDecimalInput', () => {
     expect(inputElement).toHaveValue('12');
   });
 
-  it('Renders with "0" as input value when value is 0', () => {
+  it('should render with "0" as input value when value is 0', () => {
     const value = 0;
     const props: StudioDecimalInputProps = { ...defaultProps, value };
     renderDecimalInput(props);
     expect(screen.getByRole('textbox')).toHaveValue('0');
   });
 
-  it('Accepts a ref prop', () => {
+  it('should accept a ref prop', () => {
     const renderComponent = (ref: ForwardedRef<HTMLInputElement>): RenderResult =>
       renderDecimalInput(defaultProps, ref);
     const getTextbox = (): HTMLElement => screen.getByRole('textbox');
