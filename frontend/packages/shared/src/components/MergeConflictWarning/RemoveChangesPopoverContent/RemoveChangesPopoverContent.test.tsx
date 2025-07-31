@@ -48,14 +48,7 @@ describe('DownloadRepoPopoverContent', () => {
 
   it('calls onResetWrapper and then full refresh of page when the confirm button is clicked', async () => {
     const user = userEvent.setup();
-    Object.defineProperty(window, 'location', {
-      value: {
-        ...window.location,
-        reload: jest.fn(),
-      },
-      writable: true,
-    });
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+    mockLocationReload();
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -83,14 +76,7 @@ describe('DownloadRepoPopoverContent', () => {
 
   it('calls onResetWrapper and then full refresh of page when Enter is pressed', async () => {
     const user = userEvent.setup();
-    Object.defineProperty(window, 'location', {
-      value: {
-        ...window.location,
-        reload: jest.fn(),
-      },
-      writable: true,
-    });
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+    mockLocationReload();
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -102,6 +88,17 @@ describe('DownloadRepoPopoverContent', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
+
+const mockLocationReload = () => {
+  Object.defineProperty(window, 'location', {
+    value: {
+      ...window.location,
+      reload: jest.fn(),
+    },
+    writable: true,
+  });
+  return jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+};
 
 const renderRemoveChangesPopoverContent = (
   queries: Partial<ServicesContextProps> = {},
