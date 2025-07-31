@@ -185,7 +185,12 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
-            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = repository };
+            var config = new ServiceConfiguration { RepositoryName = repository, ServiceName = new LocalizedString()
+            {
+                Nb = repository,
+                Nn = "",
+                En = ""
+            } };
 
             var repositoryResult = await _repository.CreateService(org, config);
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)

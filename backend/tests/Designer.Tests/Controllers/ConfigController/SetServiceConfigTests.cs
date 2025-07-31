@@ -25,15 +25,21 @@ namespace Designer.Tests.Controllers.ConfigController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string dataPathWithData = VersionPrefix(org, targetRepository);
+
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Content = JsonContent.Create(new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
+            httpRequestMessage.Content = JsonContent.Create(new { serviceName = new LocalizedString()
+            {
+                Nb = "Alternative-form-name",
+                En = "Alternative-form-name-en",
+                Nn = "Alternative-form-name-nn"
+            }, serviceDescription = "", serviceId = "" });
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, targetRepository, "testUser");
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-            Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName);
+            Assert.Equal("Alternative-form-name", serviceConfiguration.ServiceName.Nb);
         }
     }
 }

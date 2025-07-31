@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Altinn.Studio.Designer.Models;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Configuration
 {
@@ -10,13 +13,15 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets the repository name
         /// </summary>
-        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$", ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
+        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$",
+            ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
         public string RepositoryName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the service
         /// </summary>
-        public string ServiceName { get; set; }
+        [JsonConverter(typeof(LocalizedStringConverter))]
+        public LocalizedString ServiceName { get; set; }
 
         /// <summary>
         /// Gets or sets the id of the service
@@ -27,5 +32,43 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the description of the
         /// </summary>
         public string ServiceDescription { get; set; }
+
+        [RegularExpression("^altinnapp$", ErrorMessage = "ResourceType must be 'altinnapp'.")]
+        public string ResourceType { get; set; }
+
+        public string Homepage { get; set; }
+        public bool IsDelegable { get; set; }
+        public ServiceStatus Status { get; set; }
+        public bool SelfIdentifiedUserEnabled { get; set; }
+        public bool EnterpriseUserEnabled { get; set; }
+        public AvailableForType AvailableForType { get; set; }
+        public List<ContactPoint> ContactPoints { get; set; } = new List<ContactPoint>();
+        public bool Visible { get; set; }
     }
+}
+
+
+public enum ServiceStatus
+{
+    Completed,
+    Deprecated,
+    UnderDevelopment,
+    Withdrawn
+}
+
+public enum AvailableForType
+{
+    PrivatePerson,
+    LegalEntityEnterprise,
+    Company,
+    BankruptcyEstate,
+    SelfRegisteredUser
+}
+
+
+public class LocalizedString
+{
+    public string Nb { get; set; }
+    public string Nn { get; set; }
+    public string En { get; set; }
 }

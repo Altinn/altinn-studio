@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.ConfigController
             Assert.Equal(serviceConfiguration.RepositoryName, serviceConfigResponse.RepositoryName);
             Assert.Equal(serviceConfiguration.ServiceDescription, serviceConfigResponse.ServiceDescription);
             Assert.Equal(serviceConfiguration.ServiceId, serviceConfigResponse.ServiceId);
-            Assert.Equal(serviceConfiguration.ServiceName, serviceConfigResponse.ServiceName);
+            Assert.Equal(serviceConfiguration.ServiceName.Nb, serviceConfigResponse.ServiceName.Nb);
         }
     }
 }

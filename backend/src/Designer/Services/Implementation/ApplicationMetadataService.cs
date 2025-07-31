@@ -95,7 +95,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (FileNotFoundException)
             {
-                ServiceConfiguration serviceConfiguration = new() { RepositoryName = app, ServiceName = app };
+                ServiceConfiguration serviceConfiguration = new() { RepositoryName = app, ServiceName = new LocalizedString()
+                {
+                    Nb = app,
+                    Nn = "",
+                    En = ""
+                } };
                 return serviceConfiguration;
             }
         }
