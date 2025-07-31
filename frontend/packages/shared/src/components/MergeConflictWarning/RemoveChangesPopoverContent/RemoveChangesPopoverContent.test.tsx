@@ -67,7 +67,8 @@ describe('DownloadRepoPopoverContent', () => {
     await user.click(confirmButton);
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-    expect(location.reload).toHaveBeenCalled();
+    expect(location.reload).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('calls onClose function when cancel button is clicked', async () => {
@@ -97,6 +98,8 @@ describe('DownloadRepoPopoverContent', () => {
     await user.keyboard('{Enter}');
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+    expect(location.reload).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
 
