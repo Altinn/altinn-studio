@@ -15,6 +15,11 @@ import { appContextMock } from '../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org, app }),
+}));
+
 const user = userEvent.setup();
 
 // Test data:
