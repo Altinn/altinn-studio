@@ -60,7 +60,6 @@ const render = () => {
       queries,
       queryClient,
       appContextProps: {
-        selectedFormLayoutSetName: 'test-layout-set',
         selectedFormLayoutName: layout1NameMock,
       },
     },

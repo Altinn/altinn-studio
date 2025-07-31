@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
@@ -19,6 +18,7 @@ import {
   updateGroupNames,
 } from '../../utils/pageGroupUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type PageGroupMoveToExistingGroupDialogProps = {
   pageName: string;
@@ -33,12 +33,12 @@ export const PageGroupMoveToExistingGroupDialog = ({
 }: PageGroupMoveToExistingGroupDialogProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { data: pagesModel } = usePagesQuery(org, app, selectedFormLayoutSetName);
+  const { layoutSet } = useUxEditorParams();
+  const { data: pagesModel } = usePagesQuery(org, app, layoutSet);
   const { mutate: changePages, isPending: mutationPending } = useChangePageGroupOrder(
     org,
     app,
-    selectedFormLayoutSetName,
+    layoutSet,
   );
 
   const isGroupLayout = isPagesModelWithGroups(pagesModel);
