@@ -6,6 +6,11 @@
   justify-items: center;
 }
 
+.searchContainer {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}
+
 .textEditorMain {
   width: 100%;
   background-color: #fff;

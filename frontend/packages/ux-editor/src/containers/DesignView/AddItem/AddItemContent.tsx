@@ -32,8 +32,11 @@ export const AddItemContent = ({
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
 
-  const { searchText, handleClear, handleEscape, handleSearchChange, filteredComponents } =
-    useSearchComponent({ availableComponents, disableDebounce, t });
+  const { searchText, handleEscape, handleSearchChange, filteredComponents } = useSearchComponent({
+    availableComponents,
+    disableDebounce,
+    t,
+  });
 
   return (
     <div className={classes.root}>
@@ -44,7 +47,6 @@ export const AddItemContent = ({
             value={searchText}
             onChange={handleSearchChange}
             onKeyDown={handleEscape}
-            onClear={handleClear}
             clearButtonLabel={t('general.search_clear_button_title')}
           />
           <StudioParagraph>

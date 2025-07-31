@@ -5,3 +5,8 @@
   gap: var(--fds-spacing-3);
   justify-content: flex-start;
 }
+
+.searchContainer {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}

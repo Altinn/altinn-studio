@@ -41,7 +41,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
     setSearchText(event.target.value);
 
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
-  const handleClearSearch = () => setSearchText('');
 
   const shouldDisplayResources =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
@@ -56,8 +55,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               value={searchText}
               onChange={handleChangeSearch}
               onKeyDown={handleKeyDown}
-              onClear={handleClearSearch}
               clearButtonLabel={t('general.search_clear_button_title')}
+              className={classes.searchContainer}
             />
             <Link
               href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}

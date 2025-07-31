@@ -36,15 +36,13 @@ export function CodeListsActionsBar({
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     onSetSearchString(event.target.value);
 
-  const handleClearSearch = () => onSetSearchString('');
-
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
+        className={classes.searchContainer}
         label={t('app_content_library.code_lists.search_label')}
         onChange={handleChangeSearch}
         clearButtonLabel={t('general.search_clear_button_title')}
-        onClear={handleClearSearch}
       />
       <AddCodeListDropdown
         codeListNames={codeListNames}
