@@ -14,6 +14,11 @@ import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { app, org } from '@studio/testing/testids';
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org, app }),
+}));
+
 const user = userEvent.setup();
 
 // Test data:
