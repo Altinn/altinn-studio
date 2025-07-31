@@ -46,8 +46,16 @@ describe('DownloadRepoPopoverContent', () => {
     expect(confirmButton).toBeEnabled();
   });
 
-  it('calls onResetWrapper and displays success toast when the confirm button is clicked', async () => {
+  it('calls onResetWrapper and then full refresh of page when the confirm button is clicked', async () => {
     const user = userEvent.setup();
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window.location,
+        reload: jest.fn(),
+      },
+      writable: true,
+    });
+    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -59,11 +67,7 @@ describe('DownloadRepoPopoverContent', () => {
     await user.click(confirmButton);
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-
-    const toastSuccessText = await screen.findByText(textMock('overview.reset_repo_completed'));
-    expect(toastSuccessText).toBeInTheDocument();
-
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    expect(location.reload).toHaveBeenCalled();
   });
 
   it('calls onClose function when cancel button is clicked', async () => {
@@ -76,8 +80,16 @@ describe('DownloadRepoPopoverContent', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose function when Enter is pressed', async () => {
+  it('calls onResetWrapper and then full refresh of page when Enter is pressed', async () => {
     const user = userEvent.setup();
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window.location,
+        reload: jest.fn(),
+      },
+      writable: true,
+    });
+    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -85,7 +97,6 @@ describe('DownloadRepoPopoverContent', () => {
     await user.keyboard('{Enter}');
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
 

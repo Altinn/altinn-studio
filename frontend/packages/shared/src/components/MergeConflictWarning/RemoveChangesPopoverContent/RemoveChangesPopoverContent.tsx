@@ -8,9 +8,7 @@ import {
   StudioParagraph,
 } from '@studio/components-legacy';
 import { useTranslation, Trans } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
-import { toast } from 'react-toastify';
 
 export type RemoveChangesPopoverContentProps = {
   onClose: () => void;
@@ -24,10 +22,7 @@ export const RemoveChangesPopoverContent = ({
   repoName,
 }: RemoveChangesPopoverContentProps): React.ReactElement => {
   const { t } = useTranslation();
-
-  const queryClient = useQueryClient();
   const repoResetMutation = useResetRepositoryMutation(owner, repoName);
-
   const [canDelete, setCanDelete] = useState<boolean>(false);
 
   const handleOnKeypressEnter = (event: any) => {
@@ -39,11 +34,7 @@ export const RemoveChangesPopoverContent = ({
   const onResetWrapper = () => {
     setCanDelete(false);
     repoResetMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success(t('overview.reset_repo_completed'));
-        queryClient.removeQueries();
-        onCloseWrapper();
-      },
+      onSuccess: async () => location.reload(),
     });
   };
 
