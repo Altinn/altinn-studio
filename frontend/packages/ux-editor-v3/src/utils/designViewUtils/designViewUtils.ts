@@ -1,4 +1,4 @@
-import type { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'app-shared/types/language';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 
 /**

@@ -8,7 +8,6 @@ import { useParams } from 'react-router-dom';
 import type { User } from 'app-shared/types/Repository';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
-const originalWindowLocation = window.location;
 const user = userEvent.setup();
 
 const searchReposResponse = {
@@ -57,15 +56,15 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
 
 describe('RepoList', () => {
   beforeEach(() => {
-    delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      assign: jest.fn(),
-    };
+    Object.defineProperty(window, 'location', {
+      value: {
+        assign: jest.fn(),
+      },
+    });
   });
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    jest.restoreAllMocks();
   });
 
   test('Should show spinner on loading', async () => {

@@ -57,7 +57,7 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
         <StudioLabelAsParagraph size='md' weight='medium'>
           {t('merge_conflict.download')}
         </StudioLabelAsParagraph>
-        <StudioLink href={repoDownloadPath(org, repo)}>
+        <StudioLink href={repoDownloadPath(org, repo, false)}>
           {t('merge_conflict.download_edited_files')}
         </StudioLink>
         <StudioLink href={repoDownloadPath(org, repo, true)}>

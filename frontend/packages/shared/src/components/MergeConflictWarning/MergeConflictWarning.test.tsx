@@ -35,7 +35,7 @@ describe('MergeConflictWarning', () => {
     const zipLink = screen.getByRole('link', {
       name: textMock('overview.download_repo_changes'),
     });
-    expect(zipLink).toHaveAttribute('href', repoDownloadPath(org, app));
+    expect(zipLink).toHaveAttribute('href', repoDownloadPath(org, app, false));
 
     const fullRepoLink = screen.getByRole('link', {
       name: textMock('overview.download_repo_full'),

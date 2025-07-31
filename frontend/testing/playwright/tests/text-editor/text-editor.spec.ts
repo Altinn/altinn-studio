@@ -9,7 +9,7 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
-import { GiteaPage } from 'testing/playwright/pages/GiteaPage';
+import { GiteaPage } from '../../pages/GiteaPage';
 
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';

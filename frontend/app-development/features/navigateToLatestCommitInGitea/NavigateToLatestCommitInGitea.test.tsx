@@ -10,12 +10,18 @@ import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import { NavigateToLatestCommitInGitea } from './NavigateToLatestCommitInGitea';
 
 describe('NavigateToLatestCommitInGitea', () => {
-  afterEach(() => jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
 
   it('sets window location when the latest commit is received', async () => {
     const commitId = 'some-commit-id';
-    delete window.location;
-    window.location = { ...window.location, assign: jest.fn() };
+    Object.defineProperty(window, 'location', {
+      value: {
+        assign: jest.fn(),
+      },
+    });
     renderLatestCommit({ ...branchStatus, commit: { ...branchStatus.commit, id: commitId } });
     expect(window.location.href).toBe(`/repos/${org}/${app}/commit/${commitId}`);
   });

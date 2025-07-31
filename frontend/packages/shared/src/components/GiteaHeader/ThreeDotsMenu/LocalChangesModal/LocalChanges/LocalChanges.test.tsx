@@ -17,7 +17,7 @@ describe('LocalChanges', () => {
 
   it('renders the component with the href for downloading only files that the user has changed', () => {
     renderLocalChanges();
-    const hrefToOnlyChangedFiles = repoDownloadPath(org, app);
+    const hrefToOnlyChangedFiles = repoDownloadPath(org, app, false);
     expect(getDownloadChangedOnlyLink()).toHaveAttribute('href', hrefToOnlyChangedFiles);
   });
 
