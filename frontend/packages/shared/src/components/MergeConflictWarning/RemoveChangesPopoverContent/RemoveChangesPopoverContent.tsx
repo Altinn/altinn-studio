@@ -22,25 +22,24 @@ export const RemoveChangesPopoverContent = ({
   repoName,
 }: RemoveChangesPopoverContentProps): React.ReactElement => {
   const { t } = useTranslation();
-  const repoResetMutation = useResetRepositoryMutation(owner, repoName);
+  const { mutate: deleteLocalChanges, isPending: isPendingDeleteLocalChanges } =
+    useResetRepositoryMutation(owner, repoName);
   const [canDelete, setCanDelete] = useState<boolean>(false);
 
   const handleOnKeypressEnter = (event: any) => {
     if (event.key === 'Enter' && canDelete) {
-      onResetWrapper();
+      onDeleteLocalChanges();
     }
   };
 
-  const onResetWrapper = () => {
+  const onDeleteLocalChanges = () => {
     setCanDelete(false);
-    repoResetMutation.mutate(undefined, {
-      onSuccess: async () => location.reload(),
+    deleteLocalChanges(undefined, {
+      onSuccess: async () => {
+        location.reload();
+        onClose();
+      },
     });
-  };
-
-  const onCloseWrapper = () => {
-    repoResetMutation.reset();
-    onClose();
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,21 +65,21 @@ export const RemoveChangesPopoverContent = ({
         autoFocus
         onKeyUp={handleOnKeypressEnter}
       />
-      {repoResetMutation.isPending && (
+      {isPendingDeleteLocalChanges && (
         <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.reset_repo_loading')} />
       )}
-      {!repoResetMutation.isPending && (
+      {!isPendingDeleteLocalChanges && (
         <div className={classes.buttonContainer}>
           <StudioButton
             color='danger'
             disabled={!canDelete}
             id='confirm-reset-repo-button'
-            onClick={onResetWrapper}
+            onClick={onDeleteLocalChanges}
             variant='secondary'
           >
             {t('overview.reset_repo_button')}
           </StudioButton>
-          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary'>
+          <StudioButton color='second' onClick={onClose} variant='secondary'>
             {t('general.cancel')}
           </StudioButton>
         </div>
