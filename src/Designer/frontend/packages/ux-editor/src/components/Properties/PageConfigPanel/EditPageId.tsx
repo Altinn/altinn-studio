@@ -11,25 +11,19 @@ import { ItemType } from '../ItemType';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner } from '@studio/components';
 import { EditName } from '../../config/EditName';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface EditPageIdProps {
   layoutName: string;
 }
 export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
-  const { mutateAsync: mutateTextId } = useTextIdMutation(org, app);
-  const { mutateAsync: modifyPageMutation } = useModifyPageMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-    pageName,
-  );
-  const { data: pagesModel, isPending: pageQueryPending } = usePagesQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
+  const { setSelectedFormLayoutName, setSelectedItem } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
+  const { mutate: mutateTextId } = useTextIdMutation(org, app);
+  const { mutateAsync: modifyPageMutation } = useModifyPageMutation(org, app, layoutSet, pageName);
+  const { mutateAsync: changePageGroupOrder } = useChangePageGroupOrder(org, app, layoutSet);
+  const { data: pagesModel, isPending: pageQueryPending } = usePagesQuery(org, app, layoutSet);
   const t = useText();
 
   if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;

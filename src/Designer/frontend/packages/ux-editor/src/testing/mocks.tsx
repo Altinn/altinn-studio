@@ -21,6 +21,12 @@ import {
   FeatureFlagMutationContextProvider,
 } from '@studio/feature-flags';
 import type { FeatureFlag, FeatureFlagMutationContextValue } from '@studio/feature-flags';
+import type { UxEditorParams } from '../hooks/useUxEditorParams';
+import {
+  app as testApp,
+  layoutSet as testLayoutSet,
+  org as testOrg,
+} from '@studio/testing/testids';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -33,8 +39,12 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 
 const defaultAppRouteParams: AppRouteParams = {
-  org: 'defaultTestOrg',
-  app: 'defaultTestApp',
+  org: testOrg,
+  app: testApp,
+};
+
+const defaultUxEditorParams: UxEditorParams = {
+  layoutSet: testLayoutSet,
 };
 
 const defaultPreviewContextProps: PreviewContextProps = {
@@ -53,6 +63,7 @@ type WrapperArgs = {
   queryClient: QueryClient;
   appContextProps: Partial<AppContextProps>;
   previewContextProps?: Partial<PreviewContextProps>;
+  uxEditorParams?: UxEditorParams;
   appRouteParams?: AppRouteParams;
   featureFlags?: FeatureFlag[];
   featureFlagMutations?: FeatureFlagMutationContextValue;
@@ -63,12 +74,13 @@ function wrapper({
   queryClient = queryClientMock,
   appContextProps = {},
   previewContextProps = {},
+  uxEditorParams = defaultUxEditorParams,
   appRouteParams = defaultAppRouteParams,
   featureFlags = [],
   featureFlagMutations = defaultFeatureFlagMutations,
 }: WrapperArgs): (component: ReactNode) => ReactElement {
   const renderComponent = (component: ReactNode): ReactElement => (
-    <AppRouter params={appRouteParams}>
+    <AppRouter params={{ ...appRouteParams, ...uxEditorParams }}>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
@@ -91,13 +103,13 @@ function wrapper({
 }
 
 type AppRouterProps = {
-  params: AppRouteParams;
+  params: AppRouteParams & UxEditorParams;
   children: ReactNode;
 };
 
-function AppRouter({ params: { org, app }, children }: AppRouterProps): ReactElement {
-  const route = `/${org}/${app}`;
-  const path = '/:org/:app';
+function AppRouter({ params: { org, app, layoutSet }, children }: AppRouterProps): ReactElement {
+  const route = `/${org}/${app}/${layoutSet}`;
+  const path = '/:org/:app/:layoutSet';
   return (
     <MemoryRouter initialEntries={[route]}>
       <Routes>
@@ -115,6 +127,7 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   appRouteParams?: AppRouteParams;
   featureFlags?: FeatureFlag[];
   featureFlagMutations?: FeatureFlagMutationContextValue;
+  uxEditorParams?: UxEditorParams;
 }
 
 export const renderHookWithProviders = (
@@ -127,6 +140,7 @@ export const renderHookWithProviders = (
     appRouteParams = defaultAppRouteParams,
     featureFlags = [],
     featureFlagMutations = defaultFeatureFlagMutations,
+    uxEditorParams = defaultUxEditorParams,
   }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
@@ -139,6 +153,7 @@ export const renderHookWithProviders = (
         appRouteParams,
         featureFlags,
         featureFlagMutations,
+        uxEditorParams,
       })(children),
   });
 };
@@ -153,6 +168,7 @@ export const renderWithProviders = (
     appRouteParams = defaultAppRouteParams,
     featureFlags = [],
     featureFlagMutations = defaultFeatureFlagMutations,
+    uxEditorParams = defaultUxEditorParams,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -164,6 +180,7 @@ export const renderWithProviders = (
           queryClient,
           appContextProps,
           previewContextProps,
+          uxEditorParams,
           appRouteParams,
           featureFlags,
           featureFlagMutations,
