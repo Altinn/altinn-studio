@@ -14,14 +14,17 @@ import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
+import * as router from 'react-router';
 
 const handleComponentChangeMock = jest.fn();
-const setSelectedFormLayoutSetMock = jest.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
 const layoutSetsDefault = { sets: [{ id: subformLayoutSetId, type: 'subform' }] } as LayoutSets;
 
 describe('EditLayoutSetForSubform', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
 
   it('should display the selected subform layout set in document and be read only', () => {
     renderEditLayoutSetForSubform({
@@ -37,7 +40,9 @@ describe('EditLayoutSetForSubform', () => {
     expect(selectedSubform).toHaveAttribute('aria-readonly');
   });
 
-  it('should call the setSelectedFormLayoutSetName when clicking the navigate to subform button', async () => {
+  it('should call navigate when navigating to subform', async () => {
+    const navigateMock = jest.fn();
+    jest.spyOn(router, 'useNavigate').mockImplementation(() => navigateMock);
     const user = userEvent.setup();
     renderEditLayoutSetForSubform({
       layoutSetsMock: layoutSetsDefault,
@@ -48,8 +53,8 @@ describe('EditLayoutSetForSubform', () => {
       name: textMock('ux_editor.component_properties.navigate_to_subform_button'),
     });
     await user.click(navigateToSubformButton);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subformLayoutSetId);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith(`../layoutSet/${subformLayoutSetId}`);
   });
 
   it('should render the recommended next action card if no subform is selected', () => {
@@ -73,9 +78,7 @@ const renderEditLayoutSetForSubform = ({
   queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, false], ['dataModelId']);
 
   return renderWithProviders(
-    <AppContext.Provider
-      value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
-    >
+    <AppContext.Provider value={{ ...appContextMock }}>
       <EditLayoutSetForSubform
         component={{ ...componentMocks[ComponentType.Subform], ...componentProps }}
         handleComponentChange={handleComponentChangeMock}

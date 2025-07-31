@@ -14,6 +14,7 @@ import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQ
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ElementsUtils } from './ElementsUtils';
 import type { ConfPageType } from './types/ConfigPageType';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -23,9 +24,10 @@ export interface ElementsProps {
 export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutName } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const selectedLayoutSet = useGetLayoutSetByName({
-    name: selectedFormLayoutSetName,
+    name: layoutSet,
     org,
     app,
   });
@@ -34,7 +36,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     data: processTaskType,
     isPending: isFetchingProcessTaskType,
     isError: hasProcessTaskTypeError,
-  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
+  } = useProcessTaskTypeQuery(org, app, layoutSet);
 
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const hideComponents =
@@ -58,7 +60,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
           <StudioError>
             <Heading level={3} size='xsmall' spacing>
               {t('schema_editor.error_could_not_detect_taskType', {
-                layout: selectedFormLayoutSetName,
+                layout: layoutSet,
               })}
             </Heading>
             <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
@@ -68,7 +70,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     );
   }
 
-  const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
+  const selectedLayoutIsCustomReceipt = layoutSet === existingCustomReceiptName;
 
   const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
     selectedLayoutIsCustomReceipt,
