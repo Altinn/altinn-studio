@@ -12,6 +12,11 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock'
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org, app }),
+}));
+
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 const id = container1IdMock;

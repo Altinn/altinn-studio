@@ -12,10 +12,15 @@ import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuer
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org, app }),
+}));
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
-import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
