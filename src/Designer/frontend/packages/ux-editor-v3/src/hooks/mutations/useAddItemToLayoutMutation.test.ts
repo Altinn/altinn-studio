@@ -14,9 +14,14 @@ import {
   layoutSet2NameMock,
   layoutSetsMock,
 } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ org, app }),
+}));
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
-import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
