@@ -17,6 +17,7 @@ import { StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type EditBindingProps = {
   bindingKey: string;
@@ -36,7 +37,8 @@ export const EditBinding = ({
   internalBindingFormat,
 }: EditBindingProps) => {
   const { t } = useTranslation();
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const { updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { dataModelMetadata, isLoadingDataModels } = useValidDataModels(
     internalBindingFormat?.dataType,
   );
@@ -73,7 +75,7 @@ export const EditBinding = ({
       } as FormItem,
       {
         onSuccess: async () => {
-          await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+          await updateLayoutsForPreview(layoutSet, true);
         },
       },
     );
