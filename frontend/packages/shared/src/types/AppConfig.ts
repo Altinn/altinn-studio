@@ -2,7 +2,7 @@ import type { SupportedLanguage, ValidLanguage } from './SupportedLanguages';
 
 export type AppConfig = {
   repositoryName: string;
-  serviceName: string;
+  serviceName: { nb: string; en: string; nn: string };
   serviceId: string;
   serviceDescription?: string;
 };

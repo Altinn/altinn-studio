@@ -30,7 +30,7 @@ export const Header = () => {
 
   return (
     <Heading level={1} size='xlarge'>
-      {appConfigData?.serviceName || app}
+      {appConfigData?.serviceName.nb || app}
     </Heading>
   );
 };

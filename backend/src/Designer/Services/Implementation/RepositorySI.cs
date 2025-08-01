@@ -237,13 +237,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ModelMetadata metadata = new()
                 {
                     Org = org,
-                    ServiceName = serviceConfig.ServiceName,
+                    ServiceName = serviceConfig.ServiceName.Nb,
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
                 // This creates all files
                 CreateServiceMetadata(metadata);
-                await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName.Nb);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 

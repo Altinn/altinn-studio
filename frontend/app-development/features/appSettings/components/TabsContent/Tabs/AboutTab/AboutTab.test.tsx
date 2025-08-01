@@ -82,11 +82,11 @@ describe('AboutTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const appName = screen.getByLabelText(textMock('app_settings.about_tab_name_label'));
-    expect(appName).toHaveValue(mockAppConfig.serviceName);
+    expect(appName).toHaveValue(mockAppConfig.serviceName.nb);
 
     const mockNewText: string = 'test';
     await user.type(appName, mockNewText);
-    expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
+    expect(appName).toHaveValue(`${mockAppConfig.serviceName.nb}${mockNewText}`);
   });
 
   it('displays correct value in "alternative id" input field, and updates the value on change', async () => {

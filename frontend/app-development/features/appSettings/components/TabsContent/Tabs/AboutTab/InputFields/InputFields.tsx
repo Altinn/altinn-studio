@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { StudioTextfield } from '@studio/components';
 
-type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
+type AppConfigForm = Pick<AppConfig, 'serviceId'> & { serviceName: string };
 
 export type InputFieldsProps = {
   appConfig: AppConfig;
@@ -15,16 +15,16 @@ export type InputFieldsProps = {
 export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactElement {
   const { t } = useTranslation();
 
-  const [appConfigFormErrors, setAppConfigFormErrors] = useState<
-    Pick<AppConfigForm, 'serviceName'>
-  >({ serviceName: '' });
+  const [appConfigFormErrors, setAppConfigFormErrors] = useState<{ serviceName: string }>({
+    serviceName: '',
+  });
 
   const handleAppConfigFormBlur = (event: FormEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
     const form = Object.fromEntries(formData) as AppConfigForm;
     const isFormValid = validateForm(form);
     if (isFormValid) {
-      onSave({ ...appConfig, ...form });
+      onSave({ ...appConfig, ...form, serviceName: { nb: form.serviceName, nn: '', en: '' } });
     }
   };
 
@@ -51,7 +51,7 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
         description={t('app_settings.about_tab_name_description')}
         name='serviceName'
         error={appConfigFormErrors.serviceName}
-        defaultValue={appConfig.serviceName}
+        defaultValue={appConfig.serviceName.nb}
         className={classes.textField}
       />
       <StudioTextfield

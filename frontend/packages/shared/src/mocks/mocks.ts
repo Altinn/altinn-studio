@@ -155,7 +155,11 @@ export const user: User = {
 
 export const appConfig: AppConfig = {
   repositoryName: '',
-  serviceName: '',
+  serviceName: {
+    nb: '',
+    nn: '',
+    en: '',
+  },
   serviceId: '',
   serviceDescription: '',
 };

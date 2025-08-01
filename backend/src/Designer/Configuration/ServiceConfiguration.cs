@@ -1,4 +1,8 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Configuration
 {
@@ -8,24 +12,83 @@ namespace Altinn.Studio.Designer.Configuration
     public class ServiceConfiguration
     {
         /// <summary>
-        /// Gets or sets the repository name
+        /// Indicates whether the service is available for specific user types (e.g., private, enterprise)
         /// </summary>
-        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$", ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
-        public string RepositoryName { get; set; }
+        public AvailableForType AvailableForType { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the service
+        /// Contact points for the service (e.g., support emails or phone numbers)
         /// </summary>
-        public string ServiceName { get; set; }
+        public List<ContactPoint> ContactPoints { get; set; } = new List<ContactPoint>();
 
         /// <summary>
-        /// Gets or sets the id of the service
+        /// Indicates whether enterprise users can access the service
+        /// </summary>
+        public bool EnterpriseUserEnabled { get; set; }
+
+        /// <summary>
+        /// URL to the homepage
+        /// </summary>
+        public string Homepage { get; set; }
+
+        /// <summary>
+        /// Indicates whether the service can be is delegable
+        /// </summary>
+        public bool IsDelegable { get; set; }
+
+        /// <summary>
+        /// Name of the service in multiple languages
+        /// </summary>
+        [JsonConverter(typeof(LocalizedStringConverter))]
+        public LocalizedString ServiceName { get; set; }
+
+        /// <summary>
+        /// ID of the service
         /// </summary>
         public string ServiceId { get; set; }
 
         /// <summary>
-        /// Gets or sets the description of the
+        /// Description of the service in multiple languages
         /// </summary>
-        public string ServiceDescription { get; set; }
+        [JsonConverter(typeof(LocalizedStringConverter))]
+        public LocalizedString Description { get; set; }
+
+        /// <summary>
+        /// Indicates whether self-identified users can access the service
+        /// </summary>
+        public bool SelfIdentifiedUserEnabled { get; set; }
+
+        /// <summary>
+        /// Status of the service
+        /// </summary>
+        public ServiceStatus Status { get; set; }
+
+        /// <summary>
+        /// Type of resource; must be 'altinnapp'
+        /// </summary>
+        [RegularExpression("^altinnapp$", ErrorMessage = "ResourceType must be 'altinnapp'.")]
+        public string ResourceType { get; set; }
+
+        /// <summary>
+        /// Repository name; must start with a letter and only contain letters, numbers or underscores
+        /// </summary>
+        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$",
+            ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
+        public string RepositoryName { get; set; }
+
+        /// <summary>
+        /// Description of the rights
+        /// </summary>
+        public LocalizedString RightDescription { get; set; }
+
+        /// <summary>
+        /// List of keywords associated with the service
+        /// </summary>
+        public List<Keyword> Keywords { get; set; } = new List<Keyword>();
+
+        /// <summary>
+        /// Indicates whether the service should be visible
+        /// </summary>
+        public bool Visible { get; set; }
     }
 }

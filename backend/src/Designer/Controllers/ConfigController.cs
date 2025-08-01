@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Mappers;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -61,18 +63,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceConfig">the service config</param>
         [HttpPost]
-        public async Task SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
+        public async Task SetServiceConfig(string org, string app, [FromBody] ServiceConfigRequest serviceConfig)
         {
             ServiceConfiguration serviceConfigurationObject = await _applicationMetadataService.GetAppMetadataConfigAsync(org, app);
-            serviceConfigurationObject.ServiceDescription = serviceConfig.serviceDescription.ToString();
-            serviceConfigurationObject.ServiceId = serviceConfig.serviceId.ToString();
-            serviceConfigurationObject.ServiceName = serviceConfig.serviceName.ToString();
+            ServiceConfigurationMapper.UpdateFromRequest(serviceConfigurationObject, serviceConfig);
 
             await _applicationMetadataService.UpdateAppMetadataConfigAsync(org, app, serviceConfigurationObject);
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            await _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string> { { "appName", serviceConfig.serviceName.ToString() } }, "nb");
-            await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfig.serviceName.ToString());
-
+            await _textsService.UpdateTextsForKeys(org, app, developer, new Dictionary<string, string> { { "appName", serviceConfig.ServiceName.Nb } }, "nb");
+            await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, app, "nb", serviceConfig.ServiceName.Nb);
         }
     }
 }
