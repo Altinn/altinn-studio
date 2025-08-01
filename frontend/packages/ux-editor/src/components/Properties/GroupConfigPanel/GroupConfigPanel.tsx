@@ -19,8 +19,8 @@ import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageG
 import classes from './GroupConfigPanel.module.css';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { EditGroupName } from './EditGroupName';
 import { changeGroupName } from '../../../utils/pageGroupUtils';
+import { EditName } from '../../config/EditName';
 
 export type GroupConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Group }>;
@@ -86,7 +86,14 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
       />
       <div className={classes.configPanel}>
         {selectedGroup.order.length > 1 && (
-          <EditGroupName group={selectedGroup} onChange={onChangeGroupName} />
+          <div className={classes.editGroupNameWrapper}>
+            <EditName
+              className={classes.editName}
+              label={t('ux_editor.page_group.name')}
+              name={selectedGroup.name}
+              onChange={onChangeGroupName}
+            />
+          </div>
         )}
         <div className={classes.fieldSetWrapper}>
           <StudioSwitch

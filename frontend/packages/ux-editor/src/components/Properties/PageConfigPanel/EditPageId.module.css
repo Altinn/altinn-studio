@@ -1,3 +1,7 @@
 .changePageId {
-  background-color: var(--fds-semantic-surface-neutral-default);
+  background-color: var(--ds-color-surface-default);
+}
+
+.editName {
+  padding: var(--ds-size-5);
 }
