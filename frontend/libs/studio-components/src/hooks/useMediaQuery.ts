@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 
+function getInitialMatches(query: string): boolean {
+  return window.matchMedia(query).matches ?? false;
+}
+
 export function useMediaQuery(query: string): boolean {
-  const getMatches = (query: string): boolean => window?.matchMedia(query).matches ?? false;
-
-  const [matches, setMatches] = useState<boolean>(getMatches(query));
-
-  const eventListener = (): void => {
-    setMatches(getMatches(query));
-  };
+  const [matches, setMatches] = useState<boolean>(getInitialMatches(query));
 
   useEffect(() => {
-    const matchMedia = window.matchMedia(query);
-    eventListener();
-    matchMedia.addEventListener('change', eventListener);
-    return (): void => matchMedia.removeEventListener('change', eventListener);
-  }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
+    const handleChange = (event: MediaQueryListEvent): void => {
+      setMatches(event.matches);
+    };
+
+    const mediaQueryList = window.matchMedia(query);
+    mediaQueryList.addEventListener('change', handleChange);
+    return (): void => mediaQueryList.removeEventListener('change', handleChange);
+  }, [query]);
 
   return matches;
 }
