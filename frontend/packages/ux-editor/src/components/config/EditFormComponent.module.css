@@ -11,3 +11,7 @@
   flex-direction: column;
   gap: var(--fieldset-gap);
 }
+
+.componentSpecificWrapper {
+  padding-inline: var(--ds-size-5);
+}

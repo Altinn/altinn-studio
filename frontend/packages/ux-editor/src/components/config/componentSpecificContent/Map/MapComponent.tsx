@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusIcon, XMarkIcon } from '@studio/icons';
+import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
@@ -156,15 +156,13 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
           </StudioProperty.Fieldset>
         ),
       )}
-      <StudioButton
-        icon={<PlusIcon title={t('general.add')} />}
-        variant='secondary'
+      <StudioProperty.Button
+        className={classes.addMapButton}
+        icon={<PlusCircleIcon />}
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}
-        fullWidth
-      >
-        {t('ux_editor.add_map_layer')}
-      </StudioButton>
+        property={t('ux_editor.add_map_layer')}
+      />
     </>
   );
 };

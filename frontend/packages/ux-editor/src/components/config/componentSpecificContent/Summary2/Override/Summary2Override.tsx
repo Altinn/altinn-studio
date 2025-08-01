@@ -1,4 +1,4 @@
-import { StudioButton } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components-legacy';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
@@ -6,7 +6,7 @@ import type {
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
-import { PlusIcon } from '@studio/icons';
+import { PlusCircleIcon } from '@studio/icons';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -14,6 +14,7 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/targetUtils';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import classes from './Summary2Override.module.css';
 
 export type Summary2OverrideProps = {
   component: FormItem<ComponentType.Summary2>;
@@ -62,7 +63,7 @@ export const Summary2Override = ({ component, onChange }: Summary2OverrideProps)
   return (
     <>
       {overrides?.length > 0 && (
-        <div style={{ marginBottom: 'var(--fds-spacing-4)' }}>
+        <div className={classes.overrideWrapper}>
           {overrides.map((override, index) => (
             <Summary2OverrideEntry
               index={index + 1}
@@ -81,9 +82,12 @@ export const Summary2Override = ({ component, onChange }: Summary2OverrideProps)
           ))}
         </div>
       )}
-      <StudioButton icon={<PlusIcon />} size='sm' variant='secondary' onClick={addOverride}>
-        {t('ux_editor.component_properties.summary.add_override')}
-      </StudioButton>
+      <StudioProperty.Button
+        icon={<PlusCircleIcon />}
+        onClick={addOverride}
+        property={t('ux_editor.component_properties.summary.add_override')}
+        className={classes.addOverrideButton}
+      />
     </>
   );
 };
