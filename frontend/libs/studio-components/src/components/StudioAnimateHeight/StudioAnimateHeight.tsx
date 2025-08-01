@@ -1,8 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import cn from 'classnames';
-
 import classes from './StudioAnimateHeight.module.css';
-import { useMediaQuery, usePrevious } from '../../hooks/';
+import { usePrevious } from '../../hooks/usePrevious';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 export type StudioAnimateHeightProps = {
   open: boolean;
@@ -13,15 +13,13 @@ type InternalState = 'open' | 'closed' | 'openingOrClosing';
 const transitionDurationInMilliseconds = 250;
 
 /**
- * @deprecated use `StudioAnimateHeight` from `@studio/components` instead.
+ * A component that animates its height when the `open` prop changes.
  */
 export const StudioAnimateHeight = ({
   children,
-  className, // eslint-disable-line react/prop-types
   open = false,
-  style, // eslint-disable-line react/prop-types
   ...rest
-}: StudioAnimateHeightProps) => {
+}: StudioAnimateHeightProps): React.ReactElement => {
   const [height, setHeight] = useState<number>(0);
   const prevOpen = usePrevious(open);
   const openOrClosed: InternalState = open ? 'open' : 'closed';
@@ -57,8 +55,8 @@ export const StudioAnimateHeight = ({
   return (
     <div
       {...rest}
-      className={cn(classes.root, classes[state], className)}
-      style={{ height, transition, ...style }}
+      className={cn(classes.root, classes[state], rest.className)}
+      style={{ height, transition, ...rest.style }}
     >
       <div ref={contentRef} className={classes.content}>
         {children}
