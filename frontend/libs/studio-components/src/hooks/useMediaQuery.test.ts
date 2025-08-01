@@ -15,16 +15,23 @@ describe('useMediaQuery', () => {
     expect(result.current).toBe(value);
   });
 
+  it('Returns false when window.matchMedia.matches is undefined', () => {
+    const matchMedia = mockMatchMediaApi({ matches: undefined });
+    const { result } = renderHook(() => useMediaQuery(query));
+    expect(matchMedia).toHaveBeenCalledWith(query);
+    expect(result.current).toBe(false);
+  });
+
   it('Adds event listener', () => {
     const addEventListener = jest.fn();
-    mockMatchMediaApi({ addEventListener });
+    mockMatchMediaApi({ matches: false, addEventListener });
     renderHook(() => useMediaQuery(query));
     expect(addEventListener).toHaveBeenCalledTimes(1);
   });
 
   it('Removes the event listener on unmount', () => {
     const removeEventListener = jest.fn();
-    mockMatchMediaApi({ removeEventListener });
+    mockMatchMediaApi({ matches: false, removeEventListener });
     const { unmount } = renderHook(() => useMediaQuery(query));
     expect(removeEventListener).not.toHaveBeenCalled();
     unmount();
@@ -33,7 +40,7 @@ describe('useMediaQuery', () => {
 });
 
 type MatchMediaMockOptions = {
-  matches?: boolean;
+  matches: boolean | undefined;
   addEventListener?: jest.Mock;
   removeEventListener?: jest.Mock;
 };
@@ -47,7 +54,7 @@ function mockMatchMediaApi(
 }
 
 function createMatchMediaMock({
-  matches = false,
+  matches,
   addEventListener = jest.fn(),
   removeEventListener = jest.fn(),
 }): MockedFunction<typeof window.matchMedia> {
