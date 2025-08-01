@@ -2,10 +2,10 @@ import {
   StudioButton,
   StudioCard,
   StudioNativeSelect,
-  StudioParagraph,
   StudioSpinner,
   StudioTextfield,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
@@ -83,7 +83,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
 
   return (
     <StudioCard className={classes.editCard}>
-      <StudioParagraph size='xs'>{t(taskName)}</StudioParagraph>
+      <StudioParagraph data-size='xs'>{t(taskName)}</StudioParagraph>
       <StudioTextfield
         label={taskNameFieldLabel}
         value={id}
