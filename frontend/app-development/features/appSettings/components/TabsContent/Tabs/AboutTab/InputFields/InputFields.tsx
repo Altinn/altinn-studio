@@ -15,9 +15,9 @@ export type InputFieldsProps = {
 export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactElement {
   const { t } = useTranslation();
 
-  const [appConfigFormErrors, setAppConfigFormErrors] = useState<
-    Pick<AppConfigForm, 'serviceName'>
-  >({ serviceName: '' });
+  const [appConfigFormErrors, setAppConfigFormErrors] = useState<{ serviceName: string }>({
+    serviceName: '',
+  });
 
   const handleAppConfigFormBlur = (event: FormEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
@@ -29,7 +29,7 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
   };
 
   const validateForm = (form: AppConfigForm): Boolean => {
-    if (form.serviceName.length <= 0) {
+    if (form.serviceName.nb.length <= 0) {
       setAppConfigFormErrors({ serviceName: t('app_settings.about_tab_name_error') });
       return false;
     }
@@ -42,7 +42,7 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
       <StudioTextfield
         label={t('app_settings.about_tab_repo_label')}
         description={t('app_settings.about_tab_repo_description')}
-        defaultValue={appConfig.repositoryName}
+        defaultValue={appConfig.repositoryName.nb}
         className={classes.textField}
         readOnly
       />
@@ -51,7 +51,7 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
         description={t('app_settings.about_tab_name_description')}
         name='serviceName'
         error={appConfigFormErrors.serviceName}
-        defaultValue={appConfig.serviceName}
+        defaultValue={appConfig.serviceName.nb}
         className={classes.textField}
       />
       <StudioTextfield
