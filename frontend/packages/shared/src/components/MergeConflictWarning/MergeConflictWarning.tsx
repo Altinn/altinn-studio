@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictWarning.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioPopover, StudioHeading, StudioLink } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioLink } from '@studio/components-legacy';
+import { StudioParagraph, StudioPopover } from '@studio/components';
 import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
 import { repoDownloadPath } from 'app-shared/api/paths';
 
@@ -41,18 +41,20 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
         </Trans>
       </StudioParagraph>
       <div className={classes.buttonContainer}>
-        <StudioPopover open={resetRepoPopoverOpen} onClose={toggleResetModal}>
-          <StudioPopover.Trigger onClick={toggleResetModal} size='sm'>
+        <StudioPopover.TriggerContext>
+          <StudioPopover.Trigger onClick={toggleResetModal}>
             {t('merge_conflict.remove_my_changes')}
           </StudioPopover.Trigger>
-          <StudioPopover.Content>
-            <RemoveChangesPopoverContent
-              onClose={toggleResetModal}
-              owner={owner}
-              repoName={repoName}
-            />
-          </StudioPopover.Content>
-        </StudioPopover>
+          <StudioPopover open={resetRepoPopoverOpen} onClose={() => setResetRepoPopoverOpen(false)}>
+            {resetRepoPopoverOpen && (
+              <RemoveChangesPopoverContent
+                onClose={() => setResetRepoPopoverOpen(false)}
+                owner={owner}
+                repoName={repoName}
+              />
+            )}
+          </StudioPopover>
+        </StudioPopover.TriggerContext>
       </div>
     </div>
   );

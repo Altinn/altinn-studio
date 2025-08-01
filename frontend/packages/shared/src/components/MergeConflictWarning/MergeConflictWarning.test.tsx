@@ -59,6 +59,25 @@ describe('MergeConflictWarning', () => {
     await user.click(deleteButton);
     expect(getHeadingInDeletePopover()).not.toBeInTheDocument();
   });
+
+  it('should close the popover when clicking cancel', async () => {
+    const user = userEvent.setup();
+    renderMergeConflictWarning();
+
+    const openPopoverButton = screen.getByRole('button', {
+      name: textMock('merge_conflict.remove_my_changes'),
+    });
+
+    await user.click(openPopoverButton);
+    expect(getHeadingInDeletePopover()).toBeInTheDocument();
+
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await user.click(cancelButton);
+
+    expect(getHeadingInDeletePopover()).not.toBeInTheDocument();
+  });
 });
 
 const defaultProps: MergeConflictWarningProps = {

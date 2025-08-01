@@ -19,7 +19,7 @@ import {
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 
 export function ConditionalRenderingModal() {
   const { org, app } = useStudioEnvironmentParams();
@@ -48,7 +48,7 @@ export function ConditionalRenderingModal() {
 
   function renderConditionRuleConnections(): JSX.Element {
     if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
-      return <StudioParagraph size='sm'>{t('right_menu.rules_empty')}</StudioParagraph>;
+      return <StudioParagraph>{t('right_menu.rules_empty')}</StudioParagraph>;
     }
     return (
       <>

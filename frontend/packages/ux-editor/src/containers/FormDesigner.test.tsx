@@ -101,10 +101,9 @@ describe('FormDesigner', () => {
   it('should add a component', async () => {
     await waitForData();
     render();
-
-    const component = await screen.findByText(textMock('ux_editor.component_title.TextArea'));
+    const component = await screen.findAllByText(textMock('ux_editor.component_title.TextArea'));
     const tree = await screen.findByRole('tree');
-    dragAndDrop(component, tree);
+    dragAndDrop(component[0], tree);
 
     await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(

@@ -19,8 +19,10 @@ describe('ConfPageToolbar', () => {
   it('should render receipt component list when confPageType is receipt', () => {
     renderConfPageToolbar('receipt');
     confOnScreenComponents.forEach((component) => {
-      const componentTitle = `ux_editor.component_title.${component.name}`;
-      expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
+      const componentTitle = screen.getAllByText(
+        textMock(`ux_editor.component_title.${component.name}`),
+      );
+      expect(componentTitle[0]).toBeInTheDocument();
     });
   });
 
@@ -36,16 +38,20 @@ describe('ConfPageToolbar', () => {
   it('should render payment component list when confPageType is payment', () => {
     renderConfPageToolbar('payment');
     paymentLayoutComponents.forEach((component) => {
-      const componentTitle = `ux_editor.component_title.${component.name}`;
-      expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
+      const componentTitle = screen.getAllByText(
+        textMock(`ux_editor.component_title.${component.name}`),
+      );
+      expect(componentTitle[0]).toBeInTheDocument();
     });
   });
 
   it('should render subform component list when confPageType is subform', () => {
     renderConfPageToolbar('subform');
     subformLayoutComponents.forEach((component) => {
-      const componentTitle = `ux_editor.component_title.${component.name}`;
-      expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
+      const componentTitle = screen.getAllByText(
+        textMock(`ux_editor.component_title.${component.name}`),
+      );
+      expect(componentTitle[0]).toBeInTheDocument();
     });
   });
 });
