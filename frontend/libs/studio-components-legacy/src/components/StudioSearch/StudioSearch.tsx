@@ -4,7 +4,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 import classes from './StudioSearch.module.css';
 
 export type StudioSearchProps = WithoutAsChild<SearchProps>;
-
+/**
+ * @deprecated use `StudioSearch` from `@studio/components` instead.
+ */
 const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
   ({ size = 'sm', label, id, className, ...rest }, ref) => {
     const generatedId = useId();
