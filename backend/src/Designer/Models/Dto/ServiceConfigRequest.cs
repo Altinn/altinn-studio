@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class ServiceConfigRequest
 {
     /// <summary>
-    /// Gets or sets the name of the service.
+    /// Gets or sets the name of the service in multiple languages.
     /// </summary>
     public LocalizedString ServiceName { get; set; }
 
@@ -20,9 +20,14 @@ public class ServiceConfigRequest
     public string ServiceId { get; set; }
 
     /// <summary>
-    /// Gets or sets the description of the service.
+    /// Gets or sets the description of the service in multiple languages.
     /// </summary>
-    public LocalizedString ServiceDescription { get; set; }
+    public LocalizedString Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets the description of the rights in multiple languages.
+    /// </summary>
+    public LocalizedString RightDescription { get; set; }
 
     /// <summary>
     /// Gets or sets the resource type.
@@ -64,7 +69,12 @@ public class ServiceConfigRequest
     /// <summary>
     /// Gets or sets the list of contact points associated with the service.
     /// </summary>
-    public List<ContactPoint> ContactPoints { get; set; }
+    public List<ContactPoint> ContactPoints { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of keywords associated with the service.
+    /// </summary>
+    public List<Keyword> Keywords { get; set; } = new();
 
     /// <summary>
     /// Gets or sets a value indicating whether the service is visible.
