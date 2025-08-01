@@ -27,12 +27,17 @@ namespace Designer.Tests.Controllers.ConfigController
             string dataPathWithData = VersionPrefix(org, targetRepository);
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Content = JsonContent.Create(new { serviceName = new LocalizedString()
+            httpRequestMessage.Content = JsonContent.Create(new
             {
-                Nb = "Alternative-form-name",
-                En = "Alternative-form-name-en",
-                Nn = "Alternative-form-name-nn"
-            }, serviceDescription = "", serviceId = "" });
+                serviceName = new LocalizedString()
+                {
+                    Nb = "Alternative-form-name",
+                    En = "Alternative-form-name-en",
+                    Nn = "Alternative-form-name-nn"
+                },
+                serviceDescription = "",
+                serviceId = ""
+            });
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();

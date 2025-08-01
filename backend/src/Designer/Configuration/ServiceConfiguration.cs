@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Altinn.Studio.Designer.Models;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Configuration
 {
@@ -31,7 +32,8 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets the description of the
         /// </summary>
-        public string ServiceDescription { get; set; }
+        [JsonConverter(typeof(LocalizedStringConverter))]
+        public LocalizedString ServiceDescription { get; set; }
 
         [RegularExpression("^altinnapp$", ErrorMessage = "ResourceType must be 'altinnapp'.")]
         public string ResourceType { get; set; }
@@ -48,27 +50,5 @@ namespace Altinn.Studio.Designer.Configuration
 }
 
 
-public enum ServiceStatus
-{
-    Completed,
-    Deprecated,
-    UnderDevelopment,
-    Withdrawn
-}
-
-public enum AvailableForType
-{
-    PrivatePerson,
-    LegalEntityEnterprise,
-    Company,
-    BankruptcyEstate,
-    SelfRegisteredUser
-}
 
 
-public class LocalizedString
-{
-    public string Nb { get; set; }
-    public string Nn { get; set; }
-    public string En { get; set; }
-}

@@ -11,6 +11,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
@@ -95,12 +96,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (FileNotFoundException)
             {
-                ServiceConfiguration serviceConfiguration = new() { RepositoryName = app, ServiceName = new LocalizedString()
+                ServiceConfiguration serviceConfiguration = new()
                 {
-                    Nb = app,
-                    Nn = "",
-                    En = ""
-                } };
+                    RepositoryName = app,
+                    ServiceName = new LocalizedString()
+                    {
+                        Nb = app,
+                        Nn = "",
+                        En = ""
+                    }
+                };
                 return serviceConfiguration;
             }
         }

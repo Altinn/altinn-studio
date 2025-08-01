@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -21,7 +22,7 @@ public class ServiceConfigRequest
     /// <summary>
     /// Gets or sets the description of the service.
     /// </summary>
-    public string ServiceDescription { get; set; }
+    public LocalizedString ServiceDescription { get; set; }
 
     /// <summary>
     /// Gets or sets the resource type.
