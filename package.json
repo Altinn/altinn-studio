@@ -157,7 +157,7 @@
     "jsonpointer": "5.0.1",
     "leaflet": "1.9.4",
     "lru-cache": "11.1.0",
-    "marked": "15.0.12",
+    "marked": "16.1.1",
     "marked-mangle": "1.1.11",
     "node-polyfill-webpack-plugin": "4.1.0",
     "react": "19.1.0",
