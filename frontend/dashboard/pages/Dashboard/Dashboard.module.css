@@ -9,7 +9,7 @@
   margin-bottom: var(--fds-spacing-10);
 }
 
-.searchContainer {
+.search {
   width: 100%;
   max-width: var(--studio-search-max-width);
 }

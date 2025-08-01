@@ -39,7 +39,7 @@ export function CodeListsActionsBar({
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
-        className={classes.searchContainer}
+        className={classes.search}
         label={t('app_content_library.code_lists.search_label')}
         onChange={handleChangeSearch}
         clearButtonLabel={t('general.search_clear_button_title')}

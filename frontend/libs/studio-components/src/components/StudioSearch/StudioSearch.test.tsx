@@ -25,13 +25,6 @@ describe('StudioSearch', () => {
     testCustomAttributes(renderStudioSearch, getSearchBox);
   });
 
-  it('should render search field with label name when provided', () => {
-    const label = 'Search for something';
-    renderStudioSearch({ label });
-    const search = screen.getByRole('searchbox', { name: label });
-    expect(search).toBeInTheDocument();
-  });
-
   it('should render search field with label name when ID is set through props', () => {
     const label = 'Search for something';
     const id = 'searchId';

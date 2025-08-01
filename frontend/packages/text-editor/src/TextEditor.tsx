@@ -108,7 +108,7 @@ export const TextEditor = ({
               }
             </Chip.Toggle>
             <StudioSearch
-              className={classes.searchContainer}
+              className={classes.search}
               label={t('text_editor.search_for_text')}
               value={searchQuery}
               onChange={handleSearchChange}

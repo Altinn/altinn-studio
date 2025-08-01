@@ -6,7 +6,7 @@
   justify-content: flex-start;
 }
 
-.searchContainer {
+.search {
   width: 100%;
   max-width: var(--studio-search-max-width);
 }

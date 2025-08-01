@@ -32,25 +32,4 @@ export const Preview: Story = {
   },
 };
 
-export const WithValue: Story = {
-  args: {
-    ...Preview.args,
-    value: 'Sample search term',
-  },
-};
-
-export const WithCustomLabel: Story = {
-  args: {
-    label: 'Find items',
-    clearButtonLabel: 'Clear',
-  },
-};
-
-export const WithCustomId: Story = {
-  args: {
-    ...Preview.args,
-    id: 'custom-search-id',
-  },
-};
-
 export default meta;

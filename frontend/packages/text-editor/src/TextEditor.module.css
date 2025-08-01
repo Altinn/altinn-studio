@@ -6,7 +6,7 @@
   justify-items: center;
 }
 
-.searchContainer {
+.search {
   width: 100%;
   max-width: var(--studio-search-max-width);
 }

@@ -56,7 +56,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               onChange={handleChangeSearch}
               onKeyDown={handleKeyDown}
               clearButtonLabel={t('general.search_clear_button_title')}
-              className={classes.searchContainer}
+              className={classes.search}
             />
             <Link
               href={`${DASHBOARD_BASENAME}/${subroute}/${selectedContext}/new`}
