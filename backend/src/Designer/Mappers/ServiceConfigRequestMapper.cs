@@ -7,7 +7,7 @@ public class ServiceConfigurationMapper
 {
     public static void UpdateFromRequest(ServiceConfiguration target, ServiceConfigRequest source)
     {
-        target.ServiceDescription = source.ServiceDescription;
+        target.Description = source.ServiceDescription;
         target.ServiceId = source.ServiceId;
         target.ServiceName = source.ServiceName;
         target.Homepage = source.Homepage;

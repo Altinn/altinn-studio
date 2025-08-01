@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { StudioTextfield } from '@studio/components';
 
-type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
+type AppConfigForm = Pick<AppConfig, 'serviceId'> & { serviceName: string };
 
 export type InputFieldsProps = {
   appConfig: AppConfig;
@@ -24,12 +24,12 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
     const form = Object.fromEntries(formData) as AppConfigForm;
     const isFormValid = validateForm(form);
     if (isFormValid) {
-      onSave({ ...appConfig, ...form });
+      onSave({ ...appConfig, ...form, serviceName: { nb: form.serviceName, nn: '', en: '' } });
     }
   };
 
   const validateForm = (form: AppConfigForm): Boolean => {
-    if (form.serviceName.nb.length <= 0) {
+    if (form.serviceName.length <= 0) {
       setAppConfigFormErrors({ serviceName: t('app_settings.about_tab_name_error') });
       return false;
     }
@@ -42,7 +42,7 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
       <StudioTextfield
         label={t('app_settings.about_tab_repo_label')}
         description={t('app_settings.about_tab_repo_description')}
-        defaultValue={appConfig.repositoryName.nb}
+        defaultValue={appConfig.repositoryName}
         className={classes.textField}
         readOnly
       />

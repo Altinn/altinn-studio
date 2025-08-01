@@ -25,7 +25,7 @@ namespace Designer.Tests.Controllers.ConfigController
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
-            ServiceConfiguration serviceConfiguration = new ServiceConfiguration { RepositoryName = app, ServiceDescription = null, ServiceId = null, ServiceName = null };
+            ServiceConfiguration serviceConfiguration = new ServiceConfiguration { RepositoryName = app, Description = null, ServiceId = null, ServiceName = null };
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(serviceConfiguration.RepositoryName, serviceConfigResponse.RepositoryName);
@@ -45,7 +45,7 @@ namespace Designer.Tests.Controllers.ConfigController
 
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(serviceConfiguration.RepositoryName, serviceConfigResponse.RepositoryName);
-            Assert.Equal(serviceConfiguration.ServiceDescription, serviceConfigResponse.ServiceDescription);
+            Assert.Equal(serviceConfiguration.Description, serviceConfigResponse.Description);
             Assert.Equal(serviceConfiguration.ServiceId, serviceConfigResponse.ServiceId);
             Assert.Equal(serviceConfiguration.ServiceName.Nb, serviceConfigResponse.ServiceName.Nb);
         }
