@@ -61,21 +61,6 @@ export function InputFields({ appConfig, onSave }: InputFieldsProps): ReactEleme
         defaultValue={appConfig.serviceId}
         className={classes.textField}
       />
-      <StudioTextfield
-        label='homepage'
-        description={t('app_settings.about_tab_alt_id_description')}
-        name='homepage'
-        defaultValue={appConfig.serviceId}
-        className={classes.textField}
-      />
-
-      <StudioTextfield
-        label='homepage'
-        description={t('app_settings.about_tab_alt_id_description')}
-        name='homepage'
-        defaultValue={appConfig.serviceId}
-        className={classes.textField}
-      />
     </form>
   );
 }

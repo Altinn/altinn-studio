@@ -115,5 +115,4 @@ const mockAppConfig: AppConfigNew = {
   serviceName: { nb: 'test', nn: '', en: '' },
   serviceId: 'example-service-id',
   description: { nb: 'Test Tjeneste', nn: '', en: '' },
-  homepage: 'TEST123',
 };

@@ -20,7 +20,11 @@ describe('Overview', () => {
       getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [org] })),
       getAppConfig: jest.fn().mockImplementation(() =>
         Promise.resolve({
-          serviceName: title,
+          serviceName: {
+            nb: title,
+            nn: '',
+            en: '',
+          },
         }),
       ),
     });
