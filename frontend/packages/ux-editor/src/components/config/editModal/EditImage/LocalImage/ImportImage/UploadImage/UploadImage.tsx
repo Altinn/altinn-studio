@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
@@ -67,7 +68,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
           onInvalidFileSize: handleInvalidFileSize,
         }}
       />
-      <StudioParagraph spacing size='xsmall' className={classes.fileSizeLimit}>
+      <StudioParagraph data-size='xs' className={classes.fileSizeLimit}>
         {t('ux_editor.properties_panel.images.upload_image_file_size_limit', {
           maxSize: MAX_FILE_SIZE_MB,
         })}

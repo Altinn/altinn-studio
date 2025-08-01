@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './DeleteOptionsModal.module.css';
-import { StudioParagraph, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type DeleteOptionsProps = {
@@ -16,10 +17,10 @@ export const DeleteOptions = ({
   return (
     <div className={classes.container}>
       <div>
-        <StudioParagraph size='small'>
+        <StudioParagraph variant='long'>
           {t('ux_editor.properties_panel.images.delete_image_options_modal_content_only_ref')}
         </StudioParagraph>
-        <StudioParagraph size='small'>
+        <StudioParagraph variant='long'>
           {t(
             'ux_editor.properties_panel.images.delete_image_options_modal_content_ref_and_from_library',
           )}

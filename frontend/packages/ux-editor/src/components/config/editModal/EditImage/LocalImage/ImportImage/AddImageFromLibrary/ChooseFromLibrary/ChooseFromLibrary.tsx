@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 import { useTranslation } from 'react-i18next';
 import { ImageLibraryPreview } from './ImageLibraryPreview';
@@ -15,7 +15,9 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
   const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
 
   return imagesFileNames?.length === 0 ? (
-    <StudioParagraph>{t('ux_editor.properties_panel.images.no_images_in_library')}</StudioParagraph>
+    <StudioParagraph data-size='md'>
+      {t('ux_editor.properties_panel.images.no_images_in_library')}
+    </StudioParagraph>
   ) : (
     <ImageLibraryPreview
       imagesFileNames={imagesFileNames}

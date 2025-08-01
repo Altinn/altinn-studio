@@ -1,6 +1,6 @@
 .editorContainer {
   border: 1px solid var(--fds-semantic-border-neutral-default);
-  border-radius: 5px;
+  border-radius: var(--ds-border-radius-md);
   background-image: var(--canvas-background-image);
   background-size: var(--canvas-background-size);
   background-position: var(--canvas-background-position);

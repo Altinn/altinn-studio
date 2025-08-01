@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { Trans } from 'react-i18next';
 
 export type CodeListsCounterMessageProps = {
@@ -23,7 +23,7 @@ export function CodeListsCounterMessage({
   }
 
   return (
-    <StudioParagraph size='sm'>
+    <StudioParagraph>
       <Trans
         i18nKey={codeListsCounterTextKey}
         values={{ codeListsCount }}

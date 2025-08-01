@@ -2,6 +2,6 @@
   display: grid;
   grid-template-columns: auto auto auto;
   align-items: flex-end;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-4);
   justify-content: flex-start;
 }

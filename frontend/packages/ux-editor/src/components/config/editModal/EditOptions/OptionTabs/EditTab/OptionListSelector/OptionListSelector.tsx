@@ -4,13 +4,8 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioCard,
-  StudioModal,
-  StudioParagraph,
-  StudioSpinner,
-} from '@studio/components-legacy';
+import { StudioButton, StudioCard, StudioModal, StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';

@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './ExternalImageValidationStatus.module.css';
-import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
@@ -28,13 +29,13 @@ export const ExternalImageValidationStatus = ({
       );
     case 'error':
       return (
-        <StudioParagraph className={classes.validationStatusContainer} size='small'>
+        <StudioParagraph className={classes.validationStatusContainer}>
           {t('ux_editor.properties_panel.images.validating_image_url_error')}
         </StudioParagraph>
       );
     case 'success':
       return validationMessage === '' ? null : (
-        <StudioParagraph className={classes.validationStatusContainer} size='small'>
+        <StudioParagraph className={classes.validationStatusContainer}>
           {validationMessage}
         </StudioParagraph>
       );

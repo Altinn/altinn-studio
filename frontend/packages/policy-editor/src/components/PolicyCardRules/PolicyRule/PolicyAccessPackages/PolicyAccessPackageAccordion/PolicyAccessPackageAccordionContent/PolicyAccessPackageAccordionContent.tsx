@@ -1,7 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
-import { StudioParagraph, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { PolicyAccessPackageServices } from '../PolicyAccessPackageServices';
 import classes from './PolicyAccessPackageAccordionContent.module.css';
 
@@ -36,7 +37,7 @@ export const PolicyAccessPackageAccordionContent = ({
       )}
       {hasServices && <PolicyAccessPackageServices services={services} />}
       {serviceListIsEmpty && (
-        <StudioParagraph size='xs'>
+        <StudioParagraph data-size='xs'>
           {t('policy_editor.access_package_no_services', {
             environment: uppercaseEnv,
           })}

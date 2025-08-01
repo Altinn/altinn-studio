@@ -2,13 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
-import {
-  StudioButton,
-  StudioDeleteButton,
-  StudioProperty,
-  usePrevious,
-} from '@studio/components-legacy';
-import { XMarkIcon } from '@studio/icons';
+import { StudioProperty, usePrevious } from '@studio/components-legacy';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
+import { CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -129,18 +125,16 @@ const TextResourceFieldset = ({
       menubar={
         <>
           <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
-          <StudioButton
-            icon={<XMarkIcon />}
-            onClick={onClose}
-            title={t('general.close')}
-            variant='secondary'
-          />
+          <StudioButton icon={<CheckmarkIcon />} onClick={onClose} variant='primary'>
+            {t('general.save')}
+          </StudioButton>
           <StudioDeleteButton
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
             disabled={!onDelete}
             onDelete={() => onDelete?.()}
-            title={t('general.delete')}
-          />
+          >
+            {t('general.delete')}
+          </StudioDeleteButton>
         </>
       }
     >

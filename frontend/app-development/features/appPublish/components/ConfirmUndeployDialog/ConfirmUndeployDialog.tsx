@@ -4,10 +4,10 @@ import {
   StudioButton,
   StudioModal,
   StudioTextfield,
-  StudioParagraph,
   StudioAlert,
   StudioLink,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -70,7 +70,7 @@ export const ConfirmUndeployDialog = ({
         />
         {undeployError && (
           <StudioAlert severity='danger' className={classes.errorContainer}>
-            <StudioParagraph size='sm'>
+            <StudioParagraph>
               <Trans
                 i18nKey={'app_deployment.error_unknown.message'}
                 components={{

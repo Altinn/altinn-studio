@@ -56,7 +56,7 @@
 .editIcon {
   padding: var(--fds-sizing-0);
   position: absolute;
-  border-radius: var(--fds-border_radius-full);
+  border-radius: var(--fds-border_radius-medium);
   right: var(--fds-spacing-1);
   top: var(--fds-spacing-1);
   height: var(--fds-sizing-10);

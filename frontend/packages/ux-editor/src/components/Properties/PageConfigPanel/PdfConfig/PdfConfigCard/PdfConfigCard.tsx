@@ -3,8 +3,8 @@ import classes from './PdfConfigCard.module.css';
 import {
   StudioCard,
   StudioHeading,
-  StudioParagraph,
   StudioSwitch,
+  StudioParagraph,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';

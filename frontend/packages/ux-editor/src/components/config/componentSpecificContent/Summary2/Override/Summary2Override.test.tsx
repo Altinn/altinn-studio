@@ -267,6 +267,27 @@ describe('Summary2Override', () => {
     );
   });
 
+  it('clicking Save in Summary2OverrideEntry closes the entry', async () => {
+    const user = userEvent.setup();
+    const textSaveButton = textMock('ux_editor.component_properties.summary.override.save_button');
+    const textCancelButton = textMock(
+      'ux_editor.component_properties.summary.override.delete_button',
+    );
+    const component = {
+      ...defaultProps.component,
+      overrides: [{ componentId: '1' }],
+    };
+    render({ component });
+
+    expect(screen.queryByRole('button', { name: textSaveButton })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: textCancelButton })).not.toBeInTheDocument();
+    await user.click(overrideCollapsedButton(1));
+    expect(screen.getByRole('button', { name: textSaveButton })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textCancelButton })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textSaveButton }));
+    expect(screen.queryByRole('button', { name: textSaveButton })).not.toBeInTheDocument();
+  });
+
   it.each([
     {
       componentId: repeatingGroupComponentId,
@@ -308,7 +329,7 @@ describe('Summary2Override', () => {
 
 const overrideCloseButton = () =>
   screen.getByRole('button', {
-    name: /general.save/i,
+    name: textMock('ux_editor.component_properties.summary.override.delete_button'),
   });
 
 const overrideCollapsedButton = (n: number) =>
@@ -321,7 +342,10 @@ const addNewOverrideButton = () =>
     name: textMock('ux_editor.component_properties.summary.add_override'),
   });
 
-const removeOverrideButton = () => screen.getByRole('button', { name: '' });
+const removeOverrideButton = () =>
+  screen.getByRole('button', {
+    name: textMock('ux_editor.component_properties.summary.override.delete_button'),
+  });
 
 const overrideComponentSelect = () =>
   screen.getByRole('combobox', {

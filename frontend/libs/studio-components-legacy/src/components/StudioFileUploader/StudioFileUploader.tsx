@@ -12,6 +12,9 @@ export type StudioFileUploaderProps = {
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size' | 'onSubmit'> &
   Pick<StudioButtonProps, 'size' | 'variant' | 'color'>;
 
+/**
+ * @deprecated use `StudioFileUploader` from `@studio/components` instead
+ */
 export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(
   (
     {
