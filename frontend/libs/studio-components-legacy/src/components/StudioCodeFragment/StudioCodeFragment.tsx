@@ -5,6 +5,10 @@ import classes from './StudioCodeFragment.module.css';
 
 export type StudioCodeFragmentProps = HTMLAttributes<HTMLElement>;
 
+/**
+ * @deprecated use `StudioCodeFragment` from `@studio/components` instead
+ */
+
 const StudioCodeFragment = forwardRef<HTMLElement, StudioCodeFragmentProps>(
   ({ children, className: givenClass, ...rest }, ref) => {
     const className = cn(classes.code, givenClass);

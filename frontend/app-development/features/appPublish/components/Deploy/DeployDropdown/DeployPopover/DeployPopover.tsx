@@ -2,9 +2,9 @@ import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
 import {
   StudioButton,
-  StudioParagraph,
   StudioPopover,
   StudioSpinner,
+  StudioParagraph,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
