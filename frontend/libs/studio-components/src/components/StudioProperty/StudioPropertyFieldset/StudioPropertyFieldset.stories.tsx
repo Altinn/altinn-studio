@@ -26,8 +26,13 @@ Preview.args = {
   children: <FieldsetContent />,
   menubar: (
     <>
-      <StudioButton variant='secondary' color='success' title='Save' icon={<FloppydiskIcon />} />
-      <StudioButton variant='secondary' title='Delete' color='danger' icon={<TrashIcon />} />
+      <StudioButton
+        variant='secondary'
+        data-color='success'
+        title='Save'
+        icon={<FloppydiskIcon />}
+      />
+      <StudioButton variant='secondary' title='Delete' data-color='danger' icon={<TrashIcon />} />
       <StudioButton variant='secondary' title='Cancel' icon={<XMarkIcon />} />
     </>
   ),
