@@ -113,7 +113,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             // Arrange
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var sourceRelativePath = "source/file.txt";
             var destRelativePath = "dest/newfile.txt";
@@ -148,7 +148,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             // Arrange
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var sourceRelativePath = "source/nonexistent.txt";
             var destRelativePath = "dest/newfile.txt";
@@ -177,7 +177,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var sourceRelativePath = "source/file.txt";
             var destRelativePath = "dest/existing.txt";
@@ -209,7 +209,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
-            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var sourceRelativePath = "source/file.txt";
             var destRelativePath = "source/File.txt";
