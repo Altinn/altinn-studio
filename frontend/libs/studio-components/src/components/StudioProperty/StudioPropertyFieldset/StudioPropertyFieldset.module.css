@@ -30,6 +30,7 @@
 .content {
   grid-column-end: end;
   grid-column-start: start;
+  margin-block-start: 0; /* Reset setting from The Design System. Spacings in this component are defined with the gap setting. */
 }
 
 .propertyFieldset.compact {
