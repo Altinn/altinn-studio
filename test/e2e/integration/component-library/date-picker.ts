@@ -10,7 +10,6 @@ describe('Datepicker component', () => {
     const minDatePicker = '[id=DatepickerMinDateExample1]';
     const maxDatePicker = '[id=DatepickerMaxDateExample1]';
     const datePicker = '[data-componentid=DatepickerExample1]';
-    const openDatePickerPopover = 'div[aria-hidden=false]';
 
     cy.get(minDatePicker);
     cy.get(minDatePicker).type('02.07.2025');
@@ -20,18 +19,14 @@ describe('Datepicker component', () => {
     cy.get(maxDatePicker).blur();
 
     cy.get(datePicker).contains('button', 'Åpne datovelger').click();
-    cy.get(openDatePickerPopover)
-      .findByRole('button', { name: /tirsdag 1. juli 2025/i })
-      .should('be.disabled');
-    cy.get(openDatePickerPopover)
-      .findByRole('button', { name: /torsdag 31. juli 2025/i })
-      .should('be.disabled');
-    cy.get(openDatePickerPopover)
-      .findByRole('button', { name: /fredag 4. juli 2025/i })
-      .should('not.be.disabled');
-    cy.get(openDatePickerPopover)
-      .findByRole('button', { name: /fredag 4. juli 2025/i })
-      .click();
+
+    cy.findByRole('combobox', { name: /velg måned/i }).select('juli');
+    cy.findByRole('combobox', { name: /velg år/i }).select('2025');
+
+    cy.findByRole('button', { name: /tirsdag 1. juli 2025/i }).should('be.disabled');
+    cy.findByRole('button', { name: /torsdag 31. juli 2025/i }).should('be.disabled');
+    cy.findByRole('button', { name: /fredag 4. juli 2025/i }).should('not.be.disabled');
+    cy.findByRole('button', { name: /fredag 4. juli 2025/i }).click();
     cy.get(datePicker).findByRole('textbox').should('have.value', '04/07/2025');
   });
 });
