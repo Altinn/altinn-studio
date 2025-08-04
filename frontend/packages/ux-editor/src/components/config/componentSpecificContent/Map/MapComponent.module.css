@@ -27,8 +27,3 @@
   justify-content: space-between;
   margin-bottom: 12px;
 }
-
-.addMapButton {
-  margin-inline: calc(-1 * var(--ds-size-5));
-  width: calc(100% + 2 * var(--ds-size-5));
-}

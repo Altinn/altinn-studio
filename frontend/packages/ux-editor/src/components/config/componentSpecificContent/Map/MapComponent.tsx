@@ -8,24 +8,40 @@ import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
 import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components-legacy';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import cn from 'classnames';
+
+type MapComponentProps = IGenericEditComponent<ComponentType.Map> & {
+  className?: string;
+};
 
 export const MapComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.Map>): JSX.Element => {
+  className,
+}: MapComponentProps): JSX.Element => {
   const t = useText();
 
   return (
     <div className={classes.addMapLayerContent}>
-      <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
-      <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
+      <h2 className={cn(classes.subTitle, className)}>{t('ux_editor.add_map_layer')}</h2>
+      <AddMapLayer
+        component={component}
+        handleComponentChange={handleComponentChange}
+        className={className}
+      />
     </div>
   );
 };
 
-interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {}
+interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {
+  className?: string;
+}
 
-const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JSX.Element => {
+const AddMapLayer = ({
+  component,
+  handleComponentChange,
+  className,
+}: AddMapLayerProps): JSX.Element => {
   const t = useText();
 
   const handleOnLayerChange = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {

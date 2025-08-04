@@ -15,13 +15,19 @@ import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/t
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import classes from './Summary2Override.module.css';
+import cn from 'classnames';
 
 export type Summary2OverrideProps = {
   component: FormItem<ComponentType.Summary2>;
   onChange: (component: FormItem) => void;
+  className?: string;
 };
 
-export const Summary2Override = ({ component, onChange }: Summary2OverrideProps) => {
+export const Summary2Override = ({
+  component,
+  onChange,
+  className,
+}: Summary2OverrideProps): JSX.Element => {
   const { t } = useTranslation();
   const [openOverrides, setOpenOverrides] = React.useState([]);
   const { overrides, target } = component;
@@ -63,7 +69,7 @@ export const Summary2Override = ({ component, onChange }: Summary2OverrideProps)
   return (
     <>
       {overrides?.length > 0 && (
-        <div className={classes.overrideWrapper}>
+        <div className={cn(classes.overrideWrapper, className)}>
           {overrides.map((override, index) => (
             <Summary2OverrideEntry
               index={index + 1}
@@ -86,7 +92,6 @@ export const Summary2Override = ({ component, onChange }: Summary2OverrideProps)
         icon={<PlusCircleIcon />}
         onClick={addOverride}
         property={t('ux_editor.component_properties.summary.add_override')}
-        className={classes.addOverrideButton}
       />
     </>
   );
