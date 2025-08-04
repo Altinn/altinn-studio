@@ -3,7 +3,6 @@ import { StudioButton, StudioParagraph, StudioHeading, StudioAlert } from '@stud
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '@altinn/ux-editor/hooks';
 import classes from './SubformMissingContentWarning.module.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,13 +13,11 @@ type SubformMissingContentWarningProps = {
 export const SubformMissingContentWarning = ({
   subformLayoutSetName: subformLayoutSetName,
 }: SubformMissingContentWarningProps): ReactElement => {
-  const { setSelectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleOnRedirectClick = (): void => {
-    navigate(`layoutSet/${subformLayoutSetName}`);
-    setSelectedFormLayoutName(undefined);
+    navigate(`../layoutSet/${subformLayoutSetName}`);
   };
 
   return (
