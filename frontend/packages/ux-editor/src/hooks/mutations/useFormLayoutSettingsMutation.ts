@@ -20,10 +20,11 @@ export const useFormLayoutSettingsMutation = (org: string, app: string, layoutSe
         });
       }
 
-      queryClient.setQueryData(
-        [QueryKey.FormLayoutSettings, org, app, layoutSetName],
-        savedSettings,
-      );
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+      });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.Pages, org, app, layoutSetName] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, layoutSetName] });
 
       await updateLayoutSettingsForPreview(layoutSetName);
     },

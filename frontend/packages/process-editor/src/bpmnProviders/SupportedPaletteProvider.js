@@ -219,7 +219,7 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create Altinn signing Task'),
+          title: translate('Create Altinn Signing Task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -228,7 +228,7 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('Create Altinn user-controllerd-signing Task'),
+          title: translate('Create Altinn User-Controlled Signing Task'),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -246,7 +246,7 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Payment'),
+          title: translate('Create Altinn Payment Task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),

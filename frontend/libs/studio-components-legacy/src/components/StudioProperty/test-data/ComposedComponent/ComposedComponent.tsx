@@ -1,4 +1,5 @@
-import React, { type ChangeEvent, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 import { StudioProperty } from '../../';
 import { StudioButton } from '../../../StudioButton';
 import { XMarkIcon } from '../../../../../../studio-icons';
@@ -15,16 +16,18 @@ export type ComposedComponentButtonProps = {
   value: string;
 };
 
-export function ComposedComponent({ buttons: givenButtons }: ComposedComponentProps) {
+export function ComposedComponent({ buttons: givenButtons }: ComposedComponentProps): ReactElement {
   const [buttons, setButtons] = React.useState(givenButtons);
 
   useEffect(() => {
     setButtons(givenButtons);
   }, [givenButtons]);
 
-  const handleButtonChange = (index: number) => (value: string) => {
-    setButtons(updateButtonValue(buttons, index, value));
-  };
+  const handleButtonChange =
+    (index: number) =>
+    (value: string): void => {
+      setButtons(updateButtonValue(buttons, index, value));
+    };
 
   return (
     <StudioProperty.Group>
@@ -87,7 +90,7 @@ function PreviewFieldset({
   onChange,
   onClose,
 }: PreviewFieldsetProps): React.ReactElement {
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     onChange(event.target.value);
   };
 
@@ -101,7 +104,6 @@ function PreviewFieldset({
       <StudioTextfield
         autoFocus
         className={classes.textfield}
-        hideLabel
         label={property}
         onChange={handleChange}
         value={value}

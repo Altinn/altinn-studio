@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PreviewFileInfo.module.css';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { FileNameUtils } from '@studio/pure-functions';
 
 interface PreviewFileInfoProps {
@@ -10,7 +10,7 @@ interface PreviewFileInfoProps {
 export const PreviewFileInfo = ({ existingImageUrl }: PreviewFileInfoProps) => {
   return (
     <div className={classes.fileInfoContainer}>
-      <StudioParagraph size='small' className={classes.fileName} title={existingImageUrl}>
+      <StudioParagraph className={classes.fileName} title={existingImageUrl}>
         {FileNameUtils.extractFileName(existingImageUrl)}
       </StudioParagraph>
     </div>

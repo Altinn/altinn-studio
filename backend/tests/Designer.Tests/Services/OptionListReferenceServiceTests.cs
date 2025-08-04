@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -25,114 +24,50 @@ public class OptionListReferenceServiceTests
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
 
         // Act
-        List<RefToOptionListSpecifier> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+        List<OptionListReference> optionListsReferences = await optionListReferenceService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
 
         // Assert
-        List<RefToOptionListSpecifier> expectedResponseList = OptionListReferenceTestDataWithTaskData();
+        List<OptionListReference> expectedResponseList = OptionListReferenceTestData();
         Assert.Equivalent(optionListsReferences, expectedResponseList);
     }
 
     [Fact]
-    public async Task AddTaskDataToOptionListReferences_ShouldAddCorrectTaskData_WhenReferencesExist()
+    public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenAppContainsASubform()
     {
         // Arrange
-        const string RepoName = "app-with-options";
+        const string RepoName = "app-with-groups-and-task-navigation";
         var optionListReferenceService = GetOptionListReferenceServiceForTest();
-        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName);
-        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
-
-        // Act
-        List<RefToOptionListSpecifier> result = await optionListReferenceService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
-
-        // Assert
-        List<RefToOptionListSpecifier> expectedResult = OptionListReferenceTestDataWithTaskData();
-        Assert.Equivalent(result, expectedResult);
-    }
-
-    [Fact]
-    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenGivenListIsEmpty()
-    {
-        // Arrange
-        const string RepoName = "app-with-options";
-        var optionListReferenceService = GetOptionListReferenceServiceForTest();
-        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName);
-        List<RefToOptionListSpecifier> emptyReferenceList = [];
-
-        // Act
-        List<RefToOptionListSpecifier> result = await optionListReferenceService.AddTaskDataToOptionListReferences(repoEditingContext, emptyReferenceList);
-
-        // Assert
-        Assert.Same(result, emptyReferenceList);
-    }
-
-    [Fact]
-    public async Task AddTaskDataToOptionListReferences_ShouldReturnSameReferenceList_WhenLayoutSetsModelIsEmpty()
-    {
-        // Arrange
-        const string RepoName = "app-with-options";
-        var repoEditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName);
-        var appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
-        appDevelopmentServiceMock.Setup(s => s.GetLayoutSetsExtended(repoEditingContext, new CancellationToken())).ReturnsAsync(new LayoutSetsModel());
-        var optionListReferenceService = GetOptionListReferenceServiceForTestWithMockedAppDevelopmentService(appDevelopmentServiceMock);
-        List<RefToOptionListSpecifier> referencesWithoutTaskData = OptionListReferenceTestDataWithoutTaskData();
-
-        // Act
-        List<RefToOptionListSpecifier> result = await optionListReferenceService.AddTaskDataToOptionListReferences(repoEditingContext, referencesWithoutTaskData);
-
-        // Assert
-        Assert.Same(result, referencesWithoutTaskData);
-    }
-
-    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithoutTaskData()
-    {
-        return new List<RefToOptionListSpecifier>
-        {
-            new RefToOptionListSpecifier
+        List<OptionListReference> expectedResponseList = [
+            new()
             {
-                OptionListId = "test-options",
-                OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
-                        LayoutName = "layoutWithOneOptionListIdRef",
-                        LayoutSetId = "layoutSet1",
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1",
-                    },
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-same-options-id-in-another-set"],
-                        LayoutName = "layoutWithTwoOptionListIdRefs",
-                        LayoutSetId = "layoutSet2",
-                    }
-                ]
-            },
-            new RefToOptionListSpecifier
-            {
-                OptionListId = "other-options",
-                OptionListIdSources =
-                [
-                    new OptionListIdSource
-                    {
-                        ComponentIds = ["component-using-other-options-id"],
-                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
-                        LayoutSetId = "layoutSet1",
-                    }
-                ]
+               OptionListId = "yesNo",
+               OptionListIdSources = [
+                   new OptionListIdSource {
+                       ComponentIds = ["brand"],
+                       LayoutName = "brand",
+                       LayoutSetId = "subform",
+                       TaskId = null,
+                       TaskType = null
+                   }
+               ]
             }
-        };
+        ];
+
+
+        // Act
+        List<OptionListReference> optionListReferences =
+            await optionListReferenceService.GetAllOptionListReferences(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(OrgName, RepoName, DeveloperName));
+
+        // Assert
+        Assert.Equivalent(optionListReferences, expectedResponseList);
     }
 
-    private List<RefToOptionListSpecifier> OptionListReferenceTestDataWithTaskData()
+    private static List<OptionListReference> OptionListReferenceTestData()
     {
-        return new List<RefToOptionListSpecifier>
+        return new List<OptionListReference>
         {
-            new RefToOptionListSpecifier
+            new OptionListReference
             {
                 OptionListId = "test-options",
                 OptionListIdSources =
@@ -163,7 +98,7 @@ public class OptionListReferenceServiceTests
                     }
                 ]
             },
-            new RefToOptionListSpecifier
+            new OptionListReference
             {
                 OptionListId = "other-options",
                 OptionListIdSources =
@@ -187,14 +122,6 @@ public class OptionListReferenceServiceTests
         var schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
         AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
         OptionListReferenceService optionListReferenceService = new(altinnGitRepositoryFactory, appDevelopmentService);
-
-        return optionListReferenceService;
-    }
-
-    private static OptionListReferenceService GetOptionListReferenceServiceForTestWithMockedAppDevelopmentService(Mock<IAppDevelopmentService> appDevelopmentServiceMock)
-    {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionListReferenceService optionListReferenceService = new(altinnGitRepositoryFactory, appDevelopmentServiceMock.Object);
 
         return optionListReferenceService;
     }

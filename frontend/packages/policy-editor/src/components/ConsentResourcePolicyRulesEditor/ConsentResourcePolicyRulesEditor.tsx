@@ -58,15 +58,14 @@ const AcceptConsentPolicyRule = ({
       setPolicyError={setPolicyError}
     >
       <div className={classes.consentRuleCard}>
-        <StudioFieldset>
-          <StudioFieldset.Legend>
+        <StudioFieldset
+          legend={
             <StudioHeading data-size='xs' level={2}>
               {t('policy_editor.consent_resource_consent_header')}
             </StudioHeading>
-          </StudioFieldset.Legend>
-          <StudioFieldset.Description>
-            {t('policy_editor.consent_resource_consent_description')}
-          </StudioFieldset.Description>
+          }
+          description={t('policy_editor.consent_resource_consent_description')}
+        >
           <div>
             <PolicySubjects />
             <PolicyAccessPackages />
@@ -125,15 +124,14 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
 
   return (
     <div className={classes.consentRuleCard}>
-      <StudioFieldset>
-        <StudioFieldset.Legend>
+      <StudioFieldset
+        legend={
           <StudioHeading data-size='xs' level={2}>
             {t('policy_editor.consent_resource_request_consent_header')}
           </StudioHeading>
-        </StudioFieldset.Legend>
-        <StudioFieldset.Description>
-          {t('policy_editor.consent_resource_request_consent_description')}
-        </StudioFieldset.Description>
+        }
+        description={t('policy_editor.consent_resource_request_consent_description')}
+      >
         <div>
           {accessListSubjects.length === 0 && (
             <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>

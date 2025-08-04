@@ -1,12 +1,40 @@
 .configPanel {
-  margin: var(--fds-spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  padding: var(--fds-spacing-4);
+  background-color: var(--fds-semantic-surface-neutral-default);
 }
 
 .fieldSetWrapper {
-  place-content: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-7);
   place-items: start;
 }
 
 .alertMessage {
   margin-top: var(--fds-spacing-4);
+}
+
+.radio {
+  width: 80%;
+  align-items: center;
+}
+
+.radioLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.radioLabelIcon {
+  color: var(--ds-color-border-default);
+  width: var(--fds-sizing-5);
+  height: var(--fds-sizing-5);
+  padding: var(--fds-spacing-1);
+  flex-shrink: 0;
+  border: var(--ds-border-width-default) solid var(--ds-color-border-default);
+  border-radius: var(--ds-border-radius-default);
+  background: var(--studio-app-background);
 }

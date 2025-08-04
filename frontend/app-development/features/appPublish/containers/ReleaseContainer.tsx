@@ -7,12 +7,8 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import {
-  StudioSpinner,
-  StudioPopover,
-  StudioParagraph,
-  StudioError,
-} from '@studio/components-legacy';
+import { StudioSpinner, StudioPopover, StudioError } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
