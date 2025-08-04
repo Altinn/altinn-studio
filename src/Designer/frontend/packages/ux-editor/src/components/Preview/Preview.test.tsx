@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../testing/subformLayoutMock';
 
 describe('Preview', () => {
@@ -107,7 +107,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
           mockInstanceId,
@@ -126,7 +126,7 @@ describe('Preview', () => {
         previewPage(
           org,
           app,
-          appContextMock.selectedFormLayoutSetName,
+          layoutSet,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,
           mockInstanceId,
@@ -135,7 +135,6 @@ describe('Preview', () => {
   });
 
   it('should show a warning that subform is unsupported in preview', async () => {
-    appContextMock.selectedFormLayoutSetName = subformLayoutMock.layoutSetName;
     render();
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('preview.loading_preview_controller')),
