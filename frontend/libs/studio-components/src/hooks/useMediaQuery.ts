@@ -4,6 +4,9 @@ function getMatches(query: string): boolean {
   return window.matchMedia(query).matches ?? false;
 }
 
+/**
+ * Tracks whether a given CSS media query matches the current viewport/device state.
+ *  */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState<boolean>(() => getMatches(query));
 
