@@ -107,6 +107,132 @@ namespace Designer.Tests.Infrastructure.GitRepository
             }
         }
 
+        [Fact]
+        public async Task MoveFileByRelativePath_ValidPaths_MovesFileSuccessfully()
+        {
+            // Arrange
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
+            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            var sourceRelativePath = "source/file.txt";
+            var destRelativePath = "dest/newfile.txt";
+            var destinationFileName = "newfile.txt";
+            var testContent = "test content";
+
+            // Create source file
+            await gitRepository.WriteTextByRelativePathAsync(sourceRelativePath, testContent, true);
+            Assert.True(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+            Assert.False(gitRepository.FileExistsByRelativePath(destRelativePath));
+
+            try
+            {
+                // Act
+                gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
+
+                // Assert
+                Assert.False(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+                Assert.True(gitRepository.FileExistsByRelativePath(destRelativePath));
+                string content = await gitRepository.ReadTextByRelativePathAsync(destRelativePath);
+                Assert.Equal(testContent, content);
+            }
+            finally
+            {
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+            }
+        }
+
+        [Fact]
+        public void MoveFileByRelativePath_SourceFileDoesNotExist_ThrowsFileNotFoundException()
+        {
+            // Arrange
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
+            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            var sourceRelativePath = "source/nonexistent.txt";
+            var destRelativePath = "dest/newfile.txt";
+            var destinationFileName = "newfile.txt";
+
+            Assert.False(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+
+            try
+            {
+                gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
+                Assert.False(true, "Expected FileNotFoundException was not thrown.");
+            }
+            catch (FileNotFoundException ex)
+            {
+                Assert.Contains(sourceRelativePath, ex.Message);
+            }
+            finally
+            {
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+            }
+        }
+
+
+        [Fact]
+        public async Task MoveFileByRelativePath_DestinationFileExists_ThrowsIOException()
+        {
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
+            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            var sourceRelativePath = "source/file.txt";
+            var destRelativePath = "dest/existing.txt";
+            var destinationFileName = "existing.txt";
+
+            await gitRepository.WriteTextByRelativePathAsync(sourceRelativePath, "source content", true);
+            await gitRepository.WriteTextByRelativePathAsync(destRelativePath, "dest content", true);
+            Assert.True(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+            Assert.True(gitRepository.FileExistsByRelativePath(destRelativePath));
+
+            try
+            {
+                gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
+                Assert.False(true, "Expected IOException was not thrown.");
+            }
+            catch (IOException ex)
+            {
+                Assert.Contains(destinationFileName, ex.Message);
+            }
+            finally
+            {
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+            }
+        }
+
+
+        [Fact]
+        public async Task MoveFileByRelativePath_CasingOnlyRename_MovesFileSuccessfully()
+        {
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
+            var gitRepository = new GitRepository(repositoriesRootDirectory, repositoryDirectory);
+
+            var sourceRelativePath = "source/file.txt";
+            var destRelativePath = "source/File.txt";
+            var destinationFileName = "File.txt";
+            var testContent = "test content";
+
+            await gitRepository.WriteTextByRelativePathAsync(sourceRelativePath, testContent, true);
+            Assert.True(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+
+            try
+            {
+                gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
+                Assert.False(gitRepository.FileExistsByRelativePath(sourceRelativePath));
+                Assert.True(gitRepository.FileExistsByRelativePath(destRelativePath));
+                string content = await gitRepository.ReadTextByRelativePathAsync(destRelativePath);
+                Assert.Equal(testContent, content);
+            }
+            finally
+            {
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+            }
+        }
+
         [Theory]
         [InlineData(@"this.dont.exists.schema.json")]
         [InlineData(@"c:/this/should/not/exist/HvemErHvem.json")]
