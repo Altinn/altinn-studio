@@ -4,12 +4,8 @@ import { StudioIconCard } from '@studio/components-legacy/src/components/StudioI
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioDeleteButton,
-  StudioHeading,
-  StudioParagraph,
-} from '@studio/components-legacy';
+import { StudioButton, StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -74,12 +70,12 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     >
       <div className={classes.details}>
         <div>
-          <StudioParagraph size='sm'>{t(taskName)}</StudioParagraph>
+          <StudioParagraph>{t(taskName)}</StudioParagraph>
           <StudioHeading size='xs' title={layoutSetModel.id}>
             {layoutSetModel.id}
           </StudioHeading>
         </div>
-        <StudioParagraph size='sm' title={layoutSetModel.dataType}>
+        <StudioParagraph title={layoutSetModel.dataType}>
           {t('ux_editor.task_card.datamodel')}
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>

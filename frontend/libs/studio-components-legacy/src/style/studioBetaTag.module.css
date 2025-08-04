@@ -2,7 +2,7 @@
   content: 'Beta';
   background-color: var(--fds-semantic-surface-info-subtle);
   color: var(--fds-semantic-text-neutral-default);
-  border-radius: var(--fds-border_radius-large);
+  border-radius: var(--fds-border_radius-small);
   padding: var(--fds-spacing-1);
   font-size: var(--fds-sizing-3);
   margin-left: var(--fds-spacing-1);

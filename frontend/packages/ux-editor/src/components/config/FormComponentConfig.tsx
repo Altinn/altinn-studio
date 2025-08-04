@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Heading } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import {} from './ConfigProperties/ConfigNumberProperties';
@@ -50,8 +50,10 @@ export const FormComponentConfig = ({
     'overrides',
   ];
 
-  const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys, unsupportedKeys } =
-    usePropertyTypes(schema, customProperties);
+  const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(
+    schema,
+    customProperties,
+  );
 
   if (!schema?.properties) return null;
 
@@ -134,18 +136,6 @@ export const FormComponentConfig = ({
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
         />
-      )}
-
-      {/* Show information about unsupported properties if there are any */}
-      {unsupportedKeys.length > 0 && !hideUnsupported && (
-        <Alert severity='info' className={classes.elementWrapper}>
-          {t('ux_editor.edit_component.unsupported_properties_message')}
-          <ul>
-            {unsupportedKeys.map((propertyKey) => (
-              <li key={propertyKey}>{propertyKey}</li>
-            ))}
-          </ul>
-        </Alert>
       )}
     </>
   );

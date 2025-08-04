@@ -8,11 +8,8 @@ import {
   GitHubIssueContactProvider,
   SlackContactProvider,
 } from 'app-shared/getInTouch/providers';
-import {
-  StudioPageImageBackgroundContainer,
-  StudioHeading,
-  StudioParagraph,
-} from '@studio/components-legacy';
+import { StudioPageImageBackgroundContainer, StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';
@@ -43,13 +40,13 @@ export const ContactPage = (): React.ReactElement => {
       title: t('contact.slack.heading'),
       description: t('contact.slack.content'),
       additionalContent: (
-        <StudioParagraph spacing asChild>
-          <ul>
+        <ul>
+          <StudioParagraph data-size='md'>
             <Trans i18nKey='contact.slack.content_list'>
               <li />
             </Trans>
-          </ul>
-        </StudioParagraph>
+          </StudioParagraph>
+        </ul>
       ),
       link: {
         name: t('contact.slack.link'),

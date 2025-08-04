@@ -1,11 +1,25 @@
 .allComponentsWrapper {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-direction: column;
   height: 75vh;
   flex: 3;
   padding: 20px;
   overflow-y: scroll;
+  gap: var(--ds-size-4);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  width: fit-content;
+}
+
+.componentsGrid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
 }
 
 .componentCategory {
