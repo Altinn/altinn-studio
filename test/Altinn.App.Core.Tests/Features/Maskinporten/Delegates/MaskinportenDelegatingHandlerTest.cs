@@ -55,12 +55,14 @@ public static class MaskinportenDelegatingHandlerTestExtensions
 {
     public static JwtToken GetMaskinportenToken(this IEnumerable<string> scopes)
     {
-        return TestAuthentication.GetMaskinportenToken(scope: MaskinportenClient.FormattedScopes(scopes)).AccessToken;
+        return TestAuthentication
+            .GetMaskinportenToken(scope: MaskinportenClient.GetFormattedScopes(scopes))
+            .AccessToken;
     }
 
     public static JwtToken GetAltinnExchangedToken(this IEnumerable<string> scopes)
     {
-        var token = TestAuthentication.GetOrgAuthentication(scope: MaskinportenClient.FormattedScopes(scopes)).Token;
+        var token = TestAuthentication.GetOrgAuthentication(scope: MaskinportenClient.GetFormattedScopes(scopes)).Token;
 
         return JwtToken.Parse(token);
     }

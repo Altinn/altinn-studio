@@ -637,6 +637,7 @@ public static class TestAuthentication
         List<Claim> claims = [];
         const string issuer = "https://test.maskinporten.no/";
         claims.Add(new Claim(JwtClaimTypes.Scope, scope, ClaimValueTypes.String, issuer));
+        claims.Add(new Claim(JwtClaimTypes.JwtId, Guid.NewGuid().ToString(), ClaimValueTypes.String, issuer));
         claims.Add(new Claim(JwtClaimTypes.Maskinporten.AuthenticationMethod, "Mock", ClaimValueTypes.String, issuer));
 
         ClaimsIdentity identity = new("mock");

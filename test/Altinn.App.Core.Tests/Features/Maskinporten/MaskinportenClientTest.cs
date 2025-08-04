@@ -2,15 +2,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal.Maskinporten;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Time.Testing;
+using Microsoft.Identity.Client;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
@@ -103,23 +106,25 @@ public class MaskinportenClientTests
         Assert.NotNull(internalClient);
 
         // Assert
-        defaultClient.Should().NotBeSameAs(internalClient);
-        defaultClient.Settings.Should().BeEquivalentTo(Fixture.DefaultSettings);
-        internalClient.Settings.Should().BeEquivalentTo(Fixture.InternalSettings);
-        internalClient.Variant.Should().Be(MaskinportenClient.VariantInternal);
-        defaultClient.Variant.Should().Be(MaskinportenClient.VariantDefault);
-        fixture
-            .App.Services.GetRequiredService<IMaskinportenTokenProvider>()
-            .Should()
-            .BeOfType<LegacyMaskinportenTokenProvider>();
+        Assert.NotSame(defaultClient, internalClient);
+        Assert.Equivalent(Fixture.DefaultSettings, defaultClient.Settings);
+        Assert.Equivalent(Fixture.InternalSettings, internalClient.Settings);
+        Assert.Equivalent(MaskinportenClient.VariantDefault, defaultClient.Variant);
+        Assert.Equivalent(MaskinportenClient.VariantInternal, internalClient.Variant);
+
+        Assert.IsType<LegacyMaskinportenTokenProvider>(
+            fixture.App.Services.GetRequiredService<IMaskinportenTokenProvider>()
+        );
     }
 
-    [Fact]
-    public void FormattedScopes_FormatsCorrectly()
+    [Theory]
+    [InlineData(new[] { "a", "b", "c" }, "a b c")]
+    [InlineData(new[] { "a b", "c" }, "a b c")]
+    [InlineData(new[] { "a b c" }, "a b c")]
+    public void FormattedScopes_FormatsCorrectly(IEnumerable<string> input, string expectedOutput)
     {
-        MaskinportenClient.FormattedScopes(["a", "b", "c"]).Should().Be("a b c");
-        MaskinportenClient.FormattedScopes(["a b", "c"]).Should().Be("a b c");
-        MaskinportenClient.FormattedScopes(["a b c"]).Should().Be("a b c");
+        var formattedScopes = MaskinportenClient.GetFormattedScopes(input);
+        Assert.Equal(expectedOutput, formattedScopes);
     }
 
     [Fact]
@@ -133,9 +138,9 @@ public class MaskinportenClientTests
         var parsed = await TestHelpers.ParseFormUrlEncodedContent(content);
 
         // Assert
-        parsed.Count.Should().Be(2);
-        parsed["grant_type"].Should().Be("urn:ietf:params:oauth:grant-type:jwt-bearer");
-        parsed["assertion"].Should().Be(jwt);
+        Assert.Equal(2, parsed.Count);
+        Assert.Equal("urn:ietf:params:oauth:grant-type:jwt-bearer", parsed["grant_type"]);
+        Assert.Equal(jwt, parsed["assertion"]);
     }
 
     [Theory]
@@ -152,10 +157,10 @@ public class MaskinportenClientTests
         var parsed = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
 
         // Assert
-        parsed.Audiences.Count().Should().Be(1);
-        parsed.Audiences.First().Should().Be(settings.Authority);
-        parsed.Issuer.Should().Be(settings.ClientId);
-        parsed.Claims.First(x => x.Type == "scope").Value.Should().Be(scopes);
+        Assert.Single(parsed.Audiences);
+        Assert.Equal(settings.Authority, parsed.Audiences.Single());
+        Assert.Equal(settings.ClientId, parsed.Issuer);
+        Assert.Equal(scopes, parsed.Claims.First(x => x.Type == "scope").Value);
     }
 
     [Theory]
@@ -172,7 +177,7 @@ public class MaskinportenClientTests
         };
 
         // Assert
-        act.Should().Throw<MaskinportenConfigurationException>();
+        Assert.Throws<MaskinportenConfigurationException>(act);
     }
 
     [Theory]
@@ -182,7 +187,7 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         string[] scopes = ["scope1", "scope2"];
-        string formattedScopes = MaskinportenClient.FormattedScopes(scopes);
+        string formattedScopes = MaskinportenClient.GetFormattedScopes(scopes);
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
             scope: formattedScopes,
             expiry: TimeSpan.FromMinutes(2),
@@ -200,8 +205,9 @@ public class MaskinportenClientTests
         var result = await fixture.Client(variant).GetAccessToken(scopes);
 
         // Assert
-        result.Should().BeEquivalentTo(maskinportenTokenResponse.AccessToken);
-        result.Scope.Should().BeEquivalentTo(formattedScopes);
+        Assert.Equal(maskinportenTokenResponse.AccessToken, result);
+        Assert.Equal(maskinportenTokenResponse.Scope, result.Scope);
+        Assert.Equal(formattedScopes, result.Scope);
     }
 
     [Theory]
@@ -210,15 +216,17 @@ public class MaskinportenClientTests
     {
         // Arrange
         await using var fixture = Fixture.Create();
-        string[] scopes = ["scope1", "scope2"];
+        string[] scopes = [TestAuthentication.DefaultServiceOwnerScope, "scope1", "scope2"];
+        string formattedScopes = MaskinportenClient.GetFormattedScopes(scopes);
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
-            scope: MaskinportenClient.FormattedScopes(scopes),
+            scope: formattedScopes,
             expiry: TimeSpan.FromMinutes(2),
             fixture.FakeTime
         );
         var expiresIn = TimeSpan.FromMinutes(30);
+        var expectedExpiresAt = fixture.FakeTime.GetUtcNow().Add(expiresIn).UtcDateTime;
         var altinnAccessToken = TestAuthentication.GetServiceOwnerToken(
-            "405003309",
+            scope: formattedScopes,
             org: "ttd",
             expiry: expiresIn,
             timeProvider: fixture.FakeTime
@@ -238,8 +246,9 @@ public class MaskinportenClientTests
         var result = await fixture.Client(variant).GetAltinnExchangedToken(scopes);
 
         // Assert
-        result.Value.Should().NotBeNullOrWhiteSpace();
-        result.ExpiresAt.Should().Be(fixture.FakeTime.GetUtcNow().Add(expiresIn).UtcDateTime);
+        Assert.Equal(altinnAccessToken, result.Value);
+        Assert.Equal(expectedExpiresAt, result.ExpiresAt);
+        Assert.Equal(formattedScopes, result.Scope);
     }
 
     [Theory]
@@ -249,7 +258,7 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
-            scope: "-",
+            scope: "scope",
             expiry: MaskinportenClient.TokenExpirationMargin - TimeSpan.FromSeconds(1),
             fixture.FakeTime
         );
@@ -265,16 +274,49 @@ public class MaskinportenClientTests
         // Act
         Func<Task> act1 = async () =>
         {
-            await fixture.Client(variant).GetAccessToken(["scope1", "scope2"]);
+            await fixture.Client(variant).GetAccessToken(["scope"]);
         };
         Func<Task> act2 = async () =>
         {
-            await fixture.Client(variant).GetAltinnExchangedToken(["scope1", "scope2"]);
+            await fixture.Client(variant).GetAltinnExchangedToken(["scope"]);
         };
 
         // Assert
-        await act1.Should().ThrowAsync<MaskinportenTokenExpiredException>();
-        await act2.Should().ThrowAsync<MaskinportenTokenExpiredException>();
+        await Assert.ThrowsAsync<MaskinportenTokenExpiredException>(act1);
+        await Assert.ThrowsAsync<MaskinportenTokenExpiredException>(act2);
+    }
+
+    [Theory]
+    [MemberData(nameof(Variants))]
+    public async Task TokenCache_Returns_SameInstanceForIdenticalRequests(string variant)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(variant);
+        var maskinportenTokenResponse = () =>
+            TestAuthentication.GetMaskinportenToken(scope: "scope", expiry: TimeSpan.FromMinutes(2), fixture.FakeTime);
+        var altinnAccessToken = () => TestAuthentication.GetServiceOwnerToken();
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(
+                    maskinportenTokenResponse.Invoke(),
+                    altinnAccessToken.Invoke()
+                );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        var maskinportenResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, ["scope"]);
+        var maskinportenResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.Maskinporten, ["scope"]);
+        var altinnResult1 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, ["scope"]);
+        var altinnResult2 = await client.GetOrCreateTokenFromCache(TokenAuthority.AltinnTokenExchange, ["scope"]);
+
+        // Assert
+        Assert.NotEqual(maskinportenResult1.Token.Value, altinnResult1.Token.Value);
+        Assert.Same(maskinportenResult1, maskinportenResult2);
+        Assert.Same(altinnResult1, altinnResult2);
     }
 
     [Theory]
@@ -283,13 +325,9 @@ public class MaskinportenClientTests
     {
         // Arrange
         await using var fixture = Fixture.Create();
-        string[] scopes = ["scope1", "scope2"];
+        var client = fixture.Client(variant);
         var maskinportenTokenResponse = () =>
-            TestAuthentication.GetMaskinportenToken(
-                scope: MaskinportenClient.FormattedScopes(scopes),
-                expiry: TimeSpan.FromMinutes(2),
-                fixture.FakeTime
-            );
+            TestAuthentication.GetMaskinportenToken(scope: "scope", expiry: TimeSpan.FromMinutes(2), fixture.FakeTime);
         fixture
             .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
             .Returns(() =>
@@ -299,12 +337,12 @@ public class MaskinportenClientTests
             });
 
         // Act
-        var token1 = await fixture.Client(variant).GetAccessToken(scopes);
+        var token1 = await client.GetAccessToken(["scope"]);
         fixture.FakeTime.Advance(TimeSpan.FromMinutes(1));
-        var token2 = await fixture.Client(variant).GetAccessToken(scopes);
+        var token2 = await client.GetAccessToken(["scope"]);
 
         // Assert
-        token1.Should().BeEquivalentTo(token2);
+        Assert.Equal(token1, token2);
     }
 
     [Theory]
@@ -313,10 +351,10 @@ public class MaskinportenClientTests
     {
         // Arrange
         await using var fixture = Fixture.Create();
-        string[] scopes = ["scope1", "scope2"];
+        var client = fixture.Client(variant);
         var maskinportenTokenResponse = () =>
             TestAuthentication.GetMaskinportenToken(
-                scope: MaskinportenClient.FormattedScopes(scopes),
+                scope: "scope",
                 expiry: MaskinportenClient.TokenExpirationMargin + TimeSpan.FromSeconds(1),
                 fixture.FakeTime
             );
@@ -329,12 +367,12 @@ public class MaskinportenClientTests
             });
 
         // Act
-        var token1 = await fixture.Client(variant).GetAccessToken(scopes);
+        var token1 = await client.GetAccessToken(["scope"]);
         fixture.FakeTime.Advance(TimeSpan.FromSeconds(10));
-        var token2 = await fixture.Client(variant).GetAccessToken(scopes);
+        var token2 = await client.GetAccessToken(["scope"]);
 
         // Assert
-        token1.Should().NotBeSameAs(token2);
+        Assert.NotEqual(token1, token2);
     }
 
     [Fact]
@@ -354,11 +392,11 @@ public class MaskinportenClientTests
         };
 
         // Assert
-        await act.Should()
-            .ThrowAsync<MaskinportenAuthenticationException>()
-            .WithMessage(
-                $"Maskinporten authentication failed with status code {(int)unauthorizedResponse.StatusCode} *"
-            );
+        var ex = await Assert.ThrowsAsync<MaskinportenAuthenticationException>(act);
+        Assert.Matches(
+            $"Maskinporten authentication failed with status code {(int)unauthorizedResponse.StatusCode} .*",
+            ex.Message
+        );
     }
 
     [Fact]
@@ -378,9 +416,8 @@ public class MaskinportenClientTests
         };
 
         // Assert
-        await act.Should()
-            .ThrowAsync<MaskinportenAuthenticationException>()
-            .WithMessage("Maskinporten replied with invalid JSON formatting: *");
+        var ex = await Assert.ThrowsAsync<MaskinportenAuthenticationException>(act);
+        Assert.Matches("Maskinporten replied with invalid JSON formatting: .*", ex.Message);
     }
 
     [Fact]
@@ -405,8 +442,25 @@ public class MaskinportenClientTests
         };
 
         // Assert
-        await act.Should()
-            .ThrowAsync<MaskinportenAuthenticationException>()
-            .WithMessage("Authentication with Maskinporten failed: *");
+        var ex = await Assert.ThrowsAsync<MaskinportenAuthenticationException>(act);
+        Assert.Matches("Authentication with Maskinporten failed: .*", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetCacheKey_ReturnsExpectedKey()
+    {
+        // Arrange
+        await using var fixture = Fixture.Create();
+        var client = fixture.Client(MaskinportenClient.VariantDefault);
+        var expectedMaskinportenKey = "maskinportenScope-default_scope1 scope2";
+        var expectedAltinnKey = "maskinportenScope-altinn-default_scope1 scope2";
+
+        // Act
+        var maskinportenResult = client.GetCacheKey(TokenAuthority.Maskinporten, "scope1 scope2");
+        var altinnResult = client.GetCacheKey(TokenAuthority.AltinnTokenExchange, "scope1 scope2");
+
+        // Assert
+        Assert.Equal(expectedMaskinportenKey, maskinportenResult);
+        Assert.Equal(expectedAltinnKey, altinnResult);
     }
 }
