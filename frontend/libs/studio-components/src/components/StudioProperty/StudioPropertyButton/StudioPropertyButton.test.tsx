@@ -67,6 +67,23 @@ describe('StudioPropertyButton', () => {
     renderButton({ compact: true });
     expect(getButton()).toHaveClass('compact');
   });
+
+  it('Calls the onClick function with a click event when the button is clicked', async () => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    renderButton({ onClick });
+    await user.click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'click' }));
+  });
+
+  it('Does not call the onClick function when the button is read-only', async () => {
+    const user = userEvent.setup();
+    const onClick = jest.fn();
+    renderButton({ readOnly: true, onClick });
+    await user.click(screen.getByRole('button'));
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });
 
 const renderButton = (
