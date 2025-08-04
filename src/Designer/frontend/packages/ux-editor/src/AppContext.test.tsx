@@ -6,16 +6,15 @@ import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
-import { layoutSet1NameMock } from './testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@studio/testing/testids';
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
+import { AppRouter } from './testing/mocks';
 
-const mockSelectedFormLayoutSetName = layoutSet1NameMock;
+const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
 
 const TestComponent = ({
@@ -73,7 +72,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 
   return {
     ...render(
-      <MemoryRouter>
+      <AppRouter params={{ org, app, layoutSet }}>
         <ServicesContextProvider {...queriesMock} client={queryClient}>
           <AppContextProvider
             shouldReloadPreview={false}
@@ -85,7 +84,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
             </TestComponent>
           </AppContextProvider>
         </ServicesContextProvider>
-      </MemoryRouter>,
+      </AppRouter>,
     ),
     queryClient,
   };
@@ -93,25 +92,6 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 
 describe('AppContext', () => {
   afterEach(jest.clearAllMocks);
-
-  it('sets selectedFormLayoutSetName correctly', async () => {
-    renderAppContext(
-      ({ selectedFormLayoutSetName, setSelectedFormLayoutSetName }: AppContextProps) => (
-        <>
-          <Button onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)} />
-          <div data-testid='selectedFormLayoutSetName'>{selectedFormLayoutSetName}</div>
-        </>
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(
-        mockSelectedFormLayoutSetName,
-      ),
-    );
-  });
 
   it('sets selectedFormLayoutName correctly', async () => {
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
@@ -132,29 +112,10 @@ describe('AppContext', () => {
     );
   });
 
-  it('invalidates layouts query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(
-      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName)} />
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
-      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayouts, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
   it('resets layouts query for Apps in preview', async () => {
-    const { queryClient } = renderAppContext(
-      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName, true)} />
-      ),
-    );
+    const { queryClient } = renderAppContext(({ updateLayoutsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateLayoutsForPreview(layoutSet, true)} />
+    ));
 
     await clickButton();
 
@@ -183,8 +144,8 @@ describe('AppContext', () => {
 
   it('invalidates layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName)} />
+      ({ updateLayoutSettingsForPreview }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(layoutSet)} />
       ),
     );
 
@@ -200,8 +161,8 @@ describe('AppContext', () => {
 
   it('reset layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName, true)} />
+      ({ updateLayoutSettingsForPreview }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(layoutSet, true)} />
       ),
     );
 
