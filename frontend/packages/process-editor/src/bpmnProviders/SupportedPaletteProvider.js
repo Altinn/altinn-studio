@@ -201,7 +201,7 @@ class SupportedPaletteProvider {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('Create Altinn Data Task'),
+          title: translate('Create Altinn data task'),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -209,7 +209,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('Create Altinn Feedback Task'),
+          title: translate('Create Altinn feedback task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -219,7 +219,7 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create Altinn Signing Task'),
+          title: translate('Create Altinn signing task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -228,7 +228,7 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('Create Altinn User-Controlled Signing Task'),
+          title: translate('Create Altinn user-controlled signing task'),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -237,7 +237,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create Altinn Confirm Task'),
+          title: translate('Create Altinn confirm task'),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -246,7 +246,7 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Create Altinn Payment Task'),
+          title: translate('Create Altinn payment task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
