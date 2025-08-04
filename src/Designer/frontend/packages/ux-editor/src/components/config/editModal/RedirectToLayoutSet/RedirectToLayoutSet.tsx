@@ -5,7 +5,8 @@ import { StudioRedirectBox } from '@studio/components-legacy';
 import { StudioButton } from '@studio/components';
 import classes from './RedirectToLayoutSet.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useLayoutSetNavigation } from '../../../../utils/routeUtils';
+import getLayoutSetPath from '../../../../utils/routeUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 type RedirectToLayoutSetProps = {
   selectedSubform: string;
@@ -15,11 +16,11 @@ export const RedirectToLayoutSet = ({
   selectedSubform,
 }: RedirectToLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const navigate = useNavigate();
-  const { getLayoutSetPath } = useLayoutSetNavigation();
 
   const handleOnRedirectClick = (): void => {
-    navigate(getLayoutSetPath(selectedSubform));
+    navigate(getLayoutSetPath(org, app, selectedSubform));
   };
 
   return (
