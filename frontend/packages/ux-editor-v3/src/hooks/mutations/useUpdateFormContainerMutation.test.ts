@@ -13,17 +13,16 @@ import {
   layout1NameMock,
 } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({ org, app }),
 }));
-import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
-import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;

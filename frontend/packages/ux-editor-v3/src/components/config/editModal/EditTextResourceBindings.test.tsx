@@ -12,16 +12,14 @@ import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { app, org } from '@studio/testing/testids';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import type { FormComponent } from '../../../types/FormComponent';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({ org, app }),
 }));
-
-import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import type { FormComponent } from '../../../types/FormComponent';
-import userEvent from '@testing-library/user-event';
-import { app, org } from '@studio/testing/testids';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {

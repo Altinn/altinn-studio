@@ -50,7 +50,7 @@ describe('Elements', () => {
 
   it('should render conf page toolbar when selectedLayoutSet is CustomReceipt', async () => {
     mockUseCustomReceiptLayoutSetName.mockReturnValue('CustomReceipt');
-    renderElements({ selectedFormLayoutSetName: 'CustomReceipt' });
+    renderElements();
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('schema_editor.loading_available_components')),
     );
@@ -65,8 +65,7 @@ describe('Elements', () => {
 
   it('should render conf page toolbar when processTaskType is payment', async () => {
     const getProcessTaskType = jest.fn(() => Promise.resolve('payment'));
-    renderElements({ selectedFormLayoutSetName: 'test' }, { getProcessTaskType });
-
+    renderElements({}, { getProcessTaskType });
     const paymentComponent = await screen.findAllByText(
       textMock('ux_editor.component_title.Payment'),
     );
@@ -75,7 +74,7 @@ describe('Elements', () => {
 
   it('should render loading spinner when fetching processTaskType', async () => {
     renderElements(
-      { selectedFormLayoutSetName: 'test' },
+      {},
       { getProcessTaskType: jest.fn(() => Promise.resolve('data')) },
       createQueryClientMock(),
     );
@@ -87,7 +86,7 @@ describe('Elements', () => {
 
   it('should render error message when processTaskType fetch fails', async () => {
     renderElements(
-      { selectedFormLayoutSetName: 'test' },
+      {},
       { getProcessTaskType: jest.fn(() => Promise.reject(new Error())) },
       createQueryClientMock(),
     );
