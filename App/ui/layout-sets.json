@@ -4,23 +4,49 @@
     {
       "id": "form",
       "dataType": "model",
-      "tasks": ["Task_1"]
+      "tasks": [
+        "Task_1"
+      ]
     },
     {
       "id": "Utfylling_2",
       "dataType": "Model2",
-      "tasks": ["Task_2"]
+      "tasks": [
+        "Task_2"
+      ]
     },
     {
       "id": "Pdf",
       "dataType": "model",
-      "tasks": ["Task_3"]
+      "tasks": [
+        "Task_3"
+      ]
     },
     {
       "id": "Fail",
       "dataType": "Model3",
-      "tasks": ["Task_5"]
+      "tasks": [
+        "Task_5"
+      ]
     }
   ],
-  "uiSettings": {}
+  "uiSettings": {
+    "taskNavigation": [
+      {
+        "taskId": "Task_1"
+      },
+      {
+        "taskId": "Task_2"
+      },
+      {
+        "taskId": "Task_3"
+      },
+      {
+        "taskId": "Task_5"
+      },
+      {
+        "type": "receipt"
+      }
+    ]
+  }
 }
