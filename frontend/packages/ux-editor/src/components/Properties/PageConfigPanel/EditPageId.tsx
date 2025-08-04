@@ -82,7 +82,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   return (
     <EditName
       className={classes.editName}
-      label={t('ux_editor.page')}
+      label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
       name={pageName}
       onChange={handleSaveNewName}
       validationFn={validationFn}
