@@ -2,10 +2,10 @@ import React from 'react';
 
 import { Card } from '@digdir/designsystemet-react';
 
+import { AccordionItem as AccordionComponent } from 'src/app-components/Accordion/AccordionItem';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/Accordion.module.css';
-import { AccordionItem as AltinnAcordionItem } from 'src/layout/Accordion/AccordionItem';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -21,11 +21,11 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
 
   const title = langAsString(textResourceBindings?.title ?? '');
 
-  const AccordionItem = ({ className }: { className?: string }) => (
-    <AltinnAcordionItem
+  const AccordionContent = ({ className }: { className?: string }) => (
+    <AccordionComponent
       title={title}
       className={className}
-      open={openByDefault}
+      defaultOpen={Boolean(openByDefault)}
     >
       <Flex
         item
@@ -40,16 +40,16 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
           />
         ))}
       </Flex>
-    </AltinnAcordionItem>
+    </AccordionComponent>
   );
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       {renderAsAccordionItem ? (
-        <AccordionItem className={classes.container} />
+        <AccordionContent className={classes.container} />
       ) : (
         <Card data-color='neutral'>
-          <AccordionItem className={classes.container} />
+          <AccordionContent className={classes.container} />
         </Card>
       )}
     </ComponentStructureWrapper>
