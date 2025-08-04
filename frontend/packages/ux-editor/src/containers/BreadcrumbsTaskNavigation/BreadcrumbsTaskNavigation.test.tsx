@@ -69,7 +69,7 @@ describe('BreadcrumbsTaskNavigation', () => {
     renderBreadcrumbsTaskNavigation();
     const createLink = screen.getByText(textMock('ux_editor.breadcrumbs.front_page'));
     await user.click(createLink);
-    expect(mockNavigate).toHaveBeenCalledWith('../ui-editor');
+    expect(mockNavigate).toHaveBeenCalledWith('../');
     expect(mockRemoveSelectedFormLayoutSetName).toHaveBeenCalled();
   });
 });
