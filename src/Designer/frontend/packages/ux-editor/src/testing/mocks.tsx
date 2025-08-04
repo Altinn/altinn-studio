@@ -107,7 +107,10 @@ type AppRouterProps = {
   children: ReactNode;
 };
 
-function AppRouter({ params: { org, app, layoutSet }, children }: AppRouterProps): ReactElement {
+export function AppRouter({
+  params: { org, app, layoutSet },
+  children,
+}: AppRouterProps): ReactElement {
   const route = `/${org}/${app}/${layoutSet}`;
   const path = '/:org/:app/:layoutSet';
   return (

@@ -14,7 +14,6 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
-import type { AppContextProps } from '../../../AppContext';
 import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
 import { app, org } from '@studio/testing/testids';
@@ -172,8 +171,6 @@ describe('Expressions', () => {
 });
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
-
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(
@@ -185,6 +182,6 @@ const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
     <FormItemContext.Provider value={{ ...defaultFormItemContext, ...formItemContext }}>
       <Expressions />
     </FormItemContext.Provider>,
-    { queryClient, appContextProps },
+    { queryClient },
   );
 };
