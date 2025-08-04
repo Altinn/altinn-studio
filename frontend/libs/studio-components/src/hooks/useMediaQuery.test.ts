@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useMediaQuery } from './useMediaQuery';
 import MockedFunction = jest.MockedFunction;
 
@@ -27,6 +27,26 @@ describe('useMediaQuery', () => {
     mockMatchMediaApi({ matches: false, addEventListener });
     renderHook(() => useMediaQuery(query));
     expect(addEventListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should update return value when change handler is called with updated value', () => {
+    const addEventListener = jest.fn();
+    mockMatchMediaApi({ matches: false, addEventListener });
+    const { result } = renderHook(() => useMediaQuery(query));
+
+    expect(result.current).toBe(false);
+
+    const eventHandler = getChangeEventHandlerFromMock(addEventListener);
+    const changeEvent: Partial<MediaQueryListEvent> = {
+      matches: true,
+      media: query,
+    };
+
+    act(() => {
+      eventHandler(changeEvent);
+    });
+
+    expect(result.current).toBe(true);
   });
 
   it('Removes the event listener on unmount', () => {
@@ -66,4 +86,12 @@ function createMatchMediaMock({
     removeEventListener,
     dispatchEvent: jest.fn(),
   }));
+}
+
+function getChangeEventHandlerFromMock(
+  addEventListenerMock: jest.Mock,
+): (event: Partial<MediaQueryListEvent>) => void {
+  // `addEventListener` is called with ('change', eventHandler).
+  // The eventHandler is the second argument of the first call.
+  return addEventListenerMock.mock.calls[0][1];
 }

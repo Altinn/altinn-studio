@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 
-function getInitialMatches(query: string): boolean {
+function getMatches(query: string): boolean {
   return window.matchMedia(query).matches ?? false;
 }
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(getInitialMatches(query));
+  const [matches, setMatches] = useState<boolean>(() => getMatches(query));
 
   useEffect(() => {
+    setMatches(getMatches(query));
+
     const handleChange = (event: MediaQueryListEvent): void => {
       setMatches(event.matches);
     };
