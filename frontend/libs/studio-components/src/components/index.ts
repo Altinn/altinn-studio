@@ -42,3 +42,7 @@ export { StudioToggleGroup } from './StudioToggleGroup';
 export { StudioDeleteButton } from './StudioDeleteButton';
 export { StudioFileUploader } from './StudioFileUploader';
 export type { StudioFileUploaderProps } from './StudioFileUploader';
+export { StudioCodeFragment } from './StudioCodeFragment';
+export type { StudioCodeFragmentProps } from './StudioCodeFragment';
+export { StudioDecimalInput } from './StudioDecimalInput';
+export type { StudioDecimalInputProps } from './StudioDecimalInput';
