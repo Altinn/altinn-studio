@@ -1,0 +1,12 @@
+﻿[basic/subunit-only] [INFO] Checking for scenario config overrides...
+[basic/subunit-only] [INFO] Copying scenario config overrides...
+[basic/subunit-only] [INFO] 'applicationmetadata.json' -> 'config/applicationmetadata.json'
+[basic/subunit-only] [INFO] Config overrides applied.
+[basic/subunit-only] [INFO] Waiting for port configuration at /App/port-config/ports.json...
+[basic/subunit-only] [INFO] Port configuration loaded
+[basic/subunit-only] [INFO] Starting application with scenario: default
+[basic/subunit-only] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337/SophieDDG, AuthLevel: 2, AuthMethod: localtest
+[basic/subunit-only] [INFO] IInstantiationValidator.Validate
+[basic/subunit-only] [INFO] IProcessTaskStart.Start
+[basic/subunit-only] [INFO] IInstantiationProcessor.DataCreation
+[basic/subunit-only] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201

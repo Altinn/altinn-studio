@@ -23,6 +23,15 @@ dotnet test solutions/All.sln -v m --no-restore --no-build
 dotnet test test/Altinn.App.Core.Tests/ -v m
 ```
 
+**Filter tests:**
+```bash
+dotnet test test/Altinn.App.Integration.Tests/ -v m --filter "<test-method-name>"
+```
+
+**Output logs from tests:**
+
+* Replace `-v m` with `--logger "console;verbosity=detailed` in the arguments of `dotnet test`
+
 **Format code (required before commits):**
 
 Formatting happens automatically when building due to `CSharpier.MSBuild`.
@@ -80,6 +89,13 @@ We have Architecture Decision Records in the `/doc/adr/` folder.
 - **Snapshot testing** for OpenAPI docs and telemetry output
 - **Manual testing** requires localtest environment integration
 - All telemetry changes are considered **breaking changes**
+- **Integration tests** use Docker Testcontainers for isolated, reproducible environments:
+  - **AppFixture pattern** - Central orchestrator managing test lifecycle with feature-specific operations
+  - **Snapshot testing** - Verify both HTTP response and response body content with port/data normalization
+  - **Test apps** - Complete Altinn apps in `_testapps/{app}/` with config, models, UI, and Dockerfile
+  - **Scenario-based testing** - Override config and inject custom services via `_testapps/{app}/_scenarios/{scenario}/` folders
+  - **Container orchestration** - Isolated networks, dynamic ports, health checks for parallel execution
+  - Follow existing `AppFixture.{Feature}.cs` pattern for new API operations (see `InstancesOperations`)
 
 ### Versioning
 - Uses **semantic versioning** with MinVer

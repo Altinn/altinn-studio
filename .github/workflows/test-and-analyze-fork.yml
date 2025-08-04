@@ -20,7 +20,7 @@ jobs:
         run: dotnet build solutions/All.sln -v m
 
       - name: dotnet test
-        run: dotnet test solutions/All.sln --no-restore --no-build --results-directory TestResults/ --collect:"XPlat Code Coverage" -v m
+        run: dotnet test solutions/All.sln --no-restore --no-build --results-directory TestResults/ --collect:"XPlat Code Coverage" --filter "Category!=Integration" -v m
 
       - name: Generate coverage results
         run: |

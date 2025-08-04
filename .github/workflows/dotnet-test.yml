@@ -24,5 +24,14 @@ jobs:
         run: |
           dotnet build solutions/All.sln -v m
       - name: Test
+        if: matrix.os != 'ubuntu-latest'
         run: |
-          dotnet test solutions/All.sln -v m --no-restore --no-build
+          dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
+      - name: Test (main tests)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet test solutions/All.sln -v m --no-restore --no-build --filter "Category!=Integration"
+      - name: Test (integration tests)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet test solutions/All.sln --no-restore --no-build --logger "console;verbosity=detailed" --filter "Category=Integration"

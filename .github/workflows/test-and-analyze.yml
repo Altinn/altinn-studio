@@ -57,6 +57,7 @@ jobs:
           --no-restore --no-build `
           --results-directory TestResults/ `
           --collect:"XPlat Code Coverage" `
+          --filter "Category!=Integration" `
           -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"

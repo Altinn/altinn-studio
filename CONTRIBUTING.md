@@ -14,9 +14,16 @@ and choose an appropriate issue template.
 
 Feel free to query existing issues before creating a new one.
 
+## Repository setup
+
+* Clone the repo
+* Ensure .NET SDK is install (see `global.json` for  version)
+* Ensure a container runtime is installed (e.g. Docker)
+* `dotnet test`
+
 ## Contributing Changes
 
-* Fork and/or create branch
+* Fork and/or create branch (make sure you've completed repository setup above)
 * Push changes
 * Test your changes, see the testing changes below
 * Create PR - fill in the required sections

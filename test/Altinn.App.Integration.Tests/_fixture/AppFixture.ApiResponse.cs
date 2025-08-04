@@ -1,0 +1,215 @@
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using Altinn.Platform.Storage.Interface.Models;
+
+namespace Altinn.App.Integration.Tests;
+
+public sealed partial class AppFixture
+{
+    internal readonly record struct ReadResult<T>(T? Model, string? Body, Exception? Exception);
+
+    internal record ReadApiResponse<T>(AppFixture Fixture, HttpResponseMessage Response, ReadResult<T> Data)
+        : ApiResponse(Fixture, Response)
+    {
+        public bool IncludeBodyInSnapshot { get; set; } = true;
+
+        public override SettingsTask Verify(
+            Func<string, string>? scrubber = null,
+            [CallerFilePath] string sourceFile = ""
+        ) => VerifyInternal(scrubber, sourceFile);
+
+        private SettingsTask VerifyInternal(
+            Func<string, string>? scrubber = null,
+            [CallerFilePath] string sourceFile = ""
+        )
+        {
+            var appPort = Fixture._appContainer.GetMappedPublicPort(AppPort).ToString();
+            var localtestPort = Fixture._localtestContainer.GetMappedPublicPort(LocaltestPort).ToString();
+
+            var snapshot = IncludeBodyInSnapshot ? Snapshot.Create(Response, Data) : Snapshot.Create(Response);
+
+            var settings = Verifier
+                .Verify(snapshot, sourceFile: sourceFile)
+                .AddExtraSettings(settings =>
+                {
+                    settings.Converters.Add(new StringConverter(appPort, localtestPort, scrubber));
+                    settings.Converters.Add(new HeadersConverter(appPort, localtestPort, scrubber));
+                    settings.Converters.Add(new UriConverter(appPort, localtestPort, scrubber));
+                });
+            return settings;
+        }
+    }
+
+    internal record ApiResponse(AppFixture Fixture, HttpResponseMessage Response) : IDisposable
+    {
+        public async Task<ReadApiResponse<T>> Read<T>()
+        {
+            string? body = null;
+            T? model = default;
+            Exception? exception = null;
+            try
+            {
+                var rawBody = await Response.Content.ReadAsByteArrayAsync();
+                body = Encoding.UTF8.GetString(rawBody);
+                if (typeof(T) == typeof(Argon.JToken))
+                {
+                    // Argon is being used by VerifyTests for JSON
+                    model = (T)(object)Argon.JToken.Parse(body);
+                }
+                else if (typeof(T) == typeof(string))
+                {
+                    model = (T)(object)body;
+                }
+                else if (typeof(T) == typeof(byte[]))
+                {
+                    model = (T)(object)rawBody;
+                }
+                else
+                {
+                    model = JsonSerializer.Deserialize<T>(body, _jsonSerializerOptions);
+                }
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+            return new ReadApiResponse<T>(Fixture, Response, new(model, body, exception));
+        }
+
+        public virtual SettingsTask Verify(
+            Func<string, string>? scrubber = null,
+            [CallerFilePath] string sourceFile = ""
+        )
+        {
+            var appPort = Fixture._appContainer.GetMappedPublicPort(AppPort).ToString();
+            var localtestPort = Fixture._localtestContainer.GetMappedPublicPort(LocaltestPort).ToString();
+            var settings = Verifier
+                .Verify(Snapshot.Create(Response), sourceFile: sourceFile)
+                .AddExtraSettings(settings =>
+                {
+                    settings.Converters.Add(new StringConverter(appPort, localtestPort, scrubber));
+                    settings.Converters.Add(new HeadersConverter(appPort, localtestPort, scrubber));
+                    settings.Converters.Add(new UriConverter(appPort, localtestPort, scrubber));
+                });
+            return settings;
+        }
+
+        public void Dispose() => Response.Dispose();
+    }
+
+    private sealed record Snapshot(HttpResponseMessage HttpResponse, object? Response)
+    {
+        public static Snapshot Create(HttpResponseMessage httpResponse) => new Snapshot(httpResponse, null);
+
+        public static Snapshot Create<T>(HttpResponseMessage httpResponse, ReadResult<T> data)
+        {
+            object? response = data switch
+            {
+                { Model: not null } => data.Model,
+                { Body: not null } => data.Body,
+                _ => data.Exception?.ToString(),
+            };
+            return new Snapshot(httpResponse, response);
+        }
+    }
+
+    // A scrubber function that replaces information part of an instance that is not stable across test runs
+    internal static Func<string, string> InstanceScrubber(Instance instance) =>
+        v =>
+        {
+            v = v.Replace(instance.Id.Split('/')[1], "<instanceGuid>");
+            for (int i = 0; i < instance.Data.Count; i++)
+                v = v.Replace(instance.Data[i].Id, $"<dataElementId[{i}]>");
+            return v;
+        };
+
+    internal static Func<string, string> InstanceScrubber(ReadApiResponse<Instance> readResponse) =>
+        readResponse.Data.Model is not null ? InstanceScrubber(readResponse.Data.Model) : v => v;
+
+    private sealed class StringConverter(string appPort, string localtestPort, Func<string, string>? scrubber)
+        : WriteOnlyJsonConverter<string>
+    {
+        private readonly string _appPort = appPort;
+        private readonly string _localtestPort = localtestPort;
+        private readonly Func<string, string>? _scrubber = scrubber;
+
+        public override void Write(VerifyJsonWriter writer, string value)
+        {
+            if (_scrubber is not null)
+                value = _scrubber(value);
+            value = value.Replace(_appPort, "<appPort>");
+            value = value.Replace(_localtestPort, "<localtestPort>");
+            writer.WriteValue(value);
+        }
+    }
+
+    private sealed class HeadersConverter(string appPort, string localtestPort, Func<string, string>? scrubber)
+        : WriteOnlyJsonConverter<HttpHeaders>
+    {
+        private readonly string _appPort = appPort;
+        private readonly string _localtestPort = localtestPort;
+        private readonly Func<string, string>? _scrubber = scrubber;
+
+        public override void Write(VerifyJsonWriter writer, HttpHeaders value)
+        {
+            writer.WriteStartObject();
+            foreach (var kvp in value)
+            {
+                writer.WritePropertyName(kvp.Key);
+
+                switch (kvp.Key)
+                {
+                    case "Date":
+                        writer.WriteValue("<date>");
+                        break;
+                    case "Authorization":
+                        writer.WriteStartArray();
+                        foreach (var headerValue in kvp.Value)
+                        {
+                            var firstWhitespaceIndex = headerValue.IndexOf(' ');
+                            if (firstWhitespaceIndex != -1)
+                                writer.WriteValue($"{headerValue[..firstWhitespaceIndex]} <token>");
+                            else
+                                writer.WriteValue("<token>");
+                        }
+                        writer.WriteEndArray();
+                        break;
+                    default:
+                        writer.WriteStartArray();
+                        foreach (var headerValue in kvp.Value)
+                        {
+                            string v = headerValue;
+                            if (_scrubber is not null)
+                                v = _scrubber(v);
+                            v = v.Replace(_appPort, "<appPort>");
+                            v = v.Replace(_localtestPort, "<localtestPort>");
+                            writer.WriteValue(v);
+                        }
+                        writer.WriteEndArray();
+                        break;
+                }
+            }
+            writer.WriteEndObject();
+        }
+    }
+
+    private sealed class UriConverter(string appPort, string localtestPort, Func<string, string>? scrubber)
+        : WriteOnlyJsonConverter<Uri>
+    {
+        private readonly string _appPort = appPort;
+        private readonly string _localtestPort = localtestPort;
+        private readonly Func<string, string>? _scrubber = scrubber;
+
+        public override void Write(VerifyJsonWriter writer, Uri value)
+        {
+            var uri = value.ToString();
+            if (_scrubber is not null)
+                uri = _scrubber(uri);
+            uri = uri.Replace(_appPort, "<appPort>");
+            uri = uri.Replace(_localtestPort, "<localtestPort>");
+            writer.WriteValue(uri);
+        }
+    }
+}

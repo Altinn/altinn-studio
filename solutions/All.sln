@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Tests.Common", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Api.Tests", "..\test\Altinn.App.Api.Tests\Altinn.App.Api.Tests.csproj", "{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Integration.Tests", "..\test\Altinn.App.Integration.Tests\Altinn.App.Integration.Tests.csproj", "{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,9 @@ Global
 		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F762771-DC24-4139-B1B2-DD0F6A4E2B5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DE9F775-FE1A-4604-B239-4CFE4E105B1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
