@@ -4,6 +4,7 @@ import '@digdir/designsystemet-theme/altinn.css';
 import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
@@ -41,3 +42,9 @@ export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
 export { StudioToggleGroup } from './StudioToggleGroup';
 export { StudioSearch, type StudioSearchProps } from './StudioSearch';
 export { StudioDeleteButton } from './StudioDeleteButton';
+export { StudioFileUploader } from './StudioFileUploader';
+export type { StudioFileUploaderProps } from './StudioFileUploader';
+export { StudioCodeFragment } from './StudioCodeFragment';
+export type { StudioCodeFragmentProps } from './StudioCodeFragment';
+export { StudioDecimalInput } from './StudioDecimalInput';
+export type { StudioDecimalInputProps } from './StudioDecimalInput';

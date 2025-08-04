@@ -18,7 +18,6 @@ export type AddItemContentProps = {
   onAddItem: (addedItem: AddedItem) => void;
   onCancel: () => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
-  disableDebounce?: boolean;
 };
 
 export const AddItemContent = ({
@@ -27,14 +26,11 @@ export const AddItemContent = ({
   onAddItem,
   onCancel,
   availableComponents,
-  disableDebounce,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
-
-  const { searchText, handleEscape, handleSearchChange, filteredComponents } = useSearchComponent({
+  const { searchText, handleSearchChange, filteredComponents } = useSearchComponent({
     availableComponents,
-    disableDebounce,
     t,
   });
 
@@ -46,8 +42,6 @@ export const AddItemContent = ({
             label={t('ux_editor.add_item.component_search_label')}
             value={searchText}
             onChange={handleSearchChange}
-            onKeyDown={handleEscape}
-            clearButtonLabel={t('general.search_clear_button_title')}
           />
           <StudioParagraph>
             {t('ux_editor.add_item.component_more_info_description')}

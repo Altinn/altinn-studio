@@ -1,6 +1,6 @@
 .infoBoxContainer {
-  border-radius: var(--fds-border_radius-large);
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  border-radius: var(--ds-border-radius-md);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
   overflow: hidden;
   height: fit-content;
   max-width: 75ch;
@@ -22,5 +22,5 @@
   flex-direction: column;
   gap: var(--padding-library);
   padding: var(--padding-library);
-  background-color: var(--fds-semantic-surface-first-light);
+  background-color: var(--ds-color-surface-tinted);
 }

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioButton, StudioParagraph } from '@studio/components-legacy';
+import { StudioAvatar, StudioButton } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useHeaderContext } from '../../../../context/HeaderContext';
@@ -63,7 +64,7 @@ const DropdownContentProfile = (): ReactElement => {
         alt={t('general.profile_icon')}
         title={t('shared.header_profile_icon_text')}
       />
-      <StudioParagraph size='md' className={classes.profileText}>
+      <StudioParagraph data-size='md' className={classes.profileText}>
         {profileText}
       </StudioParagraph>
     </div>

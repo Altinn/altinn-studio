@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import type { TextResource } from '@studio/components-legacy';
 import { useConcatOptionListLabels } from '../hooks';
 import type { OptionList } from 'app-shared/types/OptionList';
@@ -22,10 +22,10 @@ export function OptionListLabels({
 
   return (
     <>
-      <StudioParagraph size='sm' className={classes.label}>
+      <StudioParagraph className={classes.label}>
         {optionListId ?? t('ux_editor.modal_properties_code_list_custom_list')}
       </StudioParagraph>
-      <StudioParagraph size='sm' className={classes.codeListLabels} variant='short'>
+      <StudioParagraph className={classes.codeListLabels} variant='short'>
         {codeListLabels}
       </StudioParagraph>
     </>

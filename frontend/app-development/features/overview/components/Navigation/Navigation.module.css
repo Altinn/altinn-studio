@@ -1,6 +1,6 @@
 .navigation {
   background-color: #f4f5f6;
-  border-radius: 4px;
+  border-radius: var(--ds-border-radius-md);
 
   display: flex;
   flex-direction: column;
@@ -16,7 +16,7 @@
 }
 
 .link {
-  border-radius: 4px;
+  border-radius: var(--ds-border-radius-md);
 
   display: flex;
 
