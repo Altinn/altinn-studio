@@ -21,6 +21,17 @@ const resetRepoChanges = jest.fn().mockImplementation(() => Promise.resolve({}))
 
 const mockOnClose = jest.fn();
 
+const mockLocationReload = () => {
+  Object.defineProperty(window, 'location', {
+    value: {
+      ...window.location,
+      reload: jest.fn(),
+    },
+    writable: true,
+  });
+  return jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+};
+
 const defaultProps: RemoveChangesPopoverContentProps = {
   onClose: mockOnClose,
   owner: org,
@@ -88,17 +99,6 @@ describe('DownloadRepoPopoverContent', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
-
-const mockLocationReload = () => {
-  Object.defineProperty(window, 'location', {
-    value: {
-      ...window.location,
-      reload: jest.fn(),
-    },
-    writable: true,
-  });
-  return jest.spyOn(window.location, 'reload').mockImplementation(() => {});
-};
 
 const renderRemoveChangesPopoverContent = (
   queries: Partial<ServicesContextProps> = {},
