@@ -110,7 +110,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task MoveFileByRelativePath_ValidPaths_MovesFileSuccessfully()
         {
-            // Arrange
+
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
@@ -120,17 +120,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var destinationFileName = "newfile.txt";
             var testContent = "test content";
 
-            // Create source file
             await gitRepository.WriteTextByRelativePathAsync(sourceRelativePath, testContent, true);
             Assert.True(gitRepository.FileExistsByRelativePath(sourceRelativePath));
             Assert.False(gitRepository.FileExistsByRelativePath(destRelativePath));
 
             try
             {
-                // Act
                 gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
-
-                // Assert
                 Assert.False(gitRepository.FileExistsByRelativePath(sourceRelativePath));
                 Assert.True(gitRepository.FileExistsByRelativePath(destRelativePath));
                 string content = await gitRepository.ReadTextByRelativePathAsync(destRelativePath);
@@ -145,7 +141,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public void MoveFileByRelativePath_SourceFileDoesNotExist_ThrowsFileNotFoundException()
         {
-            // Arrange
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
@@ -159,7 +154,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
-                Assert.False(true, "Expected FileNotFoundException was not thrown.");
+                Assert.False("Expected FileNotFoundException was not thrown.");
             }
             catch (FileNotFoundException ex)
             {
@@ -191,7 +186,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 gitRepository.MoveFileByRelativePath(sourceRelativePath, destRelativePath, destinationFileName);
-                Assert.False(true, "Expected IOException was not thrown.");
+                Assert.False("Expected IOException was not thrown.");
             }
             catch (IOException ex)
             {
