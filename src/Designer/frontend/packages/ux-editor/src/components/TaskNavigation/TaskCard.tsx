@@ -17,6 +17,7 @@ import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
 import { ExportForm } from '../Elements/ExportForm';
 import { useNavigate } from 'react-router-dom';
+import { useLayoutSetNavigation } from '../../utils/routeUtils';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -29,6 +30,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = getLayoutSetIcon(layoutSetModel);
   const navigate = useNavigate();
+  const { getLayoutSetPath } = useLayoutSetNavigation();
 
   const [editing, setEditing] = useState(false);
 
@@ -62,7 +64,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   }
 
   const goToFormEditor = () => {
-    navigate(`layoutSet/${layoutSetModel.id}`);
+    navigate(getLayoutSetPath(layoutSetModel.id));
   };
 
   return (

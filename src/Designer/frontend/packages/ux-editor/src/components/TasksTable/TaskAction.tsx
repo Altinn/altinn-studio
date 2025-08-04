@@ -18,6 +18,7 @@ import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSe
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 import { EditNameAction } from './EditNameAction';
 import { useNavigate } from 'react-router-dom';
+import { useLayoutSetNavigation } from '../../utils/routeUtils';
 
 export type TaskActionProps = {
   task: TaskNavigationGroup;
@@ -38,6 +39,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
   const navigate = useNavigate();
+  const { getLayoutSetPath } = useLayoutSetNavigation();
   const [isOpen, setIsOpen] = React.useState(false);
 
   const addTaskToNavigationGroup = () => {
@@ -77,7 +79,7 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
 
   const handleRedirect = () => {
     const layoutSetId = getLayoutSetIdForTask(task, layoutSets);
-    navigate(`layoutSet/${layoutSetId}`);
+    navigate(getLayoutSetPath(layoutSetId));
   };
 
   return (

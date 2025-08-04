@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
 import classes from './EditLayoutSetForSubform.module.css';
 import { useNavigate } from 'react-router-dom';
+import { useLayoutSetNavigation } from '../../../../utils/routeUtils';
 
 export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,
@@ -15,6 +16,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
 }: IGenericEditComponent<T>): React.ReactElement => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { getLayoutSetPath } = useLayoutSetNavigation();
 
   const existingLayoutSetForSubform = component['layoutSet'];
   if (existingLayoutSetForSubform) {
@@ -23,7 +25,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
         <DefinedLayoutSet existingLayoutSetForSubform={existingLayoutSetForSubform} />
         <StudioButton
           icon={<PencilIcon />}
-          onClick={() => navigate(`../layoutSet/${existingLayoutSetForSubform}`)}
+          onClick={() => navigate(getLayoutSetPath(existingLayoutSetForSubform))}
           color='second'
           title={t('ux_editor.component_properties.navigate_to_subform_button')}
           className={classes.navigateSubformButton}
