@@ -16,7 +16,7 @@ import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useLaxInstanceStatus } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { SideBarNavigation } from 'src/features/navigation/SidebarNavigation';
 import { useHasGroupedNavigation } from 'src/features/navigation/utils';
@@ -38,7 +38,9 @@ export const PresentationComponent = ({
   showNavbar = true,
   showNavigation = true,
 }: IPresentationProvidedProps) => {
-  const instanceStatus = useLaxInstanceStatus();
+  const instanceStatus = useInstanceDataQuery({
+    select: (instance) => instance.status,
+  }).data;
   const { expandedWidth } = useUiConfigContext();
   const hasGroupedNavigation = useHasGroupedNavigation();
 

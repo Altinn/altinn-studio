@@ -4,7 +4,7 @@ import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { getApplicationMetadataQueryDef } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useApplicationSettingsQueryDef } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useLayoutSetsQueryDef } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useInstanceDataQueryDef } from 'src/features/instance/InstanceContext';
+import { instanceQueries } from 'src/features/instance/InstanceContext';
 import { processQueries } from 'src/features/instance/useProcessQuery';
 import { useOrgsQueryDef } from 'src/features/orgs/OrgsProvider';
 import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
@@ -26,7 +26,9 @@ export function AppPrefetcher() {
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));
   usePrefetchQuery(useSelectedPartyQueryDef(true), Boolean(instanceOwnerPartyId));
 
-  usePrefetchQuery(useInstanceDataQueryDef(false, instanceOwnerPartyId, instanceGuid));
+  usePrefetchQuery(
+    instanceQueries.instanceData({ hasResultFromInstantiation: false, instanceOwnerPartyId, instanceGuid }),
+  );
   usePrefetchQuery(processQueries.processState(instanceId));
 
   return null;

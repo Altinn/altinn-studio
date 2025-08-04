@@ -12,7 +12,7 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
-import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { ProcessTaskType } from 'src/types';
 import type { AppQueries } from 'src/queries/types';
@@ -38,6 +38,16 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       p.processTasks = [p.currentTask!];
     }),
   );
+  jest.mocked(fetchInstanceData).mockImplementation(async () => {
+    const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
+    return getInstanceDataMock(
+      undefined,
+      instanceOwnerParty.partyId,
+      undefined,
+      instanceOwnerParty.orgNumber,
+      instanceOwnerParty,
+    );
+  });
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
@@ -63,16 +73,6 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
     ),
     queries: {
       fetchLayouts: async () => ({}),
-      fetchInstanceData: async () => {
-        const instanceOwnerParty = renderAs === RenderAs.User ? getPartyMock() : getServiceOwnerPartyMock();
-        return getInstanceDataMock(
-          undefined,
-          instanceOwnerParty.partyId,
-          undefined,
-          instanceOwnerParty.orgNumber,
-          instanceOwnerParty,
-        );
-      },
       ...queriesOverride,
     },
   });

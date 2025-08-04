@@ -11,7 +11,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
   type BaseValidation,
   type DataModelValidations,
@@ -263,9 +263,9 @@ function UpdateShowAllErrors() {
    * also check useLastSaveValidationIssues which will change on each patch.
    */
   const lastSaved = FD.useLastSaveValidationIssues();
-  const instanceDataChanges = useLaxInstanceData((instance) =>
-    instance.data.map(({ id, lastChanged }) => ({ id, lastChanged })),
-  );
+  const instanceDataChanges = useInstanceDataQuery({
+    select: (instance) => instance.data.map(({ id, lastChanged }) => ({ id, lastChanged })),
+  }).data;
 
   // Since process/next returns non-incremental validations, we need to also check these to see when they are removed
   const refetchInitialValidations = useRefetchInitialValidations(false);

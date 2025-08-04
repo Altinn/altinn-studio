@@ -15,7 +15,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
@@ -112,10 +112,19 @@ export function CustomReceipt() {
 
 export const ReceiptContainer = () => {
   const applicationMetadata = useApplicationMetadata();
-  const lastChanged = useLaxInstanceData((i) => i.lastChanged);
-  const instanceOrg = useLaxInstanceData((i) => i.org);
-  const instanceOwner = useLaxInstanceData((i) => i.instanceOwner);
-  const dataElements = useLaxInstanceAllDataElements();
+  const {
+    lastChanged,
+    instanceOrg,
+    instanceOwner,
+    dataElements = [],
+  } = useInstanceDataQuery({
+    select: (instance) => ({
+      lastChanged: instance.lastChanged,
+      instanceOrg: instance.org,
+      instanceOwner: instance.instanceOwner,
+      dataElements: instance.data,
+    }),
+  }).data ?? {};
   const langTools = useLanguage();
   const receiver = useAppReceiver();
   const instanceOwnerParty = useInstanceOwnerParty();

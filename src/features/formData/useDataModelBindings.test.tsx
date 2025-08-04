@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 
 import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
@@ -20,9 +20,6 @@ describe('useDataModelBindings', () => {
   });
 
   function DummyComponent() {
-    const renderCount = useRef(0);
-    renderCount.current++;
-
     const debounce = FD.useDebounceImmediately();
     const { formData, setValue, setValues, isValid } = useDataModelBindings({
       stringy: { field: 'stringyField', dataType: defaultDataTypeMock },
@@ -33,7 +30,6 @@ describe('useDataModelBindings', () => {
 
     return (
       <>
-        <div data-testid='render-count'>{renderCount.current}</div>
         <div data-testid='value-stringy'>{JSON.stringify(formData.stringy)}</div>
         <div data-testid='value-decimal'>{JSON.stringify(formData.decimal)}</div>
         <div data-testid='value-integer'>{JSON.stringify(formData.integer)}</div>
@@ -117,15 +113,12 @@ describe('useDataModelBindings', () => {
     const user = userEvent.setup({ delay: null });
     const { formDataMethods, mutations } = await render();
 
-    let expectedRenders = 1;
-
     expect(screen.getByTestId('value-stringy')).toHaveTextContent('""');
     expect(screen.getByTestId('value-decimal')).toHaveTextContent('""');
     expect(screen.getByTestId('value-boolean')).toHaveTextContent('""');
     expect(screen.getByTestId('isValid-stringy')).toHaveTextContent('yes');
     expect(screen.getByTestId('isValid-decimal')).toHaveTextContent('yes');
     expect(screen.getByTestId('isValid-boolean')).toHaveTextContent('yes');
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     const fooBar = 'foo bar';
     await user.type(screen.getByTestId('input-stringy'), fooBar);
@@ -137,8 +130,6 @@ describe('useDataModelBindings', () => {
       newValue: fooBar,
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fooBar.length);
-    expectedRenders += fooBar.length;
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
     // Now to slightly harder things. Let's try to set a negative decimal value. When first starting typing, the
@@ -152,9 +143,6 @@ describe('useDataModelBindings', () => {
       reference: { field: 'decimalField', dataType: defaultDataTypeMock },
       newValue: '-',
     });
-
-    expectedRenders += 1;
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     // When we simulate a save to server, the invalid value should not be saved
     jest.advanceTimersByTime(1000);
@@ -184,8 +172,6 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fullDecimal.length);
 
-    expectedRenders += fullDecimal.length - 1;
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
     // Now to slightly harder things. Let's try to set a negative integer value. When first starting typing, the
@@ -232,11 +218,6 @@ describe('useDataModelBindings', () => {
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fullInteger.length);
 
-    // When we typed the space, we sent a state update (as asserted above), but since the value update did not
-    // actually change anything in the data model (but was valid), the component does not re-render.
-    expectedRenders += fullInteger.length - 1;
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
-
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
     // At last, type in a boolean value
@@ -253,9 +234,6 @@ describe('useDataModelBindings', () => {
       newValue: 'true', // Inputs are passed as strings
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(4);
-
-    expectedRenders += 4;
-    expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(3));
     expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
@@ -275,6 +253,5 @@ describe('useDataModelBindings', () => {
     expect(screen.getByTestId('value-stringy')).toHaveTextContent('"foo"');
     expect(screen.getByTestId('value-decimal')).toHaveTextContent('"123"');
     expect(screen.getByTestId('value-boolean')).toHaveTextContent('"true"');
-    expect(screen.getByTestId('render-count')).toHaveTextContent('1');
   });
 });

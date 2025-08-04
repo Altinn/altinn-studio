@@ -20,7 +20,7 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
 import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
@@ -304,7 +304,14 @@ describe('Expressions shared function tests', () => {
         throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
       }
 
-      async function fetchInstanceData() {
+      // Clear localstorage, because LanguageProvider uses it to cache selected languages
+      localStorage.clear();
+
+      jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
+      jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
+      jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
+      jest.mocked(fetchUserProfile).mockImplementation(async () => profile);
+      jest.mocked(fetchInstanceData).mockImplementation(async () => {
         let instanceData = getInstanceDataMock();
         if (instance) {
           instanceData = { ...instanceData, ...instance };
@@ -319,15 +326,7 @@ describe('Expressions shared function tests', () => {
           instanceData.data.push({ id: 'abc', dataType: 'default' } as IData);
         }
         return instanceData;
-      }
-
-      // Clear localstorage, because LanguageProvider uses it to cache selected languages
-      localStorage.clear();
-
-      jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
-      jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-      jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
-      jest.mocked(fetchUserProfile).mockImplementation(async () => profile);
+      });
 
       const renderFunc = stateless ? renderWithoutInstanceAndLayout : renderWithInstanceAndLayout;
       const { rerender } = await renderFunc({
@@ -345,7 +344,6 @@ describe('Expressions shared function tests', () => {
           }),
           fetchLayouts: async () => layouts,
           fetchFormData,
-          fetchInstanceData,
           ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
           fetchTextResources: async () => ({
             language: 'nb',

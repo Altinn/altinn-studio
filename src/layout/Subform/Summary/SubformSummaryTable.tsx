@@ -8,7 +8,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -122,7 +122,7 @@ export function SubformSummaryTable({
   }
 
   const pdfModeActive = usePdfModeActive();
-  const dataElements = useStrictDataElements(dataType);
+  const dataElements = useInstanceDataElements(dataType);
 
   if (isSubformPage && navigation.state !== 'loading') {
     return (

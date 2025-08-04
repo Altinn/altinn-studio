@@ -19,7 +19,7 @@ import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteSta
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxChangeInstance, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
@@ -357,10 +357,14 @@ export function useIsSaving() {
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
   const ruleConnections = useRuleConnections();
-  const { allDataTypes, writableDataTypes, defaultDataType, initialData, schemaLookup, dataElementIds } =
-    DataModels.useFullStateRef().current;
+  const allDataTypes = DataModels.useReadableDataTypes();
+  const writableDataTypes = DataModels.useWritableDataTypes();
+  const defaultDataType = DataModels.useDefaultDataType();
+  const initialData = DataModels.useInitialData();
+  const dataElementIds = DataModels.useDataElementIds();
+  const schemaLookup = DataModels.useSchemaLookup();
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
-  const changeInstance = useLaxChangeInstance();
+  const changeInstance = useOptimisticallyUpdateCachedInstance();
 
   if (!writableDataTypes || !allDataTypes) {
     throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');

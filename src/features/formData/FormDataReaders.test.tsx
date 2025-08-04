@@ -9,7 +9,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IData, IDataType } from 'src/types/shared';
@@ -42,12 +42,6 @@ function TestComponent({ ids }: TestProps) {
 }
 
 async function render(props: TestProps) {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((a) => {
-      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-      a.dataTypes.push(...generateDataTypes());
-    }),
-  );
   const dataModelNames = Object.keys(props.dataModels);
   const idToNameMap: { [id: string]: string } = {};
 
@@ -55,6 +49,14 @@ async function render(props: TestProps) {
     i.data = generateDataElements(i.id);
   });
   const instanceId = instanceData.id;
+
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((a) => {
+      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+      a.dataTypes.push(...generateDataTypes());
+    }),
+  );
+  jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {
@@ -111,7 +113,6 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
-      fetchInstanceData: async () => instanceData,
       fetchLayoutSets: async () => {
         const mock = getLayoutSetsMock();
         for (const set of mock.sets) {

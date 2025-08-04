@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
 import { Confirm } from 'src/features/processEnd/confirm/containers/Confirm';
+import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('Confirm', () => {
@@ -26,13 +27,11 @@ describe('Confirm', () => {
       subunitParty.orgNumber,
       subunitParty,
     );
+    jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instance);
 
     await renderWithInstanceAndLayout({
       renderer: () => <Confirm />,
       instanceId: instance.id,
-      queries: {
-        fetchInstanceData: async () => instance,
-      },
     });
 
     const orgNumber = screen.getByText(subunitParty.orgNumber ?? '', { exact: false });

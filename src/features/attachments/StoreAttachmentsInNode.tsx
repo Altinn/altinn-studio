@@ -7,7 +7,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { isAttachmentUploaded } from 'src/features/attachments/index';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -93,7 +93,7 @@ function useNodeAttachments(): AttachmentRecord {
 
   const application = useApplicationMetadata();
   const currentTask = useProcessQuery().data?.currentTask?.elementId;
-  const data = useLaxInstanceDataElements(baseId);
+  const data = useInstanceDataElements(baseId);
 
   const mappedAttachments = useMemoDeepEqual(() => {
     const taskId = overriddenTaskId ? overriddenTaskId : currentTask;

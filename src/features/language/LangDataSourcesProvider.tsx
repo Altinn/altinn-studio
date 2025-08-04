@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
-import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
+import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useLangToolsDataSources, useSetLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
@@ -32,7 +32,7 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
   const _applicationSettings = useLaxApplicationSettings();
   const applicationSettings: IApplicationSettings =
     _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
-  const instanceDataSources = useLaxInstanceDataSources();
+  const instanceDataSources = useInstanceDataSources();
   const setDataSources = useSetLangToolsDataSources();
 
   // This LangDataSourcesProvider is re-rendered very often, and will always 'move' around in the DOM tree wherever

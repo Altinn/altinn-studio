@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { CompInternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
@@ -55,7 +55,7 @@ const mockInstanceData = [
 jest.mock('src/utils/layout/useNodeItem');
 
 jest.mock('src/features/instance/InstanceContext', () => ({
-  useLaxInstanceData: jest.fn(() => mockInstanceData),
+  useInstanceDataElements: jest.fn(() => mockInstanceData),
 }));
 
 jest.mock('src/features/instance/useProcessQuery', () => ({
@@ -110,7 +110,7 @@ jest.mock('src/components/organisms/AttachmentGroupings', () => ({
 
 describe('AttachmentListComponent', () => {
   const mockUseItemWhenType = jest.mocked(useItemWhenType<'AttachmentList'>);
-  const mockUseLaxInstanceData = jest.mocked(useLaxInstanceData);
+  const mockUseInstanceDataElements = jest.mocked(useInstanceDataElements);
 
   // Helper function to set up mockUseNodeItem with specific values
   const setupMockUseNodeItem = ({
@@ -220,7 +220,7 @@ describe('AttachmentListComponent', () => {
 
   it('should include all attachments when dataTypeIds includes IncludeAll', () => {
     // Mock the instance data to include a RefDataAsPdf attachment
-    mockUseLaxInstanceData.mockReturnValueOnce([
+    mockUseInstanceDataElements.mockReturnValueOnce([
       ...mockInstanceData,
       {
         id: 'attachment4',
@@ -248,7 +248,7 @@ describe('AttachmentListComponent', () => {
 
   it('should include PDF attachments when dataTypeIds includes RefDataAsPdf', () => {
     // Mock the instance data to include a RefDataAsPdf attachment
-    mockUseLaxInstanceData.mockReturnValueOnce([
+    mockUseInstanceDataElements.mockReturnValueOnce([
       ...mockInstanceData,
       {
         id: 'attachment4',

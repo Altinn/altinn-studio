@@ -1,7 +1,6 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { exprCastValue } from 'src/features/expressions';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
@@ -489,10 +488,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
 
     const length = this.dataSources.dataElementSelector(
       (elements) => elements.filter((e) => e.dataType === dataType).length,
-      [dataType],
     );
 
-    if (length === ContextNotProvided) {
+    if (length === undefined) {
       return 0; // Stateless never has any data elements
     }
 

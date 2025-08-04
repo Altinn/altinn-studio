@@ -8,7 +8,7 @@ import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useDoOverrideSummary } from 'src/layout/Subform/SubformWrapper';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
@@ -33,7 +33,7 @@ const SummarySubformWrapperInner = ({
 }: PropsWithChildren<{ targetBaseComponentId: string }>) => {
   const { layoutSet, id, textResourceBindings, entryDisplayName } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useStrictDataElements(dataType);
+  const dataElements = useInstanceDataElements(dataType);
 
   return (
     <>
@@ -161,7 +161,7 @@ export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Prop
   const displayType = useSummaryOverrides<'Subform'>(targetBaseComponentId)?.display;
   const { layoutSet } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useStrictDataElements(dataType);
+  const dataElements = useInstanceDataElements(dataType);
   const minCount = useApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
   const required =

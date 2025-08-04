@@ -282,6 +282,9 @@ describe('Repeating group attachments', () => {
             .parent()
             .find(appFrontend.group.addNewItemSubGroup)
             .click();
+          // Wait for new subgroup DOM elements to stabilize before continuing. This prevents ResizeObserver loop.
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(200);
         }
       });
       cy.get(appFrontend.group.saveMainGroup).click();

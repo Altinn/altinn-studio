@@ -13,7 +13,7 @@ import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
-import { useHasInstance } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
@@ -44,10 +44,10 @@ export function useLayoutQueryDef(
 }
 
 function useLayoutQuery() {
-  const hasInstance = useHasInstance();
   const { data: process } = useProcessQuery();
   const currentLayoutSetId = useLayoutSetId();
   const defaultDataModel = useCurrentDataModelName() ?? 'unknown';
+  const hasInstance = !!useInstanceDataQuery().data;
 
   // Waiting to fetch layouts until we have an instance, if we're supposed to have one
   // We don't want to fetch form layouts for a process step which we are currently not on

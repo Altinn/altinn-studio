@@ -2,10 +2,10 @@ import { createHookContext } from 'src/core/contexts/hookContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
+import { useInstanceDataSources } from 'src/features/instance/InstanceContext';
 
 const { Provider, hooks } = createHookContext({
-  useLaxInstanceDataSources: () => useLaxInstanceDataSources(),
+  useLaxInstanceDataSources: () => useInstanceDataSources(),
   useDefaultDataType: () => DataModels.useDefaultDataType(),
   useReadableDataTypes: () => DataModels.useReadableDataTypes(),
   useExternalApis: () => useExternalApis(useApplicationMetadata().externalApiIds ?? []),

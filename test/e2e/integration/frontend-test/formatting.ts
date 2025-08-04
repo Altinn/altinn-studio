@@ -65,14 +65,14 @@ describe('Formatting', () => {
     ];
 
     for (const { format, expected } of alternatives) {
-      cy.changeLayout((component) => {
-        if (component.type === 'Input' && component.formatting && component.id === 'currentValue') {
-          component.formatting = format;
-        }
-      });
-
       for (const lang of ['en', 'nb'] as const) {
         changeToLang(lang);
+        cy.reloadAndWait();
+        cy.changeLayout((component) => {
+          if (component.type === 'Input' && component.formatting && component.id === 'currentValue') {
+            component.formatting = format;
+          }
+        });
         cy.findByRole('button', { name: /Rediger/ }).click();
         cy.get(appFrontend.group.currentValue).assertTextWithoutWhiteSpaces(expected[lang]);
         cy.get(appFrontend.group.saveMainGroup).clickAndGone();

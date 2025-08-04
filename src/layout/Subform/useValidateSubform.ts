@@ -1,6 +1,6 @@
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { Validation } from 'src/features/validation/validationContext';
 import { useExternalItem } from 'src/utils/layout/hooks';
@@ -18,7 +18,7 @@ export function useValidateSubform(baseComponentId: string): ComponentValidation
   if (!targetType) {
     throw new Error(`Data type not found for layout with name ${layoutSetName}`);
   }
-  const elements = useStrictDataElements(targetType);
+  const elements = useInstanceDataElements(targetType);
   const subformIdsWithError = Validation.useDataElementsWithErrors(elements.map((dE) => dE.id));
   const dataTypeDefinition = applicationMetadata.dataTypes.find((x) => x.id === targetType);
   if (dataTypeDefinition === undefined) {

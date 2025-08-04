@@ -13,7 +13,7 @@ import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { quirks } from 'src/features/form/layout/quirks';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -146,6 +146,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
 
     jest.mocked(fetchApplicationMetadata).mockImplementation(async () => set.app.getAppMetadata());
     jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
+    jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
 
     const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
@@ -158,7 +159,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         fetchLayoutSettings: async (setId) => set.app.getLayoutSet(setId).getSettings(),
         fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),
         fetchDataModelSchema: async (name) => set.getModel({ name }).getSchema(),
-        fetchInstanceData: async () => set.simulateInstance(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
         fetchRuleHandler: async (setId) => set.app.getLayoutSet(setId).getRuleHandler(),
         fetchDynamics: async (setId) => set.app.getLayoutSet(setId).getRuleConfiguration(),

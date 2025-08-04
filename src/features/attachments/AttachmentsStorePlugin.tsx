@@ -16,10 +16,10 @@ import { FileScanResults } from 'src/features/attachments/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
-  useLaxAppendDataElements,
   useLaxInstanceId,
-  useLaxMutateDataElement,
-  useLaxRemoveDataElement,
+  useOptimisticallyAppendDataElements,
+  useOptimisticallyRemoveDataElement,
+  useOptimisticallyUpdateDataElement,
 } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -288,7 +288,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
   extraHooks(store: NodesStoreFull): AttachmentsStorePluginConfig['extraHooks'] {
     return {
       useAttachmentsUpload() {
-        const appendDataElements = useLaxAppendDataElements();
+        const appendDataElements = useOptimisticallyAppendDataElements();
         const upload = store.useSelector((state) => state.attachmentUpload);
         const uploadFinished = store.useSelector((state) => state.attachmentUploadFinished);
 
@@ -363,7 +363,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
                 action.dataModelBindings,
               );
               uploadFinished(fullAction, results);
-              appendDataElements?.(
+              appendDataElements(
                 results.filter(isAttachmentUploadSuccess).map(({ newInstanceData }) => newInstanceData),
               );
             }
@@ -383,7 +383,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       useAttachmentsUpdate() {
         const { mutateAsync: removeTag } = useAttachmentsRemoveTagMutation();
         const { mutateAsync: addTag } = useAttachmentsAddTagMutation();
-        const mutateDataElement = useLaxMutateDataElement();
+        const mutateDataElement = useOptimisticallyUpdateDataElement();
         const { lang } = useLanguage();
         const update = store.useSelector((state) => state.attachmentUpdate);
         const fulfill = store.useSelector((state) => state.attachmentUpdateFulfilled);
@@ -412,7 +412,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
                 );
               }
               fulfill(action);
-              mutateDataElement?.(attachment.data.id, (dataElement) => ({ ...dataElement, tags }));
+              mutateDataElement(attachment.data.id, (dataElement) => ({ ...dataElement, tags }));
             } catch (error) {
               reject(action, error);
               toast(lang('form_filler.file_uploader_validation_error_update'), { type: 'error' });
@@ -423,7 +423,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       },
       useAttachmentsRemove() {
         const { mutateAsync: removeAttachment } = useAttachmentsRemoveMutation();
-        const removeDataElement = useLaxRemoveDataElement();
+        const removeDataElement = useOptimisticallyRemoveDataElement();
         const { lang } = useLanguage();
         const remove = store.useSelector((state) => state.attachmentRemove);
         const fulfill = store.useSelector((state) => state.attachmentRemoveFulfilled);
@@ -449,7 +449,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               }
 
               fulfill(action);
-              removeDataElement?.(action.attachment.data.id);
+              removeDataElement(action.attachment.data.id);
 
               return true;
             } catch (error) {

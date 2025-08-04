@@ -4,23 +4,21 @@ import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import {
-  useStrictAppendDataElements,
-  useStrictInstanceId,
-  useStrictRemoveDataElement,
-} from 'src/features/instance/InstanceContext';
+import { useInvalidateInstanceData, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export const useAddEntryMutation = (dataType: string) => {
   const instanceId = useStrictInstanceId();
-  const appendDataElements = useStrictAppendDataElements();
   const { langAsString } = useLanguage();
   const { doSubformEntryAdd } = useAppMutations();
+  const invalidateInstanceData = useInvalidateInstanceData();
 
   return useMutation({
     mutationKey: ['addSubform', dataType],
     mutationFn: async (data: unknown) => await doSubformEntryAdd(instanceId, dataType, data),
-    onSuccess: (reply) => appendDataElements([reply]),
+    onSuccess: () => {
+      invalidateInstanceData();
+    },
     onError: (error) => {
       window.logErrorOnce('Failed to add subform entry:', error);
 
@@ -33,19 +31,21 @@ export const useAddEntryMutation = (dataType: string) => {
   });
 };
 
-export const useDeleteEntryMutation = (id: string) => {
+export const useDeleteEntryMutation = () => {
   const instanceId = useStrictInstanceId();
-  const removeDataElement = useStrictRemoveDataElement();
   const { langAsString } = useLanguage();
   const { doSubformEntryDelete } = useAppMutations();
+  const invalidateInstanceData = useInvalidateInstanceData();
 
   return useMutation({
-    mutationKey: ['deleteSubform', id],
+    mutationKey: ['deleteSubform'],
     mutationFn: async (id: string) => {
       await doSubformEntryDelete(instanceId, id);
       return id;
     },
-    onSuccess: (deletedId) => removeDataElement(deletedId),
+    onSuccess: () => {
+      invalidateInstanceData();
+    },
     onError: (error) => {
       console.error('Failed to delete subform:', error);
       toast(langAsString('form_filler.error_delete_subform'), { type: 'error' });

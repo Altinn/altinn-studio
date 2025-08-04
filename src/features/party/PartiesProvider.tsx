@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +9,7 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { instanceQueryKeys } from 'src/features/instance/InstanceContext';
+import { instanceQueries, useInstanceDataQueryArgs } from 'src/features/instance/InstanceContext';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { flattenParties } from 'src/features/party/partyUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
@@ -200,9 +199,9 @@ export const useSetHasSelectedParty = () => useSelectedPartyCtx().setUserHasSele
 export function useInstanceOwnerParty(): IParty | null {
   const parties = usePartiesAllowedToInstantiate() ?? [];
   const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useParams();
+
   const instanceOwner = queryClient.getQueryData<IInstance>(
-    instanceQueryKeys.instanceData(instanceOwnerPartyId, instanceGuid),
+    instanceQueries.instanceData(useInstanceDataQueryArgs()).queryKey,
   )?.instanceOwner;
 
   if (!instanceOwner) {

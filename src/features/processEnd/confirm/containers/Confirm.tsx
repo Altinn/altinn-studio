@@ -4,12 +4,12 @@ import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIcon
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useInstanceOwnerParty, usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 
 export const Confirm = () => {
-  const instance = useLaxInstanceData((data) => data);
+  const instance = useInstanceDataQuery().data;
   const parties = usePartiesAllowedToInstantiate();
   const instanceOwnerParty = useInstanceOwnerParty();
 

@@ -12,7 +12,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -511,6 +511,12 @@ describe('File uploading components', () => {
         });
       }),
     );
+    jest.mocked(fetchInstanceData).mockImplementation(async () =>
+      getInstanceDataMock((i) => {
+        i.data.push(...attachments);
+      }),
+    );
+
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
 
@@ -540,10 +546,6 @@ describe('File uploading components', () => {
         ...component,
       } as CompExternalExact<T>,
       queries: {
-        fetchInstanceData: async () =>
-          getInstanceDataMock((i) => {
-            i.data.push(...attachments);
-          }),
         fetchOptions: () =>
           Promise.resolve({
             data: [

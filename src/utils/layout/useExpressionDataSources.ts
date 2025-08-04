@@ -10,7 +10,7 @@ import { ExprFunctionDefinitions } from 'src/features/expressions/expression-fun
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxDataElementsSelectorProps, useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
+import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
@@ -26,7 +26,6 @@ import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
@@ -38,7 +37,7 @@ export interface ExpressionDataSources {
   process?: IProcess;
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
-  dataElementSelector: DataElementSelector;
+  dataElementSelector: ReturnType<typeof useDataElementsSelectorProps>;
   dataModelNames: string[];
   formDataSelector: FormDataSelector;
   attachmentsSelector: AttachmentsSelector;
@@ -56,10 +55,9 @@ export interface ExpressionDataSources {
 const multiSelectors = {
   formDataSelector: () => FD.useDebouncedSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
-  dataElementSelector: () => useLaxDataElementsSelectorProps(),
   codeListSelector: () => useCodeListSelectorProps(),
 } satisfies {
-  [K in keyof ExpressionDataSources]?: DSPropsMatching<ExpressionDataSources[K]>;
+  [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
 };
 
 const directHooks = {
@@ -68,8 +66,9 @@ const directHooks = {
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
   layoutLookups: () => useLayoutLookups(),
+  dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useLaxInstanceDataSources(),
+    isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
   defaultDataType: (isInGenerator) =>
     (isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType()) ?? null,
   dataModelNames: (isInGenerator) =>
@@ -82,7 +81,11 @@ const directHooks = {
       isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
       FD.useDebouncedSelector(),
     ),
-} satisfies { [K in keyof ExpressionDataSources]?: (isInGenerator: boolean) => ExpressionDataSources[K] };
+} satisfies {
+  [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: (
+    isInGenerator: boolean,
+  ) => ExpressionDataSources[K];
+} & { dataElementSelector: () => ReturnType<typeof useDataElementsSelectorProps> };
 
 export type DataSourceOverrides = {
   dataSources?: { [K in keyof ExpressionDataSources]?: () => ExpressionDataSources[K] };
@@ -144,6 +147,8 @@ export function useExpressionDataSources(toEvaluate: unknown, overrides?: DataSo
       // have already checked the types in `multiSelectors`, so there's no point in doing it again here.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       output[key] = combined[combinedIndex++] as unknown as any;
+    } else if (key === 'dataElementSelector') {
+      output[key] = directHooks[key]();
     } else if (key in directHooks) {
       output[key] = directHooks[key](isInGenerator);
     } else if (key === 'displayValues') {

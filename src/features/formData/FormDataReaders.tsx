@@ -8,7 +8,7 @@ import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetad
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -196,7 +196,7 @@ export function DataModelFetcher() {
 
 function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelReader; isAvailable: boolean }) {
   const dataType = reader.getName();
-  const dataElements = useLaxInstanceDataElements(dataType);
+  const dataElements = useInstanceDataElements(dataType);
   const dataElementId = getFirstDataElementId(dataElements, dataType);
   const url = useDataModelUrl({ includeRowIds: false, dataType, dataElementId, language: useCurrentLanguage() });
   const enabled = isAvailable && reader.isLoading();

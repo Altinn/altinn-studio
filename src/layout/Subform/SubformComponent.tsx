@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigation } from 'react-router-dom';
 
 import { Spinner, Table } from '@digdir/designsystemet-react';
@@ -11,7 +11,7 @@ import { Caption } from 'src/components/form/caption/Caption';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
@@ -51,12 +51,12 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   }
 
   const { langAsString } = useLanguage();
-  const addEntryMutation = useAddEntryMutation(dataType);
-  const dataElements = useStrictDataElements(dataType);
+  const addSubformEntryMutation = useAddEntryMutation(dataType);
+  const subformEntries = useInstanceDataElements(dataType);
+
   const { enterSubform } = useNavigatePage();
   const lock = FD.useLocking(id);
   const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
-  const [subformEntries, updateSubformEntries] = useState(dataElements);
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -66,7 +66,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
     performProcess(async () => {
       const currentLock = await lock();
       try {
-        const result = await addEntryMutation.mutateAsync({});
+        const result = await addSubformEntryMutation.mutateAsync({});
         enterSubform({ nodeId, dataElementId: result.id });
       } catch {
         // NOTE: Handled by useAddEntryMutation
@@ -143,10 +143,6 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                     hasErrors={Boolean(subformIdsWithError?.includes(dataElement.id))}
                     rowNumber={index}
                     showDeleteButton={showDeleteButton}
-                    deleteEntryCallback={(d) => {
-                      const items = subformEntries.filter((x) => x.id != d.id);
-                      updateSubformEntries([...items]);
-                    }}
                   />
                 ))}
               </Table.Body>
@@ -192,14 +188,12 @@ function SubformTableRow({
   hasErrors,
   rowNumber,
   showDeleteButton,
-  deleteEntryCallback,
 }: {
   dataElement: IData;
   baseComponentId: string;
   hasErrors: boolean;
   rowNumber: number;
   showDeleteButton: boolean;
-  deleteEntryCallback: (dataElement: IData) => void;
 }) {
   const id = dataElement.id;
   const { tableColumns = [] } = useItemWhenType(baseComponentId, 'Subform');
@@ -217,9 +211,8 @@ function SubformTableRow({
 
   const { langAsString } = useLanguage();
   const { enterSubform } = useNavigatePage();
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const deleteEntryMutation = useDeleteEntryMutation(id);
+  const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
@@ -249,17 +242,6 @@ function SubformTableRow({
       </Table.Row>
     );
   }
-
-  const deleteEntry = async () => {
-    setIsDeleting(true);
-
-    try {
-      await deleteEntryMutation.mutateAsync(id);
-      deleteEntryCallback(dataElement);
-    } catch {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <Table.Row
@@ -306,7 +288,7 @@ function SubformTableRow({
               disabled={isDeleting}
               variant='tertiary'
               color='danger'
-              onClick={async () => await deleteEntry()}
+              onClick={() => deleteSubformEntry(id)}
               aria-label={deleteButtonText}
               className={classes.tableButton}
             >

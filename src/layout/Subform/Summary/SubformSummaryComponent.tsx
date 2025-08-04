@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Spinner } from '@digdir/designsystemet-react';
 
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useStrictDataElements } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -17,7 +17,7 @@ import type { IData } from 'src/types/shared';
 export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): React.JSX.Element | null {
   const { layoutSet, id } = useItemWhenType(targetBaseComponentId, 'Subform');
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useStrictDataElements(dataType);
+  const dataElements = useInstanceDataElements(dataType);
 
   return (
     <div

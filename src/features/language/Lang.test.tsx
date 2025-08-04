@@ -3,10 +3,11 @@ import React from 'react';
 import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { Lang } from 'src/features/language/Lang';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { fetchUserProfile } from 'src/queries/queries';
+import { fetchInstanceData, fetchUserProfile } from 'src/queries/queries';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 function TestSubject() {
@@ -23,6 +24,7 @@ describe('Lang', () => {
   });
   beforeEach(() => {
     jest.mocked(fetchUserProfile).mockImplementation(async () => getProfileMock());
+    jest.mocked(fetchInstanceData).mockImplementation(async () => getInstanceDataMock());
   });
   afterEach(() => {
     jest.resetAllMocks();

@@ -3,7 +3,7 @@ import React from 'react';
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -28,13 +28,13 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
   const groupAttachments = item.groupByDataTypeGrouping ?? false;
   const showDescription = item.showDataTypeDescriptions ?? false;
 
-  const instanceData = useLaxInstanceData((data) => data.data) ?? [];
+  const dataElements = useInstanceDataElements(undefined);
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const appMetadataDataTypes = useApplicationMetadata().dataTypes ?? emptyDataTypeArray;
   const dataTypeIdsInCurrentTask = appMetadataDataTypes.filter((it) => it.taskId === currentTaskId).map((it) => it.id);
 
   const attachmentsWithDataType = getAttachmentsWithDataType({
-    attachments: instanceData ?? [],
+    attachments: dataElements ?? [],
     appMetadataDataTypes,
   });
 

@@ -6,7 +6,7 @@ import { screen } from '@testing-library/react';
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
@@ -114,6 +114,12 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     }),
   );
 
+  jest.mocked(fetchInstanceData).mockImplementation(async () => ({
+    ...getInstanceDataMock((i) => {
+      addAttachment && i.data.push(attachment);
+    }),
+  }));
+
   return await renderWithInstanceAndLayout({
     renderer: (
       <AttachmentSummaryComponent
@@ -125,11 +131,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
       />
     ),
     queries: {
-      fetchInstanceData: async () => ({
-        ...getInstanceDataMock((i) => {
-          addAttachment && i.data.push(attachment);
-        }),
-      }),
       fetchLayouts: async () => ({
         FormLayout: {
           data: {
