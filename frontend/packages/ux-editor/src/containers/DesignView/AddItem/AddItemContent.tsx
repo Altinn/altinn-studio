@@ -42,6 +42,7 @@ export const AddItemContent = ({
             label={t('ux_editor.add_item.component_search_label')}
             value={searchText}
             onChange={handleSearchChange}
+            clearButtonLabel={t('general.search_clear_button_title')}
           />
           <StudioParagraph>
             {t('ux_editor.add_item.component_more_info_description')}
