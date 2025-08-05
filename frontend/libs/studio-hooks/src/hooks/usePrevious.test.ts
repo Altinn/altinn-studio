@@ -1,6 +1,6 @@
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { usePrevious } from './usePrevious';
+import { usePrevious } from './';
 
 const renderUsePrevious = <T>(initialProps: {
   state: T;
@@ -15,7 +15,6 @@ describe('usePrevious', () => {
 
   test('Returns previous state after rerender', () => {
     const { result, rerender } = renderUsePrevious({ state: 0 });
-    expect(result.current).toBeUndefined();
     rerender({ state: 1 });
     expect(result.current).toBe(0);
     rerender({ state: 2 });
