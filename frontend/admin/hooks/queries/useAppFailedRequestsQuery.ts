@@ -9,10 +9,12 @@ export const useAppFailedRequestsQuery = (
   org: string,
   env: string,
   app: string,
+  time: string,
 ): UseQueryResult<AppFailedRequest[]> => {
   return useQuery<AppFailedRequest[]>({
-    queryKey: [QueryKey.AppInstances, org, env, app],
+    queryKey: [QueryKey.AppFailedRequests, org, env, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppFailedRequest[]>(appFailedRequestsPath(org, env, app), { signal })).data,
+      (await axios.get<AppFailedRequest[]>(appFailedRequestsPath(org, env, app, time), { signal }))
+        .data,
   });
 };

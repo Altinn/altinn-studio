@@ -1,4 +1,4 @@
-import { StudioSpinner, StudioTable } from '@studio/components';
+import { StudioSelect, StudioSpinner, StudioTable } from '@studio/components';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioSearch } from '@studio/components-legacy';
@@ -9,6 +9,7 @@ import { useAppExceptionsQuery } from 'admin/hooks/queries/useAppExceptionsQuery
 import type { AppException } from 'admin/types/AppException';
 import { useAppFailedRequestsQuery } from 'admin/hooks/queries/useAppFailedRequestsQuery';
 import type { AppFailedRequest } from 'admin/types/AppFailedRequest';
+import { StudioDropdown } from 'libs/studio-components/src/components/StudioDropdown/StudioDropdown';
 
 type InstancesTableProps = {
   org: string;
@@ -17,7 +18,42 @@ type InstancesTableProps = {
 };
 
 export const FailedRequestsTable = ({ org, env, app }: InstancesTableProps) => {
-  const { data, status } = useAppFailedRequestsQuery(org, env, app);
+  const [time, setTime] = useState('24');
+  const handleTime = (value) => {
+    setTime(value);
+  };
+
+  return (
+    <div>
+      <StudioSelect
+        style={{ width: '200px', marginBottom: '20px' }}
+        label={'Time'}
+        // description={'Time'}
+        value={time}
+        onChange={(e) => handleTime(e.target.value)}
+      >
+        <StudioSelect.Option value='1'>1t</StudioSelect.Option>
+        <StudioSelect.Option value='6'>6t</StudioSelect.Option>
+        <StudioSelect.Option value='12'>12t</StudioSelect.Option>
+        <StudioSelect.Option value='24'>1d</StudioSelect.Option>
+        <StudioSelect.Option value='72'>3d</StudioSelect.Option>
+        <StudioSelect.Option value='168'>7d</StudioSelect.Option>
+        <StudioSelect.Option value='720'>30d</StudioSelect.Option>
+      </StudioSelect>
+      <FailedRequestsTable1 org={org} env={env} app={app} time={time} />
+    </div>
+  );
+};
+
+type InstancesTableProps1 = {
+  org: string;
+  env: string;
+  app: string;
+  time: string;
+};
+
+const FailedRequestsTable1 = ({ org, env, app, time }: InstancesTableProps1) => {
+  const { data, status } = useAppFailedRequestsQuery(org, env, app, time);
   const { t } = useTranslation();
 
   switch (status) {
@@ -39,7 +75,7 @@ const ErrorsTableWithData = ({ errors }: InstancesTableWithDataProps) => {
   const [search, setSearch] = useState('');
 
   return (
-    <StudioTable zebra>
+    <StudioTable zebra data-color='brand1'>
       <StudioTable.Head>
         <StudioTable.Row>
           <StudioTable.Cell>{t('Time')}</StudioTable.Cell>

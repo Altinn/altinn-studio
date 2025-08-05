@@ -9,10 +9,11 @@ export const useContainerLogsQuery = (
   org: string,
   env: string,
   app: string,
+  time: string,
 ): UseQueryResult<ContainerLog[]> => {
   return useQuery<ContainerLog[]>({
-    queryKey: [QueryKey.AppInstances, org, env, app],
+    queryKey: [QueryKey.ContainerLogs, org, env, app, time],
     queryFn: async ({ signal }) =>
-      (await axios.get<ContainerLog[]>(containerLogsPath(org, env, app), { signal })).data,
+      (await axios.get<ContainerLog[]>(containerLogsPath(org, env, app, time), { signal })).data,
   });
 };

@@ -9,10 +9,11 @@ export const useAppExceptionsQuery = (
   org: string,
   env: string,
   app: string,
+  time: string,
 ): UseQueryResult<AppException[]> => {
   return useQuery<AppException[]>({
-    queryKey: [QueryKey.AppInstances, org, env, app],
+    queryKey: [QueryKey.AppExceptions, org, env, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppException[]>(appExceptionsPath(org, env, app), { signal })).data,
+      (await axios.get<AppException[]>(appExceptionsPath(org, env, app, time), { signal })).data,
   });
 };

@@ -20,9 +20,9 @@ export const instanceDataElementPath = (
   instanceId: string,
   dataElementId: string,
 ) => `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/data/${dataElementId}`; // Get
-export const appExceptionsPath = (org: string, env: string, app: string) =>
-  `http://localhost:5004/api/v1/appexceptions?time=24`; // Get
-export const appFailedRequestsPath = (org: string, env: string, app: string) =>
-  `http://localhost:5004/api/v1/appfailedrequests?time=24`; // Get
-export const containerLogsPath = (org: string, env: string, app: string) =>
-  `http://localhost:5004/api/v1/containerlogs?time=24`; // Get
+export const appExceptionsPath = (org: string, env: string, app: string, time: string) =>
+  `http://localhost:5004/api/v1/appexceptions?app=${app}&time=${time}`; // Get
+export const appFailedRequestsPath = (org: string, env: string, app: string, time: string) =>
+  `http://localhost:5004/api/v1/appfailedrequests?app=${app}&time=${time}`; // Get
+export const containerLogsPath = (org: string, env: string, app: string, time: string) =>
+  `http://localhost:5004/api/v1/containerlogs?app=${app}&time=${time}`; // Get
