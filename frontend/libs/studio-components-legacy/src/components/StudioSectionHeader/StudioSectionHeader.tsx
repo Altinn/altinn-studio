@@ -1,6 +1,5 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
-import { Heading, type HeadingProps } from '@digdir/designsystemet-react';
-import { StudioHelpText } from '@studio/components';
+import { Heading, type HeadingProps, HelpText } from '@digdir/designsystemet-react';
 
 import classes from './StudioSectionHeader.module.css';
 import cn from 'classnames';
@@ -32,7 +31,7 @@ const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>
             {heading.text}
           </Heading>
         </div>
-        {helpText && <StudioHelpText aria-label={helpText.title}>{helpText.text}</StudioHelpText>}
+        {helpText && <HelpText title={helpText.title}>{helpText.text}</HelpText>}
         {menu}
       </div>
     );
