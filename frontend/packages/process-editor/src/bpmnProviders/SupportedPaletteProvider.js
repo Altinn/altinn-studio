@@ -1,4 +1,5 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import i18next from 'i18next';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -201,7 +202,9 @@ class SupportedPaletteProvider {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('Create Altinn Data Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', { taskType: 'utfylling' }),
+          ),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -209,7 +212,9 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('Create Altinn Feedback Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', { taskType: 'tilbakemelding' }),
+          ),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -219,7 +224,9 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create Altinn Signing Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', { taskType: 'signering' }),
+          ),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
@@ -228,7 +235,11 @@ class SupportedPaletteProvider {
         'create.altinn-user-controlled-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
-          title: translate('Create Altinn User-Controlled Signing Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', {
+              taskType: 'brukerstyrt signering',
+            }),
+          ),
           action: {
             click: createUserControlledSigningTask(),
             dragstart: createUserControlledSigningTask(),
@@ -237,7 +248,9 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create Altinn Confirm Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', { taskType: 'bekreftelse' }),
+          ),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -246,7 +259,9 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Create Altinn Payment Task'),
+          title: translate(
+            i18next.t('process_editor.canvas.create_task', { taskType: 'betaling' }),
+          ),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),

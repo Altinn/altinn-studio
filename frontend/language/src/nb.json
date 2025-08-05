@@ -900,6 +900,7 @@
   "preview.title": "Forhåndsvisning",
   "preview.view_size_desktop": "Desktop",
   "preview.view_size_mobile": "Mobil",
+  "process_editor.canvas.create_task": "Lag {{taskType}}soppgave",
   "process_editor.configuration_panel.correspondence_resource": "Oppgi en ressurs for å sende ut meldinger",
   "process_editor.configuration_panel.correspondence_resource_description": "For å benytte brukerstyrt signering må du bruke Meldingstjenesten i Altinn. Da får de som skal signere beskjed om å gjøre det, og de får en kvittering i innboksen når det er gjort.",
   "process_editor.configuration_panel.edit_default_user_controlled_interface": "Bruk et eget grensesnitt for brukerstyrt signering",
