@@ -54,7 +54,9 @@ describe('EditLayoutSetForSubform', () => {
     });
     await user.click(navigateToSubformButton);
     expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith(`../layoutSet/${subformLayoutSetId}`);
+    expect(navigateMock).toHaveBeenCalledWith(
+      `/testOrg/testApp/ui-editor/layoutSet/${subformLayoutSetId}`,
+    );
   });
 
   it('should render the recommended next action card if no subform is selected', () => {
