@@ -8,8 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioSearch } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioSearch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useSearchComponent } from './useSearchComponent';
 
@@ -43,6 +42,7 @@ export const AddItemContent = ({
             label={t('ux_editor.add_item.component_search_label')}
             value={searchText}
             onChange={handleSearchChange}
+            clearButtonLabel={t('general.search_clear_button_title')}
           />
           <StudioParagraph>
             {t('ux_editor.add_item.component_more_info_description')}

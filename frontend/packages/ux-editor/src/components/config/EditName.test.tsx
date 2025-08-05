@@ -1,36 +1,30 @@
 import React from 'react';
-import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from '../../../testing/mocks';
-import { EditGroupName, type EditGroupNameProps } from './EditGroupName';
+import { renderWithProviders } from '../../testing/mocks';
+import { EditName, type EditNameProps } from './EditName';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('EditGroupName', () => {
-  it('should render the group name in reading mode', async () => {
-    renderEditGroupName({});
+describe('EditName', () => {
+  it('should render the name in reading mode', async () => {
+    renderEditName({});
 
     expect(readModeButton()).toBeInTheDocument();
   });
 
-  it('should render placeholder when group name is empty', async () => {
-    renderEditGroupName({ group: { name: '', order: [{ id: 'page1' }, { id: 'page2' }] } });
-    expect(readModeButton()).toHaveTextContent(textMock('ux_editor.page_group.name'));
-  });
-
-  it('should start editing when clicking on the group name', async () => {
+  it('should start editing when clicking on the name', async () => {
     const user = userEvent.setup();
-    renderEditGroupName({});
+    renderEditName({});
 
     await user.click(readModeButton());
 
     expect(nameTextField()).toBeInTheDocument();
   });
 
-  it('should call onChange when saving the group name', async () => {
+  it('should call onChange when saving the name', async () => {
     const user = userEvent.setup();
     const onChangeMock = jest.fn();
-    renderEditGroupName({ onChange: onChangeMock });
+    renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
     await user.clear(nameTextField());
@@ -44,7 +38,7 @@ describe('EditGroupName', () => {
   it('should call onChange when clicking enter in the text field', async () => {
     const user = userEvent.setup();
     const onChangeMock = jest.fn();
-    renderEditGroupName({ onChange: onChangeMock });
+    renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
     await user.clear(nameTextField());
@@ -57,7 +51,7 @@ describe('EditGroupName', () => {
   it('should cancel editing when clicking escape in the text field', async () => {
     const user = userEvent.setup();
     const onChangeMock = jest.fn();
-    renderEditGroupName({ onChange: onChangeMock });
+    renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
     await user.clear(nameTextField());
@@ -67,10 +61,11 @@ describe('EditGroupName', () => {
     expect(readModeButton()).toBeInTheDocument();
   });
 
-  it('should cancel editing and revert to original group name', async () => {
+  it('should cancel editing and revert to original name', async () => {
     const user = userEvent.setup();
     const onChangeMock = jest.fn();
-    renderEditGroupName({ onChange: onChangeMock });
+    const originalNameValue = 'testName123';
+    renderEditName({ name: originalNameValue, onChange: onChangeMock });
 
     await user.click(readModeButton());
     await user.clear(nameTextField());
@@ -80,7 +75,7 @@ describe('EditGroupName', () => {
     expect(onChangeMock).not.toHaveBeenCalled();
     expect(readModeButton()).toBeInTheDocument();
     await user.click(readModeButton());
-    expect(nameTextField()).toHaveValue(mockGroupName);
+    expect(nameTextField()).toHaveValue(originalNameValue);
   });
 });
 
@@ -91,14 +86,13 @@ const nameTextField = () =>
 const saveButton = () => screen.getByRole('button', { name: textMock('general.save') });
 const cancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
-const mockGroupName = 'testgroup';
-
-const renderEditGroupName = (componentProps: Partial<EditGroupNameProps>) => {
-  const groupModelMock: GroupModel = {
-    name: mockGroupName,
-    order: [{ id: 'testlayout 1' }, { id: 'testlayout 2' }],
-  };
+const renderEditName = (componentProps: Partial<EditNameProps>) => {
   return renderWithProviders(
-    <EditGroupName group={groupModelMock} onChange={jest.fn()} {...componentProps} />,
+    <EditName
+      name='nameMock'
+      label={textMock('ux_editor.page_group.name')}
+      onChange={jest.fn()}
+      {...componentProps}
+    />,
   );
 };
