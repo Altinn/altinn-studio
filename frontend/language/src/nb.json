@@ -1642,7 +1642,6 @@
   "ux_editor.component_properties.subform.layout_set_is_missing_content_heading": "Underskjemaet ditt mangler innhold.",
   "ux_editor.component_properties.subform.layout_set_is_missing_content_paragraph": "Denne tabellen bruker underskjemaet for å hente feltene og tekstene som skal vises i tabellen. Velg Utform underskjemaet for å legge inn innhold.",
   "ux_editor.component_properties.subform.no_existing_layout_set_create_content": "Du må først utforme underskjemaet, med de feltene og tekstene du vil vise i tabellen.",
-  "ux_editor.component_properties.subform.no_existing_layout_set_empty_subform": "Når du velger Lag underskjema, oppretter vi et tomt underskjema for deg, og legger til i listen med sider du kan utforme.",
   "ux_editor.component_properties.subform.no_existing_layout_set_header": "Før du kan sette opp Tabell for underskjema, må du lage underskjemaet",
   "ux_editor.component_properties.subform.no_existing_layout_set_instruction_datamodel": "Velg et datamodellfelt og bekreft med den grønne haken.",
   "ux_editor.component_properties.subform.no_existing_layout_set_instruction_design": "Gå til Utform underskjemaet og lag innholdet til det.",
