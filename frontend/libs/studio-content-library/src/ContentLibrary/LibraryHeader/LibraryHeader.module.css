@@ -1,15 +1,14 @@
 .libraryHeading {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-1);
-  padding: var(--fds-spacing-4);
-  border-bottom: solid 1px var(--fds-semantic-border-neutral-subtle);
+  gap: var(--ds-size-1);
+  padding: var(--ds-size-5);
+  border-bottom: solid 1px var(--ds-color-neutral-border-subtle);
 }
 
 .headingIcon {
   display: flex;
-  color: var(--fds-semantic-text-neutral-default);
-  font-size: var(--fds-sizing-10);
+  font-size: var(--ds-size-11);
 }
 
 .headingText {

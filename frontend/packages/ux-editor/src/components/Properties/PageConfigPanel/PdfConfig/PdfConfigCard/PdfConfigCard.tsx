@@ -1,11 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './PdfConfigCard.module.css';
-import {
-  StudioCard,
-  StudioHeading,
-  StudioParagraph,
-  StudioSwitch,
-} from '@studio/components-legacy';
+import { StudioHeading, StudioSwitch } from '@studio/components-legacy';
+import { StudioParagraph, StudioCard } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';
 import { useSavableFormLayoutSettings } from '../../../../../hooks/useSavableFormLayoutSettings';
@@ -35,7 +31,7 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
 
   return (
     <StudioCard color='neutral' className={classes.card}>
-      <StudioCard.Header className={classes.headerWrapper}>
+      <div className={classes.headerWrapper}>
         <StudioHeading level={2} size='2xs'>
           {t('ux_editor.page_config_pdf_card_heading')}
         </StudioHeading>
@@ -45,15 +41,9 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
           size='sm'
           aria-label={switchAriaLabel}
         />
-      </StudioCard.Header>
-      <StudioCard.Content>
-        <StudioParagraph size='sm' spacing>
-          {t('ux_editor.page_config_pdf_card_text_top')}
-        </StudioParagraph>
-        <StudioParagraph size='sm'>
-          {t('ux_editor.page_config_pdf_card_text_bottom')}
-        </StudioParagraph>
-      </StudioCard.Content>
+      </div>
+      <StudioParagraph spacing>{t('ux_editor.page_config_pdf_card_text_top')}</StudioParagraph>
+      <StudioParagraph>{t('ux_editor.page_config_pdf_card_text_bottom')}</StudioParagraph>
     </StudioCard>
   );
 };
