@@ -2,7 +2,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Altinn.Studio.Designer.Models.App;
 
 namespace Altinn.Studio.Designer.Helpers;
 
@@ -65,7 +64,9 @@ public static class ApplicationMetadataJsonHelper
         foreach (var property in obj)
         {
             if (string.IsNullOrEmpty(property.Key))
+            {
                 continue;
+            }
 
             return char.IsUpper(property.Key[0]);
         }
