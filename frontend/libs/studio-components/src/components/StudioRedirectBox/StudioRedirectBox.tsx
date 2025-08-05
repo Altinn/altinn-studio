@@ -1,25 +1,22 @@
 import React, { type ReactElement, type HTMLAttributes } from 'react';
 import cn from 'classnames';
 import classes from './StudioRedirectBox.module.css';
-import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 
 export type StudioRedirectBoxProps = {
   title: string;
 } & HTMLAttributes<HTMLDivElement>;
 
-/**
- * @deprecated - Use `StudioRedirectBox` from `@studio/components` instead.
- */
-export const StudioRedirectBox = ({
+export function StudioRedirectBox({
   title,
   children,
   className: givenClassName,
-}: StudioRedirectBoxProps): ReactElement => {
+}: StudioRedirectBoxProps): ReactElement {
   const className = cn(classes.wrapper, givenClassName);
   return (
     <div className={className}>
-      <StudioLabelAsParagraph size='small'>{title}</StudioLabelAsParagraph>
+      <StudioLabelAsParagraph>{title}deded</StudioLabelAsParagraph>
       <div className={classes.children}>{children}</div>
     </div>
   );
-};
+}
