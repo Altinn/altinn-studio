@@ -5,6 +5,9 @@ import { StudioLabelWrapper } from '../components';
 
 type ElementType = HTMLInputElement | HTMLTextAreaElement;
 
+/**
+ * @deprecated - Not needed when using the new `StudioTextfield` component.
+ */
 export function useTextInputProps<E extends ElementType>(
   props: SharedTextInputProps<E>,
 ): Omit<SharedTextInputProps<E>, keyof AdditionalProps> {
