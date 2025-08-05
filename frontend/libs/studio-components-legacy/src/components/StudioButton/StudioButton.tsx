@@ -19,6 +19,9 @@ export type StudioButtonProps = Override<
   Omit<ButtonProps, 'asChild'>
 >;
 
+/**
+ * @deprecated Use `StudioButton` from `@studio/components` instead.
+ */
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef(
   <As extends ElementType = 'button'>(
     {
