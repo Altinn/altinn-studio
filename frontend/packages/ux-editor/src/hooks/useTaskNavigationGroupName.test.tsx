@@ -4,8 +4,12 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@studio/testing/testids';
 import { layoutSet1NameMock, layoutSetsExtendedMock } from '../testing/layoutSetsMock';
+
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org, app, layoutSet }),
+}));
 
 const mockTask = {
   name: 'Test Task',
@@ -37,5 +41,6 @@ const renderUseTaskNames = (task: TaskNavigationGroup) => {
 
   return renderHookWithProviders(() => useTaskNavigationGroupName(task), {
     queryClient,
+    initialEntries: [`/${org}/${app}/${layoutSet}`],
   });
 };

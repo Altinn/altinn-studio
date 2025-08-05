@@ -7,7 +7,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@studio/icons';
-import { StudioPopover, StudioButton, StudioLink } from '@studio/components';
+import { StudioPopover, StudioButton } from '@studio/components';
 import { StudioDivider } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import classes from './TaskAction.module.css';
@@ -18,7 +18,7 @@ import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNav
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 import { getLayoutSetIdForTask, isDefaultReceiptTask } from '../Settings/SettingsUtils';
 import { EditNameAction } from './EditNameAction';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import getLayoutSetPath from '../../utils/routeUtils';
 
 export type TaskActionProps = {
@@ -39,7 +39,6 @@ export const TaskAction = ({ task, tasks, index, isNavigationMode }: TaskActionP
   const { mutate: updateTaskNavigationGroup } = useTaskNavigationGroupMutation(org, app);
   const { data: taskNavigationGroups } = useTaskNavigationGroupQuery(org, app);
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false);
 
   const addTaskToNavigationGroup = () => {

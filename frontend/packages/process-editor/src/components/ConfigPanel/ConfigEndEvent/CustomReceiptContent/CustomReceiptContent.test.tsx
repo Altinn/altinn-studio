@@ -10,6 +10,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
 describe('CustomReceiptContent', () => {
   afterEach(() => jest.clearAllMocks());
@@ -105,13 +106,20 @@ describe('CustomReceiptContent', () => {
 });
 
 const renderCustomReceiptContent = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
-  return render(
-    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <CustomReceiptContent />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
-  );
+  const router = createMemoryRouter([
+    {
+      path: '/',
+      element: (
+        <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <CustomReceiptContent />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      ),
+    },
+  ]);
+
+  return render(<RouterProvider router={router} />);
 };
