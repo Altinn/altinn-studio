@@ -4,6 +4,9 @@ import type { ComponentProps } from 'react';
 
 type StudioTableComponent = typeof Table;
 
+/**
+ * @deprecated Use `StudioTable` from `@studio/components` instead.
+ */
 export const StudioTable: StudioTableComponent = StudioTableRoot as StudioTableComponent;
 
 StudioTable.Head = Table.Head;

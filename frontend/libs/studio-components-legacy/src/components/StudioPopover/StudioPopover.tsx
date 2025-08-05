@@ -35,6 +35,9 @@ type StudioPopoverComponent = typeof StudioPopoverRoot & {
   Content: typeof StudioPopoverContent;
 };
 
+/**
+ * @deprecated Use `StudioPopover` from `@studio/components` instead.
+ */
 const StudioPopover = StudioPopoverRoot as StudioPopoverComponent;
 
 StudioPopover.Trigger = StudioPopoverTrigger;

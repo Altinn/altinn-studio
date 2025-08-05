@@ -11,6 +11,9 @@ type StudioModalComponent = {
   Trigger: typeof StudioModalTrigger;
 };
 
+/**
+ * @deprecated Use `StudioDialog` from `@studio/components` instead.
+ */
 export const StudioModal: StudioModalComponent = {
   Root: StudioModalRoot,
   Dialog: StudioModalDialog,

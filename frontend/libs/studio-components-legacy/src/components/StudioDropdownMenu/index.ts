@@ -7,6 +7,9 @@ type StudioDropdownMenuComponent = typeof Root & {
   Item: typeof StudioDropdownMenuItem;
 };
 
+/**
+ * @deprecated Use `StudioDropdown` from `@studio/components` instead.
+ */
 const StudioDropdownMenu = Root as StudioDropdownMenuComponent;
 
 StudioDropdownMenu.Group = DropdownMenuGroup;

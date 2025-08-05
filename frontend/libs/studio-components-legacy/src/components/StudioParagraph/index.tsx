@@ -1,1 +1,6 @@
-export { Paragraph as StudioParagraph } from '@digdir/designsystemet-react';
+export {
+  /**
+   * @deprecated Use `StudioParagraph` from `@studio/components` instead.
+   */
+  Paragraph as StudioParagraph,
+} from '@digdir/designsystemet-react';
