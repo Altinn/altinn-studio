@@ -21,7 +21,7 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppFailedRequest>> GetAll(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AppFailedRequest>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);

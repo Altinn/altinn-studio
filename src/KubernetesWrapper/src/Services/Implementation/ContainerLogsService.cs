@@ -21,7 +21,7 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ContainerLog>> GetAll(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ContainerLog>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);
@@ -43,6 +43,8 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
                 | where ContainerName == 'deployment'
                 | project TimeGenerated, LogMessage
                 | take {take}";
+
+        System.Console.WriteLine("query: " + query);
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 

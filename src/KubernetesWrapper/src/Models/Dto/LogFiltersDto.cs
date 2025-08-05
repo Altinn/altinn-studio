@@ -8,8 +8,8 @@ public class LogFiltersDto
     public string App { get; set; }
 
     [Range(0, LogQueryLimits.MaxTake)]
-    public int Take { get; set; }
+    public int Take { get; set; } = 50;
 
     [Range(0, LogQueryLimits.MaxTime)]
-    public double Time { get; set; }
+    public double Time { get; set; } = 1;
 }
