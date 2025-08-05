@@ -29,9 +29,7 @@ describe('EditPageId', () => {
 
   it('renders given page ID', () => {
     renderEditPageId({});
-    screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    });
+    expect(pageIdButton()).toBeInTheDocument();
   });
 
   it('calls updateFormLayoutName and textIdMutation with new page ID when changed', async () => {
@@ -44,16 +42,10 @@ describe('EditPageId', () => {
       modifyPage,
     };
     renderEditPageId({ queries: mockQueries });
-    const pageIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    });
-    await user.click(pageIdButton);
-    const editPageId = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    );
-    await user.clear(editPageId);
-    await user.type(editPageId, newPageName);
-    await user.tab();
+    await user.click(pageIdButton());
+    await user.clear(pageIdTextbox());
+    await user.type(pageIdTextbox(), newPageName);
+    await user.click(pageIdSaveButton());
     expect(modifyPage).toHaveBeenCalledTimes(1);
     expect(modifyPage).toHaveBeenCalledWith(org, app, layoutSetName, selectedLayout, {
       id: newPageName,
@@ -70,15 +62,9 @@ describe('EditPageId', () => {
       updateFormLayoutName,
     };
     renderEditPageId({ queries: mockQueries });
-    const pageIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    });
-    await user.click(pageIdButton);
-    const editPageId = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    );
-    await user.click(editPageId);
-    await user.tab();
+    await user.click(pageIdButton());
+    await user.click(pageIdTextbox());
+    await user.click(pageIdCancelButton());
     expect(updateFormLayoutName).not.toHaveBeenCalled();
     expect(updateTextId).toHaveBeenCalledTimes(0);
   });
@@ -89,15 +75,9 @@ describe('EditPageId', () => {
     renderEditPageId({});
     const notUniqueErrorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(notUniqueErrorMessage).not.toBeInTheDocument();
-    const pageIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    });
-    await user.click(pageIdButton);
-    const editPageId = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
-    });
-    await user.clear(editPageId);
-    await user.type(editPageId, existingPageName);
+    await user.click(pageIdButton());
+    await user.clear(pageIdTextbox());
+    await user.type(pageIdTextbox(), existingPageName);
     screen.getByText(textMock('ux_editor.pages_error_unique'));
   });
 
@@ -113,7 +93,7 @@ describe('EditPageId', () => {
     await user.click(pageIdButton());
     await user.clear(pageIdTextbox());
     await user.type(pageIdTextbox(), newPageName);
-    await user.tab();
+    await user.click(pageIdSaveButton());
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     expect(modifyPage).toHaveBeenCalledTimes(0);
   });
@@ -127,7 +107,7 @@ describe('EditPageId', () => {
     await user.click(pageIdButton());
     await user.clear(pageIdTextbox());
     await user.type(pageIdTextbox(), newPageName);
-    await user.tab();
+    await user.click(pageIdSaveButton());
     expect(modifyPage).toHaveBeenCalledTimes(1);
     expect(changePageGroups).toHaveBeenCalledTimes(0);
   });
@@ -141,6 +121,16 @@ const pageIdButton = () =>
 const pageIdTextbox = () =>
   screen.getByRole('textbox', {
     name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
+  });
+
+const pageIdSaveButton = () =>
+  screen.getByRole('button', {
+    name: textMock('general.save'),
+  });
+
+const pageIdCancelButton = () =>
+  screen.getByRole('button', {
+    name: textMock('general.cancel'),
   });
 
 type renderEditPageIdParams = {
@@ -160,5 +150,10 @@ const renderEditPageId = ({
     layoutSettingsMock,
   );
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesMock);
-  return renderWithProviders(<EditPageId layoutName={selectedLayout} />, { queries, queryClient });
+  const getPages = jest.fn().mockResolvedValue(pagesMock);
+
+  return renderWithProviders(<EditPageId layoutName={selectedLayout} />, {
+    queries: { ...queries, getPages },
+    queryClient,
+  });
 };
