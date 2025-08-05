@@ -117,10 +117,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
 
             string url = $"{VersionPrefix("ttd", app)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
-            string relativeOldLayoutPath = Path.Combine("App", "ui", layoutSetName, "layouts", $"{layoutName}.json");
-            string relativeNewLayoutPath = Path.Combine("App", "ui", layoutSetName, "layouts", $"{newLayoutName}.json");
-            string oldLayoutPath = Path.Combine(TestRepoPath, relativeOldLayoutPath);
-            string newLayoutPath = Path.Combine(TestRepoPath, relativeNewLayoutPath);
+            string oldLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{layoutName}.json");
+            string newLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{newLayoutName}.json");
 
             Directory.CreateDirectory(Path.GetDirectoryName(oldLayoutPath));
             await File.WriteAllTextAsync(oldLayoutPath, "{}");
