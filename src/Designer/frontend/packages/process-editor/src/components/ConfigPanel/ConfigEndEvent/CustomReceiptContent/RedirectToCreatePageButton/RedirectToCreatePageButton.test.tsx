@@ -9,28 +9,56 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 describe('RedirectToCreatePageButton', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  it('Checks that the button to go to "Utforming" page has the correct href', () => {
+  it('Calls navigate when the button is clicked', async () => {
+    const user = userEvent.setup();
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {
       name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_link'),
     });
-    expect(navigationButton).toHaveAttribute('href', '/editor/testOrg/testApp/ui-editor');
+
+    await user.click(navigationButton);
+    expect(mockNavigate).toHaveBeenCalledWith('/testOrg/testApp/ui-editor/layoutSet/testId');
   });
 });
 
 const renderRedirectToCreatePageButton = () => {
-  return render(
-    <BpmnApiContext.Provider value={mockBpmnApiContextValue}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <RedirectToCreatePageButton />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/:org/:app/*',
+        element: (
+          <BpmnApiContext.Provider
+            value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
+          >
+            <BpmnContext.Provider value={mockBpmnContextValue}>
+              <BpmnConfigPanelFormContextProvider>
+                <RedirectToCreatePageButton />
+              </BpmnConfigPanelFormContextProvider>
+            </BpmnContext.Provider>
+          </BpmnApiContext.Provider>
+        ),
+      },
+    ],
+    {
+      initialEntries: ['/testOrg/testApp/process-editor'],
+    },
   );
+
+  return render(<RouterProvider router={router} />);
 };

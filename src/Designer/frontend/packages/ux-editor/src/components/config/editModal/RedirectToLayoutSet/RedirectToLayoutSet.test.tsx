@@ -8,9 +8,18 @@ import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
 
 const subformLayoutSetIdMock = 'subformLayoutSetId';
-const setSelectedFormLayoutSetMock = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 describe('RedirectToLayoutSet', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('displays a redirect button to design layout set for the subform if set', () => {
     renderRedirectToLayoutSet();
     const redirectBoxTitle = screen.queryByText(
@@ -19,16 +28,17 @@ describe('RedirectToLayoutSet', () => {
     expect(redirectBoxTitle).toBeInTheDocument();
   });
 
-  it('calls setSelectedFormLayoutSet when clicking the redirect button', async () => {
+  it('calls navigate when clicking the redirect button', async () => {
     const user = userEvent.setup();
-    const subformLayoutSetId = 'subformLayoutSetId';
     renderRedirectToLayoutSet();
     const redirectButton = screen.queryByRole('button', {
       name: textMock('top_menu.create'),
     });
     await user.click(redirectButton);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subformLayoutSetId);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/testOrg/testApp/ui-editor/layoutSet/subformLayoutSetId',
+    );
   });
 });
 

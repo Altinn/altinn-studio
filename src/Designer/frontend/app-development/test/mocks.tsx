@@ -75,7 +75,7 @@ type AppRouterProps = {
 
 function AppRouter({ params: { org, app }, children }: AppRouterProps): ReactElement {
   const route = `/${org}/${app}`;
-  const path = '/:org/:app';
+  const path = '/:org/:app/*';
   return (
     <MemoryRouter initialEntries={[route]}>
       <Routes>
