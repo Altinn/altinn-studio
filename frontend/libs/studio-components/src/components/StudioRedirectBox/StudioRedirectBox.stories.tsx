@@ -19,7 +19,7 @@ export const Preview: Story = (args): React.ReactElement => <StudioRedirectBox {
 
 Preview.args = {
   title: 'title',
-  children: <StudioParagraph size='sm'>Children text</StudioParagraph>,
+  children: <StudioParagraph>Children text</StudioParagraph>,
 };
 
 export default meta;
