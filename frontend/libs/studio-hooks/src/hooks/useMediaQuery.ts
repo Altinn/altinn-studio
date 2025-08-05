@@ -4,9 +4,6 @@ function getMatches(query: string): boolean {
   return window.matchMedia(query).matches ?? false;
 }
 
-/**
- * @deprecated Use `useMediaQuery` from `studio-hooks` instead.
- */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState<boolean>(() => getMatches(query));
 
