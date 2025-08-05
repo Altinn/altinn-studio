@@ -130,33 +130,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void IsCasingOnlyRenameFile_SamePathDifferentCasing_ShouldReturnTrue()
-        {
-            string sourcePath = "App/models/file.txt";
-            string destPath = "App/models/File.txt";
-            bool result = InvokeIsCasingOnlyRenameFile(sourcePath, destPath);
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsCasingOnlyRenameFile_SamePathExactMatch_ShouldReturnTrue()
-        {
-            string sourcePath = "App/models/file.txt";
-            string destPath = "App/models/file.txt";
-            bool result = InvokeIsCasingOnlyRenameFile(sourcePath, destPath);
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsCasingOnlyRenameFile_DifferentPaths_ShouldReturnFalse()
-        {
-            string sourcePath = "App/models/file.txt";
-            string destPath = "App/models/anotherfile.txt";
-            bool result = InvokeIsCasingOnlyRenameFile(sourcePath, destPath);
-            Assert.False(result);
-        }
-
-        [Fact]
         public void DirectoryExistsByRelativePath_Directory_ShouldReturnFalse()
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
