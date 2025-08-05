@@ -12,6 +12,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
 const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
@@ -170,13 +171,20 @@ describe('CustomReceipt', () => {
 });
 
 const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
-  return render(
-    <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <CustomReceipt />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
-  );
+  const router = createMemoryRouter([
+    {
+      path: '/',
+      element: (
+        <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <CustomReceipt />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      ),
+    },
+  ]);
+
+  return render(<RouterProvider router={router} />);
 };
