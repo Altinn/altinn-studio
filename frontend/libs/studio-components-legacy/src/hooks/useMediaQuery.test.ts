@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useMediaQuery } from './useMediaQuery';
 import MockedFunction = jest.MockedFunction;
 
