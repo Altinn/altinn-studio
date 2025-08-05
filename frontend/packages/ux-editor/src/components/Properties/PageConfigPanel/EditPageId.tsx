@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext, useText } from '../../../hooks';
@@ -12,6 +11,7 @@ import { ItemType } from '../ItemType';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner } from '@studio/components';
+import { EditName } from '../../config/EditName';
 
 export interface EditPageIdProps {
   layoutName: string;
@@ -20,7 +20,7 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutateAsync: modifyPageMutation, isPending } = useModifyPageMutation(
+  const { mutateAsync: modifyPageMutation } = useModifyPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
@@ -41,8 +41,8 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   if (pageQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
   const isUsingGroups = isPagesModelWithGroups(pagesModel);
   const pageNames = isUsingGroups
-    ? pagesModel?.groups.flatMap((group) => group.order)
-    : pagesModel?.pages;
+    ? pagesModel.groups.flatMap((group) => group.order)
+    : pagesModel.pages;
 
   const handleSaveNewName = async (newName: string) => {
     if (newName === pageName) return;
@@ -70,23 +70,22 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
     setSelectedItem({ type: ItemType.Page, id: newName });
   };
 
+  const validationFn = (value: string) => {
+    const validationResult = getPageNameErrorKey(
+      value,
+      pageName,
+      pageNames.map(({ id }) => id),
+    );
+    return validationResult && t(validationResult);
+  };
+
   return (
-    <div className={classes.changePageId}>
-      <StudioToggleableTextfield
-        customValidation={(value: string) => {
-          const validationResult = getPageNameErrorKey(
-            value,
-            pageName,
-            pageNames.map(({ id }) => id),
-          );
-          return validationResult && t(validationResult);
-        }}
-        disabled={isPending}
-        label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        onBlur={(event) => handleSaveNewName(event.target.value)}
-        title={t('ux_editor.modal_properties_textResourceBindings_page_id')}
-        value={pageName}
-      />
-    </div>
+    <EditName
+      className={classes.editName}
+      label={t('ux_editor.modal_properties_textResourceBindings_page_id')}
+      name={pageName}
+      onChange={handleSaveNewName}
+      validationFn={validationFn}
+    />
   );
 };
