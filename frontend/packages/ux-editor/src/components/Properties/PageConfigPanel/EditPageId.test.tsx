@@ -115,12 +115,12 @@ describe('EditPageId', () => {
 
 const pageIdButton = () =>
   screen.getByRole('button', {
-    name: textMock('ux_editor.page'),
+    name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
   });
 
 const pageIdTextbox = () =>
   screen.getByRole('textbox', {
-    name: textMock('ux_editor.page'),
+    name: textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
   });
 
 const pageIdSaveButton = () =>
