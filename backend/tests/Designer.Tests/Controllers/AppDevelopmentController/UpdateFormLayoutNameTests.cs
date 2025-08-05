@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -129,11 +130,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            using var response = await HttpClient.SendAsync(request);
+            using HttpResponseMessage response = await HttpClient.SendAsync(request);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.False(File.Exists(oldLayoutPath));
-            Assert.True(File.Exists(newLayoutPath));
+            List<string> list = [.. Directory.GetFiles(Path.GetDirectoryName(oldLayoutPath))];
+            Assert.DoesNotContain(oldLayoutPath, list);
+            Assert.Contains(newLayoutPath, list);
         }
     }
 }
