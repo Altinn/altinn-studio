@@ -15,6 +15,7 @@ public class OrgContentServiceTests
 {
     private readonly Mock<IOrgCodeListService> _mockOrgCodeListService;
     private readonly Mock<IOrgTextsService> _mockOrgTextsService;
+    private readonly Mock<IGiteaContentLibraryService> _mockGiteaService;
     private readonly OrgContentService _orgContentService;
     private readonly AltinnOrgContext _context;
     private const string OrgName = "ttd";
@@ -25,7 +26,8 @@ public class OrgContentServiceTests
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = new();
         _mockOrgCodeListService = new Mock<IOrgCodeListService>();
         _mockOrgTextsService = new Mock<IOrgTextsService>();
-        _orgContentService = new OrgContentService(altinnGitRepositoryFactory.Object, _mockOrgCodeListService.Object, _mockOrgTextsService.Object);
+        _mockGiteaService = new Mock<IGiteaContentLibraryService>();
+        _orgContentService = new OrgContentService(altinnGitRepositoryFactory.Object, _mockGiteaService.Object);
         _context = AltinnOrgContext.FromOrg(OrgName, DeveloperName);
     }
 
@@ -36,11 +38,11 @@ public class OrgContentServiceTests
         var codeListIds = new List<string> { "codelist1", "codelist2" };
         var textIds = new List<string> { "text1", "text2" };
 
-        _mockOrgCodeListService
-            .Setup(s => s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None))
-            .Returns(codeListIds);
-        _mockOrgTextsService
-            .Setup(s => s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()))
+        _mockGiteaService
+            .Setup(s => s.GetCodeListIds(OrgName))
+            .ReturnsAsync(codeListIds);
+        _mockGiteaService
+            .Setup(s => s.GetTextIds(OrgName))
             .ReturnsAsync(textIds);
 
         // Act
@@ -60,9 +62,9 @@ public class OrgContentServiceTests
     {
         // Arrange
         var codeListIds = new List<string> { "codelist1", "codelist2" };
-        _mockOrgCodeListService
-            .Setup(s => s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None))
-            .Returns(codeListIds);
+        _mockGiteaService
+            .Setup(s => s.GetCodeListIds(OrgName))
+            .ReturnsAsync(codeListIds);
 
         // Act
         var contentList = await _orgContentService.GetOrgContentReferences(LibraryContentType.CodeList, _context);
@@ -74,8 +76,7 @@ public class OrgContentServiceTests
         Assert.Contains(contentList, contentItem => contentItem.Id == "codelist1");
         Assert.Contains(contentList, contentItem => contentItem.Id == "codelist2");
 
-        _mockOrgCodeListService.Verify(s =>
-            s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None), Times.Once);
+        _mockGiteaService.Verify(s => s.GetCodeListIds(OrgName), Times.Once);
     }
 
     [Fact]
@@ -83,8 +84,8 @@ public class OrgContentServiceTests
     {
         // Arrange
         var textIds = new List<string> { "text1", "text2", "text3" };
-        _mockOrgTextsService
-            .Setup(s => s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()))
+        _mockGiteaService
+            .Setup(s => s.GetTextIds(OrgName))
             .ReturnsAsync(textIds);
 
         // Act
@@ -98,8 +99,8 @@ public class OrgContentServiceTests
         Assert.Contains(contentList, contentItem => contentItem.Id == "text2");
         Assert.Contains(contentList, contentItem => contentItem.Id == "text3");
 
-        _mockOrgTextsService.Verify(s =>
-            s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()), Times.Once);
+        _mockGiteaService.Verify(s =>
+            s.GetTextIds(OrgName), Times.Once);
     }
 
     [Fact]
@@ -121,24 +122,26 @@ public class OrgContentServiceTests
     {
         // Arrange
         using var cts = new CancellationTokenSource();
-        var token = cts.Token;
         var textIds = new List<string> { "text1" };
 
-        _mockOrgTextsService
-            .Setup(s => s.GetTextIds(OrgName, DeveloperName, token))
+        _mockGiteaService
+            .Setup(s => s.GetTextIds(OrgName))
             .ReturnsAsync(textIds);
 
         // Act
-        await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, _context, token);
+        await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, _context);
 
         // Assert
-        _mockOrgTextsService.Verify(s => s.GetTextIds(OrgName, DeveloperName, token), Times.Once);
+        _mockGiteaService.Verify(s => s.GetTextIds(OrgName), Times.Once);
     }
 
     [Fact]
     public async Task GetCodeListReferences_WithNoIdsFound_ReturnsEmptyList()
     {
         // Arrange
+        _mockGiteaService
+            .Setup(s => s.GetCodeListIds(OrgName))
+            .ReturnsAsync([]);
         _mockOrgCodeListService
             .Setup(s => s.GetCodeListIds(OrgName, DeveloperName, CancellationToken.None))
             .Returns([]);
@@ -154,8 +157,8 @@ public class OrgContentServiceTests
     public async Task GetTextResourceReferences_WithNoIdsFound_ReturnsEmptyList()
     {
         // Arrange
-        _mockOrgTextsService
-            .Setup(s => s.GetTextIds(OrgName, DeveloperName, It.IsAny<CancellationToken>()))
+        _mockGiteaService
+            .Setup(s => s.GetTextIds(OrgName))
             .ReturnsAsync([]);
 
         // Act

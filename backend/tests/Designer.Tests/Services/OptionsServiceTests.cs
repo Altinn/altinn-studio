@@ -10,20 +10,36 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
 public class OptionsServiceTests : IDisposable
 {
+    private readonly Mock<IGiteaContentLibraryService> _mockGiteaApiWrapper;
     private string TargetOrgName { get; set; }
     private string TestRepoPath { get; set; }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
+    private const string CodeListFolderPath = "CodeLists/";
+    private const string TextResourceFolderPath = "Texts/";
     private const bool OverrideExistingTextResources = false;
+
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
+    public OptionsServiceTests()
+    {
+        _mockGiteaApiWrapper = new Mock<IGiteaContentLibraryService>();
+    }
 
     [Fact]
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
@@ -274,8 +290,28 @@ public class OptionsServiceTests : IDisposable
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "CodeLists/codeListString.json");
+        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(CodeListFolderPath, $"{OptionListId}.json"));
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
+
+        // Find a way to automate the mocks.
+
+        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName("nb")));
+        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName("en")));
+        TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(nbExpectedTextResourceString, s_jsonOptions);
+        TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(enExpectedTextResourceString, s_jsonOptions);
+
+        _mockGiteaApiWrapper
+            .Setup(s => s.GetCodeList(TargetOrgName, OptionListId))
+            .Returns(Task.FromResult(expectedOptionList));
+        _mockGiteaApiWrapper
+            .Setup(s => s.GetLanguages(TargetOrgName))
+            .ReturnsAsync(["en", "nb"]);
+        _mockGiteaApiWrapper
+            .Setup(s => s.GetTextResource(TargetOrgName, "nb"))
+            .Returns(Task.FromResult(nbExpectedTextResource));
+        _mockGiteaApiWrapper
+            .Setup(s => s.GetTextResource(TargetOrgName, "en"))
+            .Returns(Task.FromResult(enExpectedTextResource));
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -303,6 +339,11 @@ public class OptionsServiceTests : IDisposable
         Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
         Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
+
+        _mockGiteaApiWrapper.Verify(s => s.GetCodeList(TargetOrgName, OptionListId), Times.Once);
+        _mockGiteaApiWrapper.Verify(s => s.GetLanguages(TargetOrgName), Times.Once);
+        _mockGiteaApiWrapper.Verify(s => s.GetTextResource(TargetOrgName, "nb"), Times.Once);
+        _mockGiteaApiWrapper.Verify(s => s.GetTextResource(TargetOrgName, "en"), Times.Once);
     }
 
     [Fact]
@@ -334,12 +375,17 @@ public class OptionsServiceTests : IDisposable
         });
     }
 
-    private static OptionsService GetOptionsServiceForTest()
+    private OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, _mockGiteaApiWrapper.Object);
 
         return optionsService;
+    }
+
+    private static string GetTextResourceFileName(string languageCode)
+    {
+        return $"resource.{languageCode}.json";
     }
 
     public void Dispose()

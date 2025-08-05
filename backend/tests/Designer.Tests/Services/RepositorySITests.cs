@@ -329,7 +329,7 @@ namespace Designer.Tests.Services
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
-            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory);
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(new IGiteaMock()));
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 

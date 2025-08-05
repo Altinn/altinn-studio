@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -15,14 +13,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OrgContentService : IOrgContentService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IOrgCodeListService _orgCodeListService;
-    private readonly IOrgTextsService _orgTextsService;
+    private readonly IGiteaContentLibraryService _giteaContentLibraryService;
 
-    public OrgContentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IOrgCodeListService orgCodeListService, IOrgTextsService orgTextsService)
+    public OrgContentService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IGiteaContentLibraryService giteaContentLibraryService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _orgCodeListService = orgCodeListService;
-        _orgTextsService = orgTextsService;
+        _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <inheritdoc />
@@ -34,44 +32,44 @@ public class OrgContentService : IOrgContentService
     }
 
     /// <inheritdoc />
-    public async Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default)
+    public async Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context)
     {
         switch (contentType)
         {
             case LibraryContentType.CodeList:
-                return GetCodeListReferences(context, cancellationToken);
+                return await GetCodeListReferences(context);
 
             case LibraryContentType.TextResource:
-                return await GetTextResourceReferences(context, cancellationToken);
+                return await GetTextResourceReferences(context);
 
             case null:
-                return await GetAllReferences(context, cancellationToken);
+                return await GetAllReferences(context);
 
             default:
                 return [];
         }
     }
 
-    private async Task<List<LibraryContentReference>> GetAllReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<LibraryContentReference>> GetAllReferences(AltinnOrgContext context)
     {
-        var codeListContent = GetCodeListReferences(context, cancellationToken);
-        var textContent = await GetTextResourceReferences(context, cancellationToken);
+        var codeListContent = GetCodeListReferences(context);
+        var textContent = GetTextResourceReferences(context);
 
         var result = new List<LibraryContentReference>();
-        result.AddRange(codeListContent);
-        result.AddRange(textContent);
+        result.AddRange(await codeListContent);
+        result.AddRange(await textContent);
         return result;
     }
 
-    private List<LibraryContentReference> GetCodeListReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<LibraryContentReference>> GetCodeListReferences(AltinnOrgContext context)
     {
-        List<string> codeListIds = _orgCodeListService.GetCodeListIds(context.Org, context.DeveloperName, cancellationToken);
+        List<string> codeListIds = await _giteaContentLibraryService.GetCodeListIds(context.Org);
         return CreateContentReferences(LibraryContentType.CodeList, codeListIds, context.Org);
     }
 
-    private async Task<List<LibraryContentReference>> GetTextResourceReferences(AltinnOrgContext context, CancellationToken cancellationToken = default)
+    private async Task<List<LibraryContentReference>> GetTextResourceReferences(AltinnOrgContext context)
     {
-        List<string> textIds = await _orgTextsService.GetTextIds(context.Org, context.DeveloperName, cancellationToken);
+        List<string> textIds = await _giteaContentLibraryService.GetTextIds(context.Org);
         return CreateContentReferences(LibraryContentType.TextResource, textIds, context.Org);
     }
 

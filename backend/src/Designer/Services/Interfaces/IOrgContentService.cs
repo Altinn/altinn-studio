@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
@@ -17,9 +16,8 @@ public interface IOrgContentService
     /// </summary>
     /// <param name="contentType">The type of content to retrieve.</param>
     /// <param name="context">The organisation context.</param>
-    /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context);
 
     /// <summary>
     /// Checks if the organisation's content repository exists in the specified context.

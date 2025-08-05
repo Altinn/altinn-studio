@@ -22,14 +22,18 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IGiteaContentLibraryService _giteaContentLibraryService;
+
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="giteaContentLibraryService">ITempService</param>
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaContentLibraryService giteaContentLibraryService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <inheritdoc />
@@ -196,23 +200,24 @@ public class OptionsService : IOptionsService
 
     private async Task<List<Option>> CopyOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
     {
-        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
+        List<Option> codeList = await _giteaContentLibraryService.GetCodeList(org, optionListId);
         string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
         return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
     }
 
     private async Task<Dictionary<string, TextResource>> CopyTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overwriteTextResources, CancellationToken cancellationToken)
     {
-        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
-        List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        List<string> orgLanguageCodes = await _giteaContentLibraryService.GetLanguages(org);
         Dictionary<string, TextResource> importedLanguages = new();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
             List<TextResourceElement> appTextResourceElements = await RetrieveAppTextResourceElements(altinnAppGitRepository, orgLanguageCode, cancellationToken);
-            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(altinnOrgGitRepository, orgLanguageCode, optionList, cancellationToken);
+            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(org, orgLanguageCode, optionList);
 
             TextResource mergedTextResources = new()
             {
@@ -240,9 +245,9 @@ public class OptionsService : IOptionsService
 
     }
 
-    private static async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(AltinnOrgGitRepository altinnOrgGitRepository, string orgLanguageCode, List<Option> optionList, CancellationToken cancellationToken)
+    private async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(string org, string languageCode, List<Option> optionList)
     {
-        TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
+        TextResource orgTextResources = await _giteaContentLibraryService.GetTextResource(org, languageCode);
         HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
         return orgTextResources.Resources.Where(element => optionListTextResourceIds.Contains(element.Id)).ToList();
     }
@@ -299,25 +304,12 @@ public class OptionsService : IOptionsService
         await altinnGitRepository.SaveAltinnStudioSettings(settings);
     }
 
-    private (AltinnOrgGitRepository, AltinnAppGitRepository) GetAltinnRepositories(string org, string developer, string repo)
-    {
-        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        return (altinnOrgGitRepository, altinnAppGitRepository);
-    }
-
-    private AltinnOrgGitRepository GetStaticContentRepo(string org, string developer)
-    {
-        string repository = StaticContentRepoName(org);
-        return _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repository, developer);
-    }
-
     private static string ImportSourceName(string org)
     {
-        return $"{org}/{StaticContentRepoName(org)}";
+        return $"{org}/{GetContentRepoName(org)}";
     }
 
-    private static string StaticContentRepoName(string org)
+    private static string GetContentRepoName(string org)
     {
         return $"{org}-content";
     }
