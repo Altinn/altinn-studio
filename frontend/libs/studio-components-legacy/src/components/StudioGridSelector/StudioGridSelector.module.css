@@ -8,6 +8,7 @@
   --hover-square-color: var(--fds-semantic-surface-action-hover);
   --slider-width: min(100%, 500px);
   --thumb-width: calc(var(--slider-width) / 12);
+  max-width: var(--slider-width);
 }
 
 .sliderContainer.disabled {
