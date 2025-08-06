@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -18,7 +16,6 @@ using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -227,8 +224,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ApplicationMetadata applicationFromRepository = await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
-            await UpdateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
+            string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
+            await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId);
         }
 
         public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app)
@@ -246,7 +243,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
         /// <returns>The application metadata for an application.</returns>
-        private async Task<ApplicationMetadata> GetApplicationMetadataFromSpecificReference(string org, string app, string referenceId)
+        private async Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId)
         {
             var file = await _giteaApiWrapper.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
             if (string.IsNullOrEmpty(file.Content))
@@ -254,16 +251,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");
             }
 
-            // It's used to avoid sensibility to BOM
+            // Passing the file content through a MemoryStream to deal with potential BOM issues
             using var fileStream = new MemoryStream(Convert.FromBase64String(file.Content));
             using StreamReader utf8Reader = new(fileStream, Encoding.UTF8);
-            return JsonSerializer.Deserialize<ApplicationMetadata>(await utf8Reader.ReadToEndAsync(),
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                });
+            return await utf8Reader.ReadToEndAsync();
         }
 
         public bool ApplicationMetadataExistsInRepository(string org, string app)
@@ -273,12 +264,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return altinnAppGitRepository.ApplicationMetadataExists();
         }
 
-        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
+        private async Task UpdateApplicationMetadataInStorage(string org, string app, string applicationMetadataJson, string envName, string shortCommitId)
         {
-            applicationFromRepository.Id = $"{org}/{app}";
-            applicationFromRepository.VersionId = shortCommitId;
+            applicationMetadataJson = ApplicationMetadataJsonHelper.SetId(applicationMetadataJson, id: $"{org}/{app}");
+            applicationMetadataJson = ApplicationMetadataJsonHelper.SetVersionId(applicationMetadataJson, versionId: shortCommitId);
 
-            await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationFromRepository, envName);
+            await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationMetadataJson, envName);
         }
     }
 }
