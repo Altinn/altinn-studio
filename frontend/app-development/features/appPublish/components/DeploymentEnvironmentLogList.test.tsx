@@ -60,15 +60,13 @@ describe('DeploymentEnvironmentLogList', () => {
     render({
       pipelineDeploymentList: [pipelineDeployment],
     });
-    expect(screen.getByText(`${textMock('app_deployment.table.status')}`)).toBeInTheDocument();
-    expect(screen.getByText(`${textMock('app_deployment.table.version_col')}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.status'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.version_col'))).toBeInTheDocument();
     expect(
-      screen.getByText(`${textMock('app_deployment.table.available_version_col')}`),
+      screen.getByText(textMock('app_deployment.table.available_version_col')),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(`${textMock('app_deployment.table.deployed_by_col')}`),
-    ).toBeInTheDocument();
-    expect(screen.getByText(`${textMock('app_deployment.table.build_log')}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.deployed_by_col'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.build_log'))).toBeInTheDocument();
     expect(screen.getByText(pipelineDeployment.createdBy)).toBeInTheDocument();
   });
 
@@ -85,7 +83,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.none')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
     ).toBeInTheDocument();
   });
 
@@ -102,7 +100,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.failed')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
     ).toBeInTheDocument();
   });
 
@@ -119,7 +117,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.canceled')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.canceled')),
     ).toBeInTheDocument();
   });
 
@@ -136,7 +134,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.succeeded')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
     ).toBeInTheDocument();
   });
 
@@ -154,7 +152,7 @@ describe('DeploymentEnvironmentLogList', () => {
     });
     expect(
       screen.getByText(
-        `${textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded')}`,
+        textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
       ),
     ).toBeInTheDocument();
   });
@@ -172,10 +170,10 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.queryByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+      screen.queryByText(textMock('app_deployment.table.build_log_active_link')),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+      screen.queryByText(textMock('app_deployment.table.build_log_expired_link')),
     ).not.toBeInTheDocument();
   });
 
@@ -192,7 +190,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+      screen.getByText(textMock('app_deployment.table.build_log_expired_link')),
     ).toBeInTheDocument();
   });
 
@@ -214,7 +212,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
 
-    expect(screen.getByText(`${textMock(expectedTextKey)}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock(expectedTextKey))).toBeInTheDocument();
   });
 
   it('renders build log link when started date is valid (< 30 days)', () => {
@@ -230,7 +228,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+      screen.getByText(textMock('app_deployment.table.build_log_active_link')),
     ).toBeInTheDocument();
   });
 
@@ -251,9 +249,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(
-        `${textMock('app_deployment.pipeline_deployment.build_result.failed.details')}`,
-      ),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed.details')),
     ).toBeInTheDocument();
   });
 
@@ -278,7 +274,7 @@ describe('DeploymentEnvironmentLogList', () => {
     });
     expect(
       screen.queryByText(
-        `${textMock('app_deployment.pipeline_deployment.build_result.failed.details')}`,
+        textMock('app_deployment.pipeline_deployment.build_result.failed.details'),
       ),
     ).not.toBeInTheDocument();
   });
@@ -299,7 +295,7 @@ describe('DeploymentEnvironmentLogList', () => {
     });
     expect(
       screen.queryByText(
-        `${textMock('app_deployment.pipeline_deployment.build_result.failed.details')}`,
+        textMock('app_deployment.pipeline_deployment.build_result.failed.details'),
       ),
     ).not.toBeInTheDocument();
   });
