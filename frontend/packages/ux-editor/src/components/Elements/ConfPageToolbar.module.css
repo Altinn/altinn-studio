@@ -1,4 +1,4 @@
 .customComponentList {
-  background-color: #ffffff50;
+  background-color: var(--ds-color-neutral-background-default);
   padding: var(--fds-spacing-1) 0;
 }
