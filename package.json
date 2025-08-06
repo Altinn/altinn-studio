@@ -102,12 +102,12 @@
     "husky": "9.1.7",
     "identity-obj-proxy": "3.0.0",
     "jest": "30.0.3",
-    "jest-environment-jsdom": "29.7.0",
+    "jest-environment-jsdom": "30.0.5",
     "jest-junit": "16.0.0",
     "jest-mock-axios": "4.8.0",
     "jest-preview": "0.3.1",
     "js-levenshtein": "1.1.6",
-    "jsdom": "26.1.0",
+    "jsdom": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
     "lint-staged": "16.1.2",
     "mime": "4.0.7",
     "mini-css-extract-plugin": "2.9.2",
@@ -213,5 +213,8 @@
         "timeout": 30000
       }
     }
+  },
+  "resolutions": {
+    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
   }
 }
