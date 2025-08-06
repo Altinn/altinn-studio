@@ -2,7 +2,7 @@ namespace Altinn.Studio.Designer.Models;
 
 public class LocalizedString
 {
-    public string Nb { get; set; }
-    public string Nn { get; set; }
-    public string En { get; set; }
+    public string Nb { get; set; } = string.Empty;
+    public string Nn { get; set; } = string.Empty;
+    public string En { get; set; } = string.Empty;
 }

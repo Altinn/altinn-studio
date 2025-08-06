@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Models;
+namespace Altinn.Studio.Designer.Converters;
 
 public class LocalizedStringConverter : JsonConverter<LocalizedString>
 {
@@ -25,7 +26,7 @@ public class LocalizedStringConverter : JsonConverter<LocalizedString>
             };
         }
 
-        throw new JsonException("Ugyldig format for LocalizedString.");
+        throw new JsonException("Invalid format for LocalizedString.");
     }
 
     public override void Write(Utf8JsonWriter writer, LocalizedString value, JsonSerializerOptions options)

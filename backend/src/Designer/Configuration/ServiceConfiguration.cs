@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Converters;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 
@@ -32,7 +33,7 @@ namespace Altinn.Studio.Designer.Configuration
         public string Homepage { get; set; }
 
         /// <summary>
-        /// Indicates whether the service can be is delegable
+        /// Indicates whether the service can be delegable
         /// </summary>
         public bool IsDelegable { get; set; }
 
@@ -73,12 +74,13 @@ namespace Altinn.Studio.Designer.Configuration
         /// Repository name; must start with a letter and only contain letters, numbers or underscores
         /// </summary>
         [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$",
-            ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
+            ErrorMessage = "Must start with a letter and cannot contain spaces or special characters (only '_' is allowed)")]
         public string RepositoryName { get; set; }
 
         /// <summary>
         /// Description of the rights
         /// </summary>
+        [JsonConverter(typeof(LocalizedStringConverter))]
         public LocalizedString RightDescription { get; set; }
 
         /// <summary>
