@@ -1,12 +1,16 @@
-.root.openingOrClosing,
-.root.closed {
+.container {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.container.open {
+  grid-template-rows: 1fr;
+}
+
+.container.animate {
+  transition: grid-template-rows 0.25s ease-in-out;
+}
+
+.inner {
   overflow: hidden;
-}
-
-.root.open .content {
-  height: auto;
-}
-
-.root.closed .content {
-  height: 0;
 }
