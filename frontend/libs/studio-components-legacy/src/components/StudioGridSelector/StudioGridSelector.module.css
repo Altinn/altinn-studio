@@ -6,7 +6,8 @@
   --selected-square-colour: var(--fds-semantic-surface-action-second-default);
   --unselected-square-colour: var(--fds-semantic-surface-action-second-no_fill-active);
   --hover-square-color: var(--fds-semantic-surface-action-hover);
-  --thumb-width: calc(100% / 12);
+  --slider-width: min(100%, 500px);
+  --thumb-width: calc(var(--slider-width) / 12);
 }
 
 .sliderContainer.disabled {
@@ -24,7 +25,7 @@
   outline-offset: var(--outline-offset);
   outline: var(--outline);
   padding: 0;
-  width: 100%;
+  width: var(--slider-width);
 }
 
 .range:disabled {
@@ -64,7 +65,7 @@ datalist {
   pointer-events: none;
   position: absolute;
   top: 0;
-  width: 100%;
+  width: var(--slider-width);
 }
 
 .option {
