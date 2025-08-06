@@ -27,7 +27,7 @@ describe('StudioAnimateHeight', () => {
   it('Appends given className to root element', () => {
     const className = 'foo';
     const { container } = renderComponent({ className });
-    expect(container.firstChild).toHaveClass('container');
+    expect(container.firstChild).toHaveClass('root');
     expect(container.firstChild).toHaveClass(className);
   });
 
@@ -43,30 +43,30 @@ describe('StudioAnimateHeight', () => {
     expect(container.firstChild).toHaveAttribute('id', id);
   });
 
-  it('Adds "open" class when open', () => {
+  it('Sets "open" class when open', () => {
     const { container } = renderComponent({ open: true });
     expect(container.firstChild).toHaveClass('open');
   });
 
-  it('Removes "open" class when closed', () => {
+  it('Unsets "open" class when closed', () => {
     const { container } = renderComponent({ open: false });
     expect(container.firstChild).not.toHaveClass('open');
   });
 
-  it('Adds "animate" class when user has no reduced motion preference', () => {
+  it('Sets "animate" class when user has no reduced motion preference', () => {
     useMediaQuery.mockReturnValue(false);
-    const { container } = renderComponent({ open: false });
+    const { container } = renderComponent();
     expect(container.firstChild).toHaveClass('animate');
   });
 
-  it('Removes "animate" class when user prefers reduced motion', () => {
+  it('Unsets "animate" class when user prefers reduced motion', () => {
     useMediaQuery.mockReturnValue(true);
-    const { container } = renderComponent({ open: true });
+    const { container } = renderComponent();
     expect(container.firstChild).not.toHaveClass('animate');
   });
 });
 
-const defaultProps = { open: false };
+const defaultProps: StudioAnimateHeightProps = { open: false };
 
 const renderComponent = (props?: Partial<StudioAnimateHeightProps>): RenderResult =>
   render(<StudioAnimateHeight {...defaultProps} {...props} />);

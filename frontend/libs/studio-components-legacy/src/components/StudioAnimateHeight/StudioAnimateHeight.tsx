@@ -17,14 +17,12 @@ export const StudioAnimateHeight = ({
   ...rest
 }: StudioAnimateHeightProps): ReactElement => {
   const shouldAnimate = !useMediaQuery('(prefers-reduced-motion)');
-
   const animateClass = shouldAnimate && classes.animate;
   const openClass = open && classes.open;
-  const containerClass = cn(classes.container, animateClass, openClass, externalClass);
 
   return (
-    <div {...rest} className={containerClass}>
-      <div className={classes.inner}>{children}</div>
+    <div {...rest} className={cn(classes.root, animateClass, openClass, externalClass)}>
+      <div className={classes.content}>{children}</div>
     </div>
   );
 };

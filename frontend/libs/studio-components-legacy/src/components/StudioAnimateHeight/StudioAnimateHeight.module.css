@@ -1,16 +1,16 @@
-.container {
+.root {
   display: grid;
   grid-template-rows: 0fr;
 }
 
-.container.open {
+.root.open {
   grid-template-rows: 1fr;
 }
 
-.container.animate {
+.root.animate {
   transition: grid-template-rows 0.25s ease-in-out;
 }
 
-.inner {
+.content {
   overflow: hidden;
 }
