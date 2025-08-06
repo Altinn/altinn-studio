@@ -33,10 +33,12 @@
   "uiSettings": {
     "taskNavigation": [
       {
-        "taskId": "Task_1"
+        "taskId": "Task_1",
+        "name": "Utfylling 1"
       },
       {
-        "taskId": "Task_2"
+        "taskId": "Task_2",
+        "name": "Utfylling 2"
       },
       {
         "type": "receipt"

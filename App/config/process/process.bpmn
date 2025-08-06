@@ -46,21 +46,21 @@
       <bpmn:incoming>Flow_1t820by</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_2asasd1</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>Flow_040rnj7</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:serviceTask id="Task_5" name="Fail">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>fail</altinn:taskType>
           <altinn:actions>
-              <altinn:action>reject</altinn:action>
-            </altinn:actions>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1yq6g64</bpmn:incoming>
       <bpmn:outgoing>Flow_1xowpt0</bpmn:outgoing>
     </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_040rnj7</bpmn:incoming>
+    </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
     <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Task_2" />
     <bpmn:sequenceFlow id="Flow_0c458hu" sourceRef="Task_2" targetRef="Task_3" />
