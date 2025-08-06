@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -61,9 +60,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             ApplicationMetadata applicationMetadata,
             string envName)
         {
+            // TODO: It's unclear to me how this serializer retains camelCase without options, when the JsonProperties used in ApplicationMetadata are from Newtonsoft
+            string stringContent = JsonSerializer.Serialize(applicationMetadata);
+            await UpsertApplicationMetadata(org, app, stringContent, envName);
+        }
+
+        /// <inheritdoc />
+        public async Task UpsertApplicationMetadata(
+            string org,
+            string app,
+            string applicationMetadataJson,
+            string envName)
+        {
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}?appId={org}/{app}");
-            string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,
@@ -71,12 +81,24 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
              */
             using HttpRequestMessage request = new(HttpMethod.Post, uri)
             {
-                Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
+                Content = new StringContent(applicationMetadataJson, Encoding.UTF8, "application/json"),
             };
             await _httpClient.SendAsync(request);
         }
 
-        public async Task<ApplicationMetadata> GetApplicationMetadataAsync(AltinnRepoContext altinnRepoContext,
+        /// <inheritdoc />
+        public async Task<ApplicationMetadata> GetApplicationMetadataAsync(
+            AltinnRepoContext altinnRepoContext,
+            string envName,
+            CancellationToken cancellationToken = default)
+        {
+            string rawContent = await GetApplicationMetadataJsonAsync(altinnRepoContext, envName, cancellationToken);
+            return JsonSerializer.Deserialize<ApplicationMetadata>(rawContent, s_jsonOptions);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetApplicationMetadataJsonAsync(
+            AltinnRepoContext altinnRepoContext,
             string envName,
             CancellationToken cancellationToken = default)
         {
@@ -85,9 +107,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}{altinnRepoContext.Org}/{altinnRepoContext.Repo}");
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
-            HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
-            return await response.Content.ReadFromJsonAsync<ApplicationMetadata>(s_jsonOptions, cancellationToken);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
 
+            return await response.Content.ReadAsStringAsync(cancellationToken);
         }
 
         private async Task<Uri> CreateStorageUri(string envName)
