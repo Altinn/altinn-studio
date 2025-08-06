@@ -15,7 +15,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment_author="${{ github.event.comment.user.login }}"
-          if gh api repos/${{ github.repository }}/collaborators/$comment_author --silent; then
+          if gh api repos/${{ github.repository }}/collaborators/$comment_author --verbose; then
             echo "Comment author ($comment_author) is a contributor, continuing"
           else
             echo "Comment author ($comment_author) is not a contributor, skipping job"
