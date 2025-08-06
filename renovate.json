@@ -3,15 +3,27 @@
   "extends": [
     "local>Altinn/renovate-config"
   ],
-  "labels": ["dependency"],
-  "baseBranches": ["main"],
+  "labels": [
+    "dependency"
+  ],
+  "baseBranchPatterns": [
+    "main"
+  ],
   "packageRules": [
     {
-      "matchPackageNames": ["/dotnet(-|\\/)sdk/", "/^Microsoft\\.AspNetCore/", "/^Microsoft\\.Extensions/", "!Microsoft.Extensions.Caching.Hybrid"],
+      "matchPackageNames": [
+        "/dotnet(-|\\/)sdk/",
+        "/^Microsoft\\.AspNetCore/",
+        "/^Microsoft\\.Extensions/",
+        "!Microsoft.Extensions.Caching.Hybrid"
+      ],
       "allowedVersions": "<=8"
     },
     {
-      "matchPackageNames": ["/^Microsoft\\.CodeAnalysis/", "/^Microsoft\\.Build/"],
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
       "enabled": false
     }
   ]
