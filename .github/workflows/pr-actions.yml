@@ -15,10 +15,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           comment_author="${{ github.event.comment.user.login }}"
-          if gh api repos/${{ github.repository }}/collaborators/$comment_author --verbose; then
-            echo "Comment author ($comment_author) is a contributor, continuing"
+
+          # Check if user has write access using a different approach
+          permission=$(gh api repos/${{ github.repository }}/collaborators/$comment_author/permission 2>/dev/null | jq -r '.permission // "none"')
+          if [[ "$permission" == "admin" || "$permission" == "write" ]]; then
+            echo "Comment author ($comment_author) has $permission access, continuing"
           else
-            echo "Comment author ($comment_author) is not a contributor, skipping job"
+            echo "Comment author ($comment_author) has $permission access, skipping job"
             exit 1
           fi
 
