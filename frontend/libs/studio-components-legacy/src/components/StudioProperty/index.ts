@@ -12,7 +12,7 @@ type StudioPropertyComponent = {
 };
 
 /**
- * @deprecated Use `StudioProperty` form `studio-components` instead.
+ * @deprecated Use `StudioProperty` from `studio-components` instead.
  */
 export const StudioProperty: StudioPropertyComponent = {
   Group: StudioPropertyGroup,
