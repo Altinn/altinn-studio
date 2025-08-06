@@ -9,6 +9,11 @@
   margin-bottom: var(--fds-spacing-10);
 }
 
+.search {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}
+
 .clearIcon {
   font-size: 26px;
   width: 26px;
