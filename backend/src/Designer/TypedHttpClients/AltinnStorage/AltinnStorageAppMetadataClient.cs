@@ -60,7 +60,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             ApplicationMetadata applicationMetadata,
             string envName)
         {
-            // TODO: It's unclear to me how this serializer retains camelCase without options, when the JsonProperties used in ApplicationMetadata are from Newtonsoft
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             await UpsertApplicationMetadata(org, app, stringContent, envName);
         }
