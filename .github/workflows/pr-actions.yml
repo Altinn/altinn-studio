@@ -10,6 +10,18 @@ jobs:
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Check if comment author is a contributor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          comment_author="${{ github.event.comment.user.login }}"
+          if gh api repos/${{ github.repository }}/collaborators/$comment_author --silent; then
+            echo "Comment author ($comment_author) is a contributor, continuing"
+          else
+            echo "Comment author ($comment_author) is not a contributor, skipping job"
+            exit 1
+          fi
+
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
