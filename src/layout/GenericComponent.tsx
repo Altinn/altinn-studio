@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigation, useSearchParams } from 'react-router-dom';
 
 import classNames from 'classnames';
 
@@ -215,9 +215,10 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
   const [searchParams, setSearchParams] = useSearchParams();
   const indexedId = searchParams.get(SearchParams.FocusComponentId);
   const searchParamBindingError = searchParams.get(SearchParams.FocusErrorBinding);
+  const isNavigating = useNavigation().state !== 'idle';
 
   useEffect(() => {
-    if (!indexedId || indexedId !== nodeId) {
+    if (!indexedId || indexedId !== nodeId || isNavigating) {
       return;
     }
 
@@ -241,5 +242,5 @@ function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObjec
     searchParams.delete(SearchParams.FocusComponentId);
     searchParams.delete(SearchParams.FocusErrorBinding);
     setSearchParams(searchParams, { replace: true });
-  }, [nodeId, indexedId, searchParamBindingError, containerDivRef, searchParams, setSearchParams]);
+  }, [nodeId, indexedId, searchParamBindingError, containerDivRef, searchParams, setSearchParams, isNavigating]);
 }

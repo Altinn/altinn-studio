@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { queryOptions, skipToken, useQuery } from '@tanstack/react-query';
+import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
@@ -11,10 +11,11 @@ import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { LooseAutocomplete } from 'src/types';
-import type { IActionType } from 'src/types/shared';
+import type { IActionType, IProcess } from 'src/types/shared';
 
 export const processQueries = {
-  processStateKey: (instanceId?: string) => ['fetchProcessState', instanceId],
+  all: () => ['process'],
+  processStateKey: (instanceId?: string) => [...processQueries.all(), instanceId],
   processState: (instanceId?: string) =>
     queryOptions({
       queryKey: processQueries.processStateKey(instanceId),
@@ -123,4 +124,13 @@ export function useGetTaskTypeById() {
 export function useGetAltinnTaskType() {
   const { data: processData } = useProcessQuery();
   return (taskId: string | undefined) => processData?.processTasks?.find((t) => t.elementId === taskId)?.altinnTaskType;
+}
+
+export function useOptimisticallyUpdateProcess() {
+  const queryClient = useQueryClient();
+  const instanceId = useLaxInstanceId();
+
+  const processQueryKey = processQueries.processStateKey(instanceId);
+
+  return (process: IProcess) => queryClient.setQueryData<IProcess>(processQueryKey, process);
 }

@@ -4,19 +4,26 @@ import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { useInvalidateInstanceData, useStrictInstanceId } from 'src/features/instance/InstanceContext';
+import {
+  useInvalidateInstanceDataCache,
+  useOptimisticallyAppendDataElements,
+  useOptimisticallyRemoveDataElement,
+  useStrictInstanceId,
+} from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export const useAddEntryMutation = (dataType: string) => {
   const instanceId = useStrictInstanceId();
   const { langAsString } = useLanguage();
   const { doSubformEntryAdd } = useAppMutations();
-  const invalidateInstanceData = useInvalidateInstanceData();
+  const invalidateInstanceData = useInvalidateInstanceDataCache();
+  const optimisticallyAppendDataElements = useOptimisticallyAppendDataElements();
 
   return useMutation({
     mutationKey: ['addSubform', dataType],
     mutationFn: async (data: unknown) => await doSubformEntryAdd(instanceId, dataType, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      optimisticallyAppendDataElements([data]);
       invalidateInstanceData();
     },
     onError: (error) => {
@@ -35,7 +42,8 @@ export const useDeleteEntryMutation = () => {
   const instanceId = useStrictInstanceId();
   const { langAsString } = useLanguage();
   const { doSubformEntryDelete } = useAppMutations();
-  const invalidateInstanceData = useInvalidateInstanceData();
+  const invalidateInstanceDataCache = useInvalidateInstanceDataCache();
+  const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
 
   return useMutation({
     mutationKey: ['deleteSubform'],
@@ -43,8 +51,9 @@ export const useDeleteEntryMutation = () => {
       await doSubformEntryDelete(instanceId, id);
       return id;
     },
-    onSuccess: () => {
-      invalidateInstanceData();
+    onSuccess: (id) => {
+      optimisticallyRemoveDataElement(id);
+      invalidateInstanceDataCache();
     },
     onError: (error) => {
       console.error('Failed to delete subform:', error);

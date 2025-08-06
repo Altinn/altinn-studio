@@ -362,7 +362,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(2).nestedGroup.row(0).comments).should('be.visible');
-    cy.get(appFrontend.group.saveMainGroup).click({ force: true });
+    cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();

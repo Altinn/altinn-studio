@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +8,7 @@ import { useDisplayError } from 'src/core/errorHandling/DisplayErrorProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import { useHasPendingScans, useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
@@ -36,7 +35,6 @@ export function getProcessNextMutationKey(action?: IActionType) {
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
-  const navigation = useNavigation();
   const reFetchInstanceData = useInstanceDataQuery().refetch;
   const language = useCurrentLanguage();
   const { data: process, refetch: refetchProcessData } = useProcessQuery();
@@ -50,14 +48,12 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
   const queryClient = useQueryClient();
   const displayError = useDisplayError();
   const hasPendingScans = useHasPendingScans();
+  const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
 
   return useMutation({
     scope: { id: 'process/next' },
     mutationKey: getProcessNextMutationKey(action),
     mutationFn: async () => {
-      // Wait for navigation to be idle before proceeding
-      await waitForIdleNavigation(navigation);
-
       if (hasPendingScans) {
         await reFetchInstanceData();
       }
@@ -72,7 +68,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       }
 
       return doProcessNext(instanceId, language, action)
-        .then((process) => [process as IProcess, null] as const)
+        .then((process) => [process, null] as const)
         .catch((error) => {
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing
@@ -92,9 +88,11 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     },
     onSuccess: async ([processData, validationIssues]) => {
       if (processData) {
-        await reFetchInstanceData();
-        await refetchProcessData?.();
+        optimisticallyUpdateProcess(processData);
+        refetchProcessData();
+        reFetchInstanceData();
         await invalidateFormDataQueries(queryClient);
+
         const task = getTargetTaskFromProcess(processData);
         if (!task) {
           throw new Error('Missing task in process data. Cannot navigate to task.');
@@ -144,17 +142,4 @@ export function getTargetTaskFromProcess(processData: IProcess | undefined) {
   }
 
   return processData.ended || !processData.currentTask ? TaskKeys.ProcessEnd : processData.currentTask.elementId;
-}
-
-function waitForIdleNavigation(navigation: ReturnType<typeof useNavigation>) {
-  return new Promise<void>((resolve) => {
-    const checkNavigation = async () => {
-      while (navigation.state !== 'idle') {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-
-      resolve();
-    };
-    checkNavigation();
-  });
 }

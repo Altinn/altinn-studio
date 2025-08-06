@@ -214,7 +214,7 @@ export type FormDataContext = FormDataState & FormDataMethods;
 
 function makeActions(
   set: (fn: (state: FormDataContext) => void) => void,
-  changeInstance: ChangeInstanceData | undefined,
+  changeInstance: ChangeInstanceData,
   ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
 ): FormDataMethods {
@@ -264,7 +264,7 @@ function makeActions(
     state.manualSaveRequested = false;
     state.validationIssues = validationIssues;
 
-    if (instance && changeInstance) {
+    if (instance) {
       changeInstance(() => instance);
     }
 
@@ -614,7 +614,7 @@ export const createFormDataWriteStore = (
   proxies: FormDataWriteProxies,
   ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
-  changeInstance: ChangeInstanceData | undefined,
+  changeInstance: ChangeInstanceData,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
