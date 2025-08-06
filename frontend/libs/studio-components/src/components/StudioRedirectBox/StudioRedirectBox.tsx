@@ -15,7 +15,7 @@ export function StudioRedirectBox({
   const className = cn(classes.wrapper, givenClassName);
   return (
     <div className={className}>
-      <StudioLabelAsParagraph>{title}deded</StudioLabelAsParagraph>
+      <StudioLabelAsParagraph>{title}</StudioLabelAsParagraph>
       <div className={classes.children}>{children}</div>
     </div>
   );
