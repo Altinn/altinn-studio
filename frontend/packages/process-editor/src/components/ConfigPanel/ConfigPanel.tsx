@@ -44,7 +44,7 @@ const ConfigPanelContent = (): React.ReactElement => {
   if (elementIsTask) {
     return <ConfigContent key={bpmnDetails.id} />;
   }
-  console.log('type:', bpmnDetails.type);
+
   return (
     <BpmnAlert
       title={t('process_editor.configuration_panel_element_not_supported_title')}
