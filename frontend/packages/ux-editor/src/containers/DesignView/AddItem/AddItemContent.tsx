@@ -8,8 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioSearch } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioSearch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useSearchComponent } from './useSearchComponent';
 
@@ -19,7 +18,6 @@ export type AddItemContentProps = {
   onAddItem: (addedItem: AddedItem) => void;
   onCancel: () => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
-  disableDebounce?: boolean;
 };
 
 export const AddItemContent = ({
@@ -28,13 +26,13 @@ export const AddItemContent = ({
   onAddItem,
   onCancel,
   availableComponents,
-  disableDebounce,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
-
-  const { searchText, handleClear, handleEscape, handleSearchChange, filteredComponents } =
-    useSearchComponent({ availableComponents, disableDebounce, t });
+  const { searchText, handleSearchChange, filteredComponents } = useSearchComponent({
+    availableComponents,
+    t,
+  });
 
   return (
     <div className={classes.root}>
@@ -44,8 +42,7 @@ export const AddItemContent = ({
             label={t('ux_editor.add_item.component_search_label')}
             value={searchText}
             onChange={handleSearchChange}
-            onKeyDown={handleEscape}
-            onClear={handleClear}
+            clearButtonLabel={t('general.search_clear_button_title')}
           />
           <StudioParagraph>
             {t('ux_editor.add_item.component_more_info_description')}

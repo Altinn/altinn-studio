@@ -21,6 +21,17 @@ const resetRepoChanges = jest.fn().mockImplementation(() => Promise.resolve({}))
 
 const mockOnClose = jest.fn();
 
+const mockLocationReload = () => {
+  Object.defineProperty(window, 'location', {
+    value: {
+      ...window.location,
+      reload: jest.fn(),
+    },
+    writable: true,
+  });
+  return jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+};
+
 const defaultProps: RemoveChangesPopoverContentProps = {
   onClose: mockOnClose,
   owner: org,
@@ -46,8 +57,9 @@ describe('DownloadRepoPopoverContent', () => {
     expect(confirmButton).toBeEnabled();
   });
 
-  it('calls onResetWrapper and displays success toast when the confirm button is clicked', async () => {
+  it('calls onResetWrapper and then full refresh of page when the confirm button is clicked', async () => {
     const user = userEvent.setup();
+    mockLocationReload();
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -59,10 +71,7 @@ describe('DownloadRepoPopoverContent', () => {
     await user.click(confirmButton);
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
-
-    const toastSuccessText = await screen.findByText(textMock('overview.reset_repo_completed'));
-    expect(toastSuccessText).toBeInTheDocument();
-
+    expect(location.reload).toHaveBeenCalledTimes(1);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
@@ -76,8 +85,9 @@ describe('DownloadRepoPopoverContent', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose function when Enter is pressed', async () => {
+  it('calls onResetWrapper and then full refresh of page when Enter is pressed', async () => {
     const user = userEvent.setup();
+    mockLocationReload();
     renderRemoveChangesPopoverContent();
 
     const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
@@ -85,6 +95,7 @@ describe('DownloadRepoPopoverContent', () => {
     await user.keyboard('{Enter}');
 
     expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+    expect(location.reload).toHaveBeenCalledTimes(1);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
