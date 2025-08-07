@@ -16,10 +16,10 @@ public interface IOrgContentService
     /// Retrieves a list of available library content based on the specified type.
     /// </summary>
     /// <param name="contentType">The type of content to retrieve.</param>
-    /// <param name="context">The organisation context.</param>
+    /// <param name="orgName">The name of the organisation.</param>
     /// <param name="cancellationToken">A token to observe cancellation requests.</param>
     /// <returns>A list of external content library resources.</returns>
-    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, AltinnOrgContext context, CancellationToken cancellationToken = default);
+    public Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, string orgName, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if the organisation's content repository exists in the specified context.
