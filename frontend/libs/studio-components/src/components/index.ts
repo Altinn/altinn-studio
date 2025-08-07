@@ -5,6 +5,7 @@ import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
 export { StudioAvatar } from './StudioAvatar';
+export * from './StudioBooleanToggleGroup';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
