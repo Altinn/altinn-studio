@@ -102,12 +102,12 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
 
     private static string StaticContentTextResourceFilePath(string languageCode)
     {
-        return Path.Combine(TextResourceFolderPath, $"resource.{languageCode}.json");
+        return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");
     }
 
     private static string StaticContentCodeListFilePath(string optionListId)
     {
-        return Path.Combine(CodeListFolderPath, $"{optionListId}.json");
+        return Path.Join(CodeListFolderPath, $"{optionListId}.json");
     }
 
     private static string GetContentRepoName(string orgName)
