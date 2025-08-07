@@ -61,7 +61,7 @@ public class OrgContentController : ControllerBase
 
         if (string.IsNullOrEmpty(contentType))
         {
-            return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);
+            return await _orgContentService.GetOrgContentReferences(null, orgName);
         }
 
         bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
@@ -70,7 +70,7 @@ public class OrgContentController : ControllerBase
             return BadRequest($"Invalid content type '{contentType}'.");
         }
 
-        return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
+        return await _orgContentService.GetOrgContentReferences(parsedContentType, orgName);
     }
 
     private AltinnOrgContext CreateAltinnOrgContext(string orgName)
