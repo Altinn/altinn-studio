@@ -4,6 +4,7 @@ import '@digdir/designsystemet-theme/altinn.css';
 import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAnimateHeight } from './StudioAnimateHeight';
 export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
