@@ -7,7 +7,7 @@ import { StudioLabelWrapper } from '../StudioLabelWrapper';
 
 export type StudioTextfieldProps = TextfieldProps & {
   tagText?: string;
-} & Omit<TextfieldProps, 'multiline'>;
+};
 
 function StudioTextfield(
   { children, required, tagText, label, ...rest }: StudioTextfieldProps,
