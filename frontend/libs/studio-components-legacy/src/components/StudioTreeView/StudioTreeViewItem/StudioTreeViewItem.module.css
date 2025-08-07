@@ -14,7 +14,7 @@
 }
 
 .button span {
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
