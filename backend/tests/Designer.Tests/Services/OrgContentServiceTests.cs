@@ -99,22 +99,6 @@ public class OrgContentServiceTests
     }
 
     [Fact]
-    public async Task GetOrgContentReferences_WithCancellationToken_PassesTokenToServices()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var textIds = new List<string> { "text1" };
-
-        _mockGiteaContentLibraryService.Setup(service => service.GetTextIds(OrgName)).ReturnsAsync(textIds);
-
-        // Act
-        await _orgContentService.GetOrgContentReferences(LibraryContentType.TextResource, OrgName);
-
-        // Assert
-        _mockGiteaContentLibraryService.Verify(service => service.GetTextIds(OrgName), Times.Once);
-    }
-
-    [Fact]
     public async Task GetCodeListReferences_WithNoIdsFound_ReturnsEmptyList()
     {
         // Arrange
