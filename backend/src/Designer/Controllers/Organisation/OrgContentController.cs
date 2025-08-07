@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -40,12 +39,10 @@ public class OrgContentController : ControllerBase
     /// </summary>
     /// <param name="orgName">Unique identifier of the organisation.</param>
     /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
         {
             HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation";
