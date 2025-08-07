@@ -83,3 +83,10 @@ dd.typeUnknown {
   top: 6px;
   right: 6px;
 }
+
+.tabPanel {
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+}

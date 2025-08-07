@@ -52,7 +52,10 @@ export const DevToolsControls = () => {
         {isInForm && <Tabs.Tab value={DevToolsTab.Expressions}>{DevToolsTab.Expressions}</Tabs.Tab>}
         {/* <Tabs.Tab value={DevToolsTab.FeatureToggles}>{DevToolsTab.FeatureToggles}</Tabs.Tab> */}
       </Tabs.List>
-      <Tabs.Panel value={DevToolsTab.General}>
+      <Tabs.Panel
+        className={classes.tabPanel}
+        value={DevToolsTab.General}
+      >
         <div className={classes.page}>
           <PDFPreviewButton />
           <DevNavigationButtons />
@@ -64,21 +67,33 @@ export const DevToolsControls = () => {
           <ReactQueryDevtools initialIsOpen={false} />
         </div>
       </Tabs.Panel>
-      <Tabs.Panel value={DevToolsTab.Logs}>
+      <Tabs.Panel
+        className={classes.tabPanel}
+        value={DevToolsTab.Logs}
+      >
         <DevToolsLogs />
       </Tabs.Panel>
       {isInForm && (
-        <Tabs.Panel value={DevToolsTab.Layout}>
+        <Tabs.Panel
+          className={classes.tabPanel}
+          value={DevToolsTab.Layout}
+        >
           <LayoutInspector />
         </Tabs.Panel>
       )}
       {isInForm && (
-        <Tabs.Panel value={DevToolsTab.Components}>
+        <Tabs.Panel
+          className={classes.tabPanel}
+          value={DevToolsTab.Components}
+        >
           <NodeInspector />
         </Tabs.Panel>
       )}
       {isInForm && (
-        <Tabs.Panel value={DevToolsTab.Expressions}>
+        <Tabs.Panel
+          className={classes.tabPanel}
+          value={DevToolsTab.Expressions}
+        >
           <ExpressionPlayground />
         </Tabs.Panel>
       )}

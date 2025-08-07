@@ -25,56 +25,58 @@ export const PermissionsEditor = () => {
   }
 
   return (
-    <Fieldset className={classes.checkboxWrapper}>
+    <Fieldset>
       <Fieldset.Legend>Policy</Fieldset.Legend>
-      <Checkbox
-        data-size='sm'
-        checked={Boolean(write)}
-        onChange={(e) =>
-          handleChange((obj) => {
-            obj.write = e.target.checked;
-            return obj;
-          })
-        }
-        value='nothing'
-        label='Write'
-      />
-      <Checkbox
-        data-size='sm'
-        checked={Boolean(actions?.confirm)}
-        onChange={(e) =>
-          handleChange((obj) => {
-            obj.actions = { ...obj.actions, confirm: e.target.checked };
-            return obj;
-          })
-        }
-        value='nothing'
-        label='Confirm'
-      />
-      <Checkbox
-        data-size='sm'
-        checked={Boolean(actions?.sign)}
-        onChange={(e) =>
-          handleChange((obj) => {
-            obj.actions = { ...obj.actions, sign: e.target.checked };
-            return obj;
-          })
-        }
-        value='nothing'
-        label='Sign'
-      />
-      <Checkbox
-        data-size='sm'
-        checked={Boolean(actions?.reject)}
-        onChange={(e) =>
-          handleChange((obj) => {
-            obj.actions = { ...obj.actions, reject: e.target.checked };
-            return obj;
-          })
-        }
-        value='nothing'
-        label='Reject'
-      />
+      <div className={classes.checkboxesWrapper}>
+        <Checkbox
+          data-size='sm'
+          checked={Boolean(write)}
+          onChange={(e) =>
+            handleChange((obj) => {
+              obj.write = e.target.checked;
+              return obj;
+            })
+          }
+          value='nothing'
+          label='Write'
+        />
+        <Checkbox
+          data-size='sm'
+          checked={Boolean(actions?.confirm)}
+          onChange={(e) =>
+            handleChange((obj) => {
+              obj.actions = { ...obj.actions, confirm: e.target.checked };
+              return obj;
+            })
+          }
+          value='nothing'
+          label='Confirm'
+        />
+        <Checkbox
+          data-size='sm'
+          checked={Boolean(actions?.sign)}
+          onChange={(e) =>
+            handleChange((obj) => {
+              obj.actions = { ...obj.actions, sign: e.target.checked };
+              return obj;
+            })
+          }
+          value='nothing'
+          label='Sign'
+        />
+        <Checkbox
+          data-size='sm'
+          checked={Boolean(actions?.reject)}
+          onChange={(e) =>
+            handleChange((obj) => {
+              obj.actions = { ...obj.actions, reject: e.target.checked };
+              return obj;
+            })
+          }
+          value='nothing'
+          label='Reject'
+        />
+      </div>
     </Fieldset>
   );
 };

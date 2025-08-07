@@ -95,6 +95,13 @@
   padding: 0;
 }
 
+.tabPanel {
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+}
+
 .page {
   box-sizing: border-box;
   overflow-y: auto;

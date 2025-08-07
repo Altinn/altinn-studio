@@ -7,6 +7,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { Button } from 'src/app-components/Button/Button';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
+import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { NodeInspectorContextProvider } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
 import { ValidationInspector } from 'src/features/devtools/components/NodeInspector/ValidationInspector';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
@@ -75,7 +76,10 @@ export const NodeInspector = () => {
                   <Tabs.Tab value='properties'>Egenskaper</Tabs.Tab>
                   {implementsAnyValidation(def) && <Tabs.Tab value='validation'>Validering</Tabs.Tab>}
                 </Tabs.List>
-                <Tabs.Panel value='properties'>
+                <Tabs.Panel
+                  className={classes.tabPanel}
+                  value='properties'
+                >
                   <div className={reusedClasses.properties}>
                     <div className={reusedClasses.headerLink}>
                       <a
@@ -93,7 +97,10 @@ export const NodeInspector = () => {
                     </DataModelLocationProviderFromNode>
                   </div>
                 </Tabs.Panel>
-                <Tabs.Panel value='validation'>
+                <Tabs.Panel
+                  className={classes.tabPanel}
+                  value='validation'
+                >
                   <div className={reusedClasses.scrollable}>
                     <ValidationInspector baseComponentId={baseComponentId} />
                   </div>
