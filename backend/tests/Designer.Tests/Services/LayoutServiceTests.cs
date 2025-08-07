@@ -166,7 +166,7 @@ public class LayoutServiceTests
     }
 
     [Fact]
-    public async Task RenamingPageGroups_ShouldNotDeletePagesInGroup()
+    public async Task RenamePage_ShouldNotDeletePagesInGroup()
     {
         const string Repo = "app-with-groups-and-task-navigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
@@ -179,18 +179,26 @@ public class LayoutServiceTests
 
         PagesDto pagesDto = PagesDto.From(layoutSettings);
         int originalGroupCount = pagesDto.Groups.Count;
-        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
-        pagesDto.Groups.ForEach((group) => group.Name = $"{group.Name}-newName");
-        await layoutService.UpdatePageGroups(
+
+
+        PageDto pageToRename = pagesDto.Groups[0].Pages[0];
+        string oldPageName = pageToRename.Id;
+        string newPageName = $"{oldPageName}-newName";
+        pageToRename.Id = newPageName;
+
+        await layoutService.RenamePage(
             editingContext,
             "form",
-            (PagesWithGroups)pagesDto.ToBusiness()
+            oldPageName,
+            newPageName
         );
+
         LayoutSettings updatedLayoutSettings = await layoutService.GetLayoutSettings(
             editingContext,
             "form"
         );
 
+        List<PageDto> allPages = [.. pagesDto.Groups.SelectMany((group) => group.Pages)];
         allPages
             .Select(
                 (pagesDto) =>
