@@ -27,10 +27,6 @@ import { ObjectUtils } from '@studio/pure-functions';
 import type { ExpressionEditModeProps } from './ExpressionEditMode';
 import { ExpressionEditMode } from './ExpressionEditMode';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,

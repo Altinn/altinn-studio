@@ -10,11 +10,6 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 // Test data:
 const title = 'En tittel';
 const titleKey = 'titleKey';

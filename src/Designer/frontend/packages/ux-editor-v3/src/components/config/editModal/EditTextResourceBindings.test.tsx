@@ -16,11 +16,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import type { FormComponent } from '../../../types/FormComponent';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
     id: 'test-id',

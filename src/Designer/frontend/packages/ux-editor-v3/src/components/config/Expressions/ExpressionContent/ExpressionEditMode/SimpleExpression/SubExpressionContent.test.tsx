@@ -20,11 +20,6 @@ import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 const user = userEvent.setup();
 const layoutSetName = layoutSet1NameMock;
 
