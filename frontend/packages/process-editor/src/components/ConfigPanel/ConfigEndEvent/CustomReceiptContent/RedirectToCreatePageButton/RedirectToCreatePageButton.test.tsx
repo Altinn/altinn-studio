@@ -9,7 +9,7 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import userEvent from '@testing-library/user-event';
 
 const mockNavigate = jest.fn();
@@ -38,27 +38,17 @@ describe('RedirectToCreatePageButton', () => {
 });
 
 const renderRedirectToCreatePageButton = () => {
-  const router = createMemoryRouter(
-    [
-      {
-        path: '/:org/:app/*',
-        element: (
-          <BpmnApiContext.Provider
-            value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
-          >
-            <BpmnContext.Provider value={mockBpmnContextValue}>
-              <BpmnConfigPanelFormContextProvider>
-                <RedirectToCreatePageButton />
-              </BpmnConfigPanelFormContextProvider>
-            </BpmnContext.Provider>
-          </BpmnApiContext.Provider>
-        ),
-      },
-    ],
-    {
-      initialEntries: ['/testOrg/testApp/process-editor'],
-    },
+  return render(
+    <TestAppRouter>
+      <BpmnApiContext.Provider
+        value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
+      >
+        <BpmnContext.Provider value={mockBpmnContextValue}>
+          <BpmnConfigPanelFormContextProvider>
+            <RedirectToCreatePageButton />
+          </BpmnConfigPanelFormContextProvider>
+        </BpmnContext.Provider>
+      </BpmnApiContext.Provider>
+    </TestAppRouter>,
   );
-
-  return render(<RouterProvider router={router} />);
 };
