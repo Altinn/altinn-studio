@@ -13,11 +13,6 @@ import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtil
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 // Test data:
 const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;

@@ -16,10 +16,6 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 
