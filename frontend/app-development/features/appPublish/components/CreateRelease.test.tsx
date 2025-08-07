@@ -11,7 +11,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -20,18 +20,11 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   };
 
   render(
-    <MemoryRouter initialEntries={[`/${org}/${app}/`]}>
-      <Routes>
-        <Route
-          path='/:org/:app/*'
-          element={
-            <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-              <CreateRelease />
-            </ServicesContextProvider>
-          }
-        />
-      </Routes>
-    </MemoryRouter>,
+    <TestAppRouter>
+      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+        <CreateRelease />
+      </ServicesContextProvider>
+    </TestAppRouter>,
   );
 };
 

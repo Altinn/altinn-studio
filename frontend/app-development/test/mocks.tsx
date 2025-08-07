@@ -1,9 +1,8 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import React from 'react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -12,6 +11,7 @@ import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from '../contexts/PreviewContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import { app as testApp, org as testOrg } from '@studio/testing/testids';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 const defaultAppRouteParams: AppRouteParams = {
   org: testOrg,
@@ -27,7 +27,7 @@ export const renderWithProviders =
   ) =>
   (component: ReactNode) => {
     const renderResult = render(
-      <AppRouter params={{ ...appRouteParams }}>
+      <TestAppRouter params={{ ...appRouteParams }}>
         <ServicesContextProvider
           {...queriesMock}
           {...queries}
@@ -42,12 +42,11 @@ export const renderWithProviders =
             </PreviewContext.Provider>
           </PreviewConnectionContextProvider>
         </ServicesContextProvider>
-        ,
-      </AppRouter>,
+      </TestAppRouter>,
     );
     const rerender = (rerenderedComponent: ReactNode) =>
       renderResult.rerender(
-        <AppRouter params={{ ...appRouteParams }}>
+        <TestAppRouter params={{ ...appRouteParams }}>
           <ServicesContextProvider
             {...queriesMock}
             {...queries}
@@ -62,28 +61,10 @@ export const renderWithProviders =
               </PreviewContext.Provider>
             </PreviewConnectionContextProvider>
           </ServicesContextProvider>
-          ,
-        </AppRouter>,
+        </TestAppRouter>,
       );
     return { renderResult: { ...renderResult, rerender } };
   };
-
-type AppRouterProps = {
-  params: AppRouteParams;
-  children: ReactNode;
-};
-
-function AppRouter({ params: { org, app }, children }: AppRouterProps): ReactElement {
-  const route = `/${org}/${app}`;
-  const path = '/:org/:app/*';
-  return (
-    <MemoryRouter initialEntries={[route]}>
-      <Routes>
-        <Route path={path} element={children} />
-      </Routes>
-    </MemoryRouter>
-  );
-}
 
 export const renderHookWithProviders =
   (
@@ -94,7 +75,7 @@ export const renderHookWithProviders =
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <AppRouter params={{ ...appRouteParams }}>
+        <TestAppRouter params={{ ...appRouteParams }}>
           <ServicesContextProvider
             {...queriesMock}
             {...queries}
@@ -103,7 +84,7 @@ export const renderHookWithProviders =
           >
             <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
           </ServicesContextProvider>
-        </AppRouter>
+        </TestAppRouter>
       ),
     });
     return { renderHookResult };
