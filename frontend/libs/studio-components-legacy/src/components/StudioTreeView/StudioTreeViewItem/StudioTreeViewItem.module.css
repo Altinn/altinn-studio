@@ -13,8 +13,8 @@
   width: 100%;
 }
 
-.button span {
-  overflow: visible;
+.button span .label {
+  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
