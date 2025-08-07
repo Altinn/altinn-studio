@@ -4,6 +4,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 type StudioLabelAsParagraphProps = WithoutAsChild<LabelProps>;
 
+/**
+ * @deprecated use `StudioLabelAsParagraph` from `@studio/components` instead.
+ */
 export const StudioLabelAsParagraph = forwardRef<HTMLLabelElement, StudioLabelAsParagraphProps>(
   ({ children, ...rest }, ref) => {
     return (
