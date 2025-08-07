@@ -4,19 +4,8 @@ import { render, screen } from '@testing-library/react';
 import type { StudioAnimateHeightProps } from './StudioAnimateHeight';
 import { StudioAnimateHeight } from './StudioAnimateHeight';
 
-// Mocks
-const useMediaQuery = jest.fn();
-
-jest.mock('../../hooks/useMediaQuery', () => ({
-  useMediaQuery: (query: string) => useMediaQuery(query),
-}));
-
 /* eslint-disable testing-library/no-node-access */
 describe('StudioAnimateHeight', () => {
-  beforeEach(() => {
-    useMediaQuery.mockReturnValue(false); // Set 'prefers-reduced-motion' to false
-  });
-
   it('Renders children', () => {
     const childTestId = 'content';
     const children = <div data-testid={childTestId} />;
@@ -51,18 +40,6 @@ describe('StudioAnimateHeight', () => {
   it('Unsets "open" class when closed', () => {
     const { container } = renderComponent({ open: false });
     expect(container.firstChild).not.toHaveClass('open');
-  });
-
-  it('Sets "animate" class when user has no reduced motion preference', () => {
-    useMediaQuery.mockReturnValue(false);
-    const { container } = renderComponent();
-    expect(container.firstChild).toHaveClass('animate');
-  });
-
-  it('Unsets "animate" class when user prefers reduced motion', () => {
-    useMediaQuery.mockReturnValue(true);
-    const { container } = renderComponent();
-    expect(container.firstChild).not.toHaveClass('animate');
   });
 });
 

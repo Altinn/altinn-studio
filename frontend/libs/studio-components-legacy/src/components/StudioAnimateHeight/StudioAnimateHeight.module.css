@@ -3,12 +3,14 @@
   grid-template-rows: 0fr;
 }
 
-.root.open {
-  grid-template-rows: 1fr;
+@media (prefers-reduced-motion: no-preference) {
+  .root {
+    transition: grid-template-rows 0.25s ease-in-out;
+  }
 }
 
-.root.animate {
-  transition: grid-template-rows 0.25s ease-in-out;
+.root.open {
+  grid-template-rows: 1fr;
 }
 
 .content {

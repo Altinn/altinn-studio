@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
 import cn from 'classnames';
 import classes from './StudioAnimateHeight.module.css';
-import { useMediaQuery } from '../../hooks/';
 
 export type StudioAnimateHeightProps = {
   open: boolean;
@@ -16,12 +15,10 @@ export const StudioAnimateHeight = ({
   open,
   ...rest
 }: StudioAnimateHeightProps): ReactElement => {
-  const shouldAnimate = !useMediaQuery('(prefers-reduced-motion)');
-  const animateClass = shouldAnimate && classes.animate;
   const openClass = open && classes.open;
 
   return (
-    <div {...rest} className={cn(classes.root, animateClass, openClass, externalClass)}>
+    <div {...rest} className={cn(classes.root, openClass, externalClass)}>
       <div className={classes.content}>{children}</div>
     </div>
   );
