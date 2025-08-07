@@ -30,6 +30,7 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({
     org,
     app,
+    layoutSet: mockSelectedLayoutSet,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -155,5 +156,8 @@ const render = async ({ props = {}, pagesModel = pagesModelMock }: renderParams)
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
   queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
-  return renderWithProviders(<NavigationMenu {...defaultProps} {...props} />, { queryClient });
+  return renderWithProviders(<NavigationMenu {...defaultProps} {...props} />, {
+    queryClient,
+    uxEditorParams: { layoutSet: mockSelectedLayoutSet },
+  });
 };

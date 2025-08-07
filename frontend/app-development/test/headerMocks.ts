@@ -5,17 +5,18 @@ import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenu
 import { userMock } from './userMock';
 import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components-legacy';
 import { type PreviewContextProps } from 'app-development/contexts/PreviewContext';
+import { org, app } from '@studio/testing/testids';
 
 const menuItemsMock: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.About,
-    link: '/a',
+    link: `/${org}/${app}/a`,
     repositoryTypes: [],
     group: HeaderMenuGroupKey.Overview,
   },
   {
     key: HeaderMenuItemKey.Create,
-    link: '/b',
+    link: `/${org}/${app}/b`,
     repositoryTypes: [],
     group: HeaderMenuGroupKey.Other,
   },
