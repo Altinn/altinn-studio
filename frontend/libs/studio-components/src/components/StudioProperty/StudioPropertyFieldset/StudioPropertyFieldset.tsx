@@ -4,6 +4,7 @@ import cn from 'classnames';
 import classes from './StudioPropertyFieldset.module.css';
 import type { StudioFieldsetProps } from '../../StudioFieldset';
 import { StudioFieldset } from '../../StudioFieldset';
+import { Card } from '@digdir/designsystemet-react';
 
 export type StudioPropertyFieldsetProps = StudioFieldsetProps & {
   menubar?: ReactNode;
@@ -14,12 +15,14 @@ const StudioPropertyFieldset = forwardRef<HTMLFieldSetElement, StudioPropertyFie
   ({ menubar, children, className: givenClass, compact, ...props }, ref) => {
     const className = cn(givenClass, classes.propertyFieldset, compact && classes.compact);
     return (
-      <StudioFieldset {...props} className={className} ref={ref}>
-        <div className={classes.menubar} role='menubar'>
-          {menubar}
-        </div>
-        <div className={classes.content}>{children}</div>
-      </StudioFieldset>
+      <Card asChild>
+        <StudioFieldset {...props} className={className} ref={ref}>
+          <div className={classes.menubar} role='menubar'>
+            {menubar}
+          </div>
+          <div className={classes.content}>{children}</div>
+        </StudioFieldset>
+      </Card>
     );
   },
 );
