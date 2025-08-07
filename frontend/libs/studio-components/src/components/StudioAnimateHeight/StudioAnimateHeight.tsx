@@ -9,12 +9,12 @@ export type StudioAnimateHeightProps = {
 /**
  * AnimateHeight is a component that animates its height when the `open` prop changes.
  */
-export const StudioAnimateHeight = ({
+export function StudioAnimateHeight({
   children,
   className: externalClass,
   open,
   ...rest
-}: StudioAnimateHeightProps): ReactElement => {
+}: StudioAnimateHeightProps): ReactElement {
   const openClass = open && classes.open;
 
   return (
@@ -22,4 +22,4 @@ export const StudioAnimateHeight = ({
       <div className={classes.content}>{children}</div>
     </div>
   );
-};
+}
