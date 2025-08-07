@@ -20,11 +20,6 @@ import { FormItemContext } from '../../../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../../../../types/FormContainer';

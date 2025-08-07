@@ -25,10 +25,6 @@ import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 const mockSelectedLayoutSet = layoutSet1NameMock;
