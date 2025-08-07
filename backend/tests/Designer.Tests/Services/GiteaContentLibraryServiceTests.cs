@@ -70,7 +70,7 @@ public class GiteaContentLibraryServiceTests
         const string CodeListId = "codeListString";
         string filePath = CodeListFilePath(CodeListId);
         byte[] codeListAsBytes = TestDataHelper.GetFileAsByteArrayFromRepo(OrgName, RepoName, Developer, filePath);
-        FileSystemObject codeListFileObject = new ()
+        FileSystemObject codeListFileObject = new()
         {
             Name = CodeListId,
             Content = Convert.ToBase64String(codeListAsBytes)
@@ -140,7 +140,7 @@ public class GiteaContentLibraryServiceTests
     {
         // Arrange
         const string LanguageCode = "en";
-        FileSystemObject resourceFile = new () { Name = TextResourceFilePath(LanguageCode) };
+        FileSystemObject resourceFile = new() { Name = TextResourceFilePath(LanguageCode) };
         byte[] resourceFileAsBytes = TestDataHelper.GetFileAsByteArrayFromRepo(OrgName, RepoName, Developer, resourceFile.Name);
         resourceFile.Content = Convert.ToBase64String(resourceFileAsBytes);
 
