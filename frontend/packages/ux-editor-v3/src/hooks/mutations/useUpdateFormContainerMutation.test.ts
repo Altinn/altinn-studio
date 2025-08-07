@@ -19,11 +19,6 @@ import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
-}));
-
 // Test data:
 const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
