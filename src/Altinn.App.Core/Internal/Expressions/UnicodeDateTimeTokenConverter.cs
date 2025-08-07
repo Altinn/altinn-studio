@@ -166,9 +166,9 @@ internal static partial class UnicodeDateTimeTokenConverter
     [GeneratedRegex(
         @"^[0-9]{4}-[0-9]{2}-[0-9]{2}(?:[ Tt][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]{1,9})?)?([Zz]|[+-][0-9]{2}:[0-9]{2})?)?$",
         RegexOptions.CultureInvariant,
-        matchTimeoutMilliseconds: 10
+        matchTimeoutMilliseconds: 100
     )]
-    private static partial Regex DateVerificationRegex();
+    internal static partial Regex DateVerificationRegex();
 
     public static DateTimeOffset? Parse(string rawString, out bool hasTimeZone)
     {
