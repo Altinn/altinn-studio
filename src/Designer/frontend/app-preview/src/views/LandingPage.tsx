@@ -58,7 +58,7 @@ export const LandingPage = () => {
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (set: string) => {
-    navigate(`../${set}`);
+    navigate(`/${org}/${app}/${set}`);
   };
 
   if (previewConnection) {
