@@ -120,7 +120,7 @@ export const LandingPage = () => {
   );
 };
 
-const getSelectedFormLayoutSetName = (layoutSet: string): string => {
+const getSelectedFormLayoutSetName = (layoutSet: string): string | undefined => {
   if (layoutSet === '') return undefined;
   return layoutSet;
 };
