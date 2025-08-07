@@ -16,7 +16,7 @@ import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { app, org } from '@studio/testing/testids';
 import { user as userMock } from 'app-shared/mocks/mocks';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -43,23 +43,13 @@ const render = (
     ...queries,
   };
 
-  const router = createMemoryRouter(
-    [
-      {
-        path: '/:org/:app/*',
-        element: (
-          <ServicesContextProvider {...allQueries} client={queryClient}>
-            <DataModelling />
-          </ServicesContextProvider>
-        ),
-      },
-    ],
-    {
-      initialEntries: [`/${org}/${app}/data-modelling`],
-    },
+  return rtlRender(
+    <TestAppRouter>
+      <ServicesContextProvider {...allQueries} client={queryClient}>
+        <DataModelling />
+      </ServicesContextProvider>
+    </TestAppRouter>,
   );
-
-  return rtlRender(<RouterProvider router={router} />);
 };
 
 describe('DataModelling', () => {
