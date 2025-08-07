@@ -64,6 +64,22 @@ describe('StudioTextarea', () => {
     expect(input).toHaveValue(inputValue);
   });
 
+  it('should apply the description when provided and give it an id', () => {
+    const description: string = 'This is a description';
+    renderStudioTextarea({ description });
+    expect(screen.getByText(description)).toBeInTheDocument();
+    const descriptionElement: HTMLParagraphElement = screen.getByText(description);
+    expect(descriptionElement).toHaveAttribute('id');
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-describedby', descriptionElement.id);
+  });
+
+  it('should apply the error message when provided and display it', () => {
+    const error: string = 'This is an error';
+    renderStudioTextarea({ error });
+    expect(screen.getByText(error)).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className: string) => renderStudioTextarea({ className }));
   });
