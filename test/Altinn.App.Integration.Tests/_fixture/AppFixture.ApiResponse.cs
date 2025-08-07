@@ -10,9 +10,11 @@ public sealed partial class AppFixture
 {
     internal readonly record struct ReadResult<T>(T? Model, string? Body, Exception? Exception);
 
-    internal record ReadApiResponse<T>(AppFixture Fixture, HttpResponseMessage Response, ReadResult<T> Data)
-        : ApiResponse(Fixture, Response)
+    internal sealed class ReadApiResponse<T>(AppFixture fixture, HttpResponseMessage response, ReadResult<T> data)
+        : ApiResponse(fixture, response)
     {
+        public ReadResult<T> Data { get; } = data;
+
         public bool IncludeBodyInSnapshot { get; set; } = true;
 
         public override SettingsTask Verify(
@@ -27,7 +29,6 @@ public sealed partial class AppFixture
         {
             var appPort = Fixture._appContainer.GetMappedPublicPort(AppPort).ToString();
             var localtestPort = Fixture._localtestContainer.GetMappedPublicPort(LocaltestPort).ToString();
-
             var snapshot = IncludeBodyInSnapshot ? Snapshot.Create(Response, Data) : Snapshot.Create(Response);
 
             var settings = Verifier
@@ -42,16 +43,28 @@ public sealed partial class AppFixture
         }
     }
 
-    internal record ApiResponse(AppFixture Fixture, HttpResponseMessage Response) : IDisposable
+    internal class ApiResponse(AppFixture fixture, HttpResponseMessage response) : IDisposable
     {
+        public AppFixture Fixture = fixture;
+        private HttpResponseMessage? _response = response;
+        public HttpResponseMessage Response
+        {
+            get
+            {
+                Assert.NotNull(_response);
+                return _response;
+            }
+        }
+
         public async Task<ReadApiResponse<T>> Read<T>()
         {
             string? body = null;
             T? model = default;
             Exception? exception = null;
+            var response = Response;
             try
             {
-                var rawBody = await Response.Content.ReadAsByteArrayAsync();
+                var rawBody = await response.Content.ReadAsByteArrayAsync();
                 body = Encoding.UTF8.GetString(rawBody);
                 if (typeof(T) == typeof(Argon.JToken))
                 {
@@ -75,7 +88,8 @@ public sealed partial class AppFixture
             {
                 exception = ex;
             }
-            return new ReadApiResponse<T>(Fixture, Response, new(model, body, exception));
+            _response = null; // We give ownership of the response to the generic ReadApiResponse<T> below
+            return new ReadApiResponse<T>(Fixture, response, new(model, body, exception));
         }
 
         public virtual SettingsTask Verify(
@@ -96,7 +110,7 @@ public sealed partial class AppFixture
             return settings;
         }
 
-        public void Dispose() => Response.Dispose();
+        public void Dispose() => _response?.Dispose();
     }
 
     private sealed record Snapshot(HttpResponseMessage HttpResponse, object? Response)

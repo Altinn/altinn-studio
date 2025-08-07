@@ -23,7 +23,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output)
             new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = partyId } }
         );
 
-        var data = await response.Read<Instance>();
+        using var data = await response.Read<Instance>();
         await verifier.Verify(
             data,
             parameters: new { partyId },
@@ -43,7 +43,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output)
         using var response = await fixture.ApplicationMetadata.Get();
 
         Assert.True(response.Response.IsSuccessStatusCode);
-        var applicationMetadata = await response.Read<ApplicationMetadata>();
+        using var applicationMetadata = await response.Read<ApplicationMetadata>();
         await verifier.Verify<ApplicationMetadata>(applicationMetadata);
 
         await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");

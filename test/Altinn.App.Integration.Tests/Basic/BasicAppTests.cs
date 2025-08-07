@@ -23,7 +23,7 @@ public class BasicAppTests(ITestOutputHelper _output)
             new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
 
-        var readResponse = await response.Read<Instance>();
+        using var readResponse = await response.Read<Instance>();
         await verifier.Verify(
             readResponse,
             snapshotName: "Instantiation",
@@ -50,8 +50,8 @@ public class BasicAppTests(ITestOutputHelper _output)
             }
         );
 
-        var readInstantiationResponse = await instantiationResponse.Read<Instance>();
-        var download = await fixture.Instances.Download(token, readInstantiationResponse);
+        using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
+        using var download = await fixture.Instances.Download(token, readInstantiationResponse);
         await download.Verify(verifier);
 
         await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
@@ -73,7 +73,7 @@ public class BasicAppTests(ITestOutputHelper _output)
                 Prefill = new() { { "property1", "1" } },
             }
         );
-        var readInstantiationResponse = await instantiationResponse.Read<Instance>();
+        using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
         await verifier.Verify(
             readInstantiationResponse,
             snapshotName: "Instantiation",
@@ -111,7 +111,7 @@ public class BasicAppTests(ITestOutputHelper _output)
         using var readProcessNextResponse = await processNextResponse.Read<AppProcessState>();
         await verifier.Verify(readProcessNextResponse, snapshotName: "ProcessNext", scrubber: scrubber);
 
-        var download = await fixture.Instances.Download(token, readInstantiationResponse);
+        using var download = await fixture.Instances.Download(token, readInstantiationResponse);
         await download.Verify(verifier);
 
         await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");

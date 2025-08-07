@@ -93,9 +93,9 @@ public partial class AppFixture : IAsyncDisposable
                 else
                     request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
-                using var response = await client.SendAsync(request);
+                var response = await client.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
+                try
                 {
                     // Check if it's form data (has AppLogic.ClassRef) or binary data
                     if (dataType.AppLogic?.ClassRef is not null)
@@ -113,6 +113,11 @@ public partial class AppFixture : IAsyncDisposable
                         var binaryData = new InstanceDataDownload.Binary(i, dataGuid, dataType.Id, readResponse);
                         data.Add(binaryData);
                     }
+                }
+                catch (Exception)
+                {
+                    response.Dispose();
+                    throw;
                 }
             }
 
@@ -290,12 +295,12 @@ internal abstract record InstanceDataDownload(int Index, Guid Id, string DataTyp
     internal sealed record Form(int Index, Guid Id, string DataType, ReadApiResponse<Argon.JToken> Data)
         : InstanceDataDownload(Index, Id, DataType)
     {
-        public override void Dispose() => Data.Response.Dispose();
+        public override void Dispose() => Data.Dispose();
     }
 
     internal sealed record Binary(int Index, Guid Id, string DataType, ReadApiResponse<byte[]> Data)
         : InstanceDataDownload(Index, Id, DataType)
     {
-        public override void Dispose() => Data.Response.Dispose();
+        public override void Dispose() => Data.Dispose();
     }
 }
