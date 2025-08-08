@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Factories;
@@ -213,6 +214,47 @@ public class LayoutServiceTests
             .ForEach((fileContent) => Assert.NotEqual(string.Empty, fileContent));
         int newGroupCount = (updatedLayoutSettings.Pages as PagesWithGroups).Groups.Count;
         Assert.Equal(originalGroupCount, newGroupCount);
+    }
+
+    [Fact]
+    public async Task RenamePage_ShouldKeepOriginalContent()
+    {
+        const string Repo = "app-with-groups-and-task-navigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) =
+            await PrepareTestForRepo(Repo);
+
+        LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
+            editingContext,
+            "form"
+        );
+
+        PagesDto pagesDto = PagesDto.From(layoutSettings);
+        PageDto pageToRename = pagesDto.Groups[0].Pages[0];
+        string oldPageName = pageToRename.Id;
+        string newPageName = $"{oldPageName}-newName";
+
+        string originalFileContent = TestDataHelper.GetFileFromRepo(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer,
+            $"App/ui/form/layouts/{oldPageName}.json"
+        );
+
+        await layoutService.RenamePage(
+            editingContext,
+            "form",
+            oldPageName,
+            newPageName
+        );
+
+        string renamedFileContent = TestDataHelper.GetFileFromRepo(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer,
+            $"App/ui/form/layouts/{newPageName}.json"
+        );
+
+        Assert.Equal(originalFileContent, renamedFileContent);
     }
 
     [Fact]
