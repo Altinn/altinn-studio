@@ -29,7 +29,7 @@ public interface IGiteaContentLibraryService
     /// Retrieves the text file in the content repository from Gitea
     /// </summary>
     /// <param name="orgName">The name of the organisation.</param>
-    /// <param name="languageCode"></param>
+    /// <param name="languageCode">The language code for the text resource.</param>
     /// <returns>The text file</returns>
     public Task<TextResource> GetTextResource(string orgName, string languageCode);
     /// <summary>

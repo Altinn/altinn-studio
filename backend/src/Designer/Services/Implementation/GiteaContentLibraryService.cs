@@ -31,7 +31,11 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     /// <inheritdoc />
     public async Task<List<string>> GetCodeListIds(string orgName)
     {
-        List<FileSystemObject> files = await _giteaApiWrapper.GetDirectoryAsync(orgName, GetContentRepoName(orgName), CodeListFolderPath, "");
+        List<FileSystemObject> files = await _giteaApiWrapper.GetDirectoryAsync(orgName, GetContentRepoName(orgName), CodeListFolderPath, string.Empty);
+        if (files is null)
+        {
+            return [];
+        }
         IEnumerable<string> fileNames = files.Select(file => file.Name);
         return fileNames.Select(Path.GetFileNameWithoutExtension).ToList();
     }
@@ -41,13 +45,13 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string filePath = StaticContentCodeListFilePath(codeListId);
         string decodedString = await GetFileFromGitea(orgName, filePath);
-        return JsonSerializer.Deserialize<List<Option>>(decodedString);
+        return JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
     }
 
     /// <inheritdoc />
     public async Task<List<string>> GetTextIds(string orgName)
     {
-        List<string> textIds = [];
+        HashSet<string> textIds = [];
         List<string> languageCodes = await GetLanguages(orgName);
 
         foreach (string languageCode in languageCodes)
@@ -55,12 +59,18 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
             string textResourceString = await GetFileFromGitea(orgName, StaticContentTextResourceFilePath(languageCode));
             TextResource textResource = JsonSerializer.Deserialize<TextResource>(textResourceString, s_jsonOptions);
 
-            if (textResource.Resources.Count == 0) { continue; }
+            if (textResource.Resources.Count == 0)
+            {
+                continue;
+            }
             IEnumerable<string> textResourceElementIds = textResource.Resources.Select(textResourceElement => textResourceElement.Id);
-            textIds.AddRange(textResourceElementIds);
+            foreach (string id in textResourceElementIds)
+            {
+                textIds.Add(id);
+            }
         }
 
-        return textIds.Distinct().ToList();
+        return textIds.ToList();
     }
 
     public async Task<TextResource> GetTextResource(string orgName, string languageCode)
@@ -73,18 +83,23 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     public async Task<List<string>> GetLanguages(string orgName)
     {
         List<FileSystemObject> files = await _giteaApiWrapper.GetDirectoryAsync(orgName, GetContentRepoName(orgName), TextResourceFolderPath, string.Empty);
-        IEnumerable<string> languageFilePaths = files.Select(file => file.Name);
-        IEnumerable<string> fileNames = languageFilePaths
-            .Select(Path.GetFileName)
-            .Select(Path.GetFileNameWithoutExtension);
+        if (files is null)
+        {
+            return [];
+        }
 
         List<string> languages = [];
-        foreach (string fileName in fileNames)
+        foreach (FileSystemObject file in files)
         {
+            string fileName = Path.GetFileNameWithoutExtension(file.Name);
+            if (fileName == null)
+            {
+                continue;
+            }
             var match = Regex.Match(fileName, @"^resource\.(?<lang>[A-Za-z]{2,3})$");
             if (match.Success)
             {
-                languages.Add(fileName.Split('.')[^1]);
+                languages.Add(match.Groups["lang"].Value);
             }
         }
 
@@ -96,6 +111,10 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string repoName = GetContentRepoName(orgName);
         FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
+        if (string.IsNullOrEmpty(file?.Content))
+        {
+            return string.Empty;
+        }
         byte[] binaryData = Convert.FromBase64String(file.Content);
         return Encoding.UTF8.GetString(binaryData);
     }
