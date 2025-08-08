@@ -7,7 +7,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
 
 const pipelineDeployment: PipelineDeployment = {
   id: '1',
@@ -32,10 +31,6 @@ const defaultProps: DeploymentEnvironmentLogListProps = {
   isProduction: false,
   pipelineDeploymentList: [],
 };
-
-jest.mock('app-shared/ext-urls', () => ({
-  grafanaPodLogsUrl: jest.fn(),
-}));
 
 const render = (
   props?: Partial<DeploymentEnvironmentLogListProps>,
@@ -65,15 +60,13 @@ describe('DeploymentEnvironmentLogList', () => {
     render({
       pipelineDeploymentList: [pipelineDeployment],
     });
-    expect(screen.getByText(`${textMock('app_deployment.table.status')}`)).toBeInTheDocument();
-    expect(screen.getByText(`${textMock('app_deployment.table.version_col')}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.status'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.version_col'))).toBeInTheDocument();
     expect(
-      screen.getByText(`${textMock('app_deployment.table.available_version_col')}`),
+      screen.getByText(textMock('app_deployment.table.available_version_col')),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(`${textMock('app_deployment.table.deployed_by_col')}`),
-    ).toBeInTheDocument();
-    expect(screen.getByText(`${textMock('app_deployment.table.build_log')}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.deployed_by_col'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.table.build_log'))).toBeInTheDocument();
     expect(screen.getByText(pipelineDeployment.createdBy)).toBeInTheDocument();
   });
 
@@ -90,7 +83,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.none')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
     ).toBeInTheDocument();
   });
 
@@ -107,7 +100,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.failed')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
     ).toBeInTheDocument();
   });
 
@@ -124,7 +117,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.canceled')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.canceled')),
     ).toBeInTheDocument();
   });
 
@@ -141,7 +134,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.succeeded')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
     ).toBeInTheDocument();
   });
 
@@ -159,7 +152,7 @@ describe('DeploymentEnvironmentLogList', () => {
     });
     expect(
       screen.getByText(
-        `${textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded')}`,
+        textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded'),
       ),
     ).toBeInTheDocument();
   });
@@ -177,10 +170,10 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.queryByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+      screen.queryByText(textMock('app_deployment.table.build_log_active_link')),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+      screen.queryByText(textMock('app_deployment.table.build_log_expired_link')),
     ).not.toBeInTheDocument();
   });
 
@@ -197,7 +190,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+      screen.getByText(textMock('app_deployment.table.build_log_expired_link')),
     ).toBeInTheDocument();
   });
 
@@ -219,7 +212,7 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
 
-    expect(screen.getByText(`${textMock(expectedTextKey)}`)).toBeInTheDocument();
+    expect(screen.getByText(textMock(expectedTextKey))).toBeInTheDocument();
   });
 
   it('renders build log link when started date is valid (< 30 days)', () => {
@@ -235,54 +228,58 @@ describe('DeploymentEnvironmentLogList', () => {
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+      screen.getByText(textMock('app_deployment.table.build_log_active_link')),
     ).toBeInTheDocument();
   });
 
-  it('renders grafana link', () => {
+  it('renders log links', () => {
+    const currentDate = new Date();
+
     render({
       pipelineDeploymentList: [
         {
           ...pipelineDeployment,
           build: {
             ...pipelineDeployment.build,
+            started: currentDate.toISOString(),
+            finished: currentDate.toISOString(),
             result: BuildResult.failed,
           },
         },
       ],
     });
     expect(
-      screen.getByText(`${textMock('app_deployment.pipeline_deployment.build_result.failed')}`),
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed.details')),
     ).toBeInTheDocument();
   });
 
-  it('renders grafana link', () => {
-    (grafanaPodLogsUrl as jest.Mock).mockReturnValue(jest.fn());
+  it('does not render log links when logs are expired (> 30 days)', () => {
+    const startedDate = new Date();
+    startedDate.setMonth(startedDate.getMonth() - 1);
+    const finishedDate = new Date();
+    finishedDate.setMonth(finishedDate.getMonth() - 1);
+
     render({
       pipelineDeploymentList: [
         {
           ...pipelineDeployment,
           build: {
             ...pipelineDeployment.build,
-            started: '2025-06-16T10:46:23.216Z',
-            finished: '2025-06-16T10:46:23.216Z',
+            started: '2024-06-16T10:46:23.216Z',
+            finished: '2024-06-16T10:46:23.216Z',
             result: BuildResult.failed,
           },
         },
       ],
     });
-    expect(grafanaPodLogsUrl).toHaveBeenCalledWith({
-      app: 'testApp',
-      buildFinishTime: 1750070783216,
-      buildStartTime: 1750070783216,
-      env: 'test',
-      isProduction: false,
-      org: 'testOrg',
-    });
+    expect(
+      screen.queryByText(
+        textMock('app_deployment.pipeline_deployment.build_result.failed.details'),
+      ),
+    ).not.toBeInTheDocument();
   });
 
-  it('renders grafana link without times when build times are undefined', () => {
-    (grafanaPodLogsUrl as jest.Mock).mockReturnValue(jest.fn());
+  it('does not render log links when build times are undefined', () => {
     render({
       pipelineDeploymentList: [
         {
@@ -296,13 +293,10 @@ describe('DeploymentEnvironmentLogList', () => {
         },
       ],
     });
-    expect(grafanaPodLogsUrl).toHaveBeenCalledWith({
-      app: 'testApp',
-      buildFinishTime: undefined,
-      buildStartTime: undefined,
-      env: 'test',
-      isProduction: false,
-      org: 'testOrg',
-    });
+    expect(
+      screen.queryByText(
+        textMock('app_deployment.pipeline_deployment.build_result.failed.details'),
+      ),
+    ).not.toBeInTheDocument();
   });
 });
