@@ -19,7 +19,8 @@ function StudioPageSpinner(
         spinnerTitle={spinnerTitle}
         data-size='xl'
         className={classes.spinnerText}
-        aria-hidden={showSpinnerTitle ? 'true' : undefined}
+        aria-hidden={showSpinnerTitle ? true : undefined}
+        aria-label={spinnerTitle}
       />
     </StudioCenter>
   );
