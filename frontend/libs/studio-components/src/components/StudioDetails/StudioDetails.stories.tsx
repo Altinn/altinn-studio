@@ -24,12 +24,6 @@ const ComposedComponentInCard = (args: StudioDetailsProps): ReactElement => (
 const meta: Meta<typeof StudioDetails> = {
   title: 'Components/StudioDetails',
   component: StudioDetails,
-  argTypes: {
-    'data-size': {
-      control: 'radio',
-      options: ['sm', 'md', 'lg'],
-    },
-  },
 };
 
 export const Preview = (args: StudioDetailsProps): ReactElement => <ComposedComponent {...args} />;
@@ -37,13 +31,5 @@ export const Preview = (args: StudioDetailsProps): ReactElement => <ComposedComp
 export const InCard = (args: StudioDetailsProps): ReactElement => (
   <ComposedComponentInCard {...args} />
 );
-
-Preview.args = {
-  'data-size': 'sm',
-};
-
-InCard.args = {
-  'data-size': 'sm',
-};
 
 export default meta;
