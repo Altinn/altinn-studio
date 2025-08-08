@@ -18,6 +18,7 @@ export interface TextResourceProps {
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;
+  disableSearch?: boolean;
 }
 
 export interface GenerateTextResourceIdOptions {
@@ -40,6 +41,7 @@ export const TextResource = ({
   handleRemoveTextResource,
   label,
   textResourceId,
+  disableSearch,
 }: TextResourceProps) => {
   const { formItemId } = useFormItemContext();
   const { selectedFormLayoutName: formLayoutName } = useAppContext();
@@ -86,6 +88,7 @@ export const TextResource = ({
       onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
+      disableSearch={disableSearch}
     />
   ) : (
     <TextResourceButton
@@ -105,6 +108,7 @@ type TextResourceFieldsetProps = {
   onReferenceChange: (id: string) => void;
   onSetCurrentValue: (value: string) => void;
   textResourceId: string;
+  disableSearch?: boolean;
 };
 
 const TextResourceFieldset = ({
@@ -115,6 +119,7 @@ const TextResourceFieldset = ({
   onReferenceChange,
   onSetCurrentValue,
   textResourceId,
+  disableSearch = false,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
 
@@ -142,6 +147,7 @@ const TextResourceFieldset = ({
         textResourceId={textResourceId}
         onReferenceChange={onReferenceChange}
         onSetCurrentValue={onSetCurrentValue}
+        disableSearch={disableSearch}
       />
     </StudioProperty.Fieldset>
   );

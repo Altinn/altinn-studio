@@ -1944,6 +1944,7 @@
   "ux_editor.modal_properties_textResourceBindings_page_id": "Side-ID",
   "ux_editor.modal_properties_textResourceBindings_page_name": "Visningsnavn for side",
   "ux_editor.modal_properties_textResourceBindings_page_name_add": "Legg til visningsnavn for side",
+  "ux_editor.modal_properties_textResourceBindings_page_name_search_disabled": "Søk etter eksisterende tekster er ikke tilgjengelig her.",
   "ux_editor.modal_properties_textResourceBindings_pagination_back_button": "Tilbakeknapp ved paginering",
   "ux_editor.modal_properties_textResourceBindings_pagination_next_button": "Nesteknapp ved paginering",
   "ux_editor.modal_properties_textResourceBindings_postPlaceTitle": "Tittel for poststed",
