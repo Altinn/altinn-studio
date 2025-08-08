@@ -15,10 +15,15 @@ import { convertInternalToExternalFormat } from './convertFunctions/convertToExt
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
+type AttachmentListComponentProps = IGenericEditComponent<ComponentType.AttachmentList> & {
+  className?: string;
+};
+
 export const AttachmentListComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.AttachmentList>) => {
+  className,
+}: AttachmentListComponentProps): JSX.Element => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -59,6 +64,7 @@ export const AttachmentListComponent = ({
       availableAttachments={availableAttachments}
       internalDataFormat={internalDataFormat}
       isTaskCustomReceipt={isTaskCustomReceipt}
+      className={className}
     />
   );
 };
