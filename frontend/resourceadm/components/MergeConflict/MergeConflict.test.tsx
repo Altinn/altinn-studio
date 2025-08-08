@@ -10,22 +10,17 @@ import { MergeConflict } from './MergeConflict';
 
 const repoName = 'ttd-resources';
 
-const originalWindowLocation = window.location;
-
 describe('MergeConflict', () => {
-  beforeEach(() => {
-    delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      reload: jest.fn(),
-    };
-  });
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    jest.restoreAllMocks();
   });
 
   it('should reset changes when reset button is clicked', async () => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { reload: jest.fn() },
+    });
     const user = userEvent.setup();
     renderMergeConflict();
 

@@ -26,7 +26,7 @@ export const LocalChanges = (): ReactNode => {
         description={t('local_changes.modal_download_your_files_description')}
         icon={<DownloadIcon />}
         text={t('local_changes.modal_download_only_changed_button')}
-        action={{ type: 'link', href: repoDownloadPath(owner, repoName) }}
+        action={{ type: 'link', href: repoDownloadPath(owner, repoName, false) }}
       />
       <LocalChangesActionButton
         label={t('local_changes.modal_download_all_files_label')}

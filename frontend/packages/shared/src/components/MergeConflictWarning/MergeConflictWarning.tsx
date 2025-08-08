@@ -29,7 +29,7 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
           ikke fungerer, kan du laste ned en zip-fil med endringene dine.
         </Trans>
       </StudioParagraph>
-      <StudioLink className={classes.link} href={repoDownloadPath(owner, repoName)}>
+      <StudioLink className={classes.link} href={repoDownloadPath(owner, repoName, false)}>
         {t('overview.download_repo_changes')}
       </StudioLink>
       <StudioLink className={classes.link} href={repoDownloadPath(owner, repoName, true)}>

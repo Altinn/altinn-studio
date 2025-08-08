@@ -4,22 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { AccessListPreconditionFailedToast } from './AccessListPreconditionFailedToast';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const originalWindowLocation = window.location;
-
 describe('AccessListPreconditionFailedToast', () => {
-  beforeEach(() => {
-    delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      reload: jest.fn(),
-    };
-  });
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    jest.restoreAllMocks();
   });
 
   it('should refresh page when refresh button is clicked', async () => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { reload: jest.fn() },
+    });
     const user = userEvent.setup();
     render(<AccessListPreconditionFailedToast />);
 
