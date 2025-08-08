@@ -6,7 +6,7 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
 import {
   filterCodeLists,
@@ -89,7 +89,7 @@ export function CodeListPage({
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListDataList, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
-    setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
+    setCodeListInEditMode(FileUtils.removeExtension(uploadedCodeList.name));
     onUploadCodeList(uploadedCodeList);
   };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import type { StudioButtonProps } from '@studio/components-legacy';
 import { StudioFileUploader, StudioSpinner } from '@studio/components-legacy';
 import type { FileNameErrorResult } from '@studio/pure-functions';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
 import type { AxiosError } from 'axios';
@@ -45,8 +45,8 @@ export const XSDUpload = ({
 
   const handleSubmit = (file: File): void => {
     const occupiedDataModelNames = extractDataTypeNamesFromAppMetadata(appMetadata);
-    const fileNameError = FileNameUtils.findFileNameErrorByGivenRegEx(
-      FileNameUtils.removeExtension(file.name),
+    const fileNameError = FileUtils.findFileNameErrorByGivenRegEx(
+      FileUtils.removeExtension(file.name),
       occupiedDataModelNames,
       DATA_MODEL_NAME_REGEX,
     );
@@ -69,7 +69,7 @@ export const XSDUpload = ({
 
   const handleInvalidFileName = (file: File, fileNameError: FileNameErrorResult): void => {
     validationAlert(fileNameError);
-    const fileNameWithoutExtension = FileNameUtils.removeExtension(file.name);
+    const fileNameWithoutExtension = FileUtils.removeExtension(file.name);
     if (doesFileExistInMetadataWithClassRef(appMetadata, fileNameWithoutExtension)) {
       const userConfirmed = window.confirm(
         t('schema_editor.error_upload_data_model_id_exists_override_option'),

@@ -16,7 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileUtils } from '@studio/pure-functions';
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }
@@ -111,6 +111,6 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
 };
 
 const extractModelNameFromPath = (path: string): string => {
-  const filename = FileNameUtils.extractFileName(path);
-  return FileNameUtils.removeSchemaExtension(filename);
+  const filename = FileUtils.extractFileName(path);
+  return FileUtils.removeSchemaExtension(filename);
 };
