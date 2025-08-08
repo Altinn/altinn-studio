@@ -11,6 +11,7 @@ type AttachmentListInternalFormatProps = {
   availableAttachments: AvailableAttachementLists;
   internalDataFormat: InternalDataTypesFormat;
   isTaskCustomReceipt: boolean;
+  className?: string;
 };
 
 export const AttachmentListInternalFormat = ({
@@ -18,6 +19,7 @@ export const AttachmentListInternalFormat = ({
   availableAttachments,
   internalDataFormat,
   isTaskCustomReceipt,
+  className,
 }: AttachmentListInternalFormatProps) => {
   const [dataTypesState, setDataTypesState] = useState<InternalDataTypesFormat>(internalDataFormat);
   const [isValid, setIsValid] = useState<boolean>(true);
@@ -80,6 +82,7 @@ export const AttachmentListInternalFormat = ({
     <Fieldset
       legend={t('ux_editor.component_title.AttachmentList_legend')}
       error={!isValid && errorMessage}
+      className={className}
     >
       <Switch
         onChange={(e) => handleCurrentTaskChange(e.target.checked)}
