@@ -88,20 +88,13 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
             return [];
         }
 
-        List<string> languages = [];
-        foreach (FileSystemObject file in files)
-        {
-            string fileName = Path.GetFileNameWithoutExtension(file.Name);
-            if (fileName == null)
-            {
-                continue;
-            }
-            var match = Regex.Match(fileName, @"^resource\.(?<lang>[A-Za-z]{2,3})$");
-            if (match.Success)
-            {
-                languages.Add(match.Groups["lang"].Value);
-            }
-        }
+        List<string> languages = files
+            .Select(file => Path.GetFileNameWithoutExtension(file.Name))
+            .Where(fileName => fileName != null)
+            .Select(fileName => Regex.Match(fileName, @"^resource\.(?<lang>[A-Za-z]{2,3})$"))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["lang"].Value)
+            .ToList();
 
         languages.Sort(StringComparer.Ordinal);
         return languages;
