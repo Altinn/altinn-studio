@@ -1,0 +1,33 @@
+name: Upload template zip to release
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish zip to release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Create zip
+        run: |
+          rm -rf /tmp/release
+          mkdir /tmp/release
+          cd src/
+          rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /tmp/release
+          cd /tmp/release
+          zip -r ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip .
+          sha512sum ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip > ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.sha512sums.txt
+      - name: Update release
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
+        with:
+          files: |
+            /tmp/release/${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip
+            /tmp/release/${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.sha512sums.txt

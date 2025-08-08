@@ -1,0 +1,9 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "local>Altinn/renovate-config"
+  ],
+  "ignorePaths": [
+    "src/Dockerfile"
+  ]
+}

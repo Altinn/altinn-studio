@@ -1,0 +1,12 @@
+Altinn.App.Api/
+Altinn.App.Common/
+Altinn.App.PlatformServices/
+Altinn.App.PlatformServices.Tests/
+App.IntegrationTests/
+.editorconfig
+.releaseignore
+AppRef.sln
+.idea/
+.vs/
+App/AppRef.csproj
+App/TestDummy.cs

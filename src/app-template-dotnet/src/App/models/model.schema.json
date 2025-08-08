@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/bjosttveit/v4-data/App/models/model.schema.json",
+  "type": "object",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "model",
+  "properties": {
+    "property1": {
+      "type": "string"
+    },
+    "property2": {
+      "type": "string"
+    },
+    "property3": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "property1",
+    "property2"
+  ]
+}
