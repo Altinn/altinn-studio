@@ -3,7 +3,7 @@ import type { CodeListIdSource } from '../../../types/CodeListReference';
 import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileUtils } from '@studio/pure-functions';
 import { getUsageTaskTypeTextKey } from '../../../utils';
 
 export type CodeListUsagesProps = {
@@ -55,7 +55,7 @@ function CodeListUsageSourceRow({
     <Table.Row>
       <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
       <Table.Cell>{taskId}</Table.Cell>
-      <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
+      <Table.Cell>{FileUtils.removeExtension(layoutName)}</Table.Cell>
       <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
     </Table.Row>
   );

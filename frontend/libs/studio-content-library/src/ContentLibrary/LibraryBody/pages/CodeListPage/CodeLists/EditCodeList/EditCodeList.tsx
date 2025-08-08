@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
-import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import type { CodeListIdSource } from '../../types/CodeListReference';
 import { CodeListUsages } from './CodeListUsages/CodeListUsages';
@@ -112,7 +112,7 @@ function EditCodeListTitle({
 
   const handleValidateCodeListId = (newCodeListId: string) => {
     const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
-    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
+    const fileNameError = FileUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 

@@ -3,7 +3,7 @@ import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
 } from 'app-shared/types/DataModelMetadata';
-import { ArrayUtils, StringUtils, FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, StringUtils, FileUtils } from '@studio/pure-functions';
 import type { MetadataOption } from '../types/MetadataOption';
 import type { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
 
@@ -42,7 +42,7 @@ export const mergeJsonAndXsdData = (
  * @returns The MetadataOption object.
  */
 export const convertMetadataToOption = (metadata: DataModelMetadata): MetadataOption => {
-  let label = FileNameUtils.removeSchemaExtension(metadata.fileName);
+  let label = FileUtils.removeSchemaExtension(metadata.fileName);
   if (metadata.fileType === '.xsd') {
     label += ' (XSD)';
   }

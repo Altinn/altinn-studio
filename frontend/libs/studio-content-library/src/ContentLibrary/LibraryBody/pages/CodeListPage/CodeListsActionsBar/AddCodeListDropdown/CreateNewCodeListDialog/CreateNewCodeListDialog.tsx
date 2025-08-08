@@ -7,7 +7,7 @@ import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading } from '@studio/components';
 
@@ -105,7 +105,7 @@ function CreateNewCodeList({
   };
 
   const handleCodeListTitleChange = (updatedTitle: string) => {
-    const fileNameError = FileNameUtils.findFileNameError(updatedTitle, codeListNames);
+    const fileNameError = FileUtils.findFileNameError(updatedTitle, codeListNames);
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
     setCodeListTitleError(errorMessage ?? '');
     if (!fileNameError) {

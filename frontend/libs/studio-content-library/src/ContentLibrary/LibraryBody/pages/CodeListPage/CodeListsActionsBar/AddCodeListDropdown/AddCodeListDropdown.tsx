@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import classes from './AddCodeListDropdown.module.css';
 import { useTranslation } from 'react-i18next';
 import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';
@@ -44,8 +44,8 @@ export function AddCodeListDropdown({
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const onSubmit = (file: File) => {
-    const fileNameError = FileNameUtils.findFileNameError(
-      FileNameUtils.removeExtension(file.name),
+    const fileNameError = FileUtils.findFileNameError(
+      FileUtils.removeExtension(file.name),
       codeListNames,
     );
     if (fileNameError) {

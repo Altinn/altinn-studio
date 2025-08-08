@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 import { ChevronRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileUtils } from '@studio/pure-functions';
 import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FilePathProps {
@@ -20,7 +20,7 @@ export const FilePath = ({ filePath, diff, repoDiffStatus }: FilePathProps) => {
     return <FilePathWithoutDiff filePath={filePath} />;
   }
 
-  const fileName = FileNameUtils.extractFileName(filePath);
+  const fileName = FileUtils.extractFileName(filePath);
   const linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
 
   return (
@@ -56,8 +56,8 @@ type FormattedFilePathProps = {
 };
 
 const FormattedFilePath = ({ filePath }: FormattedFilePathProps) => {
-  const fileName = FileNameUtils.extractFileName(filePath);
-  const filePathWithoutName = FileNameUtils.removeFileNameFromPath(filePath, true);
+  const fileName = FileUtils.extractFileName(filePath);
+  const filePathWithoutName = FileUtils.removeFileNameFromPath(filePath, true);
 
   return (
     <>

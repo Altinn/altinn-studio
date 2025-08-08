@@ -6,7 +6,7 @@ import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { StudioFileUploader } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
+import { FileNameErrorResult, FileUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -27,8 +27,8 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   });
 
   const onSubmit = (file: File) => {
-    const fileNameError = FileNameUtils.findFileNameError(
-      FileNameUtils.removeExtension(file.name),
+    const fileNameError = FileUtils.findFileNameError(
+      FileUtils.removeExtension(file.name),
       optionListIds,
     );
     if (fileNameError) {
@@ -41,7 +41,7 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        const optionsId = FileNameUtils.removeExtension(file.name);
+        const optionsId = FileUtils.removeExtension(file.name);
         const updatedComponent = updateComponentOptionsId(component, optionsId);
         handleOptionsChange(updatedComponent, handleComponentChange);
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
