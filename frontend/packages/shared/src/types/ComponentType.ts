@@ -41,6 +41,7 @@ export enum ComponentType {
   Subform = 'Subform',
   Summary = 'Summary',
   Summary2 = 'Summary2',
+  Text = 'Text',
   TextArea = 'TextArea',
   Divider = 'Divider',
 }

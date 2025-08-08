@@ -492,6 +492,13 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
+  [ComponentType.Text]: {
+    name: ComponentType.Text,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/textComponent',
+    icon: TextIcon,
+  },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
     itemType: LayoutItemType.Component,
@@ -563,6 +570,7 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
+  formItemConfigs[ComponentType.Text],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
@@ -603,6 +611,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Panel,
     ComponentType.Alert,
     ComponentType.Divider,
+    ComponentType.Text,
   ],
   select: [
     ComponentType.Checkboxes,
