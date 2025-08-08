@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { StudioAlert, StudioSectionHeader, StudioSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -25,17 +25,7 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const { data: schema, isPending } = useComponentSchemaQuery(formItem.type);
-
-  if (isPending) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle
-        spinnerTitle={t('ux_editor.properties_panel.texts.loading')}
-      />
-    );
-  }
-
+  const { data: schema } = useComponentSchemaQuery(formItem.type);
   const { dataModelBindings, textResourceBindings } = schema.properties;
 
   const Icon = formItemConfigs[formItem.type]?.icon;
@@ -85,6 +75,7 @@ export const PropertiesHeader = ({
               requiredDataModelBindings={dataModelBindings?.required || []}
             />
             <ComponentMainConfig
+              key={formItem.id}
               component={formItem}
               handleComponentChange={handleComponentUpdate}
             />

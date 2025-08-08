@@ -16,6 +16,6 @@ public interface IOptionListReferenceService
     /// </summary>
     /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>A list of <see cref="RefToOptionListSpecifier"/> with task data.</returns>
-    Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default);
+    /// <returns>A list of <see cref="OptionListReference"/> with task data.</returns>
+    Task<List<OptionListReference>> GetAllOptionListReferences(AltinnRepoEditingContext editingContext, CancellationToken cancellationToken = default);
 }

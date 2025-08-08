@@ -46,6 +46,13 @@ describe('ArrayUtils', () => {
     });
   });
 
+  describe('removeLast', () => {
+    it('should remove last item from array', () => {
+      const testData = [1, 2, 3];
+      expect(ArrayUtils.removeLast(testData)).toEqual([1, 2]);
+    });
+  });
+
   describe('last', () => {
     it('Returns last item in array', () => {
       expect(ArrayUtils.last([1, 2, 3])).toEqual(3);

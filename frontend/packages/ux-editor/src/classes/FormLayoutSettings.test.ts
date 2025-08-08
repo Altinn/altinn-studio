@@ -31,6 +31,38 @@ describe('FormLayoutSettings', () => {
       expect(layoutSettings.getPdfLayoutName()).toBe(pdfLayoutNameMock);
     });
   });
+
+  describe('deletePageFromOrder', () => {
+    it('Should delete page from order in groups', () => {
+      const layoutSettings = setupFormLayoutSettings({
+        pages: { groups: [{ order: ['side1', 'side2'] }, { order: ['side3', 'side4'] }] },
+      });
+
+      layoutSettings.deletePageFromOrder('side4');
+
+      const expectedStructure = {
+        pages: { groups: [{ order: ['side1', 'side2'] }, { order: ['side3'] }] },
+      };
+      expect(layoutSettings.getLayoutSettings()).toEqual(expectedStructure);
+    });
+  });
+
+  describe('addPageToOrder', () => {
+    it('Should add page to order in groups', () => {
+      const layoutSettings = setupFormLayoutSettings({
+        pages: { groups: [{ order: ['side1', 'side2'] }, { order: ['side3', 'side4'] }] },
+      });
+
+      layoutSettings.addPageToOrder('newPage');
+
+      const expectedStructure = {
+        pages: {
+          groups: [{ order: ['side1', 'side2', 'newPage'] }, { order: ['side3', 'side4'] }],
+        },
+      };
+      expect(layoutSettings.getLayoutSettings()).toEqual(expectedStructure);
+    });
+  });
 });
 
 const setupFormLayoutSettings = ({

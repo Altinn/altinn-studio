@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components-legacy';
@@ -13,6 +13,7 @@ import type {
   ResourceReference,
   ResourceFormError,
   ConsentTemplate,
+  ValidLanguage,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -34,6 +35,7 @@ import { ResourceContactPointFields } from '../../components/ResourceContactPoin
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { ConsentPreview } from '../../components/ConsentPreview';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -61,6 +63,10 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
+    resourceData.consentText,
+  );
+  const [previewLanguage, setPreviewLanguage] = useState<ValidLanguage>('nb');
 
   /**
    * Resource type options
@@ -197,6 +203,7 @@ export const AboutResourcePage = ({
               label={t('resourceadm.about_resource_consent_metadata')}
               description={t('resourceadm.about_resource_consent_metadata_description')}
               value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
+              regexp={/[^a-z, ]/g}
               onBlur={(val: string) =>
                 handleSave({
                   ...resourceData,
@@ -213,7 +220,10 @@ export const AboutResourcePage = ({
               onBlur={(consentTexts: SupportedLanguage) =>
                 handleSave({ ...resourceData, consentText: consentTexts })
               }
+              onChange={setConsentPreviewText}
               required
+              hasMarkdownToolbar
+              onSetLanguage={(setLanguage: ValidLanguage) => setPreviewLanguage(setLanguage)}
               errors={validationErrors.filter((error) => error.field === 'consentText')}
             />
             <ResourceSwitchInput
@@ -225,6 +235,18 @@ export const AboutResourcePage = ({
               }
               toggleTextTranslationKey='resourceadm.about_resource_one_time_consent_show_text'
             />
+            {consentTemplates && resourceData.consentTemplate && consentPreviewText && (
+              <ConsentPreview
+                template={consentTemplates.find(
+                  (template) => template.id === resourceData.consentTemplate,
+                )}
+                resourceName={resourceData.title}
+                consentText={consentPreviewText}
+                consentMetadata={resourceData.consentMetadata ?? {}}
+                isOneTimeConsent={resourceData.isOneTimeConsent}
+                language={previewLanguage}
+              />
+            )}
           </>
         )}
         <ResourceTextField

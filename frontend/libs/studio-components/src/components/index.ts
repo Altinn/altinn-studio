@@ -1,8 +1,11 @@
 // These imports are here to make sure that the CSS of the components are rendered correctly
 import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
+import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAnimateHeight } from './StudioAnimateHeight';
+export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
@@ -24,7 +27,8 @@ export { StudioTextfield } from './StudioTextfield';
 export { StudioSpinner } from './StudioSpinner';
 export { StudioFieldset } from './StudioFieldset';
 export { StudioFormGroup } from './StudioFormGroup';
-export { StudioCheckbox, useStudioCheckboxGroup } from './StudioCheckbox';
+export { StudioCheckbox } from './StudioCheckbox';
+export { StudioCheckboxGroup, useStudioCheckboxGroup } from './StudioCheckboxGroup';
 export { StudioCheckboxTable, useStudioCheckboxTable } from './StudioCheckboxTable';
 export type { StudioGetCheckboxProps } from './StudioCheckboxTable';
 export { StudioSwitch } from './StudioSwitch';
@@ -34,3 +38,15 @@ export { type StudioCallToActionBarProps, StudioCallToActionBar } from './Studio
 export { StudioErrorSummary } from './StudioErrorSummary';
 export { StudioCard } from './StudioCard';
 export { StudioDetails } from './StudioDetails';
+export { StudioRadio } from './StudioRadio';
+export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
+export { StudioToggleGroup } from './StudioToggleGroup';
+export { StudioSearch, type StudioSearchProps } from './StudioSearch';
+export { StudioDeleteButton } from './StudioDeleteButton';
+export { StudioFileUploader } from './StudioFileUploader';
+export type { StudioFileUploaderProps } from './StudioFileUploader';
+export { StudioCodeFragment } from './StudioCodeFragment';
+export type { StudioCodeFragmentProps } from './StudioCodeFragment';
+export { StudioDecimalInput } from './StudioDecimalInput';
+export type { StudioDecimalInputProps } from './StudioDecimalInput';
+export { StudioRedirectBox } from './StudioRedirectBox';

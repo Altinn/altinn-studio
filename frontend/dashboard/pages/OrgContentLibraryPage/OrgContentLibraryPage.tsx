@@ -10,11 +10,11 @@ import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
   StudioCenter,
-  StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
   StudioSpinner,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -40,6 +40,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
+import { FeedbackForm } from './FeedbackForm';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -116,6 +117,7 @@ function OrgContentLibraryWithContextAndData({
   const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
   const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
+  const { t } = useTranslation();
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -144,6 +146,7 @@ function OrgContentLibraryWithContextAndData({
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
+    heading: t('org_content_library.library_heading'),
     pages: {
       codeList: {
         props: {
@@ -161,7 +164,12 @@ function OrgContentLibraryWithContextAndData({
     },
   });
 
-  return <div>{getContentResourceLibrary()}</div>;
+  return (
+    <div>
+      {getContentResourceLibrary()}
+      <FeedbackForm />
+    </div>
+  );
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
@@ -169,8 +177,10 @@ function ContextWithoutLibraryAccess(): ReactElement {
   return (
     <StudioCenter>
       <StudioAlert>
-        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
-        <StudioParagraph>
+        <StudioParagraph data-size='md'>
+          {t('dashboard.org_library.alert_no_org_selected')}
+        </StudioParagraph>
+        <StudioParagraph data-size='md'>
           {t('dashboard.org_library.alert_no_org_selected_no_access')}
         </StudioParagraph>
       </StudioAlert>

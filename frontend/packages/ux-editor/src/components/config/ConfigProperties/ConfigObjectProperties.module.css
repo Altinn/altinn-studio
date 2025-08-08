@@ -1,0 +1,15 @@
+.gridButton {
+  padding: 0;
+  margin-bottom: var(--fds-spacing-0);
+}
+
+.gridHeader {
+  padding: 0;
+}
+
+.flexContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--fds-spacing-4);
+}

@@ -9,6 +9,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type {
+  ContentLibraryConfig,
   PagesConfig,
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
@@ -26,6 +27,7 @@ import {
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import userEvent from '@testing-library/user-event';
 
 // Test data:
 const orgName: string = 'org';
@@ -99,19 +101,19 @@ describe('OrgContentLibraryPage', () => {
 
   it('Renders with the given code lists', () => {
     renderOrgContentLibraryWithData();
-    const renderedList = retrieveConfig().codeList.props.codeListDataList;
+    const renderedList = retrievePagesConfig().codeList.props.codeListDataList;
     expect(renderedList).toEqual(codeListDataList);
   });
 
   it('Renders with the given text resources', () => {
     renderOrgContentLibraryWithData();
-    const textResourcesData = retrieveConfig().codeList.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeList.props.textResources;
     expect(textResourcesData).toEqual(textResources);
   });
 
   it('Renders with fallback text resources when text resources are missing', () => {
     renderOrgContentLibraryWithMissingTextResources();
-    const textResourcesData = retrieveConfig().codeList.props.textResources;
+    const textResourcesData = retrievePagesConfig().codeList.props.textResources;
     const expectedTextResources: TextResources = {
       [DEFAULT_LANGUAGE]: [],
     };
@@ -123,7 +125,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeList } });
     const { title, data } = codeList1Data;
 
-    retrieveConfig().codeList.props.onUpdateCodeList({ title, codeList: data });
+    retrievePagesConfig().codeList.props.onUpdateCodeList({ title, codeList: data });
     await waitFor(expect(updateOrgCodeList).toHaveBeenCalled);
 
     expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
@@ -136,7 +138,7 @@ describe('OrgContentLibraryPage', () => {
     const codeListId: string = codeList1Data.title;
     const newCodeListId: string = 'new-id';
 
-    retrieveConfig().codeList.props.onUpdateCodeListId(codeListId, newCodeListId);
+    retrievePagesConfig().codeList.props.onUpdateCodeListId(codeListId, newCodeListId);
     await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
 
     expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
@@ -148,7 +150,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { createOrgCodeList } });
     const { title, data } = codeList1Data;
 
-    retrieveConfig().codeList.props.onCreateCodeList({ title, codeList: data });
+    retrievePagesConfig().codeList.props.onCreateCodeList({ title, codeList: data });
     await waitFor(expect(createOrgCodeList).toHaveBeenCalled);
 
     expect(createOrgCodeList).toHaveBeenCalledTimes(1);
@@ -160,7 +162,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrieveConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeList.props.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     expect(uploadOrgCodeList).toHaveBeenCalledTimes(1);
@@ -174,7 +176,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrieveConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeList.props.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const successMessage = textMock('dashboard.org_library.code_list_upload_success');
@@ -186,7 +188,7 @@ describe('OrgContentLibraryPage', () => {
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
-    retrieveConfig().codeList.props.onUploadCodeList(file);
+    retrievePagesConfig().codeList.props.onUploadCodeList(file);
     await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
 
     const errorMessage = textMock('dashboard.org_library.code_list_upload_generic_error');
@@ -197,7 +199,7 @@ describe('OrgContentLibraryPage', () => {
     const deleteOrgCodeList = jest.fn();
     renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
-    retrieveConfig().codeList.props.onDeleteCodeList(codeList1Data.title);
+    retrievePagesConfig().codeList.props.onDeleteCodeList(codeList1Data.title);
     await waitFor(expect(deleteOrgCodeList).toHaveBeenCalled);
 
     expect(deleteOrgCodeList).toHaveBeenCalledTimes(1);
@@ -210,7 +212,7 @@ describe('OrgContentLibraryPage', () => {
     const textResourceWithLanguage: TextResourceWithLanguage = { language, textResource };
     renderOrgContentLibraryWithData();
 
-    retrieveConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
+    retrievePagesConfig().codeList.props.onUpdateTextResource(textResourceWithLanguage);
     await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
 
     expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
@@ -250,6 +252,24 @@ describe('OrgContentLibraryPage', () => {
       level: 1,
     });
     expect(mergeConflictWarning).not.toBeInTheDocument();
+  });
+
+  it('Displays the feedback button', () => {
+    renderOrgContentLibraryWithData();
+    const feedbackButton = screen.getByRole('button', { name: /Gi tilbakemelding/ });
+    expect(feedbackButton).toBeInTheDocument();
+  });
+
+  it('Displays a dialog when the feedback button is clicked', async () => {
+    const user = userEvent.setup();
+    renderOrgContentLibraryWithData();
+    await user.click(screen.getByRole('button', { name: /Gi tilbakemelding/ }));
+    expect(screen.getByRole('dialog', { name: /Gi tilbakemelding om biblioteket/ })).toBeVisible();
+  });
+
+  it('Renders with the organisation library heading', () => {
+    renderOrgContentLibraryWithData();
+    expect(retrieveConfig().heading).toBe(textMock('org_content_library.library_heading'));
   });
 });
 
@@ -299,6 +319,10 @@ function renderOrgContentLibrary(providerData: ProviderData = {}): RenderResult 
   );
 }
 
-function retrieveConfig(): PagesConfig {
-  return mockConstructor.mock.calls[0][0].pages;
+function retrievePagesConfig(): PagesConfig {
+  return retrieveConfig().pages;
+}
+
+function retrieveConfig(): ContentLibraryConfig {
+  return mockConstructor.mock.calls[0][0];
 }

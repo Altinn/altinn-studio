@@ -58,15 +58,19 @@ describe('Elements', () => {
     expect(
       screen.queryByText(textMock('ux_editor.collapsable_standard_components')),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.component_title.Header'))).toBeInTheDocument();
+
+    const headerComponent = screen.getAllByText(textMock('ux_editor.component_title.Header'));
+    expect(headerComponent[0]).toBeInTheDocument();
   });
 
   it('should render conf page toolbar when processTaskType is payment', async () => {
     const getProcessTaskType = jest.fn(() => Promise.resolve('payment'));
     renderElements({ selectedFormLayoutSetName: 'test' }, { getProcessTaskType });
-    expect(
-      await screen.findByText(textMock('ux_editor.component_title.Payment')),
-    ).toBeInTheDocument();
+
+    const paymentComponent = await screen.findAllByText(
+      textMock('ux_editor.component_title.Payment'),
+    );
+    expect(paymentComponent[0]).toBeInTheDocument();
   });
 
   it('should render loading spinner when fetching processTaskType', async () => {
