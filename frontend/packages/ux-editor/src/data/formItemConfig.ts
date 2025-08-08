@@ -495,7 +495,9 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Text]: {
     name: ComponentType.Text,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      value: '',
+    },
     propertyPath: 'definitions/textComponent',
     icon: TextIcon,
   },
