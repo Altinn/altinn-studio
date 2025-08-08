@@ -18,7 +18,6 @@
   display: flex;
   flex-direction: column;
   padding-top: var(--fds-spacing-5);
-  background-color: var(--fds-semantic-surface-neutral-subtle);
   padding-bottom: var(--fds-spacing-4);
   gap: var(--fds-spacing-2);
 }
@@ -33,9 +32,6 @@
   align-items: flex-start;
   justify-content: space-between;
   overflow-wrap: anywhere;
-
-  --background-color: var(--fds-semantic-surface-neutral-subtle);
-  background-color: var(--background-color);
 }
 
 .accordionWrapper {

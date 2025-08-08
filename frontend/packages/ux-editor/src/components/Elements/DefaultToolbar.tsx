@@ -26,7 +26,7 @@ export const DefaultToolbar = () => {
 
   return Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
     return (
-      <Accordion key={key} color='subtle'>
+      <Accordion key={key}>
         <Accordion.Item
           defaultOpen={key === CollapsableMenus.Components}
           className={classes.accordionItem}

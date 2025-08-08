@@ -176,7 +176,7 @@ export const DesignView = (): ReactNode => {
             />
           ) : (
             pagesModel?.pages?.length > 0 && (
-              <Accordion color='neutral'>{displayPageAccordions(pagesModel)}</Accordion>
+              <Accordion>{displayPageAccordions(pagesModel)}</Accordion>
             )
           )}
         </div>

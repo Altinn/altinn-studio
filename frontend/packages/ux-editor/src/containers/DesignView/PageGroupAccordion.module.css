@@ -8,7 +8,7 @@
 }
 
 .selected {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  background-color: var(--ds-color-surface-tinted);
 }
 
 .container {
@@ -29,14 +29,13 @@
   display: flex;
   align-items: center;
   padding: var(--fds-spacing-3) var(--fds-spacing-2);
-  background-color: var(--background-color);
 }
 
 .elipsisIcon {
   font-size: 0.8em;
 }
 
-.groupAccordionWrapper {
+.groupPageAccordionWrapper {
   margin: auto;
   width: 90%;
 }
