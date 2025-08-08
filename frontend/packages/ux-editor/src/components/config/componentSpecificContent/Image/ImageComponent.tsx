@@ -7,11 +7,17 @@ import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import cn from 'classnames';
+
+type ImageComponentProps = IGenericEditComponent<ComponentType.Image> & {
+  className?: string;
+};
 
 export const ImageComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.Image>) => {
+  className,
+}: ImageComponentProps): JSX.Element => {
   const t = useText();
   const alignOptions = [
     {
@@ -48,7 +54,11 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <Fieldset className={classes.root} legend={t('ux_editor.image_component.settings')} hideLegend>
+    <Fieldset
+      className={cn(classes.root, className)}
+      legend={t('ux_editor.image_component.settings')}
+      hideLegend
+    >
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}

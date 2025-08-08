@@ -7,7 +7,7 @@ export type StudioAnimateHeightProps = {
 } & React.HTMLAttributes<HTMLDivElement>;
 
 /**
- * AnimateHeight is a component that animates its height when the `open` prop changes.
+ * @deprecated Use `StudioAnimateHeight` from `studio-components` instead.
  */
 export const StudioAnimateHeight = ({
   children,

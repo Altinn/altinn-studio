@@ -4,6 +4,7 @@ import '@digdir/designsystemet-theme/altinn.css';
 import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAnimateHeight } from './StudioAnimateHeight';
 export { StudioAvatar } from './StudioAvatar';
 export * from './StudioBooleanToggleGroup';
 export { StudioDropdown } from './StudioDropdown';
@@ -49,3 +50,6 @@ export { StudioCodeFragment } from './StudioCodeFragment';
 export type { StudioCodeFragmentProps } from './StudioCodeFragment';
 export { StudioDecimalInput } from './StudioDecimalInput';
 export type { StudioDecimalInputProps } from './StudioDecimalInput';
+export { StudioNotFoundPage } from './StudioNotFoundPage';
+export { StudioTabs } from './StudioTabs';
+export { StudioRedirectBox } from './StudioRedirectBox';
