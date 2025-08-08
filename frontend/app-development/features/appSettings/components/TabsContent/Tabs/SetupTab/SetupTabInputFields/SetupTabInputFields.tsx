@@ -5,7 +5,7 @@ import classes from './SetupTabInputFields.module.css';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { StudioSwitch } from '@studio/components';
+import { StudioCard, StudioSwitch } from '@studio/components';
 
 export type SetupTabInputFieldsProps = {
   appMetadata: ApplicationMetadata;
@@ -57,32 +57,51 @@ export function SetupTabInputFields({ appMetadata }: SetupTabInputFieldsProps): 
     });
   };
 
+  const renderConfigSwitch = (
+    label: string,
+    description: string,
+    checked: boolean,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void,
+  ) => (
+    <StudioCard className={classes.card}>
+      <StudioSwitch
+        label={label}
+        description={description}
+        className={classes.switch}
+        checked={checked}
+        onChange={onChange}
+        position='end'
+        data-size='md'
+      />
+    </StudioCard>
+  );
+
   return (
     <>
-      <StudioSwitch
-        label={t('app_settings.setup_tab_switch_autoDeleteOnProcessEnd')}
-        className={classes.switch}
-        checked={appMetadata?.autoDeleteOnProcessEnd}
-        onChange={handleSaveAutoDeleteOnProcessEnd}
-      />
-      <StudioSwitch
-        label={t('app_settings.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways')}
-        className={classes.switch}
-        checked={appMetadata?.messageBoxConfig?.hideSettings?.hideAlways}
-        onChange={handleSaveHideSettings}
-      />
-      <StudioSwitch
-        label={t('app_settings.setup_tab_switch_copyInstanceSettings_enabled')}
-        className={classes.switch}
-        checked={appMetadata?.copyInstanceSettings?.enabled}
-        onChange={handleSaveEnabled}
-      />
-      <StudioSwitch
-        label={t('app_settings.setup_tab_switch_onEntry_show')}
-        className={classes.switch}
-        checked={appMetadata?.onEntry?.show === 'select-instance'}
-        onChange={handleSaveShow}
-      />
+      {renderConfigSwitch(
+        t('app_settings.setup_tab_switch_autoDeleteOnProcessEnd'),
+        t('app_settings.setup_tab_switch_autoDeleteOnProcessEnd_description'),
+        appMetadata?.autoDeleteOnProcessEnd,
+        handleSaveAutoDeleteOnProcessEnd,
+      )}
+      {renderConfigSwitch(
+        t('app_settings.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways'),
+        t('app_settings.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways_description'),
+        appMetadata?.messageBoxConfig?.hideSettings?.hideAlways,
+        handleSaveHideSettings,
+      )}
+      {renderConfigSwitch(
+        t('app_settings.setup_tab_switch_copyInstanceSettings_enabled'),
+        t('app_settings.setup_tab_switch_copyInstanceSettings_enabled_description'),
+        appMetadata?.copyInstanceSettings?.enabled,
+        handleSaveEnabled,
+      )}
+      {renderConfigSwitch(
+        t('app_settings.setup_tab_switch_onEntry_show'),
+        t('app_settings.setup_tab_switch_onEntry_show_description'),
+        appMetadata?.onEntry?.show === 'select-instance',
+        handleSaveShow,
+      )}
     </>
   );
 }
