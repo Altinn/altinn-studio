@@ -5,6 +5,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioErrorMessageProps = WithoutAsChild<ErrorMessageProps>;
 
+/**
+ * @deprecated Use `StudioValidationMessage` from `@studio/components` instead.
+ */
 export const StudioErrorMessage = forwardRef<HTMLParagraphElement, StudioErrorMessageProps>(
   (props, ref) => <ErrorMessage size='sm' {...props} ref={ref} />,
 );

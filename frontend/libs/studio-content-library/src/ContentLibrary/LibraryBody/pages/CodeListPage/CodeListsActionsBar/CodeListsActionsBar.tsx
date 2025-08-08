@@ -1,6 +1,6 @@
 import React from 'react';
 import type { TextResource } from '@studio/components-legacy';
-import { StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
@@ -36,15 +36,13 @@ export function CodeListsActionsBar({
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     onSetSearchString(event.target.value);
 
-  const handleClearSearch = () => onSetSearchString('');
-
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
+        className={classes.search}
         label={t('app_content_library.code_lists.search_label')}
         onChange={handleChangeSearch}
-        clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
-        onClear={handleClearSearch}
+        clearButtonLabel={t('general.search_clear_button_title')}
       />
       <AddCodeListDropdown
         codeListNames={codeListNames}
