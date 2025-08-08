@@ -1,0 +1,17 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph/';
+import * as StudioLabelAsParagraphStories from './StudioLabelAsParagraph.stories';
+
+<Meta of={StudioLabelAsParagraphStories} />
+
+<StudioHeading level={1}>
+  StudioLabelAsParagraph
+</StudioHeading>
+<StudioParagraph>
+  StudioLabelAsParagraph is an extension of the digdir-designsystemet `Label`
+  component with the prop `asChild` added together with a `<p>` element. This
+  gives the component the visual look of a Label, but the behaviour of a paragraph.
+</StudioParagraph>
+
+<Canvas of={StudioLabelAsParagraphStories.Preview} />
