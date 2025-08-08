@@ -19,6 +19,7 @@ export type ExplicitDataModelBinding = {
   field: string;
 };
 
+export type IDataModelBindingsKeyValueExplicit = KeyValuePairs<ExplicitDataModelBinding>;
 export type IDataModelBindingsKeyValue =
   | KeyValuePairs<ImplicitDataModelBinding>
   | KeyValuePairs<ExplicitDataModelBinding>;

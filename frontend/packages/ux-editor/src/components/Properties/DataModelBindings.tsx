@@ -8,7 +8,7 @@ import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
-import type { FormItem } from '../../types/FormItem';
+import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const layout = useSelectedFormLayout();
@@ -39,18 +39,14 @@ export const DataModelBindings = (): React.JSX.Element => {
     setMultipleAttachments(updatedValue);
     const updatedComponent = {
       ...formItem,
+      itemType: 'COMPONENT',
       dataModelBindings: {
-        simpleBinding: !updatedValue ? '' : undefined,
-        list: updatedValue ? '' : undefined,
+        simpleBinding: { field: !updatedValue ? '' : undefined, dataType: '' },
+        list: updatedValue ? { field: '', dataType: '' } : undefined,
       },
-    };
-    handleUpdate(
-      updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
-    );
-    debounceSave(
-      formItemId,
-      updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
-    );
+    } as FormComponent;
+    handleUpdate(updatedComponent);
+    debounceSave(formItemId, updatedComponent);
   };
 
   return (

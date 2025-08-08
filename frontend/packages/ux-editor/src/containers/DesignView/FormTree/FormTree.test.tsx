@@ -44,7 +44,7 @@ const subComponent: FormComponent = {
   id: 'subComponent',
   itemType: 'COMPONENT',
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'somePath' },
+  dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
@@ -55,7 +55,7 @@ const subSubComponent: FormComponent = {
   id: 'subSubComponent',
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
-  dataModelBindings: { simpleBinding: 'somePath' },
+  dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
 };
 const layoutMock: IInternalLayout = {
   components: {
