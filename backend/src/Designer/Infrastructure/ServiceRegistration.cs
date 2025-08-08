@@ -93,6 +93,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.RegisterDatamodeling(configuration);
             services.RegisterSettingsSingleton<KafkaSettings>(configuration);
             services.AddTransient<IKafkaProducer, KafkaProducer>();
+            services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
 
             return services;
         }
