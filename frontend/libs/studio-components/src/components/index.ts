@@ -50,4 +50,5 @@ export type { StudioCodeFragmentProps } from './StudioCodeFragment';
 export { StudioDecimalInput } from './StudioDecimalInput';
 export type { StudioDecimalInputProps } from './StudioDecimalInput';
 export { StudioNotFoundPage } from './StudioNotFoundPage';
+export { StudioTabs } from './StudioTabs';
 export { StudioRedirectBox } from './StudioRedirectBox';
