@@ -398,4 +398,4 @@ stats.csv
 **/storybook-static
 
 ## AI settings
-settings.local.json
+/settings.local.json
