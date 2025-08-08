@@ -16,7 +16,7 @@ describe('StudioPageSpinner', () => {
   it('should render default loading message as accessibility title when spinnerText is not provided', () => {
     render(<StudioPageSpinner spinnerTitle={mockSpinnerText} />);
 
-    expect(screen.getByTitle(mockSpinnerText));
+    expect(screen.getByLabelText(mockSpinnerText));
 
     const spinner = screen.getByTestId('studio-spinner-test-id');
     expect(spinner).not.toHaveAttribute('aria-describedby');

@@ -16,7 +16,7 @@ function StudioPageSpinner(
   return (
     <StudioCenter ref={ref} className={classes.container}>
       <StudioSpinner
-        spinnerTitle={spinnerTitle}
+        spinnerTitle={showSpinnerTitle ? spinnerTitle : undefined}
         data-size='xl'
         className={classes.spinnerText}
         aria-hidden={showSpinnerTitle ? true : undefined}
