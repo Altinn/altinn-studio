@@ -272,7 +272,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new FileNotFoundException($"File {sourceRelativeFilePath} does not exist.");
             }
 
-            if (FileExistsByRelativePath(destRelativeFilePath))
+            if (!IsCasingOnlyRenameFile(sourceRelativeFilePath, destRelativeFilePath) && FileExistsByRelativePath(destRelativeFilePath))
             {
                 throw new IOException($"Suggested file name {destinationFileName} already exists.");
             }
@@ -284,6 +284,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
 
             File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+        }
+        private static bool IsCasingOnlyRenameFile(string sourceRelativeFilePath, string destRelativeFilePath)
+        {
+            return string.Equals(sourceRelativeFilePath, destRelativeFilePath, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
