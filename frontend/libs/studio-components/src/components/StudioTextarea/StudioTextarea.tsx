@@ -9,7 +9,7 @@ import { StudioValidationMessage } from '../StudioValidationMessage';
 
 export type StudioTextareaProps = TextareaProps & {
   tagText?: string;
-  label: string;
+  label?: string;
   description?: string;
   error?: string | false;
 };
@@ -33,11 +33,13 @@ function StudioTextarea(
 
   return (
     <StudioField className={className}>
-      <StudioLabel>
-        <StudioLabelWrapper required={required} tagText={tagText}>
-          {label}
-        </StudioLabelWrapper>
-      </StudioLabel>
+      {label && (
+        <StudioLabel>
+          <StudioLabelWrapper required={required} tagText={tagText}>
+            {label}
+          </StudioLabelWrapper>
+        </StudioLabel>
+      )}
       {description && <Paragraph id={descriptionId}>{description}</Paragraph>}
       <Textarea ref={ref} aria-describedby={descriptionId} aria-invalid={hasError} {...rest} />
       {hasError && <StudioValidationMessage>{error}</StudioValidationMessage>}

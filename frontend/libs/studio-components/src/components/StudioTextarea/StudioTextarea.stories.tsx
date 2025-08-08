@@ -13,14 +13,17 @@ const meta: Meta = {
     },
   },
 };
-export const Preview: Story = (args) => <StudioTextarea {...args}></StudioTextarea>;
+export const Preview: Story = (args) => {
+  const computedTagText = args.required ? 'Må fylles ut' : 'Valgfritt';
+
+  return <StudioTextarea {...args} tagText={computedTagText}></StudioTextarea>;
+};
 
 Preview.args = {
   label: 'Textarea komponent',
   description: 'Beskrivelse',
   error: '',
   required: false,
-  tagText: 'Må fylles ut',
   rows: 4,
 };
 
