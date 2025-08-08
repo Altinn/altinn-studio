@@ -11,9 +11,6 @@ type StudioPropertyComponent = {
   Fieldset: typeof StudioPropertyFieldset;
 };
 
-/**
- * @deprecated Use `StudioProperty` from `studio-components` instead.
- */
 export const StudioProperty: StudioPropertyComponent = {
   Group: StudioPropertyGroup,
   Button: StudioPropertyButton,
