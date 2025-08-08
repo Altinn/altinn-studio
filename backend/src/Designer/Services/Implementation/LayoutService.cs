@@ -147,18 +147,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appRepository.UpdateFormLayoutName(layoutSetId, pageId, newName);
 
             LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-            if (layoutSettings.Pages is not PagesWithOrder pages)
+            switch (layoutSettings.Pages)
             {
-                throw new InvalidOperationException(
-                    "Cannot rename order page in layout using groups."
-                );
+                case PagesWithGroups pageWithGroups:
+                    Group group = pageWithGroups.Groups?.FirstOrDefault(g => g?.Order?.Contains(pageId) == true)
+                        ?? throw new InvalidOperationException(
+                            $"Page '{pageId}' not found in group order."
+                        );
+                    ReplaceInOrder(group.Order, pageId, newName);
+                    break;
+
+                case PagesWithOrder pagesWithOrder:
+                    ReplaceInOrder(pagesWithOrder.Order, pageId, newName);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Unsupported layout settings type.");
             }
-            int orderIndex = pages.Order.IndexOf(pageId);
-            if (orderIndex == -1)
-            {
-                throw new InvalidOperationException($"Page '{pageId}' not found.");
-            }
-            pages.Order[orderIndex] = newName;
+
             await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
 
             await mediatr.Publish(
@@ -170,6 +176,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     LayoutSetName = layoutSetId,
                 }
             );
+        }
+
+        private static void ReplaceInOrder(List<string> order, string oldName, string newName)
+        {
+            int index = order.IndexOf(oldName);
+            if (index == -1)
+            {
+                throw new InvalidOperationException($"Page '{oldName}' not found in order.");
+            }
+            order[index] = newName;
         }
 
         public async Task UpdatePageOrder(
