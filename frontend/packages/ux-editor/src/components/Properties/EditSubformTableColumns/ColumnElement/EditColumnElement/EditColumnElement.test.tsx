@@ -290,6 +290,12 @@ describe('EditColumnElementComponentSelect', () => {
       screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
       textKeyMock,
     );
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(onChangeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerContent: textKeyMock,
+      }),
+    );
     await act(async () => {
       await user.click(
         screen.getAllByRole('button', {
@@ -297,9 +303,7 @@ describe('EditColumnElementComponentSelect', () => {
         })[0],
       );
     });
-
-    expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ headerContent: '' }));
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
   });
 
   it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {
@@ -343,11 +347,10 @@ describe('EditColumnElementComponentSelect', () => {
     await act(async () => {
       await user.click(saveButton);
     });
-
-    expect(onChangeMock).toHaveBeenCalledTimes(2);
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace },
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.address },
     });
   });
 });
