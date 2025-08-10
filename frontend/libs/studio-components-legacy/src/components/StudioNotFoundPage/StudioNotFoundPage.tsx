@@ -14,8 +14,7 @@ type StudioNotFoundPageProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 /**
- * @component
- *    Displays the 404 - Not found page in studio
+ * @deprecated Use `StudioNotFoundPage` from `@studio/components` instead.
  */
 export const StudioNotFoundPage = forwardRef<HTMLDivElement, StudioNotFoundPageProps>(
   ({ className, title, body, redirectHref, redirectLinkText, ...rest }, ref) => {

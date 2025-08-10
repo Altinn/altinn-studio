@@ -1,0 +1,11 @@
+.code {
+  flex: 1;
+  background-color: var(--ds-color-neutral-background-tinted);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-sm);
+  font-family: 'Courier New', monospace;
+  font-size: var(--ds-body-xs-font-size);
+  padding-inline: var(--ds-size-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

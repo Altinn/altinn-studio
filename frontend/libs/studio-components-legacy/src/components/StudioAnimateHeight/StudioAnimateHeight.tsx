@@ -1,68 +1,25 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { type ReactElement } from 'react';
 import cn from 'classnames';
-
 import classes from './StudioAnimateHeight.module.css';
-import { useMediaQuery, usePrevious } from '../../hooks/';
 
 export type StudioAnimateHeightProps = {
   open: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-type InternalState = 'open' | 'closed' | 'openingOrClosing';
-
-const transitionDurationInMilliseconds = 250;
-
 /**
- * AnimateHeight is a component that animates its height when the `open` prop changes.
+ * @deprecated Use `StudioAnimateHeight` from `studio-components` instead.
  */
 export const StudioAnimateHeight = ({
   children,
-  className, // eslint-disable-line react/prop-types
-  open = false,
-  style, // eslint-disable-line react/prop-types
+  className: externalClass,
+  open,
   ...rest
-}: StudioAnimateHeightProps) => {
-  const [height, setHeight] = useState<number>(0);
-  const prevOpen = usePrevious(open);
-  const openOrClosed: InternalState = open ? 'open' : 'closed';
-  const [state, setState] = useState<InternalState>(openOrClosed);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shouldAnimate = !useMediaQuery('(prefers-reduced-motion)');
-
-  const contentRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (node) {
-        const resizeObserver = new ResizeObserver(() => {
-          setHeight(open ? node.getBoundingClientRect().height : 0);
-        });
-        resizeObserver.observe(node);
-      }
-      if (prevOpen !== undefined && prevOpen !== open) {
-        // Opening or closing
-        setState(shouldAnimate ? 'openingOrClosing' : openOrClosed);
-        timeoutRef.current && clearTimeout(timeoutRef.current); // Reset timeout if already active (i.e. if the user closes the component before it finishes opening)
-        timeoutRef.current = setTimeout(() => {
-          setState(openOrClosed);
-        }, transitionDurationInMilliseconds);
-      }
-    },
-    [open, openOrClosed, prevOpen, shouldAnimate],
-  );
-
-  const transition =
-    state === 'openingOrClosing'
-      ? `height ${transitionDurationInMilliseconds}ms ease-in-out`
-      : undefined;
+}: StudioAnimateHeightProps): ReactElement => {
+  const openClass = open && classes.open;
 
   return (
-    <div
-      {...rest}
-      className={cn(classes.root, classes[state], className)}
-      style={{ height, transition, ...style }}
-    >
-      <div ref={contentRef} className={classes.content}>
-        {children}
-      </div>
+    <div {...rest} className={cn(classes.root, openClass, externalClass)}>
+      <div className={classes.content}>{children}</div>
     </div>
   );
 };

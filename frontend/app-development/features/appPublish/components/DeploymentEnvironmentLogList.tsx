@@ -88,6 +88,8 @@ export const DeploymentEnvironmentLogList = ({
             </Table.Head>
             <Table.Body>
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
+
                 const tableCellStatusClassName = classes[deploy.build.result];
                 const buildStartTime = deploy.build.started
                   ? new Date(deploy.build.started).getTime()
@@ -108,44 +110,52 @@ export const DeploymentEnvironmentLogList = ({
                       {getIcon(deploy.build.result)}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
-                      <Trans
-                        i18nKey={getStatusTextByDeploymentType(deploy)}
-                        components={{
-                          grafana: (
-                            <StudioLink
-                              href={grafanaPodLogsUrl({
-                                org,
-                                env: envName,
-                                app,
-                                isProduction,
-                                buildStartTime,
-                                buildFinishTime,
-                              })}
-                              rel='noopener noreferrer'
-                              target='_blank'
-                              icon={
-                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
-                              }
-                              iconPlacement={'right'}
-                            >
-                              Grafana
-                            </StudioLink>
-                          ),
-                          buildLog: (
-                            <StudioLink
-                              href={getAzureDevopsBuildResultUrl(deploy.build.id)}
-                              rel='noopener noreferrer'
-                              target='_blank'
-                              icon={
-                                <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
-                              }
-                              iconPlacement={'right'}
-                            >
-                              Build log
-                            </StudioLink>
-                          ),
-                        }}
-                      />
+                      {deploy.deploymentType === 'Deploy' &&
+                      deploy.build.result === BuildResult.failed &&
+                      areLogsAvailable ? (
+                        <span>
+                          <Trans
+                            i18nKey={`app_deployment.pipeline_deployment.build_result.failed.details`}
+                            components={{
+                              grafana: (
+                                <StudioLink
+                                  href={grafanaPodLogsUrl({
+                                    org,
+                                    env: envName,
+                                    app,
+                                    isProduction,
+                                    buildStartTime,
+                                    buildFinishTime,
+                                  })}
+                                  rel='noopener noreferrer'
+                                  target='_blank'
+                                  icon={
+                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                                  }
+                                  iconPlacement={'right'}
+                                >
+                                  Grafana
+                                </StudioLink>
+                              ),
+                              buildLog: (
+                                <StudioLink
+                                  href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                                  rel='noopener noreferrer'
+                                  target='_blank'
+                                  icon={
+                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                                  }
+                                  iconPlacement={'right'}
+                                >
+                                  Build log
+                                </StudioLink>
+                              ),
+                            }}
+                          />
+                        </span>
+                      ) : (
+                        t(getStatusTextByDeploymentType(deploy))
+                      )}
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       {deploy.tagName}
@@ -158,7 +168,7 @@ export const DeploymentEnvironmentLogList = ({
                     </Table.Cell>
                     <Table.Cell className={classNames(classes.tableCell, tableCellStatusClassName)}>
                       {deploy.build.started &&
-                        (DateUtils.isDateWithinDays(deploy.build.started, 30) ? (
+                        (areLogsAvailable ? (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'
