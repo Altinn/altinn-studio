@@ -227,10 +227,6 @@ describe('EditColumnElementComponentSelect', () => {
         name: textMock('general.save'),
       })[0],
     );
-
-    const saveButton = await screen.getAllByRole('button', { name: textMock('general.save') })[0];
-    await user.click(saveButton);
-
     expect(onChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         headerContent: textKeyMock,
