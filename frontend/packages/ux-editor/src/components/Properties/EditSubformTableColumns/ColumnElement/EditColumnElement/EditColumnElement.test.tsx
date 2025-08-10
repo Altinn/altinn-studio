@@ -228,7 +228,7 @@ describe('EditColumnElementComponentSelect', () => {
       })[0],
     );
 
-    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+    const saveButton = await screen.getAllByRole('button', { name: textMock('general.save') })[0];
     await user.click(saveButton);
 
     expect(onChangeMock).toHaveBeenCalledWith(
