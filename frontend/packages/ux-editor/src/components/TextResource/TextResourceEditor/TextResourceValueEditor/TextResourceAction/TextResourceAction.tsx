@@ -1,6 +1,6 @@
 import { StudioButton, StudioFieldset, StudioDeleteButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { TextResourceEditor } from '../..';
 import classes from './TextResourceAction.module.css';
@@ -27,7 +27,11 @@ export const TextResourceAction = ({
 }: TextResourceActionProps) => {
   const { t } = useTranslation();
   const initialValue = useTextResourceValue(textResourceId);
-  const [textResourceValue, setTextResourceValue] = useState<string>(initialValue);
+  const [textResourceValue, setTextResourceValue] = useState(initialValue);
+
+  useEffect(() => {
+    setTextResourceValue(initialValue);
+  }, [initialValue, textResourceId]);
 
   const handleTextChange = (newValue: string) => setTextResourceValue(newValue);
 

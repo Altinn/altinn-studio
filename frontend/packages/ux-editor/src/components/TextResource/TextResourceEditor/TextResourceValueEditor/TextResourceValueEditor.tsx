@@ -32,13 +32,12 @@ export const TextResourceValueEditor = ({
   const value = getTextResourceValue(textResources, textResourceId);
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
-  const textareaRef = useAutoSizeTextArea(textResourceValue || value, {
+  const displayValue = textResourceValue ?? value ?? '';
+  const textareaRef = useAutoSizeTextArea(displayValue, {
     minHeightInPx,
     maxHeightInPx,
   });
   const { t } = useTranslation();
-
-  const displayValue = textResourceValue ?? value ?? '';
 
   const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onTextChange?.(e.currentTarget.value);
