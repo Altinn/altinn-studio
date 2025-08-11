@@ -336,6 +336,12 @@ namespace Designer.Tests.Utils
             return new byte[0];
         }
 
+        public static string GetFileAsBase64StringFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            byte[] fileBytes = GetFileAsByteArrayFromRepo(org, repository, developer, relativePath);
+            return Convert.ToBase64String(fileBytes);
+        }
+
         public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)
         {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);

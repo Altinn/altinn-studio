@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -45,7 +46,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string filePath = StaticContentCodeListFilePath(codeListId);
         string decodedString = await GetFileFromGitea(orgName, filePath);
-        return JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
+        return string.IsNullOrEmpty(decodedString) ? [] : JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
     }
 
     /// <inheritdoc />
@@ -56,18 +57,9 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
 
         foreach (string languageCode in languageCodes)
         {
-            string textResourceString = await GetFileFromGitea(orgName, StaticContentTextResourceFilePath(languageCode));
-            TextResource textResource = JsonSerializer.Deserialize<TextResource>(textResourceString, s_jsonOptions);
-
-            if (textResource.Resources.Count == 0)
-            {
-                continue;
-            }
+            TextResource textResource = await GetTextResource(orgName, languageCode);
             IEnumerable<string> textResourceElementIds = textResource.Resources.Select(textResourceElement => textResourceElement.Id);
-            foreach (string id in textResourceElementIds)
-            {
-                textIds.Add(id);
-            }
+            textIds.UnionWith(textResourceElementIds);
         }
 
         return textIds.ToList();
@@ -77,6 +69,10 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string filePath = StaticContentTextResourceFilePath(languageCode);
         string decodedString = await GetFileFromGitea(orgName, filePath);
+        if (string.IsNullOrEmpty(decodedString))
+        {
+            throw new NotFoundException("Text resource file not found.");
+        }
         return JsonSerializer.Deserialize<TextResource>(decodedString, s_jsonOptions);
     }
 
@@ -88,16 +84,21 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
             return [];
         }
 
-        List<string> languages = files
+        List<string> languages = ExtractLanguagesFromResourceFiles(files);
+
+        languages.Sort(StringComparer.Ordinal);
+        return languages;
+    }
+
+    private static List<string> ExtractLanguagesFromResourceFiles(List<FileSystemObject> files)
+    {
+        return files
             .Select(file => Path.GetFileNameWithoutExtension(file.Name))
             .Where(fileName => fileName != null)
             .Select(fileName => Regex.Match(fileName, @"^resource\.(?<lang>[A-Za-z]{2,3})$"))
             .Where(match => match.Success)
             .Select(match => match.Groups["lang"].Value)
             .ToList();
-
-        languages.Sort(StringComparer.Ordinal);
-        return languages;
     }
 
     private async Task<string> GetFileFromGitea(string orgName, string filePath)
