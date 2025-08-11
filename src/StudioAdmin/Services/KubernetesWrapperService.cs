@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
 
@@ -24,11 +23,11 @@ public class KubernetesWrapperService : IKubernetesWrapperService
     }
 
     /// <inheritdoc />
-    public async Task<List<AppException>?> GetAppExceptions(
+    public async Task<IEnumerable<AppException>> GetAppExceptions(
         string org,
         string env,
-        string app,
-        string time,
+        int time,
+        string? app,
         CancellationToken ct
     )
     {
@@ -40,15 +39,15 @@ public class KubernetesWrapperService : IKubernetesWrapperService
         );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<AppException>>(cancellationToken: ct);
+        return await response.Content.ReadFromJsonAsync<IEnumerable<AppException>>(cancellationToken: ct) ?? [];
     }
 
     /// <inheritdoc />
-    public async Task<List<AppFailedRequest>?> GetAppFailedRequests(
+    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string org,
         string env,
-        string app,
-        string time,
+        int time,
+        string? app,
         CancellationToken ct
     )
     {
@@ -60,15 +59,15 @@ public class KubernetesWrapperService : IKubernetesWrapperService
         );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<AppFailedRequest>>(cancellationToken: ct);
+        return await response.Content.ReadFromJsonAsync<IEnumerable<AppFailedRequest>>(cancellationToken: ct) ?? [];
     }
 
     /// <inheritdoc />
-    public async Task<List<ContainerLog>?> GetContainerLogs(
+    public async Task<IEnumerable<ContainerLog>> GetContainerLogs(
         string org,
         string env,
-        string app,
-        string time,
+        int time,
+        string? app,
         CancellationToken ct
     )
     {
@@ -80,6 +79,6 @@ public class KubernetesWrapperService : IKubernetesWrapperService
         );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<ContainerLog>>(cancellationToken: ct);
+        return await response.Content.ReadFromJsonAsync<IEnumerable<ContainerLog>>(cancellationToken: ct) ?? [];
     }
 }

@@ -2,6 +2,6 @@ namespace KubernetesWrapper.Models;
 
 public class AppException
 {
-    public DateTime TimeGenerated { get; set; }
-    public string Details { get; set; }
+    public string AppName { get; set; }
+    public IEnumerable<AppExceptionDataPoint> DataPoints { get; set; }
 }

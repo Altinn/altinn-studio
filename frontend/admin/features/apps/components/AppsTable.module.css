@@ -1,0 +1,64 @@
+.errorHeaderCell {
+  width: 50px;
+}
+
+.errorHeaderCellContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.errorHeaderCellLast {
+  display: flex;
+  font-weight: normal;
+  font-size: 0.9rem;
+  align-items: center;
+  gap: var(--ds-size-4);
+}
+
+.select {
+  font-size: 0.9rem;
+  margin: 0 !important;
+  width: 70px !important;
+}
+
+.errorCell {
+  padding: var(--ds-size-4);
+  text-align: center;
+  width: 50px;
+}
+
+.errorCellContent {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-size-2);
+}
+
+.errorDangerCount {
+  color: var(--ds-color-danger-surface-default);
+  font-size: 1.8rem;
+  font-weight: bolder;
+  background-color: var(--ds-color-danger-border-default);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-1) var(--ds-size-3);
+}
+
+.errorSuccessCount {
+  color: var(--ds-color-success-surface-default);
+  font-size: 1.8rem;
+  background-color: var(--ds-color-success-border-default);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-1) var(--ds-size-3);
+  opacity: 0.7;
+}
+
+.chart {
+  height: 75px;
+  width: 200px;
+}
+
+.grafanaLink {
+  font-size: 0.8rem;
+  text-align: right;
+}

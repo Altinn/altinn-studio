@@ -30,16 +30,4 @@ export const routerRoutes: RouterRoute[] = [
     path: RoutePaths.Instance,
     page: InstanceDetails,
   },
-  {
-    path: RoutePaths.Exceptions,
-    page: Exceptions,
-  },
-  {
-    path: RoutePaths.FailedRequests,
-    page: FailedRequests,
-  },
-  {
-    path: RoutePaths.Errors,
-    page: Errors,
-  },
 ];

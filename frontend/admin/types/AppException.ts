@@ -1,4 +1,6 @@
+import type { AppExceptionDataPoint } from './AppExceptionDataPoint';
+
 export type AppException = {
-  timeGenerated: string;
-  details: string;
+  appName: string;
+  dataPoints: AppExceptionDataPoint[];
 };

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Admin.Controllers;
 
 [ApiController]
-[Route("admin/api/v1/[controller]/{org}/{env}/{app}")]
+[Route("admin/api/v1/[controller]/{org}/{env}")]
 public class KubernetesWrapperController(
     IKubernetesWrapperService kubernetesWrapperService,
     ILogger<ApplicationsController> logger
@@ -17,17 +17,17 @@ public class KubernetesWrapperController(
 
 
     [HttpGet("appexceptions")]
-    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetAppExceptions(
+    public async Task<ActionResult<long?>> GetAppExceptions(
         string org,
         string env,
-        string app,
         CancellationToken ct,
-        [FromQuery] string time = "24"
+        [FromQuery] string? app,
+        [FromQuery] int time = 24
     )
     {
         try
         {
-            var appExceptions = await _kubernetesWrapperService.GetAppExceptions(org, env, app, time, ct);
+            var appExceptions = await _kubernetesWrapperService.GetAppExceptions(org, env, time, app, ct);
             return Ok(appExceptions);
         }
         catch (HttpRequestException ex)
@@ -45,17 +45,17 @@ public class KubernetesWrapperController(
     }
 
     [HttpGet("appfailedrequests")]
-    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetAppFailedRequests(
+    public async Task<ActionResult<long?>> GetAppFailedRequests(
         string org,
         string env,
-        string app,
         CancellationToken ct,
-        [FromQuery] string time = "24"
+        [FromQuery] string? app,
+        [FromQuery] int time = 24
     )
     {
         try
         {
-            var appFailedRequests = await _kubernetesWrapperService.GetAppFailedRequests(org, env, app, time, ct);
+            var appFailedRequests = await _kubernetesWrapperService.GetAppFailedRequests(org, env, time, app, ct);
             return Ok(appFailedRequests);
         }
         catch (HttpRequestException ex)
@@ -76,14 +76,14 @@ public class KubernetesWrapperController(
     public async Task<ActionResult<IEnumerable<ContainerLog>>> GetContainerLogs(
         string org,
         string env,
-        string app,
         CancellationToken ct,
-        [FromQuery] string time = "24"
+        [FromQuery] string? app,
+        [FromQuery] int time = 24
     )
     {
         try
         {
-            var containerLogs = await _kubernetesWrapperService.GetContainerLogs(org, env, app, time, ct);
+            var containerLogs = await _kubernetesWrapperService.GetContainerLogs(org, env, time, app, ct);
             return Ok(containerLogs);
         }
         catch (HttpRequestException ex)

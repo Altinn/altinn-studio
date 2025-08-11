@@ -3,7 +3,6 @@ namespace Altinn.Studio.Admin.Models;
 
 public class AppFailedRequest
 {
-    public DateTime TimeGenerated { get; set; }
-    public string Url { get; set; }
-    public string ResultCode { get; set; }
+    public required string AppName { get; set; }
+    public required IEnumerable<AppFailedRequestDataPoint> DataPoints { get; set; }
 }

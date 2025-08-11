@@ -39,15 +39,27 @@ public class AppExceptionsService(IOptions<GeneralSettings> generalSettings, Log
 
         var query = $@"
                 AppExceptions{appNameFilter}
-                | project TimeGenerated, Details
-                | take {take}";
+                | summarize Count = count() by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
+                | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
-        return response.Value.Table.Rows.Select(row => new AppException
+        return response.Value.Table.Rows
+        .Select(row => new
         {
-            TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
-            Details = row.GetString("Details") ?? string.Empty,
+            AppName = row.GetString("AppRoleName"),
+            DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").Value,
+            Count = row.GetInt32("Count") ?? int.MaxValue
+        })
+        .GroupBy(row => row.AppName)
+        .Select(row => new AppException
+        {
+            AppName = row.Key,
+            DataPoints = row.Select(e => new AppExceptionDataPoint
+            {
+                DateTimeOffset = e.DateTimeOffset,
+                Count = e.Count
+            })
         });
     }
 }

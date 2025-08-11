@@ -1,5 +1,6 @@
+import type { AppFailedRequestDataPoint } from './AppFailedRequestDataPoint';
+
 export type AppFailedRequest = {
-  timeGenerated: string;
-  url: string;
-  resultCode: string;
+  appName: string;
+  dataPoints: AppFailedRequestDataPoint[];
 };

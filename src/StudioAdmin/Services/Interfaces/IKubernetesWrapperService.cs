@@ -12,19 +12,19 @@ public interface IKubernetesWrapperService
     /// </summary>
     /// <param name="org">The organization identifier.</param>
     /// <returns>The task result contains a list of running applications.</returns>
-    public Task<List<AppException>?> GetAppExceptions(string org, string env, string app, string time, CancellationToken ct);
+    public Task<IEnumerable<AppException>> GetAppExceptions(string org, string env, int time, string? app, CancellationToken ct);
 
     /// <summary>
     /// Asynchronously retrieves a list of running applications for the specified organization.
     /// </summary>
     /// <param name="org">The organization identifier.</param>
     /// <returns>The task result contains a list of running applications.</returns>
-    public Task<List<AppFailedRequest>?> GetAppFailedRequests(string org, string env, string app, string time, CancellationToken ct);
+    public Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(string org, string env, int time, string? app, CancellationToken ct);
 
     /// <summary>
     /// Asynchronously retrieves a list of running applications for the specified organization.
     /// </summary>
     /// <param name="org">The organization identifier.</param>
     /// <returns>The task result contains a list of running applications.</returns>
-    public Task<List<ContainerLog>?> GetContainerLogs(string org, string env, string app, string time, CancellationToken ct);
+    public Task<IEnumerable<ContainerLog>> GetContainerLogs(string org, string env, int time, string? app, CancellationToken ct);
 }

@@ -50,7 +50,7 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
 
         return response.Value.Table.Rows.Select(row => new ContainerLog
         {
-            TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
+            TimeGenerated = row.GetDateTimeOffset("TimeGenerated").Value,
             LogMessage = row.GetString("LogMessage") ?? string.Empty,
         });
     }

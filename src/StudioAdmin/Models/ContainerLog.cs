@@ -3,6 +3,6 @@ namespace Altinn.Studio.Admin.Models;
 
 public class ContainerLog
 {
-    public DateTime TimeGenerated { get; set; }
-    public string LogMessage { get; set; }
+    public required DateTime TimeGenerated { get; set; }
+    public required string LogMessage { get; set; }
 }

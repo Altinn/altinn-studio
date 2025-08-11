@@ -9,7 +9,7 @@ export const useContainerLogsQuery = (
   org: string,
   env: string,
   app: string,
-  time: string,
+  time: number,
 ): UseQueryResult<ContainerLog[]> => {
   return useQuery<ContainerLog[]>({
     queryKey: [QueryKey.ContainerLogs, org, env, app, time],

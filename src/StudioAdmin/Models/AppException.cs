@@ -2,6 +2,6 @@ namespace Altinn.Studio.Admin.Models;
 
 public class AppException
 {
-    public DateTime TimeGenerated { get; set; }
-    public string Details { get; set; }
+    public required string AppName { get; set; }
+    public required IEnumerable<AppExceptionDataPoint> DataPoints { get; set; }
 }
