@@ -7,6 +7,9 @@ export type StudioRedirectBoxProps = {
   title: string;
 } & HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @deprecated - Use `StudioRedirectBox` from `@studio/components` instead.
+ */
 export const StudioRedirectBox = ({
   title,
   children,

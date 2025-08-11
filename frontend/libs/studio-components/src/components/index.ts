@@ -1,8 +1,11 @@
 // These imports are here to make sure that the CSS of the components are rendered correctly
 import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
+import './style/studio-variables.css';
 
 export { StudioAlert } from './StudioAlert';
+export { StudioAnimateHeight } from './StudioAnimateHeight';
+export { StudioAvatar } from './StudioAvatar';
 export { StudioDropdown } from './StudioDropdown';
 export { StudioCenter } from './StudioCenter';
 export { StudioBreadcrumbs } from './StudioBreadcrumbs';
@@ -38,3 +41,14 @@ export { StudioDetails } from './StudioDetails';
 export { StudioRadio } from './StudioRadio';
 export { StudioRadioGroup, useStudioRadioGroup } from './StudioRadioGroup';
 export { StudioToggleGroup } from './StudioToggleGroup';
+export { StudioSearch, type StudioSearchProps } from './StudioSearch';
+export { StudioDeleteButton } from './StudioDeleteButton';
+export { StudioFileUploader } from './StudioFileUploader';
+export type { StudioFileUploaderProps } from './StudioFileUploader';
+export { StudioCodeFragment } from './StudioCodeFragment';
+export type { StudioCodeFragmentProps } from './StudioCodeFragment';
+export { StudioDecimalInput } from './StudioDecimalInput';
+export type { StudioDecimalInputProps } from './StudioDecimalInput';
+export { StudioNotFoundPage } from './StudioNotFoundPage';
+export { StudioTabs } from './StudioTabs';
+export { StudioRedirectBox } from './StudioRedirectBox';

@@ -1,15 +1,15 @@
 .libraryBackground {
   display: flex;
-  background-color: var(--fds-semantic-surface-info-subtle);
-  --padding-library: var(--fds-spacing-6);
+  background-color: var(--ds-color-background-tinted);
+  --padding-library: var(--ds-size-7);
   padding: var(--padding-library);
   height: calc(100% - 2 * var(--padding-library));
 }
 
 .libraryContainer {
-  background-color: var(--fds-semantic-background-default);
-  border-radius: var(--fds-border_radius-xlarge);
-  border: solid 1px var(--fds-semantic-border-neutral-subtle);
+  background-color: var(--ds-color-background-default);
+  border-radius: var(--ds-border-radius-lg);
+  border: solid 1px var(--ds-color-neutral-border-subtle);
   overflow: hidden;
   min-height: 80%;
   max-height: 100%;

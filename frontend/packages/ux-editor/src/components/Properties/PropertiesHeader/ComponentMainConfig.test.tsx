@@ -57,6 +57,17 @@ describe('ComponentMainConfig', () => {
     expect(imageHeader).toBeInTheDocument();
   });
 
+  it.each([ComponentType.FileUpload, ComponentType.FileUploadWithTag])(
+    'should render file upload config when the component type is %s',
+    (type) => {
+      renderComponentMainConfig(mainConfigComponentMock(type), true);
+      const displayModeText = screen.getByText(
+        textMock('ux_editor.component_properties.displayMode'),
+      );
+      expect(displayModeText).toBeInTheDocument();
+    },
+  );
+
   it('should render alert config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert), true);
     const alertTextSeverity = screen.getByText(textMock('ux_editor.component_properties.severity'));
@@ -79,6 +90,22 @@ describe('ComponentMainConfig', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Header), true);
     const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
     expect(titleConfigSize).toBeInTheDocument();
+  });
+
+  it('should render custom button config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.CustomButton), true);
+    const customButtonConfigStyle = screen.getByText(
+      textMock('ux_editor.component_properties.buttonStyle'),
+    );
+    expect(customButtonConfigStyle).toBeInTheDocument();
+  });
+
+  it('should render action button config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ActionButton), true);
+    const actionButtonConfigText = screen.getByText(
+      textMock('ux_editor.component_properties.action'),
+    );
+    expect(actionButtonConfigText).toBeInTheDocument();
   });
 
   it('should not render any config when the component type does not match', () => {

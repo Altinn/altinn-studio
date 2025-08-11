@@ -24,7 +24,7 @@ export type EditBindingProps = {
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   onSetDataModelSelectVisible: (visible: boolean) => void;
-  internalBindingFormat: ExplicitDataModelBinding;
+  internalBindingFormat?: ExplicitDataModelBinding;
 };
 
 export const EditBinding = ({
@@ -38,7 +38,7 @@ export const EditBinding = ({
   const { t } = useTranslation();
   const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
   const { dataModelMetadata, isLoadingDataModels } = useValidDataModels(
-    internalBindingFormat.dataType,
+    internalBindingFormat?.dataType,
   );
 
   const handleBindingChange = (updatedBinding?: ExplicitDataModelBinding) => {
@@ -89,7 +89,7 @@ export const EditBinding = ({
       ) : (
         <>
           <SelectDataModelBinding
-            currentDataModel={internalBindingFormat.dataType}
+            currentDataModel={internalBindingFormat?.dataType}
             handleBindingChange={handleBindingChange}
             bindingKey={bindingKey}
           />

@@ -8,8 +8,8 @@ import {
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
-  StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -134,7 +134,7 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   return (
     <>
       <StudioCard.Header className={classes.header}>
-        <StudioParagraph size='md'>
+        <StudioParagraph data-size='md'>
           {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
         </StudioParagraph>
       </StudioCard.Header>

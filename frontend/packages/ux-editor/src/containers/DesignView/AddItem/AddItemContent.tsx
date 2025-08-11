@@ -8,8 +8,9 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph } from '@studio/components-legacy';
+import { StudioParagraph, StudioSearch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { useSearchComponent } from './useSearchComponent';
 
 export type AddItemContentProps = {
   item: AddedItem | null;
@@ -28,25 +29,39 @@ export const AddItemContent = ({
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
   const { t } = useTranslation(['translation', 'addComponentModal']);
+  const { searchText, handleSearchChange, filteredComponents } = useSearchComponent({
+    availableComponents,
+    t,
+  });
 
   return (
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
-        <StudioParagraph spacing size='small' style={{ width: '100%' }}>
-          {t('ux_editor.add_item.component_more_info_description')}
-        </StudioParagraph>
-        {Object.keys(availableComponents).map((key) => {
-          return (
-            <ItemCategory
-              key={key}
-              category={key}
-              items={availableComponents[key]}
-              selectedItemType={item?.componentType}
-              setAddedItem={setItem}
-              generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
-            />
-          );
-        })}
+        <div className={classes.container}>
+          <StudioSearch
+            label={t('ux_editor.add_item.component_search_label')}
+            value={searchText}
+            onChange={handleSearchChange}
+            clearButtonLabel={t('general.search_clear_button_title')}
+          />
+          <StudioParagraph>
+            {t('ux_editor.add_item.component_more_info_description')}
+          </StudioParagraph>
+        </div>
+        <div className={classes.componentsGrid}>
+          {Object.keys(filteredComponents).map((key) => {
+            return (
+              <ItemCategory
+                key={key}
+                category={key}
+                items={filteredComponents[key]}
+                selectedItemType={item?.componentType}
+                setAddedItem={setItem}
+                generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
+              />
+            );
+          })}
+        </div>
       </div>
       <div className={classes.componentsInfoWrapper}>
         <ItemInfo onAddItem={onAddItem} onCancel={onCancel} item={item} setItem={setItem} />
