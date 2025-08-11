@@ -136,7 +136,7 @@ describe('EditDataModelBinding', () => {
   it('should render DefinedBinding when binding is defined', async () => {
     const label = 'kort svar';
     const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
-    const binding = 'field1';
+    const binding = { field: 'field1', dataType: '' };
     renderEditDataModelBinding({
       props: {
         ...defaultEditDataModelingBinding,
@@ -166,7 +166,7 @@ describe('EditDataModelBinding', () => {
     window.confirm = jest.fn(() => true);
     const handleComponentChange = jest.fn();
     const label = 'kort svar';
-    const binding = 'field1';
+    const binding = { field: 'field1', dataType: '' };
     const user = userEvent.setup();
     const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
     const definedButtonText = textMock('right_menu.data_model_bindings_edit', {
