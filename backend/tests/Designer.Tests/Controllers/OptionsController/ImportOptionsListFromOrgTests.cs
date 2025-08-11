@@ -188,6 +188,9 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string OptionListId = "codeListString";
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.CodeListExists(targetOrgName, OptionListId))
+            .ReturnsAsync(true);
 
         const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrgName, targetAppRepoName, Username);
@@ -204,6 +207,8 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal($"The options file {OptionListId}.json already exists.", responseContent);
+        _giteaContentLibraryServiceMock
+            .Verify(service => service.CodeListExists(targetOrgName, OptionListId), Times.Once);
     }
 
     private async Task<(string targetOrgName, string targetAppRepoName)> SetupTestOrgAndRepo(string orgRepoName, string appRepoName)
@@ -233,6 +238,9 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetCodeList(targetOrgName, codeListId))
             .ReturnsAsync(codeList);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.CodeListExists(targetOrgName, codeListId))
+            .ReturnsAsync(true);
     }
 
     private void SetupTextResourceGiteaMocks(string targetOrgName, string sourceRepoName)
