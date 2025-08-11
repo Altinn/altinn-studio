@@ -8,7 +8,6 @@ import { useModifyPageMutation } from '../../../hooks/mutations/useModifyPageMut
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '../ItemType';
-import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { StudioSpinner } from '@studio/components';
 import { EditName } from '../../config/EditName';
@@ -19,17 +18,12 @@ export interface EditPageIdProps {
 export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, setSelectedFormLayoutName, setSelectedItem } = useAppContext();
-  const { mutate: mutateTextId } = useTextIdMutation(org, app);
+  const { mutateAsync: mutateTextId } = useTextIdMutation(org, app);
   const { mutateAsync: modifyPageMutation } = useModifyPageMutation(
     org,
     app,
     selectedFormLayoutSetName,
     pageName,
-  );
-  const { mutateAsync: changePageGroupOrder } = useChangePageGroupOrder(
-    org,
-    app,
-    selectedFormLayoutSetName,
   );
   const { data: pagesModel, isPending: pageQueryPending } = usePagesQuery(
     org,
@@ -49,23 +43,9 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
     const newPage: PageModel = {
       id: newName,
     };
-    mutateTextId([{ oldId: pageName, newId: newName }]);
 
-    if (isUsingGroups) {
-      const newPagesModel = {
-        ...pagesModel,
-        groups: pagesModel.groups.map((group) => ({
-          ...group,
-          order: group.order.map((page) =>
-            page.id === pageName ? { ...page, id: newName } : page,
-          ),
-        })),
-      };
-      await changePageGroupOrder(newPagesModel);
-    } else {
-      await modifyPageMutation(newPage);
-    }
-
+    await modifyPageMutation(newPage);
+    await mutateTextId([{ oldId: pageName, newId: newName }]);
     setSelectedFormLayoutName(newName);
     setSelectedItem({ type: ItemType.Page, id: newName });
   };

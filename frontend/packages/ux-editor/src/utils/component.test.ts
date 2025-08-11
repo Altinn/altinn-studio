@@ -38,7 +38,7 @@ describe('Component utils', () => {
           [bindingKeyToChange]: resourceKeyToChange,
         },
         type: ComponentType.Input,
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         itemType: 'COMPONENT',
       };
       expect(changeTextResourceBinding(component, bindingKeyToChange, newResourceKey)).toEqual({
@@ -62,7 +62,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       };
       expect(
         changeTextResourceBinding(component, 'title', newResourceKey).textResourceBindings.title,
@@ -81,7 +81,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       };
       expect(
         changeTextResourceBinding(component, 'description', newResourceKey).textResourceBindings
@@ -106,7 +106,7 @@ describe('Component utils', () => {
         ],
         optionsId: null,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       };
       const newOption: IOption = {
         label: 'newTestLabel',
@@ -140,7 +140,7 @@ describe('Component utils', () => {
         ],
         optionsId: null,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       };
       const newLabel = 'newTestLabel';
       expect(
@@ -211,7 +211,7 @@ describe('Component utils', () => {
       id: 'test',
       type: ComponentType.Input,
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
     };
     const propertyKey = 'testProperty';
 
