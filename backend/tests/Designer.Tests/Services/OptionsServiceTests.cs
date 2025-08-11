@@ -20,7 +20,7 @@ namespace Designer.Tests.Services;
 
 public class OptionsServiceTests : IDisposable
 {
-    private readonly Mock<IGiteaContentLibraryService> _giteaContentLibrarySericeMock;
+    private readonly Mock<IGiteaContentLibraryService> _giteaContentLibraryServiceMock;
     private string TargetOrgName { get; set; }
     private string TestRepoPath { get; set; }
 
@@ -38,7 +38,7 @@ public class OptionsServiceTests : IDisposable
 
     public OptionsServiceTests()
     {
-        _giteaContentLibrarySericeMock = new Mock<IGiteaContentLibraryService>();
+        _giteaContentLibraryServiceMock = new Mock<IGiteaContentLibraryService>();
     }
 
     [Fact]
@@ -300,13 +300,13 @@ public class OptionsServiceTests : IDisposable
         TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(nbExpectedTextResourceString, s_jsonOptions);
         TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(enExpectedTextResourceString, s_jsonOptions);
 
-        _giteaContentLibrarySericeMock
+        _giteaContentLibraryServiceMock
             .Setup(service => service.GetCodeList(TargetOrgName, OptionListId))
             .Returns(Task.FromResult(expectedOptionList));
-        _giteaContentLibrarySericeMock
+        _giteaContentLibraryServiceMock
             .Setup(service => service.GetLanguages(TargetOrgName))
             .ReturnsAsync([EnLanguageCode, NbLanguageCode]);
-        _giteaContentLibrarySericeMock
+        _giteaContentLibraryServiceMock
             .Setup(service => service.GetTextResource(TargetOrgName, It.IsAny<string>()))
             .ReturnsAsync((string _, string languageCode) => languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource);
 
@@ -337,10 +337,10 @@ public class OptionsServiceTests : IDisposable
         Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
 
-        _giteaContentLibrarySericeMock.Verify(service => service.GetCodeList(TargetOrgName, OptionListId), Times.Once);
-        _giteaContentLibrarySericeMock.Verify(service => service.GetLanguages(TargetOrgName), Times.Once);
-        _giteaContentLibrarySericeMock.Verify(service => service.GetTextResource(TargetOrgName, NbLanguageCode), Times.Once);
-        _giteaContentLibrarySericeMock.Verify(service => service.GetTextResource(TargetOrgName, EnLanguageCode), Times.Once);
+        _giteaContentLibraryServiceMock.Verify(service => service.GetCodeList(TargetOrgName, OptionListId), Times.Once);
+        _giteaContentLibraryServiceMock.Verify(service => service.GetLanguages(TargetOrgName), Times.Once);
+        _giteaContentLibraryServiceMock.Verify(service => service.GetTextResource(TargetOrgName, NbLanguageCode), Times.Once);
+        _giteaContentLibraryServiceMock.Verify(service => service.GetTextResource(TargetOrgName, EnLanguageCode), Times.Once);
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public class OptionsServiceTests : IDisposable
     private OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibrarySericeMock.Object);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibraryServiceMock.Object);
 
         return optionsService;
     }
