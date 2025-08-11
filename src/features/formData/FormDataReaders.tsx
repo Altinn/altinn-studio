@@ -198,7 +198,7 @@ function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelRe
   const dataType = reader.getName();
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = getFirstDataElementId(dataElements, dataType);
-  const url = useDataModelUrl({ includeRowIds: false, dataType, dataElementId, language: useCurrentLanguage() });
+  const url = useDataModelUrl({ dataType, dataElementId, language: useCurrentLanguage() });
   const enabled = isAvailable && reader.isLoading();
   const { data, error } = useFormDataQuery(enabled ? url : undefined);
   const { updateModel } = useCtx();

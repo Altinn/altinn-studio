@@ -109,7 +109,7 @@ function useFormDataSaveMutation() {
   // the main form and a subform).
   function updateQueryCache(result: FDSaveFinished) {
     for (const { dataType, data, dataElementId } of result.newDataModels) {
-      const url = getDataModelUrl({ dataType, dataElementId, includeRowIds: true });
+      const url = getDataModelUrl({ dataType, dataElementId });
       if (!url) {
         continue;
       }
@@ -304,7 +304,7 @@ function useFormDataSaveMutation() {
           if (!dataElementId) {
             throw new Error(`Cannot patch data, dataElementId for dataType '${dataType}' could not be determined`);
           }
-          const url = getDataModelUrl({ dataElementId, includeRowIds: true });
+          const url = getDataModelUrl({ dataElementId });
           if (!url) {
             throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
           }

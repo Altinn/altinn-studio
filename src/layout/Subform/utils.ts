@@ -21,7 +21,7 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function useSubformFormData(dataElementId: string) {
   const instanceId = useStrictInstanceId();
-  const url = getStatefulDataModelUrl(instanceId, dataElementId, true);
+  const url = getStatefulDataModelUrl(instanceId, dataElementId);
   const { isFetching: isSubformDataFetching, data: subformData, error: subformDataError } = useFormDataQuery(url);
 
   useEffect(() => {

@@ -97,8 +97,7 @@ async function render(props: TestProps) {
   function urlFor(dataModelName: string) {
     for (const [uuid, name] of Object.entries(idToNameMap)) {
       if (name === dataModelName) {
-        const isDefault = dataModelName === props.defaultDataModel;
-        return `https://local.altinn.cloud/ttd/test/instances/${instanceId}/data/${uuid}?includeRowId=${isDefault.toString()}&language=nb`;
+        return `https://local.altinn.cloud/ttd/test/instances/${instanceId}/data/${uuid}?includeRowId=true&language=nb`;
       }
     }
     return false;

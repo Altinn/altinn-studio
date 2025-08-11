@@ -59,7 +59,6 @@ type DataModelDeps = {
 type DataModelProps = {
   dataType?: string;
   dataElementId?: string;
-  includeRowIds?: boolean;
   language?: string;
   prefillFromQueryParams?: string;
 };
@@ -67,7 +66,6 @@ type DataModelProps = {
 function getDataModelUrl({
   dataType,
   dataElementId,
-  includeRowIds = false,
   language,
   isAnonymous,
   isStateless,
@@ -75,22 +73,19 @@ function getDataModelUrl({
   prefillFromQueryParams,
 }: DataModelDeps & DataModelProps) {
   if (prefillFromQueryParams && !isAnonymous && isStateless && dataType) {
-    return getUrlWithLanguage(
-      getStatelessDataModelUrlWithPrefill(dataType, includeRowIds, prefillFromQueryParams),
-      language,
-    );
+    return getUrlWithLanguage(getStatelessDataModelUrlWithPrefill(dataType, prefillFromQueryParams), language);
   }
 
   if (isStateless && isAnonymous && dataType) {
-    return getUrlWithLanguage(getAnonymousStatelessDataModelUrl(dataType, includeRowIds), language);
+    return getUrlWithLanguage(getAnonymousStatelessDataModelUrl(dataType), language);
   }
 
   if (isStateless && !isAnonymous && dataType) {
-    return getUrlWithLanguage(getStatelessDataModelUrl(dataType, includeRowIds), language);
+    return getUrlWithLanguage(getStatelessDataModelUrl(dataType), language);
   }
 
   if (instanceId && dataElementId) {
-    return getUrlWithLanguage(getStatefulDataModelUrl(instanceId, dataElementId, includeRowIds), language);
+    return getUrlWithLanguage(getStatefulDataModelUrl(instanceId, dataElementId), language);
   }
 
   return undefined;
@@ -103,11 +98,10 @@ export function useGetDataModelUrl() {
   const currentLanguage = useAsRef(useCurrentLanguage());
 
   return useCallback(
-    ({ dataType, dataElementId, includeRowIds, language }: DataModelProps) =>
+    ({ dataType, dataElementId, language }: DataModelProps) =>
       getDataModelUrl({
         dataType,
         dataElementId,
-        includeRowIds,
         language: language ?? currentLanguage.current,
         isAnonymous,
         isStateless,
@@ -118,13 +112,7 @@ export function useGetDataModelUrl() {
 }
 
 // We assume that the first data element of the correct type is the one we should use, same as isDataTypeWritable
-export function useDataModelUrl({
-  dataType,
-  dataElementId,
-  includeRowIds,
-  language,
-  prefillFromQueryParams,
-}: DataModelProps) {
+export function useDataModelUrl({ dataType, dataElementId, language, prefillFromQueryParams }: DataModelProps) {
   const isAnonymous = useAllowAnonymous();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const instanceId = useLaxInstanceId();
@@ -133,7 +121,6 @@ export function useDataModelUrl({
   return getDataModelUrl({
     dataType,
     dataElementId,
-    includeRowIds,
     language: language ?? currentLanguage.current,
     isAnonymous,
     isStateless,

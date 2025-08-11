@@ -313,7 +313,6 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    includeRowIds: true,
     prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
   });
 
