@@ -22,6 +22,11 @@ module.exports = {
                 message:
                   'In the components library, texts should be provided as input props to the components that needs them.',
               },
+              {
+                group: ['@studio/components'],
+                message:
+                  'Files in the @studio/components-legacy package should not depend on the @studio/components package.',
+              },
             ],
           },
         ],

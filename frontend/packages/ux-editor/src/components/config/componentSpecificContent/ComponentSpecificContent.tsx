@@ -5,6 +5,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 import { AttachmentListComponent } from './AttachmentList';
 import { Summary2Component } from './Summary2';
+import classes from './ComponentSpecificContent.module.css';
 
 export function ComponentSpecificContent({
   component,
@@ -12,10 +13,22 @@ export function ComponentSpecificContent({
 }: IGenericEditComponent) {
   switch (component.type) {
     case ComponentType.Image: {
-      return <ImageComponent component={component} handleComponentChange={handleComponentChange} />;
+      return (
+        <ImageComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.containerWrapper}
+        />
+      );
     }
     case ComponentType.Map: {
-      return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
+      return (
+        <MapComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.containerWrapper}
+        />
+      );
     }
 
     case ComponentType.AttachmentList: {
@@ -23,13 +36,18 @@ export function ComponentSpecificContent({
         <AttachmentListComponent
           component={component}
           handleComponentChange={handleComponentChange}
+          className={classes.containerWrapper}
         />
       );
     }
 
     case ComponentType.Summary2: {
       return (
-        <Summary2Component component={component} handleComponentChange={handleComponentChange} />
+        <Summary2Component
+          component={component}
+          handleComponentChange={handleComponentChange}
+          className={classes.containerWrapper}
+        />
       );
     }
 
