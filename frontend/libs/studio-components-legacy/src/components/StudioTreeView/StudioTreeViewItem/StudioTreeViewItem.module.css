@@ -13,12 +13,6 @@
   width: 100%;
 }
 
-.button span .label {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .button[aria-selected='true'] {
   background-color: var(--studio-legacy-treeitem-selected-background-colour);
   border-color: var(--studio-legacy-treeitem-vertical-line-colour-root);
