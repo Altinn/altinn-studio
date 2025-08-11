@@ -1,0 +1,15 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph';
+import * as StudioNotFoundPageStories from './StudioNotFoundPage.stories';
+
+<Meta of={StudioNotFoundPageStories} />
+
+<StudioHeading level={1} data-size='sm'>
+  StudioNotFoundPage
+</StudioHeading>
+<StudioParagraph>
+  StudioNotFoundPage is a component that should be used when users visits non-existing routes/pages.
+</StudioParagraph>
+
+<Canvas of={StudioNotFoundPageStories.Preview} />

@@ -8,9 +8,6 @@ const meta: Meta = {
   title: 'Components/StudioTextfield',
   component: StudioTextfield,
   argTypes: {
-    multiline: {
-      control: 'boolean',
-    },
     required: {
       control: 'boolean',
     },
@@ -22,7 +19,6 @@ Preview.args = {
   label: 'Textfield',
   description: '',
   error: '',
-  multiline: false,
   required: false,
   tagText: 'Må fylles ut',
 };
