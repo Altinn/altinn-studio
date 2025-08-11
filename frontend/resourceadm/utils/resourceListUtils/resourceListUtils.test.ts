@@ -8,21 +8,21 @@ describe('filterTableData', () => {
         title: { nb: 'Test', nn: 'Test', en: 'Test' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        identifier: '1',
+        identifier: 'resource-id',
         environments: ['gitea'],
       },
       {
         title: { nb: 'Test 2', nn: 'Test 2', en: 'Test 2' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        identifier: '1',
+        identifier: 'res2',
         environments: ['gitea'],
       },
       {
         title: { nb: '123', nn: '123', en: '123' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        identifier: '1',
+        identifier: 'res3',
         environments: ['gitea'],
       },
     ];
@@ -32,7 +32,7 @@ describe('filterTableData', () => {
         title: { nb: 'Test 2', nn: 'Test 2', en: 'Test 2' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        identifier: '1',
+        identifier: 'resource-id',
         environments: ['gitea'],
       },
     ];
@@ -50,6 +50,9 @@ describe('filterTableData', () => {
     expect(result).toEqual(expectedResult);
 
     result = filterTableData('tEsT 2', dataToFilter);
+    expect(result).toEqual(expectedResult);
+
+    result = filterTableData('resource-id', dataToFilter);
     expect(result).toEqual(expectedResult);
   });
 });

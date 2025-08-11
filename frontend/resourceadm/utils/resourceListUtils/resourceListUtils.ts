@@ -13,6 +13,8 @@ export const filterTableData = (
 
   return list.filter((resource: ResourceListItem) => {
     const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-    return titles.some((titleLower) => titleLower.includes(searchValueLower));
+    const isTitleMatch = titles.some((titleLower) => titleLower.includes(searchValueLower));
+    const isIdMatch = resource.identifier.toLocaleLowerCase().includes(searchValueLower);
+    return isTitleMatch || isIdMatch;
   });
 };
