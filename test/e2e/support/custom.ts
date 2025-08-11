@@ -61,17 +61,32 @@ Cypress.Commands.add('dsReady', (selector) => {
   cy.waitUntilSaved();
 });
 
+Cypress.Commands.add('dsClear', (selector) => {
+  // Clear the input value and trigger input event to reset dropdown's internal state
+  cy.get(selector).invoke('val', '').trigger('input');
+
+  // Close any open dropdowns by clicking outside
+  cy.get('body').click('bottomRight');
+
+  // Additional step to ensure dropdown is reset
+  cy.get(selector).click();
+  cy.get(selector).type('{esc}');
+});
+
 Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
   cy.log(`Selecting ${value} in ${selector}, with debounce: ${debounce}`);
   cy.dsReady(selector);
+  // Clear the input value before selecting a new option because the previous value acts as a filter
+  // and prevents the new option from being displayed.
+  cy.dsClear(selector);
   cy.get(selector).click();
 
   // It is tempting to just use findByRole('option', { name: value }) here, but that's flakier than using findByText()
   // as it never retries if the element re-renders. More information here:
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
-  cy.get('[class*="ds-combobox__option"]').findByText(value).click();
+  cy.findByRole('option', { name: value }).click();
   if (debounce) {
-    cy.get('body').click();
+    cy.get('body').click('bottomRight');
   }
 });
 
@@ -175,14 +190,8 @@ const knownWcagViolations: KnownViolation[] = [
   {
     spec: 'frontend-test/hide-row-in-group.ts',
     test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
-    id: 'page-has-heading-one',
+    id: 'heading-order',
     nodeLength: 1,
-  },
-  {
-    spec: 'frontend-test/hide-row-in-group.ts',
-    test: 'should be possible to hide rows when "Endre fra" is greater or equals to [...]',
-    id: 'aria-hidden-focus', // floating-ui marks everything else as aria-hidden, when dropdown from DS is open, swap to suggestion component when it is no longer experimental
-    nodeLength: 18,
   },
   {
     spec: 'frontend-test/likert.ts',

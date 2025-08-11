@@ -9,7 +9,7 @@ describe('Dropdown component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Dropdown');
     cy.get('#form-content-DropdownPage-RadioButtons').click();
-    cy.get('div[role="listbox"]').contains('span', testText).click();
+    cy.findByRole('option', { name: testText }).should('exist').click();
     cy.get('[data-testid="summary-single-value-component"]')
       .eq(0)
       .find('span.ds-paragraph')

@@ -4,15 +4,16 @@ const appFrontend = new AppFrontend();
 
 interface PetProps {
   species: string;
+  description?: string;
   name: string;
   age: number;
   visible?: boolean;
 }
 
-function addPet({ species, name, age }: PetProps) {
+function addPet({ species, description, name, age }: PetProps) {
   cy.get(appFrontend.pets.group().editContainer._).should('not.exist');
   cy.get(appFrontend.pets.group().addButton).click();
-  cy.dsSelect(appFrontend.pets.group().editContainer.species, species);
+  cy.dsSelect(appFrontend.pets.group().editContainer.species, `${species}${description ? description : ''}`);
   cy.get(appFrontend.pets.group().editContainer.name).type(name);
   cy.get(appFrontend.pets.group().editContainer.age).type(age.toString());
   cy.get(appFrontend.pets.group().editContainer.saveAndClose).clickAndGone();
@@ -53,19 +54,19 @@ function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number
 }
 
 const manuallyAddedPets: PetProps[] = [
-  { species: 'Hund', name: 'Fido', age: 5 },
-  { species: 'Katt', name: 'Whiskers', age: 3 },
+  { species: 'Hund', description: ' Pelskledd og lojal mot mennesker', name: 'Fido', age: 5 },
+  { species: 'Katt', description: ' Ofte sett i morsomme videoer på nettet', name: 'Whiskers', age: 3 },
   { species: 'Fisk', name: 'Goldie', age: 1 },
-  { species: 'Fugl', name: 'Polly', age: 2 },
+  { species: 'Fugl', description: ' Kan fly', name: 'Polly', age: 2 },
 ];
 
 const petsFromCustomButton: PetProps[] = [
-  { species: 'Hund', name: 'Preben Potet', age: 15 },
-  { species: 'Katt', name: 'Reidar Reddik', age: 1 },
+  { species: 'Hund', description: ' Pelskledd og lojal mot mennesker', name: 'Preben Potet', age: 15 },
+  { species: 'Katt', description: ' Ofte sett i morsomme videoer på nettet', name: 'Reidar Reddik', age: 1 },
   { species: 'Fisk', name: 'Siri Spinat', age: 3 },
-  { species: 'Hamster', name: 'Kåre Kålrot', age: 7 },
-  { species: 'Kanin', name: 'Birte Blomkål', age: 2 },
-  { species: 'Kanin', name: 'Birte Blomkål', age: 3 },
+  { species: 'Hamster', description: ' Små og søte', name: 'Kåre Kålrot', age: 7 },
+  { species: 'Kanin', description: ' Søte og pelskledde', name: 'Birte Blomkål', age: 2 },
+  { species: 'Kanin', description: ' Søte og pelskledde', name: 'Birte Blomkål', age: 3 },
 ];
 
 describe('Group (Pets)', () => {
@@ -172,7 +173,7 @@ describe('Group (Pets)', () => {
       'Pelskledd og lojal mot mennesker', // Description
     );
     cy.get(appFrontend.pets.group(true).tableRow(0).editButton).click();
-    cy.dsSelect(appFrontend.pets.group().editContainer.species, 'Katt');
+    cy.dsSelect(appFrontend.pets.group().editContainer.species, 'Katt Ofte sett i morsomme videoer på nettet');
     cy.get(appFrontend.pets.group(true).tableRow(0).speciesOption).should('contain.text', 'Katt');
 
     // Prevents wcag test from running before this element is ready (needs to re-render after changing to cat)

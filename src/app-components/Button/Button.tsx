@@ -18,6 +18,7 @@ export type ButtonProps = {
   className?: string;
   fullWidth?: boolean;
   textAlign?: TextAlign;
+  popoverTarget?: string;
 } & Pick<
   DesignSystemButtonProps,
   | 'id'
@@ -37,7 +38,6 @@ export type ButtonProps = {
   | 'aria-describedby'
   | 'onKeyUp'
   | 'asChild'
-  | 'popoverTarget'
 >;
 
 type DSButtonColor = 'accent' | 'neutral' | 'success' | 'danger' | 'brand1' | 'brand2' | 'brand3' | undefined;

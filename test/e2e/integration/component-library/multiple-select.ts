@@ -100,6 +100,7 @@ describe('Multiple select component', () => {
 
     // The clickable element is a psuedo-element within the button
     cy.findByRole('button', { name: /Kjøring i skogen, Press to remove, 2 of 3/i }).click('right', { force: true });
+    cy.findByRole('button', { name: /Bekreft/i }).click();
 
     cy.findByRole('button', {
       name: /Korte strekninger med bykjøring, eller annen moro, Press to remove, 1 of 2/i,

@@ -195,6 +195,11 @@ declare global {
       dsReady(selector: string): Chainable<null>;
 
       /**
+       * Clears a design system element (Combobox, etc) by invoking the input field's value to an empty string.
+       */
+      dsClear(selector: string): Chainable<null>;
+
+      /**
        * Select from a dropdown in the design system
        */
       dsSelect(selector: string, value: string, debounce?: boolean): Chainable<null>;

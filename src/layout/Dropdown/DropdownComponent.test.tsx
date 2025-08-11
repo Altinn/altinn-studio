@@ -290,7 +290,7 @@ describe('DropdownComponent', () => {
     await user.click(await screen.findByRole('combobox'));
     await user.click(screen.getByText(label));
 
-    expect(await screen.findByText(label)).toBeInTheDocument();
+    expect((await screen.findAllByText(label)).at(0)).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(1000));
 
     await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
