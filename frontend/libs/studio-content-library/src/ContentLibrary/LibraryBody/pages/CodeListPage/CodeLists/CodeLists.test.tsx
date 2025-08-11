@@ -47,35 +47,35 @@ const codeListMultipleUsagesMock: CodeListReference[] = [
 describe('CodeLists', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the code list accordion closed by default', () => {
+  it('renders the code list details closed by default', () => {
     renderCodeLists();
     const isExpanded = false;
-    const codeListAccordion = getButton(codeListName, isExpanded);
-    expect(codeListAccordion).toBeInTheDocument();
-    expect(codeListAccordion).toHaveAttribute('aria-expanded', 'false');
+    const codeListDetails = getButton(codeListName, isExpanded);
+    expect(codeListDetails).toBeInTheDocument();
+    expect(codeListDetails).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('renders the code list accordion open by default if code list title is equal to codeListInEditMode', () => {
+  it('renders the code list details open by default if code list title is equal to codeListInEditMode', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
     const isExpanded = true;
-    const codeListAccordion = getButton(codeListName, isExpanded);
-    expect(codeListAccordion).toHaveAttribute('aria-expanded', 'true');
+    const codeListDetails = getButton(codeListName, isExpanded);
+    expect(codeListDetails).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('renders the accordion header title without usage information if not in use', () => {
+  it('renders the details header title without usage information if not in use', () => {
     renderCodeLists();
-    const codeListAccordionHeaderSubTitleSingle = queryButton(
-      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+    const codeListDetailsHeaderSubTitleSingle = queryButton(
+      textMock('app_content_library.code_lists.code_list_details_usage_sub_title_single', {
         codeListUsagesCount: 0,
       }),
     );
-    const codeListAccordionHeaderSubTitlePlural = screen.queryByText(
-      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+    const codeListDetailsHeaderSubTitlePlural = screen.queryByText(
+      textMock('app_content_library.code_lists.code_list_details_usage_sub_title_plural', {
         codeListUsagesCount: 0,
       }),
     );
-    expect(codeListAccordionHeaderSubTitleSingle).not.toBeInTheDocument();
-    expect(codeListAccordionHeaderSubTitlePlural).not.toBeInTheDocument();
+    expect(codeListDetailsHeaderSubTitleSingle).not.toBeInTheDocument();
+    expect(codeListDetailsHeaderSubTitlePlural).not.toBeInTheDocument();
   });
 
   it('does not render a button to view code list usages if not in use', () => {
@@ -86,24 +86,24 @@ describe('CodeLists', () => {
     expect(viewCodeListUsagesButton).not.toBeInTheDocument();
   });
 
-  it('renders the accordion header title with single usage information if used once', () => {
+  it('renders the details header title with single usage information if used once', () => {
     renderCodeLists({ codeListsUsages: codeListSingleUsageMock });
-    const codeListAccordionHeaderSubTitleSingle = screen.getByText(
-      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+    const codeListDetailsHeaderSubTitleSingle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_details_usage_sub_title_single', {
         codeListUsagesCount: 1,
       }),
     );
-    expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
+    expect(codeListDetailsHeaderSubTitleSingle).toBeInTheDocument();
   });
 
-  it('renders the accordion header title with plural usage information if used multiple times', () => {
+  it('renders the details header title with plural usage information if used multiple times', () => {
     renderCodeLists({ codeListsUsages: codeListMultipleUsagesMock });
-    const codeListAccordionHeaderSubTitlePlural = screen.getByText(
-      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+    const codeListDetailsHeaderSubTitlePlural = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_details_usage_sub_title_plural', {
         codeListUsagesCount: 3,
       }),
     );
-    expect(codeListAccordionHeaderSubTitlePlural).toBeInTheDocument();
+    expect(codeListDetailsHeaderSubTitlePlural).toBeInTheDocument();
   });
 
   it('renders button to view code list usages if code list is in use', () => {

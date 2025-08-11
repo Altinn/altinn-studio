@@ -35,7 +35,7 @@ const defaultCodeListPageProps: CodeListPageProps = {
 describe('CodeListPage', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the codeList heading', () => {
+  it('renders the codeList page heading', () => {
     renderCodeListPage();
     const codeListHeading = screen.getByRole('heading', {
       name: textMock('app_content_library.code_lists.page_name'),
@@ -67,14 +67,14 @@ describe('CodeListPage', () => {
 
   it('renders the code list as a clickable element', () => {
     renderCodeListPage();
-    const codeListAccordion = screen.getByRole('button', { name: codeList1Data.title });
-    expect(codeListAccordion).toBeInTheDocument();
+    const codeListHeading = getCodeListHeading(codeList1Data.title);
+    expect(codeListHeading).toBeInTheDocument();
   });
 
-  it('renders the code list accordion', () => {
+  it('renders the code list details element', () => {
     renderCodeListPage();
-    const codeListAccordion = getCodeListHeading(codeList1Data.title);
-    expect(codeListAccordion).toBeInTheDocument();
+    const codeListDetails = getCodeListDetails(codeList1Data.title);
+    expect(codeListDetails).toBeInTheDocument();
   });
 
   it('renders all code lists when search param matches all lists', async () => {
@@ -98,7 +98,7 @@ describe('CodeListPage', () => {
     expect(queryCodeListHeading(codeList1Data.title)).not.toBeInTheDocument();
   });
 
-  it('opens the new code list accordion when the user has uploaded a code list', async () => {
+  it('opens the new code list details when the user has uploaded a code list', async () => {
     const user = userEvent.setup();
     const { rerender } = renderCodeListPage();
     const newCodeListData: CodeListData = {
@@ -123,9 +123,9 @@ describe('CodeListPage', () => {
     const additionalChars = 'abc';
     const idToChange = codeList1Data.title;
 
-    const accordion = getCodeListAccordion(idToChange);
+    const details = getCodeListDetails(idToChange);
     const idButtonLabel = textMock('app_content_library.code_lists.code_list_edit_id_label');
-    const codeListIdButton = within(accordion).getByRole('button', { name: idButtonLabel });
+    const codeListIdButton = within(details).getByRole('button', { name: idButtonLabel });
     await user.click(codeListIdButton);
     await user.keyboard(additionalChars);
     await user.tab();
@@ -139,8 +139,8 @@ describe('CodeListPage', () => {
     const user = userEvent.setup();
     const newValueText = 'newValueText';
     renderCodeListPage();
-    const accordion = getCodeListAccordion(codeList1Data.title);
-    const codeListFirstItemValue = within(accordion).getByRole('textbox', {
+    const details = getCodeListDetails(codeList1Data.title);
+    const codeListFirstItemValue = within(details).getByRole('textbox', {
       name: textMock('code_list_editor.value_item', { number: 1 }),
     });
 
@@ -289,8 +289,8 @@ const openAndGetFirstLabelField = async (
   codeListTitle: string,
 ): Promise<HTMLElement> => {
   await user.click(getCodeListHeading(codeListTitle));
-  const accordion = getCodeListAccordion(codeListTitle);
-  return getFirstLabelField(accordion);
+  const details = getCodeListDetails(codeListTitle);
+  return getFirstLabelField(details);
 };
 
 const getFirstLabelField = (area: HTMLElement): HTMLElement => {
@@ -303,8 +303,8 @@ const openAndGetFirstDescriptionField = async (
   codeListTitle: string,
 ): Promise<HTMLElement> => {
   await user.click(getCodeListHeading(codeListTitle));
-  const accordion = getCodeListAccordion(codeListTitle);
-  return getFirstDescriptionField(accordion);
+  const details = getCodeListDetails(codeListTitle);
+  return getFirstDescriptionField(details);
 };
 
 const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
@@ -313,16 +313,15 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
   return within(area).getByRole('textbox', { name: descriptionFieldLabel });
 };
 
-const getCodeListAccordion = (codeListTitle: string): HTMLElement =>
-  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the accordion element.
-  // Todo: When we upgrade The Design System, we should use the new `Details` component with `getByRole('group')` instead. https://github.com/Altinn/altinn-studio/issues/14577
+const getCodeListDetails = (codeListTitle: string): HTMLElement =>
+  // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
   getCodeListHeading(codeListTitle).parentElement; // eslint-disable-line testing-library/no-node-access
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement =>
-  screen.getByRole('heading', { name: codeListTitle });
+  screen.getByRole('button', { name: codeListTitle });
 
 const queryCodeListHeading = (codeListTitle: string): HTMLElement =>
-  screen.queryByRole('heading', { name: codeListTitle });
+  screen.queryByRole('button', { name: codeListTitle });
 
 const renderCodeListPage = (props: Partial<CodeListPageProps> = {}): RenderResult =>
   render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
