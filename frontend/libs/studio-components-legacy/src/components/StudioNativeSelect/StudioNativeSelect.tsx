@@ -4,6 +4,9 @@ import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export type StudioNativeSelectProps = WithoutAsChild<NativeSelectProps>;
 
+/**
+ * @deprecated Use `StudioSelect` from `@studio/components` instead.
+ */
 export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSelectProps>(
   ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
     const defaultId = useId();
