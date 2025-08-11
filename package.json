@@ -3,7 +3,7 @@
   "dependencies": {
     "@digdir/design-system-tokens": "0.13.0",
     "@digdir/designsystemet-css": "0.10.0",
-    "@digdir/designsystemet-react": "0.63.1",
+    "@digdir/designsystemet-react": "0.101.0",
     "@digdir/designsystemet-theme": "0.15.3",
     "@microsoft/applicationinsights-react-js": "17.3.4",
     "@microsoft/applicationinsights-web": "3.3.4",
