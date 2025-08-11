@@ -21,6 +21,8 @@ const user = userEvent.setup();
 const handleIdChange = jest.fn();
 const handleRemoveTextResource = jest.fn();
 const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };
+const textValue = 'Some text value';
+const idText = 'test';
 
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
@@ -142,7 +144,8 @@ describe('TextResource', () => {
   it('Calls handleRemoveTextResourceBinding when the user clicks the delete button and confirms', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     const label = 'Test';
-    renderTextResource({ label, textResourceId: 'test' });
+    const testTextResource = { id: idText, value: textValue };
+    renderTextResource({ label, textResourceId: idText }, [testTextResource]);
     await user.click(screen.getByRole('button', { name: label }));
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
@@ -151,7 +154,8 @@ describe('TextResource', () => {
   it('Does not call handleRemoveTextResourceBinding when the user cancels the deletion', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(false);
     const label = 'Test';
-    renderTextResource({ label, textResourceId: 'test' });
+    const testTextResource = { id: idText, value: textValue };
+    renderTextResource({ label, textResourceId: idText }, [testTextResource]);
     await user.click(screen.getByRole('button', { name: label }));
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).not.toHaveBeenCalled();
@@ -168,6 +172,8 @@ describe('TextResource', () => {
     const label = 'Test';
     renderTextResource({ label });
     await user.click(screen.getByRole('button', { name: label }));
+    const textArea = screen.getByRole('textbox');
+    await user.type(textArea, textValue);
     await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
   });
@@ -182,7 +188,7 @@ describe('TextResource', () => {
     expect(textbox).toHaveValue(textResources[0].value);
   });
 
-  it('Mutates text resource when value is changed', async () => {
+  it('Mutates text resource when save button is clicked', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
     const upsertTextResources = jest
@@ -193,7 +199,7 @@ describe('TextResource', () => {
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     await user.type(textbox, 'a');
-    await user.tab();
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(upsertTextResources).toHaveBeenCalledTimes(1);
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
       [textResourceId]: textResources[0].value + 'a',
@@ -202,7 +208,7 @@ describe('TextResource', () => {
     expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
   });
 
-  it('Does not mutate text resource when value is cleared and close button is clicked', async () => {
+  it('Disables save button when text is cleared', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
@@ -211,8 +217,9 @@ describe('TextResource', () => {
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     await user.clear(textbox);
-    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
-    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    expect(saveButton).toBeDisabled();
+    expect(upsertTextResources).toHaveBeenCalledTimes(0);
   });
 
   it('Does not show scrollbar when text content is shorter than default min height', async () => {

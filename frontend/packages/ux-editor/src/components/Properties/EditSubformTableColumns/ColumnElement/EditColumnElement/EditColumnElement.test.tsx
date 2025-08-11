@@ -227,10 +227,6 @@ describe('EditColumnElementComponentSelect', () => {
         name: textMock('general.save'),
       })[0],
     );
-
-    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
-    await user.click(saveButton);
-
     expect(onChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         headerContent: textKeyMock,
@@ -290,6 +286,12 @@ describe('EditColumnElementComponentSelect', () => {
       screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
       textKeyMock,
     );
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(onChangeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerContent: textKeyMock,
+      }),
+    );
     await act(async () => {
       await user.click(
         screen.getAllByRole('button', {
@@ -297,9 +299,7 @@ describe('EditColumnElementComponentSelect', () => {
         })[0],
       );
     });
-
-    expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ headerContent: '' }));
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
   });
 
   it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {
@@ -339,16 +339,39 @@ describe('EditColumnElementComponentSelect', () => {
         screen.queryByRole('option', { name: new RegExp(postPlaceDataField) }),
       ).not.toBeInTheDocument(),
     );
+    const textResourceButton = screen.getByRole('button', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
+    });
+    await user.click(textResourceButton);
+    const textResourceTextarea = screen.getByRole('textbox', {
+      name: textMock('ux_editor.text_resource_binding_text'),
+    });
+    await user.type(textResourceTextarea, 'Test Column Title');
+    const textResourceSaveButtons = screen.getAllByRole('button', {
+      name: textMock('general.save'),
+    });
+    const textResourceSaveButton = textResourceSaveButtons[0];
+    await user.click(textResourceSaveButton);
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+
     await act(async () => {
       await user.click(saveButton);
     });
-
     expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenCalledWith({
-      headerContent: subformLayoutMock.component4.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace },
-    });
+    expect(onChangeMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: 'Address' },
+      }),
+    );
+    expect(onChangeMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: 'PostPlace' },
+      }),
+    );
   });
 });
 
