@@ -104,5 +104,5 @@ public interface IOptionsService
     /// <param name="overwriteTextResources">Override existing text resources</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The imported option list, null if option list id already exists</returns>
-    public Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportCodeListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default);
+    public Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default);
 }

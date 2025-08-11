@@ -260,7 +260,7 @@ public class OptionsController : ControllerBase
 
         try
         {
-            (List<OptionListData> optionLists, Dictionary<string, TextResource> textResources) = await _optionsService.ImportCodeListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
+            (List<OptionListData> optionLists, Dictionary<string, TextResource> textResources) = await _optionsService.ImportOptionListFromOrg(org, repo, developer, optionListId, overwriteTextResources, cancellationToken);
             ImportOptionListResponse importOptionListResponse = new()
             {
                 OptionLists = optionLists,

@@ -276,7 +276,7 @@ public class OptionsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportCodeListFromOrg_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
+    public async Task ImportOptionListFromOrg_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
         const string OrgRepo = "org-content";
@@ -312,7 +312,7 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportCodeListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
         List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert
@@ -344,7 +344,7 @@ public class OptionsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportCodeListFromOrg_ShouldThrowException_WhenOptionListAlreadyExist()
+    public async Task ImportOptionListFromOrg_ShouldThrowException_WhenOptionListAlreadyExist()
     {
         // Arrange
         const string OrgRepo = "org-content";
@@ -368,7 +368,7 @@ public class OptionsServiceTests : IDisposable
 
         await Assert.ThrowsAsync<ConflictingFileNameException>(async () =>
         {
-            await optionsService.ImportCodeListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+            await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
         });
     }
 

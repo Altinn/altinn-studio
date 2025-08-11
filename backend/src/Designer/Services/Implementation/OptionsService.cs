@@ -179,7 +179,7 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportCodeListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default)
+    public async Task<(List<OptionListData>, Dictionary<string, TextResource>)> ImportOptionListFromOrg(string org, string repo, string developer, string optionListId, bool overwriteTextResources, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
