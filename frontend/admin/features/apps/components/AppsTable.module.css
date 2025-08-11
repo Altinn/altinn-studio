@@ -2,6 +2,12 @@
   width: 50px;
 }
 
+.errorHeaderCell > button {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
 .errorHeaderCellContent {
   display: flex;
   flex-direction: column;

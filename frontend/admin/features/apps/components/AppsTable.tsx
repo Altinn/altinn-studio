@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioError, StudioSearch, StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import classes from './AppsTable.module.css';
-import { grafanaExceptionsUrl } from 'app-shared/ext-urls';
+import { grafanaExceptionsUrl, grafanaFailedRequestsUrl } from 'app-shared/ext-urls';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useAppExceptionsQuery } from 'admin/hooks/queries/useAppExceptionsQuery';
 import { useAppFailedRequestsQuery } from 'admin/hooks/queries/useAppFailedRequestsQuery';
@@ -182,6 +182,7 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
               <StudioTable.Row>
                 <StudioTable.HeaderCell>{t('Navn')}</StudioTable.HeaderCell>
                 <StudioTable.HeaderCell
+                  sort={sortField === 'count' ? sortDirection : 'none'}
                   onClick={() => handleSort('count')}
                   className={classes.errorHeaderCell}
                 >
@@ -208,6 +209,7 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
                   </div>
                 </StudioTable.HeaderCell>
                 <StudioTable.HeaderCell
+                  sort={sortField === 'count' ? sortDirection : 'none'}
                   onClick={() => handleSort('count')}
                   className={classes.errorHeaderCell}
                 >
@@ -255,8 +257,8 @@ type AppsTableBodyProps = {
 const AppsTableBody = ({ org, env, runningApps, time }: AppsTableBodyProps) => {
   const { t } = useTranslation();
 
-  const { data: appExceptions } = useAppExceptionsQuery(org, 'tt02', '', time);
-  const { data: appFailedRequests } = useAppFailedRequestsQuery(org, 'tt02', '', time);
+  const { data: appExceptions } = useAppExceptionsQuery(org, env, time);
+  const { data: appFailedRequests } = useAppFailedRequestsQuery(org, env, time);
 
   const options = getChartOptions(time);
 
@@ -341,7 +343,7 @@ const AppsTableBody = ({ org, env, runningApps, time }: AppsTableBodyProps) => {
                 </div>
                 <div className={classes.grafanaLink}>
                   <StudioLink
-                    href={grafanaExceptionsUrl({
+                    href={grafanaFailedRequestsUrl({
                       org,
                       env,
                       app: app.app,

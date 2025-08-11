@@ -8,13 +8,13 @@ import type { AppFailedRequest } from 'admin/types/AppFailedRequest';
 export const useAppFailedRequestsQuery = (
   org: string,
   env: string,
-  app: string,
   time: number,
+  app: string,
 ): UseQueryResult<AppFailedRequest[]> => {
   return useQuery<AppFailedRequest[]>({
-    queryKey: [QueryKey.AppFailedRequests, org, env, app, time],
+    queryKey: [QueryKey.AppFailedRequests, org, env, time, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppFailedRequest[]>(appFailedRequestsPath(org, env, app, time), { signal }))
+      (await axios.get<AppFailedRequest[]>(appFailedRequestsPath(org, env, time, app), { signal }))
         .data,
   });
 };

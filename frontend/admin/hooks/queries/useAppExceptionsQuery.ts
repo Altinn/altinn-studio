@@ -8,12 +8,12 @@ import type { AppException } from 'admin/types/AppException';
 export const useAppExceptionsQuery = (
   org: string,
   env: string,
-  app: string,
   time: number,
+  app?: string,
 ): UseQueryResult<AppException[]> => {
   return useQuery<AppException[]>({
-    queryKey: [QueryKey.AppExceptions, org, env, app, time],
+    queryKey: [QueryKey.AppExceptions, org, env, time, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<AppException[]>(appExceptionsPath(org, env, app, time), { signal })).data,
+      (await axios.get<AppException[]>(appExceptionsPath(org, env, time, app), { signal })).data,
   });
 };

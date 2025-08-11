@@ -81,3 +81,37 @@ export const grafanaExceptionsUrl = ({
 
   return `${baseDomain}${path}?${queryParams}`;
 };
+
+export const grafanaFailedRequestsUrl = ({
+  org,
+  env,
+  app,
+  isProduction,
+  from,
+}: {
+  org: string;
+  env: string;
+  app: string;
+  isProduction: boolean;
+  from?: string;
+}) => {
+  const baseDomain = isProduction
+    ? `https://${org}.apps.altinn.no`
+    : `https://${org}.apps.tt02.altinn.no`; // all test environments (tt02, at22, at23, at24 and yt01) use apps.tt02.altinn.no
+
+  const path = `/monitor/d/InsightsApplicationsFailures1Operations/azure-insights-applications-failures-1-operations`;
+
+  const queryParams = new URLSearchParams({
+    // 'var-rg': `altinnapps-${org}-${isProduction ? 'prod' : env}-rg`,
+    'var-rg': `monitor-${org}-${env}-rg`,
+    'var-PodName': `${org}-${app}-deployment-v2`,
+    from: `now-${from}`, // Default to last hour
+    to: 'now', // Default to now
+    'var-app_name': app,
+    'var-res': `${org}-${env}-ai`,
+    'var-EnvironmentName': env,
+    'var-ApplicationType': isProduction ? 'prod' : env,
+  }).toString();
+
+  return `${baseDomain}${path}?${queryParams}`;
+};
