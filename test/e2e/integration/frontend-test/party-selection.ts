@@ -139,7 +139,7 @@ describe('Party selection', () => {
           );
         cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
-        cy.snapshot('reportee-selection');
+        cy.visualTesting('reportee-selection');
 
         cy.get('[id^="party-"]').eq(0).click();
       }

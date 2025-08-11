@@ -14,6 +14,6 @@ describe('TextArea component', () => {
       .find('span.ds-paragraph')
       .should('have.text', testText);
 
-    cy.snapshot('textarea');
+    cy.visualTesting('textarea');
   });
 });

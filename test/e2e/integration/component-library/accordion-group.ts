@@ -7,6 +7,6 @@ describe('AccordionGroup component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('AccordionGroupPage');
 
-    cy.snapshot('accordion-group');
+    cy.visualTesting('accordion-group');
   });
 });

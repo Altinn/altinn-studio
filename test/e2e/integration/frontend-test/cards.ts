@@ -4,6 +4,6 @@ describe('Cards component', () => {
 
     cy.findByRole('checkbox', { name: /smake på kaker/i }).check();
 
-    cy.snapshot('cards');
+    cy.visualTesting('cards');
   });
 });

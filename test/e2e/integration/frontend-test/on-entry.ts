@@ -70,7 +70,7 @@ describe('On Entry', () => {
       .eq(0)
       .contains(/04\/06\/2021|06.04.2021/g);
     cy.get('@tableRow').find('td').eq(1).should('have.text', 'Ola Nordmann');
-    cy.snapshot('select-instance');
+    cy.visualTesting('select-instance');
 
     // Click to begin working on one of our fake instances
     cy.get('@tableRow').find('td').eq(2).find('button').click();
@@ -163,6 +163,6 @@ describe('On Entry', () => {
     cy.findByRole('button', { name: 'Expand width' }).click();
     cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'true');
 
-    cy.snapshot('wide-instance-selection');
+    cy.visualTesting('wide-instance-selection');
   });
 });

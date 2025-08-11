@@ -9,7 +9,7 @@ describe('Group summary test', () => {
   });
 
   it('Renders the different options for add buttons correctly', () => {
-    cy.snapshot('repeatingGroupAddButtons');
+    cy.visualTesting('repeatingGroupAddButtons');
   });
 
   it('Fills in an input in the repeating group, the text appears in summary', () => {

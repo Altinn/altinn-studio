@@ -85,7 +85,7 @@ describe('Group (Pets)', () => {
   it('should snapshot the decision panel', () => {
     cy.goto('group');
     cy.gotoNavPage('Kjæledyr');
-    cy.snapshot('pets-decision-panel');
+    cy.visualTesting('pets-decision-panel');
   });
 
   it('should be possible to add predefined pets, sort them, validate them, hide them and delete them', () => {
@@ -145,7 +145,7 @@ describe('Group (Pets)', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).should('contain.text', 'Du kan ikke ha flere dyr med samme navn og art.');
 
-    cy.snapshot('pets');
+    cy.visualTesting('pets');
 
     cy.get(appFrontend.pets.group().tableRow(1).deleteButton).click();
     const pets7 = structuredClone(pets6);
@@ -222,6 +222,6 @@ describe('Group (Pets)', () => {
     cy.findAllByRole('combobox', { name: /art/i }).first().invoke('outerWidth').should('be.gt', 150);
     cy.findAllByRole('textbox', { name: /navn/i }).first().invoke('outerWidth').should('be.gt', 200);
 
-    cy.snapshot('pets:edit-in-table');
+    cy.visualTesting('pets:edit-in-table');
   });
 });

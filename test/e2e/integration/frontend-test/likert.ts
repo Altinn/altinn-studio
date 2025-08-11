@@ -34,7 +34,7 @@ describe('Likert', () => {
     cy.get(appFrontend.fieldValidation('likert-group-required-item-4')).should(
       notContainTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[1]}`),
     );
-    cy.snapshot('likert');
+    cy.visualTesting('likert');
   });
 
   it('Should fill out optional likert and see results in summary component', () => {

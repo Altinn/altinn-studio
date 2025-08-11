@@ -29,7 +29,7 @@ describe('Receipt', () => {
     cy.get(appFrontend.feedback).should('contain.text', `Navn: ${userFirstName}`);
     cy.get(appFrontend.feedback).should('contain.text', 'ID: 1364');
 
-    cy.snapshot('stateless:feedback');
+    cy.visualTesting('stateless:feedback');
 
     cy.reloadAndWait();
     cy.get(appFrontend.feedback).should('contain.text', 'Firmanavn: Foo bar AS');
@@ -38,7 +38,7 @@ describe('Receipt', () => {
     cy.get(appFrontend.feedback).should('not.exist');
 
     cy.get(appFrontend.receipt.container).should('contain.text', texts.securityReasons);
-    cy.snapshot('stateless:receipt');
+    cy.visualTesting('stateless:receipt');
 
     cy.reloadAndWait();
 

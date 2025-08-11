@@ -7,6 +7,6 @@ describe('Divider component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Divider');
 
-    cy.snapshot('divider');
+    cy.visualTesting('divider');
   });
 });

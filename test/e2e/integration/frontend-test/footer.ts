@@ -14,7 +14,7 @@ describe('Footer', () => {
 
     cy.findByRole('link', { name: /hjelp@etaten.no/i }).should('have.attr', 'href', 'mailto:hjelp@etaten.no');
     cy.findByRole('link', { name: /\+47 987 65 432/i }).should('have.attr', 'href', 'tel:+4798765432');
-    cy.snapshot('footer');
+    cy.visualTesting('footer');
   });
 
   it('Does not render footer when backend returns 204', () => {

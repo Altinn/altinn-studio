@@ -233,12 +233,19 @@ declare global {
        *  - The snapshot does not overlap with other snapshots. Multiple snapshots on the same page in the same state
        *    will cause confusion, and eat up our Percy.io quota.
        */
-      snapshot(name: string, options?: Partial<SnapshotOptions>): Chainable<null>;
+      visualTesting(name: string, options?: Partial<SnapshotOptions>): Chainable<null>;
 
       /**
        * Runs the wcag tests on the app and notifies us of any violations (using axe/ally)
        */
       testWcag(): Chainable<null>;
+
+      /**
+       * Runs a snapshot test on something, to compare it with a known good value
+       * @see https://www.cypress.io/blog/end-to-end-snapshot-testing
+       */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snapshot(options?: any): Chainable<null>;
 
       /**
        * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.

@@ -306,7 +306,7 @@ const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
 };
 
-Cypress.Commands.add('snapshot', (name, _options) => {
+Cypress.Commands.add('visualTesting', (name, _options) => {
   const options = { ...defaultSnapshotOptions, ..._options };
   cy.clearSelectionAndWait();
   cy.waitUntilSaved();

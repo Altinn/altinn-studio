@@ -17,7 +17,7 @@ describe('Double signing', () => {
     cy.get(appFrontend.signingTest.submitButton).should('not.be.disabled').click();
     cy.get(appFrontend.signingTest.noAccessPanel).should('exist').and('be.visible');
 
-    cy.snapshot('signing:accountant');
+    cy.visualTesting('signing:accountant');
 
     signingTestLogin('manager');
     cy.get(appFrontend.signingTest.managerConfirmPanel).should('exist').and('be.visible');
@@ -26,7 +26,7 @@ describe('Double signing', () => {
     cy.get(appFrontend.signingTest.signingButton).should('not.be.disabled').click();
     cy.get(appFrontend.signingTest.sentToAuditor).should('exist').and('be.visible');
 
-    cy.snapshot('signing:manager');
+    cy.visualTesting('signing:manager');
 
     signingTestLogin('auditor');
     cy.get(appFrontend.signingTest.auditorConfirmPanel).should('exist').and('be.visible');
@@ -34,7 +34,7 @@ describe('Double signing', () => {
     cy.get(appFrontend.signingTest.signingButton).should('not.be.disabled').click();
     cy.get(appFrontend.receipt.container).should('exist').and('be.visible');
 
-    cy.snapshot('signing:auditor');
+    cy.visualTesting('signing:auditor');
   });
 
   it('manager -> manager -> auditor', () => {

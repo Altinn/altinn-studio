@@ -7,6 +7,6 @@ describe('Button component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Knapp');
 
-    cy.snapshot('button');
+    cy.visualTesting('button');
   });
 });

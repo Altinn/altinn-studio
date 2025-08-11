@@ -97,7 +97,7 @@ describe('List component', () => {
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
 
-    cy.snapshot('list-component');
+    cy.visualTesting('list-component');
   });
 
   it('Search should work as expected', () => {

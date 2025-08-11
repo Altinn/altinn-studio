@@ -19,7 +19,7 @@ describe('Validation in anonymous stateless app', () => {
       .should('contain.text', texts.errorReport)
       .should('contain.text', texts.requiredFieldName);
 
-    cy.snapshot('anonymous:validation');
+    cy.visualTesting('anonymous:validation');
 
     cy.get(appFrontend.stateless.name).type('Hello world');
     cy.get(nameError).should('not.exist');

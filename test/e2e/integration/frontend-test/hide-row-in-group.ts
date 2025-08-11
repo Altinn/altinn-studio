@@ -64,7 +64,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
 
   // Take a screenshot, but make sure the preselectedOptionIndex in all Dropdowns take effect first
   cy.get(appFrontend.group.overflowGroup).find('[data-componenttype=Dropdown] input').should('have.value', 'Altinn');
-  cy.snapshot('hide-row-in-group');
+  cy.visualTesting('hide-row-in-group');
 
   // Adding a new row to the repeating group should automatically move it to the overflow group on the next page
   cy.gotoNavPage('repeating');

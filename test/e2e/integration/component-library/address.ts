@@ -54,7 +54,7 @@ describe('Address component', () => {
     cy.findAllByText('Du må fylle ut postnr').first().should('exist');
     cy.findAllByText('Du må fylle ut bolignummer').first().should('exist');
 
-    cy.snapshot('Required and validated address with empty fields');
+    cy.visualTesting('Required and validated address with empty fields');
 
     cy.findByRole('textbox', { name: /gateadresse/i }).type('Anders Gate 1');
     cy.findByRole('textbox', { name: /c\/o/i }).type('C/O Jonas Støre');

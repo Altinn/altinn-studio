@@ -331,7 +331,7 @@ describe('Repeating group attachments', () => {
     // deduplicated so two rows becomes one option.
     cy.get('#reduxOptions-expressions-radiobuttons').findAllByRole('radio').should('have.length', 1);
 
-    cy.snapshot('attachments-in-group');
+    cy.visualTesting('attachments-in-group');
 
     // Now that all attachments described above have been uploaded and verified, start deleting the middle attachment
     // of the first-row multi-uploader to verify that the next attachment is shifted upwards.

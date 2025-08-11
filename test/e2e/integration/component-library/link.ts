@@ -7,6 +7,6 @@ describe('Link component', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Link');
 
-    cy.snapshot('link');
+    cy.visualTesting('link');
   });
 });

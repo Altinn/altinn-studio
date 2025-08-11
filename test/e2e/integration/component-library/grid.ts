@@ -19,6 +19,6 @@ describe('Grid summary test', () => {
     cy.get('#grid-input-field-two').type('Test input field 2');
     cy.get(`${gridSummary2} tr`).eq(2).find('td').eq(1).should('have.text', 'Test input field 2');
 
-    cy.snapshot('grid-summary');
+    cy.visualTesting('grid-summary');
   });
 });
