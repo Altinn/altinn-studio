@@ -10,20 +10,36 @@ using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
 public class OptionsServiceTests : IDisposable
 {
+    private readonly Mock<IGiteaContentLibraryService> _giteaContentLibrarySericeMock;
     private string TargetOrgName { get; set; }
     private string TestRepoPath { get; set; }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
     private const bool OverrideExistingTextResources = false;
+    private const string CodeListFolderPath = "CodeLists/";
+    private const string TextResourceFolderPath = "Texts/";
+
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
+    public OptionsServiceTests()
+    {
+        _giteaContentLibrarySericeMock = new Mock<IGiteaContentLibraryService>();
+    }
 
     [Fact]
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
@@ -260,7 +276,7 @@ public class OptionsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportOptionListFromOrgIfIdIsVacant_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
+    public async Task ImportCodeListFromOrg_ShouldReturnCreatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
         const string OrgRepo = "org-content";
@@ -274,12 +290,29 @@ public class OptionsServiceTests : IDisposable
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, "CodeLists/codeListString.json");
+        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Join(CodeListFolderPath, $"{OptionListId}.json"));
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
+
+        const string NbLanguageCode = "nb";
+        const string EnLanguageCode = "en";
+        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName(NbLanguageCode)));
+        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName(EnLanguageCode)));
+        TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(nbExpectedTextResourceString, s_jsonOptions);
+        TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(enExpectedTextResourceString, s_jsonOptions);
+
+        _giteaContentLibrarySericeMock
+            .Setup(service => service.GetCodeList(TargetOrgName, OptionListId))
+            .Returns(Task.FromResult(expectedOptionList));
+        _giteaContentLibrarySericeMock
+            .Setup(service => service.GetLanguages(TargetOrgName))
+            .ReturnsAsync([EnLanguageCode, NbLanguageCode]);
+        _giteaContentLibrarySericeMock
+            .Setup(service => service.GetTextResource(TargetOrgName, It.IsAny<string>()))
+            .ReturnsAsync((string _, string languageCode) => languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportCodeListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
         List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert
@@ -303,10 +336,15 @@ public class OptionsServiceTests : IDisposable
         Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
         Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
+
+        _giteaContentLibrarySericeMock.Verify(service => service.GetCodeList(TargetOrgName, OptionListId), Times.Once);
+        _giteaContentLibrarySericeMock.Verify(service => service.GetLanguages(TargetOrgName), Times.Once);
+        _giteaContentLibrarySericeMock.Verify(service => service.GetTextResource(TargetOrgName, NbLanguageCode), Times.Once);
+        _giteaContentLibrarySericeMock.Verify(service => service.GetTextResource(TargetOrgName, EnLanguageCode), Times.Once);
     }
 
     [Fact]
-    public async Task ImportOptionListFromOrgIfIdIsVacant_ShouldReturnNull_WhenOptionsListDoesAlreadyExist()
+    public async Task ImportCodeListFromOrg_ShouldThrowException_WhenOptionListAlreadyExist()
     {
         // Arrange
         const string OrgRepo = "org-content";
@@ -330,16 +368,21 @@ public class OptionsServiceTests : IDisposable
 
         await Assert.ThrowsAsync<ConflictingFileNameException>(async () =>
         {
-            await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+            await optionsService.ImportCodeListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
         });
     }
 
-    private static OptionsService GetOptionsServiceForTest()
+    private OptionsService GetOptionsServiceForTest()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibrarySericeMock.Object);
 
         return optionsService;
+    }
+
+    private static string GetTextResourceFileName(string languageCode)
+    {
+        return $"resource.{languageCode}.json";
     }
 
     public void Dispose()
