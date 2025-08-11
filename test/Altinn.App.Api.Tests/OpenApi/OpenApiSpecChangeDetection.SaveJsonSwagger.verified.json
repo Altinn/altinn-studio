@@ -5825,6 +5825,15 @@
             }
           },
           {
+            "name": "includeRowId",
+            "in": "query",
+            "description": "Whether to initialize or remove AltinnRowId fields in the model",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "name": "language",
             "in": "query",
             "description": "Currently selected language by the user (if available)",
@@ -5937,6 +5946,15 @@
             }
           },
           {
+            "name": "includeRowId",
+            "in": "query",
+            "description": "Whether to initialize or remove AltinnRowId fields in the model",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "name": "language",
             "in": "query",
             "description": "The language selected by the user.",
@@ -5992,6 +6010,15 @@
             "description": "The data type id",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "includeRowId",
+            "in": "query",
+            "description": "Whether to initialize or remove AltinnRowId fields in the model",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           },
           {
@@ -6064,6 +6091,15 @@
             "description": "The data type id",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "includeRowId",
+            "in": "query",
+            "description": "Whether to initialize or remove AltinnRowId fields in the model",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           },
           {

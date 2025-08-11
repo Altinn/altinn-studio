@@ -74,6 +74,7 @@ public class StatelessDataController : ControllerBase
     /// <param name="dataType">The data type id</param>
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
     /// <param name="prefill">Prefilled fields from query parameters</param>
+    /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">Currently selected language by the user (if available)</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [Authorize]
@@ -88,6 +89,7 @@ public class StatelessDataController : ControllerBase
         [FromQuery] string dataType,
         [FromHeader(Name = "party")] string partyFromHeader,
         [FromQuery] string? prefill,
+        [FromQuery] bool includeRowId = false,
         [FromQuery] string? language = null
     )
     {
@@ -161,12 +163,17 @@ public class StatelessDataController : ControllerBase
         await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel, prefillFromQueryParams);
 
         Instance virtualInstance = new Instance() { InstanceOwner = owner };
-        await ProcessAllDataRead(virtualInstance, appModel, language);
+        await ProcessAllDataRead(virtualInstance, appModel, includeRowId, language);
 
         return Ok(appModel);
     }
 
-    private async Task ProcessAllDataRead(Instance virtualInstance, object appModel, string? language)
+    private async Task ProcessAllDataRead(
+        Instance virtualInstance,
+        object appModel,
+        bool includeAltinnRowId,
+        string? language
+    )
     {
         var dataProcessors = _appImplementationFactory.GetAll<IDataProcessor>();
         foreach (var dataProcessor in dataProcessors)
@@ -178,12 +185,18 @@ public class StatelessDataController : ControllerBase
             );
             await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);
         }
+
+        if (includeAltinnRowId)
+        {
+            ObjectUtils.InitializeAltinnRowId(appModel);
+        }
     }
 
     /// <summary>
     /// Create a new data object of the defined data type
     /// </summary>
     /// <param name="dataType">The data type id</param>
+    /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [AllowAnonymous]
@@ -192,7 +205,11 @@ public class StatelessDataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
     [Route("anonymous")]
-    public async Task<ActionResult> GetAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
+    public async Task<ActionResult> GetAnonymous(
+        [FromQuery] string dataType,
+        [FromQuery] bool includeRowId = false,
+        [FromQuery] string? language = null
+    )
     {
         if (string.IsNullOrEmpty(dataType))
         {
@@ -212,7 +229,7 @@ public class StatelessDataController : ControllerBase
 
         object appModel = _appModel.Create(classRef);
         var virtualInstance = new Instance();
-        await ProcessAllDataRead(virtualInstance, appModel, language);
+        await ProcessAllDataRead(virtualInstance, appModel, includeRowId, language);
 
         return Ok(appModel);
     }
@@ -224,6 +241,7 @@ public class StatelessDataController : ControllerBase
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="dataType">The data type id</param>
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+    /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [Authorize]
@@ -236,6 +254,7 @@ public class StatelessDataController : ControllerBase
         [FromRoute] string app,
         [FromQuery] string dataType,
         [FromHeader(Name = "party")] string partyFromHeader,
+        [FromQuery] bool includeRowId = false,
         [FromQuery] string? language = null
     )
     {
@@ -286,7 +305,7 @@ public class StatelessDataController : ControllerBase
         await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
         Instance virtualInstance = new Instance() { InstanceOwner = owner };
-        await ProcessAllDataRead(virtualInstance, appModel, language);
+        await ProcessAllDataRead(virtualInstance, appModel, includeRowId, language);
 
         return Ok(appModel);
     }
@@ -295,6 +314,7 @@ public class StatelessDataController : ControllerBase
     /// Create a new data object of the defined data type
     /// </summary>
     /// <param name="dataType">The data type id</param>
+    /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [AllowAnonymous]
@@ -303,7 +323,11 @@ public class StatelessDataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 200)]
     [Route("anonymous")]
-    public async Task<ActionResult> PostAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
+    public async Task<ActionResult> PostAnonymous(
+        [FromQuery] string dataType,
+        [FromQuery] bool includeRowId = false,
+        [FromQuery] string? language = null
+    )
     {
         if (string.IsNullOrEmpty(dataType))
         {
@@ -330,7 +354,7 @@ public class StatelessDataController : ControllerBase
         }
 
         Instance virtualInstance = new Instance();
-        await ProcessAllDataRead(virtualInstance, appModel, language);
+        await ProcessAllDataRead(virtualInstance, appModel, includeRowId, language);
 
         return Ok(appModel);
     }

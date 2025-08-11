@@ -611,27 +611,27 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromHeader(Name="party")] string partyFromHeader, [Microsoft.AspNetCore.Mvc.FromQuery] string? prefill, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromHeader(Name="party")] string partyFromHeader, [Microsoft.AspNetCore.Mvc.FromQuery] string? prefill, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 200)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         [Microsoft.AspNetCore.Mvc.Route("anonymous")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAnonymous([Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetAnonymous([Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 200)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromHeader(Name="party")] string partyFromHeader, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromHeader(Name="party")] string partyFromHeader, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 200)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         [Microsoft.AspNetCore.Mvc.Route("anonymous")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> PostAnonymous([Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> PostAnonymous([Microsoft.AspNetCore.Mvc.FromQuery] string dataType, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     [Microsoft.AspNetCore.Mvc.ApiController]
