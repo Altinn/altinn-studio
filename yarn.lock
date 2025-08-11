@@ -1092,7 +1092,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:^1.0.8":
+"@digdir/designsystemet-css@npm:1.0.8":
   version: 1.0.8
   resolution: "@digdir/designsystemet-css@npm:1.0.8"
   checksum: 10/0ed36f50a82956f4aa3234ac4bd48c6b5ba69a07ad32d0215a062ea7e69279cf42d5c3b7f2010d061ba3520fa57306501d0b5d2ac2f7862420258da67585ec87
@@ -1114,7 +1114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:^1.0.8":
+"@digdir/designsystemet-react@npm:1.0.8":
   version: 1.0.8
   resolution: "@digdir/designsystemet-react@npm:1.0.8"
   dependencies:
@@ -1141,7 +1141,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-theme@npm:^1.0.8":
+"@digdir/designsystemet-theme@npm:1.0.8, @digdir/designsystemet-theme@npm:^1.0.8":
   version: 1.0.8
   resolution: "@digdir/designsystemet-theme@npm:1.0.8"
   checksum: 10/9fca5362d6ddf4b28d6de26e56395dfc686a29b303bc2064a830f1ec169ee8192c4b94c9191462f45b92ae26ddf71d18b8126b60d9db66bcca4648466fd400d7
@@ -2977,9 +2977,9 @@ __metadata:
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
     "@chromatic-com/storybook": "npm:^4.0.0"
-    "@digdir/designsystemet-css": "npm:^1.0.8"
-    "@digdir/designsystemet-react": "npm:^1.0.8"
-    "@digdir/designsystemet-theme": "npm:^1.0.8"
+    "@digdir/designsystemet-css": "npm:1.0.8"
+    "@digdir/designsystemet-react": "npm:1.0.8"
+    "@digdir/designsystemet-theme": "npm:1.0.8"
     "@storybook/addon-docs": "npm:9.0.10"
     "@storybook/addon-links": "npm:9.0.10"
     "@storybook/builder-vite": "npm:9.0.10"

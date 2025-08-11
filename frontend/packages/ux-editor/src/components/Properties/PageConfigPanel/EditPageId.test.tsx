@@ -81,21 +81,22 @@ describe('EditPageId', () => {
     screen.getByText(textMock('ux_editor.pages_error_unique'));
   });
 
-  it('calls pageGroup mutation when changing pages in a group', async () => {
+  it('should call modifyPage with new name when renaming a grouped page', async () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
-    const changePageGroups = jest.fn().mockImplementation(() => Promise.resolve());
     const modifyPage = jest.fn().mockImplementation(() => Promise.resolve());
     renderEditPageId({
       pagesMock: groupsPagesModelMock,
-      queries: { changePageGroups, modifyPage },
+      queries: { modifyPage },
     });
     await user.click(pageIdButton());
     await user.clear(pageIdTextbox());
     await user.type(pageIdTextbox(), newPageName);
     await user.click(pageIdSaveButton());
-    expect(changePageGroups).toHaveBeenCalledTimes(1);
-    expect(modifyPage).toHaveBeenCalledTimes(0);
+    expect(modifyPage).toHaveBeenCalledTimes(1);
+    expect(modifyPage).toHaveBeenCalledWith(org, app, layoutSetName, selectedLayout, {
+      id: newPageName,
+    });
   });
 
   it('calls pageOrder mutation when changing pages without a group', async () => {
