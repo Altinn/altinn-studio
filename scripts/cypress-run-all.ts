@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { existsSync, mkdirSync, readdirSync, renameSync } from 'fs';
 
 const apps = readdirSync('./test/e2e/integration');
-const env = dotenv.config().parsed || {};
+const env = dotenv.config({ quiet: true }).parsed || {};
 let artifactsDir = './test/run-all-artifacts';
 let environment: string | undefined;
 

@@ -12,7 +12,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     urlSuffix = '',
     authenticationLevel = '1',
   } = options || {};
-  const env = dotenv.config().parsed || {};
+  const env = dotenv.config({ quiet: true }).parsed || {};
   cy.log(`Starting app instance: ${appName}`);
 
   // You can override the host we load css/js from, using multiple methods:

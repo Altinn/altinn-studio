@@ -82,7 +82,7 @@ interface InitialRenderRef {
   current: boolean;
 }
 
-const env = dotenv.config();
+const env = dotenv.config({ quiet: true });
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;

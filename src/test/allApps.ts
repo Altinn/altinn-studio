@@ -601,7 +601,7 @@ export function getAllApps(dir: string): ExternalApp[] {
  * Only call this from unit tests, and be sure to stop the test if it fails.
  */
 export function ensureAppsDirIsSet(runVoidTest = true) {
-  const env = dotenv.config();
+  const env = dotenv.config({ quiet: true });
   const dir = env.parsed?.ALTINN_ALL_APPS_DIR;
   if (!dir) {
     if (runVoidTest) {

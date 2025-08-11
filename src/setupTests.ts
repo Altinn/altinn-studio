@@ -29,7 +29,7 @@ import type { AppQueries } from 'src/queries/types';
 import 'src/index.css';
 import 'src/styles/shared.css';
 
-const env = dotenv.config();
+const env = dotenv.config({ quiet: true });
 
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -85,7 +85,8 @@ jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10)
 
 jest.mock('axios');
 
-global.TextEncoder = TextEncoder;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).TextEncoder = TextEncoder;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).TextDecoder = TextDecoder;
 
