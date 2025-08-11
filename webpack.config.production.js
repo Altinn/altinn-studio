@@ -18,16 +18,4 @@ module.exports = {
       }),
     ],
   },
-  module: {
-    rules: [
-      ...common.module.rules,
-      {
-        test: /\.tsx?$/,
-        loader: 'esbuild-loader',
-        options: {
-          target: 'es2020',
-        },
-      },
-    ],
-  },
 };

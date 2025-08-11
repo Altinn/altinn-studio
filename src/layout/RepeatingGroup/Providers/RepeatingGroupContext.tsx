@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -314,7 +314,20 @@ function newStore({ getRows, editMode, pagination }: NewStoreProps) {
 }
 
 function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContext {
-  const stateRef = ZStore.useSelectorAsRef((state) => state);
+  const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
+  const rawOpenNextForEditing = ZStore.useStaticSelector((state) => state.openNextForEditing);
+  const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
+  const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
+  const rawStartAddingRow = ZStore.useStaticSelector((state) => state.startAddingRow);
+  const rawEndAddingRow = ZStore.useStaticSelector((state) => state.endAddingRow);
+  const rawStartDeletingRow = ZStore.useStaticSelector((state) => state.startDeletingRow);
+  const rawEndDeletingRow = ZStore.useStaticSelector((state) => state.endDeletingRow);
+
+  const delayedSelector = ZStore.useDelayedSelector({
+    mode: 'innerSelector',
+    makeArgs: (state) => [state],
+  });
+
   const { pagination, validateOnSaveRow } = useExternalItem(baseComponentId, 'RepeatingGroup');
   const groupBinding = useBinding(baseComponentId);
 
@@ -326,105 +339,92 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
   const onGroupCloseValidation = useOnGroupCloseValidation();
 
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
-  const getState = useCallback(() => produceStateFromRows(getRows() ?? []), [getRows]);
-  const getPaginationState = useCallback(
-    () => producePaginationState(stateRef.current.currentPage, pagination, getState().visibleRows),
-    [stateRef, pagination, getState],
-  );
+  const getState = () => produceStateFromRows(getRows() ?? []);
+  const getPaginationState = () =>
+    producePaginationState(
+      delayedSelector((s) => s.currentPage, []),
+      pagination,
+      getState().visibleRows,
+    );
 
-  const maybeValidateRow = useCallback(() => {
-    const { editingAll, editingId, editingNone } = stateRef.current;
+  const maybeValidateRow = () => {
+    const editingAll = delayedSelector((s) => s.editingAll, []);
+    const editingId = delayedSelector((s) => s.editingId, []);
+    const editingNone = delayedSelector((s) => s.editingNone, []);
     const index = getState().editableRows.find((row) => row.uuid === editingId)?.index;
     if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
       return Promise.resolve(false);
     }
     return onGroupCloseValidation(baseComponentId, index, validateOnSaveRow);
-  }, [baseComponentId, onGroupCloseValidation, getState, stateRef, validateOnSaveRow]);
+  };
 
-  const openForEditing = useCallback(
-    async (row: BaseRow) => {
-      if (await maybeValidateRow()) {
-        return;
-      }
-      stateRef.current.openForEditing(row);
-    },
-    [maybeValidateRow, stateRef],
-  );
-
-  const openNextForEditing = useCallback(async () => {
+  const openForEditing = async (row: BaseRow) => {
     if (await maybeValidateRow()) {
       return;
     }
-    stateRef.current.openNextForEditing();
-  }, [maybeValidateRow, stateRef]);
+    rawOpenForEditing(row);
+  };
 
-  const closeForEditing = useCallback(
-    async (row: BaseRow) => {
-      if (await maybeValidateRow()) {
-        return;
-      }
-      stateRef.current.closeForEditing(row);
-    },
-    [maybeValidateRow, stateRef],
-  );
+  const openNextForEditing = async () => {
+    if (await maybeValidateRow()) {
+      return;
+    }
+    rawOpenNextForEditing();
+  };
 
-  const toggleEditing = useCallback(
-    async (row: BaseRow) => {
-      if (await maybeValidateRow()) {
-        return;
-      }
-      const { editingId, closeForEditing, openForEditing } = stateRef.current;
-      if (editingId === row.uuid) {
-        closeForEditing(row);
-      } else {
-        openForEditing(row);
-      }
-    },
-    [maybeValidateRow, stateRef],
-  );
+  const closeForEditing = async (row: BaseRow) => {
+    if (await maybeValidateRow()) {
+      return;
+    }
+    rawCloseForEditing(row);
+  };
 
-  const changePage = useCallback(
-    async (page: number) => {
-      if (await maybeValidateRow()) {
-        return;
-      }
-      stateRef.current.changePage(page);
-    },
-    [maybeValidateRow, stateRef],
-  );
+  const toggleEditing = async (row: BaseRow) => {
+    if (await maybeValidateRow()) {
+      return;
+    }
+    const editingId = delayedSelector((s) => s.editingId, []);
+    if (editingId === row.uuid) {
+      rawCloseForEditing(row);
+    } else {
+      rawOpenForEditing(row);
+    }
+  };
 
-  const changePageToRow = useCallback(
-    async (row: BaseRow) => {
-      if (await maybeValidateRow()) {
-        return;
-      }
+  const changePage = async (page: number) => {
+    if (await maybeValidateRow()) {
+      return;
+    }
+    rawChangePage(page);
+  };
 
-      const page = getPageForRow(row, getPaginationState(), getState().visibleRows);
-      if (page == null) {
-        return;
-      }
+  const changePageToRow = async (row: BaseRow) => {
+    if (await maybeValidateRow()) {
+      return;
+    }
 
-      stateRef.current.changePage(page);
-    },
-    [maybeValidateRow, getPaginationState, getState, stateRef],
-  );
+    const page = getPageForRow(row, getPaginationState(), getState().visibleRows);
+    if (page == null) {
+      return;
+    }
 
-  const isEditing = useCallback(
-    (uuid: string) => {
-      const { editingAll, editingId, editingNone } = stateRef.current;
-      if (editingAll) {
-        return true;
-      }
-      if (editingNone) {
-        return false;
-      }
-      return editingId === uuid;
-    },
-    [stateRef],
-  );
+    rawChangePage(page);
+  };
 
-  const addRow = useCallback(async (): Promise<AddRowResult> => {
-    const { startAddingRow, endAddingRow } = stateRef.current;
+  const isEditing = (uuid: string) => {
+    const editingAll = delayedSelector((s) => s.editingAll, []);
+    const editingId = delayedSelector((s) => s.editingId, []);
+    const editingNone = delayedSelector((s) => s.editingNone, []);
+    if (editingAll) {
+      return true;
+    }
+    if (editingNone) {
+      return false;
+    }
+    return editingId === uuid;
+  };
+
+  const addRow = async (): Promise<AddRowResult> => {
     if (!groupBinding) {
       return { result: 'stoppedByBinding', uuid: undefined, index: undefined };
     }
@@ -437,7 +437,7 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
       newValue: { [ALTINN_ROW_ID]: uuid },
     });
 
-    startAddingRow(uuid);
+    rawStartAddingRow(uuid);
     if (autoSaving) {
       // When auto-saving is on, we can detect if backend datamodel changes will cause this row to be hidden right
       // after it was added (as the backend can add data to new rows), and thus we'll know to inform the app developer
@@ -459,7 +459,7 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
       }
     }
 
-    endAddingRow(uuid);
+    rawEndAddingRow(uuid);
 
     const index = found?.index ?? -1;
     if (found && !found.hidden) {
@@ -468,37 +468,33 @@ function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContex
     }
 
     return { result: 'addedAndHidden', uuid, index };
-  }, [stateRef, groupBinding, maybeValidateRow, appendToList, autoSaving, waitUntilSaved, getState, openForEditing]);
+  };
 
-  const deleteRow = useCallback(
-    async (row: BaseRow) => {
-      const { deletableRows } = getState();
-      const { startDeletingRow, endDeletingRow } = stateRef.current;
-      const deletableRow = deletableRows.find((r) => r.uuid === row.uuid && r.index === row.index);
-      if (!deletableRow) {
-        return false;
-      }
-
-      startDeletingRow(row);
-      const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
-      if (attachmentDeletionSuccessful && groupBinding) {
-        removeFromList({
-          reference: groupBinding,
-          startAtIndex: row.index,
-          callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
-        });
-
-        endDeletingRow(row, true);
-        return true;
-      }
-
-      endDeletingRow(row, false);
+  const deleteRow = async (row: BaseRow) => {
+    const { deletableRows } = getState();
+    const deletableRow = deletableRows.find((r) => r.uuid === row.uuid && r.index === row.index);
+    if (!deletableRow) {
       return false;
-    },
-    [getState, stateRef, onBeforeRowDeletion, groupBinding, removeFromList],
-  );
+    }
 
-  const isDeleting = useCallback((uuid: string) => stateRef.current.deletingIds.includes(uuid), [stateRef]);
+    rawStartDeletingRow(row);
+    const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
+    if (attachmentDeletionSuccessful && groupBinding) {
+      removeFromList({
+        reference: groupBinding,
+        startAtIndex: row.index,
+        callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
+      });
+
+      rawEndDeletingRow(row, true);
+      return true;
+    }
+
+    rawEndDeletingRow(row, false);
+    return false;
+  };
+
+  const isDeleting = (uuid: string) => delayedSelector((s) => s.deletingIds, []).includes(uuid);
 
   return {
     baseComponentId,

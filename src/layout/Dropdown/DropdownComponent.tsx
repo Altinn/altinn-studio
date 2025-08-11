@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, Label as DSLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -39,17 +39,14 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
     return option ? langAsString(option.label).toLowerCase() : value;
   });
 
-  const changeMessageGenerator = useCallback(
-    (values: string[]) => {
-      const label = options
-        .filter((o) => values.includes(o.value))
-        .map((o) => langAsString(o.label))
-        .join(', ');
+  const changeMessageGenerator = (values: string[]) => {
+    const label = options
+      .filter((o) => values.includes(o.value))
+      .map((o) => langAsString(o.label))
+      .join(', ');
 
-      return lang('form_filler.dropdown_alert', [label]);
-    },
-    [lang, langAsString, options],
-  );
+    return lang('form_filler.dropdown_alert', [label]);
+  };
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange, alertMessage } = useAlertOnChange(
     Boolean(alertOnChange),

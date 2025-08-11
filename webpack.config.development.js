@@ -5,7 +5,6 @@ const fs = require('fs');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { EsbuildPlugin } = require('esbuild-loader');
 
 const common = require('./webpack.common');
@@ -59,39 +58,6 @@ module.exports = {
           }),
         ]
       : [],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.[jt]sx?$/,
-        loader: 'esbuild-loader',
-        options: {
-          target: 'es2020',
-        },
-      },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                namedExport: false,
-                auto: true,
-                exportLocalsConvention: 'camel-case',
-              },
-            },
-          },
-        ],
-      },
-      {
-        test: /\.png$/,
-        type: 'asset/resource',
-      },
-    ],
   },
   plugins,
   devServer: {

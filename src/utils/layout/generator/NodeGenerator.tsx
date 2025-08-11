@@ -5,7 +5,6 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useAsRef } from 'src/hooks/useAsRef';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
@@ -85,36 +84,19 @@ function AddRemoveNode<T extends CompTypes>({
   const layoutMap = useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
-  const stateFactoryProps = useMemo(
-    () =>
-      ({
-        id: intermediateItem.id,
-        baseId: baseComponentId,
-        parentId: parent?.type === 'node' ? parent.indexedId : undefined,
-        depth,
-        rowIndex,
-        pageKey,
-        idMutators,
-        layoutMap,
-        getCapabilities,
-        isValid,
-        dataModelBindings: intermediateItem.dataModelBindings as never,
-      }) satisfies StateFactoryProps,
-    [
-      baseComponentId,
-      depth,
-      getCapabilities,
-      idMutators,
-      intermediateItem.dataModelBindings,
-      intermediateItem.id,
-      isValid,
-      layoutMap,
-      pageKey,
-      parent.indexedId,
-      parent?.type,
-      rowIndex,
-    ],
-  );
+  const stateFactoryProps = {
+    id: intermediateItem.id,
+    baseId: baseComponentId,
+    parentId: parent?.type === 'node' ? parent.indexedId : undefined,
+    depth,
+    rowIndex,
+    pageKey,
+    idMutators,
+    layoutMap,
+    getCapabilities,
+    isValid,
+    dataModelBindings: intermediateItem.dataModelBindings as never,
+  } satisfies StateFactoryProps;
 
   const isAdded = NodesInternal.useIsAdded(intermediateItem.id, 'node');
 
@@ -153,8 +135,6 @@ export function useExpressionResolverProps<T extends CompTypes>(
   rawItem: CompIntermediateExact<T> | undefined,
   allDataSources: ExpressionDataSources,
 ): ExprResolver<T> {
-  const allDataSourcesAsRef = useAsRef(allDataSources);
-
   // The hidden property is handled elsewhere, and should never be passed to the item (and resolved as an
   // expression) which could be read. Try useIsHidden() or useIsHiddenSelector() if you need to know if a
   // component is hidden.
@@ -163,49 +143,33 @@ export function useExpressionResolverProps<T extends CompTypes>(
     return rest;
   }, [rawItem]) as CompIntermediate<T>;
 
-  const evalProto = useCallback(
-    <T extends ExprVal>(
-      type: T,
-      expr: ExprValToActualOrExpr<T> | undefined,
-      defaultValue: ExprValToActual<T>,
-      dataSources?: Partial<ExpressionDataSources>,
-    ) => {
-      if (!ExprValidation.isValidOrScalar(expr, type, errorIntroText)) {
-        return defaultValue;
-      }
+  const evalProto = <T extends ExprVal>(
+    type: T,
+    expr: ExprValToActualOrExpr<T> | undefined,
+    defaultValue: ExprValToActual<T>,
+    dataSources?: Partial<ExpressionDataSources>,
+  ) => {
+    if (!ExprValidation.isValidOrScalar(expr, type, errorIntroText)) {
+      return defaultValue;
+    }
 
-      return evalExpr(
-        expr,
-        { ...allDataSourcesAsRef.current, ...dataSources },
-        { returnType: type, defaultValue, errorIntroText },
-      );
-    },
-    [allDataSourcesAsRef, errorIntroText],
-  );
+    return evalExpr(expr, { ...allDataSources, ...dataSources }, { returnType: type, defaultValue, errorIntroText });
+  };
 
-  const evalBool = useCallback<SimpleEval<ExprVal.Boolean>>(
-    (expr, defaultValue, dataSources) => evalProto(ExprVal.Boolean, expr, defaultValue, dataSources),
-    [evalProto],
-  );
+  const evalBool: SimpleEval<ExprVal.Boolean> = (expr, defaultValue, dataSources) =>
+    evalProto(ExprVal.Boolean, expr, defaultValue, dataSources);
 
-  const evalStr = useCallback<SimpleEval<ExprVal.String>>(
-    (expr, defaultValue, dataSources) => evalProto(ExprVal.String, expr, defaultValue, dataSources),
-    [evalProto],
-  );
+  const evalStr: SimpleEval<ExprVal.String> = (expr, defaultValue, dataSources) =>
+    evalProto(ExprVal.String, expr, defaultValue, dataSources);
 
-  const evalNum = useCallback<SimpleEval<ExprVal.Number>>(
-    (expr, defaultValue, dataSources) => evalProto(ExprVal.Number, expr, defaultValue, dataSources),
-    [evalProto],
-  );
-
-  const evalAny = useCallback<SimpleEval<ExprVal.Any>>(
-    (expr, defaultValue, dataSources) => evalProto(ExprVal.Any, expr, defaultValue, dataSources),
-    [evalProto],
-  );
+  const evalNum: SimpleEval<ExprVal.Number> = (expr, defaultValue, dataSources) =>
+    evalProto(ExprVal.Number, expr, defaultValue, dataSources);
+  const evalAny: SimpleEval<ExprVal.Any> = (expr, defaultValue, dataSources) =>
+    evalProto(ExprVal.Any, expr, defaultValue, dataSources);
 
   // This resolves common expressions that are used by multiple components
   // and are not specific to a single component type.
-  const evalBase = useCallback<ExprResolver<T>['evalBase']>(() => {
+  const evalBase = () => {
     const { hidden: _hidden, ...rest } = item;
     return {
       ...rest,
@@ -218,9 +182,9 @@ export function useExpressionResolverProps<T extends CompTypes>(
           }
         : {}),
     };
-  }, [evalStr, item]);
+  };
 
-  const evalFormProps = useCallback<ExprResolver<T>['evalFormProps']>(() => {
+  const evalFormProps = () => {
     const out: ExprResolved<FormComponentProps> = {};
     if (isFormItem(item)) {
       if (Array.isArray(item.required)) {
@@ -232,19 +196,19 @@ export function useExpressionResolverProps<T extends CompTypes>(
     }
 
     return out;
-  }, [evalBool, item]);
+  };
 
-  const evalSummarizable = useCallback<ExprResolver<T>['evalSummarizable']>(() => {
+  const evalSummarizable = () => {
     const out: ExprResolved<SummarizableComponentProps> = {};
     if (isSummarizableItem(item) && Array.isArray(item.forceShowInSummary)) {
       out.forceShowInSummary = evalBool(item.forceShowInSummary, false);
     }
 
     return out;
-  }, [evalBool, item]);
+  };
 
   // This resolves all text resource bindings in a component
-  const evalTrb = useCallback<ExprResolver<T>['evalTrb']>(() => {
+  const evalTrb = () => {
     const trb: Record<string, string> = {};
     if (item.textResourceBindings) {
       for (const [key, value] of Object.entries(item.textResourceBindings)) {
@@ -255,20 +219,9 @@ export function useExpressionResolverProps<T extends CompTypes>(
     return {
       textResourceBindings: (item.textResourceBindings ? trb : undefined) as ExprResolved<ITextResourceBindings<T>>,
     };
-  }, [evalStr, item]);
-
-  return {
-    item,
-    evalBool,
-    evalNum,
-    evalStr,
-    evalAny,
-    evalBase,
-    evalFormProps,
-    evalSummarizable,
-    evalTrb,
-    formDataSelector: allDataSources.formDataSelector,
   };
+
+  return { item, evalBool, evalNum, evalStr, evalAny, evalBase, evalFormProps, evalSummarizable, evalTrb };
 }
 
 function useIntermediateItem<T extends CompTypes = CompTypes>(item: CompExternal<T>): CompIntermediate<T> {

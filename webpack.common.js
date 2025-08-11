@@ -11,7 +11,7 @@ module.exports = {
     filename: 'altinn-app-frontend.js',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       src: path.resolve(__dirname, './src'),
       axios: require.resolve('./node_modules/axios/dist/browser/axios.cjs'),
@@ -20,9 +20,15 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.jsx?/,
+        test: /\.[mc]?[jt]sx?$/i,
         exclude: /node_modules/,
         use: [
+          {
+            loader: 'esbuild-loader',
+            options: {
+              target: 'es2020',
+            },
+          },
           {
             loader: reactCompilerLoader,
             options: defineReactCompilerLoaderOption({}),
