@@ -5,13 +5,9 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type {
-  IDataModelBindingsList,
-  IPageBreak,
-  ITableColumnFormatting,
-  ITableColumnProperties,
-} from 'src/layout/common.generated';
+import type { IDataModelBindingsList, IPageBreak, ITableColumnProperties } from 'src/layout/common.generated';
 import type { CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
+import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 
 export type BindingToValues<B extends IDataModelBindings | undefined> = B extends undefined
   ? { [key: string]: undefined }
@@ -140,7 +136,7 @@ function useTextAlignment(baseComponentId: string): 'left' | 'center' | 'right' 
 
 export function useColumnStylesRepeatingGroups(
   baseComponentId: string,
-  columnSettings: ITableColumnFormatting | undefined,
+  columnSettings: IGroupColumnFormatting | undefined,
 ) {
   const textAlignment = useTextAlignment(baseComponentId);
   const column = columnSettings && columnSettings[baseComponentId];

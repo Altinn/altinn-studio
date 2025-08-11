@@ -29,6 +29,7 @@ import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
+import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
@@ -251,7 +252,7 @@ function TitleCell({
   columnSettings,
 }: {
   baseComponentId: string;
-  columnSettings: ITableColumnFormatting;
+  columnSettings: IGroupColumnFormatting;
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
 

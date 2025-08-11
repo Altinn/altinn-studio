@@ -178,7 +178,7 @@ describe('Multiple select component', () => {
 
     // Checking 'Kåre' again should not bring back the age
     cy.get(multiselect).click();
-    cy.get(multiselectList).contains('span', checkboxText2).click();
+    cy.get(multiselectList).should('be.visible').contains('span', checkboxText2).click();
     cy.get(repGroup).click({ force: true }); //closing the multiselect popover
     cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 1 row
     cy.get(repGroup).findByRole('cell', { name: checkboxText2 }).should('exist');
