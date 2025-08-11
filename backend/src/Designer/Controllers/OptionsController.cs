@@ -41,7 +41,7 @@ public class OptionsController : ControllerBase
     {
         _optionsService = optionsService;
         _optionListReferenceService = optionListReferenceService;
-        _giteaContentLibraryService =  giteaContentLibraryService;
+        _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <summary>
