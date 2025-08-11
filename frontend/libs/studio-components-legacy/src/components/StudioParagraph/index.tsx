@@ -1,1 +1,6 @@
-export { Paragraph as StudioParagraph } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
+
+/**
+ * @deprecated Use `StudioParagraph` from `@studio/components` instead.
+ */
+export const StudioParagraph = Paragraph;

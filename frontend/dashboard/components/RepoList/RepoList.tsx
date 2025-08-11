@@ -63,7 +63,7 @@ export const RepoList = ({
     {
       accessor: 'createdBy',
       heading: t('dashboard.created_by'),
-      sortable: true,
+      sortable: false,
       headerCellClass: classes.createdByHeaderCell,
     },
     {

@@ -7,7 +7,7 @@ import type { SharedTextInputProps } from '../../types/SharedTextInputProps';
 export type StudioTextareaProps = SharedTextInputProps<HTMLTextAreaElement>;
 
 /**
- * @deprecated use `StudioTextfield` with the `multiline` prop from `@studio/components` instead
+ * @deprecated use `StudioTextarea` from `@studio/components` instead
  */
 const StudioTextarea = forwardRef<HTMLTextAreaElement, StudioTextareaProps>((props, ref) => {
   const textareaProps: TextareaProps = useTextInputProps<HTMLTextAreaElement>(props);

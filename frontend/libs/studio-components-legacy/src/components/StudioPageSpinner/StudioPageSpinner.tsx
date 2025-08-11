@@ -8,6 +8,9 @@ export type StudioPageSpinnerProps = {
   showSpinnerTitle?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @deprecated Use `StudioPageSpinner` from `@studio/components` instead.
+ */
 export const StudioPageSpinner = forwardRef<HTMLDivElement, StudioPageSpinnerProps>(
   ({ spinnerTitle, showSpinnerTitle = false }, ref): JSX.Element => {
     return (
