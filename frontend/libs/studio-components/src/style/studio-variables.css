@@ -1,0 +1,5 @@
+:root {
+  --studio-property-vertical-gap: var(--ds-size-3);
+  --studio-property-button-vertical-spacing: calc(var(--studio-property-vertical-gap) / 2);
+  --studio-property-fieldset-spacing: var(--ds-size-3);
+}

@@ -6,6 +6,7 @@ import { Unstyled } from '@storybook/addon-docs/blocks';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
+import '../src/style/studio-variables.css';
 
 const preview: Preview = {
   parameters: {
