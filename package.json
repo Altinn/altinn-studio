@@ -68,7 +68,7 @@
     "babel-loader": "10.0.0",
     "caniuse-lite": "1.0.30001726",
     "core-js": "3.43.0",
-    "cross-env": "7.0.3",
+    "cross-env": "10.0.0",
     "css-loader": "7.1.2",
     "cypress": "14.5.0",
     "cypress-axe": "1.6.0",
