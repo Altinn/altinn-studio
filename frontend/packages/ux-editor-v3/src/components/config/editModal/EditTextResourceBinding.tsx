@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import type { IGenericEditComponent } from '../componentConfig';
 import { TextResource } from '../../TextResource';
-import type { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'app-shared/types/language';
 import type { IAppState } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
 

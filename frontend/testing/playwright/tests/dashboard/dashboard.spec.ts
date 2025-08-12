@@ -3,8 +3,8 @@ import type { APIRequestContext, Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
-import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
+import { DashboardPage } from '../../pages/DashboardPage';
+import { OverviewPage } from '../../pages/OverviewPage';
 import { Gitea } from '../../helpers/Gitea';
 
 const getExtraAppName = (appName: string): string => `extra-app-${appName}`;
