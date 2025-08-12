@@ -50,6 +50,16 @@ describe('PolicyAccessPackageServices', () => {
 
     expect(screen.getByTestId('no-service-logo')).toBeInTheDocument();
   });
+
+  it('should show orgcode if service owner name is missing', () => {
+    renderPolicyAccessPackageServices({
+      services: [
+        { ...resource, hasCompetentAuthority: { ...resource.hasCompetentAuthority, name: null } },
+      ],
+    });
+
+    expect(screen.getByText(resource.hasCompetentAuthority.orgcode)).toBeInTheDocument();
+  });
 });
 
 const renderPolicyAccessPackageServices = (

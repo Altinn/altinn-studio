@@ -19,8 +19,8 @@ export const PolicyAccessPackageServices = ({
             {resource.title?.[selectedLanguage] ?? resource.identifier}
           </div>
           <div>
-            {resource.hasCompetentAuthority.name[selectedLanguage] ??
-              resource.hasCompetentAuthority.orgcode}
+            {resource.hasCompetentAuthority?.name?.[selectedLanguage] ??
+              resource.hasCompetentAuthority?.orgcode}
           </div>
         </div>
       ))}
@@ -41,8 +41,8 @@ export const PolicyAccessPackageServiceLogo = ({
       <img
         className={classes.logo}
         src={resource.logoUrl}
-        alt={resource.hasCompetentAuthority.name[language]}
-        title={resource.hasCompetentAuthority.name[language]}
+        alt={resource.hasCompetentAuthority.name?.[language]}
+        title={resource.hasCompetentAuthority.name?.[language]}
       />
     );
   }

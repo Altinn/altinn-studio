@@ -74,11 +74,11 @@ const testEnv = 'tt02';
 describe('PolicyAccessPackageAccordionContent', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should show spinner on loading', async () => {
+  it('should show spinner on loading', () => {
     renderPolicyAccessPackageAccordionContent();
 
     expect(
-      await screen.findByLabelText(textMock('policy_editor.access_package_loading_services')),
+      screen.getByLabelText(textMock('policy_editor.access_package_loading_services')),
     ).toBeInTheDocument();
   });
 
@@ -153,6 +153,18 @@ describe('PolicyAccessPackageAccordionContent', () => {
     await screen.findByText(prodResource.title.nb);
 
     expect(orgSelect).toHaveValue('');
+  });
+
+  it('should show unknown service owner if competent authority is missing', async () => {
+    const getAccessPackageServices = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([{ ...skdResource, hasCompetentAuthority: null }]));
+
+    renderPolicyAccessPackageAccordionContent({ getAccessPackageServices });
+
+    expect(
+      await screen.findByText(textMock('policy_editor.access_package_unknown_service_owner')),
+    ).toBeInTheDocument();
   });
 
   it('should show text if package has no connected services', async () => {
