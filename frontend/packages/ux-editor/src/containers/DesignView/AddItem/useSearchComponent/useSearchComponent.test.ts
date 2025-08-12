@@ -55,6 +55,11 @@ const testCases: TestCase[] = [
     },
   },
   {
+    description: 'should handle search with only whitespace',
+    searchText: '   ',
+    expected: mockAvailableComponents,
+  },
+  {
     description: 'should handle search with empty string',
     searchText: '',
     expected: mockAvailableComponents,
