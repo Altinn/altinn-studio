@@ -244,18 +244,17 @@ public partial class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<
     {
         string searchPattern = Path.Join(TextResourceFolderPath, "resource.*.json");
         string[] fileNames = TestDataHelper.GetRepositoryFileNames(Username, OrgName, sourceRepoName, searchPattern);
-        IEnumerable<string> textResourceFileNames = fileNames.Select(Path.GetFileNameWithoutExtension);
         HashSet<string> languages = [];
 
-        foreach (string fileName in textResourceFileNames)
+        foreach (string languageCode in fileNames
+            .Select(Path.GetFileNameWithoutExtension)
+            .Select(MatchTextResourceFileName)
+            .Where(m => m.Success)
+            .Select(m => m.Groups["lang"].Value)
+            .Distinct())
         {
-            var match = MatchTextResourceFileName(fileName);
-            if (match.Success)
-            {
-                string languageCode = match.Groups["lang"].Value;
-                languages.Add(languageCode);
-                SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
-            }
+            languages.Add(languageCode);
+            SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
         }
 
         SetupGetLanguagesMock(targetOrgName, languages);
