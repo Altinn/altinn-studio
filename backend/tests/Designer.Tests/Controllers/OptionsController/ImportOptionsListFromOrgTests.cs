@@ -20,7 +20,7 @@ using Match = System.Text.RegularExpressions.Match;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public partial class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOptionsListFromOrgTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOptionsListFromOrgTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IGiteaContentLibraryService> _giteaContentLibraryServiceMock;
     private const string OrgName = "ttd";
