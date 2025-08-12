@@ -1,10 +1,13 @@
 import React, { type ReactElement } from 'react';
 import classes from './PolicyAccessPackageServices.module.css';
-import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
+import type {
+  AccessPackageResource,
+  AccessPackageResourceLanguage,
+} from 'app-shared/types/PolicyAccessPackages';
 
 export type PolicyAccessPackageServicesProps = {
   services: AccessPackageResource[];
-  selectedLanguage: string;
+  selectedLanguage: AccessPackageResourceLanguage;
 };
 export const PolicyAccessPackageServices = ({
   services,

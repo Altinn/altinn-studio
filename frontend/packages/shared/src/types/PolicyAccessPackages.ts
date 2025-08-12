@@ -23,7 +23,7 @@ export type PolicyAccessPackageAreaGroup = {
   areas: PolicyAccessPackageArea[];
 };
 
-type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
+export type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
 
 export type CompetentAuthority = {
   name: Record<AccessPackageResourceLanguage, string>;
