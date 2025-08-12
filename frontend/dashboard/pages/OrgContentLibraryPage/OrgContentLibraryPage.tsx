@@ -8,13 +8,12 @@ import type {
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
-  StudioAlert,
   StudioCenter,
   StudioPageError,
   StudioPageSpinner,
   StudioSpinner,
 } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioParagraph } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';

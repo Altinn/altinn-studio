@@ -1,7 +1,7 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
-import { StudioAlert, StudioHeading, StudioTable } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioTable } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph } from '@studio/components';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,7 +23,7 @@ export function PolicySummary(): React.ReactElement {
       <StudioHeading spacing={true} level={4} size='xs'>
         {t('policy_editor.summary_heading')}
       </StudioHeading>
-      <StudioAlert severity='info' title='Tilbakemelding' className={classes.feedbackAlert}>
+      <StudioAlert data-color='info' title='Tilbakemelding' className={classes.feedbackAlert}>
         <StudioParagraph spacing>{t('feedback.general_request')}</StudioParagraph>
         <div className={classes.feedbackFormWrapper}>
           <FeedbackForm />
