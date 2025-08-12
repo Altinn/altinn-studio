@@ -62,7 +62,9 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           )}
           title={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
           icon={<PersonPencilIcon />}
-          value={signingTasks?.map((dataType) => <div key={dataType.id}>{dataType.name}</div>)}
+          value={signingTasks?.map((dataType) => (
+            <div key={dataType.id}>{dataType.name}</div>
+          ))}
         />
       )}
     </>
