@@ -29,6 +29,25 @@ const skdResource: AccessPackageResource = {
   logoUrl: '',
 };
 
+const skdResource2: AccessPackageResource = {
+  identifier: 'skattegrunnlag',
+  title: {
+    nb: 'Skattegrunnlag',
+    nn: 'Skattegrunnlag',
+    en: 'Skattegrunnlag',
+  },
+  hasCompetentAuthority: {
+    name: {
+      nb: 'Skatteetaten',
+      nn: 'Skatteetaten',
+      en: 'Skatteetaten',
+    },
+    organization: '974761076',
+    orgcode: 'skd',
+  },
+  logoUrl: '',
+};
+
 const navResource: AccessPackageResource = {
   identifier: 'navogbetaling',
   title: {
@@ -67,7 +86,7 @@ const prodResource: AccessPackageResource = {
   logoUrl: '',
 };
 
-const accessPackageResources = [skdResource, navResource];
+const accessPackageResources = [skdResource, skdResource2, navResource];
 
 const testEnv = 'tt02';
 
@@ -164,6 +183,23 @@ describe('PolicyAccessPackageAccordionContent', () => {
 
     expect(
       await screen.findByText(textMock('policy_editor.access_package_unknown_service_owner')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show service owner orgcode if service owner name is missing', async () => {
+    const getAccessPackageServices = jest.fn().mockImplementation(() =>
+      Promise.resolve([
+        {
+          ...skdResource,
+          hasCompetentAuthority: { ...skdResource.hasCompetentAuthority, name: null },
+        },
+      ]),
+    );
+
+    renderPolicyAccessPackageAccordionContent({ getAccessPackageServices });
+
+    expect(
+      await screen.findByRole('option', { name: skdResource.hasCompetentAuthority.orgcode }),
     ).toBeInTheDocument();
   });
 

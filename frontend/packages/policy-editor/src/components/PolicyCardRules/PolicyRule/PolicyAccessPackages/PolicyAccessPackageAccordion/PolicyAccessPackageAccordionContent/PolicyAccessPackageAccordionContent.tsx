@@ -103,7 +103,7 @@ export const PolicyAccessPackageAccordionContent = ({
       )}
       {hasServices && (
         <PolicyAccessPackageServices
-          services={filteredServices ?? []}
+          services={filteredServices}
           selectedLanguage={selectedLanguage}
         />
       )}

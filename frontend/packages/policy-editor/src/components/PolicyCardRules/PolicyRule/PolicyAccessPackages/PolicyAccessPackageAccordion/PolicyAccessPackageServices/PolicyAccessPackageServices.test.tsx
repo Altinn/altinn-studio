@@ -60,6 +60,14 @@ describe('PolicyAccessPackageServices', () => {
 
     expect(screen.getByText(resource.hasCompetentAuthority.orgcode)).toBeInTheDocument();
   });
+
+  it('should show resource identifier if resource title is missing', () => {
+    renderPolicyAccessPackageServices({
+      services: [{ ...resource, title: null }],
+    });
+
+    expect(screen.getByText(resource.identifier)).toBeInTheDocument();
+  });
 });
 
 const renderPolicyAccessPackageServices = (
