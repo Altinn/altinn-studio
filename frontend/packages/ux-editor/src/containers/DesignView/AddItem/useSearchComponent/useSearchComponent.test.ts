@@ -54,6 +54,11 @@ const testCases: TestCase[] = [
       category1: [{ type: ComponentType.Button, label: textButtonValue, icon: MockIcon }],
     },
   },
+  {
+    description: 'should handle search with empty string',
+    searchText: '',
+    expected: mockAvailableComponents,
+  },
 ];
 
 const translations = {
