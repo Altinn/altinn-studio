@@ -174,18 +174,6 @@ describe('PolicyAccessPackageAccordionContent', () => {
     expect(orgSelect).toHaveValue('');
   });
 
-  it('should show unknown service owner if competent authority is missing', async () => {
-    const getAccessPackageServices = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve([{ ...skdResource, hasCompetentAuthority: null }]));
-
-    renderPolicyAccessPackageAccordionContent({ getAccessPackageServices });
-
-    expect(
-      await screen.findByText(textMock('policy_editor.access_package_unknown_service_owner')),
-    ).toBeInTheDocument();
-  });
-
   it('should show service owner orgcode if service owner name is missing', async () => {
     const getAccessPackageServices = jest.fn().mockImplementation(() =>
       Promise.resolve([

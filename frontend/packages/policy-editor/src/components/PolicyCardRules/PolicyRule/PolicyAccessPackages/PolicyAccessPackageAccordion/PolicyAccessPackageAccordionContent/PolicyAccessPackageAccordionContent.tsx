@@ -29,24 +29,12 @@ export const PolicyAccessPackageAccordionContent = ({
   const uppercaseEnv = selectedEnv.toUpperCase();
 
   const groupedServiceOwners = services?.reduce((acc: CompetentAuthority[], service) => {
-    let competentAuthority = service.hasCompetentAuthority;
-    if (!competentAuthority) {
-      competentAuthority = {
-        orgcode: 'UNKNOWN',
-        name: {
-          nb: t('policy_editor.access_package_unknown_service_owner'),
-          nn: t('policy_editor.access_package_unknown_service_owner'),
-          en: t('policy_editor.access_package_unknown_service_owner'),
-        },
-        organization: '',
-      };
-    }
-    const hasOrg = acc.some((org) => org.orgcode === competentAuthority.orgcode);
-    return hasOrg ? acc : [...acc, competentAuthority];
+    const hasOrg = acc.some((org) => org.orgcode === service.hasCompetentAuthority.orgcode);
+    return hasOrg ? acc : [...acc, service.hasCompetentAuthority];
   }, []);
 
   const filteredServices = selectedOrg
-    ? services?.filter((service) => service.hasCompetentAuthority?.orgcode === selectedOrg)
+    ? services?.filter((service) => service.hasCompetentAuthority.orgcode === selectedOrg)
     : services;
 
   const handleChangeEnv = (event: React.ChangeEvent<HTMLSelectElement>) => {

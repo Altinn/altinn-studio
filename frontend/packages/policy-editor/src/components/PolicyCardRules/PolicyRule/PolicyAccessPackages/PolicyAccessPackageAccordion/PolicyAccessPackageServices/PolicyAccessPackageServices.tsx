@@ -22,8 +22,8 @@ export const PolicyAccessPackageServices = ({
             {resource.title?.[selectedLanguage] ?? resource.identifier}
           </div>
           <div>
-            {resource.hasCompetentAuthority?.name?.[selectedLanguage] ??
-              resource.hasCompetentAuthority?.orgcode}
+            {resource.hasCompetentAuthority.name?.[selectedLanguage] ??
+              resource.hasCompetentAuthority.orgcode}
           </div>
         </div>
       ))}
@@ -39,7 +39,7 @@ export const PolicyAccessPackageServiceLogo = ({
   resource,
   language,
 }: PolicyAccessPackageServiceLogoProps): ReactElement => {
-  if (resource.logoUrl && resource.hasCompetentAuthority) {
+  if (resource.logoUrl) {
     const altText =
       resource.hasCompetentAuthority.name?.[language] ?? resource.hasCompetentAuthority.orgcode;
     return <img className={classes.logo} src={resource.logoUrl} alt={altText} title={altText} />;

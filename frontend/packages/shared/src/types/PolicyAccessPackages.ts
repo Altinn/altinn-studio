@@ -34,6 +34,6 @@ export type CompetentAuthority = {
 export type AccessPackageResource = {
   identifier: string;
   title: Record<AccessPackageResourceLanguage, string>;
-  hasCompetentAuthority?: CompetentAuthority;
+  hasCompetentAuthority: CompetentAuthority;
   logoUrl: string;
 };
