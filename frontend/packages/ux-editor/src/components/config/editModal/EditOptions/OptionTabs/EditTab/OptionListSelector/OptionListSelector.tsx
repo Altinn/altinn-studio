@@ -90,13 +90,13 @@ function OptionListSelectorWithData({
   );
 }
 
-type modalContentProps = OptionListSelectorWithDataProps;
+type ModalContentProps = OptionListSelectorWithDataProps;
 
 function ModalContent({
   optionListIds,
   component,
   handleComponentChange,
-}: modalContentProps): React.ReactNode {
+}: ModalContentProps): React.ReactNode {
   const handleClick = (optionsId: string) => {
     const updatedComponent = updateComponentOptionsId(component, optionsId);
     handleOptionsChange(updatedComponent, handleComponentChange);
