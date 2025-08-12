@@ -27,6 +27,7 @@ const resource: AccessPackageResource = {
 
 const defaultProps = {
   services: [resource],
+  selectedLanguage: 'nb',
 };
 
 describe('PolicyAccessPackageServices', () => {

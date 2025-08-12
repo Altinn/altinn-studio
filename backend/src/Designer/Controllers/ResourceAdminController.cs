@@ -535,7 +535,9 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             });
 
-            return result.OrderBy(x => x.Title?["nb"]).ToList();
+            return result
+                .OrderBy(x => x.Title?["nb"] == null)
+                .ThenBy(x => x.Title?["nb"], StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
         [HttpGet]

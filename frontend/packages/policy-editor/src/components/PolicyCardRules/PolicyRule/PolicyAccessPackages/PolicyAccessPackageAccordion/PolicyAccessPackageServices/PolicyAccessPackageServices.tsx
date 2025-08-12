@@ -2,21 +2,26 @@ import React, { type ReactElement } from 'react';
 import classes from './PolicyAccessPackageServices.module.css';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
 
-const selectedLanguage = 'nb';
-
 export type PolicyAccessPackageServicesProps = {
   services: AccessPackageResource[];
+  selectedLanguage?: string;
 };
 export const PolicyAccessPackageServices = ({
   services,
+  selectedLanguage,
 }: PolicyAccessPackageServicesProps): ReactElement => {
   return (
     <>
       {services.map((resource) => (
         <div key={resource.identifier} className={classes.serviceContainer}>
           <PolicyAccessPackageServiceLogo resource={resource} language={selectedLanguage} />
-          <div className={classes.serviceLabel}>{resource.title[selectedLanguage]}</div>
-          <div>{resource.hasCompetentAuthority.name[selectedLanguage]}</div>
+          <div className={classes.serviceLabel}>
+            {resource.title?.[selectedLanguage] ?? resource.identifier}
+          </div>
+          <div>
+            {resource.hasCompetentAuthority.name[selectedLanguage] ??
+              resource.hasCompetentAuthority.orgcode}
+          </div>
         </div>
       ))}
     </>

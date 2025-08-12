@@ -826,6 +826,7 @@
   "policy_editor.access_package_services": "Tjenester i denne tilgangspakken",
   "policy_editor.access_package_unknown_description": "Tilgangspakke {{accessPackageUrn}} finnes ikke",
   "policy_editor.access_package_unknown_heading": "<Ukjent tilgangspakke>",
+  "policy_editor.access_package_unknown_service_owner": "<Ukjent tjenesteeier>",
   "policy_editor.access_package_warning_body1": "Snart faser vi ut Altinn-rollene. Da blir ikke rollene som er lagt til i denne regelen lenger gyldige. I stedet for roller skal du bruke tilgangspakker. <0 href=\"{{accessPackageLink}}\">Les mer om bruk av tilgangspakker</0>.",
   "policy_editor.access_package_warning_body2": "Tilgangspakker kan foreløpig ikke benyttes til tilgangsstyring, men vi anbefaler at du allerede nå knytter tjenesten til minst én tilgangspakke. Dette vil gjøre overgangen enklere når funksjonaliteten blir aktivert.",
   "policy_editor.access_package_warning_header": "Tilgangspakker tar snart over for Altinn-rollene",

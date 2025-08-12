@@ -10,6 +10,8 @@ type PolicyAccessPackageAccordionContentProps = {
   accessPackageUrn: string;
 };
 
+const selectedLanguage = 'nb';
+
 export const PolicyAccessPackageAccordionContent = ({
   accessPackageUrn,
 }: PolicyAccessPackageAccordionContentProps): ReactElement => {
@@ -27,8 +29,20 @@ export const PolicyAccessPackageAccordionContent = ({
   const uppercaseEnv = selectedEnv.toUpperCase();
 
   const groupedServiceOwners = services?.reduce((acc: CompetentAuthority[], service) => {
-    const hasOrg = acc.some((org) => org.orgcode === service.hasCompetentAuthority?.orgcode);
-    return hasOrg ? acc : [...acc, service.hasCompetentAuthority];
+    let competentAuthority = service.hasCompetentAuthority;
+    if (!competentAuthority) {
+      competentAuthority = {
+        orgcode: 'UNKNOWN',
+        name: {
+          nb: t('policy_editor.access_package_unknown_service_owner'),
+          nn: t('policy_editor.access_package_unknown_service_owner'),
+          en: t('policy_editor.access_package_unknown_service_owner'),
+        },
+        organization: '',
+      };
+    }
+    const hasOrg = acc.some((org) => org.orgcode === competentAuthority.orgcode);
+    return hasOrg ? acc : [...acc, competentAuthority];
   }, []);
 
   const filteredServices = selectedOrg
@@ -79,7 +93,7 @@ export const PolicyAccessPackageAccordionContent = ({
           </StudioSelect.Option>
           {groupedServiceOwners?.map((serviceOwner) => (
             <StudioSelect.Option key={serviceOwner.orgcode} value={serviceOwner.orgcode}>
-              {serviceOwner.name.nb ?? serviceOwner.orgcode}
+              {serviceOwner.name?.[selectedLanguage] ?? serviceOwner.orgcode}
             </StudioSelect.Option>
           ))}
         </StudioSelect>
@@ -87,7 +101,7 @@ export const PolicyAccessPackageAccordionContent = ({
       {isLoading && (
         <StudioSpinner aria-label={t('policy_editor.access_package_loading_services')} />
       )}
-      {hasServices && <PolicyAccessPackageServices services={filteredServices} />}
+      {hasServices && <PolicyAccessPackageServices services={filteredServices ?? []} />}
       {serviceListIsEmpty && (
         <StudioParagraph data-size='xs'>
           {t('policy_editor.access_package_no_services', {

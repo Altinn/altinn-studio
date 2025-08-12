@@ -74,11 +74,11 @@ const testEnv = 'tt02';
 describe('PolicyAccessPackageAccordionContent', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should show spinner on loading', () => {
+  it('should show spinner on loading', async () => {
     renderPolicyAccessPackageAccordionContent();
 
     expect(
-      screen.getByLabelText(textMock('policy_editor.access_package_loading_services')),
+      await screen.findByLabelText(textMock('policy_editor.access_package_loading_services')),
     ).toBeInTheDocument();
   });
 
