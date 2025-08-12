@@ -33,7 +33,7 @@ export const PolicyAccessPackageServices = ({
 
 type PolicyAccessPackageServiceLogoProps = {
   resource: AccessPackageResource;
-  language: string;
+  language: AccessPackageResourceLanguage;
 };
 export const PolicyAccessPackageServiceLogo = ({
   resource,
