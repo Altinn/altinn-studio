@@ -47,3 +47,4 @@ export * from './StudioTag';
 export * from './StudioTextfield';
 export * from './StudioToggleGroup';
 export * from './StudioValidationMessage';
+export * from './StudioSectionHeader';
