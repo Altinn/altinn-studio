@@ -53,7 +53,9 @@ export const filterFunction = (
   !searchQuery ||
   searchQuery.length < 1 ||
   id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0;
+  textTableRowEntries.filter((entry) =>
+    entry.translation.toLowerCase().includes(searchQuery.toLowerCase()),
+  ).length > 0;
 
 export const mapResourceFilesToTableRows = (
   files: ITextResources,

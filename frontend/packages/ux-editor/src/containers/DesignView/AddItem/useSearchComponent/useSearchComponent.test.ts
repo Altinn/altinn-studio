@@ -47,6 +47,13 @@ const testCases: TestCase[] = [
       category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
     },
   },
+  {
+    description: 'should handle search with multiple spaces between words',
+    searchText: 'button component',
+    expected: {
+      category1: [{ type: ComponentType.Button, label: textButtonValue, icon: MockIcon }],
+    },
+  },
 ];
 
 const translations = {

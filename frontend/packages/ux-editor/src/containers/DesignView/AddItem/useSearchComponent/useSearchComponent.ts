@@ -13,7 +13,13 @@ const doesToolbarItemMatchSearch = (
   search: string,
   t: (key: string) => string,
 ): boolean => {
-  return getAllLabelWords(toolbarItem, t).some((word) => word.includes(search));
+  const searchLower = search.toLowerCase();
+  const allLabelWords = getAllLabelWords(toolbarItem, t);
+  const searchWords = searchLower.split(/\s+/).filter((word) => word.length > 0);
+  if (searchWords.length === 0) return true;
+  return searchWords.every((searchWord) =>
+    allLabelWords.some((labelWord) => labelWord.includes(searchWord)),
+  );
 };
 
 const filterToolbarItems = (

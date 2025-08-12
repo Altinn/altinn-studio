@@ -52,6 +52,20 @@ describe('filterFunction', () => {
     expect(filterFunction('test', entry, undefined)).toBe(true);
     expect(filterFunction('test', undefined, undefined)).toBe(true);
   });
+
+  test('should be case insensitive for translations', () => {
+    const entry = [{ lang: 'nb', translation: 'Neste' }];
+    expect(filterFunction('next', entry, 'nest')).toBe(true);
+    expect(filterFunction('next', entry, 'NEST')).toBe(true);
+    expect(filterFunction('next', entry, 'neste')).toBe(true);
+  });
+
+  test('should be case insensitive for text keys', () => {
+    const entry = [{ lang: 'nb', translation: 'Some text' }];
+    expect(filterFunction('Next', entry, 'next')).toBe(true);
+    expect(filterFunction('NEXT', entry, 'next')).toBe(true);
+    expect(filterFunction('next', entry, 'NEXT')).toBe(true);
+  });
 });
 
 describe('mapResourceFilesToTableRows', () => {
