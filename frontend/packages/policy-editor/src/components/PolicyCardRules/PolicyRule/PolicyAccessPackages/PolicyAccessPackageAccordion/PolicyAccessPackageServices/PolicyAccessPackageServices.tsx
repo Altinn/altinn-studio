@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './PolicyAccessPackageServices.module.css';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
-import { useTranslation } from 'react-i18next';
 
 export type PolicyAccessPackageServicesProps = {
   services: AccessPackageResource[];
@@ -37,23 +36,10 @@ export const PolicyAccessPackageServiceLogo = ({
   resource,
   language,
 }: PolicyAccessPackageServiceLogoProps): ReactElement => {
-  const { t } = useTranslation();
-
   if (resource.logoUrl) {
-    return (
-      <img
-        className={classes.logo}
-        src={resource.logoUrl}
-        alt={
-          resource.hasCompetentAuthority?.name?.[language] ??
-          t('policy_editor.access_package_unknown_service_owner')
-        }
-        title={
-          resource.hasCompetentAuthority?.name?.[language] ??
-          t('policy_editor.access_package_unknown_service_owner')
-        }
-      />
-    );
+    const altText =
+      resource.hasCompetentAuthority?.name?.[language] ?? resource.hasCompetentAuthority?.orgcode;
+    return <img className={classes.logo} src={resource.logoUrl} alt={altText} title={altText} />;
   }
   return <div data-testid='no-service-logo' className={classes.emptyLogo} />;
 };
