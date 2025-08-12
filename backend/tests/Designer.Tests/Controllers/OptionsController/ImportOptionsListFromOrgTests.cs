@@ -244,26 +244,30 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
     {
         string searchPattern = Path.Join(TextResourceFolderPath, "resource.*.json");
         string[] fileNames = TestDataHelper.GetRepositoryFileNames(Username, OrgName, sourceRepoName, searchPattern);
-        HashSet<string> languages = [];
-
-        foreach (string languageCode in fileNames
+        HashSet<string> languages = fileNames
             .Select(Path.GetFileNameWithoutExtension)
             .Select(MatchTextResourceFileName)
             .Where(match => match.Success)
             .Select(match => match.Groups["lang"].Value)
-            .Distinct())
-        {
-            languages.Add(languageCode);
-            SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
-        }
+            .ToHashSet();
 
         SetupGetLanguagesMock(targetOrgName, languages);
+        SetupGetTextResourceMocks(targetOrgName, sourceRepoName, languages);
     }
 
-    private static Match MatchTextResourceFileName(string fileName)
+    private void SetupGetLanguagesMock(string targetOrgName, HashSet<string> languages)
     {
-        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})$");
-        return textResourceFilenameRegex.Match(fileName);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetLanguages(targetOrgName))
+            .ReturnsAsync(languages.ToList());
+    }
+
+    private void SetupGetTextResourceMocks(string targetOrgName, string sourceRepoName, HashSet<string> languages)
+    {
+        foreach (string languageCode in languages)
+        {
+            SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
+        }
     }
 
     private void SetupGetTextResourceMock(string targetOrgName, string sourceRepoName, string languageCode)
@@ -277,11 +281,10 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
             .ReturnsAsync(textResource);
     }
 
-    private void SetupGetLanguagesMock(string targetOrgName, HashSet<string> languages)
+    private static Match MatchTextResourceFileName(string fileName)
     {
-        _giteaContentLibraryServiceMock
-            .Setup(service => service.GetLanguages(targetOrgName))
-            .ReturnsAsync(languages.ToList());
+        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})$");
+        return textResourceFilenameRegex.Match(fileName);
     }
 
     private static string TextResourcePath(string languageCode)
