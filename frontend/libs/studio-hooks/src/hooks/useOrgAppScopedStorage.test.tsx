@@ -1,5 +1,9 @@
 import { renderHook } from '@testing-library/react';
-import { type UseOrgAppScopedStorage, useOrgAppScopedStorage } from './useOrgAppScopedStorage';
+import {
+  type SupportedStorage,
+  type UseOrgAppScopedStorage,
+  useOrgAppScopedStorage,
+} from './useOrgAppScopedStorage';
 import { useParams } from 'react-router-dom';
 
 jest.mock('react-router-dom', () => ({
@@ -9,7 +13,7 @@ jest.mock('react-router-dom', () => ({
 const mockedOrg: string = 'testOrg';
 const mockedApp: string = 'testApp';
 const scopedStorageKey: string = 'testOrg-testApp';
-const storagesToTest: Array<UseOrgAppScopedStorage['storage']> = ['localStorage', 'sessionStorage'];
+const storagesToTest: SupportedStorage[] = ['localStorage', 'sessionStorage'];
 
 describe('useOrgAppScopedStorage', () => {
   afterEach(() => {
@@ -19,7 +23,7 @@ describe('useOrgAppScopedStorage', () => {
 
   it.each(storagesToTest)(
     'initializes ScopedStorageImpl with correct storage scope, %s',
-    (storage) => {
+    (storage: SupportedStorage) => {
       const { result } = renderUseOrgAppScopedStorage({ storage });
 
       result.current.setItem('key', 'value');
