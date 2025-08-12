@@ -25,7 +25,7 @@ export type PolicyAccessPackageAreaGroup = {
 
 type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
 
-type CompetentAuthority = {
+export type CompetentAuthority = {
   name: Record<AccessPackageResourceLanguage, string>;
   organization: string;
   orgcode: string;
