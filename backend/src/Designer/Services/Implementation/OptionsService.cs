@@ -301,6 +301,11 @@ public class OptionsService : IOptionsService
 
     private static string ImportSourceName(string org)
     {
-        return $"{org}/{org}-content";
+        return $"{org}/{StaticContentRepoName(org)}";
+    }
+
+    private static string StaticContentRepoName(string org)
+    {
+        return $"{org}-content";
     }
 }

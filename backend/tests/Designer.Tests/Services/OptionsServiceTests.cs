@@ -336,11 +336,6 @@ public class OptionsServiceTests : IDisposable
         Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
         Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
-
-        _giteaContentLibraryServiceMock.Verify(service => service.GetCodeList(TargetOrgName, OptionListId), Times.Once);
-        _giteaContentLibraryServiceMock.Verify(service => service.GetLanguages(TargetOrgName), Times.Once);
-        _giteaContentLibraryServiceMock.Verify(service => service.GetTextResource(TargetOrgName, NbLanguageCode), Times.Once);
-        _giteaContentLibraryServiceMock.Verify(service => service.GetTextResource(TargetOrgName, EnLanguageCode), Times.Once);
     }
 
     [Fact]

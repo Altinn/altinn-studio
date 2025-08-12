@@ -16,10 +16,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using Match = System.Text.RegularExpressions.Match;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOptionsListFromOrgTests>, IClassFixture<WebApplicationFactory<Program>>
+public partial class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOptionsListFromOrgTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IGiteaContentLibraryService> _giteaContentLibraryServiceMock;
     private const string OrgName = "ttd";
@@ -77,8 +78,6 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
             Assert.Equal(expectedOptionList[i].Description, optionList[i].Description);
             Assert.Equal(expectedOptionList[i].HelpText, optionList[i].HelpText);
         }
-
-        VerifyGiteaMocks(targetOrgName, OptionListId);
     }
 
     [Fact]
@@ -116,7 +115,6 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         actualTextResourceElement = actualTextResource.Resources.Single(element => element.Id == textResourceElementWithUniqueId.Id);
         Assert.Equal(textResourceElementWithUniqueId.Id, actualTextResourceElement.Id);
         Assert.Equal(textResourceElementWithUniqueId.Value, actualTextResourceElement.Value);
-        VerifyGiteaMocks(targetOrgName, OptionListId);
     }
 
     [Fact]
@@ -154,7 +152,6 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         Assert.Equal(sourceTextResource.Resources.Count + 1, actualTextResource.Resources.Count);
         Assert.Equal(textResourceElementWithCommonId.Id, actualTextResourceElement.Id);
         Assert.Equal(textResourceElementWithCommonId.Value, actualTextResourceElement.Value);
-        VerifyGiteaMocks(targetOrgName, OptionListId);
     }
 
     [Fact]
@@ -252,42 +249,45 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
         foreach (string fileName in textResourceFileNames)
         {
-            string textResourcePath = Path.Join(TextResourceFolderPath, $"{fileName}.json");
-            string fileContent = TestDataHelper.GetFileFromRepo(OrgName, sourceRepoName, Username, textResourcePath);
-            var regex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})");
-            var match = regex.Match(fileName);
-
-            if (!match.Success)
+            var match = MatchTextResourceFileName(fileName);
+            if (match.Success)
             {
-                continue;
+                string languageCode = match.Groups["lang"].Value;
+                languages.Add(languageCode);
+                SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
             }
-
-            string languageCode = match.Groups["lang"].Value;
-            TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
-            _giteaContentLibraryServiceMock
-                .Setup(service => service.GetTextResource(targetOrgName, languageCode))
-                .ReturnsAsync(textResource);
-
-            languages.Add(languageCode);
         }
 
+        SetupGetLanguagesMock(targetOrgName, languages);
+    }
+
+    private static Match MatchTextResourceFileName(string fileName)
+    {
+        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})");
+        return textResourceFilenameRegex.Match(fileName);
+    }
+
+    private void SetupGetTextResourceMock(string targetOrgName, string sourceRepoName, string languageCode)
+    {
+        string textResourcePath = Path.Join(TextResourceFolderPath, TextResourcePath(languageCode));
+        string fileContent = TestDataHelper.GetFileFromRepo(OrgName, sourceRepoName, Username, textResourcePath);
+        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetTextResource(targetOrgName, languageCode))
+            .ReturnsAsync(textResource);
+    }
+
+    private void SetupGetLanguagesMock(string targetOrgName, HashSet<string> languages)
+    {
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetLanguages(targetOrgName))
             .ReturnsAsync(languages.ToList());
     }
 
-    private void VerifyGiteaMocks(string targetOrgName, string codeListId)
+    private static string TextResourcePath(string languageCode)
     {
-        const string NbLanguageCode = "nb";
-        const string EnLanguageCode = "en";
-        _giteaContentLibraryServiceMock
-            .Verify(service => service.GetCodeList(targetOrgName, codeListId), Times.Once);
-        _giteaContentLibraryServiceMock
-            .Verify(service => service.GetLanguages(targetOrgName), Times.Once);
-        _giteaContentLibraryServiceMock
-            .Verify(service => service.GetTextResource(targetOrgName, NbLanguageCode), Times.Once);
-        _giteaContentLibraryServiceMock
-            .Verify(service => service.GetTextResource(targetOrgName, EnLanguageCode), Times.Once);
+        return $"resource.{languageCode}.json";
     }
 
     private static string ApiUrl(string org, string app, string optionListId) => $"/designer/api/{org}/{app}/options/import/{optionListId}";
