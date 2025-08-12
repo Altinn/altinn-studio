@@ -64,6 +64,11 @@ const testCases: TestCase[] = [
     searchText: '',
     expected: mockAvailableComponents,
   },
+  {
+    description: 'should handle search with tab and spaces',
+    searchText: '\t  \n',
+    expected: mockAvailableComponents,
+  },
 ];
 
 const translations = {
@@ -125,6 +130,28 @@ describe('useSearchComponent', () => {
         expect(result.current.filteredComponents).toEqual({
           category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
         });
+      });
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle whitespace-only search correctly', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: '   ' } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
+      });
+    });
+
+    it('should handle mixed whitespace characters', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: '\t \n  ' } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
       });
     });
   });
