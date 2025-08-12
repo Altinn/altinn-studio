@@ -295,8 +295,8 @@ public class OptionsServiceTests : IDisposable
 
         const string NbLanguageCode = "nb";
         const string EnLanguageCode = "en";
-        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName(NbLanguageCode)));
-        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Combine(TextResourceFolderPath, GetTextResourceFileName(EnLanguageCode)));
+        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Join(TextResourceFolderPath, GetTextResourceFileName(NbLanguageCode)));
+        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Join(TextResourceFolderPath, GetTextResourceFileName(EnLanguageCode)));
         TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(nbExpectedTextResourceString, s_jsonOptions);
         TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(enExpectedTextResourceString, s_jsonOptions);
 
@@ -360,8 +360,8 @@ public class OptionsServiceTests : IDisposable
 
         const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrgName, targetAppRepository, Developer);
-        string filePath = Path.Combine(repoPath, "App/options");
-        await File.WriteAllTextAsync(Path.Combine(filePath, $"{OptionListId}.json"), CodeList);
+        string filePath = Path.Join(repoPath, "App/options");
+        await File.WriteAllTextAsync(Path.Join(filePath, $"{OptionListId}.json"), CodeList);
 
         // Act and assert
         var optionsService = GetOptionsServiceForTest();
