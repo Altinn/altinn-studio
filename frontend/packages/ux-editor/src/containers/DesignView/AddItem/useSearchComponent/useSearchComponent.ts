@@ -44,7 +44,7 @@ export function useSearchComponent({ availableComponents, t }: UseSearchComponen
 
   const filteredComponents = Object.entries(availableComponents).reduce(
     (acc, [category, items]) => {
-      const search = searchText.trim().toLowerCase();
+      const search = searchText.toLowerCase();
       const filteredItems = filterToolbarItems(items, search, t);
       if (filteredItems.length > 0) acc[category] = filteredItems;
       return acc;
