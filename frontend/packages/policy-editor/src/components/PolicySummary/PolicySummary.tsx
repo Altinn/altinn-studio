@@ -23,7 +23,7 @@ export function PolicySummary(): React.ReactElement {
       <StudioHeading spacing={true} level={4} size='xs'>
         {t('policy_editor.summary_heading')}
       </StudioHeading>
-      <StudioAlert data-color='info' title='Tilbakemelding' className={classes.feedbackAlert}>
+      <StudioAlert data-color='info' title={t('feedback.title')} className={classes.feedbackAlert}>
         <StudioParagraph spacing>{t('feedback.general_request')}</StudioParagraph>
         <div className={classes.feedbackFormWrapper}>
           <FeedbackForm />

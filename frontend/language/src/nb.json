@@ -495,6 +495,7 @@
   "feedback.error_message": "Det oppstod en feil under sending av tilbakemeldingen. Prøv igjen senere.",
   "feedback.general_request": "Vil du hjelpe oss til å bli bedre? Trykk på knappen for å gi din tilbakemelding.",
   "feedback.success_message": "Takk for tilbakemeldingen!",
+  "feedback.title": "Tilbakemelding",
   "form_filler.file_uploader_validation_error_upload": "Noe gikk galt da filen skulle lastes opp, prøv igjen senere.",
   "general.action": "Handling",
   "general.actions": "Handlinger",

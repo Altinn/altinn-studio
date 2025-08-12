@@ -91,7 +91,7 @@ function EditTabWithData({
         </StudioErrorMessage>
       )}
       {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
-        <StudioAlert className={classes.alert} data-color='info' dat-size='sm'>
+        <StudioAlert className={classes.alert} data-color='info' data--size='sm'>
           {t('ux_editor.options.tab_option_list_alert_title')}
         </StudioAlert>
       )}
