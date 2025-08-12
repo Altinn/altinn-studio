@@ -315,6 +315,7 @@ const getFirstDescriptionField = (area: HTMLElement): HTMLElement => {
 
 const getCodeListDetails = (codeListTitle: string): HTMLElement =>
   // The following code accesses a node directly with parentElement. This is not recommended, hence the Eslint rule, but there is no other way to access the details element.
+  // Todo: Use getByRole('group') when the role becomes correctly assigned to the component: https://github.com/digdir/designsystemet/issues/3941
   getCodeListHeading(codeListTitle).parentElement; // eslint-disable-line testing-library/no-node-access
 
 const getCodeListHeading = (codeListTitle: string): HTMLElement =>
