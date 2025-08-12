@@ -30,7 +30,7 @@ const internalComponent1: FormComponent = {
 const externalComponent2: ExternalComponent = {
   id: component2Id,
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
 };
 const internalComponent2: FormComponent = {
   id: component2Id,
@@ -38,7 +38,7 @@ const internalComponent2: FormComponent = {
   pageIndex: null,
   propertyPath: 'definitions/inputComponent',
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
 };
 
 const externalComponent3: ExternalComponent = {
@@ -64,14 +64,14 @@ const externalComponent3_1: ExternalComponent = {
   ],
   edit: { multiPage: true },
   type: ComponentType.RepeatingGroup,
-  dataModelBindings: { group: 'some-path' },
+  dataModelBindings: { group: { field: 'some-path', dataType: '' } },
 };
 const internalComponent3_1: FormContainer<ComponentType.RepeatingGroup> = {
   edit: { multiPage: true },
   id: component3_1Id,
   itemType: 'CONTAINER',
   type: ComponentType.RepeatingGroup,
-  dataModelBindings: { group: 'some-path' },
+  dataModelBindings: { group: { field: 'some-path', dataType: '' } },
   pageIndex: null,
   propertyPath: 'definitions/repeatingGroupComponent',
 };

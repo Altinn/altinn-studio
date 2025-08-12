@@ -17,7 +17,7 @@ describe('generateExportFormFormat', () => {
     id: 'component1',
     itemType: 'COMPONENT',
     type: ComponentType.Input,
-    dataModelBindings: { simpleBinding: 'simpleBinding' },
+    dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
       title: 'title1',
     },
@@ -29,7 +29,7 @@ describe('generateExportFormFormat', () => {
     id: 'component2',
     itemType: 'COMPONENT',
     type: ComponentType.RadioButtons,
-    dataModelBindings: { simpleBinding: 'simpleBinding' },
+    dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
       title: 'title2',
     },
@@ -133,7 +133,7 @@ describe('generateExportFormFormat', () => {
               {
                 id: 'component1',
                 type: ComponentType.Input,
-                dataModelBindings: { simpleBinding: 'simpleBinding' },
+                dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
                 texts: [
                   {
                     id: 'title1',
@@ -154,7 +154,7 @@ describe('generateExportFormFormat', () => {
               {
                 id: 'component2',
                 type: ComponentType.RadioButtons,
-                dataModelBindings: { simpleBinding: 'simpleBinding' },
+                dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
                 texts: [
                   {
                     id: 'title2',
@@ -288,7 +288,7 @@ describe('generateExportFormFormat', () => {
       id: 'component1',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'simpleBinding' },
+      dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
       textResourceBindings: {},
       required: true,
       readOnly: false,
