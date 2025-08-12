@@ -249,8 +249,8 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         foreach (string languageCode in fileNames
             .Select(Path.GetFileNameWithoutExtension)
             .Select(MatchTextResourceFileName)
-            .Where(m => m.Success)
-            .Select(m => m.Groups["lang"].Value)
+            .Where(match => match.Success)
+            .Select(match => match.Groups["lang"].Value)
             .Distinct())
         {
             languages.Add(languageCode);
@@ -262,7 +262,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
 
     private static Match MatchTextResourceFileName(string fileName)
     {
-        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})");
+        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})$");
         return textResourceFilenameRegex.Match(fileName);
     }
 
