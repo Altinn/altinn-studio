@@ -57,7 +57,7 @@ export class ProcessEditorPage extends BasePage {
     const targetX = boundingBox.width / 2 + (extraDistanceX ?? 0);
     const targetY = boundingBox.y + boundingBox.height / 2 + (extraDistanceY ?? 0);
 
-    const title = `Create Altinn ${task} task`;
+    const title = `Create ${task} task`;
     await this.startDragElement(title);
     await this.stopDragElement(targetX, targetY);
   }

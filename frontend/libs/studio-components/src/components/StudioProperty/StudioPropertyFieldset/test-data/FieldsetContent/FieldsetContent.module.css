@@ -1,0 +1,6 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-property-fieldset-spacing);
+  margin: 0 var(--studio-property-fieldset-spacing) var(--studio-property-fieldset-spacing);
+}

@@ -1,0 +1,5 @@
+.container {
+  max-width: 700px;
+  margin: var(--ds-size-12) auto 0;
+  margin-top: 50px;
+}
