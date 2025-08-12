@@ -16,7 +16,6 @@ const doesToolbarItemMatchSearch = (
   const searchLower = search.toLowerCase();
   const allLabelWords = getAllLabelWords(toolbarItem, t);
   const searchWords = searchLower.split(/\s+/).filter((word) => word.length > 0);
-  if (searchWords.length === 0) return true;
   return searchWords.every((searchWord) =>
     allLabelWords.some((labelWord) => labelWord.includes(searchWord)),
   );
