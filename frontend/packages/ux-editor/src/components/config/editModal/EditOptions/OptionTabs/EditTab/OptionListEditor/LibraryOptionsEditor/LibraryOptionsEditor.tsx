@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components-legacy';
+import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 import type { CodeListEditorTexts } from '@studio/components-legacy';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
@@ -15,6 +15,7 @@ import { useHandleUpdateTextResource } from '../../hooks/useHandleUpdateTextReso
 import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import classes from './LibraryOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
+import { StudioAlert } from '@studio/components';
 
 export type LibraryOptionsEditorProps = {
   onDeleteButtonClick: () => void;
@@ -67,7 +68,7 @@ export function LibraryOptionsEditor({
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.options.modal_header_library_code_list')}
         footer={
-          <StudioAlert severity={'warning'} size='sm'>
+          <StudioAlert data-color={'warning'} data-size='sm'>
             {t('ux_editor.modal_properties_code_list_alert_title')}
           </StudioAlert>
         }

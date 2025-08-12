@@ -8,7 +8,6 @@ import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
 import {
-  StudioAlert,
   StudioButton,
   StudioCenter,
   StudioErrorMessage,
@@ -21,6 +20,7 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
+import { StudioAlert } from '@studio/components';
 
 export type PreviewProps = {
   collapsed: boolean;
@@ -141,7 +141,7 @@ const PreviewFrame = () => {
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
       {isSubform ? (
-        <StudioAlert className={classes.alert} severity='warning'>
+        <StudioAlert className={classes.alert} data-color={'warning'}>
           {t('ux_editor.preview.subform_unsupported_warning')}
         </StudioAlert>
       ) : (
