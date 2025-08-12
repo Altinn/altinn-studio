@@ -2,7 +2,7 @@ import React from 'react';
 import type { CodeListData } from '../CodeListPage';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import { Accordion } from '@digdir/designsystemet-react';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@studio/components-legacy';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
@@ -137,7 +137,7 @@ function CodeListAccordionContent({
 
 function InvalidCodeListAlert(): React.ReactElement {
   return (
-    <StudioAlert data-size='md' data-color='danger'>
+    <StudioAlert size='small' severity='danger'>
       <span>
         <Trans
           i18nKey='app_content_library.code_lists.format_error'
