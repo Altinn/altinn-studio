@@ -4,7 +4,7 @@ import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackage
 
 export type PolicyAccessPackageServicesProps = {
   services: AccessPackageResource[];
-  selectedLanguage?: string;
+  selectedLanguage: string;
 };
 export const PolicyAccessPackageServices = ({
   services,

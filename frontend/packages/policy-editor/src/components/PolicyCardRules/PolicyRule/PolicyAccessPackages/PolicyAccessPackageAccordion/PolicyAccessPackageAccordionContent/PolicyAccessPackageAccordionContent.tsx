@@ -101,7 +101,12 @@ export const PolicyAccessPackageAccordionContent = ({
       {isLoading && (
         <StudioSpinner aria-label={t('policy_editor.access_package_loading_services')} />
       )}
-      {hasServices && <PolicyAccessPackageServices services={filteredServices ?? []} />}
+      {hasServices && (
+        <PolicyAccessPackageServices
+          services={filteredServices ?? []}
+          selectedLanguage={selectedLanguage}
+        />
+      )}
       {serviceListIsEmpty && (
         <StudioParagraph data-size='xs'>
           {t('policy_editor.access_package_no_services', {
