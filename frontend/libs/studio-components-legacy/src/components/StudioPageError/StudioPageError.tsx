@@ -8,6 +8,9 @@ export type StudioPageErrorProps = {
   message?: string | React.ReactNode;
 };
 
+/**
+ * @deprecated Use `StudioPageError` from `@studio/components` instead.
+ */
 export const StudioPageError = ({ message, title }: StudioPageErrorProps) => {
   const isReactNode = React.isValidElement(message);
 
