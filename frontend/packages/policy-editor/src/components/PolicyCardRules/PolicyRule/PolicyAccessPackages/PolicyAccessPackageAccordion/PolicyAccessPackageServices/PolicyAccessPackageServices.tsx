@@ -36,9 +36,9 @@ export const PolicyAccessPackageServiceLogo = ({
   resource,
   language,
 }: PolicyAccessPackageServiceLogoProps): ReactElement => {
-  if (resource.logoUrl) {
+  if (resource.logoUrl && resource.hasCompetentAuthority) {
     const altText =
-      resource.hasCompetentAuthority?.name?.[language] ?? resource.hasCompetentAuthority?.orgcode;
+      resource.hasCompetentAuthority.name?.[language] ?? resource.hasCompetentAuthority.orgcode;
     return <img className={classes.logo} src={resource.logoUrl} alt={altText} title={altText} />;
   }
   return <div data-testid='no-service-logo' className={classes.emptyLogo} />;
