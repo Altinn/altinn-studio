@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
