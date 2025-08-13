@@ -50,6 +50,13 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     }
 
     /// <inheritdoc />
+    public async Task<bool> CodeListExists(string orgName, string codeListId)
+    {
+        List<string> codeListIds = await GetCodeListIds(orgName);
+        return codeListIds.Contains(codeListId);
+    }
+
+    /// <inheritdoc />
     public async Task<List<string>> GetTextIds(string orgName)
     {
         HashSet<string> textIds = [];
