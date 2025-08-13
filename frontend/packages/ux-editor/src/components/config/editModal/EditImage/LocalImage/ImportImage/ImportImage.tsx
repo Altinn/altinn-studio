@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import classes from './ImportImage.module.css';
 import { AddImageFromLibraryModal } from './AddImageFromLibrary/AddImageFromLibraryModal';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
 
   return (
     <div className={classes.importImage}>
-      <StudioButton size='small' onClick={openLibraryDialog}>
+      <StudioButton onClick={openLibraryDialog}>
         {t('ux_editor.properties_panel.images.choose_from_library')}
       </StudioButton>
       <AddImageFromLibraryModal onAddImageReference={onImageChange} ref={libraryDialogRef} />
