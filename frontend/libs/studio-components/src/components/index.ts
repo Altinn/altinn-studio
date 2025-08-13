@@ -34,6 +34,7 @@ export * from './StudioLinkButton';
 export * from './StudioNotFoundPage';
 export * from './StudioParagraph';
 export * from './StudioPopover';
+export * from './StudioProperty';
 export * from './StudioRadio';
 export * from './StudioRadioGroup';
 export * from './StudioRedirectBox';
