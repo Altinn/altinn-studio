@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="0" spesifikasjonsnummer="9812" blankettnummer="AFP-01" tittel="Arbeidsgiverskjema AFP" gruppeid="8818">
-  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid="8819">
-    <Arbeidsforhold-grp-8856 gruppeid="8856">
-      <AnsattSammenhengendeAnsattAnsettelse-datadef-33267 orid="33267">Sophie Salt</AnsattSammenhengendeAnsattAnsettelse-datadef-33267>
-    </Arbeidsforhold-grp-8856>
-  </OpplysningerOmArbeidstakeren-grp-8819>
-</Skjema>

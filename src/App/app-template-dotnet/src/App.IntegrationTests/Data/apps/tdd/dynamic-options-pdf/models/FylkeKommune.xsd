@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:element name="Melding" />
-</xsd:schema>

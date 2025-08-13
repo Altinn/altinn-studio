@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "App.IntegrationTestsRef": {
-      "commandName": "Project",
-      "nativeDebugging": false
-    }
-  }
-}
