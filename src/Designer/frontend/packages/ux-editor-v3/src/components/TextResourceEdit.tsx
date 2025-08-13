@@ -12,7 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks/useAppContext';
-import { StudioButton, StudioTextarea } from '@studio/components-legacy';
+import { StudioTextarea } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();

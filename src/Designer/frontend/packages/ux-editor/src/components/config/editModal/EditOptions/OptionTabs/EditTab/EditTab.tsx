@@ -1,10 +1,6 @@
 import React, { useRef } from 'react';
-import {
-  StudioAlert,
-  StudioButton,
-  StudioErrorMessage,
-  StudioSpinner,
-} from '@studio/components-legacy';
+import { StudioAlert, StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';

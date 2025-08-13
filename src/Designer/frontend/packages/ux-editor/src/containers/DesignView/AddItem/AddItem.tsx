@@ -1,5 +1,5 @@
 import React, { type ReactElement, useState } from 'react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';

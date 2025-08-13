@@ -6,8 +6,8 @@ import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton, StudioTextfield } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty, StudioButton } from '@studio/components';
+import { StudioTextfield } from '@studio/components-legacy';
 
 export const MapComponent = ({
   component,
