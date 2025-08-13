@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './LandingPagePanel.module.css';
-import { StudioButton, StudioHeading } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioHeading } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +25,7 @@ export function LandingPagePanel({ openCreateNew, canUseUploadXSDFeature }: Land
             uploaderButtonVariant='primary'
           />
         )}
-        <StudioButton color='second' onClick={openCreateNew}>
+        <StudioButton variant='primary' onClick={openCreateNew}>
           {t('app_data_modelling.landing_dialog_create')}
         </StudioButton>
       </div>
