@@ -1,18 +1,13 @@
 import React, { type ReactElement } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import {
-  StudioAlert,
-  StudioLabelAsParagraph,
-  StudioLink,
-  StudioList,
-} from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioLink, StudioList } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {
   const { t } = useTranslation();
   return (
-    <StudioAlert severity='warning' size='sm'>
+    <StudioAlert data-color='warning' data-size='sm'>
       <StudioLabelAsParagraph size='md' spacing>
         {t('policy_editor.access_package_warning_header')}
       </StudioLabelAsParagraph>
