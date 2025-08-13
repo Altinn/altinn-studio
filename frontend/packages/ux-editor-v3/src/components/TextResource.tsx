@@ -20,7 +20,8 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioButton, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export interface TextResourceProps {
   description?: string;

@@ -4,9 +4,11 @@
   height: 80px;
   padding: 2px;
   overflow: wrap;
+  text-align: center;
 }
 
 .componentButtonInline {
+  text-align: center;
   height: 60px;
   width: 120px;
   margin: 4px;

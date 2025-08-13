@@ -1,7 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components-legacy';
-import { StudioHelpText } from '@studio/components';
+import { StudioButton, StudioHelpText } from '@studio/components';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
 import type { IInternalLayout } from '../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
@@ -27,7 +26,7 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
       </div>
       <div className={classes.title}>
         <StudioButton
-          color='danger'
+          data-color='danger'
           icon={<TrashIcon />}
           onClick={handleDelete}
           title={t('general.delete')}

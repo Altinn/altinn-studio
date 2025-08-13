@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components-legacy';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import classes from './DesignViewNavigation.module.css';
 import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
@@ -10,7 +11,6 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks';
 import { usePagesQuery } from '../../hooks/queries/usePagesQuery';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { StudioSpinner } from '@studio/components';
 
 export const DesignViewNavigation = () => {
   const { t } = useTranslation();

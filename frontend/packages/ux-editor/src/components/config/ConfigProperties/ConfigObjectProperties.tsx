@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useComponentPropertyLabel, useText } from '../../../hooks';
-import { StudioButton, StudioCard } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioCard } from '@studio/components-legacy';
+import { StudioButton, StudioProperty } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { FormComponentConfig } from '../FormComponentConfig';
@@ -50,6 +50,7 @@ export const ConfigObjectProperties = ({
                     {componentPropertyLabel(propertyKey)}
                   </StudioCard.Header>
                   <StudioButton
+                    data-size='small' // can be removed once parent component hierarchy is also from @studio/components
                     icon={<XMarkIcon />}
                     onClick={() => toggleObjectCard(propertyKey)}
                     title={t('general.close')}
