@@ -1,3 +1,8 @@
+export type InstancesResponse = {
+  instances: SimpleInstance[];
+  continuationToken?: string;
+};
+
 export type SimpleInstance = {
   id: string;
   org: string;

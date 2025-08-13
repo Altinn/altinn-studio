@@ -1,11 +1,13 @@
-import { StudioSpinner, StudioTable } from '@studio/components';
+import { StudioButton, StudioSpinner, StudioTable } from '@studio/components';
+import classes from './InstancesTable.module.css';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioSearch } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from 'admin/hooks/queries/useAppInstancesQuery';
-import type { SimpleInstance } from 'admin/types/SimpleInstance';
+import type { SimpleInstance } from 'admin/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/utils/formatDateAndTime';
+import { useMutation } from '@tanstack/react-query';
 
 type InstancesTableProps = {
   org: string;
@@ -14,7 +16,7 @@ type InstancesTableProps = {
 };
 
 export const InstancesTable = ({ org, env, app }: InstancesTableProps) => {
-  const { data, status } = useAppInstancesQuery(org, env, app);
+  const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(org, env, app);
   const { t } = useTranslation();
 
   switch (status) {
@@ -23,17 +25,32 @@ export const InstancesTable = ({ org, env, app }: InstancesTableProps) => {
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <InstancesTableWithData instances={data} />;
+      return (
+        <InstancesTableWithData
+          instances={data}
+          hasMoreResults={hasNextPage}
+          fetchMoreResults={fetchNextPage}
+        />
+      );
   }
 };
 
 type InstancesTableWithDataProps = {
   instances: SimpleInstance[];
+  hasMoreResults: boolean;
+  fetchMoreResults: () => Promise<unknown>;
 };
 
-const InstancesTableWithData = ({ instances }: InstancesTableWithDataProps) => {
+const InstancesTableWithData = ({
+  instances,
+  hasMoreResults,
+  fetchMoreResults,
+}: InstancesTableWithDataProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const { isPending: isFetchingMoreResults, mutate: doFetchMoreResults } = useMutation({
+    mutationFn: fetchMoreResults,
+  });
 
   const instancesFiltered = instances.filter(
     (instance) => !search || instance.id.toLowerCase().includes(search.toLowerCase()),
@@ -68,6 +85,18 @@ const InstancesTableWithData = ({ instances }: InstancesTableWithDataProps) => {
             </StudioTable.Row>
           ))}
         </StudioTable.Body>
+        {hasMoreResults && (
+          <StudioTable.Foot>
+            <StudioTable.Row>
+              <StudioTable.Cell className={classes.footerCell} colSpan={4}>
+                <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
+                  {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
+                  {t('Last inn 10 flere rader')}
+                </StudioButton>
+              </StudioTable.Cell>
+            </StudioTable.Row>
+          </StudioTable.Foot>
+        )}
       </StudioTable>
     </>
   );

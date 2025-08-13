@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.WebUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
@@ -15,10 +16,7 @@ class TestStorageService : IStorageService
     private readonly ICdnConfigService _cdnConfigService;
     private readonly TestToolsTokenGeneratorService _tokenGeneratorService;
 
-    // TODO: We don't have good pagination support in Storage yet,
-    // and some apps have so many instances that it is impractical to fetch them all,
-    // this is a completely arbitrary limit to the number of pages to fetch before stopping.
-    private const int MAX_INSTANCE_FETCH = 20;
+    private const int SIZE = 10;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestStorageService"/> class.
@@ -38,10 +36,11 @@ class TestStorageService : IStorageService
     }
 
     /// <inheritdoc />
-    public async Task<List<SimpleInstance>> GetInstances(
+    public async Task<InstancesResponse> GetInstances(
         string org,
         string env,
         string app,
+        string? continuationToken,
         CancellationToken ct
     )
     {
@@ -53,9 +52,20 @@ class TestStorageService : IStorageService
         var platformBaseUrl = await platformBaseUrlTask;
         var token = await tokenTask;
 
+        var instancesUri = QueryHelpers.AddQueryString(
+            $"{platformBaseUrl}/storage/api/v1/instances",
+            new Dictionary<string, string?>
+            {
+                ["org"] = org,
+                ["appId"] = $"{org}/{app}",
+                ["mainVersionInclude"] = "3",
+                ["continuationToken"] = continuationToken,
+                ["size"] = $"{SIZE}",
+            });
+
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"{platformBaseUrl}/storage/api/v1/instances?org={org}&appId={org}/{app}&mainVersionInclude=3"
+            instancesUri
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.SendAsync(request);
@@ -69,38 +79,29 @@ class TestStorageService : IStorageService
             throw new JsonException("Could not deserialize Instance query response");
         }
 
-        var instances = new List<SimpleInstance>();
-        instances.AddRange(
-            queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
-        );
+        var instances = queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)).ToList();
+        var nextContinuationToken = ParseContinuationToken(queryResponse.Next);
 
-        int numFetch = 1;
-        while (!string.IsNullOrEmpty(queryResponse.Next) && numFetch < MAX_INSTANCE_FETCH)
+        return new InstancesResponse()
         {
-            ct.ThrowIfCancellationRequested();
+            Instances = instances,
+            ContinuationToken = nextContinuationToken,
+        };
+    }
 
-            request = new HttpRequestMessage(HttpMethod.Get, queryResponse.Next);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            response = await _httpClient.SendAsync(request);
+    private string? ParseContinuationToken(string? nextUrl)
+    {
+        if (string.IsNullOrWhiteSpace(nextUrl))
+            return null;
 
-            response.EnsureSuccessStatusCode();
-            responseString = await response.Content.ReadAsStringAsync();
-            queryResponse =
-                JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString)
-                ?? throw new JsonException("Could not deserialize Instance query response");
+        if (!Uri.TryCreate(nextUrl, UriKind.Absolute, out var uri))
+            return null;
 
-            if (queryResponse == null)
-            {
-                throw new Exception("Unexpected response from storage");
-            }
+        var queryParams = QueryHelpers.ParseQuery(uri.Query);
 
-            instances.AddRange(
-                queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
-            );
-            numFetch++;
-        }
-
-        return instances;
+        return queryParams.TryGetValue("continuationToken", out var value)
+            ? value.ToString()
+            : null;
     }
 
     /// <inheritdoc />

@@ -23,12 +23,13 @@ public class InstancesController : ControllerBase
         string org,
         string env,
         string app,
+        [FromQuery] string? continuationToken,
         CancellationToken ct
     )
     {
         try
         {
-            return Ok(await _storageService.GetInstances(org, env, app, ct));
+            return Ok(await _storageService.GetInstances(org, env, app, continuationToken, ct));
         }
         catch (HttpRequestException ex)
         {
