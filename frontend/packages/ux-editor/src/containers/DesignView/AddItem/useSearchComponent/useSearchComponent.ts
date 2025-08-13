@@ -5,7 +5,7 @@ import type { IToolbarElement } from '../../../../types/global';
 const getAllLabelWords = (toolbarItem: IToolbarElement, t: (key: string) => string): string[] => {
   const translatedLabel = t('ux_editor.component_title.' + toolbarItem.type).toLowerCase();
   const englishLabel = toolbarItem.label.toLowerCase();
-  return [...translatedLabel.split(/\s+/), ...englishLabel.split(/\s+/)];
+  return [translatedLabel, englishLabel];
 };
 
 const doesToolbarItemMatchSearch = (
@@ -13,12 +13,7 @@ const doesToolbarItemMatchSearch = (
   search: string,
   t: (key: string) => string,
 ): boolean => {
-  const searchLower = search.toLowerCase();
-  const allLabelWords = getAllLabelWords(toolbarItem, t);
-  const searchWords = searchLower.split(/\s+/).filter((word) => word.length > 0);
-  return searchWords.every((searchWord) =>
-    allLabelWords.some((labelWord) => labelWord.includes(searchWord)),
-  );
+  return getAllLabelWords(toolbarItem, t).some((word) => word.includes(search));
 };
 
 const filterToolbarItems = (

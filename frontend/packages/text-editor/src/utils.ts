@@ -45,17 +45,19 @@ export const langOptions: Option[] = ISO6391.getAllCodes()
   }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-export const filterFunction = (
-  id: string | undefined,
-  textTableRowEntries: TextTableRowEntry[] | undefined,
-  searchQuery: string | undefined,
-) =>
-  !searchQuery ||
-  searchQuery.length < 1 ||
-  id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  textTableRowEntries.filter((entry) =>
-    entry.translation.toLowerCase().includes(searchQuery.toLowerCase()),
-  ).length > 0;
+export const filterFunction = ({
+  entry,
+  searchString,
+}: {
+  entry: { id: string | undefined; translations: TextTableRowEntry[] | undefined };
+  searchString: string | undefined;
+}) =>
+  !searchString ||
+  searchString.length < 1 ||
+  entry.id?.toLowerCase().includes(searchString.toLowerCase()) ||
+  entry.translations.some((translation) =>
+    translation.translation.toLowerCase().includes(searchString.toLowerCase()),
+  );
 
 export const mapResourceFilesToTableRows = (
   files: ITextResources,

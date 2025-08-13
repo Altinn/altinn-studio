@@ -79,16 +79,14 @@ describe('useSearchComponent', () => {
     });
   });
 
-  describe('Search filtering', () => {
-    testCases.forEach(({ description, searchText, expected }) => {
-      it(description, async () => {
-        const { result } = renderUseSearchComponent();
-        await waitFor(() => {
-          result.current.handleSearchChange({ target: { value: searchText } });
-        });
-        await waitFor(() => {
-          expect(result.current.filteredComponents).toEqual(expected);
-        });
+  describe.each(testCases)('$description', ({ searchText, expected }) => {
+    it('should filter correctly', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: searchText } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(expected);
       });
     });
   });
