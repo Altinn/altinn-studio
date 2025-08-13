@@ -33,7 +33,6 @@
   align-items: flex-end;
   gap: var(--fds-spacing-4);
   justify-content: flex-end;
-  /*width: 100%;*/
 }
 
 .sortAlphabetically {
