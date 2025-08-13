@@ -1,0 +1,40 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph';
+import { StudioTable } from '../StudioTable';
+import * as StudioPageErrorStories from './StudioPageError.stories';
+
+<Meta of={StudioPageErrorStories} />
+
+<StudioHeading level={1} data-size='sm'>
+  StudioPageError
+</StudioHeading>
+<StudioParagraph>
+  The `StudioPageError` component is used to display error messages on a page. It includes an alert
+  box with a title and a message.
+</StudioParagraph>
+
+<StudioHeading level={2} data-size='sm'>
+  Props
+</StudioHeading>
+<StudioParagraph>`StudioPageError` component has two props:</StudioParagraph>
+<StudioTable size='sm'>
+  <StudioTable.Head>
+    <StudioTable.Row>
+      <StudioTable.HeaderCell>Name</StudioTable.HeaderCell>
+      <StudioTable.HeaderCell>Description</StudioTable.HeaderCell>
+    </StudioTable.Row>
+  </StudioTable.Head>
+  <StudioTable.Body>
+    <StudioTable.Row>
+      <StudioTable.Cell>`title`</StudioTable.Cell>
+      <StudioTable.Cell>A string representing the title of the error message.</StudioTable.Cell>
+    </StudioTable.Row>
+    <StudioTable.Row>
+      <StudioTable.Cell>`message`</StudioTable.Cell>
+      <StudioTable.Cell>A string representing the error message content.</StudioTable.Cell>
+    </StudioTable.Row>
+  </StudioTable.Body>
+</StudioTable>
+
+<Canvas of={StudioPageErrorStories.Preview} />
