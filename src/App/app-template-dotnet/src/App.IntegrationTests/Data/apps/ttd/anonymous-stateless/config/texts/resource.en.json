@@ -1,0 +1,17 @@
+﻿{
+  "language": "en",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "Oppstart av bedrift"
+    },
+    {
+      "id": "commune",
+      "value": "Commune"
+    },
+    {
+      "id": "industry",
+      "value": "Industry"
+    }
+  ]
+}

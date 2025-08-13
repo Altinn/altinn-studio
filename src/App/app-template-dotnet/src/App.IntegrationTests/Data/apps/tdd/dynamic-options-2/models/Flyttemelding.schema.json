@@ -1,0 +1,1 @@
+{"definitions":{"FylkeKommune":{"properties":{"Fylke":{"type":"string"},"Kommune":{"type":"string"}},"type":"object"}},"properties":{"Flyttemelding":{"type":"object","properties":{"FlytterFra":{"$ref":"#/definitions/FylkeKommune"},"FlytterTil":{"$ref":"#/definitions/FylkeKommune"}}}},"$schema":"https://json-schema.org/draft/2020-12/schema"}

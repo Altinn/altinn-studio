@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="1243" spesifikasjonsnummer="10702" blankettnummer="RF-1117" tittel="Klage på likningen" gruppeid="5800">
+  <Skattyterinfor-grp-5801 gruppeid="5801">
+    <Kontakt-grp-5803 gruppeid="5803">
+      <KontaktpersonNavn-datadef-2 orid="2">Ærlige Øksne Åsheim</KontaktpersonNavn-datadef-2>
+    </Kontakt-grp-5803>
+  </Skattyterinfor-grp-5801>
+</Skjema>

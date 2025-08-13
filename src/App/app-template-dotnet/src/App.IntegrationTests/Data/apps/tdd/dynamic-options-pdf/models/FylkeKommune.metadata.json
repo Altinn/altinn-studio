@@ -1,0 +1,112 @@
+{
+  "Org": "yabbin",
+  "ServiceName": "dynamic-options-1",
+  "RepositoryName": null,
+  "ServiceId": null,
+  "elements": {
+    "Melding.Fylke": {
+      "id": "Melding.Fylke",
+      "parentElement": "Melding",
+      "typeName": "String",
+      "name": "Fylke",
+      "dataBindingName": "Fylke",
+      "xPath": "/Melding/Fylke",
+      "restrictions": {
+      },
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "String",
+      "texts": {
+      },
+      "customProperties": {
+      },
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "Fylke",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/Melding/properties/Fylke",
+      "displayString": "Melding.Fylke : [0..1] String"
+    },
+    "Melding.Kommune": {
+      "id": "Melding.Kommune",
+      "parentElement": "Melding",
+      "typeName": "String",
+      "name": "Kommune",
+      "dataBindingName": "Kommune",
+      "xPath": "/Melding/Kommune",
+      "restrictions": {
+      },
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "String",
+      "texts": {
+      },
+      "customProperties": {
+      },
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "Kommune",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/Melding/properties/Kommune",
+      "displayString": "Melding.Kommune : [0..1] String"
+    },
+    "Melding.Land": {
+      "id": "Melding.Land",
+      "parentElement": "Melding",
+      "typeName": "String",
+      "name": "Land",
+      "dataBindingName": "Land",
+      "xPath": "/Melding/Land",
+      "restrictions": {
+      },
+      "choices": null,
+      "type": "Field",
+      "xsdValueType": "String",
+      "texts": {
+      },
+      "customProperties": {
+      },
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "Land",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/definitions/Melding/properties/Land",
+      "displayString": "Melding.Land : [0..1] String"
+    },
+    "Melding": {
+      "id": "Melding",
+      "parentElement": null,
+      "typeName": "Melding",
+      "name": "Melding",
+      "dataBindingName": null,
+      "xPath": "/Melding",
+      "restrictions": {
+      },
+      "choices": null,
+      "type": "Group",
+      "xsdValueType": null,
+      "texts": {
+      },
+      "customProperties": {
+      },
+      "maxOccurs": 1,
+      "minOccurs": 0,
+      "xName": "Melding",
+      "isTagContent": false,
+      "fixedValue": null,
+      "isReadOnly": false,
+      "xmlSchemaXPath": null,
+      "jsonSchemaPointer": "#/properties/Melding",
+      "displayString": "Melding : [0..1] "
+    }
+  }
+}

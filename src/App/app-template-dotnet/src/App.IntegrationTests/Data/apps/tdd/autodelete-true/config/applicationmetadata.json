@@ -1,0 +1,25 @@
+{
+  "id": "tdd/autodelete-true",
+  "org": "tdd",
+  "created": "2019-09-24T10:02:41.0839253Z",
+  "createdBy": "Kritsi",
+  "lastChanged": "2019-09-24T10:02:41.0839254Z",
+  "lastChangedBy": "Kritsi",
+  "title": {
+    "nb": "AutoDeleteOnProcessEnd true",
+    "nb-NO": "AutoDeleteOnProcessEnd true"
+  },
+  "dataTypes": [
+    {
+      "id": "default",
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate": true,
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.autodelete_true.Skjema"
+      },
+      "taskId":  "Task_1"
+    }
+  ],
+  "autoDeleteOnProcessEnd": true
+}

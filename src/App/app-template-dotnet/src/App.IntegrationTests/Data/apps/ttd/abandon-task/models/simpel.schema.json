@@ -1,0 +1,26 @@
+﻿{
+	"$schema" : "http://json-schema.org/schema#",
+	"$id" : "schema.json",
+	"type" : "object",
+	"properties" : {
+			"Simpel" : {
+					"$ref" : "#/definitions/Skjema"
+				}
+		},
+	"definitions" : {
+			"Skjema" : {
+					"properties" : {
+							"Felt1" : {
+									"type" : "string"
+								},
+							"Felt2" : {
+									"type" : "string"
+								}
+						},
+					"required" : [
+							"Felt1",
+							"Felt2"
+						]
+				}
+		}
+}

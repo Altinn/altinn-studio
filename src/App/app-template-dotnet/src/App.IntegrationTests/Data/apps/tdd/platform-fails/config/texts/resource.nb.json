@@ -1,0 +1,193 @@
+{
+  "language": "nb-NO",
+  "resources": [
+    {
+      "id": "Radioknapp.Label",
+      "value": "Radioknapp komponent for automatisert testing"
+    },
+    {
+      "id": "34882.MelderMalformdatadef34882.Label",
+      "value": "Målform"
+    },
+    {
+      "id": "34883.SignererTredjeMalformdatadef34883.Label",
+      "value": "Målform"
+    },
+    {
+      "id": "34884.SignererTredjeFodselsnummerdatadef34884.Label",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "34885.SignererTredjeEtternavndatadef34885.Label",
+      "value": "Etternavn"
+    },
+    {
+      "id": "34886.SignererTredjeFornavndatadef34886.Label",
+      "value": "Fornavn"
+    },
+    {
+      "id": "34887.SignererTredjeMellomnavndatadef34887.Label",
+      "value": "Mellomnavn"
+    },
+    {
+      "id": "34889.SignererTredjeEpostdatadef34889.Label",
+      "value": "epost"
+    },
+    {
+      "id": "34890.SignererTredjeMobiltelefonnummerdatadef34890.Label",
+      "value": "Mobiltelefonnummer"
+    },
+    {
+      "id": "34891.SignererTredjeReferanseAltinndatadef34891.Label",
+      "value": "Referansenummer Altinn"
+    },
+    {
+      "id": "AppTittel",
+      "value": "Endring av navn"
+    },
+    {
+      "id": "AutomatedTest_Radioknapp.Label",
+      "value": "Radioknapp komponent for automatisert testing"
+    },
+    {
+      "id": "BegrunnelseAnnet",
+      "value": "Forklar hvorfor du ønsker å ta navnet, og eventuelt hvilken tilknytning du har til navnet:"
+    },
+    {
+      "id": "BegrunnelseGard1",
+      "value": "Gårdsbruk du vil ta navnet fra"
+    },
+    {
+      "id": "BegrunnelseGard2",
+      "value": "Kommune gårdsbruket ligger i"
+    },
+    {
+      "id": "BegrunnelseGard3",
+      "value": "Gårdsnummer"
+    },
+    {
+      "id": "BegrunnelseGard4",
+      "value": "Bruksnummer"
+    },
+    {
+      "id": "BegrunnelseGard5",
+      "value": "Forklar din tilknytning til gårdsbruket"
+    },
+    {
+      "id": "BegrunnelseNyttNavn",
+      "value": "Du ønsker å ta et navn som du tror er nytt i Norge. Forklar hvorfor du ønsker dette navnet:"
+    },
+    {
+      "id": "BegrunnelseSamboer1",
+      "value": "Etternavn på samboer"
+    },
+    {
+      "id": "BegrunnelseSamboer2",
+      "value": "Fødselsnummer på samboer"
+    },
+    {
+      "id": "BegrunnelseSlektskap",
+      "value": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger"
+    },
+    {
+      "id": "BegrunnelseSteforeldre",
+      "value": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til"
+    },
+    {
+      "id": "BegrunnelseValgNavn",
+      "value": "Vennligst oppgi begrunnelse for endring av navn"
+    },
+    {
+      "id": "BekreftNavnTittel",
+      "value": "Bekreftelse av navn"
+    },
+    {
+      "id": "DineEndringer",
+      "value": "Dine endringer"
+    },
+    {
+      "id": "EndreNavnFra",
+      "value": "Du har valgt å endre:"
+    },
+    {
+      "id": "EndreNavnTil",
+      "value": "Til:"
+    },
+    {
+      "id": "Epost",
+      "value": "E-post"
+    },
+    {
+      "id": "Fodselsnummer",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "HintEtternavn",
+      "value": "Bindestrek må benyttes dersom du ønsker to etternavn."
+    },
+    {
+      "id": "HintMellomnavn",
+      "value": "Mellomnavn må være et navn som kan benyttes som etternavn. "
+    },
+    {
+      "id": "Kontaktinformasjon",
+      "value": "Kontaktinformasjon"
+    },
+    {
+      "id": "NavarendeNavn",
+      "value": "Nåværende navn"
+    },
+    {
+      "id": "PersonNyttEtternavn",
+      "value": "Nytt etternavn"
+    },
+    {
+      "id": "PersonNyttFornavn",
+      "value": "Nytt fornavn"
+    },
+    {
+      "id": "PersonNyttMellomnavn",
+      "value": "Nytt mellomnavn"
+    },
+    {
+      "id": "ServiceName",
+      "value": "Endring av navn (RF-1453)"
+    },
+    {
+      "id": "Skjema.Label",
+      "value": "Radioknapp komponent for automatisert testing"
+    },
+    {
+      "id": "Telefonnummer",
+      "value": "Telefonnummer"
+    },
+    {
+      "id": "kontaktinfoBeskrivelse",
+      "value": "Kontaktinformasjon dersom saksbehandler ønsker å ta kontakt vedrørende denne saken"
+    },
+    {
+      "id": "subscription_hook_error_content",
+      "value": "a"
+    },
+    {
+      "id": "subscription_hook_error_statusCode",
+      "value": "a"
+    },
+    {
+      "id": "subscription_hook_error_title",
+      "value": "a"
+    },
+    {
+      "id": "subscription_hook_error_url",
+      "value": "a"
+    },
+    {
+      "id": "subscription_hook_error_urlText",
+      "value": "a"
+    },
+    {
+      "id": "subscription_hook_error_urlTextSuffix",
+      "value": "a"
+    }
+  ]
+}

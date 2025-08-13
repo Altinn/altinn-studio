@@ -1,0 +1,53 @@
+{
+  "id": "ttd/dayplanner",
+  "org": "ttd",
+  "title": {
+    "nb": "dayplanner"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "default",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.MyDay"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "presentationFields": [
+    {
+      "id": "Title",
+      "path": "OpplysningerOmArbeidstakerengrp8819.Arbeidsforholdgrp8856.AnsattSammenhengendeAnsattAnsettelsedatadef33267.value",
+      "dataTypeId": "default"
+    },
+    {
+      "id": "AnotherField",
+      "path": "OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value",
+      "dataTypeId": "default"
+    }
+  ],
+  "autoDeleteOnProcessEnd": false,
+  "created": "2021-04-13T13:03:17.3718121Z",
+  "createdBy": "steph",
+  "lastChanged": "2021-04-13T13:03:17.3719336Z",
+  "lastChangedBy": "steph"
+}

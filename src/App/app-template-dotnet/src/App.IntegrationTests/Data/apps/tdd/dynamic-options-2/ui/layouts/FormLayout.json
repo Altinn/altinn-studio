@@ -1,0 +1,94 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "FlytterFra",
+        "type": "Group",
+        "children": [
+          "004214e8-3ba9-460d-b2f6-7f75a9a51a38",
+          "95a74313-f531-40be-b1b0-1ba6b37a99c8"
+        ],
+        "maxCount": 0,
+        "dataModelBindings": {}
+      },
+      {
+        "id": "004214e8-3ba9-460d-b2f6-7f75a9a51a38",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "county"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FlytterFra.Fylke"
+        },
+        "required": true,
+        "optionsId": "fylker"
+      },
+      {
+        "id": "95a74313-f531-40be-b1b0-1ba6b37a99c8",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "commune"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FlytterFra.Kommune"
+        },
+        "required": true,
+        "optionsId": "kommuner",
+        "mapping": {
+          "FlytterFra.Fylke": "fnr"
+        }
+      },
+      {
+        "id": "FlytterTil",
+        "type": "Group",
+        "children": [
+          "d32dd99f-802d-434a-8cad-cf934861444f",
+          "b34c3faf-e472-439a-b88d-c0de086eff92"
+        ],
+        "maxCount": 0,
+        "dataModelBindings": {}
+      },
+      {
+        "id": "d32dd99f-802d-434a-8cad-cf934861444f",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "county"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FlytterTil.Fylke"
+        },
+        "required": true,
+        "optionsId": "fylker"
+      },
+      {
+        "id": "b34c3faf-e472-439a-b88d-c0de086eff92",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "commune"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FlytterTil.Kommune"
+        },
+        "required": true,
+        "optionsId": "kommuner",
+        "mapping": {
+          "FlytterTil.Fylke": "fnr"
+        }
+      },
+      {
+        "id": "6e008b15-066f-4d63-9994-b7653cb0f926",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "child"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Barn"
+        },
+        "required": true,
+        "secure":  true,
+        "optionsId": "children"
+      }
+    ]
+  }
+}
