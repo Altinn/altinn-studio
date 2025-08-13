@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -57,14 +58,16 @@ public class DataClientMock : IDataClient
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        bool delay
+        bool delay,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
         if (delay)
         {
-            string fileContent = await File.ReadAllTextAsync(dataElementPath);
+            string fileContent = await File.ReadAllTextAsync(dataElementPath, cancellationToken);
 
             if (fileContent == null)
             {
@@ -110,10 +113,22 @@ public class DataClientMock : IDataClient
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
-        Guid dataId
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
-        return new MemoryStream(await GetDataBytes(org, app, instanceOwnerPartyId, instanceGuid, dataId));
+        return new MemoryStream(
+            await GetDataBytes(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataId,
+                authenticationMethod,
+                cancellationToken
+            )
+        );
     }
 
     public async Task<byte[]> GetDataBytes(
@@ -121,22 +136,26 @@ public class DataClientMock : IDataClient
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
-        Guid dataId
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
-        return await File.ReadAllBytesAsync(dataPath);
+        return await File.ReadAllBytesAsync(dataPath, cancellationToken);
     }
 
     public async Task<List<AttachmentList>> GetBinaryDataList(
         string org,
         string app,
         int instanceOwnerPartyId,
-        Guid instanceGuid
+        Guid instanceGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
-        var dataElements = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
+        var dataElements = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid, cancellationToken);
         List<AttachmentList> list = new();
         foreach (DataElement dataElement in dataElements)
         {
@@ -165,12 +184,14 @@ public class DataClientMock : IDataClient
         string org,
         string app,
         int instanceOwnerPartyId,
-        Guid dataId
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         var dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
         var dataElement = JsonSerializer.Deserialize<DataElement>(
-            await File.ReadAllBytesAsync(dataElementPath),
+            await File.ReadAllBytesAsync(dataElementPath, cancellationToken),
             _jsonSerializerOptions
         );
         var application = await _appMetadata.GetApplicationMetadata();
@@ -181,7 +202,7 @@ public class DataClientMock : IDataClient
             );
 
         string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
-        var dataBytes = await File.ReadAllBytesAsync(dataPath);
+        var dataBytes = await File.ReadAllBytesAsync(dataPath, cancellationToken);
 
         var formData = _modelSerialization.DeserializeFromStorage(dataBytes, dataType);
 
@@ -192,7 +213,9 @@ public class DataClientMock : IDataClient
         Instance instance,
         string dataTypeString,
         T dataToSerialize,
-        Type type
+        Type type,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
         where T : notnull
     {
@@ -201,7 +224,17 @@ public class DataClientMock : IDataClient
         string org = instance.Org;
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
-        return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataTypeString);
+        return await InsertFormData(
+            dataToSerialize,
+            instanceGuid,
+            type,
+            org,
+            app,
+            instanceOwnerId,
+            dataTypeString,
+            authenticationMethod,
+            cancellationToken
+        );
     }
 
     public async Task<DataElement> InsertFormData<T>(
@@ -211,7 +244,9 @@ public class DataClientMock : IDataClient
         string org,
         string app,
         int instanceOwnerPartyId,
-        string dataTypeString
+        string dataTypeString,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
         where T : notnull
     {
@@ -233,9 +268,9 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, serializedBytes.ToArray());
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, serializedBytes.ToArray(), cancellationToken);
 
-        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
 
         return dataElement;
     }
@@ -247,7 +282,9 @@ public class DataClientMock : IDataClient
         string org,
         string app,
         int instanceOwnerPartyId,
-        Guid dataGuid
+        Guid dataGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
         where T : notnull
     {
@@ -272,11 +309,15 @@ public class DataClientMock : IDataClient
         var (serializedBytes, contentType) = _modelSerialization.SerializeToStorage(dataToSerialize, dataType);
 
         Debug.Assert(contentType == dataElement.ContentType, "Content type should not change when updating data");
-        await File.WriteAllBytesAsync(Path.Join(dataPath, "blob", dataGuid.ToString()), serializedBytes.ToArray());
+        await File.WriteAllBytesAsync(
+            Path.Join(dataPath, "blob", dataGuid.ToString()),
+            serializedBytes.ToArray(),
+            cancellationToken
+        );
 
         dataElement.LastChanged = DateTime.UtcNow;
         dataElement.Size = serializedBytes.Length;
-        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
 
         return dataElement;
     }
@@ -287,7 +328,9 @@ public class DataClientMock : IDataClient
         int instanceOwnerPartyId,
         Guid instanceGuid,
         string dataType,
-        HttpRequest request
+        HttpRequest request,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         Guid dataGuid = Guid.NewGuid();
@@ -312,14 +355,14 @@ public class DataClientMock : IDataClient
         Directory.CreateDirectory(dataPath + @"blob");
 
         using var stream = new MemoryStream();
-        await request.Body.CopyToAsync(stream);
+        await request.Body.CopyToAsync(stream, cancellationToken);
 
         var fileData = stream.ToArray();
-        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData, cancellationToken);
 
         dataElement.Size = fileData.Length;
 
-        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId, cancellationToken);
 
         return dataElement;
     }
@@ -329,7 +372,9 @@ public class DataClientMock : IDataClient
         string? contentType,
         string? filename,
         Guid dataGuid,
-        Stream stream
+        Stream stream,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         Application application = await _appMetadata.GetApplicationMetadata();
@@ -355,21 +400,22 @@ public class DataClientMock : IDataClient
 
         using var memoryStream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
-        await stream.CopyToAsync(memoryStream);
+        await stream.CopyToAsync(memoryStream, cancellationToken);
 
         var fileData = memoryStream.ToArray();
-        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData, cancellationToken);
 
         var dataElement = await GetDataElement(
             org,
             app,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            dataGuid.ToString()
+            dataGuid.ToString(),
+            cancellationToken
         );
 
         dataElement.Size = fileData.Length;
-        await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId);
+        await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
 
         return dataElement;
     }
@@ -380,7 +426,9 @@ public class DataClientMock : IDataClient
         string contentType,
         string? filename,
         Stream stream,
-        string? generatedFromTask = null
+        string? generatedFromTask = null,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         Application application = await _appMetadata.GetApplicationMetadata();
@@ -414,14 +462,14 @@ public class DataClientMock : IDataClient
 
         using var memoryStream = new MemoryStream();
         stream.Seek(0, SeekOrigin.Begin);
-        await stream.CopyToAsync(memoryStream);
+        await stream.CopyToAsync(memoryStream, cancellationToken);
 
         var fileData = memoryStream.ToArray();
-        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData, cancellationToken);
 
         dataElement.Size = fileData.Length;
 
-        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId, cancellationToken);
 
         return dataElement;
     }
@@ -432,24 +480,36 @@ public class DataClientMock : IDataClient
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        HttpRequest request
+        HttpRequest request,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         throw new NotImplementedException();
     }
 
-    public async Task<DataElement> Update(Instance instance, DataElement dataElement)
+    public async Task<DataElement> Update(
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         string org = instance.Org;
         string app = instance.AppId.Split("/")[1];
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
-        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId, cancellationToken);
 
         return dataElement;
     }
 
-    public async Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public async Task<DataElement> LockDataElement(
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
@@ -459,14 +519,20 @@ public class DataClientMock : IDataClient
             app,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            dataGuid.ToString()
+            dataGuid.ToString(),
+            cancellationToken
         );
         element.Locked = true;
-        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
         return element;
     }
 
-    public async Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public async Task<DataElement> UnlockDataElement(
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
@@ -476,12 +542,13 @@ public class DataClientMock : IDataClient
             app,
             instanceIdentifier.InstanceOwnerPartyId,
             instanceIdentifier.InstanceGuid,
-            dataGuid.ToString()
+            dataGuid.ToString(),
+            cancellationToken
         );
         ;
 
         element.Locked = false;
-        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId, cancellationToken);
         return element;
     }
 
@@ -489,7 +556,8 @@ public class DataClientMock : IDataClient
         DataElement dataElement,
         string org,
         string app,
-        int instanceOwnerPartyId
+        int instanceOwnerPartyId,
+        CancellationToken cancellationToken = default
     )
     {
         string dataElementPath = TestData.GetDataElementPath(
@@ -501,10 +569,16 @@ public class DataClientMock : IDataClient
         );
 
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(dataElement, _jsonSerializerOptions);
-        await File.WriteAllBytesAsync(dataElementPath, jsonBytes);
+        await File.WriteAllBytesAsync(dataElementPath, jsonBytes, cancellationToken);
     }
 
-    private async Task<List<DataElement>> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+    private async Task<List<DataElement>> GetDataElements(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceId,
+        CancellationToken cancellationToken = default
+    )
     {
         string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
         List<DataElement> dataElements = new();
@@ -518,7 +592,7 @@ public class DataClientMock : IDataClient
 
         foreach (string file in files)
         {
-            string content = await File.ReadAllTextAsync(Path.Combine(path, file));
+            string content = await File.ReadAllTextAsync(Path.Combine(path, file), cancellationToken);
             DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions);
 
             if (dataElement != null)
@@ -543,11 +617,12 @@ public class DataClientMock : IDataClient
         string app,
         int instanceOwnerId,
         Guid instanceId,
-        string dataElementGuid
+        string dataElementGuid,
+        CancellationToken cancellationToken = default
     )
     {
         string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
-        string content = await File.ReadAllTextAsync(Path.Combine(path, dataElementGuid + ".json"));
+        string content = await File.ReadAllTextAsync(Path.Combine(path, dataElementGuid + ".json"), cancellationToken);
         return JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions)
             ?? throw new JsonException("Returned null when deserializing data element");
     }

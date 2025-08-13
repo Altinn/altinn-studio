@@ -392,7 +392,18 @@ public class InstancesController_CopyInstanceTests
             );
         fixture
             .Mock<IDataClient>()
-            .Setup(p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, instanceOwnerPartyId, dataGuid))
+            .Setup(p =>
+                p.GetFormData(
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    dataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new { test = "test" });
         fixture
             .Mock<IDataClient>()
@@ -404,7 +415,9 @@ public class InstancesController_CopyInstanceTests
                     Org,
                     AppName,
                     instanceOwnerPartyId,
-                    dataTypeId
+                    dataTypeId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -510,7 +523,16 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Setup(p =>
-                p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, instanceOwnerPartyId, formDataGuid)
+                p.GetFormData(
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    formDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(new { test = "test" });
         fixture
@@ -523,14 +545,26 @@ public class InstancesController_CopyInstanceTests
                     Org,
                     AppName,
                     instanceOwnerPartyId,
-                    formDataTypeId
+                    formDataTypeId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
 
         fixture
             .Mock<IDataClient>()
-            .Setup(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .Setup(p =>
+                p.GetBinaryData(
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    binaryDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new MemoryStream(binaryDataBytes));
         fixture
             .Mock<IDataClient>()
@@ -541,7 +575,9 @@ public class InstancesController_CopyInstanceTests
                     "application/pdf",
                     "test.pdf",
                     It.IsAny<Stream>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -557,7 +593,17 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Verify(
-                p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, instanceOwnerPartyId, formDataGuid),
+                p =>
+                    p.GetFormData(
+                        instanceGuid,
+                        It.IsAny<Type?>()!,
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        formDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Once
             );
         fixture
@@ -571,7 +617,9 @@ public class InstancesController_CopyInstanceTests
                         Org,
                         AppName,
                         instanceOwnerPartyId,
-                        formDataTypeId
+                        formDataTypeId,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -579,7 +627,19 @@ public class InstancesController_CopyInstanceTests
         // Verify binary data was copied (this should FAIL until we implement it)
         fixture
             .Mock<IDataClient>()
-            .Verify(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid), Times.Once);
+            .Verify(
+                p =>
+                    p.GetBinaryData(
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        instanceGuid,
+                        binaryDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture
             .Mock<IDataClient>()
             .Verify(
@@ -590,7 +650,9 @@ public class InstancesController_CopyInstanceTests
                         "application/pdf",
                         "test.pdf",
                         It.IsAny<Stream>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -680,7 +742,16 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Setup(p =>
-                p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, instanceOwnerPartyId, formDataGuid)
+                p.GetFormData(
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    formDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(new { test = "test" });
         fixture
@@ -693,7 +764,9 @@ public class InstancesController_CopyInstanceTests
                     Org,
                     AppName,
                     instanceOwnerPartyId,
-                    formDataTypeId
+                    formDataTypeId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -701,7 +774,17 @@ public class InstancesController_CopyInstanceTests
         // Binary data mocks (should NOT be called - type is excluded)
         fixture
             .Mock<IDataClient>()
-            .Setup(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .Setup(p =>
+                p.GetBinaryData(
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    binaryDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new MemoryStream(binaryDataBytes));
         fixture
             .Mock<IDataClient>()
@@ -712,7 +795,9 @@ public class InstancesController_CopyInstanceTests
                     "application/pdf",
                     "sensitive.pdf",
                     It.IsAny<Stream>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -728,7 +813,17 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Verify(
-                p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, instanceOwnerPartyId, formDataGuid),
+                p =>
+                    p.GetFormData(
+                        instanceGuid,
+                        It.IsAny<Type?>()!,
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        formDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Once
             );
         fixture
@@ -742,7 +837,9 @@ public class InstancesController_CopyInstanceTests
                         Org,
                         AppName,
                         instanceOwnerPartyId,
-                        formDataTypeId
+                        formDataTypeId,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -751,7 +848,16 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Verify(
-                p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid),
+                p =>
+                    p.GetBinaryData(
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        instanceGuid,
+                        binaryDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Never
             );
         fixture
@@ -764,7 +870,9 @@ public class InstancesController_CopyInstanceTests
                         "application/pdf",
                         "sensitive.pdf",
                         It.IsAny<Stream>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );
@@ -851,7 +959,17 @@ public class InstancesController_CopyInstanceTests
         // Binary data mocks (should be called)
         fixture
             .Mock<IDataClient>()
-            .Setup(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .Setup(p =>
+                p.GetBinaryData(
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    binaryDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new MemoryStream(binaryDataBytes));
         fixture
             .Mock<IDataClient>()
@@ -862,7 +980,9 @@ public class InstancesController_CopyInstanceTests
                     "application/pdf",
                     "test.pdf",
                     It.IsAny<Stream>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -877,7 +997,19 @@ public class InstancesController_CopyInstanceTests
         // Verify binary data was copied
         fixture
             .Mock<IDataClient>()
-            .Verify(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid), Times.Once);
+            .Verify(
+                p =>
+                    p.GetBinaryData(
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        instanceGuid,
+                        binaryDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture
             .Mock<IDataClient>()
             .Verify(
@@ -888,7 +1020,9 @@ public class InstancesController_CopyInstanceTests
                         "application/pdf",
                         "test.pdf",
                         It.IsAny<Stream>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -904,7 +1038,9 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>(),
-                        It.IsAny<Guid>()
+                        It.IsAny<Guid>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );
@@ -919,7 +1055,9 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );
@@ -1005,7 +1143,17 @@ public class InstancesController_CopyInstanceTests
         // Binary data mocks (should be called)
         fixture
             .Mock<IDataClient>()
-            .Setup(p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid))
+            .Setup(p =>
+                p.GetBinaryData(
+                    Org,
+                    AppName,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    binaryDataGuid,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new MemoryStream(binaryDataBytes));
         fixture
             .Mock<IDataClient>()
@@ -1016,7 +1164,9 @@ public class InstancesController_CopyInstanceTests
                     "application/pdf",
                     "only-binary.pdf",
                     It.IsAny<Stream>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(new DataElement());
@@ -1032,7 +1182,16 @@ public class InstancesController_CopyInstanceTests
         fixture
             .Mock<IDataClient>()
             .Verify(
-                p => p.GetBinaryData(Org, AppName, instanceOwnerPartyId, instanceGuid, binaryDataGuid),
+                p =>
+                    p.GetBinaryData(
+                        Org,
+                        AppName,
+                        instanceOwnerPartyId,
+                        instanceGuid,
+                        binaryDataGuid,
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Never
             );
         fixture
@@ -1045,7 +1204,9 @@ public class InstancesController_CopyInstanceTests
                         "application/pdf",
                         "only-binary.pdf",
                         It.IsAny<Stream>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );
@@ -1061,7 +1222,9 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>(),
-                        It.IsAny<Guid>()
+                        It.IsAny<Guid>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );
@@ -1076,7 +1239,9 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Never
             );

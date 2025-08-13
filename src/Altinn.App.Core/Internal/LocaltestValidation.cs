@@ -32,6 +32,12 @@ internal sealed class LocaltestValidation : BackgroundService
 
     internal IAsyncEnumerable<VersionResult> Results => _resultChannel.Reader.ReadAllAsync();
 
+    internal static string GetLocaltestBaseUrl(PlatformSettings platformSettings) =>
+        new Uri(platformSettings.ApiStorageEndpoint).GetLeftPart(UriPartial.Authority);
+
+    internal static bool IsLocaltest(GeneralSettings generalSettings) =>
+        generalSettings.HostName.Equals(ExpectedHostname, StringComparison.OrdinalIgnoreCase);
+
     public LocaltestValidation(
         ILogger<LocaltestValidation> logger,
         IHttpClientFactory httpClientFactory,
@@ -65,8 +71,7 @@ internal sealed class LocaltestValidation : BackgroundService
             if (settings.DisableLocaltestValidation)
                 return;
 
-            var configuredHostname = settings.HostName;
-            if (configuredHostname != ExpectedHostname)
+            if (!IsLocaltest(settings))
                 return;
 
             while (!stoppingToken.IsCancellationRequested)
@@ -171,7 +176,7 @@ internal sealed class LocaltestValidation : BackgroundService
         {
             using var client = _httpClientFactory.CreateClient();
 
-            var baseUrl = new Uri(_platformSettings.CurrentValue.ApiStorageEndpoint).GetLeftPart(UriPartial.Authority);
+            var baseUrl = GetLocaltestBaseUrl(_platformSettings.CurrentValue);
             var url = $"{baseUrl}/Home/Localtest/Version";
 
             using var response = await client.GetAsync(url, cancellationToken);

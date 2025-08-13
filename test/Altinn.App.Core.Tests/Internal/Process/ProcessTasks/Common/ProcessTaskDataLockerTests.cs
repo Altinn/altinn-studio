@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -49,7 +50,13 @@ public class ProcessTaskDataLockerTests
 
         // Assert
         _dataClientMock.Verify(
-            x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+            x =>
+                x.UnlockDataElement(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Exactly(2)
         );
     }
@@ -83,7 +90,13 @@ public class ProcessTaskDataLockerTests
 
         // Assert
         _dataClientMock.Verify(
-            x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+            x =>
+                x.LockDataElement(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Exactly(2)
         );
     }
@@ -116,7 +129,16 @@ public class ProcessTaskDataLockerTests
         await _processTaskDataLocker.Unlock(taskId, instance);
 
         // Assert
-        _dataClientMock.Verify(x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
+        _dataClientMock.Verify(
+            x =>
+                x.UnlockDataElement(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -147,7 +169,16 @@ public class ProcessTaskDataLockerTests
         await _processTaskDataLocker.Lock(taskId, instance);
 
         // Assert
-        _dataClientMock.Verify(x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
+        _dataClientMock.Verify(
+            x =>
+                x.LockDataElement(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     private static Instance CreateInstance()

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
@@ -85,7 +86,9 @@ public class PaymentProcessTaskTests
                 "application/pdf",
                 "Betalingskvittering.pdf",
                 It.IsAny<Stream>(),
-                taskId
+                taskId,
+                It.IsAny<StorageAuthenticationMethod>(),
+                It.IsAny<CancellationToken>()
             )
         );
     }
@@ -118,7 +121,9 @@ public class PaymentProcessTaskTests
                     "application/pdf",
                     "Betalingskvittering.pdf",
                     It.IsAny<Stream>(),
-                    taskId
+                    taskId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Never
         );
@@ -149,7 +154,9 @@ public class PaymentProcessTaskTests
                     "application/pdf",
                     "Betalingskvittering.pdf",
                     It.IsAny<Stream>(),
-                    taskId
+                    taskId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Never
         );

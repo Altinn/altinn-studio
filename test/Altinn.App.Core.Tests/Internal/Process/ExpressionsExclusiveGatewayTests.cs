@@ -262,7 +262,9 @@ public class ExpressionsExclusiveGatewayTests
                         It.IsAny<string>(),
                         It.IsAny<int>(),
                         It.IsAny<Guid>(),
-                        It.IsAny<Guid>()
+                        It.IsAny<Guid>(),
+                        It.IsAny<StorageAuthenticationMethod>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(modelSerializationService.SerializeToXml(formData).ToArray());

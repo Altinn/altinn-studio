@@ -428,8 +428,8 @@ public static class TestAuthentication
     )
     {
         // Returns a principal that looks like a token issued by Maskinporten and exchanged to Altinn token in tt02
-        // This is a service owner token, so there should be atleast 1 service owner scope
-        string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
+        // This is a service owner token, so there should be at least 1 service owner scope
+        const string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var scopes = new Scopes(scope);
         if (!scopes.HasScopeWithPrefix("altinn:serviceowner/"))
@@ -636,6 +636,7 @@ public static class TestAuthentication
     {
         List<Claim> claims = [];
         const string issuer = "https://test.maskinporten.no/";
+        claims.Add(new Claim(JwtClaimTypes.Issuer, issuer, ClaimValueTypes.String, issuer));
         claims.Add(new Claim(JwtClaimTypes.Scope, scope, ClaimValueTypes.String, issuer));
         claims.Add(new Claim(JwtClaimTypes.JwtId, Guid.NewGuid().ToString(), ClaimValueTypes.String, issuer));
         claims.Add(new Claim(JwtClaimTypes.Maskinporten.AuthenticationMethod, "Mock", ClaimValueTypes.String, issuer));

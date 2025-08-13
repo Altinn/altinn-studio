@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +21,8 @@ public interface IDataClient
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<DataElement> InsertFormData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -27,7 +30,9 @@ public interface IDataClient
         string org,
         string app,
         int instanceOwnerPartyId,
-        string dataType
+        string dataType,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
         where T : notnull;
 
@@ -39,8 +44,17 @@ public interface IDataClient
     /// <param name="dataTypeString">The data type with requirements</param>
     /// <param name="dataToSerialize">The data element instance</param>
     /// <param name="type">The class type describing the data</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The data element metadata</returns>
-    Task<DataElement> InsertFormData<T>(Instance instance, string dataTypeString, T dataToSerialize, Type type)
+    Task<DataElement> InsertFormData<T>(
+        Instance instance,
+        string dataTypeString,
+        T dataToSerialize,
+        Type type,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
         where T : notnull;
 
     /// <summary>
@@ -54,6 +68,8 @@ public interface IDataClient
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     //TODO: [Obsolete in v9 in favour of a version that gets the dataType so we can support json and xml]
     Task<DataElement> UpdateData<T>(
         T dataToSerialize,
@@ -62,7 +78,9 @@ public interface IDataClient
         string org,
         string app,
         int instanceOwnerPartyId,
-        Guid dataId
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
         where T : notnull;
 
@@ -75,13 +93,17 @@ public interface IDataClient
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<object> GetFormData(
         Guid instanceGuid,
         Type type,
         string org,
         string app,
         int instanceOwnerPartyId,
-        Guid dataId
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -92,7 +114,17 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
-    Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<Stream> GetBinaryData(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Similar to GetBinaryData, but returns a HttpResponseMessage instead of a cached stream
@@ -102,8 +134,18 @@ public interface IDataClient
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The raw HttpResponseMessage from the call to platform</returns>
-    Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);
+    Task<byte[]> GetDataBytes(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Method that gets metadata on form attachments ordered by attachmentType
@@ -112,8 +154,17 @@ public interface IDataClient
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="instanceGuid">The instance id</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>A list with attachments metadata ordered by attachmentType</returns>
-    Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid);
+    Task<List<AttachmentList>> GetBinaryDataList(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Method that removes a form attachments from disk/storage
@@ -135,13 +186,17 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The attachment id</param>
     /// <param name="delay">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<bool> DeleteData(
         string org,
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        bool delay
+        bool delay,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -153,13 +208,17 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
     /// <param name="request">Http request containing the attachment to be saved</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<DataElement> InsertBinaryData(
         string org,
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         string dataType,
-        HttpRequest request
+        HttpRequest request,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -171,6 +230,8 @@ public interface IDataClient
     /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataGuid">The data id</param>
     /// <param name="request">Http request containing the attachment to be saved</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     [Obsolete(
         message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
         error: false
@@ -181,7 +242,9 @@ public interface IDataClient
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        HttpRequest request
+        HttpRequest request,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -192,12 +255,16 @@ public interface IDataClient
     /// <param name="filename">Filename of the updated binary data</param>
     /// <param name="dataGuid">Guid of the data element to update</param>
     /// <param name="stream">Updated binary data</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<DataElement> UpdateBinaryData(
         InstanceIdentifier instanceIdentifier,
         string? contentType,
         string? filename,
         Guid dataGuid,
-        Stream stream
+        Stream stream,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -209,14 +276,17 @@ public interface IDataClient
     /// <param name="filename">filename</param>
     /// <param name="stream">the stream to stream</param>
     /// <param name="generatedFromTask">Optional field to set what task the binary data was generated from</param>
-    /// <returns></returns>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<DataElement> InsertBinaryData(
         string instanceId,
         string dataType,
         string contentType,
         string? filename,
         Stream stream,
-        string? generatedFromTask = null
+        string? generatedFromTask = null,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -224,22 +294,41 @@ public interface IDataClient
     /// </summary>
     /// <param name="instance">The instance which is not updated</param>
     /// <param name="dataElement">The data element with values to update</param>
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>the updated data element</returns>
-    Task<DataElement> Update(Instance instance, DataElement dataElement);
+    Task<DataElement> Update(
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Lock data element in storage
     /// </summary>
     /// <param name="instanceIdentifier">InstanceIdentifier identifying the instance containing the DataElement to lock</param>
     /// <param name="dataGuid">Id of the DataElement to lock</param>
-    /// <returns></returns>
-    Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<DataElement> LockDataElement(
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Unlock data element in storage
     /// </summary>
     /// <param name="instanceIdentifier">InstanceIdentifier identifying the instance containing the DataElement to unlock</param>
     /// <param name="dataGuid">Id of the DataElement to unlock</param>
-    /// <returns></returns>
-    Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);
+    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<DataElement> UnlockDataElement(
+        InstanceIdentifier instanceIdentifier,
+        Guid dataGuid,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 }

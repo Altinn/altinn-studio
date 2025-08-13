@@ -285,7 +285,15 @@ public sealed class ValidationServiceTests : IDisposable
     {
         _dataClientMock
             .Setup(d =>
-                d.GetDataBytes(DefaultOrg, DefaultApp, DefaultPartyId, _defaultInstanceId, _defaultDataElementId)
+                d.GetDataBytes(
+                    DefaultOrg,
+                    DefaultApp,
+                    DefaultPartyId,
+                    _defaultInstanceId,
+                    _defaultDataElementId,
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(_modelSerialization.SerializeToXml(data).ToArray())
             .Verifiable(Times.AtLeastOnce);

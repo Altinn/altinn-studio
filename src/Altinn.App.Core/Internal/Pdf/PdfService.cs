@@ -83,7 +83,15 @@ public class PdfService : IPdfService
         var pdfContent = await GeneratePdfContent(instance, language, false, textResource, ct);
 
         string fileName = GetFileName(instance, textResource);
-        await _dataClient.InsertBinaryData(instance.Id, PdfElementType, PdfContentType, fileName, pdfContent, taskId);
+        await _dataClient.InsertBinaryData(
+            instance.Id,
+            PdfElementType,
+            PdfContentType,
+            fileName,
+            pdfContent,
+            taskId,
+            cancellationToken: ct
+        );
     }
 
     /// <inheritdoc/>
@@ -194,10 +202,8 @@ public class PdfService : IPdfService
 
     private static string GetFileName(Instance instance, TextResource? textResource)
     {
-        string? fileName = null;
         string app = instance.AppId.Split("/")[1];
-
-        fileName = $"{app}.pdf";
+        string fileName = $"{app}.pdf";
 
         if (textResource is null)
         {
