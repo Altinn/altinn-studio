@@ -108,7 +108,7 @@ function ModalContent({
         <StudioButton
           key={optionsId}
           className={classes.codeListButton}
-          variant={'secondary'}
+          variant='secondary'
           onClick={() => handleClick(optionsId)}
         >
           {optionsId}
