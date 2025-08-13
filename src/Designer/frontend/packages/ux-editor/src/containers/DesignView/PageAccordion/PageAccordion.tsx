@@ -8,7 +8,7 @@ import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
@@ -98,7 +98,6 @@ export const PageAccordion = ({
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton
-            color='danger'
             icon={<TrashIcon aria-hidden />}
             onClick={handleConfirmDelete}
             title={t('general.delete_item', { item: pageName })}
