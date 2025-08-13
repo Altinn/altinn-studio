@@ -42,19 +42,6 @@ describe('getRandNumber', () => {
 });
 
 describe('filterFunction', () => {
-  test('should be case insensitive for translations', () => {
-    const entry = [{ lang: 'nb', translation: 'Neste' }];
-    expect(
-      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'nest' }),
-    ).toBe(true);
-    expect(
-      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'NEST' }),
-    ).toBe(true);
-    expect(
-      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'neste' }),
-    ).toBe(true);
-  });
-
   test('that filter function works as intended', () => {
     const entry = [{ lang: 'nb', translation: 'spock' }];
     expect(
@@ -77,6 +64,19 @@ describe('filterFunction', () => {
     ).toBe(true);
     expect(
       filterFunction({ entry: { id: 'test', translations: undefined }, searchString: undefined }),
+    ).toBe(true);
+  });
+
+  test('should be case insensitive for translations', () => {
+    const entry = [{ lang: 'nb', translation: 'Neste' }];
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'nest' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'NEST' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'neste' }),
     ).toBe(true);
   });
 });
