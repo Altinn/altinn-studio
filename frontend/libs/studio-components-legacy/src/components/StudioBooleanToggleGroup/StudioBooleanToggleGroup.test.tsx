@@ -18,7 +18,8 @@ const defaultProps: StudioBooleanToggleGroupProps = {
 describe('StudioBooleanToggleGroup', () => {
   it('Renders a toggle group with toggles with the given labels', () => {
     renderBooleanToggle();
-    const withinRadioGroup = () => within(screen.getByRole('radiogroup'));
+    const withinRadioGroup = (): ReturnType<typeof within> =>
+      within(screen.getByRole('radiogroup'));
     expect(withinRadioGroup().getByRole('radio', { name: trueLabel })).toBeInTheDocument();
     expect(withinRadioGroup().getByRole('radio', { name: falseLabel })).toBeInTheDocument();
   });
@@ -88,8 +89,8 @@ describe('StudioBooleanToggleGroup', () => {
     testRefForwarding<HTMLDivElement>((ref) => renderBooleanToggle({}, ref));
   });
 
-  const getTrueToggle = () => screen.getByRole('radio', { name: trueLabel });
-  const getFalseToggle = () => screen.getByRole('radio', { name: falseLabel });
+  const getTrueToggle = (): HTMLElement => screen.getByRole('radio', { name: trueLabel });
+  const getFalseToggle = (): HTMLElement => screen.getByRole('radio', { name: falseLabel });
 });
 
 function renderBooleanToggle(

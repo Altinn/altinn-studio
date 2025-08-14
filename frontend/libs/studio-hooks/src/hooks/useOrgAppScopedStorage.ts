@@ -10,13 +10,15 @@ type OrgAppParams = {
   app: string;
 };
 
-const supportedStorageMap: Record<UseOrgAppScopedStorage['storage'], ScopedStorage> = {
+export type SupportedStorage = 'localStorage' | 'sessionStorage';
+
+const supportedStorageMap: Record<SupportedStorage, ScopedStorage> = {
   localStorage: window.localStorage,
   sessionStorage: window.sessionStorage,
 };
 
 export type UseOrgAppScopedStorage = {
-  storage?: 'localStorage' | 'sessionStorage';
+  storage?: SupportedStorage;
 };
 
 type UseOrgAppScopedStorageResult = ScopedStorageResult;

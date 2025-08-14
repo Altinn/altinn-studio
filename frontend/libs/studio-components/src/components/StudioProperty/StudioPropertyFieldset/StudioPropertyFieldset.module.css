@@ -1,0 +1,38 @@
+.propertyFieldset {
+  align-items: center;
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: var(--ds-shadow-sm);
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--studio-property-fieldset-spacing);
+  grid-template-columns: [start] 1fr auto [end];
+  margin: 0 var(--ds-size-5);
+  overflow: auto;
+  padding: 0;
+}
+
+.propertyFieldset legend > * {
+  margin-left: var(--studio-property-fieldset-spacing);
+  margin-top: var(--studio-property-fieldset-spacing);
+  font-weight: 600;
+}
+
+.menubar {
+  align-items: center;
+  display: flex;
+  gap: var(--studio-property-fieldset-spacing);
+  margin-right: var(--studio-property-fieldset-spacing);
+  margin-top: var(--studio-property-fieldset-spacing);
+}
+
+.content {
+  grid-column-end: end;
+  grid-column-start: start;
+  margin-block-start: 0; /* Reset setting from The Design System. Spacings in this component are defined with the gap setting. */
+}
+
+.propertyFieldset.compact {
+  --studio-property-fieldset-spacing: var(--ds-size-2);
+  margin: 0 var(--ds-size-3);
+  box-shadow: none;
+}

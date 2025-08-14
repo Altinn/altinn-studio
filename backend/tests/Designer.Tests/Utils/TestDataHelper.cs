@@ -336,6 +336,12 @@ namespace Designer.Tests.Utils
             return new byte[0];
         }
 
+        public static string GetFileAsBase64StringFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            byte[] fileBytes = GetFileAsByteArrayFromRepo(org, repository, developer, relativePath);
+            return Convert.ToBase64String(fileBytes);
+        }
+
         public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)
         {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
@@ -434,9 +440,9 @@ namespace Designer.Tests.Utils
 
         public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg, string targetRepository)
         {
-            string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
+            string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
             string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
-            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+            string targetRepoDirectory = GetRepositoryDirectory(developer, targetOrg, targetRepository);
 
             CreateEmptyDirectory(targetOrgDirectory);
             await CopyDirectory(sourceDirectory, targetRepoDirectory);
@@ -446,20 +452,25 @@ namespace Designer.Tests.Utils
 
         public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
         {
-            string sourceDirectory = GetOrgRepositoryDirectory(developer, org, repository);
-            string targetRepoDirectory = GetOrgRepositoryDirectory(developer, targetOrg, targetRepository);
+            string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
+            string targetRepoDirectory = GetRepositoryDirectory(developer, targetOrg, targetRepository);
 
             await CopyDirectory(sourceDirectory, targetRepoDirectory);
         }
 
         private static string GetOrgDirectory(string org, string developer)
         {
-            return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
+            return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org);
         }
 
-        public static string GetOrgRepositoryDirectory(string developer, string org, string repository)
+        public static string GetRepositoryDirectory(string developer, string org, string repository)
         {
-            return Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
+            return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
+        }
+
+        public static string[] GetRepositoryFileNames(string developer, string org, string repository, string searchPattern)
+        {
+            return Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
         }
 
         public static void DeleteOrgDirectory(string developer, string org)
