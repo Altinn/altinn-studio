@@ -6,4 +6,3 @@ export function useForwardedRef<T>(forwardedRef: ForwardedRef<T>): MutableRefObj
   useImperativeHandle<T | null, T | null>(forwardedRef, () => internalRef.current, []);
   return internalRef;
 }
-}
