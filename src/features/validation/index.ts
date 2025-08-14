@@ -1,5 +1,5 @@
 import type { Expression, ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
+import type { TextReference } from 'src/features/language/useLanguage';
 
 export enum FrontendValidationSource {
   EmptyField = '__empty_field__',
@@ -211,7 +211,7 @@ export interface BackendValidationIssue {
   source: string;
   noIncrementalUpdates?: boolean; // true if it will not be validated on PATCH, should be ignored when trying to submit
   customTextKey?: string;
-  customTextParams?: ValidLangParam[]; //TODO(Validation): Probably broken for text resources currently
+  customTextParameters?: Record<string, string>;
   showImmediately?: boolean; // Not made available
   actLikeRequired?: boolean; // Not made available
 }

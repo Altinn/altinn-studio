@@ -24,6 +24,27 @@ const TestSimple = ({ input }: { input: string }) => {
   );
 };
 
+const TestCustomParams = ({
+  input,
+  customTextParameters,
+}: {
+  input: string;
+  customTextParameters: Record<string, string>;
+}) => {
+  const { langAsString } = useLanguage();
+  return (
+    <>
+      <div data-testid='as-string'>{langAsString(input, undefined, undefined, customTextParameters)}</div>
+      <div data-testid='as-element'>
+        <Lang
+          id={input}
+          customTextParameters={customTextParameters}
+        />
+      </div>
+    </>
+  );
+};
+
 const TestComplexAsString = () => {
   const { elementAsString, langAsString } = useLanguage();
 
@@ -184,6 +205,45 @@ describe('useLanguage', () => {
     );
     expect(screen.getByTestId('as-element')).toHaveTextContent(
       'Hvor mange liter FRITYROLJE brukte gatekjøkkenet i 2019?',
+    );
+  });
+
+  it('langAsString() should work with customTextParameters', async () => {
+    const customTextParameters = {
+      text: 'Dette er en veldig lang tekst',
+      length: '29',
+      max_length: '10',
+    };
+    await renderWithoutInstanceAndLayout({
+      renderer: () => (
+        <TestCustomParams
+          input='custom'
+          customTextParameters={customTextParameters}
+        />
+      ),
+      queries: {
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: [
+            {
+              id: 'custom',
+              value: 'Teksten "{0}" er for lang ({1} bokstaver), det kan maksimalt være {2} bokstaver.',
+              variables: [
+                { key: 'text', dataSource: 'customTextParameters' },
+                { key: 'length', dataSource: 'customTextParameters' },
+                { key: 'max_length', dataSource: 'customTextParameters' },
+              ],
+            },
+          ],
+        }),
+      },
+    });
+
+    expect(screen.getByTestId('as-string').innerHTML).toEqual(
+      'Teksten "Dette er en veldig lang tekst" er for lang (29 bokstaver), det kan maksimalt være 10 bokstaver.',
+    );
+    expect(screen.getByTestId('as-element')).toHaveTextContent(
+      'Teksten "Dette er en veldig lang tekst" er for lang (29 bokstaver), det kan maksimalt være 10 bokstaver.',
     );
   });
 });

@@ -3,6 +3,8 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 
 import type { IDataModelPatchResponse } from 'src/features/formData/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
+import type { BackendValidationIssue } from 'src/features/validation';
 
 const appFrontend = new AppFrontend();
 const dataListPage = new Datalist();
@@ -960,5 +962,55 @@ describe('Validation', () => {
 
     // We're on the next page! Yay
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
+  });
+
+  it('should display backend validation message with customTextKey and customTextParameters correctly', () => {
+    cy.intercept('GET', '**/texts/nb', (req) => {
+      req.on('response', (res) => {
+        const body = res.body as ITextResourceResult;
+        body.resources.push({
+          id: 'custom_error_too_long',
+          value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',
+          variables: [
+            {
+              key: 'max_length',
+              dataSource: 'customTextParameters',
+            },
+            {
+              key: 'current_length',
+              dataSource: 'customTextParameters',
+            },
+          ],
+        });
+      });
+    });
+
+    cy.window().then((win) => {
+      cy.intercept('GET', '**/validate**', (req) => {
+        req.on('response', (res) => {
+          const body = res.body as BackendValidationIssue[];
+          body.push({
+            severity: 1,
+            source: 'SomeCustomValidator',
+            field: 'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value',
+            dataElementId: win.CypressState!.dataElementIds!['ServiceModel-test']!,
+            customTextKey: 'custom_error_too_long',
+            customTextParameters: {
+              max_length: '10',
+              current_length: '19',
+            },
+          });
+        });
+      });
+    });
+
+    cy.goto('changename');
+    cy.waitForLoad();
+
+    cy.get(appFrontend.fieldValidation('newMiddleName')).should(
+      'have.text',
+      'Verdien kan ikke være lengre enn 10, den er nå 19',
+    );
+    cy.get(appFrontend.errorReport).should('contain.text', 'Verdien kan ikke være lengre enn 10, den er nå 19');
   });
 });

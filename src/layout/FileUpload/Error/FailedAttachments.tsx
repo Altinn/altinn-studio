@@ -84,11 +84,11 @@ function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAtta
         : null;
 
     if (issues && issues.length === 1) {
-      const { key, params } = getValidationIssueMessage(issues[0]);
+      const { key, customTextParameters } = getValidationIssueMessage(issues[0]);
       return (
         <Lang
           id={key}
-          params={params}
+          customTextParameters={customTextParameters}
         />
       );
     }

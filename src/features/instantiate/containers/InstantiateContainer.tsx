@@ -4,6 +4,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
@@ -24,10 +25,8 @@ export const InstantiateContainer = () => {
   }, [instantiation, party]);
 
   if (isAxiosError(instantiation.error) && instantiation.error.response?.status === HttpStatusCodes.Forbidden) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const message = (instantiation.error.response?.data as any)?.message;
-    if (message) {
-      return <InstantiateValidationError message={message} />;
+    if (isInstantiationValidationResult(instantiation.error.response?.data)) {
+      return <InstantiateValidationError validationResult={instantiation.error.response.data} />;
     }
     return <MissingRolesError />;
   } else if (instantiation.error) {

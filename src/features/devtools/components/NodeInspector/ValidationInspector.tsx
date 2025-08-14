@@ -185,6 +185,7 @@ const ValidationItem = ({ validation, visibility }: ValidationItemProps) => {
         <Lang
           id={validation.message.key}
           params={validation.message.params}
+          customTextParameters={validation.message.customTextParameters}
         />
       </div>
       {category && (

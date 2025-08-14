@@ -58,6 +58,7 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
         dataModels,
         applicationSettings,
         instanceDataSources,
+        customTextParameters: null,
       };
     });
   }, [textResources, selectedAppLanguage, dataModels, applicationSettings, instanceDataSources, setDataSources]);

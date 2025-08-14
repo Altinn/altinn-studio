@@ -108,6 +108,7 @@ function ErrorValidations({ validations }: { validations: BaseValidation<'error'
               <Lang
                 id={validation.message.key}
                 params={validation.message.params}
+                customTextParameters={validation.message.customTextParameters}
               />
             </span>
           </ValidationMessage>
@@ -138,6 +139,7 @@ function SoftValidations({
               <Lang
                 id={validation.message.key}
                 params={validation.message.params}
+                customTextParameters={validation.message.customTextParameters}
               />
             </li>
           ))}

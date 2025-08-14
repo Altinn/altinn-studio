@@ -127,7 +127,7 @@ export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue
  */
 export function getValidationIssueMessage(issue: BackendValidationIssue): TextReference {
   if (issue.customTextKey) {
-    return { key: issue.customTextKey, params: issue.customTextParams };
+    return { key: issue.customTextKey, customTextParameters: issue.customTextParameters };
   }
 
   if (issue.source && issue.code) {

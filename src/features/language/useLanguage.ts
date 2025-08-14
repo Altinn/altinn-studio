@@ -29,6 +29,7 @@ export type ValidLangParam = SimpleLangParam | ReactNode | TextReference;
 export type TextReference = {
   key: LooseAutocomplete<ValidLanguageKey> | undefined;
   params?: ValidLangParam[];
+  customTextParameters?: Record<string, string>;
   makeLowerCase?: boolean;
 };
 
@@ -37,22 +38,30 @@ export interface IUseLanguage {
   lang(
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
+    customTextParameters?: Record<string, string>,
   ): string | JSX.Element | JSX.Element[] | null;
   langAsString(
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     params?: ValidLangParam[],
     makeLowerCase?: boolean,
+    customTextParameters?: Record<string, string>,
   ): string;
   langAsStringUsingPathInDataModel(
     key: ValidLanguageKey | string | undefined,
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
+    customTextParameters?: Record<string, string>,
   ): string;
-  langAsNonProcessedString(key: LooseAutocomplete<ValidLanguageKey> | undefined, params?: ValidLangParam[]): string;
+  langAsNonProcessedString(
+    key: LooseAutocomplete<ValidLanguageKey> | undefined,
+    params?: ValidLangParam[],
+    customTextParameters?: Record<string, string>,
+  ): string;
   langAsNonProcessedStringUsingPathInDataModel(
     key: LooseAutocomplete<ValidLanguageKey> | undefined,
     dataModelPath: IDataModelReference,
     params?: ValidLangParam[],
+    customTextParameters?: Record<string, string>,
   ): string;
   elementAsString(element: ReactNode): string;
 }
@@ -60,6 +69,7 @@ export interface IUseLanguage {
 export interface TextResourceVariablesDataSources {
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
+  customTextParameters: Record<string, string> | null;
   dataModelPath?: IDataModelReference;
   dataModels: ReturnType<typeof useDataModelReaders>;
   defaultDataType: string | undefined | typeof ContextNotProvided;
@@ -144,16 +154,16 @@ export function staticUseLanguage(
   dataSources: TextResourceVariablesDataSources,
 ): IUseLanguage {
   const language = _language || getLanguageFromCode(selectedLanguage);
-  const lang: IUseLanguage['lang'] = (key, params) => {
-    const result = getUnprocessedTextValueByLanguage(key, params);
+  const lang: IUseLanguage['lang'] = (key, params, customTextParameters) => {
+    const result = getUnprocessedTextValueByLanguage(key, params, { customTextParameters });
 
     return parseAndCleanText(result);
   };
 
-  const langAsString: IUseLanguage['langAsString'] = (key, params, makeLowerCase) => {
+  const langAsString: IUseLanguage['langAsString'] = (key, params, makeLowerCase, customTextParameters) => {
     const postProcess = makeLowerCase ? smartLowerCaseFirst : (str: string | undefined) => str;
 
-    const result = lang(key, params);
+    const result = lang(key, params, customTextParameters);
     if (result === undefined || result === null) {
       return postProcess(key) || '';
     }
@@ -165,8 +175,11 @@ export function staticUseLanguage(
     key,
     dataModelPath,
     params,
+    customTextParameters,
   ) => {
-    const result = parseAndCleanText(getUnprocessedTextValueByLanguage(key, params, { dataModelPath }));
+    const result = parseAndCleanText(
+      getUnprocessedTextValueByLanguage(key, params, { dataModelPath, customTextParameters }),
+    );
     if (result === undefined || result === null) {
       return key || '';
     }
@@ -174,14 +187,15 @@ export function staticUseLanguage(
     return getPlainTextFromNode(result, langAsString);
   };
 
-  const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (key, params) =>
-    getUnprocessedTextValueByLanguage(key, params, undefined);
+  const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (key, params, customTextParameters) =>
+    getUnprocessedTextValueByLanguage(key, params, { customTextParameters });
 
   const langAsNonProcessedStringUsingPathInDataModel: IUseLanguage['langAsNonProcessedStringUsingPathInDataModel'] = (
     key,
     dataModelPath,
     params,
-  ) => getUnprocessedTextValueByLanguage(key, params, { dataModelPath });
+    customTextParameters,
+  ) => getUnprocessedTextValueByLanguage(key, params, { dataModelPath, customTextParameters });
 
   function getUnprocessedTextValueByLanguage(
     key: string | undefined,
@@ -306,6 +320,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
     defaultDataType,
     formDataTypes,
     formDataSelector,
+    customTextParameters,
   } = dataSources;
   let out = text;
   for (const idx in variables) {
@@ -375,6 +390,8 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
         applicationSettings && variable.key in applicationSettings && applicationSettings[variable.key] !== undefined
           ? applicationSettings[variable.key]!
           : value;
+    } else if (variable.dataSource === 'customTextParameters') {
+      value = customTextParameters?.[variable.key] ?? value;
     }
 
     if (value === variable.key) {
@@ -454,6 +471,7 @@ export function staticUseLanguageForTests({
   language = null,
   selectedLanguage = 'nb',
   dataSources = {
+    customTextParameters: { number: '14' },
     instanceDataSources: {
       instanceId: 'instanceId',
       appId: 'org/app',

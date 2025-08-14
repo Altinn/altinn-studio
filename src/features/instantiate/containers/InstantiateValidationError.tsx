@@ -1,10 +1,14 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import {
+  InstantiationValidation,
+  type InstantiationValidationResult,
+} from 'src/features/instantiate/InstantiationValidation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 
-export function InstantiateValidationError(props: { message: string }) {
+export function InstantiateValidationError({ validationResult }: { validationResult: InstantiationValidationResult }) {
   const { langAsString } = useLanguage();
 
   return (
@@ -12,7 +16,7 @@ export function InstantiateValidationError(props: { message: string }) {
       title={<Lang id='instantiate.authorization_error_instantiate_validation_title' />}
       content={
         <>
-          {props.message && <Lang id={props.message} />}
+          <InstantiationValidation validationResult={validationResult} />
           <br />
           <br />
           <Lang

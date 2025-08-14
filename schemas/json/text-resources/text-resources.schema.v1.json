@@ -86,7 +86,8 @@
           "oneOf": [
             { "$ref": "#/definitions/dataSource-data-model" },
             { "$ref": "#/definitions/dataSource-instanceContext" },
-            { "$ref": "#/definitions/dataSource-applicationSettings" }
+            { "$ref": "#/definitions/dataSource-applicationSettings" },
+            { "$ref": "#/definitions/dataSource-customTextParameters" }
           ]
         },
         "defaultValue": {
@@ -118,6 +119,11 @@
       "title": "Application settings",
       "description": "The variable is fetched from the application settings",
       "const": "applicationSettings"
+    },
+    "dataSource-customTextParameters": {
+      "title": "Custom text parameters",
+      "description": "The variable is returned from custom backend validations",
+      "const": "customTextParameters"
     }
   }
 }
