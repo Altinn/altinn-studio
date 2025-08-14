@@ -3,12 +3,13 @@ import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import {
+  StudioActionCloseButton,
   StudioCard,
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
 } from '@studio/components-legacy';
-import { StudioActionCloseButton, StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -114,7 +115,6 @@ export const EditColumnElement = ({
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
-            data-size='sm'
             onClick={onClose}
             title={t('general.save')}
             disabled={isSaveButtonDisabled}
