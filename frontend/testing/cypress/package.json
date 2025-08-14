@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "devDependencies": {
     "@testing-library/cypress": "10.0.3",
-    "axe-core": "4.10.2",
-    "cypress": "14.0.3",
+    "axe-core": "4.10.3",
+    "cypress": "14.5.4",
     "cypress-axe": "1.6.0",
     "cypress-plugin-tab": "1.0.5",
     "eslint": "8.57.1"
