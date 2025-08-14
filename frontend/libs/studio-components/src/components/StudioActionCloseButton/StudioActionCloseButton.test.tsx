@@ -13,7 +13,14 @@ const getActionButton = (): HTMLButtonElement => screen.getByRole('button') as H
 
 describe('StudioActionCloseButton', () => {
   it('should support custom attributes', () => {
-    testCustomAttributes(renderStudioActionCloseButton, getActionButton);
+    testCustomAttributes(
+      (customAttributes: {}) =>
+        renderStudioActionCloseButton({
+          ...defaultStudioActionCloseButtonProps,
+          ...customAttributes,
+        }),
+      getActionButton,
+    );
   });
 
   it('should append given class name to root', () => {
