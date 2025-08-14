@@ -281,7 +281,7 @@ public class OptionsService : IOptionsService
         return appTextResourceIds.Intersect(orgTextResourceIds).ToHashSet();
     }
 
-    private async Task SaveMetadataForImportedOptionList(string org, string repo, string developer, string optionListId, string version = "")
+    private async Task SaveMetadataForImportedOptionList(string org, string repo, string developer, string optionListId)
     {
         var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
         var settings = await altinnGitRepository.GetAltinnStudioSettings();
@@ -289,7 +289,7 @@ public class OptionsService : IOptionsService
         {
             ImportDate = $"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}",
             ImportSource = ImportSourceName(org),
-            Version = version,
+            Version = await _giteaContentLibraryService.GetCommitShaForCodeList(org, optionListId),
         };
 
         settings.Imports ??= new ImportedResources();
