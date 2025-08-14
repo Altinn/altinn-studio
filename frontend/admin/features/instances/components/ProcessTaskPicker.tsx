@@ -76,7 +76,7 @@ const ProcessTaskPickerWithData = ({ processTasks, state }: ProcessTaskPickerWit
       <StudioSelect.Option value={'__all__'}>{t('Alle')}</StudioSelect.Option>
       {processTasks.map((task) => (
         <StudioSelect.Option key={task.id} value={task.id}>
-          {task.name}
+          {task.name ?? task.id}
         </StudioSelect.Option>
       ))}
       <StudioSelect.Option value={'__ended__'}>{t('Avsluttet')}</StudioSelect.Option>

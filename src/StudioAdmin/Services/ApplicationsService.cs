@@ -38,12 +38,11 @@ public class ApplicationsService : IApplicationsService
         {
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(
-                $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments"
+                $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments", ct
             );
             response.EnsureSuccessStatusCode();
 
-            var deployments = await response.Content.ReadFromJsonAsync<List<Deployment>>();
-            ct.ThrowIfCancellationRequested();
+            var deployments = await response.Content.ReadFromJsonAsync<List<Deployment>>(ct);
             if (deployments == null)
             {
                 return;

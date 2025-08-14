@@ -64,17 +64,16 @@ class TestStorageService : IStorageService
                 ["size"] = $"{SIZE}",
                 ["continuationToken"] = continuationToken,
                 ["process.currentTask"] = currentTaskFilter,
-                ["process.isComplete"] = processIsCompleteFilter != null ? processIsCompleteFilter.ToString() : null,
+                ["process.isComplete"] = processIsCompleteFilter != null ? processIsCompleteFilter.Value.ToString().ToLowerInvariant() : null,
             }
         );
 
         var request = new HttpRequestMessage(HttpMethod.Get, instancesUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
-        ct.ThrowIfCancellationRequested();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
 
         if (queryResponse == null)
@@ -130,11 +129,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
-        ct.ThrowIfCancellationRequested();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var instance = JsonConvert.DeserializeObject<Instance>(responseString);
 
         if (instance == null)
@@ -167,14 +165,14 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/data/{dataElementId}"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
 
         var contentType =
             response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
         var fileName = response.Content.Headers.ContentDisposition?.FileName;
-        var stream = await response.Content.ReadAsStreamAsync();
+        var stream = await response.Content.ReadAsStreamAsync(ct);
 
         return (stream, contentType, fileName);
     }
@@ -200,11 +198,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/process/history"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
-        ct.ThrowIfCancellationRequested();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var processHistoryList =
             JsonConvert.DeserializeObject<ProcessHistoryList>(responseString)
             ?? throw new JsonException("Could not deserialize ProcessHistory response");
@@ -238,11 +235,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/events"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
-        ct.ThrowIfCancellationRequested();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var instanceEventList =
             JsonConvert.DeserializeObject<InstanceEventList>(responseString)
             ?? throw new JsonException("Could not deserialize InstanceEvents response");

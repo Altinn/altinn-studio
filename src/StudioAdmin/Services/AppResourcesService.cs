@@ -30,13 +30,11 @@ class AppResourcesService : IAppResourcesService
             HttpMethod.Get,
             $"{appsBaseUrl}/{org}/{app}/api/v1/meta/process"
         );
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         XDocument processXml = XDocument.Parse(responseString);
-
-        ct.ThrowIfCancellationRequested();
 
         return processXml
             .Descendants(BPMN + "task")

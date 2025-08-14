@@ -9,11 +9,11 @@ namespace Altinn.Studio.Admin.Controllers;
 public class AppResourcesController : ControllerBase
 {
     private readonly IAppResourcesService _appResourcesService;
-    private readonly ILogger<InstancesController> _logger;
+    private readonly ILogger<AppResourcesController> _logger;
 
     public AppResourcesController(
         IAppResourcesService appResourcesService,
-        ILogger<InstancesController> logger
+        ILogger<AppResourcesController> logger
     )
     {
         _appResourcesService = appResourcesService;
