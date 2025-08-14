@@ -318,23 +318,11 @@ declare global {
       showNavGroupsMobile(): Chainable<null>;
       hideNavGroupsMobile(): Chainable<null>;
 
-      navGroup(
-        groupName: string | RegExp,
-        pageName?: string | RegExp,
-        subformName?: string | RegExp,
-      ): Chainable<JQuery<Element>>;
+      navGroup(groupName: RegExp, pageName?: RegExp, subformName?: RegExp): Chainable<JQuery<Element>>;
 
-      gotoNavGroup(
-        groupName: string | RegExp,
-        device: 'mobile' | 'tablet' | 'desktop',
-        pageName?: string | RegExp,
-      ): Chainable<null>;
+      gotoNavGroup(groupName: RegExp, device: 'mobile' | 'tablet' | 'desktop', pageName?: RegExp): Chainable<null>;
 
-      openNavGroup(
-        groupName: string | RegExp,
-        pageName?: string | RegExp,
-        subformName?: string | RegExp,
-      ): Chainable<null>;
+      openNavGroup(groupName: RegExp, pageName?: RegExp, subformName?: RegExp): Chainable<null>;
 
       ignoreConsoleMessages(consoleMessages: ConsoleMessage[]): Chainable<null>;
     }

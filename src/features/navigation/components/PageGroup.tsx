@@ -13,7 +13,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { Page } from 'src/features/navigation/components/Page';
 import classes from 'src/features/navigation/components/PageGroup.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
-import { getTaskIcon, isSingleGroup, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
+import { getTaskIcon, useValidationsForPages, useVisiblePages } from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import type {
@@ -27,6 +27,10 @@ export function PageGroup({ group, onNavigate }: { group: NavigationPageGroup; o
   const currentPageId = useNavigationParam('pageKey');
   const containsCurrentPage = visiblePages.some((page) => page === currentPageId);
   const validations = useValidationsForPages(visiblePages, group.markWhenCompleted);
+
+  function isSingleGroup(group: NavigationPageGroup): group is NavigationPageGroupSingle {
+    return group.order.length === 1;
+  }
 
   if (visiblePages.length === 0) {
     return null;
@@ -73,6 +77,9 @@ function PageGroupSingle({
   const { performProcess, isAnyProcessing, isThisProcessing: isNavigating } = useIsProcessing();
   const page = group.order[0];
 
+  const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;
+  const pageGroupIsComplete = validations !== ContextNotProvided && validations.isCompleted.group;
+
   return (
     <li>
       <button
@@ -98,6 +105,16 @@ function PageGroupSingle({
         />
         <span className={cn(classes.groupName, { [classes.groupNameActive]: isCurrentPage })}>
           <Lang id={page} />
+          {pageGroupHasErrors && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_error' />
+            </span>
+          )}
+          {pageGroupIsComplete && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_complete' />
+            </span>
+          )}
         </span>
       </button>
       <SubformsForPage pageKey={page} />
@@ -112,12 +129,14 @@ function PageGroupMultiple({
   validations,
   onNavigate,
 }: PageGroupProps<NavigationPageGroupMultiple>) {
-  const { langAsString } = useLanguage();
   const buttonId = `navigation-button-${group.id}`;
   const listId = `navigation-page-list-${group.id}`;
 
   const [isOpen, setIsOpen] = useState(containsCurrentPage);
   useLayoutEffect(() => setIsOpen(containsCurrentPage), [containsCurrentPage]);
+
+  const pageGroupHasErrors = validations !== ContextNotProvided && validations.hasErrors.group;
+  const pageGroupIsComplete = validations !== ContextNotProvided && validations.isCompleted.group;
 
   return (
     <li>
@@ -125,8 +144,6 @@ function PageGroupMultiple({
         id={buttonId}
         aria-current={containsCurrentPage ? 'step' : undefined}
         aria-expanded={isOpen}
-        aria-owns={listId}
-        aria-label={langAsString(group.name)}
         className={cn(classes.groupButton, { [classes.groupButtonOpen]: isOpen }, 'fds-focus')}
         onClick={() => setIsOpen((o) => !o)}
       >
@@ -134,11 +151,21 @@ function PageGroupMultiple({
           open={isOpen}
           type={group.type}
           active={containsCurrentPage}
-          error={validations !== ContextNotProvided && validations.hasErrors.group}
-          complete={validations !== ContextNotProvided && validations.isCompleted.group}
+          error={pageGroupHasErrors}
+          complete={pageGroupIsComplete}
         />
         <span className={cn(classes.groupName, { [classes.groupNameActive]: containsCurrentPage && !isOpen })}>
           <Lang id={group.name} />
+          {pageGroupHasErrors && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_group_error' />
+            </span>
+          )}
+          {pageGroupIsComplete && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_group_complete' />
+            </span>
+          )}
         </span>
         <ChevronDownIcon
           aria-hidden

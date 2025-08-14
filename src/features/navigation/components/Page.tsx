@@ -50,9 +50,18 @@ export function Page({
           active={isCurrentPage}
           isLoading={isNavigating}
         />
-
         <span className={cn(classes.pageName, { [classes.pageNameActive]: isCurrentPage })}>
           <Lang id={page} />
+          {isComplete && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_complete' />
+            </span>
+          )}
+          {hasErrors && (
+            <span className='sr-only'>
+              <Lang id='navigation.page_error' />
+            </span>
+          )}
         </span>
       </button>
       <SubformsForPage pageKey={page} />

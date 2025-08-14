@@ -313,12 +313,12 @@ describe('AppNavigation', () => {
       ],
     });
 
-    expect(within(screen.getByRole('button', { name: 'first' })).getByTestId('state-complete')).toBeInTheDocument();
+    expect(within(screen.getByRole('button', { name: /first/ })).getByTestId('state-complete')).toBeInTheDocument();
     expect(
-      within(screen.getByRole('button', { name: 'second' })).queryByTestId('state-complete'),
+      within(screen.getByRole('button', { name: /second/ })).queryByTestId('state-complete'),
     ).not.toBeInTheDocument(); // active
     expect(
-      within(screen.getByRole('button', { name: 'form' })).queryByTestId('state-complete'),
+      within(screen.getByRole('button', { name: /form/ })).queryByTestId('state-complete'),
     ).not.toBeInTheDocument(); // active
   });
 
@@ -334,9 +334,9 @@ describe('AppNavigation', () => {
       ],
     });
 
-    expect(within(screen.getByRole('button', { name: 'first' })).getByTestId('state-error')).toBeInTheDocument();
-    expect(within(screen.getByRole('button', { name: 'second' })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
-    expect(within(screen.getByRole('button', { name: 'form' })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
+    expect(within(screen.getByRole('button', { name: /first/ })).getByTestId('state-error')).toBeInTheDocument();
+    expect(within(screen.getByRole('button', { name: /second/ })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
+    expect(within(screen.getByRole('button', { name: /form/ })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
   });
 
   it('should show group as completed if all pages are completed (if not active)', async () => {
@@ -350,9 +350,9 @@ describe('AppNavigation', () => {
       ],
     });
 
-    expect(within(screen.getByRole('button', { name: 'form' })).getByTestId('state-complete')).toBeInTheDocument();
+    expect(within(screen.getByRole('button', { name: /form/ })).getByTestId('state-complete')).toBeInTheDocument();
     expect(
-      within(screen.getByRole('button', { name: 'third' })).queryByTestId('state-complete'),
+      within(screen.getByRole('button', { name: /third/ })).queryByTestId('state-complete'),
     ).not.toBeInTheDocument(); // active
   });
 
@@ -384,8 +384,8 @@ describe('AppNavigation', () => {
       ],
     });
 
-    expect(within(screen.getByRole('button', { name: 'form' })).getByTestId('state-error')).toBeInTheDocument();
-    expect(within(screen.getByRole('button', { name: 'third' })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
+    expect(within(screen.getByRole('button', { name: /form/ })).getByTestId('state-error')).toBeInTheDocument();
+    expect(within(screen.getByRole('button', { name: /third/ })).queryByTestId('state-error')).not.toBeInTheDocument(); // active
   });
 
   it('should show tasknavigation', async () => {
@@ -394,10 +394,10 @@ describe('AppNavigation', () => {
       taskNavigation: [{ taskId: 'Task_1' }, { type: 'receipt' }],
     });
 
-    expect(screen.getByRole('button', { name: 'Utfylling' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Utfylling' })).toHaveAttribute('aria-current', 'step');
-    expect(screen.getByRole('button', { name: 'Kvittering' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Kvittering' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: /Utfylling/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Utfylling/ })).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: /Kvittering/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Kvittering/ })).not.toHaveAttribute('aria-current');
   });
 
   it('should show navigation groups for current task', async () => {
@@ -409,12 +409,12 @@ describe('AppNavigation', () => {
       taskNavigation: [{ taskId: 'Task_1' }, { type: 'receipt' }],
     });
 
-    expect(screen.getByRole('button', { name: 'part1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'part1' })).toHaveAttribute('aria-current', 'step');
-    expect(screen.getByRole('button', { name: 'part2' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Utfylling' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Kvittering' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Kvittering' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: /part1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /part1/ })).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: /part2/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Utfylling/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kvittering/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Kvittering/ })).not.toHaveAttribute('aria-current');
   });
 
   it('should override task groups', async () => {
@@ -427,12 +427,12 @@ describe('AppNavigation', () => {
       overrideTaskNavigation: [{ taskId: 'Task_1' }, { type: 'receipt', name: 'Betalings-kvittering' }],
     });
 
-    expect(screen.getByRole('button', { name: 'part1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'part1' })).toHaveAttribute('aria-current', 'step');
-    expect(screen.getByRole('button', { name: 'part2' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Utfylling' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Kvittering' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Betalings-kvittering' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Betalings-kvittering' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: /part1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /part1/ })).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: /part2/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Utfylling/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kvittering/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Betalings-kvittering/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Betalings-kvittering/ })).not.toHaveAttribute('aria-current');
   });
 });
