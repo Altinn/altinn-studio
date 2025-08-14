@@ -5,24 +5,40 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
+using Match = System.Text.RegularExpressions.Match;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
 public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOptionsListFromOrgTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public ImportOptionsListFromOrgTests(WebApplicationFactory<Program> fixture) : base(fixture)
-    {
-    }
-
+    private readonly Mock<IGiteaContentLibraryService> _giteaContentLibraryServiceMock;
     private const string OrgName = "ttd";
     private const string Username = "testUser";
+    private const string CodeListFolderPath = "CodeLists/";
+    private const string TextResourceFolderPath = "Texts/";
+
+    public ImportOptionsListFromOrgTests(WebApplicationFactory<Program> fixture) : base(fixture)
+    {
+        _giteaContentLibraryServiceMock = new Mock<IGiteaContentLibraryService>();
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_giteaContentLibraryServiceMock.Object);
+    }
+
 
     [Fact]
     public async Task Post_Returns200OK_WhenImportingCodeListFromOrg()
@@ -39,6 +55,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(StringCodeList);
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+        SetupGiteaMocks(targetOrgName, OrgRepoName, OptionListId);
 
         string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -76,6 +93,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         TextResourceElement textResourceElementWithUniqueId = new() { Id = "someId", Value = "someValue" };
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+        SetupGiteaMocks(targetOrgName, OrgRepoName, OptionListId);
 
         string apiUrl = ApiUrl(targetOrgName, targetAppRepoName, OptionListId);
         using HttpRequestMessage message = new(HttpMethod.Post, apiUrl);
@@ -111,6 +129,7 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         TextResourceElement textResourceElementWithCommonId = new() { Id = "Navn", Value = "New name" };
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+        SetupGiteaMocks(targetOrgName, OrgRepoName, OptionListId);
 
         string sourceTextResourceFileContent = TestDataHelper.GetFileFromRepo(targetOrgName, targetAppRepoName, Username, TextResourceRelativePath);
         TextResource sourceTextResource = JsonSerializer.Deserialize<TextResource>(sourceTextResourceFileContent, s_jsonOptions);
@@ -166,6 +185,9 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         const string OptionListId = "codeListString";
 
         (string targetOrgName, string targetAppRepoName) = await SetupTestOrgAndRepo(OrgRepoName, AppRepoName);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.CodeListExists(targetOrgName, OptionListId))
+            .ReturnsAsync(true);
 
         const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(targetOrgName, targetAppRepoName, Username);
@@ -182,6 +204,8 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal($"The options file {OptionListId}.json already exists.", responseContent);
+        _giteaContentLibraryServiceMock
+            .Verify(service => service.CodeListExists(targetOrgName, OptionListId), Times.Once);
     }
 
     private async Task<(string targetOrgName, string targetAppRepoName)> SetupTestOrgAndRepo(string orgRepoName, string appRepoName)
@@ -194,6 +218,78 @@ public class ImportOptionsListFromOrgTests : DesignerEndpointsTestsBase<ImportOp
         await AddRepositoryToTestOrg(Username, OrgName, appRepoName, targetOrgName, targetAppRepoName);
 
         return (targetOrgName, targetAppRepoName);
+    }
+
+    private void SetupGiteaMocks(string targetOrgName, string sourceRepoName, string codeListId)
+    {
+        SetupCodeListGiteaMock(targetOrgName, sourceRepoName, codeListId);
+        SetupTextResourceGiteaMocks(targetOrgName, sourceRepoName);
+    }
+
+    private void SetupCodeListGiteaMock(string targetOrgName, string sourceRepoName, string codeListId)
+    {
+        string codeListRelativePath = Path.Join(CodeListFolderPath, $"{codeListId}.json");
+        string fileContent = TestDataHelper.GetFileFromRepo(OrgName, sourceRepoName, Username, codeListRelativePath);
+        List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(fileContent, s_jsonOptions);
+
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetCodeList(targetOrgName, codeListId))
+            .ReturnsAsync(codeList);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.CodeListExists(targetOrgName, codeListId))
+            .ReturnsAsync(true);
+    }
+
+    private void SetupTextResourceGiteaMocks(string targetOrgName, string sourceRepoName)
+    {
+        string searchPattern = Path.Join(TextResourceFolderPath, "resource.*.json");
+        string[] fileNames = TestDataHelper.GetRepositoryFileNames(Username, OrgName, sourceRepoName, searchPattern);
+        HashSet<string> languages = fileNames
+            .Select(Path.GetFileNameWithoutExtension)
+            .Select(MatchTextResourceFileName)
+            .Where(match => match.Success)
+            .Select(match => match.Groups["lang"].Value)
+            .ToHashSet();
+
+        SetupGetLanguagesMock(targetOrgName, languages);
+        SetupGetTextResourceMocks(targetOrgName, sourceRepoName, languages);
+    }
+
+    private void SetupGetLanguagesMock(string targetOrgName, HashSet<string> languages)
+    {
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetLanguages(targetOrgName))
+            .ReturnsAsync(languages.ToList());
+    }
+
+    private void SetupGetTextResourceMocks(string targetOrgName, string sourceRepoName, HashSet<string> languages)
+    {
+        foreach (string languageCode in languages)
+        {
+            SetupGetTextResourceMock(targetOrgName, sourceRepoName, languageCode);
+        }
+    }
+
+    private void SetupGetTextResourceMock(string targetOrgName, string sourceRepoName, string languageCode)
+    {
+        string textResourcePath = Path.Join(TextResourceFolderPath, TextResourcePath(languageCode));
+        string fileContent = TestDataHelper.GetFileFromRepo(OrgName, sourceRepoName, Username, textResourcePath);
+        TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, s_jsonOptions);
+
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetTextResource(targetOrgName, languageCode))
+            .ReturnsAsync(textResource);
+    }
+
+    private static Match MatchTextResourceFileName(string fileName)
+    {
+        var textResourceFilenameRegex = new Regex(@"^resource\.(?<lang>[A-Za-z]{2,3})$");
+        return textResourceFilenameRegex.Match(fileName);
+    }
+
+    private static string TextResourcePath(string languageCode)
+    {
+        return $"resource.{languageCode}.json";
     }
 
     private static string ApiUrl(string org, string app, string optionListId) => $"/designer/api/{org}/{app}/options/import/{optionListId}";

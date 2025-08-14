@@ -9,14 +9,20 @@ const originalWindowLocation = window.location;
 describe('AccessListPreconditionFailedToast', () => {
   beforeEach(() => {
     delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      reload: jest.fn(),
-    };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalWindowLocation,
+        reload: jest.fn(),
+      },
+    });
   });
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalWindowLocation,
+    });
   });
 
   it('should refresh page when refresh button is clicked', async () => {
