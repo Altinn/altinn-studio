@@ -17,6 +17,16 @@ public class InstantiationValidationResult
     /// </summary>
     public string? CustomTextKey { get; set; }
 
+    /// <summary>
+    /// <see cref="CustomTextKey"/> might include some parameters (typically the field value, or some derived value)
+    /// that should be included in error message.
+    /// </summary>
+    /// <example>
+    /// The localized text for the key might be "Date must be between {0} and {1}"
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
+    /// </example>
+    public Dictionary<string, string>? CustomTextParameters { get; set; }
+
 #nullable disable
     /// <summary>
     /// Gets or sets a message

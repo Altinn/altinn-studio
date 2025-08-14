@@ -24,7 +24,10 @@ public class ValidationIssueWithSource
             Source = source,
             NoIncrementalUpdates = noIncrementalUpdates,
             CustomTextKey = issue.CustomTextKey,
+#pragma warning disable CS0618 // Type or member is obsolete
             CustomTextParams = issue.CustomTextParams,
+#pragma warning restore CS0618 // Type or member is obsolete
+            CustomTextParameters = issue.CustomTextParameters,
         };
     }
 
@@ -94,11 +97,24 @@ public class ValidationIssueWithSource
     /// </summary>
     /// <example>
     /// The localized text for the key might be "Date must be between {0} and {1}"
-    /// and the param will provide the dynamical range of allowable dates (eg teh reporting period)
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
     /// </example>
+    [Obsolete("Use customTextParameters instead")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("customTextParams")]
     public List<string>? CustomTextParams { get; set; }
+
+    /// <summary>
+    /// <see cref="CustomTextKey"/> might include some parameters (typically the field value, or some derived value)
+    /// that should be included in error message.
+    /// </summary>
+    /// <example>
+    /// The localized text for the key might be "Date must be between {0} and {1}"
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
+    /// </example>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("customTextParameters")]
+    public Dictionary<string, string>? CustomTextParameters { get; set; }
 }
 
 /// <summary>

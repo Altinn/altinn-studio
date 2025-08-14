@@ -175,7 +175,14 @@ public class ValidationService : IValidationService
         {
             if (String.IsNullOrEmpty(issue.Description) && !String.IsNullOrEmpty(issue.CustomTextKey))
             {
-                if (await _translationService.TranslateTextKey(issue.CustomTextKey, language) is string translated)
+                if (
+                    await _translationService.TranslateTextKey(
+                        issue.CustomTextKey,
+                        language,
+                        issue.CustomTextParameters
+                    )
+                    is string translated
+                )
                 {
                     issue.Description = translated;
                 }

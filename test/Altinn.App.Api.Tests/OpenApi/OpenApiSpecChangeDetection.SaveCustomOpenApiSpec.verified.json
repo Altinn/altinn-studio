@@ -2420,6 +2420,14 @@
             "items": {
               "type": "string"
             },
+            "nullable": true,
+            "deprecated": true
+          },
+          "customTextParameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
             "nullable": true
           }
         },

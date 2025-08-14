@@ -1400,7 +1400,11 @@ public class InstancesController : ControllerBase
         if (String.IsNullOrEmpty(validationResult.Message) && !String.IsNullOrEmpty(validationResult.CustomTextKey))
         {
             if (
-                await _translationService.TranslateTextKey(validationResult.CustomTextKey, language)
+                await _translationService.TranslateTextKey(
+                    validationResult.CustomTextKey,
+                    language,
+                    validationResult.CustomTextParameters
+                )
                 is string translated
             )
             {

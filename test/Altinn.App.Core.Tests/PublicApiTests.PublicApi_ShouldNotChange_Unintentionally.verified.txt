@@ -2016,7 +2016,7 @@ namespace Altinn.App.Core.Features.Validation
         protected GenericFormDataValidator(string dataType) { }
         public string DataType { get; }
         protected void AddValidationIssue(Altinn.App.Core.Models.Validation.ValidationIssue issue) { }
-        protected void CreateValidationIssue<T>(System.Linq.Expressions.Expression<System.Func<TModel, T>> selector, string textKey, Altinn.App.Core.Models.Validation.ValidationIssueSeverity severity = 1, string? description = null, string? code = null, System.Collections.Generic.List<string>? customTextParams = null) { }
+        protected void CreateValidationIssue<T>(System.Linq.Expressions.Expression<System.Func<TModel, T>> selector, string textKey, Altinn.App.Core.Models.Validation.ValidationIssueSeverity severity = 1, string? description = null, string? code = null, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null) { }
         protected abstract bool HasRelevantChanges(TModel current, TModel previous);
         public bool HasRelevantChanges(object current, object previous) { }
         protected abstract System.Threading.Tasks.Task ValidateFormData(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, TModel data, string? language);
@@ -3703,8 +3703,8 @@ namespace Altinn.App.Core.Internal.Texts
     public interface ITranslationService
     {
         System.Threading.Tasks.Task<string?> TranslateFirstMatchingTextKey(string? language, params string[] keys);
-        System.Threading.Tasks.Task<string?> TranslateTextKey(string key, string? language);
-        System.Threading.Tasks.Task<string?> TranslateTextKey(string key, Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.ComponentContext context, System.Collections.Generic.List<string>? customTextParams = null);
+        System.Threading.Tasks.Task<string?> TranslateTextKey(string key, string? language, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null);
+        System.Threading.Tasks.Task<string?> TranslateTextKey(string key, Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.ComponentContext context, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null);
         System.Threading.Tasks.Task<string?> TranslateTextKeyLenient(string? key, string? language);
     }
 }
@@ -4658,6 +4658,7 @@ namespace Altinn.App.Core.Models.Validation
     {
         public InstantiationValidationResult() { }
         public string? CustomTextKey { get; set; }
+        public System.Collections.Generic.Dictionary<string, string>? CustomTextParameters { get; set; }
         public string Message { get; set; }
         public bool Valid { get; set; }
         public System.Collections.Generic.List<Altinn.Platform.Register.Models.Party> ValidParties { get; set; }
@@ -4686,7 +4687,11 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(PropertyName="customTextKey")]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="customTextParameters")]
+        [System.Text.Json.Serialization.JsonPropertyName("customTextParameters")]
+        public System.Collections.Generic.Dictionary<string, string>? CustomTextParameters { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="customTextParams")]
+        [System.Obsolete("Use customTextParameters instead")]
         [System.Text.Json.Serialization.JsonPropertyName("customTextParams")]
         public System.Collections.Generic.List<string>? CustomTextParams { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="dataElementId")]
@@ -4760,6 +4765,10 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("customTextParameters")]
+        public System.Collections.Generic.Dictionary<string, string>? CustomTextParameters { get; set; }
+        [System.Obsolete("Use customTextParameters instead")]
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("customTextParams")]
         public System.Collections.Generic.List<string>? CustomTextParams { get; set; }

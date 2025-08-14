@@ -84,9 +84,22 @@ public class ValidationIssue
     /// </summary>
     /// <example>
     /// The localized text for the key might be "Date must be between {0} and {1}"
-    /// and the param will provide the dynamical range of allowable dates (eg teh reporting period)
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
     /// </example>
+    [Obsolete("Use customTextParameters instead")]
     [JsonProperty(PropertyName = "customTextParams")]
     [JsonPropertyName("customTextParams")]
     public List<string>? CustomTextParams { get; set; }
+
+    /// <summary>
+    /// <see cref="CustomTextKey"/> might include some parameters (typically the field value, or some derived value)
+    /// that should be included in error message.
+    /// </summary>
+    /// <example>
+    /// The localized text for the key might be "Date must be between {0} and {1}"
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
+    /// </example>
+    [JsonProperty(PropertyName = "customTextParameters")]
+    [JsonPropertyName("customTextParameters")]
+    public Dictionary<string, string>? CustomTextParameters { get; set; }
 }

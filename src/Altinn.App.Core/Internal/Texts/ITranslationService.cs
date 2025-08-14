@@ -14,8 +14,13 @@ public interface ITranslationService
     /// </summary>
     /// <param name="key">Id of the text resource</param>
     /// <param name="language">Language for the text. If omitted, 'nb' will be used</param>
+    /// <param name="customTextParameters">Dictionary of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParameters"/></param>
     /// <returns>The value of the text resource in the specified language</returns>
-    Task<string?> TranslateTextKey(string key, string? language);
+    Task<string?> TranslateTextKey(
+        string key,
+        string? language,
+        Dictionary<string, string>? customTextParameters = null
+    );
 
     /// <summary>
     /// Translates the specified text key using the provided layout evaluator state and component context to support dynamic variable replacement.
@@ -25,13 +30,13 @@ public interface ITranslationService
     /// <param name="key">The identifier of the text resource to be translated.</param>
     /// <param name="state">The layout evaluator state containing shared data required for translation.</param>
     /// <param name="context">The component context in which the translation is being performed.</param>
-    /// <param name="customTextParams">List of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParams"/></param>
+    /// <param name="customTextParameters">Dictionary of extra parameters for rendering this text <see cref="ValidationIssue.CustomTextParameters"/></param>
     /// <returns>The translated text value, or null if the key cannot be translated.</returns>
     Task<string?> TranslateTextKey(
         string key,
         LayoutEvaluatorState state,
         ComponentContext context,
-        List<string>? customTextParams = null
+        Dictionary<string, string>? customTextParameters = null
     );
 
     /// <summary>

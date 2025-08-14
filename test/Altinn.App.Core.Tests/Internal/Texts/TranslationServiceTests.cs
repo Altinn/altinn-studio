@@ -25,6 +25,16 @@ public class TranslationServiceTests
                     [
                         new TextResourceElement { Id = "text", Value = "bokmål" },
                         new TextResourceElement { Id = "text2", Value = "bokmål2" },
+                        new TextResourceElement
+                        {
+                            Id = "text_with_custom_params",
+                            Value = "første er {0} og andre er {1}",
+                            Variables = new()
+                            {
+                                new TextResourceVariable() { Key = "first", DataSource = "customTextParameters" },
+                                new TextResourceVariable() { Key = "second", DataSource = "customTextParameters" },
+                            },
+                        },
                     ],
                 }
             );
@@ -144,5 +154,31 @@ public class TranslationServiceTests
         var translationService = provider.GetRequiredService<ITranslationService>();
         var result = await translationService.TranslateFirstMatchingTextKey(LanguageConst.Nn, "text");
         Assert.Equal("bokmål", result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_CustomTextParameters()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey(
+            "text_with_custom_params",
+            LanguageConst.Nb,
+            new() { ["first"] = "111", ["second"] = "222" }
+        );
+        Assert.Equal("første er 111 og andre er 222", result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_CustomTextParameters_Fallback()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+        var result = await translationService.TranslateTextKey(
+            "text_with_custom_params",
+            LanguageConst.Nb,
+            new() { ["second"] = "222" }
+        );
+        Assert.Equal("første er first og andre er 222", result);
     }
 }
