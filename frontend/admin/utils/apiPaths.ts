@@ -6,10 +6,13 @@ export const instancesListPath = (
   env: string,
   app: string,
   continuationToken?: string,
+  currentTask?: string,
 ) => {
-  const queryString = getQueryStringFromObject({ continuationToken });
+  const queryString = getQueryStringFromObject({ continuationToken, currentTask });
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };
+export const appProcessTasksPath = (org: string, env: string, app: string) =>
+  `${adminApiBasePath}/app-resources/${org}/${env}/${app}/process-tasks`; // Get
 export const instancePath = (org: string, env: string, app: string, instanceId: string) =>
   `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}`; // Get
 export const instanceProcessHistoryPath = (

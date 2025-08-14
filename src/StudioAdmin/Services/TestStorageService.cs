@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.WebUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Admin.Services;
@@ -41,6 +41,7 @@ class TestStorageService : IStorageService
         string env,
         string app,
         string? continuationToken,
+        string? currentTaskFilter,
         CancellationToken ct
     )
     {
@@ -59,19 +60,19 @@ class TestStorageService : IStorageService
                 ["org"] = org,
                 ["appId"] = $"{org}/{app}",
                 ["mainVersionInclude"] = "3",
-                ["continuationToken"] = continuationToken,
                 ["size"] = $"{SIZE}",
-            });
-
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            instancesUri
+                ["continuationToken"] = continuationToken,
+                ["process.currentTask"] = currentTaskFilter,
+            }
         );
+
+        var request = new HttpRequestMessage(HttpMethod.Get, instancesUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.SendAsync(request);
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
+        ct.ThrowIfCancellationRequested();
         var queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
 
         if (queryResponse == null)
@@ -79,7 +80,9 @@ class TestStorageService : IStorageService
             throw new JsonException("Could not deserialize Instance query response");
         }
 
-        var instances = queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance)).ToList();
+        var instances = queryResponse
+            .Instances.Select(instance => SimpleInstance.FromInstance(instance))
+            .ToList();
         var nextContinuationToken = ParseContinuationToken(queryResponse.Next);
 
         return new InstancesResponse()
@@ -129,6 +132,7 @@ class TestStorageService : IStorageService
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
+        ct.ThrowIfCancellationRequested();
         var instance = JsonConvert.DeserializeObject<Instance>(responseString);
 
         if (instance == null)
@@ -198,6 +202,7 @@ class TestStorageService : IStorageService
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
+        ct.ThrowIfCancellationRequested();
         var processHistoryList =
             JsonConvert.DeserializeObject<ProcessHistoryList>(responseString)
             ?? throw new JsonException("Could not deserialize ProcessHistory response");
@@ -235,6 +240,7 @@ class TestStorageService : IStorageService
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync();
+        ct.ThrowIfCancellationRequested();
         var instanceEventList =
             JsonConvert.DeserializeObject<InstanceEventList>(responseString)
             ?? throw new JsonException("Could not deserialize InstanceEvents response");

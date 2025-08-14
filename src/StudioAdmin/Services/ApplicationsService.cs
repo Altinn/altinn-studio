@@ -36,8 +36,6 @@ public class ApplicationsService : IApplicationsService
 
         var tasks = orgEnvironments.Select(async env =>
         {
-            ct.ThrowIfCancellationRequested();
-
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(
                 $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments"
@@ -45,6 +43,7 @@ public class ApplicationsService : IApplicationsService
             response.EnsureSuccessStatusCode();
 
             var deployments = await response.Content.ReadFromJsonAsync<List<Deployment>>();
+            ct.ThrowIfCancellationRequested();
             if (deployments == null)
             {
                 return;

@@ -13,10 +13,16 @@ type InstancesTableProps = {
   org: string;
   env: string;
   app: string;
+  currentTask?: string;
 };
 
-export const InstancesTable = ({ org, env, app }: InstancesTableProps) => {
-  const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(org, env, app);
+export const InstancesTable = ({ org, env, app, currentTask }: InstancesTableProps) => {
+  const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
+    org,
+    env,
+    app,
+    currentTask,
+  );
   const { t } = useTranslation();
 
   switch (status) {
@@ -80,7 +86,9 @@ const InstancesTableWithData = ({
                 <Link to={`${instance.id}`}>{instance.id}</Link>
               </StudioTable.Cell>
               <StudioTable.Cell>{formatDateAndTime(instance.createdAt)}</StudioTable.Cell>
-              <StudioTable.Cell>{instance.currentTask ?? 'Avsluttet'}</StudioTable.Cell>
+              <StudioTable.Cell>
+                {instance.currentTaskName ?? instance.currentTaskId ?? 'Avsluttet'}
+              </StudioTable.Cell>
               <StudioTable.Cell>{getStatus(instance)}</StudioTable.Cell>
             </StudioTable.Row>
           ))}

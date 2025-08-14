@@ -7,7 +7,8 @@ export type SimpleInstance = {
   id: string;
   org: string;
   app: string;
-  currentTask?: string;
+  currentTaskName?: string;
+  currentTaskId?: string;
   dueBefore?: string;
   isComplete: boolean;
   completedAt?: string;

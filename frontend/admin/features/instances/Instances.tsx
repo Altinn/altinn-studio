@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
+import { ProcessTaskPicker } from './components/ProcessTaskPicker';
 
 export const Instances = () => {
   const { org, env, app } = useParams();
+  const [currentTaskFilter, setCurrentTaskFilter] = useState<string | null>(null);
+
   return (
     <div>
       <StudioBreadcrumbs>
@@ -25,7 +28,14 @@ export const Instances = () => {
       <h1>
         {env} / {app}
       </h1>
-      <InstancesTable org={org} env={env} app={app} />
+      <ProcessTaskPicker
+        org={org}
+        env={env}
+        app={app}
+        value={currentTaskFilter}
+        onChange={setCurrentTaskFilter}
+      />
+      <InstancesTable org={org} env={env} app={app} currentTask={currentTaskFilter} />
     </div>
   );
 };
