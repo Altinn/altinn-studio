@@ -11,5 +11,5 @@ export const StudioPageHeaderLeft = ({
   showTitle = false,
 }: StudioPageHeaderLeftProps): ReactElement => {
   if (children) return <div>{children}</div>;
-  return <DigdirLogoLink title={title} showTitle={showTitle} />;
+  return <DigdirLogoLink title={title ?? ''} showTitle={showTitle} />;
 };

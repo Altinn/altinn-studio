@@ -44,12 +44,17 @@ type Props = {
   providerProps: Partial<StudioPageHeaderContextProps>;
 };
 
-const renderStudioPageHeaderMain = (props: Partial<Props>): RenderResult => {
+const defaultProps: Props = {
+  componentProps: { children: <div>Test Child</div> },
+  providerProps: { variant: 'regular' },
+};
+const renderStudioPageHeaderMain = (props: Partial<Props> = {}): RenderResult => {
   const { componentProps, providerProps = { variant: 'regular' } } = props;
+  const { componentProps: defaultComponentProps } = defaultProps;
 
   return render(
     <StudioPageHeaderContext.Provider value={providerProps}>
-      <StudioPageHeaderMain {...componentProps} />
+      <StudioPageHeaderMain {...defaultComponentProps} {...componentProps} />
     </StudioPageHeaderContext.Provider>,
   );
 };

@@ -11,7 +11,7 @@ import type { OverridableComponentRef } from '../../../types/OverridableComponen
 export type StudioPageHeaderHeaderButtonProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
-} & Omit<StudioButtonProps, 'color' | 'variant'>;
+} & Omit<StudioButtonProps, 'data-color' | 'variant'>;
 
 export const StudioPageHeaderHeaderButton: OverridableComponent<
   StudioPageHeaderHeaderButtonProps,

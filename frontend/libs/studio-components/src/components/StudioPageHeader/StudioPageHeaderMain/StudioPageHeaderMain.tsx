@@ -9,5 +9,5 @@ export type StudioPageHeaderMainProps = {
 
 export const StudioPageHeaderMain = ({ children }: StudioPageHeaderMainProps): ReactElement => {
   const { variant } = useStudioPageHeaderContext();
-  return <div className={cn(classes.main, classes[variant])}>{children}</div>;
+  return <div className={cn(classes.main, variant && classes[variant])}>{children}</div>;
 };
