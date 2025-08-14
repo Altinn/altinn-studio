@@ -52,11 +52,14 @@ describe('getRedirectUrl', () => {
 function mockWindowLocationHref(): jest.Mock {
   const hrefMock = jest.fn();
   delete window.location;
-  window.location = {
-    href: '',
-    origin: 'https://unit-test-com',
-    pathname: '/path/to/page',
-  } as Location;
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    value: {
+      href: '',
+      origin: 'https://unit-test-com',
+      pathname: '/path/to/page',
+    } as Location,
+  });
   Object.defineProperty(window.location, 'href', {
     set: hrefMock,
   });
