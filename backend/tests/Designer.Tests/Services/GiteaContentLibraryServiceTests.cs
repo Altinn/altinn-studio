@@ -260,7 +260,7 @@ public class GiteaContentLibraryServiceTests
         const string CodeListId = "someId";
         const string CommitSha = "someCommitSha";
         string filePath = CodeListFilePath(CodeListId);
-        FileSystemObject fileObject = new() { Sha = CommitSha};
+        FileSystemObject fileObject = new() { Sha = CommitSha };
         _giteaApiWrapperMock
             .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
             .ReturnsAsync(fileObject);
