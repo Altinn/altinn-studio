@@ -1,39 +1,40 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { forwardRef, type Ref, type ReactElement } from 'react';
 import {
   type SuggestionProps,
   EXPERIMENTAL_Suggestion as Suggestion,
 } from '@digdir/designsystemet-react';
 import { StudioLabelWrapper } from '../StudioLabelWrapper';
-import { StudioFieldset, type StudioFieldsetProps } from '../StudioFieldset';
 import type { StudioLabelWrapperProps } from '../StudioLabelWrapper/StudioLabelWrapper';
+import { StudioField } from '../StudioField';
+import { StudioLabel } from '../StudioLabel';
 
 export type StudioSuggestionProps = SuggestionProps &
-  StudioFieldsetProps &
-  Pick<StudioLabelWrapperProps, 'tagText' | 'required'> & { emptyText: string };
+  Pick<StudioLabelWrapperProps, 'tagText' | 'required'> & {
+    emptyText: string;
+    label: string;
+    className?: string;
+  };
 
 function StudioSuggestion(
-  { required, tagText, legend, children, description, emptyText, ...rest }: StudioSuggestionProps,
-  ref: Ref<React.ElementRef<typeof Suggestion>>,
+  { required, tagText, label, children, emptyText, className, ...rest }: StudioSuggestionProps,
+  ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
 ): ReactElement {
+  const labelId = useId();
   return (
-    <StudioFieldset
-      legend={
-        <StudioLabelWrapper required={required} tagText={tagText}>
-          {legend}
-        </StudioLabelWrapper>
-      }
-      description={description}
-    >
-      <Suggestion {...rest} ref={ref}>
-        <Suggestion.Input />
+    <StudioField className={className}>
+      <StudioLabelWrapper required={required} tagText={tagText}>
+        <StudioLabel id={labelId}>{label}</StudioLabel>
+      </StudioLabelWrapper>
+      <Suggestion {...rest}>
+        <Suggestion.Input aria-labelledby={labelId} ref={ref} />
         <Suggestion.Clear />
         <Suggestion.List>
           <Suggestion.Empty>{emptyText}</Suggestion.Empty>
           {children}
         </Suggestion.List>
       </Suggestion>
-    </StudioFieldset>
+    </StudioField>
   );
 }
 
