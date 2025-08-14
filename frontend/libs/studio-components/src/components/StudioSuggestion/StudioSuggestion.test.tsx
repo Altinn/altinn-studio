@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { type ForwardedRef } from 'react';
 import { render, screen, type RenderResult } from '@testing-library/react';
-import { StudioSuggestion, type StudioSuggestionProps } from './StudioSuggestion';
-import {
-  StudioSuggestionOption,
-  type StudioSuggestionOptionProps,
-} from './StudioSuggestionOption/StudioSuggestionOption';
+import { StudioSuggestion } from '.';
+import { type StudioSuggestionOptionProps } from './StudioSuggestionOption/StudioSuggestionOption';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
+import type { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
+import type { StudioSuggestionProps } from './StudioSuggestion';
 
 describe('StudioSuggestion', () => {
   it('should render', () => {
     renderStudioSuggestion();
 
-    expect(screen.getByText(defaultProps.legend)).toBeInTheDocument();
-    expect(screen.getByText(defaultProps.description)).toBeInTheDocument();
+    expect(screen.getByLabelText(defaultProps.label)).toBeInTheDocument();
   });
 
   it('renders options', () => {
@@ -24,14 +24,27 @@ describe('StudioSuggestion', () => {
 
   it('should render required label', () => {
     renderStudioSuggestion({
-      suggestionProps: { required: true, tagText: 'required', emptyText: 'Empty text' },
+      suggestionProps: { required: true, tagText: 'required' },
     });
 
     expect(screen.getByText('required')).toBeInTheDocument();
   });
+
+  it('Appends given classname to internal classname', () => {
+    testRootClassNameAppending((className) =>
+      renderStudioSuggestion({ suggestionProps: { className } }),
+    );
+  });
+
+  it('Forwards the ref to the button element if given', () => {
+    testRefForwarding<React.ElementRef<typeof Suggestion.Input>>(
+      (ref) => renderStudioSuggestion({}, ref),
+      () => getInput(),
+    );
+  });
 });
 
-const defaultOptions = [
+const defaultOptions: (StudioSuggestionOptionProps & { label: string })[] = [
   {
     label: 'Option 1',
     value: '1',
@@ -42,27 +55,30 @@ const defaultOptions = [
   },
 ];
 
-const defaultProps = {
+const defaultProps: StudioSuggestionProps = {
   emptyText: 'Empty text',
-  legend: 'Legend text',
-  description: 'Description text',
+  label: 'Label text',
 };
 
-type renderStudioSuggestionProps = {
-  suggestionProps?: StudioSuggestionProps;
+type RenderStudioSuggestionProps = {
+  suggestionProps?: Partial<StudioSuggestionProps>;
   options?: StudioSuggestionOptionProps[];
 };
 
-function renderStudioSuggestion({
-  suggestionProps = defaultProps,
-  options = defaultOptions,
-}: renderStudioSuggestionProps = {}): RenderResult {
+function getInput(label: string = defaultProps.label): HTMLInputElement {
+  return screen.getByLabelText(label);
+}
+
+function renderStudioSuggestion(
+  { suggestionProps, options = defaultOptions }: RenderStudioSuggestionProps = {},
+  ref?: ForwardedRef<React.ElementRef<typeof Suggestion.Input>>,
+): RenderResult {
   return render(
-    <StudioSuggestion {...suggestionProps}>
+    <StudioSuggestion {...defaultProps} {...suggestionProps} ref={ref}>
       {options.map((option) => (
-        <StudioSuggestionOption key={option.label} value={option.value} label={option.label}>
+        <StudioSuggestion.Option key={option.label} value={option.value} label={option.label}>
           {option.label}
-        </StudioSuggestionOption>
+        </StudioSuggestion.Option>
       ))}
     </StudioSuggestion>,
   );
