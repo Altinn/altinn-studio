@@ -1,6 +1,6 @@
 import { StudioButton, StudioSpinner, StudioTable } from '@studio/components';
 import classes from './InstancesTable.module.css';
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
