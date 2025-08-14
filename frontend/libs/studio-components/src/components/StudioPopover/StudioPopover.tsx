@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReactElement } from 'react';
+import type { ReactElement, Ref } from 'react';
 import { Popover } from '@digdir/designsystemet-react';
 import type {
   PopoverProps,
@@ -16,12 +16,18 @@ export function StudioPopover({ children, ...rest }: StudioPopoverProps): ReactE
   return <Popover {...rest}>{children}</Popover>;
 }
 
-export function StudioPopoverTrigger({
-  children,
-  ...rest
-}: StudioPopoverTriggerProps): ReactElement {
-  return <Popover.Trigger {...rest}>{children}</Popover.Trigger>;
+function StudioPopoverTrigger(
+  { children, ...rest }: StudioPopoverTriggerProps,
+  ref: Ref<HTMLButtonElement>,
+): ReactElement {
+  return (
+    <Popover.Trigger ref={ref} {...rest}>
+      {children}
+    </Popover.Trigger>
+  );
 }
+const ForwardedStudioPopoverTrigger = React.forwardRef(StudioPopoverTrigger);
+export { ForwardedStudioPopoverTrigger as StudioPopoverTrigger };
 
 export function StudioPopoverTriggerContext({
   children,

@@ -1,0 +1,9 @@
+.link {
+  padding: var(--ds-size-3);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.link:focus-visible {
+  outline: 1px var(--ds-color-focus-outer) solid var(--ds-border-width-focus);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-focus-inner);
+}

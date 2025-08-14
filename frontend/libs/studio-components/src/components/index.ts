@@ -32,6 +32,7 @@ export * from './StudioLabel';
 export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioNotFoundPage';
+export * from './StudioPageHeader';
 export * from './StudioParagraph';
 export * from './StudioPopover';
 export * from './StudioProperty';
