@@ -253,6 +253,27 @@ public class GiteaContentLibraryServiceTests
             service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
     }
 
+    [Fact]
+    public async Task GetCommitShaForCodeList_ShouldReturnCommitSha()
+    {
+        // Arrange
+        const string CodeListId = "someId";
+        const string CommitSha = "someCommitSha";
+        string filePath = CodeListFilePath(CodeListId);
+        FileSystemObject fileObject = new() { Sha = CommitSha};
+        _giteaApiWrapperMock
+            .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
+            .ReturnsAsync(fileObject);
+
+        // Act
+        string result = await _giteaContentLibraryService.GetCommitShaForCodeList(OrgName, CodeListId);
+
+        // Assert
+        Assert.Equal(CommitSha, result);
+        _giteaApiWrapperMock.Verify(
+            service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty), Times.Once);
+    }
+
     private static string TextResourceFilePath(string languageCode)
     {
         return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");

@@ -282,6 +282,7 @@ public class OptionsServiceTests : IDisposable
         const string OrgRepo = "org-content";
         const string AppRepo = "app-with-options";
         const string OptionListId = "codeListString";
+        const string CommitSha = "someCommitSha";
 
         TargetOrgName = TestDataHelper.GenerateTestOrgName();
         string targetOrgRepository = TestDataHelper.GetOrgContentRepoName(TargetOrgName);
@@ -302,13 +303,16 @@ public class OptionsServiceTests : IDisposable
 
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetCodeList(TargetOrgName, OptionListId))
-            .Returns(Task.FromResult(expectedOptionList));
+            .ReturnsAsync(expectedOptionList);
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetLanguages(TargetOrgName))
             .ReturnsAsync([EnLanguageCode, NbLanguageCode]);
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetTextResource(TargetOrgName, It.IsAny<string>()))
             .ReturnsAsync((string _, string languageCode) => languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource);
+        _giteaContentLibraryServiceMock
+            .Setup(service => service.GetCommitShaForCodeList(TargetOrgName, OptionListId))
+            .ReturnsAsync(CommitSha);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
@@ -334,7 +338,7 @@ public class OptionsServiceTests : IDisposable
             new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
         );
         Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
-        Assert.Empty(actualAppSettings.Imports.CodeLists[OptionListId].Version);
+        Assert.Equal(CommitSha, actualAppSettings.Imports.CodeLists[OptionListId].Version);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
     }
 
