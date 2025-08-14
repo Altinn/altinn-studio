@@ -4,6 +4,9 @@ import { StudioButton, type StudioButtonProps } from '../StudioButton';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 
 export type StudioActionCloseButtonProps = StudioButtonProps & {
+  /**
+   * @deprecated use `StudioActionCloseButton` from `@studio/components` instead.
+   */
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 

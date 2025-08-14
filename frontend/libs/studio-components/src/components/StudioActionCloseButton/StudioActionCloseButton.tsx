@@ -8,12 +8,11 @@ export type StudioActionCloseButtonProps = StudioButtonProps & {
 
 export const StudioActionCloseButton = forwardRef<HTMLButtonElement, StudioActionCloseButtonProps>(
   ({ onClick, variant = 'secondary', ...rest }: StudioActionCloseButtonProps, ref) => {
-    const handleOnClick = (event: MouseEvent<HTMLButtonElement>): void => onClick(event);
     return (
       <StudioButton
         data-color='success'
         icon={<CheckmarkIcon />}
-        onClick={handleOnClick}
+        onClick={onClick}
         variant={variant}
         {...rest}
         ref={ref}
