@@ -26,6 +26,7 @@ public interface IStorageService
         string app,
         string? continuationToken,
         string? currentTaskFilter,
+        bool? processIsCompleteFilter,
         CancellationToken ct
     );
 

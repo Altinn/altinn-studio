@@ -1,4 +1,5 @@
-import React from 'react';
+import type { ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { StudioSpinner, StudioSelect } from '@studio/components';
 import { StudioError } from '@studio/components-legacy';
 import { useAppProcessTasks } from 'admin/hooks/queries/useAppProcessTasks';
@@ -9,11 +10,10 @@ type ProcessTaskPickerProps = {
   org: string;
   env: string;
   app: string;
-  value: string | null;
-  onChange: (value: string) => void;
+  state: ProcessTaskPickerState;
 };
 
-export const ProcessTaskPicker = ({ org, env, app, value, onChange }: ProcessTaskPickerProps) => {
+export const ProcessTaskPicker = ({ org, env, app, state }: ProcessTaskPickerProps) => {
   const { data, status } = useAppProcessTasks(org, env, app);
   const { t } = useTranslation();
 
@@ -23,35 +23,63 @@ export const ProcessTaskPicker = ({ org, env, app, value, onChange }: ProcessTas
     case 'error':
       return <StudioError>{t('general.page_error_title')}</StudioError>;
     case 'success':
-      return <ProcessTaskPickerWithData processTasks={data} value={value} onChange={onChange} />;
+      return <ProcessTaskPickerWithData processTasks={data} state={state} />;
   }
+};
+
+type ProcessTaskPickerData = {
+  currentTask: string | null;
+  isComplete: true | null;
+};
+
+type ProcessTaskPickerState = ProcessTaskPickerData & {
+  setProcessTaskPickerState: (state: ProcessTaskPickerData) => void;
+};
+
+export const useProcessTaskPicker: () => ProcessTaskPickerState = () => {
+  const [state, setProcessTaskPickerState] = useState<ProcessTaskPickerData>({
+    currentTask: null,
+    isComplete: null,
+  });
+
+  return { ...state, setProcessTaskPickerState };
 };
 
 type ProcessTaskPickerWithDataProps = {
   processTasks: ProcessTask[];
-  value: string | null;
-  onChange: (value: string) => void;
+  state: ProcessTaskPickerState;
 };
 
-const ProcessTaskPickerWithData = ({
-  processTasks,
-  value,
-  onChange,
-}: ProcessTaskPickerWithDataProps) => {
+const ProcessTaskPickerWithData = ({ processTasks, state }: ProcessTaskPickerWithDataProps) => {
   const { t } = useTranslation();
+
+  function handleChange(e: ChangeEvent<HTMLSelectElement>) {
+    const value = e.target.value;
+    switch (value) {
+      case '__all__':
+        state.setProcessTaskPickerState({ currentTask: null, isComplete: null });
+        break;
+      case '__ended__':
+        state.setProcessTaskPickerState({ currentTask: null, isComplete: true });
+        break;
+      default:
+        state.setProcessTaskPickerState({ currentTask: value, isComplete: null });
+    }
+  }
 
   return (
     <StudioSelect
       label={t('Prosessteg')}
-      value={value}
-      onChange={(e) => onChange(e.target.value || null)}
+      value={state.currentTask ?? (state.isComplete ? '__ended__' : '__all__')}
+      onChange={handleChange}
     >
-      <StudioSelect.Option value={''}>{t('Alle')}</StudioSelect.Option>
+      <StudioSelect.Option value={'__all__'}>{t('Alle')}</StudioSelect.Option>
       {processTasks.map((task) => (
         <StudioSelect.Option key={task.id} value={task.id}>
           {task.name}
         </StudioSelect.Option>
       ))}
+      <StudioSelect.Option value={'__ended__'}>{t('Avsluttet')}</StudioSelect.Option>
     </StudioSelect>
   );
 };

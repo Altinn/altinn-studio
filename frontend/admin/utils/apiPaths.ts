@@ -7,8 +7,13 @@ export const instancesListPath = (
   app: string,
   continuationToken?: string,
   currentTask?: string,
+  processIsComplete?: boolean,
 ) => {
-  const queryString = getQueryStringFromObject({ continuationToken, currentTask });
+  const queryString = getQueryStringFromObject({
+    continuationToken,
+    currentTask,
+    processIsComplete: typeof processIsComplete === 'boolean' ? String(processIsComplete) : null,
+  });
   return `${adminApiBasePath}/instances/${org}/${env}/${app}${queryString}`; // Get
 };
 export const appProcessTasksPath = (org: string, env: string, app: string) =>

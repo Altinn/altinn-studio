@@ -42,6 +42,7 @@ class TestStorageService : IStorageService
         string app,
         string? continuationToken,
         string? currentTaskFilter,
+        bool? processIsCompleteFilter,
         CancellationToken ct
     )
     {
@@ -63,6 +64,7 @@ class TestStorageService : IStorageService
                 ["size"] = $"{SIZE}",
                 ["continuationToken"] = continuationToken,
                 ["process.currentTask"] = currentTaskFilter,
+                ["process.isComplete"] = processIsCompleteFilter != null ? processIsCompleteFilter.ToString() : null,
             }
         );
 

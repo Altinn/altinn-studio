@@ -14,14 +14,22 @@ type InstancesTableProps = {
   env: string;
   app: string;
   currentTask?: string;
+  processIsComplete?: boolean;
 };
 
-export const InstancesTable = ({ org, env, app, currentTask }: InstancesTableProps) => {
+export const InstancesTable = ({
+  org,
+  env,
+  app,
+  currentTask,
+  processIsComplete,
+}: InstancesTableProps) => {
   const { data, status, fetchNextPage, hasNextPage } = useAppInstancesQuery(
     org,
     env,
     app,
     currentTask,
+    processIsComplete,
   );
   const { t } = useTranslation();
 

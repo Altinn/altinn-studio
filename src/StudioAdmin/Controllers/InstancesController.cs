@@ -25,6 +25,7 @@ public class InstancesController : ControllerBase
         string app,
         [FromQuery] string? continuationToken,
         [FromQuery] string? currentTask,
+        [FromQuery] bool? processIsComplete,
         CancellationToken ct
     )
     {
@@ -37,6 +38,7 @@ public class InstancesController : ControllerBase
                     app,
                     continuationToken,
                     currentTask,
+                    processIsComplete,
                     ct
                 )
             );
