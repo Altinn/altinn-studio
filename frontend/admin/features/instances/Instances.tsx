@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
 import { StudioBreadcrumbs } from '@studio/components';
@@ -28,7 +29,9 @@ export const Instances = () => {
       <h1>
         {env} / {app}
       </h1>
-      <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
+      <div className={classes.filterWrapper}>
+        <ProcessTaskPicker org={org} env={env} app={app} state={processTaskPickerState} />
+      </div>
       <InstancesTable
         org={org}
         env={env}
