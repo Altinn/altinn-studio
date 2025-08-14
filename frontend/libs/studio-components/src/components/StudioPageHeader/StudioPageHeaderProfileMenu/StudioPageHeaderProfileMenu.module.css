@@ -23,6 +23,6 @@
   padding-top: var(--ds-size-2);
 }
 
-.menuItemButton [aria-checked='true'] {
-  background-color: var(--fds-semantic-surface-neutral-selected);
+.menuItemButton[aria-checked='true'] {
+  background-color: var(--ds-color-surface-tinted);
 }

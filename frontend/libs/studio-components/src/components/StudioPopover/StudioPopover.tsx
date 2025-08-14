@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { ReactElement, Ref } from 'react';
 import { Popover } from '@digdir/designsystemet-react';
 import type {
@@ -26,7 +26,7 @@ function StudioPopoverTrigger(
     </Popover.Trigger>
   );
 }
-const ForwardedStudioPopoverTrigger = React.forwardRef(StudioPopoverTrigger);
+const ForwardedStudioPopoverTrigger = forwardRef(StudioPopoverTrigger);
 export { ForwardedStudioPopoverTrigger as StudioPopoverTrigger };
 
 export function StudioPopoverTriggerContext({

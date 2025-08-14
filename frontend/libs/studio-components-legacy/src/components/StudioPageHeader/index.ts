@@ -28,6 +28,9 @@ type StudioPageHeaderComponent = typeof StudioPageHeaderParent & {
   ProfileMenu: typeof StudioPageHeaderProfileMenu;
 };
 
+/**
+ * @deprecated Use `StudioPageHeader` from `@studio/components` instead.
+ */
 const StudioPageHeader = StudioPageHeaderParent as StudioPageHeaderComponent;
 
 StudioPageHeader.Main = StudioPageHeaderMain;

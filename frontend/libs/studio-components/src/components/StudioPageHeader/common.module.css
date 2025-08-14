@@ -7,7 +7,7 @@
   --studio-button-preview-medium: #118849;
   --studio-button-preview-light: #67b38a;
 
-  color: var(--fds-semantic-background-default);
+  color: var(--ds-color-background-default);
 }
 
 .linkOrButton.regular.dark {

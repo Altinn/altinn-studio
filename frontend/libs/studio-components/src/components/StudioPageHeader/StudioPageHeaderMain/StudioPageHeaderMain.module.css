@@ -1,6 +1,6 @@
 .main {
   --studio-page-header-height: 80px;
-  --studio-page-header-padding: 0 var(--fds-spacing-2);
+  --studio-page-header-padding: 0 var(--ds-size-2);
 
   display: grid;
   grid-template-columns: 1fr auto 1fr;

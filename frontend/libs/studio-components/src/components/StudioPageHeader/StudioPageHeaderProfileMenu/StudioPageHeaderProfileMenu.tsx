@@ -117,14 +117,15 @@ const StudioProfileMenuButton = ({
     onClickButton();
   };
   return (
-    <Dropdown.Item
-      className={classes.menuItemButton}
-      aria-checked={item.isActive}
-      role='menuitemradio'
-      onClick={handleClick}
-      {...rest}
-    >
-      <Dropdown.Button>{item.itemName}</Dropdown.Button>
+    <Dropdown.Item {...rest}>
+      <Dropdown.Button
+        role='menuitemradio'
+        onClick={handleClick}
+        aria-checked={item.isActive}
+        className={classes.menuItemButton}
+      >
+        {item.itemName}
+      </Dropdown.Button>
     </Dropdown.Item>
   );
 };
