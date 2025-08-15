@@ -11,6 +11,10 @@ export const Progress = () => {
   const { order } = useNavigatePage();
   const { langAsString } = useLanguage();
 
+  if (!currentPageId) {
+    return null;
+  }
+
   const currentPageIndex = order?.findIndex((page) => page === currentPageId) || 0;
   const currentPageNum = currentPageIndex + 1;
 
