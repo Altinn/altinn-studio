@@ -222,18 +222,50 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool useNewApi = false, [FromQuery] bool ignoreGiteaFields = false)
         {
             string repository = GetRepositoryName(org);
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            foreach (ServiceResource resource in repositoryResourceList)
+            if (ignoreGiteaFields)
             {
-                ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource);
-                listviewResource.HasPolicy = true;
-                listviewResource.Environments = ["gitea"];
-                listviewServiceResources.Add(listviewResource);
+                foreach (ServiceResource resource in repositoryResourceList)
+                {
+                    ListviewServiceResource listviewResource = new ListviewServiceResource
+                    {
+                        Identifier = resource.Identifier,
+                        Title = resource.Title,
+                        CreatedBy = "",
+                        LastChanged = null,
+                        Environments = ["gitea"]
+                    };
+                    listviewServiceResources.Add(listviewResource);
+                }
+            }
+            else if (useNewApi)
+            {
+                // GET all commits for the repository
+                IEnumerable<ListviewServiceResource> repoResources = await _giteaApi.MapResourceRepoFilesToListViewResource(org, repository);
+
+                foreach (ServiceResource resource in repositoryResourceList)
+                {
+                    ListviewServiceResource listviewResource = repoResources.FirstOrDefault(x => x.Identifier == resource.Identifier) ?? new ListviewServiceResource();
+                    listviewResource.Title = resource.Title;
+                    listviewResource.HasPolicy = true;
+                    listviewResource.Environments = ["gitea"];
+                    listviewServiceResources.Add(listviewResource);
+                }
+            }
+            else
+            {
+                foreach (ServiceResource resource in repositoryResourceList)
+                {
+                    ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, repository, resource);
+                    listviewResource.HasPolicy = true;
+                    listviewResource.Environments = ["gitea"];
+                    listviewServiceResources.Add(listviewResource);
+                }
             }
 
             if (includeEnvResources)

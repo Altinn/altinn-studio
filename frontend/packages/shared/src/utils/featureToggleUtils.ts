@@ -10,6 +10,8 @@ export enum FeatureFlag {
   OrgLibrary = 'orgLibrary',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   ConsentResource = 'consentResource',
+  ResourceListNewApi = 'resourceListNewApi',
+  ResourceListIgnoreGiteaFields = 'resourceListIgnoreGiteaFields',
   AppMetadata = 'appMetadata',
 }
 

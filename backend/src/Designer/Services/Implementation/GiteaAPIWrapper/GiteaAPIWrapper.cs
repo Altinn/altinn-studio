@@ -206,6 +206,49 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repos;
         }
 
+        public async Task<List<ListviewServiceResource>> MapResourceRepoFilesToListViewResource(string org, string repo)
+        {
+            List<ListviewServiceResource> listviewServiceResources = [];
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?stat=false&verification=false&files=true");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Dictionary<string, IEnumerable<GiteaCommit>> commitDictionary = new Dictionary<string, IEnumerable<GiteaCommit>>();
+                List<GiteaCommit> commitResponse = await response.Content.ReadAsAsync<List<GiteaCommit>>();
+
+                foreach (GiteaCommit commit in commitResponse)
+                {
+                    IEnumerable<string> fileNames = commit.Files.Select(f => f.Filename).Where(f => f.EndsWith("_resource.json", StringComparison.OrdinalIgnoreCase));
+                    foreach (string fileName in fileNames)
+                    {
+                        if (!commitDictionary.ContainsKey(fileName))
+                        {
+                            commitDictionary.Add(fileName, new List<GiteaCommit>());
+                        }
+                        commitDictionary[fileName] = commitDictionary[fileName].Append(commit);
+                    }
+                }
+                
+                foreach (KeyValuePair<string, IEnumerable<GiteaCommit>> commitEntry in commitDictionary)
+                {
+                    string resourceIdentifier = commitEntry.Key.Split("/")[0];
+                    IEnumerable<GiteaCommit> commits = commitEntry.Value;
+
+                    string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
+                    string userFullName = await GetCachedUserFullName(commitUserName);
+                    
+                    ListviewServiceResource listviewResource = new ListviewServiceResource
+                    {
+                        Identifier = resourceIdentifier,
+                        CreatedBy = userFullName,
+                        LastChanged = DateTime.Parse(commits.FirstOrDefault()?.Created),
+                    };
+                    listviewServiceResources.Add(listviewResource);
+                }
+            }
+
+            return listviewServiceResources;
+        }
+
         /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
