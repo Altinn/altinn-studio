@@ -72,6 +72,15 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         return textIds.ToList();
     }
 
+    /// <inheritdoc />
+    public async Task<string> GetShaForCodeListFile(string orgName, string codeListId)
+    {
+        string repoName = GetContentRepoName(orgName);
+        string filePath = StaticContentCodeListFilePath(codeListId);
+        FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
+        return file.Sha ?? string.Empty;
+    }
+
     public async Task<TextResource> GetTextResource(string orgName, string languageCode)
     {
         string filePath = StaticContentTextResourceFilePath(languageCode);

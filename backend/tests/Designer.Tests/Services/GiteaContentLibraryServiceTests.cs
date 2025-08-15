@@ -253,6 +253,43 @@ public class GiteaContentLibraryServiceTests
             service => service.GetDirectoryAsync(OrgName, GetContentRepoName(), TextResourceFolderPath, string.Empty), Times.Once);
     }
 
+    [Fact]
+    public async Task GetShaForCodeListFile_ShouldReturnFileSha()
+    {
+        // Arrange
+        const string CodeListId = "someId";
+        const string FileSha = "someShaString";
+        string filePath = CodeListFilePath(CodeListId);
+        FileSystemObject fileObject = new() { Sha = FileSha };
+        _giteaApiWrapperMock
+            .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
+            .ReturnsAsync(fileObject);
+
+        // Act
+        string result = await _giteaContentLibraryService.GetShaForCodeListFile(OrgName, CodeListId);
+
+        // Assert
+        Assert.Equal(FileSha, result);
+        _giteaApiWrapperMock.Verify(
+            service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetShaForCodeListFile_ShouldReturnEmpty_WhenShaIsNull()
+    {
+        const string CodeListId = "someId";
+        string filePath = CodeListFilePath(CodeListId);
+        FileSystemObject fileObject = new() { Sha = null };
+
+        _giteaApiWrapperMock
+            .Setup(s => s.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
+            .ReturnsAsync(fileObject);
+
+        string result = await _giteaContentLibraryService.GetShaForCodeListFile(OrgName, CodeListId);
+
+        Assert.Equal(string.Empty, result);
+    }
+
     private static string TextResourceFilePath(string languageCode)
     {
         return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");
