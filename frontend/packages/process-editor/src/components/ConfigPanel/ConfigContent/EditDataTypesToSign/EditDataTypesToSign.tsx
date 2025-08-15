@@ -21,7 +21,9 @@ export const EditDataTypesToSign = () => {
       property={t('process_editor.configuration_panel_set_data_types_to_sign')}
       title={t('process_editor.configuration_panel_set_data_types_to_sign')}
       icon={<LinkIcon />}
-      value={selectedDataTypes?.map((dataType: string) => <div key={dataType}>{dataType}</div>)}
+      value={selectedDataTypes?.map((dataType: string) => (
+        <div key={dataType}>{dataType}</div>
+      ))}
     />
   );
 };

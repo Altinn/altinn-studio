@@ -1,9 +1,6 @@
 import type { RefAttributes, FC, ElementType } from 'react';
 import type { OverridableComponentProps } from './OverridableComponentProps';
 
-/**
- * @deprecated Use `OverridableComponent` from `@studio/components` instead.
- */
 export type OverridableComponent<ComponentProps, Element extends HTMLElement> = {
   (props: ComponentProps & RefAttributes<Element>): ReturnType<FC>;
   <As extends ElementType>(props: OverridableComponentProps<ComponentProps, As>): ReturnType<FC>;
