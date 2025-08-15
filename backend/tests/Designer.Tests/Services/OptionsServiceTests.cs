@@ -337,9 +337,11 @@ public class OptionsServiceTests : IDisposable
             actualAppSettingsString,
             new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
         );
-        Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", actualAppSettings.Imports.CodeLists[OptionListId].ImportSource);
-        Assert.Equal(CommitSha, actualAppSettings.Imports.CodeLists[OptionListId].Version);
-        Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", actualAppSettings.Imports.CodeLists[OptionListId].ImportDate);
+        ImportMetadata metadata = actualAppSettings.Imports.CodeLists[OptionListId];
+
+        Assert.Equal($"{TargetOrgName}/{targetOrgRepository}", metadata.ImportSource);
+        Assert.Equal(CommitSha, metadata.Version);
+        Assert.Matches(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", metadata.ImportDate);
     }
 
     [Fact]
