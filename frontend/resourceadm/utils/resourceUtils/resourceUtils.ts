@@ -567,11 +567,3 @@ export const getResourceSubjects = (
   }
   return subjectData;
 };
-
-export const getDefaultConsentText = (): SupportedLanguage => {
-  return {
-    nb: 'Forslag til struktur på samtykketekst: Beskriv hva samtykket er, og hva som samtykkes til\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
-    nn: 'Opplysninger rapportert av arbeidsgiver eller andre som har utbetalt lønn eller ytelser, i perioden {fraDato} til {tilDato}\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
-    en: 'Opplysninger rapportert av arbeidsgiver eller andre som har utbetalt lønn eller ytelser, i perioden {fraDato} til {tilDato}\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
-  };
-};
