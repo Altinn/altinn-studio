@@ -235,13 +235,13 @@ export const AboutResourcePage = ({
               }
               toggleTextTranslationKey='resourceadm.about_resource_one_time_consent_show_text'
             />
-            {consentTemplates && resourceData.consentTemplate && consentPreviewText && (
+            {consentTemplates && resourceData.consentTemplate && (
               <ConsentPreview
                 template={consentTemplates.find(
                   (template) => template.id === resourceData.consentTemplate,
                 )}
                 resourceName={resourceData.title}
-                consentText={consentPreviewText}
+                consentText={consentPreviewText ?? { nb: '', nn: '', en: '' }}
                 consentMetadata={resourceData.consentMetadata ?? {}}
                 isOneTimeConsent={resourceData.isOneTimeConsent}
                 language={previewLanguage}
