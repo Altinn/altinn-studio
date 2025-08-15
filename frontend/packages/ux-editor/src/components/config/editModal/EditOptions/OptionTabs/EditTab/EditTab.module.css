@@ -14,7 +14,3 @@
 .alert {
   margin-top: var(--fds-spacing-2);
 }
-
-.errorMessage {
-  margin-top: var(--fds-spacing-2);
-}

@@ -6,7 +6,6 @@ import {
   StudioSpinner,
 } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import { useComponentErrorMessage } from '../../../../../../hooks';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import {
@@ -72,7 +71,6 @@ function EditTabWithData({
 }: EditTabWithDataProps): React.ReactElement {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const errorMessage = useComponentErrorMessage(component);
 
   return (
     <div className={classes.container}>
@@ -89,11 +87,6 @@ function EditTabWithData({
         optionListIds={optionListIds}
         textResources={textResources}
       />
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </StudioErrorMessage>
-      )}
       {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
         <StudioAlert className={classes.alert} severity={'info'} size='sm'>
           {t('ux_editor.options.tab_option_list_alert_title')}
