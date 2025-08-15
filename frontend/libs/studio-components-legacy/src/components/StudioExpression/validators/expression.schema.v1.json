@@ -314,9 +314,6 @@
       "items": [
         {
           "const": "gatewayAction"
-        },
-        {
-          "enum": ["confirm", "pay", "reject"]
         }
       ]
     },

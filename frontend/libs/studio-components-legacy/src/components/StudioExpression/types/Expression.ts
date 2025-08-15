@@ -4,7 +4,6 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
-import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type Expression =
   | null
@@ -51,11 +50,9 @@ export type StringExpression =
 
 type StrictStringExpression =
   | string
-  | [string]
   | FuncComponent
   | FuncDataModel
   | FuncGatewayAction
-  | FuncGatewayActionContext
   | FuncDisplayValue
   | FuncInstanceContext
   | FuncFrontendSettings
@@ -75,11 +72,6 @@ type StrictNumberExpression = number | FuncStringLength;
 type GenericDataLookupFunc<N extends DataLookupFuncName> = [N, StringExpression];
 export type DataLookupFunc<N extends DataLookupFuncName = DataLookupFuncName> = {
   [K in N]: GenericDataLookupFunc<K>;
-}[N];
-
-type GenericKeyLookupFunc<N extends KeyLookupFuncName> = [N, LookupKey<N>];
-export type KeyLookupFunc<N extends KeyLookupFuncName = KeyLookupFuncName> = {
-  [K in N]: GenericKeyLookupFunc<K>;
 }[N];
 
 type GenericNumberRelationFunc<N extends NumberRelationOperator> = [
@@ -105,12 +97,16 @@ export type LogicalTupleFunc<O extends LogicalTupleOperator = LogicalTupleOperat
   [K in O]: GenericLogicalTupleFunc<K>;
 }[O];
 
+export type FuncGatewayAction = [KeyLookupFuncName.GatewayAction];
+export type FuncInstanceContext = [KeyLookupFuncName.InstanceContext, InstanceContext];
+export type KeyLookupFunc<N extends KeyLookupFuncName = KeyLookupFuncName> = {
+  [KeyLookupFuncName.InstanceContext]: FuncInstanceContext;
+  [KeyLookupFuncName.GatewayAction]: FuncGatewayAction;
+}[N];
+
 type FuncComponent = DataLookupFunc<DataLookupFuncName.Component>;
 type FuncDataModel = DataLookupFunc<DataLookupFuncName.DataModel>;
-type FuncGatewayAction = DataLookupFunc<DataLookupFuncName.GatewayAction>;
 type FuncDisplayValue = ['displayValue', StringExpression];
-type FuncInstanceContext = KeyLookupFunc<KeyLookupFuncName.InstanceContext>;
-type FuncGatewayActionContext = KeyLookupFunc<KeyLookupFuncName.GatewayActionContext>;
 type FuncAuthContext = [
   'authContext',
   'read' | 'write' | 'instantiate' | 'confirm' | 'sign' | 'reject',
@@ -139,8 +135,3 @@ type FuncCommaContains = ['commaContains', StringExpression, StringExpression];
 type FuncLowerCase = ['lowerCase', StringExpression];
 type FuncUpperCase = ['upperCase', StringExpression];
 type FuncArgv = ['argv', NumberExpression];
-
-type LookupKey<N extends KeyLookupFuncName> = {
-  [KeyLookupFuncName.InstanceContext]: InstanceContext;
-  [KeyLookupFuncName.GatewayActionContext]: GatewayActionContext;
-}[N];
