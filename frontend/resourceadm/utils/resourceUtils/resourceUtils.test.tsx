@@ -106,7 +106,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
 
@@ -122,7 +122,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: null,
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
 
@@ -138,7 +138,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(16);
     });
 
@@ -252,6 +252,33 @@ describe('deepCompare', () => {
           ),
         ).toBeTruthy();
       });
+
+      it('should return error for invalid links in nb consentText field', () => {
+        const invalidLink = '[Link](htttps://altinn.no)';
+        const resource: Resource = {
+          identifier: 'res',
+          resourceType: 'Consent',
+          title: null,
+          consentMetadata: {},
+          consentText: {
+            nb: `test ${invalidLink}`,
+            nn: 'test',
+            en: 'test',
+          },
+        };
+        const validationErrors = validateResource(resource, textMock);
+
+        expect(
+          hasConsentFieldError(
+            validationErrors,
+            'nb',
+            textMock('resourceadm.about_resource_error_consent_text_link_invalid', {
+              link: invalidLink,
+              interpolation: { escapeValue: false },
+            }),
+          ),
+        ).toBeTruthy();
+      });
     });
 
     it('should show empty errors for contactPoints and resourceReferences', () => {
@@ -267,7 +294,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
   });
