@@ -1,5 +1,5 @@
 .root {
-  background: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--ds-color-neutral-background-default);
   flex: var(--properties-width-fraction);
   overflow-x: auto;
 }
