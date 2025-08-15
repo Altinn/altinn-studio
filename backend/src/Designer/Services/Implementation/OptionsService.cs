@@ -289,7 +289,7 @@ public class OptionsService : IOptionsService
         {
             ImportDate = $"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}",
             ImportSource = ImportSourceName(org),
-            Version = await _giteaContentLibraryService.GetCommitShaForCodeList(org, optionListId),
+            Version = await _giteaContentLibraryService.GetShaForCodeListFile(org, optionListId),
         };
 
         settings.Imports ??= new ImportedResources();

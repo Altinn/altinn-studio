@@ -311,7 +311,7 @@ public class OptionsServiceTests : IDisposable
             .Setup(service => service.GetTextResource(TargetOrgName, It.IsAny<string>()))
             .ReturnsAsync((string _, string languageCode) => languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource);
         _giteaContentLibraryServiceMock
-            .Setup(service => service.GetCommitShaForCodeList(TargetOrgName, OptionListId))
+            .Setup(service => service.GetShaForCodeListFile(TargetOrgName, OptionListId))
             .ReturnsAsync(CommitSha);
 
         // Act

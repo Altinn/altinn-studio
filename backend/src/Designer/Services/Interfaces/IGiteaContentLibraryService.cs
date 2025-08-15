@@ -46,10 +46,10 @@ public interface IGiteaContentLibraryService
     /// <returns>A list of text IDs.</returns>
     public Task<List<string>> GetTextIds(string orgName);
     /// <summary>
-    /// Gets the commit SHA for a code list on the default/master branch in the content repository from Gitea.
+    /// Gets the SHA for the code list file on the repository's default branch in Gitea.
     /// </summary>
     /// <param name="orgName">The name of the organisation.</param>
     /// <param name="codeListId">The name of the code list.</param>
-    /// <returns>Commit SHA</returns>
-    public Task<string> GetCommitShaForCodeList(string orgName, string codeListId);
+    /// <returns>SHA string</returns>
+    public Task<string> GetShaForCodeListFile(string orgName, string codeListId);
 }

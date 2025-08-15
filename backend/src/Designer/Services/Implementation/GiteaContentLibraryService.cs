@@ -72,7 +72,8 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         return textIds.ToList();
     }
 
-    public async Task<string> GetCommitShaForCodeList(string orgName, string codeListId)
+    /// <inheritdoc />
+    public async Task<string> GetShaForCodeListFile(string orgName, string codeListId)
     {
         string repoName = GetContentRepoName(orgName);
         string filePath = StaticContentCodeListFilePath(codeListId);
