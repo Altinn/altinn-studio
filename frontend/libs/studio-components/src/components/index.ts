@@ -6,6 +6,7 @@ import './style/studio-variables.css';
 export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
+export * from './StudioBooleanToggleGroup';
 export * from './StudioBreadcrumbs';
 export * from './StudioButton';
 export * from './StudioCallToActionBar';
