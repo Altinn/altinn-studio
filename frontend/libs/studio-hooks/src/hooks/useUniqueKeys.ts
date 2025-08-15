@@ -40,7 +40,7 @@ export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey 
 };
 
 const generateUniqueKeys = (numberOfKeys: number): Array<string> => {
-  const newlyGeneratedKeys = [];
+  const newlyGeneratedKeys: string[] = [];
   for (let i = 0; i < numberOfKeys; i++) {
     newlyGeneratedKeys.push(generateUniqueKey());
   }
