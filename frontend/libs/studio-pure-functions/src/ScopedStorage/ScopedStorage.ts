@@ -4,7 +4,7 @@ export interface ScopedStorage extends Pick<Storage, 'setItem' | 'getItem' | 're
 
 export interface ScopedStorageResult extends ScopedStorage {
   setItem: <T>(key: string, value: T) => void;
-  getItem: <T>(key: string) => T;
+  getItem: <T>(key: string) => T | null;
   removeItem: (key: string) => void;
 }
 
