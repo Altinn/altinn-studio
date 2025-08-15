@@ -362,23 +362,23 @@ export const validateResource = (
     });
 
     // validate links used in consentText
-    Object.keys(resourceData.consentText ?? {}).forEach((language: ValidLanguage) => {
-      const links = resourceData.consentText?.[language]?.match(/\[([^\]]+)\]\(([^)]+)\)/g) ?? [];
+    // validate links used in consentText
+    (['nb', 'nn', 'en'] as const).forEach((language: ValidLanguage) => {
+      const text = resourceData.consentText?.[language] ?? '';
+      const links: string[] = (text.match(/\[[^\]]+\]\([^)]+\)/g) ?? []) as string[];
       links.forEach((link) => {
-        const match = link.match(/\[([^\]]+)\]\(([^)]+)\)/);
-        if (match && match.length === 3) {
-          const linkUrl = match[2];
-          const isLinkUrlValid = linkUrl.startsWith('https://') || linkUrl.startsWith('http://');
-          if (!isLinkUrlValid) {
-            errors.push({
-              field: 'consentText',
-              index: language,
-              error: t('resourceadm.about_resource_error_consent_text_link_invalid', {
-                link: link,
-                interpolation: { escapeValue: false },
-              }),
-            });
-          }
+        const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
+        const linkUrl = urlMatch?.[1];
+        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        if (!isLinkUrlValid) {
+          errors.push({
+            field: 'consentText',
+            index: language,
+            error: t('resourceadm.about_resource_error_consent_text_link_invalid', {
+              link,
+              interpolation: { escapeValue: false },
+            }),
+          });
         }
       });
     });
