@@ -222,17 +222,32 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool useNewApi = false)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false, [FromQuery] bool useNewApi = false, [FromQuery] bool ignoreGiteaFields = false)
         {
             string repository = GetRepositoryName(org);
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
             List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
 
-            if (useNewApi)
+            if (ignoreGiteaFields)
+            {
+                foreach (ServiceResource resource in repositoryResourceList)
+                {
+                    ListviewServiceResource listviewResource = new ListviewServiceResource
+                    {
+                        Identifier = resource.Identifier,
+                        Title = resource.Title,
+                        CreatedBy = "",
+                        LastChanged = null,
+                        Environments = ["gitea"]
+                    };
+                    listviewServiceResources.Add(listviewResource);
+                }
+            }
+            else if (useNewApi)
             {
                 // GET all commits for the repository
                 IEnumerable<ListviewServiceResource> repoResources = await _giteaApi.MapResourceRepoFilesToListViewResource(org, repository);
-                
+
                 foreach (ServiceResource resource in repositoryResourceList)
                 {
                     ListviewServiceResource listviewResource = repoResources.FirstOrDefault(x => x.Identifier == resource.Identifier) ?? new ListviewServiceResource();

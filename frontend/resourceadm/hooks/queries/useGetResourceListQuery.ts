@@ -22,9 +22,10 @@ export const useGetResourceListQuery = (
   const { getResourceList } = useServicesContext();
 
   const useNewApi = shouldDisplayFeature(FeatureFlag.ResourceListNewApi);
+  const ignoreGiteaFields = shouldDisplayFeature(FeatureFlag.ResourceListIgnoreGiteaFields);
   return useQuery<ResourceListItem[]>({
     queryKey: [QueryKey.ResourceList, org],
-    queryFn: () => getResourceList(org, useNewApi),
+    queryFn: () => getResourceList(org, useNewApi, ignoreGiteaFields),
     select: (resourceListItems: ResourceListItem[]) =>
       resourceListItems && setLastChangedAndSortResourceListByDate(resourceListItems),
     enabled: !disabled,
