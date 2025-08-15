@@ -1,8 +1,8 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioButton, type StudioProfileMenuItem } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioAvatar, type StudioProfileMenuItem } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
@@ -45,7 +45,7 @@ export const SmallHeaderMenu = (): ReactElement => {
           onClick={toggleMenu}
           icon={<MenuHamburgerIcon />}
           variant='tertiary'
-          color='inverted'
+          data-color='neutral'
         >
           {t('top_menu.menu')}
         </StudioButton>

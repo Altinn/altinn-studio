@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
 import { toast } from 'react-toastify';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export interface GenerateModelsButtonProps {
   modelPath: string;

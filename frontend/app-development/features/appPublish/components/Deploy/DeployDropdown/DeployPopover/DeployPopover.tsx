@@ -1,7 +1,7 @@
 import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
-import { StudioButton, StudioSpinner } from '@studio/components-legacy';
-import { StudioParagraph, StudioPopover } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type DeployPopoverProps = {
@@ -52,7 +52,7 @@ export const DeployPopover = ({
             </StudioParagraph>
             <div className={classes.buttonContainer}>
               <StudioButton
-                color='first'
+                data-color='first'
                 variant='primary'
                 onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                   event.stopPropagation();
@@ -63,7 +63,7 @@ export const DeployPopover = ({
                 {t('general.yes')}
               </StudioButton>
               <StudioButton
-                color='second'
+                data-color='second'
                 variant='tertiary'
                 onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                   event.stopPropagation();

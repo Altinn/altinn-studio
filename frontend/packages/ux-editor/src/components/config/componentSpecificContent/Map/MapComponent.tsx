@@ -6,7 +6,8 @@ import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components-legacy';
+import { StudioProperty, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import cn from 'classnames';
 
@@ -104,7 +105,6 @@ const AddMapLayer = ({
             legend={t('ux_editor.map_layer') + (index + 1)}
             menubar={
               <StudioButton
-                color='danger'
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
                 variant='tertiary'
