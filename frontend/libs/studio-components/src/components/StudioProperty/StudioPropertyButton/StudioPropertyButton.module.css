@@ -2,6 +2,7 @@
   border-radius: 0;
   border: none;
   display: grid;
+  font-weight: normal;
   grid-template-columns: 1fr auto;
   justify-content: flex-start;
   margin: calc(-1 * var(--studio-property-button-vertical-spacing)) 0;
@@ -11,7 +12,6 @@
 
 .propertyButton.withValue .content {
   color: var(--ds-color-neutral-text-default);
-  font-weight: normal;
   text-align: left;
 }
 
