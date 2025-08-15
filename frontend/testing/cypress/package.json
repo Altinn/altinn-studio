@@ -2,6 +2,7 @@
   "name": "cypress-studio",
   "description": "studio tests",
   "version": "1.0.0",
+  "packageManager": "yarn@4.6.0",
   "devDependencies": {
     "@testing-library/cypress": "10.0.3",
     "axe-core": "4.10.3",
