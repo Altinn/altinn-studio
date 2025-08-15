@@ -106,7 +106,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
 
@@ -122,7 +122,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: null,
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
 
@@ -138,7 +138,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(16);
     });
 
@@ -294,7 +294,7 @@ describe('deepCompare', () => {
         availableForType: null,
         contactPoints: [],
       };
-      const validationErrors = validateResource(resource, () => 'test');
+      const validationErrors = validateResource(resource, textMock);
       expect(validationErrors.length).toBe(13);
     });
   });
