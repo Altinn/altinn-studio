@@ -133,7 +133,9 @@ export const InputVariant = ({
     id,
     'aria-label': langAsString(textResourceBindings?.title),
     'aria-describedby':
-      textResourceBindings?.title && textResourceBindings?.description ? getDescriptionId(id) : undefined,
+      overrideDisplay?.renderedInTable !== true && textResourceBindings?.title && textResourceBindings?.description
+        ? getDescriptionId(id)
+        : undefined,
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
     readOnly,

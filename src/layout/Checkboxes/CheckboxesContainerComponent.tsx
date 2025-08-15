@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
@@ -13,6 +14,7 @@ import { useIsValid } from 'src/features/validation/selectors/isValid';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -95,7 +97,9 @@ export const CheckboxContainerComponent = ({
               <Fieldset.Legend className={classes.legend}>{labelTextGroup}</Fieldset.Legend>
             )}
             {textResourceBindings?.description && (
-              <Fieldset.Description>
+              <Fieldset.Description
+                className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
+              >
                 <Lang id={textResourceBindings?.description} />
               </Fieldset.Description>
             )}
