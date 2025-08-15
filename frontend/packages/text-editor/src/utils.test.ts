@@ -44,13 +44,40 @@ describe('getRandNumber', () => {
 describe('filterFunction', () => {
   test('that filter function works as intended', () => {
     const entry = [{ lang: 'nb', translation: 'spock' }];
-    expect(filterFunction('test', entry, 'ock')).toBe(true);
-    expect(filterFunction('test', entry, 'rock')).toBe(false);
-    expect(filterFunction('test', entry, '')).toBe(true);
-    expect(filterFunction('test', entry, 'test')).toBe(true);
-    expect(filterFunction('test', entry, 'testen')).toBe(false);
-    expect(filterFunction('test', entry, undefined)).toBe(true);
-    expect(filterFunction('test', undefined, undefined)).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'test', translations: entry }, searchString: 'ock' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'test', translations: entry }, searchString: 'rock' }),
+    ).toBe(false);
+    expect(filterFunction({ entry: { id: 'test', translations: entry }, searchString: '' })).toBe(
+      true,
+    );
+    expect(
+      filterFunction({ entry: { id: 'test', translations: entry }, searchString: 'test' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'test', translations: entry }, searchString: 'testen' }),
+    ).toBe(false);
+    expect(
+      filterFunction({ entry: { id: 'test', translations: entry }, searchString: undefined }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'test', translations: undefined }, searchString: undefined }),
+    ).toBe(true);
+  });
+
+  test('should be case insensitive for translations', () => {
+    const entry = [{ lang: 'nb', translation: 'Neste' }];
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'nest' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'NEST' }),
+    ).toBe(true);
+    expect(
+      filterFunction({ entry: { id: 'next', translations: entry }, searchString: 'neste' }),
+    ).toBe(true);
   });
 });
 

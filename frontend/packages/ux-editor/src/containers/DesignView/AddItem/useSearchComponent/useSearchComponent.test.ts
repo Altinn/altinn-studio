@@ -47,6 +47,13 @@ const testCases: TestCase[] = [
       category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
     },
   },
+  {
+    description: 'should handle search with multiple spaces between words',
+    searchText: 'button component',
+    expected: {
+      category1: [{ type: ComponentType.Button, label: textButtonValue, icon: MockIcon }],
+    },
+  },
 ];
 
 const translations = {
@@ -72,16 +79,14 @@ describe('useSearchComponent', () => {
     });
   });
 
-  describe('Search filtering', () => {
-    testCases.forEach(({ description, searchText, expected }) => {
-      it(description, async () => {
-        const { result } = renderUseSearchComponent();
-        await waitFor(() => {
-          result.current.handleSearchChange({ target: { value: searchText } });
-        });
-        await waitFor(() => {
-          expect(result.current.filteredComponents).toEqual(expected);
-        });
+  describe.each(testCases)('$description', ({ searchText, expected }) => {
+    it('should filter correctly', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: searchText } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(expected);
       });
     });
   });
@@ -108,6 +113,28 @@ describe('useSearchComponent', () => {
         expect(result.current.filteredComponents).toEqual({
           category1: [{ type: ComponentType.TextArea, label: textLabelValue, icon: MockIcon }],
         });
+      });
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle whitespace-only search correctly', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: '   ' } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
+      });
+    });
+
+    it('should handle mixed whitespace characters', async () => {
+      const { result } = renderUseSearchComponent();
+      await waitFor(() => {
+        result.current.handleSearchChange({ target: { value: '\t \n  ' } });
+      });
+      await waitFor(() => {
+        expect(result.current.filteredComponents).toEqual(mockAvailableComponents);
       });
     });
   });
