@@ -27,7 +27,7 @@ export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
   };
 
   return (
-    <nav aria-label='Til hovedinnhold'>
+    <div>
       {shortcuts.map((shortcut) => (
         <button
           key={shortcut.id}
@@ -38,6 +38,6 @@ export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
           {shortcut.text}
         </button>
       ))}
-    </nav>
+    </div>
   );
 }

@@ -22,15 +22,15 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
       className={classes.appBarWrapper}
       data-testid='InstantiateHeader'
     >
-      <LandmarkShortcuts
-        shortcuts={[
-          {
-            id: 'main-content',
-            text: <Lang id='navigation.to_main_content' />,
-          },
-        ]}
-      />
       <header className={classes.appBar}>
+        <LandmarkShortcuts
+          shortcuts={[
+            {
+              id: 'main-content',
+              text: <Lang id='navigation.to_main_content' />,
+            },
+          ]}
+        />
         <AltinnLogo
           color={LogoColor.blueDark}
           className={classes.logo}

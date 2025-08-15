@@ -31,7 +31,7 @@ describe('NavBar', () => {
     await render({
       hideCloseButton: true,
     });
-    screen.getByRole('navigation', { name: /Appnavigasjon/i });
+    screen.getByRole('navigation', { name: /Overordnet/i });
   });
 
   it('should render close button', async () => {
