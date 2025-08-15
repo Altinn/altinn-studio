@@ -254,13 +254,13 @@ public class GiteaContentLibraryServiceTests
     }
 
     [Fact]
-    public async Task GetShaForCodeListFile_ShouldReturnCommitSha()
+    public async Task GetShaForCodeListFile_ShouldReturnFileSha()
     {
         // Arrange
         const string CodeListId = "someId";
-        const string CommitSha = "someCommitSha";
+        const string FileSha = "someShaString";
         string filePath = CodeListFilePath(CodeListId);
-        FileSystemObject fileObject = new() { Sha = CommitSha };
+        FileSystemObject fileObject = new() { Sha = FileSha };
         _giteaApiWrapperMock
             .Setup(service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty))
             .ReturnsAsync(fileObject);
@@ -269,7 +269,7 @@ public class GiteaContentLibraryServiceTests
         string result = await _giteaContentLibraryService.GetShaForCodeListFile(OrgName, CodeListId);
 
         // Assert
-        Assert.Equal(CommitSha, result);
+        Assert.Equal(FileSha, result);
         _giteaApiWrapperMock.Verify(
             service => service.GetFileAsync(OrgName, GetContentRepoName(), filePath, string.Empty), Times.Once);
     }
