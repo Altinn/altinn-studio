@@ -20,10 +20,13 @@ public interface IStorageService
     /// <param name="app">The application identifier.</param>
     /// <returns>The task result contains a list of <see cref="SimpleInstance"/> objects representing the instances.
     /// </returns>
-    public Task<List<SimpleInstance>> GetInstances(
+    public Task<InstancesResponse> GetInstances(
         string org,
         string env,
         string app,
+        string? continuationToken,
+        string? currentTaskFilter,
+        bool? processIsCompleteFilter,
         CancellationToken ct
     );
 

@@ -14,8 +14,11 @@ public class SimpleInstance
     [JsonPropertyName("app")]
     public required string App { get; set; }
 
-    [JsonPropertyName("currentTask")]
-    public string? CurrentTask { get; set; }
+    [JsonPropertyName("currentTaskName")]
+    public string? CurrentTaskName { get; set; }
+
+    [JsonPropertyName("currentTaskId")]
+    public string? CurrentTaskId { get; set; }
 
     [JsonPropertyName("dueBefore")]
     public DateTimeOffset? DueBefore { get; set; }
@@ -80,7 +83,8 @@ public class SimpleInstance
             Id = instance.Id.Substring(partyIdPrefix.Length),
             Org = instance.Org,
             App = instance.AppId.Substring(orgPrefix.Length),
-            CurrentTask = instance.Process.CurrentTask?.Name,
+            CurrentTaskName = instance.Process.CurrentTask?.Name,
+            CurrentTaskId = instance.Process.CurrentTask?.ElementId,
             DueBefore = instance.DueBefore,
             IsComplete = instance.Process.Ended != null,
             CompletedAt = instance.Process.Ended,
