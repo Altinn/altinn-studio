@@ -3,13 +3,12 @@ import { CheckmarkIcon } from '@studio/icons';
 import { StudioButton, type StudioButtonProps } from '../StudioButton';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 
-/**
- * @deprecated use `StudioActionCloseButton` from `@studio/components` instead.
- */
 export type StudioActionCloseButtonProps = StudioButtonProps & {
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 };
-
+/**
+ * @deprecated use `StudioActionCloseButton` from `@studio/components` instead.
+ */
 export const StudioActionCloseButton: OverridableComponent<
   StudioActionCloseButtonProps,
   HTMLButtonElement
