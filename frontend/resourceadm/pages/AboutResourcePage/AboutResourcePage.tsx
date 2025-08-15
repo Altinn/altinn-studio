@@ -241,7 +241,7 @@ export const AboutResourcePage = ({
                   (template) => template.id === resourceData.consentTemplate,
                 )}
                 resourceName={resourceData.title}
-                consentText={consentPreviewText ?? { nb: '', nn: '', en: '' }}
+                consentText={consentPreviewText}
                 consentMetadata={resourceData.consentMetadata ?? {}}
                 isOneTimeConsent={resourceData.isOneTimeConsent}
                 language={previewLanguage}
