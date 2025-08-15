@@ -185,17 +185,17 @@ describe('EditColumnElementComponentSelect', () => {
 
     expect(
       screen.getByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace.field}`,
       }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode.field}`,
       }),
     ).not.toBeInTheDocument();
   });
@@ -223,9 +223,9 @@ describe('EditColumnElementComponentSelect', () => {
       textKeyMock,
     );
     await user.click(
-      screen.getByRole('button', {
-        name: textMock('general.close'),
-      }),
+      screen.getAllByRole('button', {
+        name: textMock('general.save'),
+      })[0],
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
@@ -261,7 +261,7 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component1.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
+      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding.field },
     });
   });
 
@@ -347,7 +347,7 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onChangeMock).toHaveBeenCalledTimes(2);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace },
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
     });
   });
 });

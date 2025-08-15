@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -112,12 +113,16 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
             PagesDto pagesDto = PagesDto.From(layoutSettings);
-            PageDto existingPage = pagesDto.Pages.Find(p => p.Id == pageId);
+
+            PageDto existingPage =
+                pagesDto.Groups?
+                    .Where(g => g?.Pages != null)
+                    .SelectMany(g => g.Pages)
+                    .FirstOrDefault(p => p?.Id == pageId)
+                ?? pagesDto.Pages?.FirstOrDefault(p => p?.Id == pageId);
+
             if (existingPage == null)
             {
                 return NotFound();

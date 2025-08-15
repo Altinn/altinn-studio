@@ -17,7 +17,11 @@ function StudioFieldset(
   const className = cn(classes.fieldset, givenClass);
   return (
     <Fieldset className={className} {...rest} ref={ref}>
-      <Fieldset.Legend>{legend}</Fieldset.Legend>
+      {legend && (
+        <Fieldset.Legend>
+          <span>{legend}</span>
+        </Fieldset.Legend>
+      )}
       {description && <Fieldset.Description>{description}</Fieldset.Description>}
       {children}
     </Fieldset>

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioCard,
-  StudioParagraph,
   StudioRecommendedNextAction,
   StudioTextfield,
 } from '@studio/components-legacy';
@@ -97,16 +96,10 @@ export const CreateNewSubformSection = ({
       hideSkipButton={true}
       onSave={handleCreateSubformSubmit}
     >
-      {!hasSubforms && (
-        <>
-          <StudioParagraph size='sm'>
-            {t('ux_editor.component_properties.subform.no_existing_layout_set_empty_subform')}
-          </StudioParagraph>
-          <SubformInstructions />
-        </>
-      )}
+      {!hasSubforms && <SubformInstructions />}
       <StudioCard>
-        <StudioCard.Content>
+        {/*StudioCard.Content does not pass through the data-size attribute. Will be fixed when legacy component is replaced */}
+        <StudioCard.Content data-size='sm'>
           <StudioTextfield
             name='subform'
             label={t('ux_editor.component_properties.subform.created_layout_set_name')}

@@ -13,6 +13,8 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { mapAltinn2LinkServiceToSelectOption } from '../../utils/mapperUtils';
 
+jest.useFakeTimers({ advanceTimers: true });
+
 const mockButtonText: string = 'Mock Button';
 const mockAltinn2LinkService: Altinn2LinkService = {
   serviceOwnerCode: 'ttd',

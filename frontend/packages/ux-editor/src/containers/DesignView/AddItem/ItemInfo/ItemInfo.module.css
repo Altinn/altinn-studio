@@ -10,10 +10,6 @@
   padding-top: 12px;
 }
 
-.componentHelpText {
-  width: 100%;
-}
-
 .componentsInfoWrapper {
   flex: 1;
   background-color: var(--fds-semantic-surface-info-subtle);

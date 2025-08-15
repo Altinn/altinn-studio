@@ -21,6 +21,9 @@ export type StudioDecimalInputProps = Override<
   StudioTextfieldProps
 >;
 
+/**
+ * @deprecated use `StudioDecimalInput` from `@studio/components` instead
+ */
 export const StudioDecimalInput = forwardRef(
   (
     {

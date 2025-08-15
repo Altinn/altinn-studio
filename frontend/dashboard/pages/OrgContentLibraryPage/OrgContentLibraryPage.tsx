@@ -10,11 +10,11 @@ import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
   StudioCenter,
-  StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
   StudioSpinner,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -177,8 +177,10 @@ function ContextWithoutLibraryAccess(): ReactElement {
   return (
     <StudioCenter>
       <StudioAlert>
-        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
-        <StudioParagraph>
+        <StudioParagraph data-size='md'>
+          {t('dashboard.org_library.alert_no_org_selected')}
+        </StudioParagraph>
+        <StudioParagraph data-size='md'>
           {t('dashboard.org_library.alert_no_org_selected_no_access')}
         </StudioParagraph>
       </StudioAlert>

@@ -22,7 +22,7 @@ const StudioBooleanToggleGroup = forwardRef<HTMLDivElement, StudioBooleanToggleG
       setValue(givenValue ?? false);
     }, [givenValue]);
 
-    const handleChange = (stringValue: 'true' | 'false') => {
+    const handleChange = (stringValue: 'true' | 'false'): void => {
       const newValue = stringValue === 'true';
       setValue(newValue);
       onChange?.(newValue);

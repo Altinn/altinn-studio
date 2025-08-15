@@ -4,7 +4,8 @@ import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { Chip } from '@digdir/designsystemet-react';
 import { ArrowsUpDownIcon } from '@studio/icons';
-import { StudioButton, StudioSearch } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -87,8 +88,6 @@ export const TextEditor = ({
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
 
-  const handleClearSearch = () => setSearchQuery('');
-
   return (
     <div className={classes.textEditor}>
       <div className={classes.textEditorMain}>
@@ -98,6 +97,7 @@ export const TextEditor = ({
           </StudioButton>
           <div className={classes.filterAndSearch}>
             <Chip.Toggle
+              size='small'
               onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
               selected={sortTextsAlphabetically}
             >
@@ -109,10 +109,11 @@ export const TextEditor = ({
               }
             </Chip.Toggle>
             <StudioSearch
+              className={classes.search}
               label={t('text_editor.search_for_text')}
               value={searchQuery}
               onChange={handleSearchChange}
-              onClear={handleClearSearch}
+              clearButtonLabel={t('general.search_clear_button_title')}
             />
           </div>
         </div>

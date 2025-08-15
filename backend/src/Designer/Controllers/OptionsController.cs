@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -27,19 +26,22 @@ public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;
     private readonly IOptionListReferenceService _optionListReferenceService;
-    private readonly IOrgCodeListService _orgCodeListService;
+    private readonly IGiteaContentLibraryService _giteaContentLibraryService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="optionsService">The options service.</param>
     /// <param name="optionListReferenceService">The option list reference service.</param>
-    /// <param name="orgCodeListService">The code list service for organisation level.</param>
-    public OptionsController(IOptionsService optionsService, IOptionListReferenceService optionListReferenceService, IOrgCodeListService orgCodeListService)
+    /// <param name="giteaContentLibraryService">The gitea content library service for organisation level.</param>
+    public OptionsController(
+        IOptionsService optionsService,
+        IOptionListReferenceService optionListReferenceService,
+        IGiteaContentLibraryService giteaContentLibraryService)
     {
         _optionsService = optionsService;
         _optionListReferenceService = optionListReferenceService;
-        _orgCodeListService = orgCodeListService;
+        _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <summary>
@@ -252,7 +254,7 @@ public class OptionsController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, optionListId, cancellationToken);
+        bool codeListExists = await _giteaContentLibraryService.CodeListExists(org, optionListId);
         if (!codeListExists)
         {
             return NotFound($"The code list file {optionListId}.json does not exist.");

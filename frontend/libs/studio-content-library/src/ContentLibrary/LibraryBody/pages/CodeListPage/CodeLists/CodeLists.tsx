@@ -1,7 +1,6 @@
 import React from 'react';
 import type { CodeListData } from '../CodeListPage';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
-import { Accordion } from '@digdir/designsystemet-react';
 import { StudioAlert } from '@studio/components-legacy';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
@@ -9,6 +8,7 @@ import type { CodeListIdSource, CodeListReference } from '../types/CodeListRefer
 import classes from './CodeLists.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
 import type { TextResource } from '@studio/components-legacy';
+import { StudioDetails, StudioCard } from '@studio/components';
 
 export type CodeListsProps = {
   codeListDataList: CodeListData[];
@@ -34,8 +34,8 @@ export function CodeLists({
       <CodeList
         key={codeListData.title}
         codeListData={codeListData}
-        {...rest}
         codeListSources={codeListSources}
+        {...rest}
       />
     );
   });
@@ -53,35 +53,35 @@ function CodeList({
   ...rest
 }: CodeListProps): React.ReactElement {
   return (
-    <Accordion border>
-      <Accordion.Item defaultOpen={codeListInEditMode === codeListData.title}>
-        <CodeListAccordionHeader
+    <StudioCard className={classes.codeListCard}>
+      <StudioDetails defaultOpen={codeListInEditMode === codeListData.title}>
+        <CodeListDetailsSummary
           codeListTitle={codeListData.title}
           codeListUsagesCount={getCodeListUsageCount(codeListSources)}
         />
-        <CodeListAccordionContent
+        <CodeListDetailsContent
           codeListData={codeListData}
           codeListSources={codeListSources}
           {...rest}
         />
-      </Accordion.Item>
-    </Accordion>
+      </StudioDetails>
+    </StudioCard>
   );
 }
 
-type CodeListAccordionHeaderProps = {
+type CodeListDetailsSummaryProps = {
   codeListTitle: string;
   codeListUsagesCount: number;
 };
 
-function CodeListAccordionHeader({
+function CodeListDetailsSummary({
   codeListTitle,
   codeListUsagesCount,
-}: CodeListAccordionHeaderProps): React.ReactElement {
+}: CodeListDetailsSummaryProps): React.ReactElement {
   const { t } = useTranslation();
 
-  let codeListUsagesCountTextKey: string =
-    'app_content_library.code_lists.code_list_accordion_usage_sub_title_plural';
+  let codeListUsagesCountTextKey: string | null =
+    'app_content_library.code_lists.code_list_details_usage_sub_title_plural';
 
   switch (codeListUsagesCount) {
     case 0: {
@@ -90,37 +90,38 @@ function CodeListAccordionHeader({
     }
     case 1: {
       codeListUsagesCountTextKey =
-        'app_content_library.code_lists.code_list_accordion_usage_sub_title_single';
+        'app_content_library.code_lists.code_list_details_usage_sub_title_single';
       break;
     }
   }
 
   return (
-    <Accordion.Header
-      title={t('app_content_library.code_lists.code_list_accordion_title', {
+    <StudioDetails.Summary
+      title={t('app_content_library.code_lists.code_list_details_title', {
         codeListTitle: codeListTitle,
       })}
-      className={classes.codeListTitle}
     >
-      {codeListTitle}
-      {codeListUsagesCountTextKey && (
-        <div className={classes.codeListUsages}>
-          {t(codeListUsagesCountTextKey, { codeListUsagesCount })}
-        </div>
-      )}
-    </Accordion.Header>
+      <div className={classes.codeListTitle}>
+        {codeListTitle}
+        {codeListUsagesCountTextKey && (
+          <div className={classes.codeListUsages}>
+            {t(codeListUsagesCountTextKey, { codeListUsagesCount })}
+          </div>
+        )}
+      </div>
+    </StudioDetails.Summary>
   );
 }
 
-type CodeListAccordionContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
+type CodeListDetailsContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
 
-function CodeListAccordionContent({
+function CodeListDetailsContent({
   codeListData,
   codeListSources,
   ...rest
-}: CodeListAccordionContentProps): React.ReactElement {
+}: CodeListDetailsContentProps): React.ReactElement {
   return (
-    <Accordion.Content>
+    <StudioDetails.Content>
       {codeListData.hasError ? (
         <InvalidCodeListAlert />
       ) : (
@@ -131,7 +132,7 @@ function CodeListAccordionContent({
           {...rest}
         />
       )}
-    </Accordion.Content>
+    </StudioDetails.Content>
   );
 }
 

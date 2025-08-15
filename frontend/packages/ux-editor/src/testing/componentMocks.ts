@@ -13,7 +13,7 @@ const commonProps = <T extends ComponentType>(
 });
 const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   ...commonProps(ComponentType.Checkboxes),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -41,7 +41,7 @@ const closeSubformButton: FormComponent<ComponentType.CustomButton> = {
 
 const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   ...commonProps(ComponentType.RadioButtons),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -51,7 +51,7 @@ const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
 };
 const inputComponent: FormComponent<ComponentType.Input> = {
   ...commonProps(ComponentType.Input),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
 };
 const headerComponent: FormComponent<ComponentType.Header> = {
   ...commonProps(ComponentType.Header),
@@ -70,7 +70,7 @@ const imageComponent: FormComponent<ComponentType.Image> = {
 };
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   timeStamp: true,
 };
 
@@ -83,12 +83,12 @@ const dividerComponent: FormComponent<ComponentType.Divider> = {
 const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
   ...commonProps(ComponentType.Dropdown),
   type: ComponentType.Dropdown,
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   optionsId: '',
 };
 const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps(ComponentType.TextArea),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
 };
 const subformComponent: FormComponent<ComponentType.Subform> = {
   ...commonProps(ComponentType.Subform),
@@ -132,9 +132,9 @@ const buttonComponent: FormComponent<ComponentType.Button> = {
 const addressComponent: FormComponent<ComponentType.Address> = {
   ...commonProps(ComponentType.Address),
   dataModelBindings: {
-    address: 'some-address',
-    zipCode: 'some-zip',
-    postPlace: 'some-place',
+    address: { field: 'some-address', dataType: '' },
+    zipCode: { field: 'some-zip', dataType: '' },
+    postPlace: { field: 'some-place', dataType: '' },
   },
   simplified: true,
 };
@@ -156,7 +156,7 @@ const panelComponent: FormComponent<ComponentType.Panel> = {
 };
 const mapComponent: FormComponent<ComponentType.Map> = {
   ...commonProps(ComponentType.Map),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   centerLocation: {
     latitude: 0,
     longitude: 0,
@@ -182,7 +182,7 @@ const groupContainer: FormContainer<ComponentType.Group> = {
 const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   ...commonProps(ComponentType.RepeatingGroup),
   itemType: 'CONTAINER',
-  dataModelBindings: { group: '' },
+  dataModelBindings: { group: { field: '', dataType: '' } },
 };
 
 const summaryComponent: FormComponent<ComponentType.Summary> = {
@@ -197,10 +197,21 @@ const summary2Component: FormComponent<ComponentType.Summary2> = {
   },
 };
 
+const alertComponent: FormComponent<ComponentType.Alert> = {
+  ...commonProps(ComponentType.Alert),
+  severity: 'info',
+};
+
+const linkComponent: FormComponent<ComponentType.Link> = {
+  ...commonProps(ComponentType.Link),
+  style: 'link',
+};
+
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
   [ComponentType.Address]: addressComponent,
+  [ComponentType.Alert]: alertComponent,
   [ComponentType.AttachmentList]: attachmentListComponent,
   [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
@@ -216,6 +227,7 @@ export const componentMocks = {
   [ComponentType.Header]: headerComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
+  [ComponentType.Link]: linkComponent,
   [ComponentType.Map]: mapComponent,
   [ComponentType.NavigationBar]: navigationBarComponent,
   [ComponentType.Panel]: panelComponent,

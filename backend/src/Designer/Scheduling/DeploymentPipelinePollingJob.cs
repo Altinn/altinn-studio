@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Utils;
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
@@ -99,14 +98,11 @@ public class DeploymentPipelinePollingJob : IJob
 
     }
 
-
     private async Task UpdateMetadataInStorage(AltinnRepoEditingContext editingContext, string environment)
     {
-        var appMetadata = await _altinnStorageAppMetadataClient.GetApplicationMetadataAsync(editingContext, environment);
-        var copyInstanceSettings = appMetadata.CopyInstanceSettings ?? new CopyInstanceSettings();
-        copyInstanceSettings.Enabled = false;
-        appMetadata.CopyInstanceSettings = copyInstanceSettings;
-        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(editingContext.Org, editingContext.Repo, appMetadata, environment);
+        string appMetadataJson = await _altinnStorageAppMetadataClient.GetApplicationMetadataJsonAsync(editingContext, environment);
+        appMetadataJson = Helpers.ApplicationMetadataJsonHelper.SetCopyInstanceEnabled(appMetadataJson, enabled: false);
+        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(editingContext.Org, editingContext.Repo, appMetadataJson, environment);
     }
 
     private static void CancelJob(IJobExecutionContext context)
