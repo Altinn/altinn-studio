@@ -38,8 +38,10 @@ public class AppExceptionsService(IOptions<GeneralSettings> generalSettings, Log
             : $" | where AppRoleName has '{app.Replace("'", "''")}'";
 
         var query = $@"
-                AppExceptions{appNameFilter}
-                | summarize Count = count() by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
+                AppExceptions
+                | where SeverityLevel >= 3
+                | where ClientType != 'Browser'{appNameFilter}
+                | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
                 | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);

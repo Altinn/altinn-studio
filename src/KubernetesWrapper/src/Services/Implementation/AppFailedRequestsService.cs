@@ -37,10 +37,23 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
             ? string.Empty
             : $" | where AppRoleName has '{app.Replace("'", "''")}'";
 
+        // | summarize FailedCount = sumif(ItemCount, Success == false), Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
         var query = $@"
-                    AppRequests{appNameFilter}
+                    AppRequests
+                    | join kind=inner (
+                        AppExceptions
+                    ) on OperationId
                     | where Success == false
-                    | summarize Count = count() by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
+                    | where ClientType != 'Browser'{appNameFilter}
+                    | where toint(ResultCode) >= 500
+                    | where ExceptionType !in (
+                        'System.Threading.Tasks.TaskCanceledException',
+                        'System.Net.Sockets.SocketException',
+                        'System.ComponentModel.DataAnnotations.ValidationException',
+                        'Altinn.App.Core.Features.Correspondence.Exceptions.CorrespondenceArgumentException',
+                        'System.Security.Cryptography.CryptographicException'
+                    )
+                    | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
                     | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
