@@ -132,7 +132,7 @@ export const ResourceLanguageTextField = ({
   };
 
   const onAddMarkdownLink = (): void => {
-    onAddMarkdown('[Link](https://altinn.no)', 'Link');
+    onAddMarkdown('[Lenketekst](https://altinn.no)', 'Link');
   };
 
   const onAddMarkdownList = (): void => {
