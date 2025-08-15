@@ -1,4 +1,3 @@
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -16,6 +15,7 @@ import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
 import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import type { TFunction } from 'i18next';
 
 /**
  * The map of resource type
@@ -175,7 +175,7 @@ export const deepCompare = (original: any, changed: any) => {
 
 export const validateResource = (
   resourceData: Resource | undefined,
-  t: (key: string, params?: KeyValuePairs<string>) => string,
+  t: TFunction<'translation', undefined>,
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
@@ -359,6 +359,28 @@ export const validateResource = (
           }),
         });
       }
+    });
+
+    // validate links used in consentText
+    Object.keys(resourceData.consentText ?? {}).forEach((language: ValidLanguage) => {
+      const links = resourceData.consentText?.[language]?.match(/\[([^\]]+)\]\(([^)]+)\)/g) ?? [];
+      links.forEach((link) => {
+        const match = link.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        if (match && match.length === 3) {
+          const linkUrl = match[2];
+          const isLinkUrlValid = linkUrl.startsWith('https://') || linkUrl.startsWith('http://');
+          if (!isLinkUrlValid) {
+            errors.push({
+              field: 'consentText',
+              index: language,
+              error: t('resourceadm.about_resource_error_consent_text_link_invalid', {
+                link: link,
+                interpolation: { escapeValue: false },
+              }),
+            });
+          }
+        }
+      });
     });
   }
 
@@ -544,4 +566,12 @@ export const getResourceSubjects = (
     return [...subjectData, ...accessListSubjects, organizationSubject];
   }
   return subjectData;
+};
+
+export const getDefaultConsentText = (): SupportedLanguage => {
+  return {
+    nb: 'Forslag til struktur på samtykketekst: Beskriv hva samtykket er, og hva som samtykkes til\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
+    nn: 'Opplysninger rapportert av arbeidsgiver eller andre som har utbetalt lønn eller ytelser, i perioden {fraDato} til {tilDato}\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
+    en: 'Opplysninger rapportert av arbeidsgiver eller andre som har utbetalt lønn eller ytelser, i perioden {fraDato} til {tilDato}\n- Utbetalt lønn, næringsinntekt\n- Pensjon\n- Trygd eller ytelser\n- Skattefradrag og forskuddstrekk\n\nHer kan du se inntektsopplysningene Skatteetaten har om deg: [Mine inntekter og arbeidsforhold](https://altinn.no)',
+  };
 };
