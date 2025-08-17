@@ -23,7 +23,7 @@ jobs:
           dotnet-version: |
             9.0.x
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Install dotnet ef # Version should be the same as Migrations docker file and project
         run: dotnet tool install --version 9.0.0 --global dotnet-ef
