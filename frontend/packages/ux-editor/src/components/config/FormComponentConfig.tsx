@@ -2,7 +2,6 @@ import React from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
-import {} from './ConfigProperties/ConfigNumberProperties';
 import { usePropertyTypes } from './ConfigProperties/usePropertyTypes';
 import {
   ConfigGridProperties,

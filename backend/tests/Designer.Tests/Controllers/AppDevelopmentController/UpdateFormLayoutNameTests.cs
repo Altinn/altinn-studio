@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -102,6 +103,37 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
                 Assert.True(JsonUtils.DeepEquals(actual, expected));
             });
+        }
+
+        [Fact]
+        public async Task UpdateFormLayoutName_CaseOnlyRenameWithSetName_ShouldReturnOkAndRenameFile()
+        {
+            string layoutSetName = "layoutSet1";
+            string layoutName = "page1";
+            string newLayoutName = "PAGE1";
+            string actualApp = "app-with-summary2-components";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest("ttd", actualApp, "testUser", app);
+
+
+            string url = $"{VersionPrefix("ttd", app)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
+            string oldLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{layoutName}.json");
+            string newLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{newLayoutName}.json");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(oldLayoutPath));
+            await File.WriteAllTextAsync(oldLayoutPath, "{}");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+            };
+
+            using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            List<string> list = [.. Directory.GetFiles(Path.GetDirectoryName(oldLayoutPath))];
+            Assert.DoesNotContain(oldLayoutPath, list);
+            Assert.Contains(newLayoutPath, list);
         }
     }
 }

@@ -27,7 +27,7 @@ describe('EditTextResourceBindings component', () => {
     },
     type: ComponentType.Input,
     itemType: 'COMPONENT',
-    dataModelBindings: { simpleBinding: '' },
+    dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   };
 
   const textResources: ITextResource[] = [

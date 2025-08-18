@@ -21,7 +21,7 @@ const newLayout: IInternalLayout = {
       id: componentId,
       type: componentType,
       itemType: 'COMPONENT',
-      dataModelBindings: { simpleBinding: 'somePath' },
+      dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
       pageIndex: null,
     },
   },
@@ -71,7 +71,7 @@ describe('useFormLayoutMutation', () => {
               {
                 id: componentId,
                 type: componentType,
-                dataModelBindings: { simpleBinding: 'somePath' },
+                dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
               },
             ],
           },
