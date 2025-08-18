@@ -52,7 +52,8 @@ export const PageGroupAccordion = ({
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
+  const { selectedFormLayoutSetName, setSelectedFormLayoutName, selectedItem, setSelectedItem } =
+    useAppContext();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: changePageGroupOrder } = useChangePageGroupOrder(
     org,
@@ -84,6 +85,11 @@ export const PageGroupAccordion = ({
     changePageGroupOrder({ groups: newGroups });
   };
 
+  const handleSelectGroup = (groupIndex: number) => {
+    setSelectedItem({ type: ItemType.Group, id: groupIndex });
+    setSelectedFormLayoutName(undefined);
+  };
+
   return pages?.groups.map((group, groupIndex) => {
     if (!group.order || group.order.length === 0) return null;
 
@@ -99,20 +105,22 @@ export const PageGroupAccordion = ({
     };
 
     const groupDisplayName = pageGroupDisplayName(group);
-    const selectedGroup = selectedItem?.type === ItemType.Group && selectedItem.id === groupIndex;
+    const { type, id } = selectedItem ?? {};
+
+    const isGroupOrPageSelected =
+      (type === ItemType.Group && id === groupIndex) ||
+      group.order.some((page) => page.id === id || page.id === selectedFormLayoutName);
 
     return (
-      <div key={group.order[0].id} className={classes.groupWrapper}>
+      <div
+        key={group.order[0].id}
+        className={cn(classes.groupWrapper, { [classes.selected]: isGroupOrPageSelected })}
+      >
         <div
-          className={cn(classes.groupHeaderWrapper, {
-            [classes.selected]: selectedGroup,
-          })}
+          className={classes.groupHeaderWrapper}
           data-testid={pageGroupAccordionHeader(groupIndex)}
         >
-          <div
-            className={classes.container}
-            onClick={() => setSelectedItem({ type: ItemType.Group, id: groupIndex })}
-          >
+          <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
             <StudioHeading size='2xs' level={2}>
               {groupDisplayName}
@@ -158,7 +166,7 @@ export const PageGroupAccordion = ({
           const layout = layouts?.[page.id];
           const isInvalidLayout = layout ? duplicatedIdsExistsInLayout(layout) : false;
           return (
-            <Accordion key={page.id} className={classes.groupAccordionWrapper}>
+            <Accordion key={page.id} className={classes.groupPageAccordionWrapper}>
               <PageAccordion
                 pageName={page.id}
                 isOpen={page.id === selectedFormLayoutName}
