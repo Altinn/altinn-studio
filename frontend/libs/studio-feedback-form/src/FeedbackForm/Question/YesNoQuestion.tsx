@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import classes from './YesNoQuestion.module.css';
@@ -30,7 +31,6 @@ export function YesNoQuestion({ id, label, value, buttonLabels, onChange }: YesN
       <div className={classes.buttons}>
         <StudioButton
           variant='tertiary'
-          size='lg'
           icon={value === 'yes' ? <ThumbUpFillIcon /> : <ThumbUpIcon />}
           onClick={value === 'yes' ? unsetYesOrNo : setYes}
           aria-label={buttonLabels.yes}
@@ -38,7 +38,6 @@ export function YesNoQuestion({ id, label, value, buttonLabels, onChange }: YesN
         />
         <StudioButton
           variant='tertiary'
-          size='lg'
           icon={value === 'no' ? <ThumbDownFillIcon /> : <ThumbDownIcon />}
           onClick={value === 'no' ? unsetYesOrNo : setNo}
           aria-label={buttonLabels.no}
