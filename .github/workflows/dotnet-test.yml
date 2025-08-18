@@ -20,6 +20,9 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Tool restore
+        run: |
+          dotnet tool restore
       - name: Build
         run: |
           dotnet build solutions/All.sln -v m

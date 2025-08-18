@@ -3,19 +3,26 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
+    <!-- Required for the fixture - compilation of injected services -->
+    <!-- Specifically to use Microsoft.Extensions.DependencyModel and do runtime codegen -->
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 
-      We reference wildcard versions because the integration test harness 
+    <!--
+      We reference wildcard versions because the integration test harness
       is building and packing the libaries and providing them as a local NuGet feed.
-      So we dont care about the exact version, it just has to be compiled from the code in the current commit 
+      So we dont care about the exact version, it just has to be compiled from the code in the current commit
     -->
     <PackageReference Include="Altinn.App.Api" Version="*-*">
         <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Altinn.App.Core" Version="*-*" />
+
+    <!-- Required for the fixture - compilation of injected services -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
+    <Compile Include="../_shared/*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />

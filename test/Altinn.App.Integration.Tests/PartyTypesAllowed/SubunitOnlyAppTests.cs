@@ -6,15 +6,18 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.PartyTypesAllowed;
 
 [Trait("Category", "Integration")]
-public class SubunitOnlyAppTests(ITestOutputHelper _output)
+public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixture _classFixture)
+    : IClassFixture<AppFixtureClassFixture>
 {
     [Theory]
     [InlineData("500000")] // Org: DDG Fitness AS
     [InlineData("500002")] // Subunit: DDG Fitness Oslo
     public async Task Instantiate(string partyId)
     {
-        await using var fixture = await AppFixture.Create(_output, TestApps.Basic, "subunit-only");
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic, "subunit-only");
+        var fixture = fixtureScope.Fixture;
         var verifier = fixture.ScopedVerifier;
+        verifier.UseTestCase(new { partyId });
 
         var token = await fixture.Auth.GetUserToken(userId: 1337);
 
@@ -26,18 +29,18 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output)
         using var data = await response.Read<Instance>();
         await verifier.Verify(
             data,
-            parameters: new { partyId },
             snapshotName: "Instance",
-            scrubber: AppFixture.InstanceScrubber(data)
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(data))
         );
 
-        await verifier.Verify(await fixture.GetSnapshotAppLogs(), parameters: new { partyId }, snapshotName: "Logs");
+        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 
     [Fact]
     public async Task ApplicationMetadata()
     {
-        await using var fixture = await AppFixture.Create(_output, TestApps.Basic, "subunit-only");
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic, "subunit-only");
+        var fixture = fixtureScope.Fixture;
         var verifier = fixture.ScopedVerifier;
 
         using var response = await fixture.ApplicationMetadata.Get();

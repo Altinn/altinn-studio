@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
@@ -39,6 +40,40 @@ internal abstract class Logger : ILogger
         where TState : notnull => new NullScope();
 }
 
+internal sealed class FixtureLogger(long _fixtureInstance, string _name, string _scenario, bool _forTestContainers)
+    : Logger
+{
+    private long _currentFixtureInstance = _fixtureInstance;
+    private readonly Stopwatch _timer = Stopwatch.StartNew();
+
+    protected override void Log<TState>(TState state, Exception? exception, Func<TState, Exception?, string?> formatter)
+    {
+        var message = GetMessage(state, exception, formatter);
+        var prefix = $"{_currentFixtureInstance:00}/{_name}/{_scenario}";
+        if (_forTestContainers)
+            Console.Out.WriteLine($"[{prefix}/testcontainers {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
+        else
+            Console.Out.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <returns>
+    /// The hash code of the underlying message sink, because <see cref="DotNet.Testcontainers.Clients.DockerApiClient.LogContainerRuntimeInfoAsync" />
+    /// logs the runtime information once per Docker Engine API client and logger.
+    /// </returns>
+    public override int GetHashCode() =>
+        HashCode.Combine(_currentFixtureInstance, _name, _scenario, _forTestContainers);
+}
+
 internal sealed class TestOutputLogger(
     ITestOutputHelper? output,
     long _fixtureInstance,
@@ -47,7 +82,21 @@ internal sealed class TestOutputLogger(
     bool _forTestContainers
 ) : Logger
 {
-    private readonly ITestOutputHelper? _output = output;
+    private ITestOutputHelper? _output = output;
+    private long _currentFixtureInstance = _fixtureInstance;
+    private readonly Stopwatch _timer = Stopwatch.StartNew();
+
+    /// <summary>
+    /// Updates the output helper for a new test method
+    /// </summary>
+    public void UpdateOutput(ITestOutputHelper? output, long? fixtureInstance = null)
+    {
+        _output = output;
+        if (fixtureInstance.HasValue)
+        {
+            _currentFixtureInstance = fixtureInstance.Value;
+        }
+    }
 
     protected override void Log<TState>(TState state, Exception? exception, Func<TState, Exception?, string?> formatter)
     {
@@ -57,11 +106,11 @@ internal sealed class TestOutputLogger(
         }
 
         var message = GetMessage(state, exception, formatter);
-        var prefix = $"{_fixtureInstance:00}/{_name}/{_scenario}";
+        var prefix = $"{_currentFixtureInstance:00}/{_name}/{_scenario}";
         if (_forTestContainers)
-            _output.WriteLine($"[{prefix}/testcontainers] {message}");
+            _output.WriteLine($"[{prefix}/testcontainers {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
         else
-            _output.WriteLine($"[{prefix}] {message}");
+            _output.WriteLine($"[{prefix} {_timer.Elapsed:hh\\:mm\\:ss\\.ff}] {message}");
     }
 
     public override bool Equals(object? obj)

@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -184,6 +185,52 @@ public partial class AppFixture : IAsyncDisposable
             return new ApiResponse(_fixture, response);
         }
 
+        public async Task<ApiResponse> Post(string token, Instance instanceTemplate)
+        {
+            var client = _fixture.GetAppClient();
+            var endpoint = $"/ttd/{_fixture._app}/instances";
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var payload = JsonSerializer.Serialize(instanceTemplate, _jsonSerializerOptions);
+            request.Content = new StringContent(payload, new MediaTypeHeaderValue("application/json"));
+            var response = await client.SendAsync(request);
+            return new ApiResponse(_fixture, response);
+        }
+
+        public async Task<ApiResponse> PostMultipart(
+            string token,
+            Instance? instanceTemplate = null,
+            Dictionary<string, (string content, string contentType)>? dataParts = null
+        )
+        {
+            var client = _fixture.GetAppClient();
+            var endpoint = $"/ttd/{_fixture._app}/instances";
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var multipartContent = new MultipartFormDataContent();
+
+            // Add instance template part if provided
+            if (instanceTemplate is not null)
+            {
+                var instanceJson = JsonSerializer.Serialize(instanceTemplate, _jsonSerializerOptions);
+                multipartContent.Add(new StringContent(instanceJson, Encoding.UTF8, "application/json"), "instance");
+            }
+
+            // Add data parts if provided
+            if (dataParts is not null)
+            {
+                foreach (var (partName, (content, contentType)) in dataParts)
+                {
+                    multipartContent.Add(new StringContent(content, Encoding.UTF8, contentType), partName);
+                }
+            }
+
+            request.Content = multipartContent;
+            var response = await client.SendAsync(request);
+            return new ApiResponse(_fixture, response);
+        }
+
         public async Task<ApiResponse> ProcessNext(
             string token,
             ReadApiResponse<Instance> instanceData,
@@ -237,19 +284,23 @@ internal sealed record InstanceDownload(ReadApiResponse<Instance> Instance, IRea
     public async Task Verify(
         ScopedVerifier verifier,
         object? parameters = null,
+        bool skipInstanceInSnapshot = false,
         [CallerFilePath] string sourceFile = ""
     )
     {
-        var scrubber = InstanceScrubber(Instance);
-        await verifier
-            .Verify(
-                Instance,
-                snapshotName: "Instance",
-                scrubber: scrubber,
-                parameters: parameters,
-                sourceFile: sourceFile
-            )
-            .ScrubMember<DataElement>(d => d.Size); // PDF varies in size
+        var scrubbers = new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(Instance));
+        if (!skipInstanceInSnapshot)
+        {
+            await verifier
+                .Verify(
+                    Instance,
+                    snapshotName: "Download-Instance",
+                    scrubbers: scrubbers,
+                    parameters: parameters,
+                    sourceFile: sourceFile
+                )
+                .ScrubMember<DataElement>(d => d.Size); // PDF varies in size
+        }
         foreach (var data in Data)
         {
             switch (data)
@@ -257,26 +308,37 @@ internal sealed record InstanceDownload(ReadApiResponse<Instance> Instance, IRea
                 case InstanceDataDownload.Form form:
                     await verifier.Verify(
                         form.Data,
-                        snapshotName: $"Data[{data.Index}]",
-                        scrubber: scrubber,
+                        snapshotName: $"Download-Data[{data.Index}]",
+                        scrubbers: scrubbers,
                         parameters: parameters,
                         sourceFile: sourceFile
                     );
                     break;
                 case InstanceDataDownload.Binary binary:
-                    var finalScrubber = scrubber;
+                    var finalScrubbers = scrubbers;
                     if (data.DataType == "ref-data-as-pdf")
                     {
                         // Special handling for PDF data types
                         var contentLength = binary.Data.Response.Content.Headers.ContentLength!.Value.ToString();
-                        finalScrubber = v => scrubber(v.Replace(contentLength, "<contentLength>"));
+                        finalScrubbers = scrubbers.WithStringScrubber(v => v.Replace(contentLength, "<contentLength>"));
+                        finalScrubbers = finalScrubbers.WithHeadersScrubber(kvp =>
+                        {
+                            // We ignore these headers for PDF snapshots because
+                            // PDF output is not deterministic and ASP.NET core is not determnistic
+                            // in how it serves the PDF stream in the response
+                            if (kvp.Key is "Transfer-Encoding" or "Content-Length")
+                                return null;
+                            return kvp;
+                        });
                         binary.Data.IncludeBodyInSnapshot = false; // Avoid non-determnistic PDF snapshots
                     }
 
                     await verifier.Verify(
                         binary.Data,
-                        snapshotName: data.DataType == "ref-data-as-pdf" ? "PDF" : $"Data[{data.Index}]",
-                        scrubber: finalScrubber,
+                        snapshotName: data.DataType == "ref-data-as-pdf"
+                            ? "Download-PDF"
+                            : $"Download-Data[{data.Index}]",
+                        scrubbers: finalScrubbers,
                         parameters: parameters,
                         sourceFile: sourceFile
                     );

@@ -1,9 +1,0 @@
-﻿[basic/default] [INFO] Checking for scenario config overrides...
-[basic/default] [INFO] Waiting for port configuration at /App/port-config/ports.json...
-[basic/default] [INFO] Port configuration loaded
-[basic/default] [INFO] Starting application with scenario: default
-[basic/default] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337/SophieDDG, AuthLevel: 2, AuthMethod: localtest
-[basic/default] [INFO] IInstantiationValidator.Validate
-[basic/default] [INFO] IProcessTaskStart.Start
-[basic/default] [INFO] IInstantiationProcessor.DataCreation
-[basic/default] [INFO] ### Response: Instances.PostSimplified - CreatedResult, StatusCode: 201

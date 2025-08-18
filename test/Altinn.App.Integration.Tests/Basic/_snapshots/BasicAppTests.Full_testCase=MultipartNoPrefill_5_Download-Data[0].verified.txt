@@ -59,8 +59,8 @@
     IsSuccessStatusCode: true
   },
   Response: {
-    property1: Testing,
-    property2: null,
+    property1: 2,
+    property2: 2,
     property3: null
   }
 }

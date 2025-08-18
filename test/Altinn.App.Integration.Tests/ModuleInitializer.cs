@@ -20,6 +20,19 @@ internal static class ModuleInitializer
 
     internal static string GetProjectDirectory() => GetProjectDirectoryInternal();
 
+    internal static string GetSolutionDirectory()
+    {
+        var solutionDirectory = Path.Join(GetProjectDirectory(), "..", "..");
+        var info = new DirectoryInfo(solutionDirectory);
+        if (!info.Exists)
+        {
+            throw new DirectoryNotFoundException(
+                $"The directory {solutionDirectory} does not exist. Please check the path."
+            );
+        }
+        return info.FullName;
+    }
+
     private static string GetProjectDirectoryInternal([CallerFilePath] string? callerFilePath = null)
     {
         var directory = Path.GetDirectoryName(callerFilePath);

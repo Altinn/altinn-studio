@@ -9,6 +9,7 @@ ba: build-all
 ta: test-all
 
 ti: test-integration
+tir: test-integration-repeatedly
 
 # Main projects (more lightweight)
 .PHONY: clean
@@ -58,3 +59,7 @@ ifdef filter
 else
 	dotnet test test/Altinn.App.Integration.Tests/ --logger "console;verbosity=detailed"
 endif
+
+.PHONY: test-integration
+test-integration-repeatedly:
+	@bash run-repeatedly.sh

@@ -71,17 +71,12 @@
     Process: {
       Started: DateTime_2,
       StartEvent: StartEvent_1,
-      CurrentTask: {
-        Flow: 2,
-        Started: DateTime_3,
-        ElementId: Task_1,
-        Name: Utfylling,
-        AltinnTaskType: data,
-        FlowType: CompleteCurrentMoveToNext
-      }
+      Ended: DateTime_3,
+      EndEvent: EndEvent_1
     },
     Status: {
-      IsArchived: false,
+      IsArchived: true,
+      Archived: DateTime_3,
       IsSoftDeleted: false,
       IsHardDeleted: false,
       ReadStatus: Read
@@ -98,17 +93,43 @@
           Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
         },
         Size: {Scrubbed},
-        Locked: false,
+        Locked: true,
         IsRead: true,
         Created: DateTime_4,
         CreatedBy: 1337,
-        LastChanged: DateTime_4,
+        LastChanged: DateTime_5,
+        LastChangedBy: 1337
+      },
+      {
+        Id: <dataElementId[1]>,
+        InstanceGuid: <instanceGuid>,
+        DataType: ref-data-as-pdf,
+        Filename: basic.pdf,
+        ContentType: application/pdf,
+        BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[1]>,
+        SelfLinks: {
+          Apps: https://app:5005/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[1]>,
+          Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[1]>
+        },
+        Size: {Scrubbed},
+        Locked: false,
+        IsRead: true,
+        References: [
+          {
+            Value: Task_1,
+            Relation: GeneratedFrom,
+            ValueType: Task
+          }
+        ],
+        Created: DateTime_6,
+        CreatedBy: 1337,
+        LastChanged: DateTime_6,
         LastChangedBy: 1337
       }
     ],
     Created: DateTime_1,
     CreatedBy: 1337,
-    LastChanged: DateTime_5,
+    LastChanged: DateTime_7,
     LastChangedBy: 1337
   }
 }

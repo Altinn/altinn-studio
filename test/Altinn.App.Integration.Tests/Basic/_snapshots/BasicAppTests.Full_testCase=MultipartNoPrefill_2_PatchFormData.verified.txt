@@ -46,7 +46,7 @@
             application/json
           ],
           Content-Length: [
-            249
+            250
           ]
         }
       },
@@ -68,10 +68,10 @@
   Response: {
     ValidationIssues: [
       {
-        Source: Altinn.App.Logic.Validator-Task_1
+        Source: TestApp.Shared.Validator-Task_1
       },
       {
-        Source: Altinn.App.Logic.FormDataValidator-*
+        Source: TestApp.Shared.FormDataValidator-*
       },
       {
         Source: DataAnnotations
@@ -125,7 +125,7 @@
           SelfLinks: {
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
-          Size: 176,
+          Size: 146,
           Locked: false,
           IsRead: true,
           Created: DateTime_4,

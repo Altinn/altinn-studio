@@ -60,7 +60,7 @@
   },
   Response: {
     property1: 2,
-    property2: 1,
+    property2: 2,
     property3: null
   }
 }
