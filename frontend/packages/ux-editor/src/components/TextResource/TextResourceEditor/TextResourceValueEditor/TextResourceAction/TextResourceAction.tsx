@@ -15,6 +15,7 @@ export type TextResourceActionProps = {
   onSave: (textResourceId: string, value: string) => void;
   onCancel: () => void;
   onDelete?: () => void;
+  disableSearch?: boolean;
 };
 
 export const TextResourceAction = ({
@@ -24,6 +25,7 @@ export const TextResourceAction = ({
   onCancel,
   onDelete,
   onReferenceChange,
+  disableSearch,
 }: TextResourceActionProps) => {
   const { t } = useTranslation();
   const initialValue = useTextResourceValue(textResourceId);
@@ -68,6 +70,7 @@ export const TextResourceAction = ({
         textResourceId={textResourceId}
         onTextChange={handleTextChange}
         onReferenceChange={onReferenceChange}
+        disableSearch={disableSearch}
         textResourceValue={textResourceValue}
       />
       <div className={classes.buttonGroup}>

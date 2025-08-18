@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
-import { TextResourceEditor } from './TextResourceEditor';
 import { usePrevious } from '@studio/components-legacy';
-import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
-import { CheckmarkIcon } from '@studio/icons';
-import { useTranslation } from 'react-i18next';
+import { StudioProperty } from '@studio/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useAppContext } from '../../hooks';
@@ -94,6 +91,7 @@ export const TextResource = ({
       onCancel={handleCancel}
       onDelete={handleDelete}
       onReferenceChange={handleIdChange}
+      disableSearch={disableSearch}
     />
   ) : (
     <TextResourceButton
@@ -102,59 +100,6 @@ export const TextResource = ({
       onOpen={handleOpen}
       textResourceId={textResourceId}
     />
-  );
-};
-
-type TextResourceFieldsetProps = {
-  compact?: boolean;
-  legend: string;
-  onClose: () => void;
-  onDelete: () => void;
-  onReferenceChange: (id: string) => void;
-  onSetCurrentValue: (value: string) => void;
-  textResourceId: string;
-  disableSearch?: boolean;
-};
-
-const TextResourceFieldset = ({
-  compact,
-  legend,
-  onClose,
-  onDelete,
-  onReferenceChange,
-  onSetCurrentValue,
-  textResourceId,
-  disableSearch = false,
-}: TextResourceFieldsetProps) => {
-  const { t } = useTranslation();
-
-  return (
-    <StudioProperty.Fieldset
-      compact={compact}
-      legend={legend}
-      menubar={
-        <>
-          <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
-          <StudioButton icon={<CheckmarkIcon />} onClick={onClose} variant='primary'>
-            {t('general.save')}
-          </StudioButton>
-          <StudioDeleteButton
-            confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-            disabled={!onDelete}
-            onDelete={() => onDelete?.()}
-          >
-            {t('general.delete')}
-          </StudioDeleteButton>
-        </>
-      }
-    >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onReferenceChange={onReferenceChange}
-        onSetCurrentValue={onSetCurrentValue}
-        disableSearch={disableSearch}
-      />
-    </StudioProperty.Fieldset>
   );
 };
 
