@@ -27,7 +27,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         color='light'
         variant='regular'
       />
-      <StudioPopover.Content className={classes.popover}>
+      <StudioPopover.Content data-color-scheme='light' className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
             <li>
