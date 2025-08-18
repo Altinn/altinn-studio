@@ -15,6 +15,8 @@ import { getComponentOptions, getTargetLayoutSetName } from '../Summary2Target/t
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import classes from './Summary2Override.module.css';
+import cn from 'classnames';
 
 export type Summary2OverrideProps = {
   component: FormItem<ComponentType.Summary2>;
