@@ -13,7 +13,7 @@ import type { TranslationKey } from 'language/type';
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
   handleRemoveTextResource?: () => void;
-  label?: TranslationKey;
+  label?: TranslationKey | string;
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;

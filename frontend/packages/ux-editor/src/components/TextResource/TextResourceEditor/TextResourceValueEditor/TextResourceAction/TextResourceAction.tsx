@@ -14,7 +14,7 @@ import { useTextResourceValue } from '../../../hooks/useTextResourceValue';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export type TextResourceActionProps = {
-  legend: TranslationKey;
+  legend: TranslationKey | string;
   textResourceId: string;
   onReferenceChange?: (id: string) => void;
   onSave: (textResourceId: string, value: string) => void;
