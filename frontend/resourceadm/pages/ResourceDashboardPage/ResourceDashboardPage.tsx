@@ -134,8 +134,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <div className={classes.topRightWrapper}>
           <ButtonRouterLink
             variant='tertiary'
-            color='second'
-            size='md'
             to={`${getResourceDashboardURL(org, app)}/accesslists`}
           >
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
