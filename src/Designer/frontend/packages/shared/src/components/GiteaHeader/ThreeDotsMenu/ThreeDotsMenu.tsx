@@ -8,6 +8,7 @@ import { StudioButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
+import { useNavigate } from 'react-router-dom';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
@@ -17,6 +18,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
@@ -51,13 +53,11 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           )}
           <li>
             <StudioButton
-              as='a'
               className={classes.menuButton + ' ' + classes.link}
               fullWidth
-              href={repositoryPath(owner, repoName)}
+              onClick={() => navigate(repositoryPath(owner, repoName))}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
-              size='small'
               variant='tertiary'
             >
               {t('sync_header.repository')}
