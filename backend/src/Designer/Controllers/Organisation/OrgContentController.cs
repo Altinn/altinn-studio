@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
@@ -40,12 +39,10 @@ public class OrgContentController : ControllerBase
     /// </summary>
     /// <param name="orgName">Unique identifier of the organisation.</param>
     /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Route("content")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         if (!await _orgService.IsOrg(orgName))
         {
             HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation";
@@ -61,7 +58,7 @@ public class OrgContentController : ControllerBase
 
         if (string.IsNullOrEmpty(contentType))
         {
-            return await _orgContentService.GetOrgContentReferences(null, editingContext, cancellationToken);
+            return await _orgContentService.GetOrgContentReferences(null, orgName);
         }
 
         bool didParse = Enum.TryParse<LibraryContentType>(contentType, ignoreCase: true, out var parsedContentType);
@@ -70,7 +67,7 @@ public class OrgContentController : ControllerBase
             return BadRequest($"Invalid content type '{contentType}'.");
         }
 
-        return await _orgContentService.GetOrgContentReferences(parsedContentType, editingContext, cancellationToken);
+        return await _orgContentService.GetOrgContentReferences(parsedContentType, orgName);
     }
 
     private AltinnOrgContext CreateAltinnOrgContext(string orgName)

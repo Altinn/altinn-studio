@@ -4,8 +4,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioCard, StudioModal, StudioSpinner } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioButton, StudioModal, StudioSpinner } from '@studio/components-legacy';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
@@ -76,7 +75,7 @@ function OptionListSelectorWithData({
       <StudioModal.Dialog
         ref={modalRef}
         className={classes.modal}
-        contentClassName={classes.content}
+        contentClassName={classes.modalContent}
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.options.modal_header_select_library_code_list')}
         icon={<BookIcon />}
@@ -91,13 +90,13 @@ function OptionListSelectorWithData({
   );
 }
 
-type modalContentProps = OptionListSelectorWithDataProps;
+type ModalContentProps = OptionListSelectorWithDataProps;
 
 function ModalContent({
   optionListIds,
   component,
   handleComponentChange,
-}: modalContentProps): React.ReactNode {
+}: ModalContentProps): React.ReactNode {
   const handleClick = (optionsId: string) => {
     const updatedComponent = updateComponentOptionsId(component, optionsId);
     handleOptionsChange(updatedComponent, handleComponentChange);
@@ -106,11 +105,14 @@ function ModalContent({
   return (
     <>
       {optionListIds.map((optionsId: string) => (
-        <StudioCard className={classes.card} key={optionsId} onClick={() => handleClick(optionsId)}>
-          <StudioCard.Header className={classes.header}>
-            <StudioParagraph>{optionsId}</StudioParagraph>
-          </StudioCard.Header>
-        </StudioCard>
+        <StudioButton
+          key={optionsId}
+          className={classes.codeListButton}
+          variant='secondary'
+          onClick={() => handleClick(optionsId)}
+        >
+          {optionsId}
+        </StudioButton>
       ))}
     </>
   );
