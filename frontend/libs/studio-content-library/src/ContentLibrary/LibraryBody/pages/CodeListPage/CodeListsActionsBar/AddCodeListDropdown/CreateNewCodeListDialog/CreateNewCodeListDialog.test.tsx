@@ -32,7 +32,7 @@ describe('CreateNewCodeListDialog', () => {
     expect(typeSelector).toBeInTheDocument();
   });
 
-  it('renders a disabled button by default', () => {
+  it('renders a disabled save button by default', () => {
     renderCreateNewCodeListDialog();
     expect(getSaveButton()).toBeDisabled();
   });
@@ -100,7 +100,19 @@ describe('CreateNewCodeListDialog', () => {
       codeList: [{ label: '', value: '' }],
       title: newCodeListTitleMock,
     });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(queryDialog()).not.toBeInTheDocument();
+  });
+
+  it('renders a cancel button', () => {
+    renderCreateNewCodeListDialog();
+    expect(getCancelButton()).toBeInTheDocument();
+  });
+
+  it('closes the dialog when the cancel button is clicked', async () => {
+    const user = userEvent.setup();
+    renderCreateNewCodeListDialog();
+    await user.click(getCancelButton());
+    expect(queryDialog()).not.toBeInTheDocument();
   });
 });
 
@@ -126,10 +138,20 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
   await addCodeListItem(user);
 };
 
-const getSaveButton = () => {
+const getSaveButton = (): HTMLButtonElement => {
   return screen.getByRole('button', {
     name: textMock('app_content_library.code_lists.save_new_code_list'),
   });
+};
+
+const getCancelButton = (): HTMLButtonElement => {
+  return screen.getByRole('button', {
+    name: textMock('general.cancel'),
+  });
+};
+
+const queryDialog = (): HTMLDialogElement => {
+  return screen.queryByRole('dialog');
 };
 
 const defaultProps: CreateNewCodeListDialogProps = {
