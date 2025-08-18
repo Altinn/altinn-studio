@@ -20,14 +20,14 @@ function StudioSuggestion(
   { required, tagText, label, children, emptyText, className, ...rest }: StudioSuggestionProps,
   ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
 ): ReactElement {
-  const labelId = useId();
+  const inputId = useId();
   return (
     <StudioField className={className}>
       <StudioLabelWrapper required={required} tagText={tagText}>
-        <StudioLabel id={labelId}>{label}</StudioLabel>
+        <StudioLabel htmlFor={inputId}>{label}</StudioLabel>
       </StudioLabelWrapper>
       <Suggestion {...rest}>
-        <Suggestion.Input aria-labelledby={labelId} ref={ref} />
+        <Suggestion.Input id={inputId} ref={ref} />
         <Suggestion.Clear />
         <Suggestion.List>
           <Suggestion.Empty>{emptyText}</Suggestion.Empty>
