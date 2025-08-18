@@ -83,7 +83,11 @@ describe('DataModelBindings', () => {
         props: {
           formItem: {
             ...componentMocks[ComponentType.Address],
-            dataModelBindings: { address: '', zipCode: '', postPlace: '' },
+            dataModelBindings: {
+              address: { field: '', dataType: '' },
+              zipCode: { field: '', dataType: '' },
+              postPlace: { field: '', dataType: '' },
+            },
           },
           formItemId: componentMocks[ComponentType.Address].id,
         },
@@ -107,10 +111,10 @@ describe('DataModelBindings', () => {
         formItem: {
           ...componentMocks[ComponentType.Address],
           dataModelBindings: {
-            address: 'someAddressDataModelField',
-            postPlace: '',
-            zipCode: '',
-            careOf: 'someCareOfDataModelField',
+            address: { field: 'someAddressDataModelField', dataType: '' },
+            postPlace: { field: '', dataType: '' },
+            zipCode: { field: '', dataType: '' },
+            careOf: { field: 'someCareOfDataModelField', dataType: '' },
           },
         },
         formItemId: componentMocks[ComponentType.Address].id,
@@ -175,7 +179,7 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { list: 'someListDataModelField' },
+          dataModelBindings: { list: { field: 'someListDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
       },
@@ -192,7 +196,7 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { simpleBinding: 'someSimpleDataModelField' },
+          dataModelBindings: { simpleBinding: { field: 'someSimpleDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
       },
@@ -239,7 +243,10 @@ describe('DataModelBindings', () => {
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: { list: '', simpleBinding: undefined },
+      dataModelBindings: {
+        list: { field: '', dataType: '' },
+        simpleBinding: { field: undefined, dataType: '' },
+      },
     });
   });
 
@@ -250,7 +257,7 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { list: 'someListDataModelField' },
+          dataModelBindings: { list: { field: 'someListDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
         handleUpdate,
@@ -264,7 +271,7 @@ describe('DataModelBindings', () => {
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: { list: undefined, simpleBinding: '' },
+      dataModelBindings: { list: undefined, simpleBinding: { field: '', dataType: '' } },
     });
   });
 

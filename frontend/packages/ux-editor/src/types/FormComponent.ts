@@ -1,5 +1,5 @@
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { IDataModelBindingsKeyValue, ITextResourceBindings, IOption } from './global';
+import type { ITextResourceBindings, IOption, IDataModelBindingsKeyValueExplicit } from './global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
@@ -14,7 +14,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   size?: string;
   options?: IOption[];
   pageIndex?: number;
-  dataModelBindings?: IDataModelBindingsKeyValue;
+  dataModelBindings?: IDataModelBindingsKeyValueExplicit;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
   codeListId?: string;

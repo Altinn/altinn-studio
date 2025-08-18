@@ -316,20 +316,21 @@ namespace Designer.Tests.Services
 
             GeneralSettings generalSettings = new()
             {
-                TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
-                DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-                AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+                TemplateLocation = @"../../../../../../src/App/app-template-dotnet/src",
+                DeploymentLocation = @"../../../../../../src/App/app-template-dotnet/src/deployment",
+                AppLocation = @"../../../../../../src/App/app-template-dotnet/src/App"
             };
 
             EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
 
             AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
 
-            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, new IGiteaMock());
+            IGitea giteaMock = new IGiteaMock();
+            ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaMock);
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
-            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory);
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaMock));
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 

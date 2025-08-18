@@ -97,6 +97,7 @@ export const TextEditor = ({
           </StudioButton>
           <div className={classes.filterAndSearch}>
             <Chip.Toggle
+              size='small'
               onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
               selected={sortTextsAlphabetically}
             >

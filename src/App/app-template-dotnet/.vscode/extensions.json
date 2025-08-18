@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "ms-dotnettools.csharp",
+    "redhat.vscode-yaml",
+    "pflannery.vscode-versionlens",
+    "eamodio.gitlens"
+  ]
+}

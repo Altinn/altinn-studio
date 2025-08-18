@@ -111,6 +111,16 @@ describe('TextResource', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
+  it('Renders info message only when search is disabled', async () => {
+    await renderAndOpenSearchSection({ disableSearch: true });
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('ux_editor.modal_properties_textResourceBindings_page_name_search_disabled'),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('Renders correct number of options in search section', async () => {
     await renderAndOpenSearchSection();
     const combobox = screen.getByRole('combobox');
@@ -235,10 +245,10 @@ describe('TextResource', () => {
   });
 });
 
-const renderAndOpenSearchSection = async () => {
+const renderAndOpenSearchSection = async (partialProps?: Partial<TextResourceProps>) => {
   const label = 'Test';
   const textResourceId = textResources[0].id;
-  renderTextResource({ label, textResourceId }, textResources);
+  renderTextResource({ label, textResourceId, ...partialProps }, textResources);
   const textResourceButton = screen.getByRole('button', { name: label });
   await user.click(textResourceButton);
   const searchTab = screen.getByRole('tab', {
