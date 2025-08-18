@@ -72,7 +72,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
         {shouldDisplayText && t('sync_header.fetch_changes')}
         {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
       </StudioPageHeader.PopoverTrigger>
-      <StudioPopover.Content className={classes.popoverContent}>
+      <StudioPopover.Content data-color-scheme='light' className={classes.popoverContent}>
         {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}
         {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
       </StudioPopover.Content>
