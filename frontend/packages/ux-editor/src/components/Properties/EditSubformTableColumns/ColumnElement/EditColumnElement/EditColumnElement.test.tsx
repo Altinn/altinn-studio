@@ -267,7 +267,7 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       onChange: onChangeMock,
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: textKeyMock,
         cellContent: { query: addressDataField },
       },
     });
@@ -292,14 +292,18 @@ describe('EditColumnElementComponentSelect', () => {
         headerContent: textKeyMock,
       }),
     );
-    await act(async () => {
-      await user.click(
-        screen.getAllByRole('button', {
-          name: textMock('general.delete'),
-        })[0],
-      );
-    });
-    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    await user.click(
+      screen.getAllByRole('button', {
+        name: textMock('general.delete'),
+      })[0],
+    );
+    expect(onChangeMock).toHaveBeenCalledTimes(2);
+    expect(onChangeMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        headerContent: '',
+        cellContent: { query: addressDataField },
+      }),
+    );
   });
 
   it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {

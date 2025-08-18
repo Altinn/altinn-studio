@@ -1,4 +1,9 @@
-import { StudioButton, StudioFieldset, StudioDeleteButton } from '@studio/components';
+import {
+  StudioButton,
+  StudioFieldset,
+  StudioDeleteButton,
+  StudioHeading,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -14,7 +19,7 @@ export type TextResourceActionProps = {
   onReferenceChange?: (id: string) => void;
   onSave: (textResourceId: string, value: string) => void;
   onCancel: () => void;
-  onDelete?: () => void;
+  onDelete: () => void;
   disableSearch?: boolean;
 };
 
@@ -45,7 +50,7 @@ export const TextResourceAction = ({
   };
 
   const handleDelete = () => {
-    onDelete?.();
+    onDelete();
     onCancel();
   };
 
@@ -55,7 +60,9 @@ export const TextResourceAction = ({
       className={classes.fieldset}
       legend={
         <div className={classes.header}>
-          {legend} ({t('language.' + DEFAULT_LANGUAGE)})
+          <StudioHeading>
+            {legend} ({t('language.' + DEFAULT_LANGUAGE)})
+          </StudioHeading>
           <StudioDeleteButton
             disabled={!(initialValue && initialValue.trim() !== '')}
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}

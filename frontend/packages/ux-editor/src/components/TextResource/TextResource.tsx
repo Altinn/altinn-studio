@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
-import { usePrevious } from '@studio/components-legacy';
 import { StudioProperty } from '@studio/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useFormItemContext } from '../../containers/FormItemContext';
-import { useAppContext } from '../../hooks';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
 import { TextResourceAction } from './TextResourceEditor/TextResourceValueEditor/TextResourceAction';
 import { useUpsertTextResourceMutation } from '../../hooks/mutations/useUpsertTextResourceMutation';
@@ -16,7 +13,7 @@ import type { TranslationKey } from 'language/type';
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
   handleRemoveTextResource?: () => void;
-  label?: string;
+  label?: TranslationKey;
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;
@@ -45,48 +42,37 @@ export const TextResource = ({
   textResourceId,
   disableSearch,
 }: TextResourceProps) => {
-  const { formItemId } = useFormItemContext();
-  const { selectedFormLayoutName: formLayoutName } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate } = useUpsertTextResourceMutation(org, app);
+  const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
   const { mutate: textIdMutation } = useTextIdMutation(org, app);
 
-  const prevFormItemId = usePrevious(formItemId);
-  const prevFormLayoutName = usePrevious(formLayoutName);
+  const fallbackId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
     if (!textResourceId) {
-      handleIdChange(generateId(generateIdOptions));
+      handleIdChange(fallbackId);
     }
     setIsOpen(true);
   };
 
   const handleSave = (id: string, value: string) => {
-    mutate({ textId: id, language: DEFAULT_LANGUAGE, translation: value });
+    upsertTextResourceMutation({ textId: id, language: DEFAULT_LANGUAGE, translation: value });
     setIsOpen(false);
   };
 
-  const handleCancel = () => {
-    setIsOpen(false);
-  };
+  const handleCancel = () => setIsOpen(false);
 
   const handleDelete = () => {
     handleRemoveTextResource?.();
     if (textResourceId) textIdMutation([{ oldId: textResourceId }]);
   };
 
-  useEffect(() => {
-    if (formItemId !== prevFormItemId || formLayoutName !== prevFormLayoutName) {
-      setIsOpen(false);
-    }
-  }, [formItemId, prevFormItemId, formLayoutName, prevFormLayoutName]);
-
   return isOpen ? (
     <TextResourceAction
-      legend={label as TranslationKey}
-      textResourceId={textResourceId || generateId(generateIdOptions)}
+      legend={label}
+      textResourceId={textResourceId || fallbackId}
       onSave={handleSave}
       onCancel={handleCancel}
       onDelete={handleDelete}
