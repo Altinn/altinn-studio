@@ -91,9 +91,9 @@ export const TextResource = ({
 
 type TextResourceButtonProps = {
   compact?: boolean;
-  label: string;
+  label?: TranslationKey | string;
   onOpen: () => void;
-  textResourceId: string;
+  textResourceId?: string;
 };
 
 const TextResourceButton = ({
