@@ -150,7 +150,7 @@ const getCancelButton = (): HTMLButtonElement => {
   });
 };
 
-const queryDialog = (): HTMLDialogElement => {
+const queryDialog = (): HTMLDialogElement | null => {
   return screen.queryByRole('dialog');
 };
 
