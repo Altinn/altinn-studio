@@ -8,7 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('appConfigLanguageUtils', () => {
   describe('mapLanguageKeyToLanguageText', () => {
-    it.each<ValidLanguage>(['nb', 'nn', 'en'])('returns translation key for %s', (lang) => {
+    it.each(['nb', 'nn', 'en'])('returns translation key for %s', (lang: ValidLanguage) => {
       const result = mapLanguageKeyToLanguageText(lang, textMock);
       expect(result).toBe(textMock(`language.${lang}`));
     });

@@ -66,9 +66,10 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
             <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
             <Accordion.Content className={classes.text}>
               <TextResource
-                handleIdChange={() => {}}
+                handleIdChange={() => {}} // The id is not editable in this context, as it must match the layout name
                 label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
                 textResourceId={selectedItem.id}
+                disableSearch={true}
               />
             </Accordion.Content>
           </Accordion.Item>

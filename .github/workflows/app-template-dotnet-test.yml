@@ -1,0 +1,37 @@
+name: Build and Test on windows and macos
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/App/app-template-dotnet/**'
+  workflow_dispatch:
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os: [macos-latest,windows-latest,ubuntu-latest]
+    name: Run dotnet build and test
+    runs-on: ${{ matrix.os}}
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: |
+            8.0.x
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build
+        run: |
+           dotnet build src/App.sln -v m
+        working-directory: src/App/app-template-dotnet
+
+      - name: Test
+        run: |
+           dotnet test src/App.sln -v m --no-restore --no-build
+        working-directory: src/App/app-template-dotnet

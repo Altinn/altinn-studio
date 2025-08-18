@@ -58,14 +58,20 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
 describe('RepoList', () => {
   beforeEach(() => {
     delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      assign: jest.fn(),
-    };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalWindowLocation,
+        assign: jest.fn(),
+      },
+    });
   });
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalWindowLocation,
+    });
   });
 
   test('Should show spinner on loading', async () => {

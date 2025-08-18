@@ -2,7 +2,7 @@ import React from 'react';
 import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResourceBinding';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { StudioProperty } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import classes from './EditTextResourceBindings.module.css';
 
 export interface EditTextResourceBindingBase {

@@ -125,7 +125,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     protected Stream GenerateGiteaOverrideConfigStream()
     {
         string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
-        string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
+        string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "src", "App", "app-template-dotnet", "src");
         string templateLocation = new Uri(templateLocationPath).AbsolutePath;
         string configOverride = $@"
               {{
