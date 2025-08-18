@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioButton, StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
+import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
@@ -9,7 +9,7 @@ import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading, StudioButton } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
@@ -130,8 +130,8 @@ function CreateNewCodeList({
     setIsCodeListValid(false);
   };
 
-  const shouldSaveButtonBeDisabled =
-    !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
+  const shouldSaveButtonBeDisabled: boolean =
+    !isCodeListValid || !currentCodeListWithMetadata.title || !!codeListTitleError;
 
   return (
     <div className={classes.createNewCodeList}>
