@@ -1,5 +1,6 @@
 import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 

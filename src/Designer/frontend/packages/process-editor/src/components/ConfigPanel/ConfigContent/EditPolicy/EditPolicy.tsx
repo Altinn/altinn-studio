@@ -8,10 +8,12 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
+import { useNavigate } from 'react-router-dom';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  const navigate = useNavigate();
 
   const packagesRouter = new PackagesRouter({ org, app });
   const settingsPageHref: string = packagesRouter.getPackageNavigationUrl(
@@ -24,6 +26,7 @@ export const EditPolicy = () => {
       LocalStorageKey.PreviousRouteBeforeSettings,
       RoutePaths.ProcessEditor,
     );
+    navigate(settingsPageHref);
   };
 
   return (

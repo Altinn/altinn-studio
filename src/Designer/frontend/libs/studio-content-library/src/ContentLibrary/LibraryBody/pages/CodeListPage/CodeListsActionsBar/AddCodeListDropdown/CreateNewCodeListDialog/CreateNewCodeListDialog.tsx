@@ -2,6 +2,7 @@ import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
 import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
@@ -131,7 +132,7 @@ function CreateNewCodeList({
   };
 
   const shouldSaveButtonBeDisabled: boolean =
-    !isCodeListValid || !currentCodeListWithMetadata.title || !!codeListTitleError;
+    !isCodeListValid || !currentCodeListWithMetadata.title || Boolean(codeListTitleError);
 
   return (
     <div className={classes.createNewCodeList}>
@@ -152,18 +153,15 @@ function CreateNewCodeList({
           textResources={textResources}
         />
       </div>
-      <div className={classes.buttonWrapper}>
-        <StudioButton
-          icon={<CheckmarkIcon />}
-          onClick={handleSaveCodeList}
-          disabled={shouldSaveButtonBeDisabled}
-        >
-          {t('general.save')}
-        </StudioButton>
-        <StudioButton icon={<XMarkIcon />} onClick={onCloseModal} variant='secondary'>
-          {t('general.cancel')}
-        </StudioButton>
-      </div>
+      <StudioButton
+        title={t('app_content_library.code_lists.save_new_code_list')}
+        icon={<CheckmarkIcon />}
+        onClick={handleSaveCodeList}
+        variant='secondary'
+        disabled={shouldSaveButtonBeDisabled}
+      >
+        {t('app_content_library.code_lists.save_new_code_list')}
+      </StudioButton>
     </div>
   );
 }
