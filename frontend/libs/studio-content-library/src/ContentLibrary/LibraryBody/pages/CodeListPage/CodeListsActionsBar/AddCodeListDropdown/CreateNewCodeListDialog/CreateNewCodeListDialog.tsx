@@ -41,7 +41,7 @@ function CreateNewCodeListDialog(
       closedby='any'
       ref={ref}
       onClose={handleCloseDialog}
-      className={classes.createNewCodeListModal}
+      className={classes.createNewCodeListDialog}
     >
       <StudioDialog.Block>
         <StudioHeading level={2}>
