@@ -14,7 +14,8 @@ namespace Altinn.Studio.Designer.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// Full SHA commit
+        /// SHA contains the Blob SHA.
+        /// It changes when file content has been updated.
         /// </summary>
         [JsonPropertyName("sha")]
         public string Sha { get; set; }
