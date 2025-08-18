@@ -1,7 +1,8 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioButton, StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
+import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
@@ -130,8 +131,8 @@ function CreateNewCodeList({
     setIsCodeListValid(false);
   };
 
-  const shouldSaveButtonBeDisabled =
-    !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
+  const shouldSaveButtonBeDisabled: boolean =
+    !isCodeListValid || !currentCodeListWithMetadata.title || Boolean(codeListTitleError);
 
   return (
     <div className={classes.createNewCodeList}>
@@ -153,7 +154,7 @@ function CreateNewCodeList({
         />
       </div>
       <StudioButton
-        color='success'
+        data-color='success'
         title={t('app_content_library.code_lists.save_new_code_list')}
         icon={<CheckmarkIcon />}
         onClick={handleSaveCodeList}
