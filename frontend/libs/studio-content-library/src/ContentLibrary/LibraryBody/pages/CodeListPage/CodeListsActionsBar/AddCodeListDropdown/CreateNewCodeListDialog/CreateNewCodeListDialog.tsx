@@ -152,17 +152,19 @@ function CreateNewCodeList({
           textResources={textResources}
         />
       </div>
-      <StudioButton
-        title={t('app_content_library.code_lists.save_new_code_list')}
-        icon={<CheckmarkIcon />}
-        onClick={handleSaveCodeList}
-        disabled={shouldSaveButtonBeDisabled}
-      >
-        {t('app_content_library.code_lists.save_new_code_list')}
-      </StudioButton>
-      <StudioButton title='general.cancel' icon={<XMarkIcon />} variant='secondary'>
-        {t('general.cancel')}
-      </StudioButton>
+      <div className={classes.buttonWrapper}>
+        <StudioButton
+          title={t('app_content_library.code_lists.save_new_code_list')}
+          icon={<CheckmarkIcon />}
+          onClick={handleSaveCodeList}
+          disabled={shouldSaveButtonBeDisabled}
+        >
+          {t('app_content_library.code_lists.save_new_code_list')}
+        </StudioButton>
+        <StudioButton title='general.cancel' icon={<XMarkIcon />} variant='secondary'>
+          {t('general.cancel')}
+        </StudioButton>
+      </div>
     </div>
   );
 }
