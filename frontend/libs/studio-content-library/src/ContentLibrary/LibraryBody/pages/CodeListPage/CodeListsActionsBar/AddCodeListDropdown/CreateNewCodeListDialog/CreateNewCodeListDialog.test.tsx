@@ -140,7 +140,7 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
 
 const getSaveButton = (): HTMLButtonElement => {
   return screen.getByRole('button', {
-    name: textMock('app_content_library.code_lists.save_new_code_list'),
+    name: textMock('general.save'),
   });
 };
 

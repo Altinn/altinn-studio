@@ -154,16 +154,16 @@ function CreateNewCodeList({
       </div>
       <div className={classes.buttonWrapper}>
         <StudioButton
-          title={t('app_content_library.code_lists.save_new_code_list')}
+          title={t('general.save')}
           icon={<CheckmarkIcon />}
           onClick={handleSaveCodeList}
           disabled={shouldSaveButtonBeDisabled}
         >
-          {t('app_content_library.code_lists.save_new_code_list')}
+          {t('general.save')}
         </StudioButton>
         <StudioButton
           onClick={onCloseModal}
-          title='general.cancel'
+          title={t('general.cancel')}
           icon={<XMarkIcon />}
           variant='secondary'
         >
