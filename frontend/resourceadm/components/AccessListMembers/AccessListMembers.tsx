@@ -10,12 +10,12 @@ import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesReg
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
 import {
   StudioAlert,
-  StudioButton,
   StudioLabelAsParagraph,
   StudioParagraph,
   StudioRadio,
   StudioTextfield,
 } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
@@ -247,7 +247,6 @@ export const AccessListMembers = ({
             icon={<PlusIcon />}
             iconPlacement='left'
             onClick={() => setIsAddMode(true)}
-            size='md'
           >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>

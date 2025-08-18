@@ -13,7 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components-legacy';
+import { StudioHeading, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
@@ -142,9 +143,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <div className={classes.verticalDivider} />
           <StudioButton
             variant='tertiary'
-            color='second'
             onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-            size='md'
             icon={<MigrationIcon />}
             iconPlacement='right'
           >
@@ -153,9 +152,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <div className={classes.verticalDivider} />
           <StudioButton
             variant='tertiary'
-            color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
-            size='md'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
           >

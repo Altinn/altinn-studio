@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './FieldsetWrapper.module.css';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';
 
 const DELETE_ID_NOT_SET = -1;
@@ -115,7 +116,7 @@ export const FieldsetWrapper = <T,>({
         {listItems.length > 1 && (
           <div className={classes.buttonWrapper}>
             <StudioButton
-              color='danger'
+              data-color='danger'
               variant='secondary'
               icon={<TrashIcon />}
               iconPlacement='left'
