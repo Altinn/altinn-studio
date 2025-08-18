@@ -54,7 +54,11 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
       </Button>
     );
   },
-);
+) as <As extends ElementType = 'button'>(
+  props: OverridableComponentProps<StudioButtonProps, As> & {
+    ref?: OverridableComponentRef<As>;
+  },
+) => ReactElement;
 
 StudioButton.displayName = 'StudioButton';
 
