@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioRadio } from '@studio/components-legacy';
+import { StudioModal, StudioRadio } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 

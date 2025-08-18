@@ -29,20 +29,22 @@ export const DashboardHeader = (): ReactElement => {
     isOrg(selectedContext) && isOrgLibraryPage && shouldDisplayFeature(FeatureFlag.OrgLibrary);
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <RightContent />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      {shouldShowSubMenu && (
-        <StudioPageHeader.Sub>
-          <SubHeader />
-        </StudioPageHeader.Sub>
-      )}
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={pageHeaderTitle} showTitle={shouldDisplayDesktopMenu} />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <RightContent />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        {shouldShowSubMenu && (
+          <StudioPageHeader.Sub>
+            <SubHeader />
+          </StudioPageHeader.Sub>
+        )}
+      </StudioPageHeader>
+    </div>
   );
 };
 

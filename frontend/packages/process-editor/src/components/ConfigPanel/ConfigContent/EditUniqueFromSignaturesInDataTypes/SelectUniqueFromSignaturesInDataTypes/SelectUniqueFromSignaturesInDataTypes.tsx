@@ -1,6 +1,6 @@
 import React, { useId, useState } from 'react';
 import { Combobox, Label } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useDebounce } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';

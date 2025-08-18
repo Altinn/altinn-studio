@@ -1,5 +1,5 @@
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import type { RepoIncludingStarredData } from '../../utils/repoUtils/repoUtils';
@@ -33,15 +33,7 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
     <StarIcon className={classes.favoriteIcon} />
   );
 
-  return (
-    <StudioButton
-      title={title}
-      onClick={handleToggleFav}
-      variant='tertiary'
-      icon={icon}
-      size='medium'
-    />
-  );
+  return <StudioButton title={title} onClick={handleToggleFav} variant='tertiary' icon={icon} />;
 };
 
 FavoriteButton.displayName = 'FavoriteButton';
