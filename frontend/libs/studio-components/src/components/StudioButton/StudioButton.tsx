@@ -8,6 +8,7 @@ import { TextWithIcon } from '../TextWithIcon';
 import type { Override } from '../../types/Override';
 import type { OverridableComponentProps } from '../../types/OverridableComponentProps';
 import type { OverridableComponentRef } from '../../types/OverridableComponentRef';
+import type { OverridableComponent } from '../../types/OverridableComponent';
 
 export type StudioButtonProps = Override<
   {
@@ -18,41 +19,43 @@ export type StudioButtonProps = Override<
   Omit<ButtonProps, 'asChild' | 'icon'>
 >;
 
-function StudioButton<As extends ElementType = 'button'>(
-  {
-    as,
-    fullWidth,
-    icon,
-    iconPlacement = 'left',
-    'data-size': dataSize,
-    className: givenClassName,
-    children,
-    ...rest
-  }: OverridableComponentProps<StudioButtonProps, As>,
-  ref: OverridableComponentRef<As>,
-): ReactElement {
-  const classNames = cn(givenClassName, classes.studioButton, {
-    [classes.smallWithIconOnly]: dataSize === 'sm' && !children,
-    [classes.fullWidth]: fullWidth,
-  });
+const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef(
+  <As extends ElementType = 'button'>(
+    {
+      as,
+      fullWidth,
+      icon,
+      iconPlacement = 'left',
+      'data-size': dataSize,
+      className: givenClassName,
+      children,
+      ...rest
+    }: OverridableComponentProps<StudioButtonProps, As>,
+    ref: OverridableComponentRef<As>,
+  ): ReactElement => {
+    const classNames = cn(givenClassName, classes.studioButton, {
+      [classes.smallWithIconOnly]: dataSize === 'sm' && !children,
+      [classes.fullWidth]: fullWidth,
+    });
 
-  const Component = as || 'button';
+    const Component = as || 'button';
 
-  return (
-    <Button asChild className={classNames} icon={!children} data-size={dataSize}>
-      <Component ref={ref} {...rest}>
-        {icon ? (
-          <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
-            {children}
-          </TextWithIcon>
-        ) : (
-          children
-        )}
-      </Component>
-    </Button>
-  );
-}
+    return (
+      <Button asChild className={classNames} icon={!children} data-size={dataSize}>
+        <Component ref={ref} {...rest}>
+          {icon ? (
+            <TextWithIcon icon={icon} iconPlacement={iconPlacement}>
+              {children}
+            </TextWithIcon>
+          ) : (
+            children
+          )}
+        </Component>
+      </Button>
+    );
+  },
+);
 
-const ForwardedStudioButton = forwardRef(StudioButton);
+StudioButton.displayName = 'StudioButton';
 
-export { ForwardedStudioButton as StudioButton };
+export { StudioButton };
