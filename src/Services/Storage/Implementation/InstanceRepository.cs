@@ -9,11 +9,7 @@ using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace LocalTest.Services.Storage.Implementation
 {
@@ -21,6 +17,7 @@ namespace LocalTest.Services.Storage.Implementation
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IDataRepository _dataRepository;
+        private readonly PartitionedAsyncLock _lock = new ();
 
         public InstanceRepository(
             IOptions<LocalPlatformSettings> localPlatformSettings,
@@ -30,15 +27,30 @@ namespace LocalTest.Services.Storage.Implementation
             _dataRepository = dataRepository;
         }
 
+        private string PartitionKey(int instanceOwnerPartyId, Guid instanceGuid) => $"{instanceOwnerPartyId}_{instanceGuid}";
+        private string PartitionKey(string filePath) => Path.GetFileNameWithoutExtension(filePath);
+
+        private Task<IDisposable> Lock() => _lock.Lock(Guid.Empty);
+        private Task<IDisposable> Lock(int instanceOwnerPartyId, Guid instanceGuid) => _lock.Lock(PartitionKey(instanceOwnerPartyId, instanceGuid));
+        private Task<IDisposable> Lock(Instance instance)
+        {
+            var instanceGuid = instance.Id.Contains("/") 
+                ? Guid.Parse(instance.Id.Split("/")[1]) 
+                : Guid.Parse(instance.Id);
+            return _lock.Lock(PartitionKey(int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture), instanceGuid));
+        }
+        private Task<IDisposable> Lock(string filePath) => _lock.Lock(PartitionKey(filePath));
+
         public async Task<Instance> Create(Instance instance)
         {
+            using var _ = await Lock();
             string partyId = instance.InstanceOwner.PartyId;
             Guid instanceGuid = Guid.NewGuid();
             instance.Id = partyId + "/" + instanceGuid.ToString();
             string path = GetInstancePath(instance.Id);
             Directory.CreateDirectory(GetInstanceFolder());
             PreProcess(instance);
-            File.WriteAllText(path, instance.ToString());
+            await File.WriteAllTextAsync(path, instance.ToString());
             await PostProcess(instance);
             return instance;
         }
@@ -65,11 +77,12 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Instance> GetOne(int instanceOwnerPartyId, Guid instanceGuid)
         {
+            using var _ = await Lock(instanceOwnerPartyId, instanceGuid);
             string instanceIdForPath = $"{instanceOwnerPartyId}_{instanceGuid}";
             string path = GetInstancePath(instanceIdForPath);
             if (File.Exists(path))
             {
-                string content = File.ReadAllText(path);
+                string content = await File.ReadAllTextAsync(path);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                 await PostProcess(instance);
                 return instance;
@@ -126,7 +139,8 @@ namespace LocalTest.Services.Storage.Implementation
 
                 foreach (var file in files)
                 {
-                    string content = File.ReadAllText(file);
+                    using var _ = await Lock(file);
+                    string content = await File.ReadAllTextAsync(file);
                     Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                     if (instance != null && instance.Id != null)
                     {
@@ -206,7 +220,11 @@ namespace LocalTest.Services.Storage.Implementation
 
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
-            await Task.WhenAll(instances.Select(async i => await PostProcess(i)));
+            await Task.WhenAll(instances.Select(async i =>
+            {
+                using var _ = await Lock(i);
+                await PostProcess(i);
+            }));
 
             return new InstanceQueryResponse
             {
@@ -217,10 +235,11 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Instance> Update(Instance instance)
         {
+            using var _ = await Lock(instance);
             string path = GetInstancePath(instance.Id);
             Directory.CreateDirectory(GetInstanceFolder());
             PreProcess(instance);
-            File.WriteAllText(path, instance.ToString());
+            await File.WriteAllTextAsync(path, instance.ToString());
             await PostProcess(instance);
             return instance;
         }
