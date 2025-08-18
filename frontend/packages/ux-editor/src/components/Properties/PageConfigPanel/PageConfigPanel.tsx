@@ -61,7 +61,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
       />
       <Fragment key={selectedItem.id}>
         <EditPageId layoutName={selectedItem.id} />
-        <Accordion color='subtle'>
+        <Accordion>
           <Accordion.Item>
             <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
             <Accordion.Content className={classes.text}>
