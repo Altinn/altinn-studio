@@ -161,7 +161,12 @@ function CreateNewCodeList({
         >
           {t('app_content_library.code_lists.save_new_code_list')}
         </StudioButton>
-        <StudioButton title='general.cancel' icon={<XMarkIcon />} variant='secondary'>
+        <StudioButton
+          onClick={onCloseModal}
+          title='general.cancel'
+          icon={<XMarkIcon />}
+          variant='secondary'
+        >
           {t('general.cancel')}
         </StudioButton>
       </div>
