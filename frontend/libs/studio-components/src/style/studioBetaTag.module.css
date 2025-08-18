@@ -1,0 +1,9 @@
+.isBeta::after {
+  content: 'Beta';
+  background-color: var(--ds-color-surface-tinted);
+  color: var(--ds-color-text-default);
+  border-radius: var(--ds-border-radius-sm);
+  padding: var(--ds-size-2);
+  font-size: var(--ds-size-3);
+  margin-left: var(--ds-size-2);
+}

@@ -243,8 +243,9 @@ public class TextsServiceTest : IDisposable
         };
         EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
         AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
-        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, new IGiteaMock());
-        OptionsService optionsService = new(altinnGitRepositoryFactory);
+        IGitea giteaMock = new IGiteaMock();
+        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, giteaMock);
+        OptionsService optionsService = new(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaMock));
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService, optionsService);
 
         return textsService;

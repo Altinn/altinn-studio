@@ -12,7 +12,12 @@ export const filterTableData = (
   const searchValueLower = searchValue.toLocaleLowerCase();
 
   return list.filter((resource: ResourceListItem) => {
-    const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-    return titles.some((titleLower) => titleLower.includes(searchValueLower));
+    if (!searchValueLower) {
+      return true; // If no search value, return all resources
+    }
+    const titles = Object.values(resource.title ?? {}).map((title) => title.toLocaleLowerCase());
+    const isTitleMatch = titles.some((titleLower) => titleLower.includes(searchValueLower));
+    const isIdMatch = resource.identifier.toLocaleLowerCase().includes(searchValueLower);
+    return isTitleMatch || isIdMatch;
   });
 };

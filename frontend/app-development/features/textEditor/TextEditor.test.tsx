@@ -129,7 +129,7 @@ describe('TextEditor', () => {
     renderTextEditorWithData();
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-    await waitFor(() => deleteButton.click());
+    await user.click(deleteButton);
 
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.textRow-deletion-confirm'),
