@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Altinn.App.Analyzers.Tests.Fixtures;
+using DiffEngine;
 
 namespace Altinn.App.Analyzers.Tests;
 
@@ -30,6 +31,9 @@ public class ModuleInitializer
             converters.Add(new DiagnosticJsonConverter());
         });
         Verifier.UseProjectRelativeDirectory("_snapshots");
+        var isCi = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CI"));
+        if (BuildServerDetector.Detected && BuildServerDetector.IsWsl && !isCi)
+            BuildServerDetector.Detected = false; // WSL is not a build server
         VerifierSettings.AutoVerify(includeBuildServer: false);
     }
 
