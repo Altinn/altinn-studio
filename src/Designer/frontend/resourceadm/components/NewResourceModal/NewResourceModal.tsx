@@ -8,7 +8,8 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
@@ -95,12 +96,11 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             <>
               <StudioButton
                 onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
-                color='first'
                 aria-disabled={!hasValidValues}
               >
                 {t('resourceadm.dashboard_create_modal_create_button')}
               </StudioButton>
-              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+              <StudioButton onClick={handleClose} variant='tertiary'>
                 {t('general.cancel')}
               </StudioButton>
             </>

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export type NavigationModalProps = {
   onClose: () => void;
@@ -32,10 +33,10 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
           closeButtonTitle={t('resourceadm.close_modal')}
           footer={
             <>
-              <StudioButton onClick={onNavigate} color='first'>
+              <StudioButton onClick={onNavigate} data-color='first'>
                 {t('resourceadm.resource_navigation_modal_button_move_on')}
               </StudioButton>
-              <StudioButton onClick={onClose} color='first' variant='tertiary'>
+              <StudioButton onClick={onClose} data-color='first' variant='tertiary'>
                 {t('resourceadm.resource_navigation_modal_button_stay')}
               </StudioButton>
             </>
