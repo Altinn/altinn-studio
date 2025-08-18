@@ -1,4 +1,4 @@
-.createNewCodeListModal {
+.createNewCodeListDialog {
   max-width: unset;
   width: 80vw;
 }
@@ -17,4 +17,9 @@
 
 .codeListEditor {
   width: 100%;
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: var(--ds-size-4);
 }
