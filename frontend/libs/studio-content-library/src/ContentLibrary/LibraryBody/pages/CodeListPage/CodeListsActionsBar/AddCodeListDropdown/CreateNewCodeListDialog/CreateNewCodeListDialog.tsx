@@ -153,11 +153,9 @@ function CreateNewCodeList({
         />
       </div>
       <StudioButton
-        color='success'
         title={t('app_content_library.code_lists.save_new_code_list')}
         icon={<CheckmarkIcon />}
         onClick={handleSaveCodeList}
-        variant='secondary'
         disabled={shouldSaveButtonBeDisabled}
       >
         {t('app_content_library.code_lists.save_new_code_list')}
