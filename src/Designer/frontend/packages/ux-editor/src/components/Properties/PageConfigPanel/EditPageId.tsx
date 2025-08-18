@@ -22,7 +22,6 @@ export const EditPageId = ({ layoutName: pageName }: EditPageIdProps) => {
   const { layoutSet } = useUxEditorParams();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutateAsync: modifyPageMutation } = useModifyPageMutation(org, app, layoutSet, pageName);
-  const { mutateAsync: changePageGroupOrder } = useChangePageGroupOrder(org, app, layoutSet);
   const { data: pagesModel, isPending: pageQueryPending } = usePagesQuery(org, app, layoutSet);
   const t = useText();
 
