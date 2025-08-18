@@ -204,15 +204,6 @@ export const AccessListMembers = ({
                 setSearchText(event.target.value);
               }}
             />
-            <div className={classes.noSearchResults} aria-live='polite'>
-              {resultData?.parties?.length === 0 && (
-                <div>
-                  {isSubPartySearch
-                    ? t('resourceadm.listadmin_search_no_sub_parties')
-                    : t('resourceadm.listadmin_search_no_parties')}
-                </div>
-              )}
-            </div>
             <StudioRadio.Group
               hideLegend
               onChange={() => setIsSubPartySearch((old) => !old)}
@@ -227,6 +218,15 @@ export const AccessListMembers = ({
                 {t('resourceadm.listadmin_sub_parties')}
               </StudioRadio>
             </StudioRadio.Group>
+          </div>
+          <div aria-live='polite'>
+            {resultData?.parties?.length === 0 && (
+              <div>
+                {isSubPartySearch
+                  ? t('resourceadm.listadmin_search_no_sub_parties')
+                  : t('resourceadm.listadmin_search_no_parties')}
+              </div>
+            )}
           </div>
           <AccessListMembersTable
             isHeaderHidden

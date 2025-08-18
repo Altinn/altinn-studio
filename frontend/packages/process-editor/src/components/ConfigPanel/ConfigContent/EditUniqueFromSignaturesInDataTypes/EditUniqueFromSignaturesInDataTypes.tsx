@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { StudioProperty } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
@@ -62,7 +62,9 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           )}
           title={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
           icon={<PersonPencilIcon />}
-          value={signingTasks?.map((dataType) => <div key={dataType.id}>{dataType.name}</div>)}
+          value={signingTasks?.map((dataType) => (
+            <div key={dataType.id}>{dataType.name}</div>
+          ))}
         />
       )}
     </>

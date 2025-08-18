@@ -45,14 +45,17 @@ WORKDIR /build
 COPY backend .
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
-
-# Prepare app template
-WORKDIR /app_template
-RUN apk add jq zip
-RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 # Create version file
 WORKDIR /version
-RUN echo "{\"designerVersion\":\"$DESIGNER_VERSION\",\"appTemplateVersion\":\"$(curl -s https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq -r .tag_name)\"}" > version.json
+RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
+
+# Prepare app template
+FROM alpine AS app-template-release
+RUN apk add --no-cache rsync
+
+COPY ./src/App/app-template-dotnet/src /app-template-dotnet-src
+WORKDIR /app-template-dotnet-src
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:d4bf3d8c8f0236341ddd93d15208152e26bc6dcc9d34c635351a3402c284137f AS final
@@ -73,7 +76,7 @@ COPY --from=generate-studio-frontend /build/frontend/resourceadm/dist ./wwwroot/
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
 ## Copying app template
-COPY --from=generate-studio-backend /app_template ./Templates/AspNet
+COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

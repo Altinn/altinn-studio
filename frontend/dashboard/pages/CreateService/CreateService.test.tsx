@@ -61,15 +61,21 @@ describe('CreateService', () => {
   const windowLocationAssignMock = jest.fn();
   beforeEach(() => {
     delete window.location;
-    window.location = {
-      ...originalWindowLocation,
-      assign: windowLocationAssignMock,
-    };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalWindowLocation,
+        assign: windowLocationAssignMock,
+      },
+    });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
-    window.location = originalWindowLocation;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalWindowLocation,
+    });
   });
 
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
