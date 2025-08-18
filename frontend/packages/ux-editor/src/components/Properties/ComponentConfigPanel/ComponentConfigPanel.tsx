@@ -61,7 +61,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   return (
     <>
       <ComponentConfigHeader />
-      <Accordion color='subtle'>
+      <Accordion>
         {formItem.type === ComponentType.Summary2 && (
           <Accordion.Item open={openList.includes('summary2overrides')}>
             <Accordion.Header onHeaderClick={() => toggleOpen('summary2overrides')}>

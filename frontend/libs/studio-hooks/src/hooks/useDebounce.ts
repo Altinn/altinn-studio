@@ -21,7 +21,7 @@ export const useDebounce = ({
       clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         callback();
-      }, localDebounceTimeInMs | debounceTimeInMs);
+      }, localDebounceTimeInMs ?? debounceTimeInMs);
     },
     [debounceTimeInMs],
   );
