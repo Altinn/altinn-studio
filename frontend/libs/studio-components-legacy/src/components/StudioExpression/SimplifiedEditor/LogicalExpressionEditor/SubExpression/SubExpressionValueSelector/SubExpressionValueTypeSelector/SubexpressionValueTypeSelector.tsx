@@ -12,10 +12,10 @@ export type SubexpressionValueTypeSelectorProps = {
 export const SubexpressionValueTypeSelector = ({
   value,
   onChange,
-}: SubexpressionValueTypeSelectorProps) => {
+}: SubexpressionValueTypeSelectorProps): React.ReactElement => {
   const { texts, types } = useStudioExpressionContext();
 
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void =>
     onChange(event.target.value as SimpleSubexpressionValueType);
 
   return (

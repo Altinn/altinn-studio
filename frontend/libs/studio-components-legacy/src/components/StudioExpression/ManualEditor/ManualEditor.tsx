@@ -17,7 +17,7 @@ export const ManualEditor = ({
   expression: givenExpression,
   onChange,
   isManualExpressionValidRef,
-}: ManualEditorProps) => {
+}: ManualEditorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
   const expressionString = expressionToString(givenExpression);
   const [isValid, setIsValid] = useState<boolean>(isStringValidAsExpression(expressionString));
@@ -29,7 +29,7 @@ export const ManualEditor = ({
     isManualExpressionValidRef.current = isValidAfterExternalChange;
   }, [expressionString, isManualExpressionValidRef]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
     const { value } = event.target;
     const isValueValid = isStringValidAsExpression(value);
     isManualExpressionValidRef.current = isValueValid;

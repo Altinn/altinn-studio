@@ -11,7 +11,7 @@ export type OperatorBetweenSubexpressionsProps = {
 
 export const OperatorBetweenSubexpressions = ({
   logicalExpression,
-}: OperatorBetweenSubexpressionsProps) => {
+}: OperatorBetweenSubexpressionsProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   const text =

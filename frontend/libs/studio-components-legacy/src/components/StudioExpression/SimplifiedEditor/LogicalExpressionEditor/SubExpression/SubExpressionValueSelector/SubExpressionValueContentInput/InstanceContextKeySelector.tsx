@@ -9,10 +9,10 @@ import { NativeSelect } from '@digdir/designsystemet-react';
 export const InstanceContextKeySelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.InstanceContext>) => {
+}: Props<SimpleSubexpressionValueType.InstanceContext>): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
   const options = Object.values(InstanceContext);
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void =>
     onChange({ ...value, key: event.target.value as InstanceContext });
   return (
     <NativeSelect size='small' onChange={handleChange} label={texts.instanceContextKey}>

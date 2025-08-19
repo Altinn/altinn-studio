@@ -25,7 +25,12 @@ export type SubexpressionProps = {
   onDelete: () => void;
 };
 
-export const Subexpression = ({ expression, legend, onChange, onDelete }: SubexpressionProps) => {
+export const Subexpression = ({
+  expression,
+  legend,
+  onChange,
+  onDelete,
+}: SubexpressionProps): React.ReactElement => {
   const { texts, dataLookupOptions } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
@@ -37,11 +42,11 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
     setExpressionState(expression);
   }, [expression]);
 
-  const handleChange = (subexpression: SimpleSubexpression) => {
+  const handleChange = (subexpression: SimpleSubexpression): void => {
     setExpressionState(subexpression);
   };
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     const errorList = findSubexpressionErrors(expressionState, dataLookupOptions);
     setErrors(errorList);
     if (!errorList.length) {
@@ -50,17 +55,17 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
     }
   };
 
-  const handleEnableEditMode = () => {
+  const handleEnableEditMode = (): void => {
     setIsInEditMode(true);
   };
 
-  const handleOperatorChange = (operator: RelationalOperator) =>
+  const handleOperatorChange = (operator: RelationalOperator): void =>
     handleChange(changeRelationalOperator(expressionState, operator));
 
-  const handleFirstValueChange = (value: SimpleSubexpressionValue) =>
+  const handleFirstValueChange = (value: SimpleSubexpressionValue): void =>
     handleChange(changeFirstOperand(expressionState, value));
 
-  const handleSecondValueChange = (value: SimpleSubexpressionValue) =>
+  const handleSecondValueChange = (value: SimpleSubexpressionValue): void =>
     handleChange(changeSecondOperand(expressionState, value));
 
   const className = cn(

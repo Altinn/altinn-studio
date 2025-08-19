@@ -33,7 +33,7 @@ export const StudioExpression = ({
   dataLookupOptions,
   texts,
   showAddSubexpression,
-}: StudioExpressionProps) => {
+}: StudioExpressionProps): React.ReactElement => {
   if (!isExpressionValid(expression)) {
     return <StudioError>{texts.invalidExpression}</StudioError>;
   }
@@ -54,14 +54,18 @@ type ValidExpressionProps = Pick<
   'expression' | 'onChange' | 'showAddSubexpression'
 >;
 
-const ValidExpression = ({ expression, showAddSubexpression, onChange }: ValidExpressionProps) => {
+const ValidExpression = ({
+  expression,
+  showAddSubexpression,
+  onChange,
+}: ValidExpressionProps): React.ReactElement => {
   const { texts } = useContext(StudioExpressionContext);
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
   const isManualExpressionValidRef = useRef<boolean>(true);
 
-  const handleChangeTab = (tab: TabId) => {
+  const handleChangeTab = (tab: TabId): void => {
     if (!isManualExpressionValidRef.current) {
       if (confirm(texts.changeToSimplifiedWarning)) {
         isManualExpressionValidRef.current = true;

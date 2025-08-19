@@ -10,4 +10,5 @@ export type StudioExpressionContext = {
 };
 
 export const StudioExpressionContext = createContext<StudioExpressionContext>(null);
-export const useStudioExpressionContext = () => useContext(StudioExpressionContext);
+export const useStudioExpressionContext = (): StudioExpressionContext =>
+  useContext(StudioExpressionContext);

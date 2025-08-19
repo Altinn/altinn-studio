@@ -8,10 +8,10 @@ import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSu
 export const GatewayActionSelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.PredefinedGatewayAction>) => {
+}: Props<SimpleSubexpressionValueType.PredefinedGatewayAction>): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
   const options = Object.values(PredefinedGatewayAction);
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void =>
     onChange({ ...value, key: event.target.value as PredefinedGatewayAction });
 
   return (

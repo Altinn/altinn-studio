@@ -1,3 +1,4 @@
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
@@ -80,7 +81,7 @@ describe('SubexpressionValueSelector', () => {
       type: SimpleSubexpressionValueType.Boolean,
       value,
     };
-    const booleanText = (b: boolean) => (b ? texts.true : texts.false);
+    const booleanText = (b: boolean): string => (b ? texts.true : texts.false);
 
     it('Displays the value in readonly mode', () => {
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: false });
@@ -186,7 +187,7 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.componentId });
+      const input = (): HTMLElement => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
       expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]));
@@ -318,7 +319,9 @@ const defaultProps: SubexpressionValueSelectorProps = {
   legend: 'legend',
 };
 
-const renderSubexpressionValueSelector = (props: Partial<SubexpressionValueSelectorProps> = {}) =>
+const renderSubexpressionValueSelector = (
+  props: Partial<SubexpressionValueSelectorProps> = {},
+): RenderResult =>
   render(
     <StudioExpressionContext.Provider
       value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}

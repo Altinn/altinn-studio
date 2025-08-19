@@ -9,7 +9,7 @@ import { Combobox } from '@digdir/designsystemet-react';
 export const ComponentIdSelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.Component>) => {
+}: Props<SimpleSubexpressionValueType.Component>): React.ReactElement => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
   const options = dataLookupOptions[DataLookupFuncName.Component];
   const idValueExist = options.includes(value.id) || value.id === '';
@@ -18,7 +18,7 @@ export const ComponentIdSelector = ({
   );
   const [idValue, setIdValue] = useState<string>(value.id);
 
-  const handleChange = (values: string[]) => {
+  const handleChange = (values: string[]): void => {
     if (values.length) {
       setIdValue(values[0]);
       onChange({ ...value, id: values[0] });

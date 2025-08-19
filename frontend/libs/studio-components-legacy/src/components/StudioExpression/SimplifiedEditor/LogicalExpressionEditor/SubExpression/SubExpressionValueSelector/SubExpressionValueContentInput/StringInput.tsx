@@ -5,10 +5,13 @@ import React from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioTextfield } from '@studio/components-legacy';
 
-export const StringInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.String>) => {
+export const StringInput = ({
+  value,
+  onChange,
+}: Props<SimpleSubexpressionValueType.String>): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void =>
     onChange({ ...value, value: event.target.value });
 
   return <StudioTextfield value={value.value} onChange={handleChange} label={texts.value} />;

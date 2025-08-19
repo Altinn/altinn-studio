@@ -22,13 +22,13 @@ export const RelationalOperatorSelector = ({
   isInEditMode,
   onChange,
   operator,
-}: RelationalOperatorSelectorProps) => {
+}: RelationalOperatorSelectorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
   const { relationalOperators } = texts;
 
   if (!isInEditMode) return <Paragraph size='small'>{relationalOperators[operator]}</Paragraph>;
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) =>
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>): void =>
     onChange(event.target.value as RelationalOperator);
 
   return (
