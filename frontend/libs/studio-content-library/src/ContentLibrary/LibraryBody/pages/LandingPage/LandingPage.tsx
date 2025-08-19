@@ -7,7 +7,7 @@ export function LandingPage(): React.ReactElement {
   const { t } = useTranslation();
   return (
     <div className={classes.landingPage}>
-      <StudioHeading level={3} data-size='sm'>
+      <StudioHeading level={1} data-size='sm'>
         {t('app_content_library.landing_page.title')}
       </StudioHeading>
       <StudioParagraph data-size='md'>
