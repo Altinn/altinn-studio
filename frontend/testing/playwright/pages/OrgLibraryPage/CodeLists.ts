@@ -70,14 +70,14 @@ export class CodeLists extends BasePage {
   public async clickOnSaveCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.save_new_code_list'),
+        name: this.textMock('general.save'),
       })
       .click();
   }
 
   public async verifyThatCodeListIsVisible(title: string): Promise<void> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+      this.textMock('app_content_library.code_lists.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -87,7 +87,7 @@ export class CodeLists extends BasePage {
 
   public async codeListTitleExists(title: string): Promise<boolean> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+      this.textMock('app_content_library.code_lists.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -103,7 +103,7 @@ export class CodeLists extends BasePage {
       .click();
   }
 
-  public async clickOnCodeListAccordion(codeListTitle: string): Promise<void> {
+  public async clickOnCodeListDetails(codeListTitle: string): Promise<void> {
     await this.page.getByRole('heading', { name: codeListTitle }).click();
   }
 
@@ -158,7 +158,7 @@ export class CodeLists extends BasePage {
 
   public async verifyThatCodeListIsNotVisible(title: string): Promise<void> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_accordion_title', {
+      this.textMock('app_content_library.code_lists.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -170,9 +170,9 @@ export class CodeLists extends BasePage {
     numberOfItems: number,
     codeListTitle: string,
   ): Promise<void> {
-    const accordionTitle = this.page.getByRole('heading', { name: codeListTitle });
-    const accordion = accordionTitle.locator('xpath=..');
-    const table = accordion.getByRole('table');
+    const detailsTitle = this.page.getByRole('heading', { name: codeListTitle });
+    const details = detailsTitle.locator('xpath=..');
+    const table = details.getByRole('table');
     const rows = table.getByRole('row');
 
     const headerRow: number = 1;

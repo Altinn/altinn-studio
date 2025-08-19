@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioProperty } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
@@ -21,7 +21,9 @@ export const EditDataTypesToSign = () => {
       property={t('process_editor.configuration_panel_set_data_types_to_sign')}
       title={t('process_editor.configuration_panel_set_data_types_to_sign')}
       icon={<LinkIcon />}
-      value={selectedDataTypes?.map((dataType: string) => <div key={dataType}>{dataType}</div>)}
+      value={selectedDataTypes?.map((dataType: string) => (
+        <div key={dataType}>{dataType}</div>
+      ))}
     />
   );
 };

@@ -9,7 +9,7 @@ type StudioDetailsComponent = typeof Root & {
 
 const StudioDetails = Root as StudioDetailsComponent;
 
-StudioDetails.Content = StudioDetailsContent;
 StudioDetails.Summary = StudioDetailsSummary;
+StudioDetails.Content = StudioDetailsContent;
 
 export { StudioDetails };

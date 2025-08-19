@@ -1,20 +1,29 @@
 .configPanel {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
-  padding: var(--fds-spacing-4);
-  background-color: var(--fds-semantic-surface-neutral-default);
+  gap: var(--ds-size-3);
+  padding-inline: var(--ds-size-5);
+  background-color: var(--ds-color-surface-default);
 }
 
 .fieldSetWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-7);
+  gap: var(--ds-size-8);
   place-items: start;
+  margin-top: var(--ds-size-2);
+}
+
+.editGroupNameWrapper {
+  margin-inline: calc(var(--ds-size-5) * -1);
+}
+
+.editName {
+  padding-inline: var(--ds-size-5);
 }
 
 .alertMessage {
-  margin-top: var(--fds-spacing-4);
+  margin-top: var(--ds-size-5);
 }
 
 .radio {
@@ -30,9 +39,9 @@
 
 .radioLabelIcon {
   color: var(--ds-color-border-default);
-  width: var(--fds-sizing-5);
-  height: var(--fds-sizing-5);
-  padding: var(--fds-spacing-1);
+  width: var(--ds-size-5);
+  height: var(--ds-size-5);
+  padding: var(--ds-size-1);
   flex-shrink: 0;
   border: var(--ds-border-width-default) solid var(--ds-color-border-default);
   border-radius: var(--ds-border-radius-default);

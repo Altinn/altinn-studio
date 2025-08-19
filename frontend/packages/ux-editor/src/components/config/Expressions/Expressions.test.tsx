@@ -28,14 +28,14 @@ const dataModelName = undefined;
 const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   hidden: parsableLogicalExpression,
 };
 const componentWithoutExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
 };
 
@@ -68,7 +68,7 @@ describe('Expressions', () => {
     const componentWithMultipleExpressions: FormComponent = {
       id: 'some-id',
       type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'some-path' },
+      dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       itemType: 'COMPONENT',
       hidden: parsableLogicalExpression,
       required: parsableLogicalExpression,
@@ -87,7 +87,7 @@ describe('Expressions', () => {
         id: 'some-id',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
-        dataModelBindings: { group: 'some-path' },
+        dataModelBindings: { group: { field: 'some-path', dataType: '' } },
         hidden: parsableLogicalExpression,
         edit: {
           addButton: parsableLogicalExpression,
@@ -156,7 +156,7 @@ describe('Expressions', () => {
       id: 'some-id',
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
-      dataModelBindings: { group: 'some-path' },
+      dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       edit: {
         multiPage: true,
       },

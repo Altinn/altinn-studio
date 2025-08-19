@@ -64,6 +64,7 @@ export enum QueryKey {
   AppExceptions = 'AppExceptions',
   AppFailedRequests = 'AppFailedRequests',
   ContainerLogs = 'ContainerLogs',
+  AppProcessTasks = 'AppProcessTasks',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
   RunningApps = 'RunningApps',

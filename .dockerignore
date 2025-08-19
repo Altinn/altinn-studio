@@ -6,6 +6,7 @@
 !environments.json
 !yarn.lock
 !.yarn*
+!src/App/app-template-dotnet/src
 **/node_modules
 **/bin
 **/obj

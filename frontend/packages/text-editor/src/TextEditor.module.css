@@ -6,6 +6,11 @@
   justify-items: center;
 }
 
+.search {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}
+
 .textEditorMain {
   width: 100%;
   background-color: #fff;
@@ -27,12 +32,14 @@
   flex-direction: row;
   align-items: flex-end;
   gap: var(--fds-spacing-4);
+  justify-content: flex-end;
 }
 
 .sortAlphabetically {
   gap: var(--fds-spacing-4);
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .textEditorBody {
