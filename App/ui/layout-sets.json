@@ -13,6 +13,11 @@
       "id": "stateful2",
       "dataType": "task2",
       "tasks": ["Task_2"]
+    },
+    {
+      "id": "error",
+      "dataType": "task2",
+      "tasks": ["Task_4"]
     }
   ]
 }
