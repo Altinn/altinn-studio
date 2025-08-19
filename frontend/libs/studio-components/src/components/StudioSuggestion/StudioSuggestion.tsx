@@ -27,7 +27,7 @@ function StudioSuggestion(
         <StudioLabel htmlFor={inputId}>{label}</StudioLabel>
       </StudioLabelWrapper>
       <Suggestion {...rest}>
-        <Suggestion.Input id={inputId} ref={ref} />
+        <Suggestion.Input id={inputId} ref={ref} required={required} aria-required={required} />
         <Suggestion.Clear />
         <Suggestion.List>
           <Suggestion.Empty>{emptyText}</Suggestion.Empty>
