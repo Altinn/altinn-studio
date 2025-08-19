@@ -48,9 +48,9 @@ export const useExpressionTexts = (): ExpressionTexts => {
   );
 
   const gatewayActionContextKeys = Object.values(PredefinedGatewayAction);
-  const gatewayActionContext = mapArrayToTranslations<PredefinedGatewayAction>(
+  const predefinedGatewayActions = mapArrayToTranslations<PredefinedGatewayAction>(
     gatewayActionContextKeys,
-    (key) => `expression.gatewayActionContext.${key}`,
+    (key) => `expression.predefinedGatewayAction.${key}`,
   );
 
   return {
@@ -72,8 +72,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     expression: t('expression'),
     false: t('expression.false'),
     firstOperand: t('expression.firstOperand'),
-    gatewayActionKey: t('expression.gatewayActionKey'),
-    gatewayActionContext,
+    gatewayAction: t('expression.gatewayAction'),
     instanceContext,
     instanceContextKey: t('expression.instanceContextKey'),
     invalidExpression: t('expression.invalidExpression'),
@@ -83,9 +82,10 @@ export const useExpressionTexts = (): ExpressionTexts => {
     manual: t('expression.manual'),
     numberValidationError: t('validation_errors.numbers_only'),
     or: t('expression.or'),
+    predefinedGatewayActions,
     readonlyComponentId: t('expression.readonlyComponentId'),
     readonlyDataModelPath: t('expression.readonlyDataModelPath'),
-    readonlyGatewayActionContext: t('expression.readonlyGatewayActionContext'),
+    readonlyPredefinedGatewayAction: t('expression.readonlyGatewayActionContext'),
     readonlyInstanceContext: t('expression.readonlyInstanceContext'),
     relationalOperator: t('expression.relationalOperator'),
     relationalOperators,

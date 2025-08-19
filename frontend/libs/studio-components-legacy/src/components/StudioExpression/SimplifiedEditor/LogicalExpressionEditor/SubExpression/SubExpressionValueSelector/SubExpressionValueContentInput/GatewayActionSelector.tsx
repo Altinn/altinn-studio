@@ -18,12 +18,12 @@ export const GatewayActionSelector = ({
     <StudioNativeSelect
       size='small'
       onChange={handleChange}
-      label={texts.gatewayActionKey}
+      label={texts.gatewayAction}
       defaultValue={value.key}
     >
       {options.map((option) => (
         <option key={option} value={option}>
-          {texts.gatewayActionContext[option]}
+          {texts.predefinedGatewayActions[option]}
         </option>
       ))}
     </StudioNativeSelect>
