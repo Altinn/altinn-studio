@@ -230,18 +230,16 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (ignoreGiteaFields)
             {
-                foreach (ServiceResource resource in repositoryResourceList)
-                {
-                    ListviewServiceResource listviewResource = new ListviewServiceResource
+                listviewServiceResources = repositoryResourceList
+                    .Select(resource => new ListviewServiceResource
                     {
                         Identifier = resource.Identifier,
                         Title = resource.Title,
                         CreatedBy = "",
                         LastChanged = null,
                         Environments = ["gitea"]
-                    };
-                    listviewServiceResources.Add(listviewResource);
-                }
+                    })
+                    .ToList();
             }
             else if (useNewApi)
             {
