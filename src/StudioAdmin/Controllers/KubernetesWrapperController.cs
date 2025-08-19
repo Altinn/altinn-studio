@@ -17,7 +17,7 @@ public class KubernetesWrapperController(
 
 
     [HttpGet("appexceptions")]
-    public async Task<ActionResult<long?>> GetAppExceptions(
+    public async Task<ActionResult<Log>> GetAppExceptions(
         string org,
         string env,
         CancellationToken ct,
@@ -45,7 +45,7 @@ public class KubernetesWrapperController(
     }
 
     [HttpGet("appfailedrequests")]
-    public async Task<ActionResult<long?>> GetAppFailedRequests(
+    public async Task<ActionResult<Log>> GetAppFailedRequests(
         string org,
         string env,
         CancellationToken ct,

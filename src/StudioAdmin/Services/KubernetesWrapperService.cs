@@ -23,7 +23,7 @@ public class KubernetesWrapperService : IKubernetesWrapperService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppException>> GetAppExceptions(
+    public async Task<IEnumerable<Log>> GetAppExceptions(
         string org,
         string env,
         int time,
@@ -39,11 +39,11 @@ public class KubernetesWrapperService : IKubernetesWrapperService
         );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<IEnumerable<AppException>>(cancellationToken: ct) ?? [];
+        return await response.Content.ReadFromJsonAsync<IEnumerable<Log>>(cancellationToken: ct) ?? [];
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
+    public async Task<IEnumerable<Log>> GetAppFailedRequests(
         string org,
         string env,
         int time,
@@ -59,7 +59,7 @@ public class KubernetesWrapperService : IKubernetesWrapperService
         );
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<IEnumerable<AppFailedRequest>>(cancellationToken: ct) ?? [];
+        return await response.Content.ReadFromJsonAsync<IEnumerable<Log>>(cancellationToken: ct) ?? [];
     }
 
     /// <inheritdoc />

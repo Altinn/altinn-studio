@@ -15,5 +15,5 @@ public interface IAppExceptionsService
     /// <param name="time">The time range in hours to look back for application exceptions.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of application exceptions</returns>
-    Task<IEnumerable<AppException>> GetAll(string app, int take, double time, CancellationToken cancellationToken);
+    Task<IEnumerable<Log>> GetAll(string app, int take, double time, CancellationToken cancellationToken);
 }

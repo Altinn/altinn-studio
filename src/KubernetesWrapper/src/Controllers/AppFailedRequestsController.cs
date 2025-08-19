@@ -25,7 +25,7 @@ public class AppFailedRequestsController(IAppFailedRequestsService appFailedRequ
     /// <returns>The list of failed requests</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult<IEnumerable<AppFailedRequest>>> GetAll([FromQuery] LogFiltersDto logFiltersDto, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<Log>>> GetAll([FromQuery] LogFiltersDto logFiltersDto, CancellationToken cancellationToken = default)
     {
         var logs = await appFailedRequestsService.GetAll(logFiltersDto.App, logFiltersDto.Take, logFiltersDto.Time, cancellationToken);
         return Ok(logs);

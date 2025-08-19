@@ -25,7 +25,7 @@ public class AppExceptionsController(IAppExceptionsService appExceptionsService)
     /// <returns>The list of application exceptions</returns>
     [HttpGet]
     [EnableCors]
-    public async Task<ActionResult<long?>> GetAll([FromQuery] LogFiltersDto logFiltersDto, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Log>> GetAll([FromQuery] LogFiltersDto logFiltersDto, CancellationToken cancellationToken = default)
     {
         var logs = await appExceptionsService.GetAll(logFiltersDto.App, logFiltersDto.Take, logFiltersDto.Time, cancellationToken);
         return Ok(logs);

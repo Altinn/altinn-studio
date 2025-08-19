@@ -1,6 +1,6 @@
-namespace KubernetesWrapper.Models;
+namespace Altinn.Studio.Admin.Models;
 
-public class AppExceptionDataPoint
+public class LogDataPoint
 {
     public DateTimeOffset DateTimeOffset { get; set; }
     public int Count { get; set; }

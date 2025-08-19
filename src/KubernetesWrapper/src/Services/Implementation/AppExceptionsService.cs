@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Azure;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
@@ -21,7 +22,7 @@ public class AppExceptionsService(IOptions<GeneralSettings> generalSettings, Log
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppException>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Log>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);
@@ -42,7 +43,7 @@ public class AppExceptionsService(IOptions<GeneralSettings> generalSettings, Log
                 | where SeverityLevel >= 3
                 | where ClientType != 'Browser'{appNameFilter}
                 | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
-                | order by DateTimeOffset asc";
+                | order by DateTimeOffset asc;";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
@@ -54,10 +55,10 @@ public class AppExceptionsService(IOptions<GeneralSettings> generalSettings, Log
             Count = row.GetInt32("Count") ?? int.MaxValue
         })
         .GroupBy(row => row.AppName)
-        .Select(row => new AppException
+        .Select(row => new Log
         {
             AppName = row.Key,
-            DataPoints = row.Select(e => new AppExceptionDataPoint
+            DataPoints = row.Select(e => new LogDataPoint
             {
                 DateTimeOffset = e.DateTimeOffset,
                 Count = e.Count

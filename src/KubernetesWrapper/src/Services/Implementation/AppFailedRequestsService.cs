@@ -21,7 +21,7 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<AppFailedRequest>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Log>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);
@@ -66,10 +66,10 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
             Count = row.GetInt32("Count") ?? int.MaxValue
         })
         .GroupBy(row => row.AppName)
-        .Select(row => new AppFailedRequest
+        .Select(row => new Log
         {
             AppName = row.Key,
-            DataPoints = row.Select(e => new AppFailedRequestDataPoint
+            DataPoints = row.Select(e => new LogDataPoint
             {
                 DateTimeOffset = e.DateTimeOffset,
                 Count = e.Count

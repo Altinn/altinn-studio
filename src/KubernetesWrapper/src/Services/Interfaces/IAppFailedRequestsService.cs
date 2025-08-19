@@ -15,5 +15,5 @@ public interface IAppFailedRequestsService
     /// <param name="time">The time range in hours to look back for failed requests.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of failed requests</returns>
-    Task<IEnumerable<AppFailedRequest>> GetAll(string app, int take, double time, CancellationToken cancellationToken);
+    Task<IEnumerable<Log>> GetAll(string app, int take, double time, CancellationToken cancellationToken);
 }
