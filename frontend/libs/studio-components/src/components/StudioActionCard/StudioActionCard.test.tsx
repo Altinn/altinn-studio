@@ -15,22 +15,22 @@ const defaultProps: StudioActionCardProps = {
 
 describe('StudioActionCard', () => {
   it('Appends given classname to internal classname', () => {
-    testRootClassNameAppending((className) => renderActionCard({ className }));
+    testRootClassNameAppending((className) => renderStudioActionCard({ className }));
   });
 
   it('should support forwarding the ref', () => {
-    testRefForwarding<HTMLDivElement>((ref) => renderActionCard({}, ref));
+    testRefForwarding<HTMLDivElement>((ref) => renderStudioActionCard({}, ref));
   });
 
   it('Renders the label', () => {
-    renderActionCard();
+    renderStudioActionCard();
     expect(screen.getByText(label)).toBeInTheDocument();
   });
 
   it('Calls onAction when clicked', async () => {
     const user = userEvent.setup();
     const onAction = jest.fn();
-    renderActionCard({ onAction });
+    renderStudioActionCard({ onAction });
     await user.click(screen.getByRole('button'));
     expect(onAction).toHaveBeenCalledTimes(1);
   });
@@ -38,7 +38,7 @@ describe('StudioActionCard', () => {
   it('Calls onAction when pressing Enter or Space', async () => {
     const user = userEvent.setup();
     const onAction = jest.fn();
-    renderActionCard({ onAction });
+    renderStudioActionCard({ onAction });
     const actionCard = screen.getByRole('button');
     actionCard.focus();
     await user.keyboard('{Enter}');
@@ -48,7 +48,7 @@ describe('StudioActionCard', () => {
   });
 });
 
-const renderActionCard = (
+const renderStudioActionCard = (
   props: Partial<React.ComponentProps<typeof StudioActionCard>> = {},
   ref?: ForwardedRef<HTMLDivElement>,
 ): RenderResult => render(<StudioActionCard {...defaultProps} {...props} ref={ref} />);
