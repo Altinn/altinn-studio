@@ -48,7 +48,7 @@ function useStoreValidations(baseComponentId: string) {
     (data) => !deepEqual('validations' in data ? data.validations : undefined, validations),
   );
 
-  const setNodeProp = NodesInternal.useSetNodeProp();
+  const setNodeProp = GeneratorInternal.useSetNodeProp();
   useEffect(() => {
     shouldSetValidations && setNodeProp({ nodeId: indexedId, prop: 'validations', value: validations });
   }, [indexedId, setNodeProp, shouldSetValidations, validations]);

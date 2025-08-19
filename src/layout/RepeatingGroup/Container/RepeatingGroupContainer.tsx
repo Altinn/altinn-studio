@@ -14,7 +14,7 @@ import { AllComponentValidations } from 'src/features/validation/ComponentValida
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
-  useRepeatingGroup,
+  RepGroupContext,
   useRepeatingGroupComponentId,
   useRepeatingGroupPagination,
   useRepeatingGroupRowState,
@@ -181,7 +181,8 @@ export const alignStyle = (align: ButtonPosition): React.CSSProperties => {
 function AddButton() {
   const { lang, langAsString } = useLanguage();
   const { triggerFocus } = useRepeatingGroupsFocusContext();
-  const { addRow, baseComponentId } = useRepeatingGroup();
+  const baseComponentId = useRepeatingGroupComponentId();
+  const addRow = RepGroupContext.useAddRow();
   const { visibleRows } = useRepeatingGroupRowState();
   const { editingAll, editingNone, isEditingAnyRow, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
     editingAll: state.editingAll,

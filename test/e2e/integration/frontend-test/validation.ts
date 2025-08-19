@@ -378,7 +378,7 @@ describe('Validation', () => {
 
     // Validation message should now have changed, since we filled out currentValue and saved
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
-    cy.findByRole('button', { name: 'Slett-NOK 123' }).click();
+    cy.findByRole('button', { name: 'Slett NOK 123' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
 
     // Check that nested group with multipage gets focus
@@ -437,6 +437,7 @@ describe('Validation', () => {
 
     // Filling out the remaining field should let us save the group and hide leftover errors
     cy.get(appFrontend.group.row(2).newValue).type('456');
+    cy.waitUntilSaved();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -476,7 +477,7 @@ describe('Validation', () => {
 
     // Delete the row, start over, and observe that the currentValue now exists as a field in the table and
     // produces a validation message if not filled out. We need to use the 'next' button to trigger validation.
-    cy.findByRole('button', { name: 'Slett-NOK 456' }).click();
+    cy.findByRole('button', { name: 'Slett NOK 456' }).click();
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.row(2).currentValue).should('exist');

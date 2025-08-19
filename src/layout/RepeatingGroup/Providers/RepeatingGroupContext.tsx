@@ -4,7 +4,6 @@ import type { PropsWithChildren } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
 
-import { createContext } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
@@ -20,6 +19,7 @@ import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGr
 import type { BaseRow } from 'src/utils/layout/types';
 
 interface Store {
+  baseComponentId: string;
   editingAll: boolean;
   editingNone: boolean;
   editingId: string | undefined;
@@ -35,6 +35,11 @@ interface ZustandHiddenMethods {
   endDeletingRow: (row: BaseRow, successful: boolean) => void;
 }
 
+type AddRowResult =
+  | { result: 'stoppedByBinding'; uuid: undefined; index: undefined }
+  | { result: 'stoppedByValidation'; uuid: undefined; index: undefined }
+  | ({ result: 'addedAndOpened' | 'addedAndHidden' } & BaseRow);
+
 interface ExtendedState {
   // Methods for getting/setting state about which rows are in edit mode
   toggleEditing: (row: BaseRow) => void;
@@ -44,32 +49,12 @@ interface ExtendedState {
   changePage: (page: number) => void;
 }
 
-type AddRowResult =
-  | { result: 'stoppedByBinding'; uuid: undefined; index: undefined }
-  | { result: 'stoppedByValidation'; uuid: undefined; index: undefined }
-  | ({ result: 'addedAndOpened' | 'addedAndHidden' } & BaseRow);
-
-interface ContextMethods extends ExtendedState {
-  addRow: () => Promise<AddRowResult>;
-  deleteRow: (row: BaseRow) => Promise<boolean>;
-  isEditing: (uuid: string) => boolean;
-  isDeleting: (uuid: string) => boolean;
-  changePage: (page: number) => Promise<void>;
-  changePageToRow: (row: BaseRow) => Promise<void>;
-}
-
 type ZustandState = Store & ZustandHiddenMethods & Omit<ExtendedState, 'toggleEditing'>;
-type ExtendedContext = ContextMethods & Props;
 
 const ZStore = createZustandContext({
   name: 'RepeatingGroupZ',
   required: true,
   initialCreateStore: newStore,
-});
-
-const ExtendedStore = createContext<ExtendedContext>({
-  name: 'RepeatingGroup',
-  required: true,
 });
 
 interface RowState {
@@ -200,17 +185,19 @@ function gotoPageForRow(
 }
 
 interface NewStoreProps {
+  baseComponentId: string;
   getRows: () => RepGroupRowWithButtons[];
   editMode: IGroupEditProperties['mode'];
   pagination: CompInternal<'RepeatingGroup'>['pagination'];
 }
 
-function newStore({ getRows, editMode, pagination }: NewStoreProps) {
+function newStore({ baseComponentId, getRows, editMode, pagination }: NewStoreProps) {
   function produce() {
     return produceStateFromRows(getRows());
   }
 
   return createStore<ZustandState>((set) => ({
+    baseComponentId,
     editingAll: editMode === 'showAll',
     editingNone: editMode === 'onlyTable',
     isFirstRender: true,
@@ -313,210 +300,13 @@ function newStore({ getRows, editMode, pagination }: NewStoreProps) {
   }));
 }
 
-function useExtendedRepeatingGroupState(baseComponentId: string): ExtendedContext {
-  const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
-  const rawOpenNextForEditing = ZStore.useStaticSelector((state) => state.openNextForEditing);
-  const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
-  const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
-  const rawStartAddingRow = ZStore.useStaticSelector((state) => state.startAddingRow);
-  const rawEndAddingRow = ZStore.useStaticSelector((state) => state.endAddingRow);
-  const rawStartDeletingRow = ZStore.useStaticSelector((state) => state.startDeletingRow);
-  const rawEndDeletingRow = ZStore.useStaticSelector((state) => state.endDeletingRow);
-
-  const delayedSelector = ZStore.useDelayedSelector({
-    mode: 'innerSelector',
-    makeArgs: (state) => [state],
-  });
-
-  const { pagination, validateOnSaveRow } = useExternalItem(baseComponentId, 'RepeatingGroup');
-  const groupBinding = useBinding(baseComponentId);
-
-  const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
-  const waitUntilSaved = FD.useWaitForSave();
-  const appendToList = FD.useAppendToList();
-  const removeFromList = FD.useRemoveFromListCallback();
-  const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
-  const onGroupCloseValidation = useOnGroupCloseValidation();
-
-  const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
-  const getState = () => produceStateFromRows(getRows() ?? []);
-  const getPaginationState = () =>
-    producePaginationState(
-      delayedSelector((s) => s.currentPage, []),
-      pagination,
-      getState().visibleRows,
-    );
-
-  const maybeValidateRow = () => {
-    const editingAll = delayedSelector((s) => s.editingAll, []);
-    const editingId = delayedSelector((s) => s.editingId, []);
-    const editingNone = delayedSelector((s) => s.editingNone, []);
-    const index = getState().editableRows.find((row) => row.uuid === editingId)?.index;
-    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
-      return Promise.resolve(false);
-    }
-    return onGroupCloseValidation(baseComponentId, index, validateOnSaveRow);
-  };
-
-  const openForEditing = async (row: BaseRow) => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-    rawOpenForEditing(row);
-  };
-
-  const openNextForEditing = async () => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-    rawOpenNextForEditing();
-  };
-
-  const closeForEditing = async (row: BaseRow) => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-    rawCloseForEditing(row);
-  };
-
-  const toggleEditing = async (row: BaseRow) => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-    const editingId = delayedSelector((s) => s.editingId, []);
-    if (editingId === row.uuid) {
-      rawCloseForEditing(row);
-    } else {
-      rawOpenForEditing(row);
-    }
-  };
-
-  const changePage = async (page: number) => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-    rawChangePage(page);
-  };
-
-  const changePageToRow = async (row: BaseRow) => {
-    if (await maybeValidateRow()) {
-      return;
-    }
-
-    const page = getPageForRow(row, getPaginationState(), getState().visibleRows);
-    if (page == null) {
-      return;
-    }
-
-    rawChangePage(page);
-  };
-
-  const isEditing = (uuid: string) => {
-    const editingAll = delayedSelector((s) => s.editingAll, []);
-    const editingId = delayedSelector((s) => s.editingId, []);
-    const editingNone = delayedSelector((s) => s.editingNone, []);
-    if (editingAll) {
-      return true;
-    }
-    if (editingNone) {
-      return false;
-    }
-    return editingId === uuid;
-  };
-
-  const addRow = async (): Promise<AddRowResult> => {
-    if (!groupBinding) {
-      return { result: 'stoppedByBinding', uuid: undefined, index: undefined };
-    }
-    if (await maybeValidateRow()) {
-      return { result: 'stoppedByValidation', uuid: undefined, index: undefined };
-    }
-    const uuid = uuidv4();
-    appendToList({
-      reference: groupBinding,
-      newValue: { [ALTINN_ROW_ID]: uuid },
-    });
-
-    rawStartAddingRow(uuid);
-    if (autoSaving) {
-      // When auto-saving is on, we can detect if backend datamodel changes will cause this row to be hidden right
-      // after it was added (as the backend can add data to new rows), and thus we'll know to inform the app developer
-      // if they've used openByDefault along with hidden-by-default rows. It's important not to wait for saving when
-      // autosaving is off, as we'd wait forever.
-      await waitUntilSaved();
-    }
-
-    // It may take some time until effects run and the row is put into either the visibleRows or hiddenRows state in
-    // the ref, so we'll loop this a few times until we find the row.
-    let attempts = 5;
-    let found: RepGroupRow | undefined;
-    while (found === undefined && attempts > 0) {
-      const { visibleRows, hiddenRows } = getState();
-      found = visibleRows.find((row) => row.uuid === uuid) || hiddenRows.find((row) => row.uuid === uuid);
-      if (found === undefined && attempts > 0) {
-        attempts--;
-        await new Promise((resolve) => setTimeout(resolve, 4));
-      }
-    }
-
-    rawEndAddingRow(uuid);
-
-    const index = found?.index ?? -1;
-    if (found && !found.hidden) {
-      await openForEditing({ uuid, index });
-      return { result: 'addedAndOpened', uuid, index };
-    }
-
-    return { result: 'addedAndHidden', uuid, index };
-  };
-
-  const deleteRow = async (row: BaseRow) => {
-    const { deletableRows } = getState();
-    const deletableRow = deletableRows.find((r) => r.uuid === row.uuid && r.index === row.index);
-    if (!deletableRow) {
-      return false;
-    }
-
-    rawStartDeletingRow(row);
-    const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
-    if (attachmentDeletionSuccessful && groupBinding) {
-      removeFromList({
-        reference: groupBinding,
-        startAtIndex: row.index,
-        callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
-      });
-
-      rawEndDeletingRow(row, true);
-      return true;
-    }
-
-    rawEndDeletingRow(row, false);
-    return false;
-  };
-
-  const isDeleting = (uuid: string) => delayedSelector((s) => s.deletingIds, []).includes(uuid);
-
-  return {
-    baseComponentId,
-    addRow,
-    deleteRow,
-    isDeleting,
-    closeForEditing,
-    isEditing,
-    openForEditing,
-    openNextForEditing,
-    toggleEditing,
-    changePage,
-    changePageToRow,
-  };
-}
-
 function EffectCloseEditing() {
   const editingId = ZStore.useSelector((state) => state.editingId);
   const closeForEditing = ZStore.useSelector((state) => state.closeForEditing);
   const nodeState = useRepeatingGroupRowState();
   const editingAsHidden =
     editingId !== undefined ? nodeState.hiddenRows.find((row) => row.uuid === editingId) : undefined;
+
   useEffect(() => {
     if (editingAsHidden) {
       closeForEditing(editingAsHidden);
@@ -531,6 +321,7 @@ function EffectPagination() {
   const changePage = ZStore.useSelector((state) => state.changePage);
   const paginationState = useRepeatingGroupPagination();
   const { currentPage, totalPages, hasPagination } = paginationState;
+
   useEffect(() => {
     if (hasPagination && currentPage > totalPages - 1) {
       changePage(totalPages - 1);
@@ -538,11 +329,6 @@ function EffectPagination() {
   }, [currentPage, totalPages, hasPagination, changePage]);
 
   return null;
-}
-
-function ProvideTheRest({ baseComponentId, children }: PropsWithChildren<Props>) {
-  const extended = useExtendedRepeatingGroupState(baseComponentId);
-  return <ExtendedStore.Provider value={extended}>{children}</ExtendedStore.Provider>;
 }
 
 interface Props {
@@ -557,24 +343,45 @@ export function RepeatingGroupProvider({ baseComponentId, children }: PropsWithC
 
   return (
     <ZStore.Provider
+      baseComponentId={baseComponentId}
       getRows={getRows}
       pagination={pagination}
       editMode={editMode}
     >
-      <ProvideTheRest baseComponentId={baseComponentId}>
-        <EffectCloseEditing />
-        <EffectPagination />
-        <OpenByDefaultProvider baseComponentId={baseComponentId}>{children}</OpenByDefaultProvider>
-      </ProvideTheRest>
+      <EffectCloseEditing />
+      <EffectPagination />
+      <OpenByDefaultProvider baseComponentId={baseComponentId}>{children}</OpenByDefaultProvider>
     </ZStore.Provider>
   );
 }
 
-export const useRepeatingGroup = () => ExtendedStore.useCtx();
-export const useRepeatingGroupComponentId = () => ExtendedStore.useCtx().baseComponentId;
+export const useRepeatingGroupComponentId = () => ZStore.useSelector((state) => state.baseComponentId);
 
-function useBinding(baseComponentId: string) {
-  return useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+function useDelayedSelector() {
+  return ZStore.useDelayedSelector({
+    mode: 'innerSelector',
+    makeArgs: (state) => [state],
+  });
+}
+
+function useMaybeValidateRow() {
+  const baseComponentId = useRepeatingGroupComponentId();
+  const delayedSelector = useDelayedSelector();
+  const { validateOnSaveRow } = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const onGroupCloseValidation = useOnGroupCloseValidation();
+  const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
+  const getState = () => produceStateFromRows(getRows() ?? []);
+
+  return () => {
+    const editingAll = delayedSelector((s) => s.editingAll, []);
+    const editingId = delayedSelector((s) => s.editingId, []);
+    const editingNone = delayedSelector((s) => s.editingNone, []);
+    const index = getState().editableRows.find((row) => row.uuid === editingId)?.index;
+    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
+      return Promise.resolve(false);
+    }
+    return onGroupCloseValidation(baseComponentId, index, validateOnSaveRow);
+  };
 }
 
 export const useRepeatingGroupRowState = () => {
@@ -592,3 +399,201 @@ export const useRepeatingGroupPagination = () => {
 export function useRepeatingGroupSelector<T>(selector: (state: Store) => T): T {
   return ZStore.useMemoSelector(selector);
 }
+
+export const RepGroupContext = {
+  useIsEditingRow(uuid: string | undefined) {
+    return ZStore.useSelector((state) => {
+      if (state.editingAll) {
+        return true;
+      }
+      if (state.editingNone) {
+        return false;
+      }
+      if (uuid === undefined) {
+        return false;
+      }
+      return state.editingId === uuid;
+    });
+  },
+  useIsDeletingRow(uuid: string | undefined) {
+    return ZStore.useSelector((state) => (uuid ? state.deletingIds.includes(uuid) : false));
+  },
+  useToggleEditing() {
+    const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
+    const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
+    const delayedSelector = useDelayedSelector();
+    const maybeValidateRow = useMaybeValidateRow();
+
+    return async (row: BaseRow) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      const editingId = delayedSelector((s) => s.editingId, []);
+      if (editingId === row.uuid) {
+        rawCloseForEditing(row);
+      } else {
+        rawOpenForEditing(row);
+      }
+    };
+  },
+  useOpenForEditing() {
+    const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
+    const maybeValidateRow = useMaybeValidateRow();
+
+    return async (row: BaseRow) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      rawOpenForEditing(row);
+    };
+  },
+  useOpenNextForEditing() {
+    const rawOpenNextForEditing = ZStore.useStaticSelector((state) => state.openNextForEditing);
+    const maybeValidateRow = useMaybeValidateRow();
+
+    return async () => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      rawOpenNextForEditing();
+    };
+  },
+  useCloseForEditing() {
+    const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
+    const maybeValidateRow = useMaybeValidateRow();
+
+    return async (row: BaseRow) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      rawCloseForEditing(row);
+    };
+  },
+  useChangePage() {
+    const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
+    const maybeValidateRow = useMaybeValidateRow();
+
+    return async (page: number) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      rawChangePage(page);
+    };
+  },
+  useChangePageToRow() {
+    const baseComponentId = useRepeatingGroupComponentId();
+    const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
+    const delayedSelector = useDelayedSelector();
+    const maybeValidateRow = useMaybeValidateRow();
+
+    const { pagination } = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
+    const getState = () => produceStateFromRows(getRows() ?? []);
+    const getPaginationState = () =>
+      producePaginationState(
+        delayedSelector((s) => s.currentPage, []),
+        pagination,
+        getState().visibleRows,
+      );
+
+    return async (row: BaseRow) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      const page = getPageForRow(row, getPaginationState(), getState().visibleRows);
+      if (page == null) {
+        return;
+      }
+      rawChangePage(page);
+    };
+  },
+  useAddRow() {
+    const baseComponentId = useRepeatingGroupComponentId();
+    const rawStartAddingRow = ZStore.useStaticSelector((state) => state.startAddingRow);
+    const rawEndAddingRow = ZStore.useStaticSelector((state) => state.endAddingRow);
+    const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
+    const maybeValidateRow = useMaybeValidateRow();
+
+    const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+    const autoSaving = usePageSettings().autoSaveBehavior !== 'onChangePage';
+    const waitUntilSaved = FD.useWaitForSave();
+    const appendToList = FD.useAppendToList();
+    const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
+    const getState = () => produceStateFromRows(getRows() ?? []);
+
+    return async (): Promise<AddRowResult> => {
+      if (!groupBinding) {
+        return { result: 'stoppedByBinding', uuid: undefined, index: undefined };
+      }
+      if (await maybeValidateRow()) {
+        return { result: 'stoppedByValidation', uuid: undefined, index: undefined };
+      }
+      const uuid = uuidv4();
+      appendToList({
+        reference: groupBinding,
+        newValue: { [ALTINN_ROW_ID]: uuid },
+      });
+
+      rawStartAddingRow(uuid);
+      if (autoSaving) {
+        await waitUntilSaved();
+      }
+
+      let attempts = 5;
+      let found: RepGroupRow | undefined;
+      while (found === undefined && attempts > 0) {
+        const { visibleRows, hiddenRows } = getState();
+        found = visibleRows.find((row) => row.uuid === uuid) || hiddenRows.find((row) => row.uuid === uuid);
+        if (found === undefined && attempts > 0) {
+          attempts--;
+          await new Promise((resolve) => setTimeout(resolve, 4));
+        }
+      }
+
+      rawEndAddingRow(uuid);
+
+      const index = found?.index ?? -1;
+      if (found && !found.hidden) {
+        rawOpenForEditing({ uuid, index });
+        return { result: 'addedAndOpened', uuid, index };
+      }
+
+      return { result: 'addedAndHidden', uuid, index };
+    };
+  },
+  useDeleteRow() {
+    const baseComponentId = useRepeatingGroupComponentId();
+    const rawStartDeletingRow = ZStore.useStaticSelector((state) => state.startDeletingRow);
+    const rawEndDeletingRow = ZStore.useStaticSelector((state) => state.endDeletingRow);
+
+    const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+    const removeFromList = FD.useRemoveFromListCallback();
+    const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
+    const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
+    const getState = () => produceStateFromRows(getRows() ?? []);
+
+    return async (row: BaseRow) => {
+      const { deletableRows } = getState();
+      const deletableRow = deletableRows.find((r) => r.uuid === row.uuid && r.index === row.index);
+      if (!deletableRow) {
+        return false;
+      }
+
+      rawStartDeletingRow(row);
+      const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
+      if (attachmentDeletionSuccessful && groupBinding) {
+        removeFromList({
+          reference: groupBinding,
+          startAtIndex: row.index,
+          callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
+        });
+
+        rawEndDeletingRow(row, true);
+        return true;
+      }
+
+      rawEndDeletingRow(row, false);
+      return false;
+    };
+  },
+};

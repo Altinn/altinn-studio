@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { useAsRef } from 'src/hooks/useAsRef';
 import {
-  useRepeatingGroup,
+  RepGroupContext,
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
@@ -17,7 +17,8 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
   const openByDefault = item.edit?.openByDefault;
   const isFirstRender = useRef(true);
-  const { addRow, openForEditing } = useRepeatingGroup();
+  const addRow = RepGroupContext.useAddRow();
+  const openForEditing = RepGroupContext.useOpenForEditing();
   const { visibleRows } = useRepeatingGroupRowState();
   const state = useRepeatingGroupSelector((state) => ({
     editingId: state.editingId,

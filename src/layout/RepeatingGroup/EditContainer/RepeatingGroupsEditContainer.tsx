@@ -14,7 +14,7 @@ import {
   useRepeatingGroupEdit,
 } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupEditContext';
 import {
-  useRepeatingGroup,
+  RepGroupContext,
   useRepeatingGroupComponentId,
   useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
@@ -58,7 +58,10 @@ function RepeatingGroupsEditContainerInternal({
 }: IRepeatingGroupsEditContainer & {
   row: RepGroupRow;
 }): JSX.Element | null {
-  const { baseComponentId, closeForEditing, deleteRow, openNextForEditing, isDeleting } = useRepeatingGroup();
+  const baseComponentId = useRepeatingGroupComponentId();
+  const closeForEditing = RepGroupContext.useCloseForEditing();
+  const deleteRow = RepGroupContext.useDeleteRow();
+  const openNextForEditing = RepGroupContext.useOpenNextForEditing();
   const { visibleRows } = useRepeatingGroupRowState();
   const childIds = RepGroupHooks.useChildIdsWithMultiPage(baseComponentId);
 
@@ -73,6 +76,7 @@ function RepeatingGroupsEditContainerInternal({
 
   const { multiPageEnabled, multiPageIndex, nextMultiPage, prevMultiPage, hasNextMultiPage, hasPrevMultiPage } =
     useRepeatingGroupEdit();
+  const isDeleting = RepGroupContext.useIsDeletingRow(editId);
   const id = useIndexedId(baseComponentId);
   const rowWithExpressions = RepGroupHooks.useRowWithExpressions(baseComponentId, { uuid: row.uuid });
   const textsForRow = rowWithExpressions?.textResourceBindings;
@@ -127,7 +131,7 @@ function RepeatingGroupsEditContainerInternal({
             <Button
               variant='tertiary'
               color='danger'
-              disabled={isDeleting(editId)}
+              disabled={isDeleting}
               onClick={() => deleteRow({ index: row.index, uuid: row.uuid })}
               data-testid='delete-button'
             >

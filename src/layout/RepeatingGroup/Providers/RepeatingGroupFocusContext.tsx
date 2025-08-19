@@ -7,7 +7,10 @@ import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { SearchParams } from 'src/hooks/navigation';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import {
+  RepGroupContext,
+  useRepeatingGroupComponentId,
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { getBaseComponentId, splitDashedKey } from 'src/utils/splitDashedKey';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
@@ -102,7 +105,9 @@ function findFirstFocusableElement(container: HTMLElement): FocusableHTMLElement
 }
 
 function useNavigateToRepeatingGroupPageAndFocusRow() {
-  const { baseComponentId, openForEditing, changePageToRow } = useRepeatingGroup();
+  const baseComponentId = useRepeatingGroupComponentId();
+  const openForEditing = RepGroupContext.useOpenForEditing();
+  const changePageToRow = RepGroupContext.useChangePageToRow();
   const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
   const rowsSelector = FD.useDebouncedRowsSelector();
   const layoutLookups = useLayoutLookups();

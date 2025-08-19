@@ -534,7 +534,6 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
     }
   });
 
-  cy.get('#finishedLoading').should('exist');
   cy.findByRole('progressbar').should('not.exist');
 });
 

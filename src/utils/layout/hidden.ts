@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
@@ -8,6 +8,7 @@ import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenByRules, useIsHiddenByRulesMulti } from 'src/utils/layout/NodesContext';
@@ -78,9 +79,10 @@ export function useIsHidden<Reason extends boolean = false>(
  * Check if multiple components are hidden. Returns a mapping detailing which components are hidden.
  */
 export function useIsHiddenMulti(
-  baseComponentIds: string[],
+  _baseComponentIds: string[],
   options: Omit<IsHiddenOptions, 'includeReason'> = {},
 ): { [baseId: string]: boolean | undefined } {
+  const baseComponentIds = useShallowMemo(_baseComponentIds);
   const lastValues = useRef(baseComponentIds);
   if (!deepEqual(lastValues.current, baseComponentIds)) {
     throw new Error(
@@ -90,31 +92,46 @@ export function useIsHiddenMulti(
 
   const layoutLookups = useLayoutLookups();
   const hiddenPages = useHiddenLayoutsExpressions();
-  const hiddenSources = baseComponentIds.map((baseComponentId) =>
-    findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse(),
+  const hiddenSources = useMemo(
+    () =>
+      baseComponentIds.map((baseComponentId) =>
+        findHiddenSources(baseComponentId, layoutLookups, hiddenPages).reverse(),
+      ),
+    [baseComponentIds, hiddenPages, layoutLookups],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const hiddenByRules = useIsHiddenByRulesMulti(baseComponentIds);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
 
-  const out: { [baseId: string]: boolean | undefined } = {};
-  for (const [idx, baseComponentId] of baseComponentIds.entries()) {
-    const reason = isHidden({
-      hiddenByRules: hiddenByRules[baseComponentId] ?? false,
-      hiddenSources: hiddenSources[idx],
-      dataSources,
-      pageOrder,
-      pageKey: layoutLookups.componentToPage[baseComponentId],
-    });
-    if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
-      out[baseComponentId] = false;
-    } else {
-      out[baseComponentId] = reason.hidden;
+  return useMemo(() => {
+    const out: { [baseId: string]: boolean | undefined } = {};
+    for (const [idx, baseComponentId] of baseComponentIds.entries()) {
+      const reason = isHidden({
+        hiddenByRules: hiddenByRules[baseComponentId] ?? false,
+        hiddenSources: hiddenSources[idx],
+        dataSources,
+        pageOrder,
+        pageKey: layoutLookups.componentToPage[baseComponentId],
+      });
+      if (reason.hidden && forcedVisible && options.respectDevTools !== false) {
+        out[baseComponentId] = false;
+      } else {
+        out[baseComponentId] = reason.hidden;
+      }
     }
-  }
 
-  return out;
+    return out;
+  }, [
+    baseComponentIds,
+    dataSources,
+    forcedVisible,
+    hiddenByRules,
+    hiddenSources,
+    layoutLookups.componentToPage,
+    options.respectDevTools,
+    pageOrder,
+  ]);
 }
 
 /**

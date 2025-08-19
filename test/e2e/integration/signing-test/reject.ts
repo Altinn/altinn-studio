@@ -32,7 +32,7 @@ describe('Rejecting a signing task', () => {
 
     // Deleting a repeating group row failed before: https://github.com/Altinn/app-frontend-react/issues/3245
     cy.get('tbody tr').should('have.length', 2);
-    cy.findByRole('button', { name: /slett-varesalg/i }).click();
+    cy.findByRole('button', { name: /slett varesalg/i }).click();
     cy.get('tbody tr').should('have.length', 1);
     cy.get(appFrontend.signingTest.submitButton).click();
 

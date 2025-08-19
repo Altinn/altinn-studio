@@ -74,7 +74,7 @@ describe('Group', () => {
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
       cy.get(appFrontend.group.subGroup).find('td').first().invoke('text').should('equal', 'automation');
       cy.findByRole('button', { name: 'Rediger automation' }).click();
-      cy.findByRole('button', { name: 'Slett-automation' }).click();
+      cy.findByRole('button', { name: 'Slett automation' }).click();
 
       // This test used to make sure deleted rows were re-added automatically, but that is no longer the case.
       cy.get(appFrontend.group.subGroup).find(mui.tableElement).should('have.length', 0);
@@ -82,7 +82,7 @@ describe('Group', () => {
       cy.get(appFrontend.group.comments).should('not.exist');
 
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();
-      cy.findByRole('button', { name: 'Slett-NOK 1' }).click();
+      cy.findByRole('button', { name: 'Slett NOK 1' }).click();
 
       cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
       cy.get(appFrontend.group.saveMainGroup).should('not.exist');
@@ -184,7 +184,7 @@ describe('Group', () => {
       }
     }
 
-    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett-NOK 1' }).first().click();
+    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett NOK 1' }).first().click();
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
   });
@@ -318,7 +318,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup)
       .find(mui.tableBody)
       .then((table) => {
-        cy.wrap(table).findByRole('button', { name: 'Slett-NOK 123' }).click();
+        cy.wrap(table).findByRole('button', { name: 'Slett NOK 123' }).click();
       });
 
     cy.gotoNavPage('hide');
@@ -363,7 +363,7 @@ describe('Group', () => {
     });
 
     // Delete the stray row, wait until we've saved it
-    cy.findByRole('button', { name: 'Slett-undefined' }).click();
+    cy.findByRole('button', { name: 'Slett' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).children().should('have.length', 0);
 
     cy.interceptLayout('group', (c) => {
@@ -417,7 +417,7 @@ describe('Group', () => {
     cy.gotoNavPage('repeating');
 
     // Test that deleting an item does not cause another group to open if there are more elements in the group
-    cy.get(appFrontend.group.mainGroupTableBody).children().eq(0).findByRole('button', { name: 'Slett-NOK 1' }).click();
+    cy.get(appFrontend.group.mainGroupTableBody).children().eq(0).findByRole('button', { name: 'Slett NOK 1' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).find(appFrontend.group.saveMainGroup).should('not.exist');
   });
 
@@ -440,19 +440,19 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
     cy.get(appFrontend.group.subGroup).find('tbody > tr > td').first().should('have.text', 'automation');
-    cy.get(appFrontend.group.subGroup).findByRole('button', { name: 'Slett-automation' }).click();
+    cy.get(appFrontend.group.subGroup).findByRole('button', { name: 'Slett automation' }).click();
 
     cy.findByRole('button', { name: 'Avbryt' }).click({ force: true });
-    cy.get(appFrontend.group.subGroup).findByRole('button', { name: 'Slett-automation' }).click();
+    cy.get(appFrontend.group.subGroup).findByRole('button', { name: 'Slett automation' }).click();
     cy.findByRole('button', { name: /Ja, slett raden/ }).click({ force: true });
 
     cy.get(appFrontend.group.subGroup).find('tbody > tr > td').should('have.length', 0);
 
     // Navigate to main group and test delete warning popup cancel and confirm
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();
-    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett-NOK 1' }).click();
+    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett NOK 1' }).click();
     cy.findByRole('button', { name: 'Avbryt' }).click();
-    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett-NOK 1' }).click();
+    cy.get(appFrontend.group.mainGroup).findByRole('button', { name: 'Slett NOK 1' }).click();
     cy.findByRole('button', { name: /Ja, slett raden/ }).click();
 
     cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
@@ -519,7 +519,7 @@ describe('Group', () => {
 
     cy.findAllByRole('button', { name: /Slett/ }).should('have.length', 1);
     cy.waitUntilSaved();
-    cy.findByRole('button', { name: 'Slett-NOK 123' }).click();
+    cy.findByRole('button', { name: 'Slett NOK 123' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 3);
 
     cy.changeLayout((c) => {
@@ -688,7 +688,7 @@ describe('Group', () => {
       .should('contain.text', 'Endre fra: 120, Endre til: 350');
 
     cy.waitUntilSaved(); // Wait until saved so that we're sure the previous changes are synced before we try to delete
-    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Slett-1' }).click();
+    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Slett 1' }).click();
     cy.get(appFrontend.group.secondGroup).find('tbody > tr').should('have.length', 1);
 
     cy.get(appFrontend.group.secondGroup_add).click();
@@ -733,7 +733,7 @@ describe('Group', () => {
     // The add new row button should no longer exist now
     cy.get(appFrontend.group.secondGroup_add).should('not.exist');
 
-    cy.get(appFrontend.group.secondGroup).find('tbody > tr').eq(1).findByRole('button', { name: 'Slett-3' }).click();
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').eq(1).findByRole('button', { name: 'Slett 3' }).click();
 
     // But now the button should exist again, and be clickable. The new row should have id 4.
     cy.get(appFrontend.group.secondGroup_add).click();

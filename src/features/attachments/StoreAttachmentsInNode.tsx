@@ -53,7 +53,7 @@ function StoreAttachmentsInNodeWorker() {
     deepEqual('attachments' in data ? data.attachments : undefined, attachments),
   );
 
-  const setNodeProp = NodesInternal.useSetNodeProp();
+  const setNodeProp = GeneratorInternal.useSetNodeProp();
   useEffect(() => {
     !hasBeenSet && setNodeProp({ nodeId: parent.indexedId!, prop: 'attachments', value: attachments });
   }, [attachments, hasBeenSet, parent.indexedId, setNodeProp]);

@@ -84,25 +84,42 @@ function AddRemoveNode<T extends CompTypes>({
   const layoutMap = useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
-  const stateFactoryProps = {
-    id: intermediateItem.id,
-    baseId: baseComponentId,
-    parentId: parent?.type === 'node' ? parent.indexedId : undefined,
-    depth,
-    rowIndex,
-    pageKey,
-    idMutators,
-    layoutMap,
-    getCapabilities,
-    isValid,
-    dataModelBindings: intermediateItem.dataModelBindings as never,
-  } satisfies StateFactoryProps;
+  const stateFactoryProps = useMemo(
+    () =>
+      ({
+        id: intermediateItem.id,
+        baseId: baseComponentId,
+        parentId: parent?.type === 'node' ? parent.indexedId : undefined,
+        depth,
+        rowIndex,
+        pageKey,
+        idMutators,
+        layoutMap,
+        getCapabilities,
+        isValid,
+        dataModelBindings: intermediateItem.dataModelBindings as never,
+      }) satisfies StateFactoryProps,
+    [
+      baseComponentId,
+      depth,
+      getCapabilities,
+      idMutators,
+      intermediateItem.dataModelBindings,
+      intermediateItem.id,
+      isValid,
+      layoutMap,
+      pageKey,
+      parent.indexedId,
+      parent?.type,
+      rowIndex,
+    ],
+  );
 
   const isAdded = NodesInternal.useIsAdded(intermediateItem.id, 'node');
 
   const def = getComponentDef(intermediateItem.type);
-  const addNode = NodesInternal.useAddNode();
-  const removeNode = NodesInternal.useRemoveNode();
+  const addNode = GeneratorInternal.useAddNode();
+  const removeNode = GeneratorInternal.useRemoveNode();
 
   // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
   // so that we don't accidentally remove a node with the same ID from a future/different layout.
