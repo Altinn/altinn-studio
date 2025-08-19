@@ -1,39 +1,59 @@
-import React, { type ElementType, forwardRef, type ReactElement } from 'react';
+import React, { forwardRef, type ReactNode, type ReactElement, type Ref } from 'react';
+import cn from 'classnames';
 import classes from '../common.module.css';
 import { StudioButton, type StudioButtonProps } from '../../StudioButton';
-import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
-import cn from 'classnames';
-import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
-import type { OverridableComponent } from '../../../types/OverridableComponent';
-import type { OverridableComponentProps } from '../../../types/OverridableComponentProps';
-import type { OverridableComponentRef } from '../../../types/OverridableComponentRef';
+import { StudioLinkButton, type StudioLinkButtonProps } from '../../StudioLinkButton';
+import type { StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
+import type { StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 
-export type StudioPageHeaderHeaderButtonProps = {
+type HeaderButtonCommonProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
-} & Omit<StudioButtonProps, 'data-color' | 'variant'>;
+  className?: string;
+  children: ReactNode;
+};
 
-export const StudioPageHeaderHeaderButton: OverridableComponent<
-  StudioPageHeaderHeaderButtonProps,
-  HTMLButtonElement
-> = forwardRef(
-  <As extends ElementType = 'button'>(
-    {
-      color,
-      variant,
-      className: givenClass,
-      ...rest
-    }: OverridableComponentProps<StudioPageHeaderHeaderButtonProps, As>,
-    ref: OverridableComponentRef<As>,
-  ): ReactElement => {
+type ButtonWithOmittedProps = Omit<StudioButtonProps, 'data-color' | 'variant'>;
+export type HeaderButtonAsButtonProps = {
+  asLink?: false;
+} & ButtonWithOmittedProps &
+  HeaderButtonCommonProps;
+
+type LinkWithOmittedProps = Omit<StudioLinkButtonProps, 'data-color' | 'variant'>;
+export type HeaderButtonAsLinkProps = {
+  asLink: true;
+} & LinkWithOmittedProps &
+  HeaderButtonCommonProps;
+
+export type StudioPageHeaderHeaderButtonProps = HeaderButtonAsButtonProps | HeaderButtonAsLinkProps;
+
+export const StudioPageHeaderHeaderButton = forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  StudioPageHeaderHeaderButtonProps
+>(function StudioPageHeaderHeaderButton(
+  { color, variant, className: givenClass, asLink, ...rest },
+  ref,
+): ReactElement {
+  if (asLink) {
+    const linkProps = rest as LinkWithOmittedProps;
+
     return (
-      <StudioButton
-        ref={ref}
+      <StudioLinkButton
+        ref={ref as Ref<HTMLAnchorElement>}
         className={cn(classes.linkOrButton, classes[variant], classes[color], givenClass)}
-        {...rest}
+        {...linkProps}
       />
     );
-  },
-);
+  }
+
+  const buttonProps = rest as ButtonWithOmittedProps;
+  return (
+    <StudioButton
+      ref={ref as Ref<HTMLButtonElement>}
+      className={cn(classes.linkOrButton, classes[variant], classes[color], givenClass)}
+      {...buttonProps}
+    />
+  );
+});
 
 StudioPageHeaderHeaderButton.displayName = 'StudioPageHeader.HeaderButton';
