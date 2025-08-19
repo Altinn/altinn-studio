@@ -213,5 +213,15 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
+
+        public Task<List<ListviewServiceResource>> MapResourceRepoFilesToListViewResource(string org, string repo)
+        {
+            List<ListviewServiceResource> mockData = new()
+            {
+                new ListviewServiceResource { CreatedBy = "testUser", Identifier = "testIdentifier1", Title = new Dictionary<string, string> { { "test", "test1" } }, LastChanged = DateTime.Now, HasPolicy = true },
+                new ListviewServiceResource { CreatedBy = "testUser", Identifier = "testIdentifier2", Title = new Dictionary<string, string> { { "test", "test2" } }, LastChanged = DateTime.Now, HasPolicy = true }
+            };
+            return Task.FromResult(mockData);
+        }
     }
 }
