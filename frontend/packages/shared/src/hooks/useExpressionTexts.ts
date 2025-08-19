@@ -47,9 +47,9 @@ export const useExpressionTexts = (): ExpressionTexts => {
     (key) => `expression.instanceContext.${key}`,
   );
 
-  const gatewayActionContextKeys = Object.values(PredefinedGatewayAction);
+  const predefinedGatewayActionKeys = Object.values(PredefinedGatewayAction);
   const predefinedGatewayActions = mapArrayToTranslations<PredefinedGatewayAction>(
-    gatewayActionContextKeys,
+    predefinedGatewayActionKeys,
     (key) => `expression.predefinedGatewayAction.${key}`,
   );
 
