@@ -65,16 +65,16 @@
         <bpmn:sequenceFlow id="SequenceFlow_task2_to_task3" sourceRef="Task_2" targetRef="Task_3"/>
 
         <bpmn:sequenceFlow id="SequenceFlow_postFeedback" sourceRef="Task_3" targetRef="Gateway_1" />
-        <bpmn:sequenceFlow id="SequenceFlow_retry" sourceRef="Task_4" targetRef="Task_3" />
+        <bpmn:sequenceFlow id="SequenceFlow_retry" sourceRef="Task_4" targetRef="Task_2" />
 
         <bpmn:sequenceFlow id="SequenceFlow_end" sourceRef="Gateway_1" targetRef="EndEvent_1">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                ["equals", ["gatewayAction"], "success"]
+                ["notEquals", ["dataModel", "gatewayShouldFail", "task2"], true]
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_error" sourceRef="Gateway_1" targetRef="Task_4">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                ["equals", ["gatewayAction"], "error"]
+                ["equals", ["dataModel", "gatewayShouldFail", "task2"], true]
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
 

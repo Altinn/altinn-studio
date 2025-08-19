@@ -36,6 +36,22 @@
         "readOnly": false
       },
       {
+        "id": "gatewayShouldFail",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Skal gatewayen feile?",
+          "description": "Hvis denne feiler får du opp en feilmelding etter feedback-steget og du får muligheten til å komme tilbake hit og prøve på nytt."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "gatewayShouldFail"
+        },
+        "preselectedOptionIndex": 1,
+        "options": [
+          { "value": "true", "label": "Ja" },
+          { "value": "false", "label": "Nei" }
+        ]
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
