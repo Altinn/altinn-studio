@@ -22,14 +22,17 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class OptionsService : IOptionsService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IGiteaContentLibraryService _giteaContentLibraryService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="giteaContentLibraryService">IGiteaContentLibraryService</param>
+    public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaContentLibraryService giteaContentLibraryService)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <inheritdoc />
@@ -186,33 +189,30 @@ public class OptionsService : IOptionsService
             throw new ConflictingFileNameException($"The options file {optionListId}.json already exists.");
         }
 
-        List<Option> importedOptionList = await CopyOptionListFromOrg(org, repo, developer, optionListId, cancellationToken);
-        Dictionary<string, TextResource> textResources = await CopyTextResourcesFromOrg(org, repo, developer, importedOptionList, overwriteTextResources, cancellationToken);
+        List<Option> importedCodeList = await CopyCodeListFromOrg(org, repo, developer, optionListId, cancellationToken);
+        Dictionary<string, TextResource> textResources = await CopyTextResourcesFromOrg(org, repo, developer, importedCodeList, overwriteTextResources, cancellationToken);
         List<OptionListData> optionLists = await GetOptionLists(org, repo, developer, cancellationToken);
 
         await SaveMetadataForImportedOptionList(org, repo, developer, optionListId);
         return (optionLists, textResources);
     }
 
-    private async Task<List<Option>> CopyOptionListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
+    private async Task<List<Option>> CopyCodeListFromOrg(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken)
     {
-        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
-
-        List<Option> codeList = await altinnOrgGitRepository.GetCodeList(optionListId, cancellationToken);
-        string createdOptionListString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionListId, codeList, cancellationToken);
-        return JsonSerializer.Deserialize<List<Option>>(createdOptionListString);
+        List<Option> codeList = await _giteaContentLibraryService.GetCodeList(org, optionListId);
+        return await CreateOrOverwriteOptionsList(org, repo, developer, optionListId, codeList, cancellationToken);
     }
 
     private async Task<Dictionary<string, TextResource>> CopyTextResourcesFromOrg(string org, string repo, string developer, List<Option> optionList, bool overwriteTextResources, CancellationToken cancellationToken)
     {
-        (AltinnOrgGitRepository altinnOrgGitRepository, AltinnAppGitRepository altinnAppGitRepository) = GetAltinnRepositories(org, developer, repo);
-        List<string> orgLanguageCodes = altinnOrgGitRepository.GetLanguages();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        List<string> orgLanguageCodes = await _giteaContentLibraryService.GetLanguages(org);
         Dictionary<string, TextResource> importedLanguages = new();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
             List<TextResourceElement> appTextResourceElements = await RetrieveAppTextResourceElements(altinnAppGitRepository, orgLanguageCode, cancellationToken);
-            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(altinnOrgGitRepository, orgLanguageCode, optionList, cancellationToken);
+            List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(org, orgLanguageCode, optionList);
 
             TextResource mergedTextResources = new()
             {
@@ -227,22 +227,22 @@ public class OptionsService : IOptionsService
         return importedLanguages;
     }
 
-    private static async Task<List<TextResourceElement>> RetrieveAppTextResourceElements(AltinnAppGitRepository altinnAppGitRepository, string orgLanguageCode, CancellationToken cancellationToken)
+    private static async Task<List<TextResourceElement>> RetrieveAppTextResourceElements(AltinnAppGitRepository altinnAppGitRepository, string languageCode, CancellationToken cancellationToken)
     {
         HashSet<string> appLanguageCodes = altinnAppGitRepository.GetLanguages().ToHashSet();
 
-        if (!appLanguageCodes.Contains(orgLanguageCode))
+        if (!appLanguageCodes.Contains(languageCode))
         {
             return [];
         }
-        TextResource appTextResources = await altinnAppGitRepository.GetText(orgLanguageCode, cancellationToken);
+        TextResource appTextResources = await altinnAppGitRepository.GetText(languageCode, cancellationToken);
         return [.. appTextResources.Resources];
 
     }
 
-    private static async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(AltinnOrgGitRepository altinnOrgGitRepository, string orgLanguageCode, List<Option> optionList, CancellationToken cancellationToken)
+    private async Task<List<TextResourceElement>> RetrieveOrgTextResourceElements(string org, string languageCode, List<Option> optionList)
     {
-        TextResource orgTextResources = await altinnOrgGitRepository.GetText(orgLanguageCode, cancellationToken);
+        TextResource orgTextResources = await _giteaContentLibraryService.GetTextResource(org, languageCode);
         HashSet<string> optionListTextResourceIds = RetrieveTextResourceIdsInOptionList(optionList);
         return orgTextResources.Resources.Where(element => optionListTextResourceIds.Contains(element.Id)).ToList();
     }
@@ -281,7 +281,7 @@ public class OptionsService : IOptionsService
         return appTextResourceIds.Intersect(orgTextResourceIds).ToHashSet();
     }
 
-    private async Task SaveMetadataForImportedOptionList(string org, string repo, string developer, string optionListId, string version = "")
+    private async Task SaveMetadataForImportedOptionList(string org, string repo, string developer, string optionListId)
     {
         var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repo, developer);
         var settings = await altinnGitRepository.GetAltinnStudioSettings();
@@ -289,7 +289,7 @@ public class OptionsService : IOptionsService
         {
             ImportDate = $"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}",
             ImportSource = ImportSourceName(org),
-            Version = version,
+            Version = await _giteaContentLibraryService.GetShaForCodeListFile(org, optionListId),
         };
 
         settings.Imports ??= new ImportedResources();
@@ -297,19 +297,6 @@ public class OptionsService : IOptionsService
         settings.Imports.CodeLists[optionListId] = importMetadata;
 
         await altinnGitRepository.SaveAltinnStudioSettings(settings);
-    }
-
-    private (AltinnOrgGitRepository, AltinnAppGitRepository) GetAltinnRepositories(string org, string developer, string repo)
-    {
-        AltinnOrgGitRepository altinnOrgGitRepository = GetStaticContentRepo(org, developer);
-        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        return (altinnOrgGitRepository, altinnAppGitRepository);
-    }
-
-    private AltinnOrgGitRepository GetStaticContentRepo(string org, string developer)
-    {
-        string repository = StaticContentRepoName(org);
-        return _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repository, developer);
     }
 
     private static string ImportSourceName(string org)

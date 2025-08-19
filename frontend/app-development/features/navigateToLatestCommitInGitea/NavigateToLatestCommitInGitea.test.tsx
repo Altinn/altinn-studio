@@ -15,7 +15,10 @@ describe('NavigateToLatestCommitInGitea', () => {
   it('sets window location when the latest commit is received', async () => {
     const commitId = 'some-commit-id';
     delete window.location;
-    window.location = { ...window.location, assign: jest.fn() };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign: jest.fn() },
+    });
     renderLatestCommit({ ...branchStatus, commit: { ...branchStatus.commit, id: commitId } });
     expect(window.location.href).toBe(`/repos/${org}/${app}/commit/${commitId}`);
   });

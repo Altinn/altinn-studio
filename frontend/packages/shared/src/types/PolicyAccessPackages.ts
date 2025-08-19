@@ -23,9 +23,9 @@ export type PolicyAccessPackageAreaGroup = {
   areas: PolicyAccessPackageArea[];
 };
 
-type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
+export type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
 
-type CompetentAuthority = {
+export type CompetentAuthority = {
   name: Record<AccessPackageResourceLanguage, string>;
   organization: string;
   orgcode: string;
@@ -34,6 +34,6 @@ type CompetentAuthority = {
 export type AccessPackageResource = {
   identifier: string;
   title: Record<AccessPackageResourceLanguage, string>;
-  hasCompetentAuthority?: CompetentAuthority;
+  hasCompetentAuthority: CompetentAuthority;
   logoUrl: string;
 };

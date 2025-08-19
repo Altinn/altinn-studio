@@ -50,6 +50,13 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     }
 
     /// <inheritdoc />
+    public async Task<bool> CodeListExists(string orgName, string codeListId)
+    {
+        List<string> codeListIds = await GetCodeListIds(orgName);
+        return codeListIds.Contains(codeListId);
+    }
+
+    /// <inheritdoc />
     public async Task<List<string>> GetTextIds(string orgName)
     {
         HashSet<string> textIds = [];
@@ -63,6 +70,15 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         }
 
         return textIds.ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetShaForCodeListFile(string orgName, string codeListId)
+    {
+        string repoName = GetContentRepoName(orgName);
+        string filePath = StaticContentCodeListFilePath(codeListId);
+        FileSystemObject file = await _giteaApiWrapper.GetFileAsync(orgName, repoName, filePath, string.Empty);
+        return file.Sha ?? string.Empty;
     }
 
     public async Task<TextResource> GetTextResource(string orgName, string languageCode)
