@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -26,6 +26,13 @@ namespace Altinn.App.Models
     [JsonProperty("property3")]
     [JsonPropertyName("property3")]
     public string property3 { get; set; }
+
+    [XmlElement("gatewayShouldFail", Order = 4)]
+    [JsonProperty("gatewayShouldFail")]
+    [JsonPropertyName("gatewayShouldFail")]
+    public bool? gatewayShouldFail { get; set; }
+
+    public bool ShouldSerializegatewayShouldFail() => gatewayShouldFail.HasValue;
 
   }
 }
