@@ -227,7 +227,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         commitDictionary[fileName] = commitDictionary[fileName].Append(commit);
                     }
                 }
-                
+
                 foreach (KeyValuePair<string, IEnumerable<GiteaCommit>> commitEntry in commitDictionary)
                 {
                     string resourceIdentifier = commitEntry.Key.Split("/")[0];
@@ -235,7 +235,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
                     string userFullName = await GetCachedUserFullName(commitUserName);
-                    
+
                     ListviewServiceResource listviewResource = new ListviewServiceResource
                     {
                         Identifier = resourceIdentifier,
