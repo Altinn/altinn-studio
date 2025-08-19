@@ -70,7 +70,7 @@ export class CodeLists extends BasePage {
   public async clickOnSaveCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.save_new_code_list'),
+        name: this.textMock('general.save'),
       })
       .click();
   }

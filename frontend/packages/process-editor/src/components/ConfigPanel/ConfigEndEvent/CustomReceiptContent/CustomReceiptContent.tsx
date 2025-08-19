@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CustomReceiptContent.module.css';
-import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
 import { CreateCustomReceiptForm } from './CreateCustomReceiptForm';
