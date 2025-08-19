@@ -17,6 +17,11 @@
   },
   "@xsdRootElement": "task2",
   "type": "object",
+  "$defs": {
+    "gatewayShouldFail": {
+      "type": "string"
+    }
+  },
   "properties": {
     "property1": {
       "type": "string"
@@ -26,6 +31,9 @@
     },
     "property3": {
       "type": "string"
+    },
+    "gatewayShouldFail": {
+      "type": "boolean"
     }
   }
 }
