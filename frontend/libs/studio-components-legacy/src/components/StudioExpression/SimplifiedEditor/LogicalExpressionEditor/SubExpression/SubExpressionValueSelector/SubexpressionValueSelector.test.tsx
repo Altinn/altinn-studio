@@ -17,9 +17,6 @@ import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { PredefinedGatewayAction } from '../../../../enums/PredefinedGatewayAction';
 
 describe('SubexpressionValueSelector', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('Renders with the given legend in edit mode', () => {
     const legend = 'test-legend';
     renderSubexpressionValueSelector({ legend, isInEditMode: true });
@@ -323,7 +320,9 @@ const defaultProps: SubexpressionValueSelectorProps = {
 
 const renderSubexpressionValueSelector = (props: Partial<SubexpressionValueSelectorProps> = {}) =>
   render(
-    <StudioExpressionContext.Provider value={{ texts, dataLookupOptions }}>
+    <StudioExpressionContext.Provider
+      value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
+    >
       <SubexpressionValueSelector {...defaultProps} {...props} />
     </StudioExpressionContext.Provider>,
   );

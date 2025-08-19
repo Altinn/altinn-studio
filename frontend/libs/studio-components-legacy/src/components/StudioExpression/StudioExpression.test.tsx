@@ -258,6 +258,47 @@ describe('StudioExpression', () => {
     expect(onChange).not.toHaveBeenCalled();
     screen.getByText(texts.cannotSaveSinceInvalid);
   });
+
+  it('Displays all function types in the type selector by default', async () => {
+    const user = userEvent.setup();
+    renderExpression(logicalExpression);
+    await user.click(screen.getAllByRole('button', { name: texts.edit })[0]);
+    const typeSelector = screen.getAllByRole('combobox', { name: texts.valueType })[0];
+    const options = within(typeSelector).getAllByRole('option');
+    const types = Object.values(SimpleSubexpressionValueType);
+    expect(options).toHaveLength(types.length);
+    types
+      .map((k) => texts.valueTypes[k])
+      .forEach((name) => {
+        expect(within(typeSelector).getByRole('option', { name })).toBeInTheDocument();
+      });
+  });
+
+  it('Displays only selected function types in the type selector if given', async () => {
+    const user = userEvent.setup();
+    const selectedTypes: SimpleSubexpressionValueType[] = [
+      SimpleSubexpressionValueType.Number,
+      SimpleSubexpressionValueType.String,
+    ];
+    render(
+      <StudioExpression
+        dataLookupOptions={dataLookupOptions}
+        expression={logicalExpression}
+        onChange={jest.fn()}
+        texts={texts}
+        types={selectedTypes}
+      />,
+    );
+    await user.click(screen.getAllByRole('button', { name: texts.edit })[0]);
+    const typeSelector = screen.getAllByRole('combobox', { name: texts.valueType })[0];
+    const options = within(typeSelector).getAllByRole('option');
+    expect(options).toHaveLength(selectedTypes.length);
+    selectedTypes
+      .map((k) => texts.valueTypes[k])
+      .forEach((name) => {
+        expect(within(typeSelector).getByRole('option', { name })).toBeInTheDocument();
+      });
+  });
 });
 
 const renderExpression = (expression: Expression) => {
