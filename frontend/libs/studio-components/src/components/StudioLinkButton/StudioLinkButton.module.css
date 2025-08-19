@@ -23,6 +23,7 @@
 .secondaryAndTertiary {
   --background--active: var(--ds-color-surface-active);
   --background--hover: var(--ds-color-surface-hover);
+
   --background: transparent;
   --color: var(--ds-color-text-subtle);
   --color--hover: var(--ds-color-text-default);
@@ -33,7 +34,8 @@
 }
 
 .linkButton:hover {
-  background: var(--ds-color-base-hover);
+  background: var(--background--hover);
+  color: var(--color--hover);
 }
 
 .linkButton svg {
