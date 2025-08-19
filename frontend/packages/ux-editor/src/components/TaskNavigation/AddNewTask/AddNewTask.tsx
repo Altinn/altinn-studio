@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components-legacy';
+import { StudioCard } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './AddNewTask.module.css';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
@@ -29,7 +30,7 @@ export const AddNewTask = () => {
     >
       <div className={classes.iconContainer}>{<PlusIcon />}</div>
       <div className={classes.content}>
-        <StudioHeading size='2xs'>{t('ux_editor.task_card_add_new_task')}</StudioHeading>
+        <StudioHeading data-size='2xs'>{t('ux_editor.task_card_add_new_task')}</StudioHeading>
       </div>
     </StudioCard>
   );

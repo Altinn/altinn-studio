@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import {
-  StudioTextfield,
-  StudioButton,
-  StudioSpinner,
-  StudioHeading,
-} from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 
@@ -49,7 +44,7 @@ export const RemoveChangesPopoverContent = ({
 
   return (
     <div className={classes.wrapper}>
-      <StudioHeading level={2} size='sm' spacing>
+      <StudioHeading level={2} data-size='sm' spacing>
         {t('overview.reset_repo_confirm_heading')}
       </StudioHeading>
       <StudioParagraph spacing>

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { CodeList, TextResource } from '@studio/components-legacy';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
@@ -100,7 +100,9 @@ export function CodeListPage({
 
   return (
     <div className={classes.codeListsContainer}>
-      <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
+      <StudioHeading level={3} data-size='sm'>
+        {t('app_content_library.code_lists.page_name')}
+      </StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListDataList.length} />
       <CodeListsActionsBar
         onCreateCodeList={onCreateCodeList}
