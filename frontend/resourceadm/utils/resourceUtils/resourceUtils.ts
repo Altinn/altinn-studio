@@ -362,7 +362,6 @@ export const validateResource = (
     });
 
     // validate links used in consentText
-    // validate links used in consentText
     (['nb', 'nn', 'en'] as const).forEach((language: ValidLanguage) => {
       const text = resourceData.consentText?.[language] ?? '';
       const links: string[] = (text.match(/\[[^\]]+\]\([^)]+\)/g) ?? []) as string[];
