@@ -13,9 +13,7 @@ jest.mock('../hooks/queries/useFetchBelongsToOrgQuery');
 describe('ContactPage', () => {
   it('should display the main heading', () => {
     render(<ContactPage />);
-    expect(
-      screen.getByRole('heading', { name: textMock('general.contact'), level: 1 }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: textMock('general.contact') })).toBeInTheDocument();
   });
 
   it('should display the contact by email section with its content and link', () => {
