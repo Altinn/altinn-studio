@@ -31,16 +31,48 @@ const ssnSchema: JSONSchemaType<Pick<Person, 'ssn'>> = {
 };
 
 export function checkValidSsn(ssn: string): boolean {
-  if (ssn.length !== 11) {
+  // Check that we have 11 characters and that they are all digits
+  if (ssn.length !== 11 || !/^\d{11}$/.test(ssn)) {
     return false;
   }
-  const [d1, d2, m1, m2, y1, y2, i1, i2, i3, k1, k2] = ssn.split('').map(Number);
-  const calculated_k1 = 11 - ((3 * d1 + 7 * d2 + 6 * m1 + 1 * m2 + 8 * y1 + 9 * y2 + 4 * i1 + 5 * i2 + 2 * i3) % 11);
-  const calculated_k2 =
-    11 - ((5 * d1 + 4 * d2 + 3 * m1 + 2 * m2 + 7 * y1 + 6 * y2 + 5 * i1 + 4 * i2 + 3 * i3 + 2 * calculated_k1) % 11);
 
+  const digits = ssn.split('').map(Number);
+  const k1 = digits[9];
+  const k2 = digits[10];
+
+  // Calculate first control digit (K1)
+  const weights1 = [3, 7, 6, 1, 8, 9, 4, 5, 2];
+  let sum1 = 0;
+  for (let i = 0; i < 9; i++) {
+    sum1 += digits[i] * weights1[i];
+  }
+
+  let calculated_k1 = mod11(sum1);
+  if (calculated_k1 === 11) {
+    calculated_k1 = 0;
+  }
+
+  // Calculate second control digit (K2)
+  const weights2 = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+  let sum2 = 0;
+  for (let i = 0; i < 10; i++) {
+    if (i === 9) {
+      sum2 += calculated_k1 * weights2[i];
+    } else {
+      sum2 += digits[i] * weights2[i];
+    }
+  }
+
+  let calculated_k2 = mod11(sum2);
+  if (calculated_k2 === 11) {
+    calculated_k2 = 0;
+  }
+
+  // Validate controls and return result
   return k1 === calculated_k1 && k2 === calculated_k2;
 }
+
+const mod11 = (value: number): number => 11 - (value % 11);
 
 export const validateSsn = ajv.compile(ssnSchema);
 
