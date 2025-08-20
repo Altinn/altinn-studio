@@ -28,7 +28,7 @@ export const RelationalOperatorSelector = ({
 
   if (!isInEditMode) return <Paragraph size='small'>{relationalOperators[operator]}</Paragraph>;
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>): void =>
+  const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (event) =>
     onChange(event.target.value as RelationalOperator);
 
   return (

@@ -46,7 +46,7 @@ export const LogicalExpressionEditor = ({
   const handleSubexpressionsChange = (newSubexpressions: SimpleSubexpression[]): void =>
     onChange(changeSubexpressions(expression, newSubexpressions));
 
-  const handleAddSubexpression = (): void => {
+  const handleAddSubexpression: React.MouseEventHandler<HTMLButtonElement> = () => {
     onChange(addDefaultSubexpression(expression));
     addUniqueKey();
   };

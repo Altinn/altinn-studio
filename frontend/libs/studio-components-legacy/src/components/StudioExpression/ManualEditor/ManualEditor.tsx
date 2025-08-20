@@ -29,7 +29,7 @@ export const ManualEditor = ({
     isManualExpressionValidRef.current = isValidAfterExternalChange;
   }, [expressionString, isManualExpressionValidRef]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+  const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
     const isValueValid = isStringValidAsExpression(value);
     isManualExpressionValidRef.current = isValueValid;

@@ -1,5 +1,5 @@
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import type { ChangeEvent } from 'react';
+import type { ChangeEventHandler } from 'react';
 import React from 'react';
 import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
@@ -15,7 +15,7 @@ export const SubexpressionValueTypeSelector = ({
 }: SubexpressionValueTypeSelectorProps): React.ReactElement => {
   const { texts, types } = useStudioExpressionContext();
 
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void =>
+  const handleChange: ChangeEventHandler<HTMLSelectElement> = (event) =>
     onChange(event.target.value as SimpleSubexpressionValueType);
 
   return (

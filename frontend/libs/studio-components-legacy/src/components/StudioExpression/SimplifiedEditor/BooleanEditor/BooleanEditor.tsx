@@ -14,7 +14,8 @@ export type BooleanEditorProps = {
 export const BooleanEditor = ({ expression, onChange }: BooleanEditorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
-  const handleSwitchToLogical = (): void => onChange(DEFAULT_LOGICAL_EXPRESSION);
+  const handleSwitchToLogical: React.MouseEventHandler<HTMLButtonElement> = () =>
+    onChange(DEFAULT_LOGICAL_EXPRESSION);
 
   return (
     <div className={classes.booleanEditor}>
