@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.Studio.Admin.Helpers;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
 
@@ -24,21 +25,29 @@ public class ApplicationsService : IApplicationsService
     }
 
     /// <inheritdoc />
-    public async Task<List<RunningApplication>> GetRunningApplications(
+    public async Task<Dictionary<string, List<RunningApplication>>> GetRunningApplications(
         string org,
         CancellationToken ct
     )
     {
-        var orgEnvironments = await _cdnConfigService.GetOrgEnvironments(org);
+        var (orgEnvironments, sortedEnvironments) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetOrgEnvironments(org),
+            _cdnConfigService.GetSortedEnvironmentNames()
+        );
 
-        var runningApplications = new Dictionary<string, RunningApplication>();
+        var runningApplications = new Dictionary<string, List<RunningApplication>>();
+        foreach (var env in sortedEnvironments.Where(env => orgEnvironments.Contains(env)))
+        {
+            runningApplications.Add(env, new List<RunningApplication>());
+        }
+
         var appsLock = new object();
-
         var tasks = orgEnvironments.Select(async env =>
         {
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(
-                $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments", ct
+                $"{appsBaseUrl}/kuberneteswrapper/api/v1/deployments",
+                ct
             );
             response.EnsureSuccessStatusCode();
 
@@ -59,19 +68,23 @@ public class ApplicationsService : IApplicationsService
                 var app = deployment.Release.Substring(orgPrefix.Length);
                 lock (appsLock)
                 {
-                    var application =
-                        runningApplications.GetValueOrDefault(deployment.Release)
-                        ?? new RunningApplication() { App = app, Org = org };
-                    application.Environments.Add(env);
-                    application.Environments.Sort();
-                    runningApplications[deployment.Release] = application;
+                    runningApplications[env]
+                        .Add(
+                            new RunningApplication()
+                            {
+                                Org = org,
+                                Env = env,
+                                App = app,
+                                Version = deployment.Version,
+                            }
+                        );
                 }
             }
         });
 
         await Task.WhenAll(tasks);
 
-        return runningApplications.Values.OrderBy(a => a.App).ToList();
+        return runningApplications;
     }
 
     private class Deployment

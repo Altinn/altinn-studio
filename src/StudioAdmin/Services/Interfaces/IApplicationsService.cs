@@ -11,6 +11,9 @@ public interface IApplicationsService
     /// Asynchronously retrieves a list of running applications for the specified organization.
     /// </summary>
     /// <param name="org">The organization identifier.</param>
-    /// <returns>The task result contains a list of running applications.</returns>
-    public Task<List<RunningApplication>> GetRunningApplications(string org, CancellationToken ct);
+    /// <returns>The task result contains a dictionary of running applications for each environment.</returns>
+    public Task<Dictionary<string, List<RunningApplication>>> GetRunningApplications(
+        string org,
+        CancellationToken ct
+    );
 }

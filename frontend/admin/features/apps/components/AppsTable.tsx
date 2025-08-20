@@ -1,4 +1,5 @@
 import { useRunningAppsQuery } from 'admin/hooks/queries/useRunningAppsQuery';
+import classes from './AppsTable.module.css';
 import type { RunningApplication } from 'admin/types/RunningApplication';
 import { StudioSpinner, StudioTable } from '@studio/components';
 import React, { useState } from 'react';
@@ -25,56 +26,57 @@ export const AppsTable = ({ org }: AppsTableProps) => {
 };
 
 type AppsTableWithDataProps = {
-  runningApps: RunningApplication[];
+  runningApps: Record<string, RunningApplication[]>;
 };
 
-// TODO: Fetch actual environments from CDN
-const sortedEnvironmentNames = ['production', 'tt02', 'yt01', 'at21', 'at22', 'at23', 'at24'];
+function getEnvironmentName(env: string) {
+  if (env === 'production') {
+    return 'Produksjon';
+  }
+  return env.toUpperCase();
+}
 
 const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const { t } = useTranslation();
-
   const [search, setSearch] = useState('');
 
-  const availableEnvironments = sortedEnvironmentNames.filter((env) =>
-    runningApps.some((app) => app.environments.includes(env)),
-  );
-
-  const runningAppsFiltered = runningApps.filter(
-    (app) => !search || app.app.toLowerCase().includes(search.toLowerCase()),
-  );
+  const availableEnvironments = Object.keys(runningApps);
 
   return (
     <StudioTabs defaultValue={availableEnvironments[0]}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
-            {env}
+            {getEnvironmentName(env)}
           </StudioTabs.Tab>
         ))}
       </StudioTabs.List>
       {availableEnvironments.map((env) => (
         <StudioTabs.Content key={env} value={env}>
           <StudioSearch
+            className={classes.appSearch}
             value={search}
             autoComplete='off'
             onChange={(e) => setSearch(e.target.value)}
-            label={t('Søk på appnavn')}
+            onClear={() => setSearch('')}
+            label={t('Søk i apper')}
           />
           <StudioTable>
             <StudioTable.Head>
               <StudioTable.Row>
                 <StudioTable.Cell>{t('Navn')}</StudioTable.Cell>
+                <StudioTable.Cell>{t('Versjon')}</StudioTable.Cell>
               </StudioTable.Row>
             </StudioTable.Head>
             <StudioTable.Body>
-              {runningAppsFiltered
-                .filter((app) => app.environments.includes(env))
+              {runningApps[env]
+                .filter((app) => !search || app.app.toLowerCase().includes(search.toLowerCase()))
                 .map((app) => (
                   <StudioTable.Row key={app.app}>
                     <StudioTable.Cell>
                       <Link to={`${env}/${app.app}/instances`}>{app.app}</Link>
                     </StudioTable.Cell>
+                    <StudioTable.Cell>{app.version}</StudioTable.Cell>
                   </StudioTable.Row>
                 ))}
             </StudioTable.Body>

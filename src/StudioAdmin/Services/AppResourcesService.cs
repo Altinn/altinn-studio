@@ -26,21 +26,24 @@ class AppResourcesService : IAppResourcesService
     {
         var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
 
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            $"{appsBaseUrl}/{org}/{app}/api/v1/meta/process"
+        var response = await _httpClient.SendAsync(
+            new(HttpMethod.Get, $"{appsBaseUrl}/{org}/{app}/api/v1/meta/process"),
+            ct
         );
-        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync(ct);
-        XDocument processXml = XDocument.Parse(responseString);
+        var processXml = XDocument.Parse(responseString);
 
         return processXml
             .Descendants(BPMN + "task")
             .Select(e => new ProcessTask()
             {
-                Id = (string?)e.Attribute("id") ?? throw new NullReferenceException($"A process task id in the app {org}/{env}/{app} was null."),
+                Id =
+                    (string?)e.Attribute("id")
+                    ?? throw new NullReferenceException(
+                        $"A process task id in the app {org}/{env}/{app} was null."
+                    ),
                 Name = (string?)e.Attribute("name"),
             });
     }
