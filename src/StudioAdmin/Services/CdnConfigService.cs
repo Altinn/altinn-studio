@@ -80,8 +80,8 @@ public class CdnConfigService : ICdnConfigService
         var environmentsConfig = await GetEnvironmentsConfig();
 
         return environmentsConfig
-            .Environments.OrderBy(e => e.Type)
-            .ThenBy(e => e.Name)
+            .Environments.OrderBy(e => e.Type, StringComparer.Ordinal)
+            .ThenBy(e => e.Name, StringComparer.Ordinal)
             .Select(e => e.Name);
     }
 

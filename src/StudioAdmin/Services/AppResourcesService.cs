@@ -26,8 +26,8 @@ class AppResourcesService : IAppResourcesService
     {
         var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
 
-        var response = await _httpClient.SendAsync(
-            new(HttpMethod.Get, $"{appsBaseUrl}/{org}/{app}/api/v1/meta/process"),
+        var response = await _httpClient.GetAsync(
+            $"{appsBaseUrl}/{org}/{app}/api/v1/meta/process",
             ct
         );
 
@@ -41,8 +41,8 @@ class AppResourcesService : IAppResourcesService
             {
                 Id =
                     (string?)e.Attribute("id")
-                    ?? throw new NullReferenceException(
-                        $"A process task id in the app {org}/{env}/{app} was null."
+                    ?? throw new InvalidOperationException(
+                        $"Missing process task id in app {org}/{env}/{app}."
                     ),
                 Name = (string?)e.Attribute("name"),
             });

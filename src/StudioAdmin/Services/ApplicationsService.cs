@@ -35,14 +35,15 @@ public class ApplicationsService : IApplicationsService
             _cdnConfigService.GetSortedEnvironmentNames()
         );
 
+        var sortedOrgEnvironments = sortedEnvironments.Where(env => orgEnvironments.Contains(env));
         var runningApplications = new Dictionary<string, List<RunningApplication>>();
-        foreach (var env in sortedEnvironments.Where(env => orgEnvironments.Contains(env)))
+        foreach (var env in sortedOrgEnvironments)
         {
-            runningApplications.Add(env, new List<RunningApplication>());
+            runningApplications[env] = new List<RunningApplication>();
         }
 
         var appsLock = new object();
-        var tasks = orgEnvironments.Select(async env =>
+        var tasks = sortedOrgEnvironments.Select(async env =>
         {
             var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
             var response = await _httpClient.GetAsync(

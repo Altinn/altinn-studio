@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioError, StudioSearch, StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
+import type { TFunction } from 'i18next';
 
 type AppsTableProps = {
   org: string;
@@ -29,9 +30,9 @@ type AppsTableWithDataProps = {
   runningApps: Record<string, RunningApplication[]>;
 };
 
-function getEnvironmentName(env: string) {
+function getEnvironmentName(env: string, t: TFunction) {
   if (env === 'production') {
-    return 'Produksjon';
+    return t('Produksjon');
   }
   return env.toUpperCase();
 }
@@ -43,11 +44,11 @@ const AppsTableWithData = ({ runningApps }: AppsTableWithDataProps) => {
   const availableEnvironments = Object.keys(runningApps);
 
   return (
-    <StudioTabs defaultValue={availableEnvironments[0]}>
+    <StudioTabs defaultValue={availableEnvironments.at(0)}>
       <StudioTabs.List>
         {availableEnvironments.map((env) => (
           <StudioTabs.Tab key={env} value={env}>
-            {getEnvironmentName(env)}
+            {getEnvironmentName(env, t)}
           </StudioTabs.Tab>
         ))}
       </StudioTabs.List>
