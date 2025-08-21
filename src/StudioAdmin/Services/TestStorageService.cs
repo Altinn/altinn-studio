@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Admin.Services;
@@ -15,10 +16,7 @@ class TestStorageService : IStorageService
     private readonly ICdnConfigService _cdnConfigService;
     private readonly TestToolsTokenGeneratorService _tokenGeneratorService;
 
-    // TODO: We don't have good pagination support in Storage yet,
-    // and some apps have so many instances that it is impractical to fetch them all,
-    // this is a completely arbitrary limit to the number of pages to fetch before stopping.
-    private const int MAX_INSTANCE_FETCH = 20;
+    private const int SIZE = 10;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestStorageService"/> class.
@@ -38,10 +36,13 @@ class TestStorageService : IStorageService
     }
 
     /// <inheritdoc />
-    public async Task<List<SimpleInstance>> GetInstances(
+    public async Task<InstancesResponse> GetInstances(
         string org,
         string env,
         string app,
+        string? continuationToken,
+        string? currentTaskFilter,
+        bool? processIsCompleteFilter,
         CancellationToken ct
     )
     {
@@ -53,15 +54,26 @@ class TestStorageService : IStorageService
         var platformBaseUrl = await platformBaseUrlTask;
         var token = await tokenTask;
 
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            $"{platformBaseUrl}/storage/api/v1/instances?org={org}&appId={org}/{app}&mainVersionInclude=3"
+        var instancesUri = QueryHelpers.AddQueryString(
+            $"{platformBaseUrl}/storage/api/v1/instances",
+            new Dictionary<string, string?>
+            {
+                ["org"] = org,
+                ["appId"] = $"{org}/{app}",
+                ["mainVersionInclude"] = "3",
+                ["size"] = $"{SIZE}",
+                ["continuationToken"] = continuationToken,
+                ["process.currentTask"] = currentTaskFilter,
+                ["process.isComplete"] = processIsCompleteFilter != null ? processIsCompleteFilter.Value.ToString().ToLowerInvariant() : null,
+            }
         );
+
+        var request = new HttpRequestMessage(HttpMethod.Get, instancesUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
 
         if (queryResponse == null)
@@ -69,38 +81,31 @@ class TestStorageService : IStorageService
             throw new JsonException("Could not deserialize Instance query response");
         }
 
-        var instances = new List<SimpleInstance>();
-        instances.AddRange(
-            queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
-        );
+        var instances = queryResponse
+            .Instances.Select(instance => SimpleInstance.FromInstance(instance))
+            .ToList();
+        var nextContinuationToken = ParseContinuationToken(queryResponse.Next);
 
-        int numFetch = 1;
-        while (!string.IsNullOrEmpty(queryResponse.Next) && numFetch < MAX_INSTANCE_FETCH)
+        return new InstancesResponse()
         {
-            ct.ThrowIfCancellationRequested();
+            Instances = instances,
+            ContinuationToken = nextContinuationToken,
+        };
+    }
 
-            request = new HttpRequestMessage(HttpMethod.Get, queryResponse.Next);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            response = await _httpClient.SendAsync(request);
+    private string? ParseContinuationToken(string? nextUrl)
+    {
+        if (string.IsNullOrWhiteSpace(nextUrl))
+            return null;
 
-            response.EnsureSuccessStatusCode();
-            responseString = await response.Content.ReadAsStringAsync();
-            queryResponse =
-                JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString)
-                ?? throw new JsonException("Could not deserialize Instance query response");
+        if (!Uri.TryCreate(nextUrl, UriKind.Absolute, out var uri))
+            return null;
 
-            if (queryResponse == null)
-            {
-                throw new Exception("Unexpected response from storage");
-            }
+        var queryParams = QueryHelpers.ParseQuery(uri.Query);
 
-            instances.AddRange(
-                queryResponse.Instances.Select(instance => SimpleInstance.FromInstance(instance))
-            );
-            numFetch++;
-        }
-
-        return instances;
+        return queryParams.TryGetValue("continuationToken", out var value)
+            ? value.ToString()
+            : null;
     }
 
     /// <inheritdoc />
@@ -124,10 +129,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var instance = JsonConvert.DeserializeObject<Instance>(responseString);
 
         if (instance == null)
@@ -160,14 +165,14 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/data/{dataElementId}"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
 
         var contentType =
             response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
         var fileName = response.Content.Headers.ContentDisposition?.FileName;
-        var stream = await response.Content.ReadAsStreamAsync();
+        var stream = await response.Content.ReadAsStreamAsync(ct);
 
         return (stream, contentType, fileName);
     }
@@ -193,10 +198,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/process/history"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var processHistoryList =
             JsonConvert.DeserializeObject<ProcessHistoryList>(responseString)
             ?? throw new JsonException("Could not deserialize ProcessHistory response");
@@ -230,10 +235,10 @@ class TestStorageService : IStorageService
             $"{platformBaseUrl}/storage/api/v1/instances/1337/{instanceId}/events"
         );
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
 
         response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
         var instanceEventList =
             JsonConvert.DeserializeObject<InstanceEventList>(responseString)
             ?? throw new JsonException("Could not deserialize InstanceEvents response");
