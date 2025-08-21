@@ -12,7 +12,7 @@ public interface IApplicationsService
     /// </summary>
     /// <param name="org">The organization identifier.</param>
     /// <returns>The task result contains a dictionary of running applications for each environment.</returns>
-    public Task<IReadOnlyDictionary<string, List<RunningApplication>>> GetRunningApplications(
+    public Task<Dictionary<string, List<RunningApplication>>> GetRunningApplications(
         string org,
         CancellationToken ct
     );
