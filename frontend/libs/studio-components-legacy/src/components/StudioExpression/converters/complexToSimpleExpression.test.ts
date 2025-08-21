@@ -19,7 +19,7 @@ import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueT
 import { PredefinedGatewayAction } from '../enums/PredefinedGatewayAction';
 
 describe('complexToSimpleExpression', () => {
-  it.each([true, false])('Returns true when the expression is %s', (value) => {
+  it.each([true, false])('Returns the boolean value when the expression is %s', (value) => {
     expect(complexToSimpleExpression(value)).toBe(value);
   });
 

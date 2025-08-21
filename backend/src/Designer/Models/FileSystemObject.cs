@@ -14,14 +14,15 @@ namespace Altinn.Studio.Designer.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// Full SHA commit
+        /// Blob SHA of the file.
+        /// Changes when the file content changes.
         /// </summary>
         [JsonPropertyName("sha")]
         public string Sha { get; set; }
 
         /// <summary>
-        /// Encoding contains the encoding used to encode this.Content
-        /// Encoding is populated when type is file, otherwise null
+        /// The encoding used for the Content property.
+        /// Populated when Type is "file"; otherwise null.
         /// </summary>
         [JsonPropertyName("encoding")]
         public string Encoding { get; set; }
@@ -40,7 +41,7 @@ namespace Altinn.Studio.Designer.Models
         public string Path { get; set; }
 
         /// <summary>
-        /// The file path
+        /// The object type
         /// </summary>
         [JsonPropertyName("type")]
         public string Type { get; set; }

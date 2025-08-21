@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './App.module.css';
 import { Route, Routes } from 'react-router-dom';
-import { StudioNotFoundPage } from '@studio/components-legacy';
+import { StudioNotFoundPage } from '@studio/components';
 import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
 import './App.css';
