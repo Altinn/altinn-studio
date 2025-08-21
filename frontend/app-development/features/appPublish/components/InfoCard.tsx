@@ -4,7 +4,7 @@ import classes from './InfoCard.module.css';
 import type { PropsWithChildren } from 'react';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import Illustration from './illustration-help-2-circle.svg';
+import Illustration from './illustration-help-2-circle.svg?react';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   headerText: string;
