@@ -1,6 +1,6 @@
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
 import React from 'react';
@@ -323,9 +323,9 @@ const renderSubexpressionValueSelector = (
   props: Partial<SubexpressionValueSelectorProps> = {},
 ): RenderResult =>
   render(
-    <StudioExpressionContext.Provider
+    <StudioExpressionContextProvider
       value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
     >
       <SubexpressionValueSelector {...defaultProps} {...props} />
-    </StudioExpressionContext.Provider>,
+    </StudioExpressionContextProvider>,
   );

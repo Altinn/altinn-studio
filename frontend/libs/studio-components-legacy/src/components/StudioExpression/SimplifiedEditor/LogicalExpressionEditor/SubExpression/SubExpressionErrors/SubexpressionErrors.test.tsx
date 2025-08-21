@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import { texts } from '../../../../test-data/texts';
 import { SubexpressionErrors } from './SubexpressionErrors';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
@@ -14,11 +14,11 @@ describe('SubexpressionErrors', () => {
       ExpressionErrorKey.InvalidSecondOperand,
     ];
     render(
-      <StudioExpressionContext.Provider
+      <StudioExpressionContextProvider
         value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
       >
         <SubexpressionErrors errorKeys={errorKeys} />
-      </StudioExpressionContext.Provider>,
+      </StudioExpressionContextProvider>,
     );
     const listItems = screen.getAllByRole('listitem');
     errorKeys.forEach((errorKey, index) => {

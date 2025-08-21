@@ -29,7 +29,7 @@ export const DataModelPointerSelector = ({
 
   return (
     <Combobox
-      error={texts.errorMessages[errorKey]}
+      error={errorKey === null ? undefined : texts.errorMessages[errorKey]}
       label={texts.dataModelPath}
       onValueChange={handleChange}
       size='small'

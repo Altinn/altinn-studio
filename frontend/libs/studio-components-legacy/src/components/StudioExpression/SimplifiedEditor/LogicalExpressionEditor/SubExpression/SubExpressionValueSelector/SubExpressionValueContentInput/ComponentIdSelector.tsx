@@ -31,7 +31,7 @@ export const ComponentIdSelector = ({
 
   return (
     <Combobox
-      error={texts.errorMessages[errorKey]}
+      error={errorKey === null ? undefined : texts.errorMessages[errorKey]}
       label={texts.componentId}
       onValueChange={handleChange}
       size='small'
