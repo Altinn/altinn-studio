@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
 jest.mock('../../hooks/useGetLayoutSetByName', () => ({
@@ -103,11 +104,12 @@ describe('Elements', () => {
   });
 
   it('should collapse element when collapse button is clicked', async () => {
+    const user = userEvent.setup();
     const view = renderElements();
     const collapseButton = screen.getByRole('button', {
       name: textMock('left_menu.close_components'),
     });
-    collapseButton.click();
+    await user.click(collapseButton);
     expect(collapseToggle).toHaveBeenCalled();
 
     view.rerender(<Elements collapsed={true} onCollapseToggle={collapseToggle} />);
@@ -115,7 +117,7 @@ describe('Elements', () => {
     const openButton = screen.getByRole('button', {
       name: textMock('left_menu.open_components'),
     });
-    openButton.click();
+    await user.click(openButton);
     expect(collapseToggle).toHaveBeenCalledTimes(2);
   });
 });

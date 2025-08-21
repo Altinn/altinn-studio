@@ -1,17 +1,41 @@
 .linkButton {
+  --background--active: var(--ds-color-base-active);
+  --background--hover: var(--ds-color-base-hover);
+  --background: var(--ds-color-base-default);
+  --color: var(--ds-color-base-contrast-default);
+  --color--hover: var(--ds-color-base-contrast-default);
+  --border-color: transparent;
+
   display: flex;
   width: fit-content;
   align-items: center;
   padding: var(--ds-size-3) var(--ds-size-4);
-  color: var(--ds-color-base-contrast-default);
-  background: var(--ds-color-base-default);
+  color: var(--color);
+  background: var(--background);
   border-radius: var(--ds-border-radius-default);
+  border-width: var(--ds-border-width-default);
+  border-style: solid;
+  border-color: var(--border-color);
   font-weight: var(--ds-font-weight-medium);
   gap: var(--ds-size-1);
 }
 
+.secondaryAndTertiary {
+  --background--active: var(--ds-color-surface-active);
+  --background--hover: var(--ds-color-surface-hover);
+
+  --background: transparent;
+  --color: var(--ds-color-text-subtle);
+  --color--hover: var(--ds-color-text-default);
+}
+
+.secondary {
+  --border-color: var(--ds-color-border-strong);
+}
+
 .linkButton:hover {
-  background: var(--ds-color-base-hover);
+  background: var(--background--hover);
+  color: var(--color--hover);
 }
 
 .linkButton svg {
