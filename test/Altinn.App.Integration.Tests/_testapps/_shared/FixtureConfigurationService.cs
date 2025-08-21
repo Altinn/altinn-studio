@@ -90,7 +90,7 @@ public sealed class FixtureConfigurationService : IDisposable
         var scenario = config.AppScenario ?? "default";
         if (scenario != "default")
         {
-            var scenarioOverridePath = Path.Combine(env.ContentRootPath, "scenario-overrides", "services");
+            var scenarioOverridePath = Path.Join(env.ContentRootPath, "scenario-overrides", "services");
             if (Directory.Exists(scenarioOverridePath))
             {
                 try
@@ -220,7 +220,7 @@ public sealed class FixtureConfigurationService : IDisposable
         foreach (var file in Directory.GetFiles(scenarioConfigPath, "*", SearchOption.AllDirectories))
         {
             var relativePath = Path.GetRelativePath(scenarioConfigPath, file);
-            var targetFile = Path.Combine(targetConfigPath, relativePath);
+            var targetFile = Path.Join(targetConfigPath, relativePath);
             var targetDir = Path.GetDirectoryName(targetFile);
 
             if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))

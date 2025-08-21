@@ -158,18 +158,12 @@ public class InstanceClientMockSi : IInstanceClient
 
     private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
     {
-        return Path.Combine(
-            TestData.GetInstancesDirectory(),
-            org,
-            app,
-            instanceOwnerId.ToString(),
-            instanceId + ".json"
-        );
+        return Path.Join(TestData.GetInstancesDirectory(), org, app, instanceOwnerId.ToString(), instanceId + ".json");
     }
 
     private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
-        return Path.Combine(
+        return Path.Join(
                 TestData.GetInstancesDirectory(),
                 org,
                 app,
@@ -196,7 +190,7 @@ public class InstanceClientMockSi : IInstanceClient
                 continue;
             }
 
-            string content = File.ReadAllText(Path.Combine(path, file));
+            string content = File.ReadAllText(file);
             DataElement dataElement =
                 JsonConvert.DeserializeObject<DataElement>(content)
                 ?? throw new InvalidDataException($"Something went wrong deserializing json for data from path {file}");

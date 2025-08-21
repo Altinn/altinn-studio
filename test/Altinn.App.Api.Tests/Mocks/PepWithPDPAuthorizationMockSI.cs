@@ -326,7 +326,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
     {
         XmlDocument policyDocument = new();
-        policyDocument.Load(Path.Combine(policyPath, policyDocumentTitle));
+        policyDocument.Load(Path.Join(policyPath, policyDocumentTitle));
         XacmlPolicy policy;
         using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
         {

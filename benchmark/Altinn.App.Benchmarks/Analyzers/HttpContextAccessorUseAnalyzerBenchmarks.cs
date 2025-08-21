@@ -26,7 +26,7 @@ public class HttpContextAccessorUseAnalyzerBenchmarks
 
         var manager = new AnalyzerManager();
         var analyzer = manager.GetProject(
-            Path.Combine(dir.FullName, "..", "..", "test", "Altinn.App.Analyzers.Tests", "testapp", "App", "App.csproj")
+            Path.Join(dir.FullName, "..", "..", "test", "Altinn.App.Analyzers.Tests", "testapp", "App", "App.csproj")
         );
         _workspace = analyzer.GetWorkspace();
         var solution = _workspace.CurrentSolution;

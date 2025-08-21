@@ -61,7 +61,7 @@ public class SecretsLocalClient : ISecretsClient
 
     private static string? GetTokenFromLocalSecrets(string secretId)
     {
-        string path = Path.Combine(Directory.GetCurrentDirectory(), @"secrets.json");
+        string path = Path.Join(Directory.GetCurrentDirectory(), @"secrets.json");
         if (File.Exists(path))
         {
             string jsonString = File.ReadAllText(path);

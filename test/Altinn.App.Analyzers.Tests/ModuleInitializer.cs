@@ -14,7 +14,7 @@ public class ModuleInitializer
     {
         var testProjectDir = GetTestProjectDirectory();
         Directory.SetCurrentDirectory(testProjectDir.FullName);
-        var path = Path.Combine(testProjectDir.FullName, "testapp", "App.sln");
+        var path = Path.Join(testProjectDir.FullName, "testapp", "App.sln");
         Assert.True(File.Exists(path));
         path = Path.GetFullPath(path);
         Assert.True(File.Exists(path));
@@ -40,7 +40,7 @@ public class ModuleInitializer
     private static DirectoryInfo GetTestProjectDirectory([CallerFilePath] string callerFilePath = "")
     {
         var projDir = Path.GetDirectoryName(callerFilePath) ?? "";
-        var projFile = Path.Combine(projDir, "Altinn.App.Analyzers.Tests.csproj");
+        var projFile = Path.Join(projDir, "Altinn.App.Analyzers.Tests.csproj");
         if (!File.Exists(projFile))
         {
             throw new FileNotFoundException(

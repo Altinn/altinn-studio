@@ -550,7 +550,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 }
             );
         FileStream fileStream = File.OpenRead(
-            Path.Combine(PathUtils.GetCoreTestsPath(), "Features", "Action", "TestData", signatureFileToRead)
+            Path.Join(PathUtils.GetCoreTestsPath(), "Features", "Action", "TestData", signatureFileToRead)
         );
         _dataClientMock
             .Setup(d =>

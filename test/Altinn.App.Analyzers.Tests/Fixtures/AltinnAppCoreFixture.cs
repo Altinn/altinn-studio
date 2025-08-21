@@ -12,14 +12,7 @@ public sealed class AltinnAppCoreFixture : BaseFixture
     internal async Task Initialize()
     {
         await base.Init(
-            Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "..",
-                "..",
-                "src",
-                "Altinn.App.Core",
-                "Altinn.App.Core.csproj"
-            )
+            Path.Join(Directory.GetCurrentDirectory(), "..", "..", "src", "Altinn.App.Core", "Altinn.App.Core.csproj")
         );
     }
 

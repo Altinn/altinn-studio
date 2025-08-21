@@ -592,7 +592,7 @@ public class DataClientMock : IDataClient
 
         foreach (string file in files)
         {
-            string content = await File.ReadAllTextAsync(Path.Combine(path, file), cancellationToken);
+            string content = await File.ReadAllTextAsync(Path.Join(path, file), cancellationToken);
             DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions);
 
             if (dataElement != null)
@@ -622,7 +622,7 @@ public class DataClientMock : IDataClient
     )
     {
         string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
-        string content = await File.ReadAllTextAsync(Path.Combine(path, dataElementGuid + ".json"), cancellationToken);
+        string content = await File.ReadAllTextAsync(Path.Join(path, dataElementGuid + ".json"), cancellationToken);
         return JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions)
             ?? throw new JsonException("Returned null when deserializing data element");
     }

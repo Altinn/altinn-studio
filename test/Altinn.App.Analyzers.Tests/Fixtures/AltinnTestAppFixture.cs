@@ -9,7 +9,7 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 {
     internal async Task Initialize()
     {
-        await base.Init(Path.Combine(Directory.GetCurrentDirectory(), "testapp", "App", "App.csproj"));
+        await base.Init(Path.Join(Directory.GetCurrentDirectory(), "testapp", "App", "App.csproj"));
     }
 
     public IDisposable WithRemovedModelClass()

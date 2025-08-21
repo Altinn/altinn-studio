@@ -10,9 +10,9 @@ public class FixtureTests
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 
-        var output1 = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var output1 = Path.Join(Path.GetTempPath(), Path.GetRandomFileName());
         Assert.False(Directory.Exists(output1), $"Output directory already exists: {output1}");
-        var output2 = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var output2 = Path.Join(Path.GetTempPath(), Path.GetRandomFileName());
         Assert.False(Directory.Exists(output2), $"Output directory already exists: {output2}");
 
         await NuGetPackaging.PackLibraries(output1, null, cts.Token);

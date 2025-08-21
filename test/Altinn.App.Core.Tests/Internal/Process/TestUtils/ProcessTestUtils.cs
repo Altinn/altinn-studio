@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.TestUtils;
 
 internal static class ProcessTestUtils
 {
-    private static readonly string TestDataPath = Path.Combine("Internal", "Process", "TestData");
+    private static readonly string TestDataPath = Path.Join("Internal", "Process", "TestData");
 
     internal static ProcessReader SetupProcessReader(
         string bpmnfile,
@@ -21,7 +21,7 @@ internal static class ProcessTestUtils
 
         Mock<IProcessClient> processServiceMock = new Mock<IProcessClient>();
         var s = new FileStream(
-            Path.Combine(PathUtils.GetCoreTestsPath(), testDataPath, bpmnfile),
+            Path.Join(PathUtils.GetCoreTestsPath(), testDataPath, bpmnfile),
             FileMode.Open,
             FileAccess.Read
         );

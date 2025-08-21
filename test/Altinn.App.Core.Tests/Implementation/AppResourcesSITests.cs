@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Tests.Implementation;
 public class AppResourcesSITests
 {
     private readonly string _appBasePath =
-        Path.Combine(PathUtils.GetCoreTestsPath(), "Implementation", "TestData") + Path.DirectorySeparatorChar;
+        Path.Join(PathUtils.GetCoreTestsPath(), "Implementation", "TestData") + Path.DirectorySeparatorChar;
     private readonly TelemetrySink _telemetry = new();
 
     [Fact]

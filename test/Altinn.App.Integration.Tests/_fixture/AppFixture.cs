@@ -902,7 +902,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         foreach (var file in Directory.GetFiles(packagesDirectory))
         {
             var fileName = Path.GetFileName(file);
-            var destFile = Path.Combine(appPackagesDirectory, fileName);
+            var destFile = Path.Join(appPackagesDirectory, fileName);
             await using var source = File.OpenRead(file);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination);
@@ -920,7 +920,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         foreach (var file in Directory.GetFiles(sharedDirectory))
         {
             var fileName = Path.GetFileName(file);
-            var destFile = Path.Combine(appSharedDirectory, fileName);
+            var destFile = Path.Join(appSharedDirectory, fileName);
             await using var source = File.OpenRead(file);
             await using var destination = File.Create(destFile);
             await source.CopyToAsync(destination);

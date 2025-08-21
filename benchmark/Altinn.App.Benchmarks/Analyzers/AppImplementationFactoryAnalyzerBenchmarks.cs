@@ -26,7 +26,7 @@ public class AppImplementationFactoryAnalyzerBenchmarks
 
         var manager = new AnalyzerManager();
         var analyzer = manager.GetProject(
-            Path.Combine(dir.FullName, "..", "..", "src", "Altinn.App.Core", "Altinn.App.Core.csproj")
+            Path.Join(dir.FullName, "..", "..", "src", "Altinn.App.Core", "Altinn.App.Core.csproj")
         );
         _workspace = analyzer.GetWorkspace();
         var solution = _workspace.CurrentSolution;

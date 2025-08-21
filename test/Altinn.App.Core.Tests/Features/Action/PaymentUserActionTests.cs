@@ -141,7 +141,7 @@ public class PaymentUserActionTests
     {
         IProcessReader processReader = ProcessTestUtils.SetupProcessReader(
             testBpmnFilename,
-            Path.Combine("Features", "Action", "TestData")
+            Path.Join("Features", "Action", "TestData")
         );
         return new PaymentUserAction(processReader, _paymentServiceMock.Object, NullLogger<PaymentUserAction>.Instance);
     }

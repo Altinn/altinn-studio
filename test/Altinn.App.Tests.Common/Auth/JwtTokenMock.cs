@@ -96,7 +96,7 @@ public static class JwtTokenMock
     {
         string unitTestFolder = Path.GetDirectoryName(GetCallerPath())!;
 
-        string certPath = Path.Combine(unitTestFolder, "TestResources", "jwtselfsignedcert.pfx");
+        string certPath = Path.Join(unitTestFolder, "TestResources", "jwtselfsignedcert.pfx");
         X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }

@@ -79,9 +79,9 @@ internal static class NuGetPackaging
 
     private static void RepackNugetPackage(string path, DateTime dateTime)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        var libDir = Path.Combine(tempDir, "lib");
-        var relsFile = Path.Combine(tempDir, "_rels", ".rels");
+        var tempDir = Path.Join(Path.GetTempPath(), Path.GetRandomFileName());
+        var libDir = Path.Join(tempDir, "lib");
+        var relsFile = Path.Join(tempDir, "_rels", ".rels");
 
         try
         {
@@ -136,7 +136,7 @@ internal static class NuGetPackaging
     private static string RenamePsmdcp(string packageDir, string name)
     {
         string fileName = Directory.EnumerateFiles(packageDir, "*.psmdcp", SearchOption.AllDirectories).Single();
-        string newFileName = Path.Combine(Path.GetDirectoryName(fileName)!, name + ".psmdcp");
+        string newFileName = Path.Join(Path.GetDirectoryName(fileName)!, name + ".psmdcp");
 
         if (fileName != newFileName)
             Directory.Move(fileName, newFileName);
@@ -175,7 +175,7 @@ internal static class NuGetPackaging
         {
             var entry = s.CreateEntry(filePath);
             entry.LastWriteTime = dateTime;
-            using var fs = File.OpenRead(Path.Combine(directory, filePath));
+            using var fs = File.OpenRead(Path.Join(directory, filePath));
             using var entryS = entry.Open();
             fs.CopyTo(entryS);
         }

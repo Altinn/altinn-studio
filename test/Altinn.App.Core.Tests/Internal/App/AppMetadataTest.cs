@@ -23,7 +23,7 @@ public class AppMetadataTest
     };
 
     private readonly string _appBasePath =
-        Path.Combine(PathUtils.GetCoreTestsPath(), "Internal", "App", "TestData") + Path.DirectorySeparatorChar;
+        Path.Join(PathUtils.GetCoreTestsPath(), "Internal", "App", "TestData") + Path.DirectorySeparatorChar;
 
     [Fact]
     public async Task GetApplicationMetadata_desrializes_file_from_disk()

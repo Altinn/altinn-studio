@@ -144,7 +144,7 @@ public class AppMetadataMock : IAppMetadata
 
     private static Application GetTestApplication(string org, string app)
     {
-        string applicationPath = Path.Combine(GetMetadataPath(), org, app, "applicationmetadata.json");
+        string applicationPath = Path.Join(GetMetadataPath(), org, app, "applicationmetadata.json");
         if (File.Exists(applicationPath))
         {
             string content =
@@ -174,6 +174,6 @@ public class AppMetadataMock : IAppMetadata
         string unitTestFolder =
             Path.GetDirectoryName(uri.LocalPath) ?? throw new Exception($"Unable to locate path {uri.LocalPath}");
 
-        return Path.Combine(unitTestFolder, @"../../../Data/Metadata");
+        return Path.Join(unitTestFolder, @"../../../Data/Metadata");
     }
 }
