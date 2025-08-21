@@ -1,1 +1,0 @@
-export { SettingsPageButton } from './SettingsPageButton';

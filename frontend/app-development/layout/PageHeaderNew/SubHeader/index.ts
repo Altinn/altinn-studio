@@ -1,1 +1,0 @@
-export { SubHeader } from './SubHeader';

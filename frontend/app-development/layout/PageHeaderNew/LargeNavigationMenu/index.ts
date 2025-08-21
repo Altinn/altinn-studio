@@ -1,1 +1,0 @@
-export { LargeNavigationMenu } from './LargeNavigationMenu';
