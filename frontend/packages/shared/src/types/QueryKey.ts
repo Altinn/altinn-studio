@@ -61,6 +61,7 @@ export enum QueryKey {
   // Admin
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
+  AppProcessTasks = 'AppProcessTasks',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
   RunningApps = 'RunningApps',

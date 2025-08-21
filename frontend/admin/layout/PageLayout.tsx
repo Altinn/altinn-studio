@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './PageLayout.module.css';
 import { Outlet, matchPath, useLocation, Navigate } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -6,9 +7,6 @@ import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 
-/**
- * Displays the layout for the app development pages
- */
 export const PageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -33,7 +31,9 @@ export const PageLayout = (): React.ReactNode => {
   return (
     <>
       <PageHeader user={user} org={orgs?.[org]} />
-      <Outlet />
+      <div className={classes.pageWrapper}>
+        <Outlet />
+      </div>
     </>
   );
 };

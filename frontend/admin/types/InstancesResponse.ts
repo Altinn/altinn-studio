@@ -1,0 +1,25 @@
+export type InstancesResponse = {
+  instances: SimpleInstance[];
+  continuationToken?: string;
+};
+
+export type SimpleInstance = {
+  id: string;
+  org: string;
+  app: string;
+  currentTaskName?: string;
+  currentTaskId?: string;
+  dueBefore?: string;
+  isComplete: boolean;
+  completedAt?: string;
+  isArchived: boolean;
+  archivedAt?: string;
+  isSoftDeleted: boolean;
+  softDeletedAt?: string;
+  isHardDeleted: boolean;
+  hardDeletedAt?: string;
+  isConfirmed: boolean;
+  confirmedAt?: string;
+  createdAt?: string;
+  lastChangedAt?: string;
+};
