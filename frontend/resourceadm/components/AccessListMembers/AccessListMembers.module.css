@@ -6,11 +6,6 @@
   margin-top: var(--fds-spacing-8);
 }
 
-.noSearchResults {
-  position: absolute;
-  margin-top: 0.5rem;
-}
-
 .spinnerContainer {
   height: 500px; /* height of 10 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
 }
