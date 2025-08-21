@@ -38,11 +38,6 @@
   color: var(--color--hover);
 }
 
-.linkButton svg {
-  width: 1.25em;
-  height: 1.25em;
-}
-
 .linkButton:focus-visible {
   box-shadow: var(--dsc--focus, var(--dsc-focus-boxShadow));
   outline: var(--dsc--focus, var(--dsc-focus-outline));
