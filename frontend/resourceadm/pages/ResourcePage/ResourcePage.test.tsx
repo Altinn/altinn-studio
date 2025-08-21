@@ -82,7 +82,9 @@ describe('ResourcePage', () => {
   it('displays the about resource page spinner when loading page first time', () => {
     renderResourcePage();
 
-    expect(screen.getByTitle(textMock('resourceadm.about_resource_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.about_resource_spinner')),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
         name: textMock('resourceadm.about_resource_title'),
@@ -98,7 +100,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
@@ -115,7 +117,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
@@ -130,7 +132,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
@@ -146,7 +148,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     const migrationTab = screen.getByRole('tab', {
@@ -167,7 +169,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource, getValidateResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
@@ -200,7 +202,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     const policyButton = screen.getByRole('tab', {
@@ -229,7 +231,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource, getValidatePolicy });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     const aboutButton = screen.getByRole('tab', {
@@ -256,7 +258,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
     const deployButton = screen.getByRole('tab', {
@@ -279,7 +281,7 @@ describe('ResourcePage', () => {
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
     expect(queriesMock.getConsentTemplates).toHaveBeenCalledTimes(1);
   });

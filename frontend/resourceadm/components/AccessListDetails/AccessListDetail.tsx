@@ -8,13 +8,8 @@ import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessLi
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import {
-  StudioButton,
-  StudioHeading,
-  StudioLink,
-  StudioModal,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioModal } from '@studio/components-legacy';
+import { StudioButton, StudioHeading, StudioLink, StudioTextfield } from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
@@ -117,7 +112,7 @@ export const AccessListDetail = ({
           {t('general.back')}
         </StudioLink>
       </div>
-      <StudioHeading level={1} size='lg'>
+      <StudioHeading level={1} data-size='lg'>
         {t('resourceadm.listadmin_list_detail_header')}
       </StudioHeading>
       <StudioTextfield
@@ -155,7 +150,7 @@ export const AccessListDetail = ({
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
           disabled={isDeletingAccessList}
-          size='md'
+          data-size='md'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

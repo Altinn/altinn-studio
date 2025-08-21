@@ -5,13 +5,11 @@ import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
 import {
   StudioTextfield,
   StudioHeading,
-  StudioLabelAsParagraph,
   StudioParagraph,
   StudioLink,
   StudioAlert,
-  StudioErrorMessage,
-} from '@studio/components-legacy';
-import { StudioSpinner } from '@studio/components';
+  StudioSpinner,
+} from '@studio/components';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {
@@ -228,17 +226,19 @@ export const DeployResourcePage = ({
       }
       case 'error': {
         return (
-          <StudioAlert severity='danger'>
-            <StudioParagraph size='md'>{t('general.fetch_error_message')}</StudioParagraph>
-            <StudioParagraph size='md'>{t('general.error_message_with_colon')}</StudioParagraph>
+          <StudioAlert data-color='danger'>
+            <StudioParagraph data-size='md'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph data-size='md'>
+              {t('general.error_message_with_colon')}
+            </StudioParagraph>
             {publishStatusError && (
-              <StudioErrorMessage size='md'>{publishStatusError.message}</StudioErrorMessage>
+              <StudioParagraph data-size='md'>{publishStatusError.message}</StudioParagraph>
             )}
             {validatePolicyError && (
-              <StudioErrorMessage size='md'>{validatePolicyError.message}</StudioErrorMessage>
+              <StudioParagraph data-size='md'>{validatePolicyError.message}</StudioParagraph>
             )}
             {validateResourceError && (
-              <StudioErrorMessage size='md'>{validateResourceError.message}</StudioErrorMessage>
+              <StudioParagraph data-size='md'>{validateResourceError.message}</StudioParagraph>
             )}
           </StudioAlert>
         );
@@ -253,12 +253,12 @@ export const DeployResourcePage = ({
 
         return (
           <>
-            <StudioHeading size='lg' spacing level={1}>
+            <StudioHeading data-size='lg' spacing level={1}>
               {t('resourceadm.deploy_title')}
             </StudioHeading>
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
-              <StudioParagraph size='sm' className={classes.informationText}>
+              <StudioParagraph data-size='sm' className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
                   <StudioLink href={UrlConstants.ALTINN} rel='noopener noreferrer' target='_blank'>
                     Altinn.no
@@ -271,12 +271,12 @@ export const DeployResourcePage = ({
                   description={t('resourceadm.deploy_version_text')}
                   value={newVersionText}
                   onChange={(e) => onVersionFieldChanged(e.target.value)}
-                  error={resourceVersionText === ''}
+                  error={!resourceVersionText ? t('resourceadm.deploy_version_missing') : ''}
                 />
               </div>
-              <StudioLabelAsParagraph size='md' spacing>
+              <StudioParagraph data-size='md' spacing>
                 {t('resourceadm.deploy_select_env_label')}
-              </StudioLabelAsParagraph>
+              </StudioParagraph>
               <div className={classes.environmentWrapper}>
                 {getAvailableEnvironments(org).map((env) => {
                   const versionString = getVersionString(env.id);

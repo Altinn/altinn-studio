@@ -169,6 +169,7 @@
   "resourceadm.deploy_deploying": "Publiserer",
   "resourceadm.deploy_description": "Ved å publisere ressurser blir informasjonen tilgjengelig på <0>Altinn.no</0> og andre nettsteder som lister ressurser i Altinn. Sluttbrukere kan da starte delegere rettigheter til ressursen. Man bør verifisere i testmiljø først at tekster og metadata blir presentert som tenkt før man publiserer til produksjon.",
   "resourceadm.deploy_not_deployed": "Ikke publisert",
+  "resourceadm.deploy_version_missing": "Versjonsnummer må fylles ut",
   "resourceadm.deploy_prod_env": "Produksjonsmiljø",
   "resourceadm.deploy_select_env_label": "Velg miljø der du ønsker å publisere endringene",
   "resourceadm.deploy_spinner": "Laster inn publiseringsstatus",
