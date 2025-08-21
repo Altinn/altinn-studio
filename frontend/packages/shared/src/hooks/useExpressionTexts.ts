@@ -7,7 +7,7 @@ import {
   SimpleSubexpressionValueType,
   GeneralRelationOperator,
   InstanceContext,
-  GatewayActionContext,
+  PredefinedGatewayAction,
 } from '@studio/components-legacy';
 
 export const useExpressionTexts = (): ExpressionTexts => {
@@ -47,8 +47,8 @@ export const useExpressionTexts = (): ExpressionTexts => {
     (key) => `expression.instanceContext.${key}`,
   );
 
-  const gatewayActionContextKeys = Object.values(GatewayActionContext);
-  const gatewayActionContext = mapArrayToTranslations<GatewayActionContext>(
+  const gatewayActionContextKeys = Object.values(PredefinedGatewayAction);
+  const gatewayActionContext = mapArrayToTranslations<PredefinedGatewayAction>(
     gatewayActionContextKeys,
     (key) => `expression.gatewayActionContext.${key}`,
   );

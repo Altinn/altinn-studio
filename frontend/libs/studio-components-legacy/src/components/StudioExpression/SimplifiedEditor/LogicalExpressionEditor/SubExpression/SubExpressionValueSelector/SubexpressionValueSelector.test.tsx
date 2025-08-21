@@ -14,7 +14,7 @@ import { texts } from '../../../../test-data/texts';
 import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
-import { GatewayActionContext } from '../../../../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../../../../enums/PredefinedGatewayAction';
 
 describe('SubexpressionValueSelector', () => {
   beforeEach(() => {
@@ -208,12 +208,12 @@ describe('SubexpressionValueSelector', () => {
   });
 
   describe('When the value is an gateway context reference', () => {
-    it.each(Object.values(GatewayActionContext))(
+    it.each(Object.values(PredefinedGatewayAction))(
       'Displays the key in readonly mode when it is %s',
       (key) => {
-        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.PredefinedGatewayAction> =
           {
-            type: SimpleSubexpressionValueType.GatewayActionContext,
+            type: SimpleSubexpressionValueType.PredefinedGatewayAction,
             key,
           };
         renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
@@ -222,19 +222,17 @@ describe('SubexpressionValueSelector', () => {
     );
 
     it('Render GatewayAction in readonly mode', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
-      expect(screen.getByText('gatewayAction'));
+      expect(screen.getByText('GatewayAction'));
     });
 
     it('Lets the user edit the value in edit mode', async () => {
-      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.PredefinedGatewayAction> =
         {
-          type: SimpleSubexpressionValueType.GatewayActionContext,
-          key: GatewayActionContext.Pay,
+          type: SimpleSubexpressionValueType.PredefinedGatewayAction,
+          key: PredefinedGatewayAction.Pay,
         };
       const user = userEvent.setup();
       const onChange = jest.fn();
@@ -243,7 +241,7 @@ describe('SubexpressionValueSelector', () => {
         isInEditMode: true,
         onChange,
       });
-      const newKey = GatewayActionContext.Sign;
+      const newKey = PredefinedGatewayAction.Sign;
       const select = screen.getByLabelText(texts.gatewayActionKey);
       await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
@@ -252,21 +250,17 @@ describe('SubexpressionValueSelector', () => {
 
   describe('When the value is an gateway action', () => {
     it('should display expression selector only', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
-      expect(screen.getByText('Gateway action'));
+      expect(screen.getByText(texts.valueTypes[SimpleSubexpressionValueType.CurrentGatewayAction]));
     });
 
     it('should display readonly mode', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
-      expect(screen.getByText('gatewayAction'));
+      expect(screen.getByText('GatewayAction'));
     });
   });
 
