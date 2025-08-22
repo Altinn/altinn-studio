@@ -258,6 +258,47 @@ describe('StudioExpression', () => {
     expect(onChange).not.toHaveBeenCalled();
     screen.getByText(texts.cannotSaveSinceInvalid);
   });
+
+  it('Displays all function types in the type selector by default', async () => {
+    const user = userEvent.setup();
+    renderExpression(generalOperatorRelation);
+    await user.click(screen.getByRole('button', { name: texts.edit }));
+    const typeSelector = getTypeSelectorOfFirstOperand();
+    const options = within(typeSelector).getAllByRole('option');
+    const types = Object.values(SimpleSubexpressionValueType);
+    expect(options).toHaveLength(types.length);
+    types
+      .map((k) => texts.valueTypes[k])
+      .forEach((name) => {
+        expect(within(typeSelector).getByRole('option', { name })).toBeInTheDocument();
+      });
+  });
+
+  it('Displays only selected function types in the type selector if given', async () => {
+    const user = userEvent.setup();
+    const selectedTypes: SimpleSubexpressionValueType[] = [
+      SimpleSubexpressionValueType.Number,
+      SimpleSubexpressionValueType.String,
+    ];
+    render(
+      <StudioExpression
+        dataLookupOptions={dataLookupOptions}
+        expression={generalOperatorRelation}
+        onChange={jest.fn()}
+        texts={texts}
+        types={selectedTypes}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: texts.edit }));
+    const typeSelector = getTypeSelectorOfFirstOperand();
+    const options = within(typeSelector).getAllByRole('option');
+    expect(options).toHaveLength(selectedTypes.length);
+    selectedTypes
+      .map((k) => texts.valueTypes[k])
+      .forEach((name) => {
+        expect(within(typeSelector).getByRole('option', { name })).toBeInTheDocument();
+      });
+  });
 });
 
 const renderExpression = (expression: Expression) => {
@@ -270,3 +311,8 @@ const renderExpression = (expression: Expression) => {
     />,
   );
 };
+
+function getTypeSelectorOfFirstOperand(): HTMLElement {
+  const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });
+  return within(firstOperandGroup).getByRole('combobox', { name: texts.valueType });
+}

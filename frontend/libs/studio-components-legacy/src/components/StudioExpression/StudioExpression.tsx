@@ -10,10 +10,11 @@ import type { DataLookupOptions } from './types/DataLookupOptions';
 import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
+import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
-  expressionOptions?: string[];
+  types?: SimpleSubexpressionValueType[];
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
   dataLookupOptions: Partial<DataLookupOptions>;
@@ -27,7 +28,7 @@ enum TabId {
 
 export const StudioExpression = ({
   expression,
-  expressionOptions,
+  types = Object.values(SimpleSubexpressionValueType),
   onChange,
   dataLookupOptions,
   texts,
@@ -38,7 +39,7 @@ export const StudioExpression = ({
   }
 
   return (
-    <StudioExpressionContext.Provider value={{ dataLookupOptions, texts, expressionOptions }}>
+    <StudioExpressionContext.Provider value={{ dataLookupOptions, texts, types }}>
       <ValidExpression
         expression={expression}
         onChange={onChange}
