@@ -216,6 +216,23 @@ public sealed partial class AppFixture : IAsyncDisposable
         var expectedPrefix = $"[{_currentFixtureInstance:00}/{_app}/{_scenario}]";
         var stdOut = logs.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var stdErr = logs.Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var firstStdOutIndex = stdOut
+            .Select((line, index) => (line, index))
+            .FirstOrDefault(x =>
+                IsStartOfLogMessage(x.line, expectedPrefix, out _, out _, out var isSnapshotMessage, out _)
+                && isSnapshotMessage
+            )
+            .index;
+        var firstStdErrIndex = stdErr
+            .Select((line, index) => (line, index))
+            .FirstOrDefault(x =>
+                IsStartOfLogMessage(x.line, expectedPrefix, out _, out _, out var isSnapshotMessage, out _)
+                && isSnapshotMessage
+            )
+            .index;
+        stdOut = stdOut[firstStdOutIndex..];
+        stdErr = stdErr[firstStdErrIndex..];
+
         var data = new List<(DateTime Timestamp, string Line)>(stdOut.Length + stdErr.Length);
         static bool IsStartOfLogMessage(
             string line,

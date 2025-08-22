@@ -29,5 +29,21 @@ public partial class AppFixture : IAsyncDisposable
             Assert.NotEmpty(token);
             return token;
         }
+
+        public async Task<string> GetServiceOwnerToken(
+            string scopes = "altinn:serviceowner/instances.write altinn:serviceowner/instances.read"
+        )
+        {
+            var client = _fixture.GetLocaltestClient();
+            var encodedScopes = Uri.EscapeDataString(scopes);
+            var response = await client.GetAsync(
+                $"/Home/GetTestOrgToken/ttd?orgNumber=405003309&scopes={encodedScopes}"
+            );
+            Assert.True(response.IsSuccessStatusCode, "Failed to get service owner token");
+            var token = await response.Content.ReadAsStringAsync();
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
+            return token;
+        }
     }
 }

@@ -20,20 +20,30 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         MultipartXmlPrefill,
     }
 
+    public enum Auth
+    {
+        User,
+        ServiceOwner,
+    }
+
     private static bool HasPrefill(TestCase testCase) =>
         testCase is TestCase.SimplifiedWithPrefill or TestCase.MultipartJsonPrefill or TestCase.MultipartXmlPrefill;
 
     [Theory]
     [CombinatorialData]
-    public async Task Full(TestCase testCase)
+    public async Task Full(TestCase testCase, Auth auth)
     {
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
         var fixture = fixtureScope.Fixture;
         var verifier = fixture.ScopedVerifier;
-        verifier.UseTestCase(new { testCase });
+        verifier.UseTestCase(new { testCase, auth });
 
-        // TODO: parameterize auth
-        var token = await fixture.Auth.GetUserToken(userId: 1337);
+        var token = auth switch
+        {
+            Auth.User => await fixture.Auth.GetUserToken(userId: 1337),
+            Auth.ServiceOwner => await fixture.Auth.GetServiceOwnerToken(),
+            _ => throw new ArgumentOutOfRangeException(nameof(auth)),
+        };
 
         // Create instance based on testcase
         using var instantiationResponse = await CreateInstance(fixture, token, testCase);
