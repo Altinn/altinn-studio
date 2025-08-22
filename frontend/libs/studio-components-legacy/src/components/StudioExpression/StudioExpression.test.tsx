@@ -261,9 +261,9 @@ describe('StudioExpression', () => {
 
   it('Displays all function types in the type selector by default', async () => {
     const user = userEvent.setup();
-    renderExpression(logicalExpression);
-    await user.click(screen.getAllByRole('button', { name: texts.edit })[0]);
-    const typeSelector = screen.getAllByRole('combobox', { name: texts.valueType })[0];
+    renderExpression(generalOperatorRelation);
+    await user.click(screen.getByRole('button', { name: texts.edit }));
+    const typeSelector = getTypeSelectorOfFirstOperand();
     const options = within(typeSelector).getAllByRole('option');
     const types = Object.values(SimpleSubexpressionValueType);
     expect(options).toHaveLength(types.length);
@@ -283,14 +283,14 @@ describe('StudioExpression', () => {
     render(
       <StudioExpression
         dataLookupOptions={dataLookupOptions}
-        expression={logicalExpression}
+        expression={generalOperatorRelation}
         onChange={jest.fn()}
         texts={texts}
         types={selectedTypes}
       />,
     );
-    await user.click(screen.getAllByRole('button', { name: texts.edit })[0]);
-    const typeSelector = screen.getAllByRole('combobox', { name: texts.valueType })[0];
+    await user.click(screen.getByRole('button', { name: texts.edit }));
+    const typeSelector = getTypeSelectorOfFirstOperand();
     const options = within(typeSelector).getAllByRole('option');
     expect(options).toHaveLength(selectedTypes.length);
     selectedTypes
@@ -311,3 +311,8 @@ const renderExpression = (expression: Expression) => {
     />,
   );
 };
+
+function getTypeSelectorOfFirstOperand(): HTMLElement {
+  const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });
+  return within(firstOperandGroup).getByRole('combobox', { name: texts.valueType });
+}
