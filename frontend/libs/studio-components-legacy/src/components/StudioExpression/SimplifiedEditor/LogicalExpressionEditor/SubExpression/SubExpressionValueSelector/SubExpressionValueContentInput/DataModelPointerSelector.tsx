@@ -9,14 +9,14 @@ import type { Props } from './Props';
 export const DataModelPointerSelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.DataModel>) => {
+}: Props<SimpleSubexpressionValueType.DataModel>): React.ReactElement => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
   const [pathValue, setPathValue] = useState<string>(value.path);
 
   const options = dataLookupOptions[DataLookupFuncName.DataModel];
 
-  const handleChange = (values: string[]) => {
+  const handleChange = (values: string[]): void => {
     if (values.length) {
       setPathValue(values[0]);
       onChange({ ...value, path: values[0] });

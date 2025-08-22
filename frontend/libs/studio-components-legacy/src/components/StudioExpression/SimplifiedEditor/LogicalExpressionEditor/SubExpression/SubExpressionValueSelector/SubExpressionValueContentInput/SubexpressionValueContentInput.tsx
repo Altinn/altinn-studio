@@ -12,7 +12,7 @@ import { GatewayActionSelector } from './GatewayActionSelector';
 export const SubexpressionValueContentInput = ({
   onChange,
   value,
-}: Props<SimpleSubexpressionValueType>) => {
+}: Props<SimpleSubexpressionValueType>): React.ReactNode => {
   switch (value.type) {
     case SimpleSubexpressionValueType.DataModel:
       return <DataModelPointerSelector onChange={onChange} value={value} />;
