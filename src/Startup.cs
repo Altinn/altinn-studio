@@ -121,6 +121,7 @@ namespace LocalTest
 
             // Shared auth services
             services.AddSingleton<IAuthentication, AuthenticationService>();
+            services.AddSingleton<TestAuthenticationService>();
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
             services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();

@@ -1,6 +1,7 @@
 #nullable enable
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
 using Altinn.Platform.Profile.Models;
 
 namespace LocalTest.Services.Authentication.Interface
@@ -13,6 +14,13 @@ namespace LocalTest.Services.Authentication.Interface
         /// <param name="principal">The claims principal.</param>
         /// <returns>JWT token</returns>
         public string GenerateToken(ClaimsPrincipal principal);
+
+        /// <summary>
+        /// Creates a JWT token based on JWT payload.
+        /// </summary>
+        /// <param name="payload">The JWT payload.</param>
+        /// <returns>JWT token</returns>
+        public string GenerateToken(JwtPayload payload);
 
         /// <summary>
         /// Generate a JWT token with claims for an application owner org
