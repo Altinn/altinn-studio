@@ -45,4 +45,11 @@ public interface IGiteaContentLibraryService
     /// <param name="orgName">The name of the organisation.</param>
     /// <returns>A list of text IDs.</returns>
     public Task<List<string>> GetTextIds(string orgName);
+    /// <summary>
+    /// Gets the SHA for the code list file on the repository's default branch in Gitea.
+    /// </summary>
+    /// <param name="orgName">The name of the organisation.</param>
+    /// <param name="codeListId">The name of the code list.</param>
+    /// <returns>SHA string</returns>
+    public Task<string> GetShaForCodeListFile(string orgName, string codeListId);
 }

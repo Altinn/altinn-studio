@@ -1,18 +1,18 @@
 import React, { type ChangeEvent } from 'react';
 import { StudioNativeSelect } from '../../../../../../StudioNativeSelect';
 import type { Props } from './Props';
-import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../../../../../enums/PredefinedGatewayAction';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 
 export const GatewayActionSelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.GatewayActionContext>) => {
+}: Props<SimpleSubexpressionValueType.PredefinedGatewayAction>) => {
   const { texts } = useStudioExpressionContext();
-  const options = Object.values(GatewayActionContext);
+  const options = Object.values(PredefinedGatewayAction);
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
-    onChange({ ...value, key: event.target.value as GatewayActionContext });
+    onChange({ ...value, key: event.target.value as PredefinedGatewayAction });
 
   return (
     <StudioNativeSelect
