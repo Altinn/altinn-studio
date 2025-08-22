@@ -1,7 +1,8 @@
 .switch {
-  padding-left: var(--fds-spacing-5);
+  padding-left: var(--ds-size-5);
+  margin-bottom: var(--ds-size-2);
 }
 
 .alert {
-  margin: 0 var(--fds-spacing-5);
+  margin: 0 var(--ds-size-5);
 }

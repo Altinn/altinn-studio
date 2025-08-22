@@ -154,7 +154,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeInTheDocument();
@@ -185,7 +185,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeChecked();
@@ -202,7 +202,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
@@ -217,7 +217,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
@@ -236,7 +236,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     await user.click(switchElement);
@@ -263,8 +263,7 @@ describe('DataModelBindings', () => {
         handleUpdate,
       },
     });
-
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     await user.click(switchElement);
