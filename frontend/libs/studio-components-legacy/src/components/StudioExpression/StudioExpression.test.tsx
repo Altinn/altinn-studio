@@ -1,4 +1,5 @@
 import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
@@ -301,7 +302,7 @@ describe('StudioExpression', () => {
   });
 });
 
-const renderExpression = (expression: Expression) => {
+const renderExpression = (expression: Expression): RenderResult => {
   return render(
     <StudioExpression
       expression={expression}

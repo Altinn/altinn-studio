@@ -3,8 +3,9 @@ import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexp
 import { InstanceContext } from '../../../../../enums/InstanceContext';
 import { PredefinedGatewayAction } from '../../../../../enums/PredefinedGatewayAction';
 
-export const getDefaultValueOfType = (newType: SimpleSubexpressionValueType) =>
-  defaultValueByType[newType];
+export const getDefaultValueOfType = (
+  newType: SimpleSubexpressionValueType,
+): SimpleSubexpressionValue => defaultValueByType[newType];
 
 const defaultValueByType: {
   [K in SimpleSubexpressionValueType]: SimpleSubexpressionValue<K>;
