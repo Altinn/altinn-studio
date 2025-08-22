@@ -3,6 +3,7 @@ import alias from '@rollup/plugin-alias';
 import aliases from './studio.alias.js';
 import type { UserConfig } from 'vite';
 import colors from 'picocolors';
+import svgr from 'vite-plugin-svgr';
 
 export default {
   optimizeDeps: {
@@ -14,6 +15,7 @@ export default {
   },
   plugins: [
     react(),
+    svgr(),
     {
       name: 'url-override',
       configureServer: (server) => {
