@@ -146,6 +146,7 @@ public static class TestAuthentication
     {
         var auth = Authenticated.From(
             "",
+            null,
             false,
             applicationMetadata ?? NewApplicationMetadata(),
             () => null,
@@ -180,7 +181,7 @@ public static class TestAuthentication
 
         Claim[] claims =
         [
-            new(ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}", ClaimValueTypes.String, iss),
+            new(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.PartyID, partyId.ToString(), ClaimValueTypes.Integer32, iss),
             new(AltinnCoreClaimTypes.AuthenticateMethod, "BankID", ClaimValueTypes.String, iss),
@@ -213,6 +214,7 @@ public static class TestAuthentication
         };
         var auth = Authenticated.From(
             token,
+            null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
             getSelectedParty: () => $"{userPartyId}",
@@ -274,7 +276,7 @@ public static class TestAuthentication
 
         Claim[] claims =
         [
-            new(ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}", ClaimValueTypes.String, iss),
+            new(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.UserName, username, ClaimValueTypes.String, iss),
             new(AltinnCoreClaimTypes.PartyID, partyId.ToString(), ClaimValueTypes.Integer32, iss),
@@ -306,6 +308,7 @@ public static class TestAuthentication
         };
         var auth = Authenticated.From(
             token,
+            null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
             getSelectedParty: () => $"{partyId}",
@@ -405,6 +408,7 @@ public static class TestAuthentication
         };
         var auth = Authenticated.From(
             token,
+            null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
             getSelectedParty: () => throw new NotImplementedException(),
@@ -488,6 +492,7 @@ public static class TestAuthentication
         };
         var auth = Authenticated.From(
             token,
+            null,
             true,
             applicationMetadata ?? NewApplicationMetadata(org: org),
             getSelectedParty: () => throw new NotImplementedException(),
@@ -529,7 +534,7 @@ public static class TestAuthentication
             { "jti", Guid.NewGuid().ToString() },
             { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, 3 },
         };
 
         AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
@@ -597,6 +602,7 @@ public static class TestAuthentication
         };
         var auth = Authenticated.From(
             token,
+            null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
             getSelectedParty: () => throw new NotImplementedException(),

@@ -252,10 +252,11 @@ public class AuthenticatedTests
                         Name = "Test Testesen",
                     };
                     Authenticated.Parser parse = description.Contains("localtest", StringComparison.OrdinalIgnoreCase)
-                        ? Authenticated.FromLocalTest
+                        ? Authenticated.FromOldLocalTest
                         : Authenticated.From;
                     auth = parse(
                         tokenStr: token,
+                        parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
                         getSelectedParty: () =>
@@ -303,10 +304,11 @@ public class AuthenticatedTests
                         Name = "Test Testesen",
                     };
                     Authenticated.Parser parse = description.Contains("localtest", StringComparison.OrdinalIgnoreCase)
-                        ? Authenticated.FromLocalTest
+                        ? Authenticated.FromOldLocalTest
                         : Authenticated.From;
                     auth = parse(
                         tokenStr: token,
+                        parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
                         getSelectedParty: () =>
@@ -347,6 +349,7 @@ public class AuthenticatedTests
                 {
                     auth = Authenticated.From(
                         tokenStr: token,
+                        parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
                         getSelectedParty: null!,
@@ -374,10 +377,11 @@ public class AuthenticatedTests
             case AuthenticationTypes.ServiceOwner:
                 {
                     Authenticated.Parser parse = description.Contains("localtest", StringComparison.OrdinalIgnoreCase)
-                        ? Authenticated.FromLocalTest
+                        ? Authenticated.FromOldLocalTest
                         : Authenticated.From;
                     auth = parse(
                         tokenStr: token,
+                        parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
                         getSelectedParty: null!,
@@ -405,10 +409,11 @@ public class AuthenticatedTests
             case AuthenticationTypes.SystemUser:
                 {
                     Authenticated.Parser parse = description.Contains("localtest", StringComparison.OrdinalIgnoreCase)
-                        ? Authenticated.FromLocalTest
+                        ? Authenticated.FromOldLocalTest
                         : Authenticated.From;
                     auth = parse(
                         tokenStr: token,
+                        parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata("digdir"),
                         getSelectedParty: null!,

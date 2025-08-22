@@ -534,6 +534,7 @@ public abstract class Authenticated
 
     internal delegate Authenticated Parser(
         string tokenStr,
+        JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
         Func<string?> getSelectedParty,
@@ -544,8 +545,9 @@ public abstract class Authenticated
         Func<int, int, Task<bool?>> validateSelectedParty
     );
 
-    internal static Authenticated FromLocalTest(
+    internal static Authenticated FromOldLocalTest(
         string tokenStr,
+        JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
         Func<string?> getSelectedParty,
@@ -570,8 +572,14 @@ public abstract class Authenticated
         if (!context.IsAuthenticated)
             return new None(ref context);
 
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(tokenStr);
+        JwtSecurityToken token;
+        if (parsedToken is null)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            token = handler.ReadJwtToken(tokenStr);
+        }
+        else
+            token = parsedToken;
 
         context.ReadClaims(token);
 
@@ -793,6 +801,7 @@ public abstract class Authenticated
 
     internal static Authenticated From(
         string tokenStr,
+        JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
         Func<string?> getSelectedParty,
@@ -817,8 +826,16 @@ public abstract class Authenticated
         if (string.IsNullOrWhiteSpace(tokenStr))
             return new None(ref context);
 
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.ReadJwtToken(tokenStr);
+        JwtSecurityToken token;
+        if (parsedToken is null)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            token = handler.ReadJwtToken(tokenStr);
+        }
+        else
+        {
+            token = parsedToken;
+        }
 
         context.ReadClaims(token);
 

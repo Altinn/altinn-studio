@@ -22,8 +22,12 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
 
     public enum Auth
     {
+        OldUser,
+        OldServiceOwner,
         User,
         ServiceOwner,
+        SystemUser,
+        SelfIdentifiedUser,
     }
 
     private static bool HasPrefill(TestCase testCase) =>
@@ -31,7 +35,10 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
 
     [Theory]
     [CombinatorialData]
-    public async Task Full(TestCase testCase, Auth auth)
+    public async Task Full(
+        TestCase testCase,
+        [CombinatorialValues(Auth.OldUser, Auth.User, Auth.OldServiceOwner, Auth.ServiceOwner)] Auth auth
+    )
     {
         await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
         var fixture = fixtureScope.Fixture;
@@ -40,6 +47,8 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
 
         var token = auth switch
         {
+            Auth.OldUser => await fixture.Auth.GetOldUserToken(userId: 1337),
+            Auth.OldServiceOwner => await fixture.Auth.GetOldServiceOwnerToken(),
             Auth.User => await fixture.Auth.GetUserToken(userId: 1337),
             Auth.ServiceOwner => await fixture.Auth.GetServiceOwnerToken(),
             _ => throw new ArgumentOutOfRangeException(nameof(auth)),
@@ -97,6 +106,36 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         await download2.Verify(verifier);
 
         await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task Authentication(Auth auth)
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+        var verifier = fixture.ScopedVerifier;
+        verifier.UseTestCase(new { auth });
+
+        var token = auth switch
+        {
+            Auth.OldUser => await fixture.Auth.GetOldUserToken(userId: 1337),
+            Auth.OldServiceOwner => await fixture.Auth.GetOldServiceOwnerToken(),
+            Auth.User => await fixture.Auth.GetUserToken(userId: 1337),
+            Auth.ServiceOwner => await fixture.Auth.GetServiceOwnerToken(),
+            Auth.SystemUser => await fixture.Auth.GetSystemUserToken(
+                "913312465_sbs",
+                "d111dbab-d619-4f15-bf29-58fe570a9ae6"
+            ),
+            Auth.SelfIdentifiedUser => await fixture.Auth.GetSelfIdentifiedUserToken("SelvRegistrert"),
+            _ => throw new ArgumentOutOfRangeException(nameof(auth)),
+        };
+
+        var (success, data) = await fixture.Auth.IntrospectAuthentication(token);
+        if (success)
+            await VerifyJson(data).UseParameters(auth);
+        else
+            await Verify(data).UseParameters(auth);
     }
 
     private static async Task<AppFixture.ApiResponse> CreateInstance(

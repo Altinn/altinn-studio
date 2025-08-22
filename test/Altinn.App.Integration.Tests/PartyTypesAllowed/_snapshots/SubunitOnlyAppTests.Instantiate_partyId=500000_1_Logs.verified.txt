@@ -1,3 +1,3 @@
 ﻿[basic/subunit-only] [INIT INFO] Fixture configuration updated
-[basic/subunit-only] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337/SophieDDG, AuthLevel: 2, AuthMethod: localtest
+[basic/subunit-only] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
 [basic/subunit-only] [INFO] ### Response: Instances.PostSimplified - ObjectResult, StatusCode: 403

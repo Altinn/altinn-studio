@@ -1,6 +1,7 @@
 using System;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Core.Features.Auth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -75,10 +76,12 @@ void Configure()
             c.RoutePrefix = applicationId + "/swagger";
         });
     }
+
     app.UseAltinnAppCommonConfiguration();
 
     // #########################################################################
     // Custom middleware not included in app template
-    app.MapGet("/health", () => "Healthy");
+
+    app.UseAuthenticationIntrospection();
     // #########################################################################
 }
