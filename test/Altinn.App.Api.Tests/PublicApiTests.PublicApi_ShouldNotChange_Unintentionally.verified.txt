@@ -2,11 +2,6 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
 namespace Altinn.App.Api.Controllers
 {
-    public class AccountController : Microsoft.AspNetCore.Mvc.Controller
-    {
-        public AccountController(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.AccountController> logger) { }
-        public Microsoft.AspNetCore.Mvc.IActionResult Login(string goToUrl) { }
-    }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/actions")]
     public class ActionsController : Microsoft.AspNetCore.Mvc.ControllerBase
