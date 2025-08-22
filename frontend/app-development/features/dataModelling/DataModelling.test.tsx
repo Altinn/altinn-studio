@@ -16,6 +16,7 @@ import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { app, org } from '@studio/testing/testids';
 import { user as userMock } from 'app-shared/mocks/mocks';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -43,9 +44,11 @@ const render = (
   };
 
   return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DataModelling />
-    </ServicesContextProvider>,
+    <TestAppRouter>
+      <ServicesContextProvider {...allQueries} client={queryClient}>
+        <DataModelling />
+      </ServicesContextProvider>
+    </TestAppRouter>,
   );
 };
 
