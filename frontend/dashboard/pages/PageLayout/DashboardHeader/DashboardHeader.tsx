@@ -8,7 +8,6 @@ import { useHeaderContext } from '../../../context/HeaderContext';
 import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
 import { StringUtils, UrlUtils } from '@studio/pure-functions';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
 import { isOrg } from '../../../utils/orgUtils';
@@ -25,8 +24,7 @@ export const DashboardHeader = (): ReactElement => {
 
   const isOrgLibraryPage: boolean =
     currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
-  const shouldShowSubMenu: boolean =
-    isOrg(selectedContext) && isOrgLibraryPage && shouldDisplayFeature(FeatureFlag.OrgLibrary);
+  const shouldShowSubMenu: boolean = isOrg(selectedContext) && isOrgLibraryPage;
 
   return (
     <StudioPageHeader>
@@ -50,9 +48,7 @@ function CenterContent(): ReactElement {
   const { menuItems } = useHeaderContext();
   return (
     <StudioPageHeader.Center>
-      {shouldDisplayFeature(FeatureFlag.OrgLibrary) && (
-        <LargeNavigationMenu menuItems={menuItems} />
-      )}
+      <LargeNavigationMenu menuItems={menuItems} />
     </StudioPageHeader.Center>
   );
 }

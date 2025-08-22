@@ -7,12 +7,8 @@ import { headerContextValueMock } from '../../../../testing/headerContextMock';
 import { HeaderMenuGroupKey } from '../../../../enums/HeaderMenuGroupKey';
 import { HeaderContext, type HeaderContextProps } from '../../../../context/HeaderContext';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 describe('SmallHeaderMenu', () => {
-  beforeAll(() => {
-    addFeatureFlagToLocalStorage(FeatureFlag.OrgLibrary);
-  });
   afterEach(() => {
     jest.clearAllMocks();
   });
