@@ -2,7 +2,7 @@ import React from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioActionCard } from '@Studio/components';
+import { StudioActionCard } from '@studio/components';
 
 export const AddNewTask = () => {
   const { t } = useTranslation();
