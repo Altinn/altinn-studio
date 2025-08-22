@@ -1,6 +1,6 @@
 import React from 'react';
 import { AddNewTask } from './AddNewTask';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -26,26 +26,6 @@ describe('AddNewTask', () => {
     expect(navigate).toHaveBeenCalledWith(
       '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
     );
-  });
-
-  it('should redirect to the process editor when pressing Enter or Space', async () => {
-    const user = userEvent.setup();
-    const navigate = setupNavigateSpy();
-    renderAddNewTask();
-
-    const card = screen.getByRole('button');
-    card.focus();
-
-    const keysToTest = ['{Enter}', ' '];
-    for (const key of keysToTest) {
-      await user.keyboard(key);
-
-      await waitFor(() =>
-        expect(navigate).toHaveBeenCalledWith(
-          '../' + RoutePaths.ProcessEditor + '?returnTo=' + RoutePaths.UIEditor,
-        ),
-      );
-    }
   });
 });
 

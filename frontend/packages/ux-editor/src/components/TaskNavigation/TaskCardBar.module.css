@@ -21,6 +21,7 @@
 
 .addCardsContainer {
   display: flex;
+  width: 300px;
   min-height: 320px;
   height: fit-content;
   flex-direction: column;
