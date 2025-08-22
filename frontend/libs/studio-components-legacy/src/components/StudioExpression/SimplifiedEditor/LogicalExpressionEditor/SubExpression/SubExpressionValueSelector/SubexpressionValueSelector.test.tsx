@@ -214,7 +214,7 @@ describe('SubexpressionValueSelector', () => {
             key,
           };
         renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
-        expect(screen.getByText(texts.gatewayActionContext[key]));
+        expect(screen.getByText(texts.predefinedGatewayActions[key]));
       },
     );
 
@@ -239,7 +239,7 @@ describe('SubexpressionValueSelector', () => {
         onChange,
       });
       const newKey = PredefinedGatewayAction.Sign;
-      const select = screen.getByLabelText(texts.gatewayActionKey);
+      const select = screen.getByLabelText(texts.gatewayAction);
       await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
     });

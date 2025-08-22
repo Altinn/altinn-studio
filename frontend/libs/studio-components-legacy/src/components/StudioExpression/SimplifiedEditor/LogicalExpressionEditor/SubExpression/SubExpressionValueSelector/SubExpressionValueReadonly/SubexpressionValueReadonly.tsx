@@ -82,10 +82,10 @@ const PredefinedGatewayAction = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.PredefinedGatewayAction>) => {
   const { texts } = useStudioExpressionContext();
-  const name = texts.gatewayActionContext[value.key];
+  const name = texts.predefinedGatewayActions[value.key];
   return (
     <Binding
-      name={texts.readonlyGatewayActionContext}
+      name={texts.readonlyPredefinedGatewayAction}
       binding={
         <Tag size='small' color='info'>
           {name}
