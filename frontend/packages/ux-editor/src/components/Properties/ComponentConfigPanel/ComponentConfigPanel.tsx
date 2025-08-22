@@ -54,8 +54,8 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   const properties = schema?.properties || {};
   const { textResourceBindings, dataModelBindings, ...otherProperties } = properties;
 
-  const hasTextProperties = Boolean(textResourceBindings?.properties);
-  const hasDataModelBindingProperties = Boolean(dataModelBindings?.properties);
+  const hasTextProperties = Boolean(textResourceBindings);
+  const hasDataModelBindingProperties = Boolean(dataModelBindings);
   const hasOtherProperties = Object.keys(otherProperties).length > 0;
 
   return (
