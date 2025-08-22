@@ -4,7 +4,7 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createHashRouter, RouterProvider, ScrollRestoration, useLocation } from 'react-router-dom';
+import { createHashRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
@@ -117,7 +117,6 @@ function Root() {
                             transition={Slide}
                             draggable={false}
                           />
-                          <ScrollRestoration />
                         </KeepAliveProvider>
                       </PartyProvider>
                     </ApplicationSettingsProvider>

@@ -387,6 +387,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('comment');
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.visible');
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.errorReport).should('contain.text', texts.requiredComment);
     cy.gotoNavPage('prefill');

@@ -102,11 +102,14 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(213, 32, 59)');
         cy.wrap(summaryDate).contains(common.altinnFlex, texts.requiredFieldDateFrom).should('be.visible');
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
-        cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
-        cy.get('button[aria-label*="Today"]').click();
-        cy.get(appFrontend.errorReport).should('not.exist');
-        cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
       });
+
+    cy.navPage('form').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.changeOfName.dateOfEffect).should('be.focused').and('be.inViewport');
+    cy.findByRole('button', { name: appFrontend.changeOfName.datePickerButton }).click();
+    cy.get('button[aria-label*="Today"]').click();
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
 
     // Error in summary field is removed when the required field is filled
     cy.findByRole('group', { name: 'Endringer til navn' })
@@ -587,6 +590,7 @@ describe('Summary', () => {
       cy.gotoNavPage('summary');
       cy.get('[data-componentid="summary3"] button').click();
       cy.navPage('form').should('have.attr', 'aria-current', 'page');
+      cy.get(`${appFrontend.changeOfName.reasons} input`).should('be.focused');
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
       cy.findByRole('button', { name: 'Neste' }).should('not.exist');
 
@@ -599,7 +603,7 @@ describe('Summary', () => {
       }
     }
 
-    // Navigation bare should clear backToSummary
+    // NavigationBar should clear backToSummary
     testNavigationMethod(() => {
       cy.gotoNavPage('summary');
       return true;
@@ -623,6 +627,7 @@ describe('Summary', () => {
     cy.gotoNavPage('summary');
     cy.get('[data-testid="summary-fordeling-bolig"] button').click();
     cy.navPage('grid').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.grid.bolig.percent).should('be.focused');
     cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldFromBackend}")`).find('button').click();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');

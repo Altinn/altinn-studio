@@ -28,10 +28,7 @@ import type { NodeRefValidation } from 'src/features/validation';
 export interface NavigateToPageOptions {
   replace?: boolean;
   skipAutoSave?: boolean;
-  shouldFocusComponent?: boolean;
   resetReturnToView?: boolean;
-  exitSubform?: boolean;
-  focusComponentId?: string;
   searchParams?: URLSearchParams;
 }
 
@@ -212,10 +209,10 @@ export function useNavigatePage() {
   const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
-  const queryKeysRef = useAsRef(useLocation().search);
   const getTaskType = useGetTaskTypeById();
   const refetchInitialValidations = useRefetchInitialValidations();
-  const [searchParams] = useSearchParams();
+  const [_searchParams] = useSearchParams();
+  const searchParamsRef = useAsRef(_searchParams);
 
   const { autoSaveBehavior } = usePageSettings();
   const order = usePageOrder();
@@ -242,9 +239,9 @@ export function useNavigatePage() {
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
     if (isStatelessApp && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
-      navigate(`/${orderRef.current[0]}${queryKeysRef.current}`, { replace: true });
+      navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
     }
-  }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, queryKeysRef]);
+  }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
   const waitForSave = FD.useWaitForSave();
   const maybeSaveOnPageChange = useCallback(async () => {
@@ -253,12 +250,13 @@ export function useNavigatePage() {
 
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {
+      const shouldExitSubform = options?.searchParams?.has(SearchParams.ExitSubform, 'true') ?? false;
       const replace = options?.replace ?? false;
       if (!page) {
         window.logWarn('navigateToPage called without page');
         return;
       }
-      if (!orderRef.current.includes(page) && options?.exitSubform !== true) {
+      if (!orderRef.current.includes(page) && !shouldExitSubform) {
         window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
@@ -266,55 +264,28 @@ export function useNavigatePage() {
       if (options?.skipAutoSave !== true) {
         await maybeSaveOnPageChange();
       }
-      if (options?.exitSubform) {
+      if (shouldExitSubform) {
         await refetchInitialValidations();
       }
 
+      const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
       if (isStatelessApp) {
-        const url = `/${page}${queryKeysRef.current}`;
+        const url = `/${page}${searchParams}`;
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
       const { instanceOwnerPartyId, instanceGuid, taskId, mainPageKey, componentId, dataElementId } = navParams.current;
 
       // Subform
-      if (mainPageKey && componentId && dataElementId && options?.exitSubform !== true) {
-        const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${queryKeysRef.current}`;
+      if (mainPageKey && componentId && dataElementId && !shouldExitSubform) {
+        const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}/${componentId}/${dataElementId}/${page}${searchParams}`;
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
 
-      let url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}`;
-
-      if (options?.searchParams) {
-        options.searchParams.forEach((value, key) => {
-          searchParams.set(key, value);
-        });
-      }
-
-      // Special cases for component focus and subform exit
-      if (options?.focusComponentId || options?.exitSubform) {
-        if (options?.focusComponentId) {
-          searchParams.set(SearchParams.FocusComponentId, options.focusComponentId);
-        }
-
-        if (options?.exitSubform) {
-          searchParams.set(SearchParams.ExitSubform, 'true');
-        }
-      }
-
-      url = `${url}?${searchParams.toString()}`;
+      const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
     },
-    [
-      isStatelessApp,
-      maybeSaveOnPageChange,
-      navParams,
-      navigate,
-      orderRef,
-      queryKeysRef,
-      refetchInitialValidations,
-      searchParams,
-    ],
+    [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
 
   const [_, setVisitedPages] = useVisitedPages();
@@ -373,11 +344,13 @@ export function useNavigatePage() {
       return;
     }
 
-    await navigateToPage(navParams.current.mainPageKey, {
-      exitSubform: true,
-      resetReturnToView: false,
-      focusComponentId: navParams.current.componentId,
-    });
+    const searchParams = new URLSearchParams();
+    searchParams.set(SearchParams.ExitSubform, 'true');
+    const componentToNavigateTo = navParams.current.componentId;
+    if (componentToNavigateTo) {
+      searchParams.set(SearchParams.FocusComponentId, componentToNavigateTo);
+    }
+    await navigateToPage(navParams.current.mainPageKey, { searchParams, resetReturnToView: false });
   };
 
   const enterSubform = async ({
@@ -416,8 +389,9 @@ export function useNavigatePage() {
 }
 
 export function focusMainContent(options?: NavigateToPageOptions) {
-  if (options?.shouldFocusComponent !== true) {
-    document.getElementById('main-content')?.focus({ preventScroll: true });
+  if (!options?.searchParams?.has(SearchParams.FocusComponentId)) {
+    document.getElementById('main-content')?.focus();
+    window.scrollTo(0, 0);
   }
 }
 
@@ -447,29 +421,22 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
-
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
     const errorBindingKey = options?.error?.['bindingKey'];
-
     if (errorBindingKey) {
-      setSearchParams((prev) => {
-        prev.set(SearchParams.FocusErrorBinding, errorBindingKey);
-        return prev;
-      });
+      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
     }
 
     if (targetPage && targetPage !== currentPageId) {
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
-        shouldFocusComponent: true,
-        focusComponentId: indexedId,
-        searchParams,
-        replace: !!searchParams.get(SearchParams.FocusComponentId) || !!searchParams.get(SearchParams.ExitSubform),
+        searchParams: newSearchParams,
+        replace:
+          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
       });
     } else {
-      setSearchParams((prev) => {
-        prev.set(SearchParams.FocusComponentId, indexedId);
-        return prev;
-      });
+      setSearchParams(newSearchParams);
     }
   };
 }

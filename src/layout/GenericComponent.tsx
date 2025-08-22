@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
-import { useNavigation, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useLocation, useNavigation, useSearchParams } from 'react-router-dom';
+import type { SetURLSearchParams } from 'react-router-dom';
 
 import classNames from 'classnames';
 
@@ -214,33 +215,71 @@ export function ComponentErrorList({ baseComponentId, errors }: { baseComponentI
 function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
   const [searchParams, setSearchParams] = useSearchParams();
   const indexedId = searchParams.get(SearchParams.FocusComponentId);
-  const searchParamBindingError = searchParams.get(SearchParams.FocusErrorBinding);
+  const errorBinding = searchParams.get(SearchParams.FocusErrorBinding);
   const isNavigating = useNavigation().state !== 'idle';
 
+  const location = useLocation();
+  const abortController = useRef(new AbortController());
+
+  const hashWas = window.location.hash;
+  const locationIsUpdated = hashWas.endsWith(location.search);
+  const shouldFocus = indexedId && indexedId == nodeId && !isNavigating && locationIsUpdated;
+
   useEffect(() => {
-    if (!indexedId || indexedId !== nodeId || isNavigating) {
-      return;
+    const div = containerDivRef.current;
+    if (shouldFocus && div) {
+      try {
+        requestAnimationFrame(() => {
+          !abortController.current.signal.aborted && div.scrollIntoView({ behavior: 'instant' });
+        });
+
+        const field = findElementToFocus(div, errorBinding);
+        if (field && !abortController.current.signal.aborted) {
+          field.focus();
+        }
+      } finally {
+        if (!abortController.current.signal.aborted && hashWas === window.location.hash) {
+          // Only cleanup when hash is the same as what it was during render. Navigation might have occurred, especially
+          // in Cypress tests where state changes will happen rapidly. These search params are cleaned up in
+          // useNavigatePage() automatically, so it shouldn't be a problem if the page has been changed. If something
+          // else happens, we'll re-render and get a new chance to clean up later.
+          cleanupQuery(searchParams, setSearchParams);
+        }
+      }
     }
+  }, [containerDivRef, errorBinding, hashWas, nodeId, searchParams, setSearchParams, shouldFocus]);
 
-    requestAnimationFrame(() => containerDivRef.current?.scrollIntoView({ behavior: 'instant' }));
-    const targetElements = containerDivRef.current?.querySelectorAll('input,textarea,select,p');
-    const targetHtmlElements = targetElements
-      ? Array.from(targetElements).filter((node) => node instanceof HTMLElement)
-      : [];
+  useEffect(
+    () => () => {
+      // Abort on unmount so that we do not keep trying to focus this component
+      abortController.current.abort();
+    },
+    [abortController],
+  );
+}
 
-    if (targetHtmlElements?.length > 0) {
-      const errorElement = searchParamBindingError
-        ? Array.from(targetHtmlElements).find(
-            (htmlElement) => htmlElement && htmlElement.dataset.bindingkey === searchParamBindingError,
-          )
-        : undefined;
+function cleanupQuery(searchParams: URLSearchParams, setSearchParams: SetURLSearchParams) {
+  if (searchParams.has(SearchParams.FocusComponentId) || searchParams.has(SearchParams.FocusErrorBinding)) {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete(SearchParams.FocusComponentId);
+    newSearchParams.delete(SearchParams.FocusErrorBinding);
+    setSearchParams(newSearchParams, { replace: true });
+  }
+}
 
-      // Focus error element or fallback to first element if no error or matching binding
-      (errorElement ?? targetHtmlElements[0]).focus();
-    }
+function findElementToFocus(div: HTMLDivElement | null, binding: string | null) {
+  const targetElements = div?.querySelectorAll('input,textarea,select,p');
+  const targetHtmlElements = targetElements
+    ? Array.from(targetElements).filter((node) => node instanceof HTMLElement)
+    : [];
 
-    searchParams.delete(SearchParams.FocusComponentId);
-    searchParams.delete(SearchParams.FocusErrorBinding);
-    setSearchParams(searchParams, { replace: true });
-  }, [nodeId, indexedId, searchParamBindingError, containerDivRef, searchParams, setSearchParams, isNavigating]);
+  if (targetHtmlElements?.length > 0) {
+    const elementWithBinding = binding
+      ? Array.from(targetHtmlElements).find((htmlElement) => htmlElement && htmlElement.dataset.bindingkey === binding)
+      : undefined;
+
+    return elementWithBinding ?? targetHtmlElements[0];
+  }
+
+  return undefined;
 }
