@@ -3,7 +3,7 @@
   X-Frame-Options: deny
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 0
-  Referer-Policy: no-referer
+  Referrer-Policy: no-referrer
   Cache-Control: no-store,no-cache
   Content-Type: application/problem+json; charset=utf-8
 }

@@ -9,7 +9,7 @@ namespace Altinn.App.Api.Infrastructure.Middleware;
 /// X-Frame-Options
 /// X-Content-Type-Options
 /// X-XSS-Protection
-/// Referer-Policy
+/// Referrer-Policy
 /// </summary>
 public class SecurityHeadersMiddleware
 {
@@ -34,7 +34,7 @@ public class SecurityHeadersMiddleware
         context.Response.Headers.Append("X-Frame-Options", "deny");
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-XSS-Protection", "0");
-        context.Response.Headers.Append("Referer-Policy", "no-referer");
+        context.Response.Headers.Append("Referrer-Policy", "no-referrer");
         context.Response.Headers.Append("Cache-Control", "no-store,no-cache");
 
         return _next(context);

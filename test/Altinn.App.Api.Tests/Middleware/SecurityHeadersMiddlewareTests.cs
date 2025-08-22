@@ -31,6 +31,6 @@ public class SecurityHeadersMiddlewareTests
         Assert.Equal("deny", response.Headers.GetValues("X-Frame-Options").FirstOrDefault());
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").FirstOrDefault());
         Assert.Equal("0", response.Headers.GetValues("X-XSS-Protection").FirstOrDefault());
-        Assert.Equal("no-referer", response.Headers.GetValues("Referer-Policy").FirstOrDefault());
+        Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").FirstOrDefault());
     }
 }

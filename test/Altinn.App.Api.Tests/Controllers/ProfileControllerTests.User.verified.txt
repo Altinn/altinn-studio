@@ -63,7 +63,7 @@
     Status: 200 OK,
     Headers: {
       Cache-Control: no-store, no-cache,
-      Referer-Policy: no-referer,
+      Referrer-Policy: no-referrer,
       X-Content-Type-Options: nosniff,
       X-Frame-Options: deny,
       X-XSS-Protection: 0
