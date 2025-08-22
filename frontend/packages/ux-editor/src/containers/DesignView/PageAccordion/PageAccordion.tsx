@@ -12,9 +12,9 @@ import { StudioButton } from '@studio/components-legacy';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
-import cn from 'classnames';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import cn from 'classnames';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -82,7 +82,7 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item open={isOpen}>
+    <Accordion.Item open={isOpen} className={classes.accordionItem}>
       <div className={classes.accordionHeaderRow}>
         <div
           data-testid={accordionHeaderId(pageName)}
@@ -94,9 +94,7 @@ export const PageAccordion = ({
             {pageName}
           </Accordion.Header>
         </div>
-        <div
-          className={cn(classes.navigationMenu, { [classes.navigationMenuGroup]: isUsingGroups })}
-        >
+        <div className={cn(classes.navigationMenu, { [classes.accordionSelected]: isOpen })}>
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton

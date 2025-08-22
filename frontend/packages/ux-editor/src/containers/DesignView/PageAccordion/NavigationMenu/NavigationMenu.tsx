@@ -16,6 +16,7 @@ import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useCh
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import { PageGroupMoveToExistingGroupDialog } from '@altinn/ux-editor/components/Pages/PageGroupMoveDialog';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import classes from './NavigationMenu.module.css';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -114,7 +115,10 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
           onClose={() => setIsMoveToGroupDialogOpen(false)}
         />
       )}
-      <StudioDropdown icon={<MenuElipsisVerticalIcon />} triggerButtonVariant='tertiary'>
+      <StudioDropdown
+        icon={<MenuElipsisVerticalIcon className={classes.elipsisIcon} />}
+        triggerButtonVariant='tertiary'
+      >
         <StudioDropdown.List>
           <StudioDropdown.Item>
             <StudioDropdown.Button
