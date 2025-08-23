@@ -74,6 +74,17 @@ public class CdnConfigService : ICdnConfigService
         return $"https://{org}.{environmentConfig.AppPrefix}.{environmentConfig.Hostname}";
     }
 
+    /// <inheritdoc />
+    public async Task<IEnumerable<string>> GetSortedEnvironmentNames()
+    {
+        var environmentsConfig = await GetEnvironmentsConfig();
+
+        return environmentsConfig
+            .Environments.OrderBy(e => e.Type, StringComparer.Ordinal)
+            .ThenBy(e => e.Name, StringComparer.Ordinal)
+            .Select(e => e.Name);
+    }
+
     private async Task<CdnOrgs> GetOrgsConfig()
     {
         var config = await _cache.GetOrCreateAsync(

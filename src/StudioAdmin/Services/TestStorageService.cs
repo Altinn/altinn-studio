@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Admin.Helpers;
 using Altinn.Studio.Admin.Models;
 using Altinn.Studio.Admin.Services.Interfaces;
 using Microsoft.AspNetCore.WebUtilities;
@@ -46,13 +47,10 @@ class TestStorageService : IStorageService
         CancellationToken ct
     )
     {
-        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
-        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
-
-        await Task.WhenAll(platformBaseUrlTask, tokenTask);
-
-        var platformBaseUrl = await platformBaseUrlTask;
-        var token = await tokenTask;
+        var (platformBaseUrl, token) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetPlatformBaseUrl(env),
+            _tokenGeneratorService.GetTestToken(org, env)
+        );
 
         var instancesUri = QueryHelpers.AddQueryString(
             $"{platformBaseUrl}/storage/api/v1/instances",
@@ -64,7 +62,10 @@ class TestStorageService : IStorageService
                 ["size"] = $"{SIZE}",
                 ["continuationToken"] = continuationToken,
                 ["process.currentTask"] = currentTaskFilter,
-                ["process.isComplete"] = processIsCompleteFilter != null ? processIsCompleteFilter.Value.ToString().ToLowerInvariant() : null,
+                ["process.isComplete"] =
+                    processIsCompleteFilter != null
+                        ? processIsCompleteFilter.Value.ToString().ToLowerInvariant()
+                        : null,
             }
         );
 
@@ -116,13 +117,10 @@ class TestStorageService : IStorageService
         CancellationToken ct
     )
     {
-        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
-        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
-
-        await Task.WhenAll(platformBaseUrlTask, tokenTask);
-
-        var platformBaseUrl = await platformBaseUrlTask;
-        var token = await tokenTask;
+        var (platformBaseUrl, token) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetPlatformBaseUrl(env),
+            _tokenGeneratorService.GetTestToken(org, env)
+        );
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -152,13 +150,10 @@ class TestStorageService : IStorageService
         CancellationToken ct
     )
     {
-        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
-        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
-
-        await Task.WhenAll(platformBaseUrlTask, tokenTask);
-
-        var platformBaseUrl = await platformBaseUrlTask;
-        var token = await tokenTask;
+        var (platformBaseUrl, token) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetPlatformBaseUrl(env),
+            _tokenGeneratorService.GetTestToken(org, env)
+        );
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -185,13 +180,10 @@ class TestStorageService : IStorageService
         CancellationToken ct
     )
     {
-        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
-        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
-
-        await Task.WhenAll(platformBaseUrlTask, tokenTask);
-
-        var platformBaseUrl = await platformBaseUrlTask;
-        var token = await tokenTask;
+        var (platformBaseUrl, token) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetPlatformBaseUrl(env),
+            _tokenGeneratorService.GetTestToken(org, env)
+        );
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -222,13 +214,10 @@ class TestStorageService : IStorageService
         CancellationToken ct
     )
     {
-        var platformBaseUrlTask = _cdnConfigService.GetPlatformBaseUrl(env);
-        var tokenTask = _tokenGeneratorService.GetTestToken(org, env);
-
-        await Task.WhenAll(platformBaseUrlTask, tokenTask);
-
-        var platformBaseUrl = await platformBaseUrlTask;
-        var token = await tokenTask;
+        var (platformBaseUrl, token) = await TaskUtilities.WhenAll(
+            _cdnConfigService.GetPlatformBaseUrl(env),
+            _tokenGeneratorService.GetTestToken(org, env)
+        );
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
