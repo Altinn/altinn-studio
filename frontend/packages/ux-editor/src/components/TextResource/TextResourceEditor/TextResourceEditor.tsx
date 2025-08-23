@@ -6,10 +6,10 @@ import classes from './TextResourceEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioAlert } from '@studio/components';
 
-export interface TextResourceProps {
+export interface TextResourceEditorProps {
   textResourceId: string;
-  onReferenceChange: (id: string) => void;
-  onSetCurrentValue: (value: string) => void;
+  onTextChange?: (value: string) => void;
+  onReferenceChange?: (id: string) => void;
   textResourceValue?: string;
   disableSearch?: boolean;
 }
@@ -21,11 +21,11 @@ enum TextResourceTab {
 
 export const TextResourceEditor = ({
   textResourceId,
+  onTextChange,
   onReferenceChange,
-  onSetCurrentValue,
   textResourceValue,
   disableSearch = false,
-}: TextResourceProps) => {
+}: TextResourceEditorProps) => {
   const { t } = useTranslation();
 
   return (
@@ -41,7 +41,7 @@ export const TextResourceEditor = ({
       <Tabs.Content value={TextResourceTab.Type} className={classes.tabContent}>
         <TextResourceValueEditor
           textResourceId={textResourceId}
-          onSetCurrentValue={onSetCurrentValue}
+          onTextChange={onTextChange}
           textResourceValue={textResourceValue}
         />
       </Tabs.Content>
