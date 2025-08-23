@@ -136,7 +136,7 @@ export const ConsentPreview = ({
           className={isMobileViewEnabled ? classes.mobileView : undefined}
         >
           <div className={classes.consentBlock}>
-            <StudioHeading level={1} data-size='md'>
+            <StudioHeading level={1} data-size='md' className={classes.topHeader}>
               {texts.title}
             </StudioHeading>
           </div>
