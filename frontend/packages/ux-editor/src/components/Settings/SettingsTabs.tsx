@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import React from 'react';
-import { StudioAlert, StudioHeading, StudioTabs } from '@studio/components-legacy';
+import { StudioAlert, StudioTabs } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
@@ -16,7 +17,7 @@ export const SettingsTabs = (): ReactElement => {
 
   return (
     <div>
-      <StudioHeading level={2} size='xsmall' className={classes.heading}>
+      <StudioHeading level={2} data-size='xs' className={classes.heading}>
         {t('ux_editor.settings.other_settings')}
       </StudioHeading>
       <StudioTabs defaultValue={Tabs.Navigation}>
