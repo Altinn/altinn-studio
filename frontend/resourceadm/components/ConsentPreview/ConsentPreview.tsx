@@ -85,6 +85,7 @@ export const ConsentPreview = ({
 
   const resourceMetadata = isDummyMetadataEnabled ? getDummyResourceMetadata(consentMetadata) : {};
 
+  const consentPreviewText = consentText ?? { nb: '', nn: '', en: '' };
   const texts = {
     title: replaceMetadata(template.texts.title[reporteeType][language], staticMetadata),
     heading: replaceMetadata(template.texts.heading[reporteeType][language], staticMetadata),
@@ -95,7 +96,7 @@ export const ConsentPreview = ({
       template.texts.serviceIntro[reporteeType][language],
       staticMetadata,
     ),
-    resourceText: replaceMetadata(consentText[language], resourceMetadata),
+    resourceText: replaceMetadata(consentPreviewText[language], resourceMetadata),
     expiration: isOneTimeConsent
       ? template.texts.expirationOneTime[language]
       : replaceMetadata(template.texts.expiration[language], staticMetadata),

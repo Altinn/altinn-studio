@@ -42,6 +42,7 @@
   "resourceadm.about_resource_error_translation_missing_consent_text_en": "Det mangler oversettelse for samtykketekst på engelsk",
   "resourceadm.about_resource_error_translation_missing_consent_text_nn": "Det mangler oversettelse for samtykketekst på nynorsk",
   "resourceadm.about_resource_error_unknown_metadata_language": "Metadata-verdi {{unknownMetadataValues}} er ikke definert i feltet samtykkemetadata for {{lang1}}",
+  "resourceadm.about_resource_error_consent_text_link_invalid": "Lenken {{link}} er ugyldig",
   "resourceadm.about_resource_homepage_label": "Hjemmeside",
   "resourceadm.about_resource_homepage_text": "Lenke til informasjon om hvor sluttbrukerne kan finne tjenesten og informasjon om den.",
   "resourceadm.about_resource_identifier_description": "Dette er en unik ID for ressursen både i URL-er og i API-er.",

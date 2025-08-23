@@ -1,4 +1,3 @@
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -16,6 +15,7 @@ import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
 import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import type { TFunction } from 'i18next';
 
 /**
  * The map of resource type
@@ -175,7 +175,7 @@ export const deepCompare = (original: any, changed: any) => {
 
 export const validateResource = (
   resourceData: Resource | undefined,
-  t: (key: string, params?: KeyValuePairs<string>) => string,
+  t: TFunction<'translation', undefined>,
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
@@ -359,6 +359,27 @@ export const validateResource = (
           }),
         });
       }
+    });
+
+    // validate links used in consentText
+    (['nb', 'nn', 'en'] as const).forEach((language: ValidLanguage) => {
+      const text = resourceData.consentText?.[language] ?? '';
+      const links: string[] = (text.match(/\[[^\]]+\]\([^)]+\)/g) ?? []) as string[];
+      links.forEach((link) => {
+        const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
+        const linkUrl = urlMatch?.[1];
+        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        if (!isLinkUrlValid) {
+          errors.push({
+            field: 'consentText',
+            index: language,
+            error: t('resourceadm.about_resource_error_consent_text_link_invalid', {
+              link,
+              interpolation: { escapeValue: false },
+            }),
+          });
+        }
+      });
     });
   }
 

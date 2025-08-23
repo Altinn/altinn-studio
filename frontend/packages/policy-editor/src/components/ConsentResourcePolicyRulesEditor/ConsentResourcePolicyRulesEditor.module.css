@@ -18,7 +18,7 @@
   border-bottom: 0;
   min-height: var(--ds-size-12);
   align-items: center;
-  margin-top: var(--ds-size-8);
+  margin-bottom: var(--ds-size-8);
   font-weight: 500;
 }
 .allOrganizationsItemLabel {
