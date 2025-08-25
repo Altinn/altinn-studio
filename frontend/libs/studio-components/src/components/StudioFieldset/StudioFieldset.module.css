@@ -1,0 +1,7 @@
+.fieldset > legend {
+  display: contents;
+}
+
+.fieldset.withHiddenLegend > legend {
+  display: none;
+}
