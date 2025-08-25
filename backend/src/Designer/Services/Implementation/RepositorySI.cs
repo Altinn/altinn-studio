@@ -296,6 +296,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appMetadata.LastChanged = appMetadata.Created;
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
+
+            if (targetAppRepository.ServiceConfigExists())
+            {
+                ServiceConfiguration serviceConfig = await targetAppRepository.GetServiceConfiguration();
+                serviceConfig.RepositoryName = targetAppRepository.Repository;
+                serviceConfig.ServiceName = targetAppRepository.Repository;
+                await targetAppRepository.SaveAppMetadataConfig(serviceConfig);
+            }
+
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             await _sourceControl.PushChangesForRepository(commitInfo);
 
