@@ -1,0 +1,8 @@
+.studioPageHeader  {
+  /*
+      To avoid the header to go above the modal, and stay below
+      the comboboxes on "Designer" page, this is the z-index that
+      satisfies both.
+  */
+  z-index: 2000;
+}

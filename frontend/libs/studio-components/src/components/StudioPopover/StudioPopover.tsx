@@ -42,12 +42,12 @@ function StudioPopoverTrigger(
   );
 }
 
-const ForwardedStudioPopoverTrigger = forwardRef(StudioPopoverTrigger);
-export { ForwardedStudioPopoverTrigger as StudioPopoverTrigger };
-
 export function StudioPopoverTriggerContext({
   children,
   ...rest
 }: StudioPopoverTriggerContextProps): ReactElement {
   return <Popover.TriggerContext {...rest}>{children}</Popover.TriggerContext>;
 }
+
+const ForwardedStudioPopoverTrigger = forwardRef(StudioPopoverTrigger);
+export { ForwardedStudioPopoverTrigger as StudioPopoverTrigger };

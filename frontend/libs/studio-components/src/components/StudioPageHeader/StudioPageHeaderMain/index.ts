@@ -1,0 +1,1 @@
+export { StudioPageHeaderMain } from './StudioPageHeaderMain';
