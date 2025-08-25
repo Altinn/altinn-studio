@@ -89,10 +89,7 @@
                 headers: headers,
             })
             .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    console.error('Failed to advance process:', response.statusText);
+                if (!response.ok) {
                     alert('Kunne ikke gå til neste steg. Prøv igjen senere.');
                 }
             })
