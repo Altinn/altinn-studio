@@ -37,7 +37,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string ImagesFolderName = "App/wwwroot/";
         private const string LayoutsInSetFolderName = "layouts/";
         private const string LanguageResourceFolderName = "texts/";
-        private const string MarkdownTextsFolderName = "md/";
         private const string ProcessDefinitionFolderPath = "App/config/process/";
         private const string CshtmlPath = "App/views/Home/Index.cshtml";
 
@@ -124,6 +123,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return applicationMetaData;
         }
 
+        public async Task<ServiceConfiguration> GetServiceConfiguration(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string serviceConfigRelativeFilePath = ServiceConfigFilename;
+
+            string fileContent = await ReadTextByRelativePathAsync(serviceConfigRelativeFilePath, cancellationToken);
+
+            ServiceConfiguration serviceConfig = JsonSerializer.Deserialize<ServiceConfiguration>(fileContent, s_jsonOptions);
+            return serviceConfig;
+        }
+
+        public bool ServiceConfigExists()
+        {
+            return FileExistsByRelativePath(ServiceConfigFilename);
+        }
         public bool ApplicationMetadataExists()
         {
             string appMetadataRelativeFilePath = Path.Combine(

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -234,6 +235,75 @@ namespace Designer.Tests.Services
                 TestDataHelper.DeleteDirectory(workingRemoteDirPath);
             }
         }
+
+[Fact]
+public async Task CopyRepository_WithConfigJson_InRoot_UpdatesServiceConfiguration()
+{
+    // Arrange
+    string developer = "testUser";
+    string org = "ttd";
+    string sourceWithConfig = TestDataHelper.GenerateTestRepoName("cfg");
+    string targetRepository = TestDataHelper.GenerateTestRepoName("clone");
+
+    string workingRemoteDirPath = string.Empty;
+
+    try
+    {
+        // 1. Kopier repo og gjør klar remote struktur
+        workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, "apps-test", sourceWithConfig);
+        PrepareRemoteTestData(org, sourceWithConfig);
+
+        // 2. Legg config.json i roten av repoet
+        string configPath = Path.Combine(workingRemoteDirPath, "config.json");
+        File.WriteAllText(configPath, """
+        {
+            "RepositoryName": "should-be-overwritten",
+            "ServiceName": "should-be-overwritten"
+        }
+        """);
+
+        Assert.True(File.Exists(configPath), $"Før kopiering: config.json mangler i root: {configPath}");
+
+        RepositorySI sut = GetServiceForTest(developer);
+
+        // Act
+        await sut.CopyRepository(org, sourceWithConfig, targetRepository, developer);
+
+        // 3. Bekreft at config.json ble kopiert til root av target repo
+        string destRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+        string destConfigPath = Path.Combine(destRepoPath, "config.json");
+        Assert.True(File.Exists(destConfigPath), $"Etter kopiering: config.json ble ikke funnet i target root: {destConfigPath}");
+
+        // 4. Les og verifiser innhold
+        string configJson = File.ReadAllText(destConfigPath);
+        Console.WriteLine($"[DEBUG] Innhold i kopiert config.json:\n{configJson}");
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        ServiceConfiguration config = System.Text.Json.JsonSerializer.Deserialize<ServiceConfiguration>(configJson, options);
+
+        Assert.NotNull(config);
+        Assert.Equal(targetRepository, config.RepositoryName);
+        Assert.Equal(targetRepository, config.ServiceName);
+    }
+    finally
+    {
+        // Cleanup
+        string cloneDir = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+        TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
+        if (Directory.Exists(cloneDir))
+        {
+            Directory.Delete(cloneDir, true);
+        }
+
+        CleanUpRemoteTestData(org, sourceWithConfig);
+        TestDataHelper.DeleteDirectory(workingRemoteDirPath);
+    }
+}
+
 
         [Fact]
         public async Task DeleteRepository_SourceControlServiceIsCalled()
