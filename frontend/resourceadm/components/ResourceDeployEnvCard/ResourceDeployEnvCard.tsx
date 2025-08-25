@@ -75,7 +75,7 @@ export const ResourceDeployEnvCard = ({
             {t('resourceadm.deploy_version_number_text')}
           </StudioParagraph>
           <div className={classes.envWrapper}>
-            <StudioTag color='neutral' data-size='sm'>
+            <StudioTag data-color='neutral' data-size='sm'>
               {currentEnvVersion}
             </StudioTag>
             {newEnvVersion && (
