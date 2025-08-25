@@ -1,10 +1,11 @@
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import { InstanceContext } from '../../../../../enums/InstanceContext';
-import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../../../../../enums/PredefinedGatewayAction';
 
-export const getDefaultValueOfType = (newType: SimpleSubexpressionValueType) =>
-  defaultValueByType[newType];
+export const getDefaultValueOfType = (
+  newType: SimpleSubexpressionValueType,
+): SimpleSubexpressionValue => defaultValueByType[newType];
 
 const defaultValueByType: {
   [K in SimpleSubexpressionValueType]: SimpleSubexpressionValue<K>;
@@ -17,13 +18,12 @@ const defaultValueByType: {
     type: SimpleSubexpressionValueType.DataModel,
     path: '',
   },
-  [SimpleSubexpressionValueType.GatewayAction]: {
-    type: SimpleSubexpressionValueType.GatewayAction,
-    value: 'GatewayAction',
+  [SimpleSubexpressionValueType.CurrentGatewayAction]: {
+    type: SimpleSubexpressionValueType.CurrentGatewayAction,
   },
-  [SimpleSubexpressionValueType.GatewayActionContext]: {
-    type: SimpleSubexpressionValueType.GatewayActionContext,
-    key: GatewayActionContext.Confirm,
+  [SimpleSubexpressionValueType.PredefinedGatewayAction]: {
+    type: SimpleSubexpressionValueType.PredefinedGatewayAction,
+    key: PredefinedGatewayAction.Confirm,
   },
   [SimpleSubexpressionValueType.InstanceContext]: {
     type: SimpleSubexpressionValueType.InstanceContext,

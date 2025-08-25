@@ -29,7 +29,7 @@ describe('isExpressionValid', () => {
   it('Returns false when expression is invalid', () => {
     const invalidFunction = ['invalidFunction', 'test'];
     const validFunction: DataLookupFunc = [DataLookupFuncName.DataModel, 'test'];
-    const invalidExpressions: any[] = [
+    const invalidExpressions: unknown[] = [
       invalidFunction,
       [GeneralRelationOperator.Equals, invalidFunction],
       [LogicalTupleOperator.And, [validFunction, invalidFunction]],

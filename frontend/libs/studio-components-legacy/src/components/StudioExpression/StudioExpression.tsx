@@ -1,19 +1,24 @@
-import React, { useContext, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
 import { Tabs } from '@digdir/designsystemet-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
 import { ManualEditor } from './ManualEditor';
 import { isExpressionSimple } from './validators/isExpressionSimple';
-import { StudioExpressionContext } from './StudioExpressionContext';
+import {
+  StudioExpressionContextProvider,
+  useStudioExpressionContext,
+} from './StudioExpressionContext';
 import type { DataLookupOptions } from './types/DataLookupOptions';
 import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
+import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
+import { DataLookupFuncName } from './enums/DataLookupFuncName';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
-  expressionOptions?: string[];
+  types?: SimpleSubexpressionValueType[];
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
   dataLookupOptions: Partial<DataLookupOptions>;
@@ -27,24 +32,33 @@ enum TabId {
 
 export const StudioExpression = ({
   expression,
-  expressionOptions,
+  types = Object.values(SimpleSubexpressionValueType),
   onChange,
-  dataLookupOptions,
+  dataLookupOptions: partialDataLookupOptions,
   texts,
   showAddSubexpression,
-}: StudioExpressionProps) => {
+}: StudioExpressionProps): React.ReactElement => {
+  const dataLookupOptions: DataLookupOptions = useMemo<DataLookupOptions>(
+    () => ({
+      [DataLookupFuncName.Component]: [],
+      [DataLookupFuncName.DataModel]: [],
+      ...partialDataLookupOptions,
+    }),
+    [partialDataLookupOptions],
+  );
+
   if (!isExpressionValid(expression)) {
     return <StudioError>{texts.invalidExpression}</StudioError>;
   }
 
   return (
-    <StudioExpressionContext.Provider value={{ dataLookupOptions, texts, expressionOptions }}>
+    <StudioExpressionContextProvider value={{ dataLookupOptions, texts, types }}>
       <ValidExpression
         expression={expression}
         onChange={onChange}
         showAddSubexpression={showAddSubexpression}
       />
-    </StudioExpressionContext.Provider>
+    </StudioExpressionContextProvider>
   );
 };
 
@@ -53,14 +67,18 @@ type ValidExpressionProps = Pick<
   'expression' | 'onChange' | 'showAddSubexpression'
 >;
 
-const ValidExpression = ({ expression, showAddSubexpression, onChange }: ValidExpressionProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+const ValidExpression = ({
+  expression,
+  showAddSubexpression,
+  onChange,
+}: ValidExpressionProps): React.ReactElement => {
+  const { texts } = useStudioExpressionContext();
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
   const isManualExpressionValidRef = useRef<boolean>(true);
 
-  const handleChangeTab = (tab: TabId) => {
+  const handleChangeTab = (tab: TabId): void => {
     if (!isManualExpressionValidRef.current) {
       if (confirm(texts.changeToSimplifiedWarning)) {
         isManualExpressionValidRef.current = true;

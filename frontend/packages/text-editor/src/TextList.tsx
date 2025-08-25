@@ -55,7 +55,12 @@ export const TextList = ({
       </Table.Head>
       <Table.Body>
         {resourceRows
-          .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
+          .filter((row) =>
+            filterFunction({
+              entry: { id: row.textKey, translations: row.translations },
+              searchString: searchQuery,
+            }),
+          )
           .map((row) => {
             const keyIsAppName = row.textKey === APP_NAME;
             const keyIsLayoutName = !layoutNamesPending && layoutNames.includes(row.textKey);

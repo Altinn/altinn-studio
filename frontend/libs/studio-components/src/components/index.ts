@@ -3,9 +3,12 @@ import '@digdir/designsystemet-css/index.css';
 import '@digdir/designsystemet-theme/altinn.css';
 import './style/studio-variables.css';
 
+export * from './StudioActionCard';
+export * from './StudioActionCloseButton';
 export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
+export * from './StudioBooleanToggleGroup';
 export * from './StudioBreadcrumbs';
 export * from './StudioButton';
 export * from './StudioCallToActionBar';

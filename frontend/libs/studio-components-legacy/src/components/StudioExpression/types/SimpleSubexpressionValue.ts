@@ -1,6 +1,6 @@
 import type { InstanceContext } from '../enums/InstanceContext';
 import type { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
-import type { GatewayActionContext } from '../enums/GatewayActionContext';
+import type { PredefinedGatewayAction } from '../enums/PredefinedGatewayAction';
 
 export type SimpleSubexpressionValue<
   T extends SimpleSubexpressionValueType = SimpleSubexpressionValueType,
@@ -11,8 +11,8 @@ export type SimpleSubexpressionValue<
 type ValueDetails<T extends SimpleSubexpressionValueType> = {
   [SimpleSubexpressionValueType.Component]: { id: string };
   [SimpleSubexpressionValueType.DataModel]: { path: string };
-  [SimpleSubexpressionValueType.GatewayAction]: { value: string };
-  [SimpleSubexpressionValueType.GatewayActionContext]: { key: GatewayActionContext };
+  [SimpleSubexpressionValueType.CurrentGatewayAction]: {};
+  [SimpleSubexpressionValueType.PredefinedGatewayAction]: { key: PredefinedGatewayAction };
   [SimpleSubexpressionValueType.InstanceContext]: { key: InstanceContext };
   [SimpleSubexpressionValueType.String]: { value: string };
   [SimpleSubexpressionValueType.Number]: { value: number };

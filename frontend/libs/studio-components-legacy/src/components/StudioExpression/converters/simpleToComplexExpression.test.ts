@@ -15,7 +15,7 @@ import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../enums/PredefinedGatewayAction';
 
 describe('simpleToComplexExpression', () => {
   it.each([true, false])('Returns the expression when the expression is %s', (value) => {
@@ -99,17 +99,16 @@ describe('simpleToComplexExpression', () => {
       },
       expectedResult: [DataLookupFuncName.DataModel, '#/properties/test'],
     },
-    gatewayAction: {
+    currentGatewayAction: {
       subexpressionValue: {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'GatewayAction',
+        type: SimpleSubexpressionValueType.CurrentGatewayAction,
       },
-      expectedResult: [DataLookupFuncName.GatewayAction],
+      expectedResult: [KeyLookupFuncName.GatewayAction],
     },
-    gatewayActionContext: {
+    predefinedGatewayAction: {
       subexpressionValue: {
-        type: SimpleSubexpressionValueType.GatewayActionContext,
-        key: GatewayActionContext.Sign,
+        type: SimpleSubexpressionValueType.PredefinedGatewayAction,
+        key: PredefinedGatewayAction.Sign,
       },
       expectedResult: 'sign',
     },

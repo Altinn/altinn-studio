@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty } from '@studio/components-legacy';
-import { Alert, Switch } from '@digdir/designsystemet-react';
+import { StudioProperty, StudioSwitch } from '@studio/components';
+import { Alert } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
@@ -59,14 +59,12 @@ export const DataModelBindings = (): React.JSX.Element => {
           </Alert>
         )}
       {dataModelBindings.anyOf && (
-        <Switch
-          size='small'
+        <StudioSwitch
           checked={multipleAttachments}
           onChange={handleMultipleAttachmentsSwitch}
           className={classes.switch}
-        >
-          {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
-        </Switch>
+          label={t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
+        />
       )}
       <StudioProperty.Group>
         {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
