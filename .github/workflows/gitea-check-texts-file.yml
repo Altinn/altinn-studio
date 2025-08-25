@@ -4,8 +4,8 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'gitea/Dockerfile'
-      - 'gitea/files/locale/**'
+      - 'src/gitea/Dockerfile'
+      - 'src/gitea/files/locale/**'
       - '.github/workflows/gitea-check-texts-file.yml'
   workflow_dispatch:
 
@@ -22,16 +22,16 @@ jobs:
       - name: Get the new gitea version
         id: get-gitea-version
         run: |
-          version=$(cat gitea/Dockerfile | grep 'ARG GITEA_VERSION=' | sed -n 's/.*GITEA_VERSION=\(.*\)/\1/p' )
+          version=$(cat src/gitea/Dockerfile | grep 'ARG GITEA_VERSION=' | sed -n 's/.*GITEA_VERSION=\(.*\)/\1/p' )
           echo "gitea-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify texts file content
         id: check-texts-file
         env:
           temp-dir: temp
-          texts-file-no: gitea/files/locale/base/locale_nb-NO.ini
-          custom-texts-file-no: gitea/files/locale/custom/locale_nb-NO.ini
-          custom-texts-file-us: gitea/files/locale/custom/locale_en-US.ini
+          texts-file-no: src/gitea/files/locale/base/locale_nb-NO.ini
+          custom-texts-file-no: src/gitea/files/locale/custom/locale_nb-NO.ini
+          custom-texts-file-us: src/gitea/files/locale/custom/locale_en-US.ini
         run: |
           # download the localse file from the gitea release
           download_url=$(curl https://api.github.com/repos/go-gitea/gitea/releases/tags/v${{ steps.get-gitea-version.outputs.gitea-version }} | \

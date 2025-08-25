@@ -3,11 +3,11 @@ name: Frontend Tests
 on:
   push:
     paths:
-      - 'frontend/**'
-      - '!frontend/testing/cypress/**'
-      - '!frontend/stats/**'
-      - 'testdata/**'
-      - '.github/workflows/frontend-unit-tests.yml'
+      - 'src/Designer/frontend/**'
+      - '!src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
+      - 'src/Designer/testdata/**'
+      - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
   workflow_dispatch:
 
