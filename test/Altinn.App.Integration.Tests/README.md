@@ -7,6 +7,15 @@ For these integration tests we want to test apps as though the requests originat
 
 The test harness creates isolated environments with a **localtest container** (simulating Altinn Platform services) and an **Altinn app container** for end-to-end testing.
 
+## Prereqs
+
+- Docker install
+- May need a `127.0.0.1  local.altinn.cloud` record in `/etc/hosts`
+- May need firewall changes
+  - linux ufw firewall blocked container -> host traffic via `host.docker.internal` in one case
+    - Verify root cause temporarily by: `sudo ufw disable`
+    - Run `BasicAppTests.ContainerConnectivity` test, it needs to succeed for the harness container setup to work
+
 ## Architecture Overview
 
 The integration test system uses:

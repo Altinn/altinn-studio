@@ -71,6 +71,10 @@ public sealed partial class AppFixture : IAsyncDisposable
 
     public bool TestErrored { get; set; } = false;
 
+    public ushort? PdfHostPort => _pdfServiceContainer?.GetMappedPublicPort(PdfServicePort);
+    public ushort? LocaltestHostPort => _localtestContainer?.GetMappedPublicPort(LocaltestPort);
+    public ushort? AppHostPort => _appContainer?.GetMappedPublicPort(AppPort);
+
     private AppFixture(
         ILogger logger,
         long currentFixtureInstance,

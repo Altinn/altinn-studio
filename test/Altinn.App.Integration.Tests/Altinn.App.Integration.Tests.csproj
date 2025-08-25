@@ -22,7 +22,9 @@
 
   <ItemGroup>
     <Compile Remove="_testapps/**" />
+    <!-- TODO: cleaner sharing -->
     <Compile Include="_testapps/_shared/FixtureConfiguration.cs" />
+    <Compile Include="_testapps/_shared/ConnectivityResult.cs" />
     <Compile Remove="_localtest/**" />
   </ItemGroup>
 

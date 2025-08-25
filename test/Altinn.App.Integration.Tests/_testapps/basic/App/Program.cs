@@ -83,5 +83,6 @@ void Configure()
     // Custom middleware not included in app template
 
     app.UseAuthenticationIntrospection();
+    app.UseConnectivityDiagnostics();
     // #########################################################################
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -183,5 +184,29 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             ),
             _ => throw new ArgumentOutOfRangeException(nameof(testCase)),
         };
+    }
+
+    [Fact]
+    public async Task ContainerConnectivity_Pdf()
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+
+        var port = fixture.PdfHostPort.ToString();
+        Assert.NotNull(port);
+        var response = await fixture.Connectivity.Pdf();
+        await Verify(response).AddScrubber(sb => sb.Replace(port, "<pdfPort>"));
+        Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+    }
+
+    [Fact]
+    public async Task ContainerConnectivity_Localtest()
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+
+        var response = await fixture.Connectivity.Localtest();
+        await Verify(response);
+        Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
     }
 }
