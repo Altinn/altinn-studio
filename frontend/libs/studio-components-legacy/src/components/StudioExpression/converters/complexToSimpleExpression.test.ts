@@ -16,9 +16,10 @@ import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { PredefinedGatewayAction } from '../enums/PredefinedGatewayAction';
 
 describe('complexToSimpleExpression', () => {
-  it.each([true, false])('Returns true when the expression is %s', (value) => {
+  it.each([true, false])('Returns the boolean value when the expression is %s', (value) => {
     expect(complexToSimpleExpression(value)).toBe(value);
   });
 
@@ -79,6 +80,17 @@ describe('complexToSimpleExpression', () => {
       expectedOutput: {
         type: SimpleSubexpressionValueType.InstanceContext,
         key: InstanceContext.InstanceId,
+      },
+    },
+    'gateway action lookup': {
+      input: [KeyLookupFuncName.GatewayAction],
+      expectedOutput: { type: SimpleSubexpressionValueType.CurrentGatewayAction },
+    },
+    'predefined gateway action': {
+      input: PredefinedGatewayAction.Confirm,
+      expectedOutput: {
+        type: SimpleSubexpressionValueType.PredefinedGatewayAction,
+        key: PredefinedGatewayAction.Confirm,
       },
     },
     string: {

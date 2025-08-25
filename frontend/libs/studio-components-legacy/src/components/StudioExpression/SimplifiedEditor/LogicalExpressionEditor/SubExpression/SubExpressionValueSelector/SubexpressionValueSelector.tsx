@@ -22,7 +22,7 @@ export const SubexpressionValueSelector = ({
   legend,
   onChange,
   value,
-}: SubexpressionValueSelectorProps) => (
+}: SubexpressionValueSelectorProps): React.ReactElement => (
   <div className={`${className} ${classes.wrapper}`}>
     {isInEditMode ? (
       <EditMode value={value} onChange={onChange} legend={legend} />
@@ -34,8 +34,8 @@ export const SubexpressionValueSelector = ({
 
 type EditModeProps = Omit<SubexpressionValueSelectorProps, 'isInEditMode' | 'className'>;
 
-const EditMode = ({ value, onChange, legend }: EditModeProps) => {
-  const handleTypeChange = (type: SimpleSubexpressionValueType) =>
+const EditMode = ({ value, onChange, legend }: EditModeProps): React.ReactElement => {
+  const handleTypeChange = (type: SimpleSubexpressionValueType): void =>
     onChange(getDefaultValueOfType(type));
 
   return (

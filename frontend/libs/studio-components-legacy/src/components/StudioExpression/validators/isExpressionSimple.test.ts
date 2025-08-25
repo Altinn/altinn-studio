@@ -1,8 +1,4 @@
-import {
-  isExpressionSimple,
-  isProcessGatewayAction,
-  isProcessUserAction,
-} from './isExpressionSimple';
+import { isExpressionSimple } from './isExpressionSimple';
 import type {
   GenericRelationFunc,
   NumberRelationFunc,
@@ -46,7 +42,7 @@ describe('isExpressionSimple', () => {
     'component lookup': [DataLookupFuncName.Component, 'test'],
     'data model lookup': [DataLookupFuncName.DataModel, 'test'],
     'instance context lookup': [KeyLookupFuncName.InstanceContext, InstanceContext.AppId],
-    'gateway action lookup': [DataLookupFuncName.GatewayAction, 'test'],
+    'gateway action lookup': [KeyLookupFuncName.GatewayAction],
     string: 'test',
     number: 1,
     boolean: true,
@@ -74,26 +70,12 @@ describe('isExpressionSimple', () => {
     },
   );
 
-  it.each(['sign', 'pay', 'reject', 'confirm'])(
-    'should return true when the expression is a %s action',
-    (action) => {
-      expect(isProcessUserAction(action)).toBe(true);
-    },
-  );
-
-  it.each(['notAnAction', ''])(
-    'should return false when the expression is not a valid action',
-    (action) => {
-      expect(isProcessUserAction(action)).toBe(false);
-    },
-  );
-
   it('Returns false when the expression is a string', () => {
     expect(isExpressionSimple('test')).toBe(false);
   });
 
-  it('should return true if the expression is gateway action', () => {
-    expect(isProcessGatewayAction([DataLookupFuncName.GatewayAction])).toBe(true);
+  it('should return false if the expression is gateway action function', () => {
+    expect(isExpressionSimple([KeyLookupFuncName.GatewayAction])).toBe(false);
   });
 
   it('Returns false when the expression is a number', () => {

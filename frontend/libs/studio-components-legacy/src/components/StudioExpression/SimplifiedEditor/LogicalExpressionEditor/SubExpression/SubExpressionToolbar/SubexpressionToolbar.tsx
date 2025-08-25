@@ -17,7 +17,7 @@ export const SubexpressionToolbar = ({
   onSave,
   onDelete,
   onEnableEditMode,
-}: SubexpressionToolbarProps) => {
+}: SubexpressionToolbarProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   return (

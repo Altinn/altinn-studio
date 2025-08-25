@@ -1,5 +1,6 @@
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
 import React from 'react';
@@ -14,12 +15,9 @@ import { texts } from '../../../../test-data/texts';
 import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
-import { GatewayActionContext } from '../../../../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../../../../enums/PredefinedGatewayAction';
 
 describe('SubexpressionValueSelector', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('Renders with the given legend in edit mode', () => {
     const legend = 'test-legend';
     renderSubexpressionValueSelector({ legend, isInEditMode: true });
@@ -83,7 +81,7 @@ describe('SubexpressionValueSelector', () => {
       type: SimpleSubexpressionValueType.Boolean,
       value,
     };
-    const booleanText = (b: boolean) => (b ? texts.true : texts.false);
+    const booleanText = (b: boolean): string => (b ? texts.true : texts.false);
 
     it('Displays the value in readonly mode', () => {
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: false });
@@ -189,7 +187,7 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.componentId });
+      const input = (): HTMLElement => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
       expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]));
@@ -208,33 +206,31 @@ describe('SubexpressionValueSelector', () => {
   });
 
   describe('When the value is an gateway context reference', () => {
-    it.each(Object.values(GatewayActionContext))(
+    it.each(Object.values(PredefinedGatewayAction))(
       'Displays the key in readonly mode when it is %s',
       (key) => {
-        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.PredefinedGatewayAction> =
           {
-            type: SimpleSubexpressionValueType.GatewayActionContext,
+            type: SimpleSubexpressionValueType.PredefinedGatewayAction,
             key,
           };
         renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
-        expect(screen.getByText(texts.gatewayActionContext[key]));
+        expect(screen.getByText(texts.predefinedGatewayActions[key]));
       },
     );
 
     it('Render GatewayAction in readonly mode', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
-      expect(screen.getByText('gatewayAction'));
+      expect(screen.getByText('GatewayAction'));
     });
 
     it('Lets the user edit the value in edit mode', async () => {
-      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.PredefinedGatewayAction> =
         {
-          type: SimpleSubexpressionValueType.GatewayActionContext,
-          key: GatewayActionContext.Pay,
+          type: SimpleSubexpressionValueType.PredefinedGatewayAction,
+          key: PredefinedGatewayAction.Pay,
         };
       const user = userEvent.setup();
       const onChange = jest.fn();
@@ -243,8 +239,8 @@ describe('SubexpressionValueSelector', () => {
         isInEditMode: true,
         onChange,
       });
-      const newKey = GatewayActionContext.Sign;
-      const select = screen.getByLabelText(texts.gatewayActionKey);
+      const newKey = PredefinedGatewayAction.Sign;
+      const select = screen.getByLabelText(texts.gatewayAction);
       await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
     });
@@ -252,21 +248,17 @@ describe('SubexpressionValueSelector', () => {
 
   describe('When the value is an gateway action', () => {
     it('should display expression selector only', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
-      expect(screen.getByText('Gateway action'));
+      expect(screen.getByText(texts.valueTypes[SimpleSubexpressionValueType.CurrentGatewayAction]));
     });
 
     it('should display readonly mode', () => {
-      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
-        type: SimpleSubexpressionValueType.GatewayAction,
-        value: 'gatewayAction',
-      };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.CurrentGatewayAction> =
+        { type: SimpleSubexpressionValueType.CurrentGatewayAction };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
-      expect(screen.getByText('gatewayAction'));
+      expect(screen.getByText('GatewayAction'));
     });
   });
 
@@ -327,9 +319,13 @@ const defaultProps: SubexpressionValueSelectorProps = {
   legend: 'legend',
 };
 
-const renderSubexpressionValueSelector = (props: Partial<SubexpressionValueSelectorProps> = {}) =>
+const renderSubexpressionValueSelector = (
+  props: Partial<SubexpressionValueSelectorProps> = {},
+): RenderResult =>
   render(
-    <StudioExpressionContext.Provider value={{ texts, dataLookupOptions }}>
+    <StudioExpressionContextProvider
+      value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
+    >
       <SubexpressionValueSelector {...defaultProps} {...props} />
-    </StudioExpressionContext.Provider>,
+    </StudioExpressionContextProvider>,
   );

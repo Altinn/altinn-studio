@@ -32,7 +32,7 @@ export const LogicalExpressionEditor = ({
   expression,
   showAddSubexpression = true,
   onChange,
-}: LogicalExpressionEditorProps) => {
+}: LogicalExpressionEditorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
   const { subexpressions, logicalOperator } = expression;
 
@@ -40,13 +40,13 @@ export const LogicalExpressionEditor = ({
     numberOfKeys: subexpressions.length,
   });
 
-  const handleOperatorChange = (operator: LogicalTupleOperator) =>
+  const handleOperatorChange = (operator: LogicalTupleOperator): void =>
     onChange(changeOperator(expression, operator));
 
-  const handleSubexpressionsChange = (newSubexpressions: SimpleSubexpression[]) =>
+  const handleSubexpressionsChange = (newSubexpressions: SimpleSubexpression[]): void =>
     onChange(changeSubexpressions(expression, newSubexpressions));
 
-  const handleAddSubexpression = () => {
+  const handleAddSubexpression: React.MouseEventHandler<HTMLButtonElement> = () => {
     onChange(addDefaultSubexpression(expression));
     addUniqueKey();
   };
@@ -90,7 +90,7 @@ const SubexpressionList = ({
   componentBetween,
   getUniqueKey,
   removeUniqueKey,
-}: SubexpressionListProps) => {
+}: SubexpressionListProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   const handleSubexpressionChange = (index: number, expression: SimpleSubexpression): void =>

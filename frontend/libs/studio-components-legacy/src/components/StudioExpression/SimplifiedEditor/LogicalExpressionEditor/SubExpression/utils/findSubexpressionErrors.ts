@@ -57,4 +57,4 @@ const isDataModelValueValid = (
 const isComponentValueValid = (
   value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Component>,
   dataLookupOptions: Partial<DataLookupOptions>,
-): boolean => !!value.id && dataLookupOptions[DataLookupFuncName.Component]?.includes(value.id);
+): boolean => !!value.id && !!dataLookupOptions[DataLookupFuncName.Component]?.includes(value.id);

@@ -4,10 +4,13 @@ import React from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioBooleanToggleGroup } from '../../../../../../StudioBooleanToggleGroup';
 
-export const BooleanInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.Boolean>) => {
+export const BooleanInput = ({
+  value,
+  onChange,
+}: Props<SimpleSubexpressionValueType.Boolean>): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
-  const handleChange = (booleanValue: boolean) => onChange({ ...value, value: booleanValue });
+  const handleChange = (booleanValue: boolean): void => onChange({ ...value, value: booleanValue });
 
   return (
     <StudioBooleanToggleGroup

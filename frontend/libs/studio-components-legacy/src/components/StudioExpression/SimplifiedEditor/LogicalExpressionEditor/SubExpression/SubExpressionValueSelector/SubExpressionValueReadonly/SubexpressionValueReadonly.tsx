@@ -1,5 +1,5 @@
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import { Paragraph, Tag } from '@digdir/designsystemet-react';
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
@@ -14,16 +14,16 @@ export type SubexpressionValueReadonlyProps<T extends SimpleSubexpressionValueTy
 
 export const SubexpressionValueReadonly = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType>): ReactElement => {
   switch (value.type) {
     case SimpleSubexpressionValueType.DataModel:
       return <DataModelLookupValue value={value} />;
     case SimpleSubexpressionValueType.Component:
       return <ComponentLookupValue value={value} />;
-    case SimpleSubexpressionValueType.GatewayAction:
-      return <GatewayAction value={value} />;
-    case SimpleSubexpressionValueType.GatewayActionContext:
-      return <GatewayActionContextValue value={value} />;
+    case SimpleSubexpressionValueType.CurrentGatewayAction:
+      return <CurrentGatewayAction />;
+    case SimpleSubexpressionValueType.PredefinedGatewayAction:
+      return <PredefinedGatewayAction value={value} />;
     case SimpleSubexpressionValueType.InstanceContext:
       return <InstanceContextValue value={value} />;
     case SimpleSubexpressionValueType.String:
@@ -39,7 +39,7 @@ export const SubexpressionValueReadonly = ({
 
 const DataModelLookupValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.DataModel>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.DataModel>): ReactElement => {
   const { texts } = useStudioExpressionContext();
   return (
     <Binding
@@ -51,7 +51,7 @@ const DataModelLookupValue = ({
 
 const ComponentLookupValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Component>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Component>): ReactElement => {
   const { texts } = useStudioExpressionContext();
   return (
     <Binding
@@ -63,7 +63,7 @@ const ComponentLookupValue = ({
 
 const InstanceContextValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.InstanceContext>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.InstanceContext>): ReactElement => {
   const { texts } = useStudioExpressionContext();
   const name = texts.instanceContext[value.key];
   return (
@@ -78,14 +78,14 @@ const InstanceContextValue = ({
   );
 };
 
-const GatewayActionContextValue = ({
+const PredefinedGatewayAction = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayActionContext>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.PredefinedGatewayAction>): ReactElement => {
   const { texts } = useStudioExpressionContext();
-  const name = texts.gatewayActionContext[value.key];
+  const name = texts.predefinedGatewayActions[value.key];
   return (
     <Binding
-      name={texts.readonlyGatewayActionContext}
+      name={texts.readonlyPredefinedGatewayAction}
       binding={
         <Tag size='small' color='info'>
           {name}
@@ -95,13 +95,11 @@ const GatewayActionContextValue = ({
   );
 };
 
-const GatewayAction = ({
-  value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayAction>) => {
-  return <Paragraph size='small'>{value.value}</Paragraph>;
+const CurrentGatewayAction = (): ReactElement => {
+  return <Paragraph size='small'>GatewayAction</Paragraph>;
 };
 
-const Binding = ({ name, binding }: { name: string; binding: ReactNode }) => {
+const Binding = ({ name, binding }: { name: string; binding: ReactNode }): ReactElement => {
   return (
     <div className={classes.binding}>
       <LinkIcon />
@@ -113,19 +111,19 @@ const Binding = ({ name, binding }: { name: string; binding: ReactNode }) => {
 
 const StringValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.String>) => (
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.String>): ReactElement => (
   <StudioCodeFragment>&quot;{value.value}&quot;</StudioCodeFragment>
 );
 
 const NumberValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Number>) => (
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Number>): ReactElement => (
   <StudioCodeFragment>{value.value}</StudioCodeFragment>
 );
 
 const BooleanValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Boolean>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Boolean>): ReactElement => {
   const { texts } = useStudioExpressionContext();
   return (
     <Tag size='small' color={value.value ? 'success' : 'danger'}>
@@ -134,6 +132,6 @@ const BooleanValue = ({
   );
 };
 
-const NullValue = () => {
+const NullValue = (): ReactElement => {
   return <StudioCodeFragment>null</StudioCodeFragment>;
 };

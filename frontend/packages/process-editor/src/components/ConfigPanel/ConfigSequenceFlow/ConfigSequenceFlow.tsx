@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import {
   type BooleanExpression,
   GeneralRelationOperator,
+  KeyLookupFuncName,
+  PredefinedGatewayAction,
+  SimpleSubexpressionValueType,
   StudioButton,
   StudioExpression,
   StudioSectionHeader,
@@ -18,8 +21,8 @@ import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
 const defaultExpression: BooleanExpression = [
   GeneralRelationOperator.Equals,
-  ['gatewayAction'],
-  'reject',
+  [KeyLookupFuncName.GatewayAction],
+  PredefinedGatewayAction.Reject,
 ];
 
 export const ConfigSequenceFlow = (): React.ReactElement => {
@@ -31,7 +34,10 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     expressionModeler.conditionExpression,
   );
 
-  const expressionOptions: string[] = ['gatewayAction', 'gatewayActionContext'];
+  const supportedExpressionValueTypes: SimpleSubexpressionValueType[] = [
+    SimpleSubexpressionValueType.CurrentGatewayAction,
+    SimpleSubexpressionValueType.PredefinedGatewayAction,
+  ];
 
   const onAddNewExpressionClicked = (): void => {
     handleOnExpressionChange(defaultExpression);
@@ -91,7 +97,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
             expression={expression}
             onChange={handleOnExpressionChange}
             texts={texts}
-            expressionOptions={expressionOptions}
+            types={supportedExpressionValueTypes}
             dataLookupOptions={undefined}
           />
         )}
