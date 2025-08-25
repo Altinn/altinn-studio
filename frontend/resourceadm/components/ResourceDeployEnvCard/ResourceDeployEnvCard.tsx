@@ -84,7 +84,7 @@ export const ResourceDeployEnvCard = ({
                   title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
                   fontSize='1.5rem'
                 />
-                <StudioTag color='success' data-size='sm'>
+                <StudioTag data-color='success' data-size='sm'>
                   {newEnvVersion}
                 </StudioTag>
               </>
