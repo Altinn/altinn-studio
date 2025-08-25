@@ -127,7 +127,7 @@ export const ResourceTable = ({
               tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
-              <StudioTag key={env} color='info' data-size='sm'>
+              <StudioTag key={env} data-color='info' data-size='sm'>
                 {tagText}
               </StudioTag>
             );
