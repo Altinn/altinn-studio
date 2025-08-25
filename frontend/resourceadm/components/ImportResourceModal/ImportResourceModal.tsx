@@ -147,7 +147,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                   selectedService={selectedService}
                   onSelectService={(altinn2LinkService: Altinn2LinkService) => {
                     setSelectedService(altinn2LinkService);
-                    setId(altinn2LinkService ? formatIdString(altinn2LinkService.serviceName) : '');
+                    setId(formatIdString(altinn2LinkService.serviceName));
                   }}
                 />
                 {selectedService && (
