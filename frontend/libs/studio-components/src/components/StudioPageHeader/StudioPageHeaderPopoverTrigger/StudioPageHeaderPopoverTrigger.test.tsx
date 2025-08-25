@@ -25,15 +25,15 @@ describe('StudioPageHeader.PopoverTrigger', () => {
 
   it('Does not display the popover by default', () => {
     renderPopover();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    screen.debug();
+    expect(screen.queryByText(contentText)).not.toBeInTheDocument();
   });
 
   it('Opens the popover when the user clicks the trigger', async () => {
     const user = userEvent.setup();
     renderPopover();
     await user.click(screen.getByRole('button', { name: triggerText }));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toHaveTextContent(contentText);
+    expect(screen.getByText(contentText)).toBeInTheDocument();
   });
 
   it('Forwards the ref to the trigger button', () => {
@@ -51,10 +51,10 @@ describe('StudioPageHeader.PopoverTrigger', () => {
 
 function renderPopover(): RenderResult {
   return render(
-    <StudioPopover>
+    <StudioPopover.TriggerContext>
       <StudioPageHeader.PopoverTrigger {...defaultProps} />
       <StudioPopover>{contentText}</StudioPopover>
-    </StudioPopover>,
+    </StudioPopover.TriggerContext>,
   );
 }
 

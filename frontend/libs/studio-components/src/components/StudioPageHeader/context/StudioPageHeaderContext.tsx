@@ -6,9 +6,8 @@ export type StudioPageHeaderContextProps = {
   variant: StudioPageHeaderVariant;
 };
 
-export const StudioPageHeaderContext = createContext<Partial<StudioPageHeaderContextProps>>({
-  variant: 'regular',
-});
+export const StudioPageHeaderContext =
+  createContext<Partial<StudioPageHeaderContextProps | undefined>>(undefined);
 
 export type StudioPageHeaderContextProviderProps = {
   children: ReactNode;
