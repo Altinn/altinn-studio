@@ -4,6 +4,10 @@
   "title": {
     "nb": "Underskjema Test"
   },
+  "copyInstanceSettings": {
+    "enabled": true,
+    "includeAttachments": true
+  },
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
