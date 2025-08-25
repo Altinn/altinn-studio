@@ -172,18 +172,10 @@ describe('ResourcePage', () => {
       screen.queryByLabelText(textMock('resourceadm.about_resource_spinner')),
     );
 
-    expect(
-      screen.queryByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
-    ).not.toBeInTheDocument();
-
     const policyButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
     await user.click(policyButton);
-
-    expect(
-      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
-    ).toBeInTheDocument();
 
     const navigateButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_move_on'),

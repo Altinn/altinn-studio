@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './FieldsetWrapper.module.css';
-import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDialog } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 const DELETE_ID_NOT_SET = -1;
 
@@ -116,7 +116,7 @@ export const FieldsetWrapper = <T,>({
         {listItems.length > 1 && (
           <div className={classes.buttonWrapper}>
             <StudioButton
-              color='danger'
+              data-color='danger'
               variant='secondary'
               icon={<TrashIcon />}
               iconPlacement='left'
@@ -135,12 +135,9 @@ export const FieldsetWrapper = <T,>({
 
   return (
     <div>
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={deleteModalRef}
-          onClose={onCloseDeleteModal}
+      <StudioDialog ref={deleteModalRef} onClose={onCloseDeleteModal}>
+        <ResourceAdmDialogContent
           heading={t(translations.deleteHeader)}
-          closeButtonTitle={t('resourceadm.close_modal')}
           footer={
             <>
               <StudioButton color='danger' onClick={handleClickRemoveButton}>
@@ -153,8 +150,8 @@ export const FieldsetWrapper = <T,>({
           }
         >
           {t(translations.deleteConfirmation)}
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
       {displayFields}
       <StudioButton
         variant='secondary'

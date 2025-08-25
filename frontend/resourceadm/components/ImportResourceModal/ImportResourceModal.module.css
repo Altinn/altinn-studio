@@ -1,12 +1,7 @@
-.importModal {
-  overflow: visible;
-}
-
 .importModalContent {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-4);
-  width: 80%;
 }
 
 .contentDivider {

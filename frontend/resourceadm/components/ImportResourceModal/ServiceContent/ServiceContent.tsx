@@ -4,11 +4,11 @@ import classes from './ServiceContent.module.css';
 import {
   StudioAlert,
   StudioCenter,
-  StudioCombobox,
-  StudioErrorMessage,
+  StudioSelect,
+  StudioValidationMessage,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -64,22 +64,22 @@ export const ServiceContent = ({
     case 'pending': {
       return (
         <StudioCenter className={classes.contentWrapper}>
-          <StudioSpinner
-            size='xl'
-            variant='interaction'
-            spinnerTitle={t('resourceadm.import_resource_spinner')}
-          />
+          <StudioSpinner data-size='xl' aria-label={t('resourceadm.import_resource_spinner')} />
         </StudioCenter>
       );
     }
     case 'error': {
       return (
         <StudioCenter className={classes.contentWrapper}>
-          <StudioAlert severity='danger'>
-            <StudioParagraph size='sm'>{t('general.fetch_error_message')}</StudioParagraph>
-            <StudioParagraph size='sm'>{t('general.error_message_with_colon')}</StudioParagraph>
+          <StudioAlert data-color='danger'>
+            <StudioParagraph data-size='sm'>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph data-size='sm'>
+              {t('general.error_message_with_colon')}
+            </StudioParagraph>
             {altinn2LinkServicesError && (
-              <StudioErrorMessage size='sm'>{altinn2LinkServicesError.message}</StudioErrorMessage>
+              <StudioValidationMessage data-size='sm' data-color='danger'>
+                {altinn2LinkServicesError.message}
+              </StudioValidationMessage>
             )}
           </StudioAlert>
         </StudioCenter>
@@ -88,36 +88,34 @@ export const ServiceContent = ({
     case 'success': {
       if (altinn2LinkServices.length === 0) {
         return (
-          <StudioErrorMessage className={classes.contentWrapper} size='sm'>
+          <StudioValidationMessage
+            className={classes.contentWrapper}
+            data-size='sm'
+            data-color='danger'
+          >
             {t('resourceadm.import_resource_empty_list', { env: env })}
-          </StudioErrorMessage>
+          </StudioValidationMessage>
         );
       }
       return (
-        <StudioCombobox
-          portal={false}
+        <StudioSelect
           value={
-            selectedService
-              ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]
-              : undefined
+            selectedService ? [mapAltinn2LinkServiceToSelectOption(selectedService).value] : ''
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
-          onValueChange={(newValue: string[]) => {
-            handleSelectService(newValue[0]);
+          onChange={(event) => {
+            handleSelectService(event.target.value);
           }}
-          filter={(inputValue: string, option) =>
-            option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
-          }
         >
-          <StudioCombobox.Empty>
+          <StudioSelect.Option value='' disabled>
             {t('resourceadm.dashboard_import_modal_no_services_found')}
-          </StudioCombobox.Empty>
+          </StudioSelect.Option>
           {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
-            <StudioCombobox.Option key={ls.value} value={ls.value}>
+            <StudioSelect.Option key={ls.value} value={ls.value}>
               {ls.label}
-            </StudioCombobox.Option>
+            </StudioSelect.Option>
           ))}
-        </StudioCombobox>
+        </StudioSelect>
       );
     }
   }

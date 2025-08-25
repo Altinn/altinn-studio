@@ -137,16 +137,14 @@ describe('ResourceDashBoardPage', () => {
     );
 
     const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
-    expect(modalTitle).not.toBeInTheDocument();
+    expect(modalTitle).not.toBeVisible();
 
     const importButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_import_resource'),
     });
     await user.click(importButton);
 
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_import_modal_title')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.dashboard_import_modal_title'))).toBeVisible();
   });
 
   it('opens the create new resource modal on click', async () => {
@@ -173,7 +171,7 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
-        level: 2,
+        level: 1,
       }),
     ).toBeInTheDocument();
   });
@@ -265,7 +263,7 @@ describe('ResourceDashBoardPage', () => {
 
     expect(
       screen.queryByText(textMock('resourceadm.dashboard_import_environment_header')),
-    ).not.toBeInTheDocument();
+    ).not.toBeVisible();
   });
 
   it('should import resource from chosen test environment', async () => {

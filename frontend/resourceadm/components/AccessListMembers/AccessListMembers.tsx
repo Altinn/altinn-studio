@@ -11,11 +11,13 @@ import { getPartiesQueryUrl } from '../../utils/urlUtils';
 import {
   StudioAlert,
   StudioButton,
-  StudioLabelAsParagraph,
+  StudioHeading,
   StudioParagraph,
   StudioRadio,
+  StudioRadioGroup,
+  useStudioRadioGroup,
   StudioTextfield,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { useDebounce } from '@studio/hooks';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
@@ -55,6 +57,11 @@ export const AccessListMembers = ({
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
   const { debounce } = useDebounce({ debounceTimeInMs: 500 });
+
+  const { getRadioProps } = useStudioRadioGroup({
+    value: isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE,
+    onChange: (value) => setIsSubPartySearch((old) => !old),
+  });
 
   const { mutate: removeListMember, isPending: isRemovingMember } =
     useRemoveAccessListMemberMutation(org, list.identifier, env);
@@ -168,10 +175,10 @@ export const AccessListMembers = ({
 
   return (
     <div>
-      <StudioLabelAsParagraph size='sm' spacing>
+      <StudioHeading level={2} data-size='xs' spacing>
         {t('resourceadm.listadmin_list_organizations')}
-      </StudioLabelAsParagraph>
-      <StudioParagraph variant='short' size='sm'>
+      </StudioHeading>
+      <StudioParagraph variant='short' data-size='sm'>
         {t('resourceadm.listadmin_list_organizations_description')}
       </StudioParagraph>
       <AccessListMembersTable
@@ -191,7 +198,7 @@ export const AccessListMembers = ({
         </StudioButton>
       )}
       {!!members && members.pages?.length === 0 && (
-        <StudioAlert severity='info'>{t('resourceadm.listadmin_empty_list')}</StudioAlert>
+        <StudioAlert data-color='info'>{t('resourceadm.listadmin_empty_list')}</StudioAlert>
       )}
       {isAddMode && (
         <>
@@ -204,20 +211,16 @@ export const AccessListMembers = ({
                 setSearchText(event.target.value);
               }}
             />
-            <StudioRadio.Group
-              hideLegend
-              onChange={() => setIsSubPartySearch((old) => !old)}
-              value={isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE}
-              inline
-              legend={t('resourceadm.listadmin_search_party_type')}
-            >
-              <StudioRadio value={PARTY_SEARCH_TYPE}>
-                {t('resourceadm.listadmin_parties')}
-              </StudioRadio>
-              <StudioRadio value={SUBPARTY_SEARCH_TYPE}>
-                {t('resourceadm.listadmin_sub_parties')}
-              </StudioRadio>
-            </StudioRadio.Group>
+            <StudioRadioGroup legend='' aria-label={t('resourceadm.listadmin_search_party_type')}>
+              <StudioRadio
+                label={t('resourceadm.listadmin_parties')}
+                {...getRadioProps({ value: PARTY_SEARCH_TYPE })}
+              />
+              <StudioRadio
+                label={t('resourceadm.listadmin_sub_parties')}
+                {...getRadioProps({ value: SUBPARTY_SEARCH_TYPE })}
+              />
+            </StudioRadioGroup>
           </div>
           <div aria-live='polite'>
             {resultData?.parties?.length === 0 && (
@@ -247,7 +250,7 @@ export const AccessListMembers = ({
             icon={<PlusIcon />}
             iconPlacement='left'
             onClick={() => setIsAddMode(true)}
-            size='md'
+            data-size='md'
           >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>

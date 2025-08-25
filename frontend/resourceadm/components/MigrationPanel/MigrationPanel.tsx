@@ -6,13 +6,14 @@ import {
   StudioButton,
   StudioCheckbox,
   StudioHeading,
-  StudioModal,
-} from '@studio/components-legacy';
+  StudioDialog,
+} from '@studio/components';
 import classes from './MigrationPanel.module.css';
 import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
 import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateDelegationsMutation';
 import { useUrlParams } from '../../hooks/useUrlParams';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -78,41 +79,39 @@ export const MigrationPanel = ({
 
   return (
     <>
-      <StudioModal.Dialog
-        heading={t('resourceadm.migration_disable_service_modal_header')}
-        closeButtonTitle={t('resourceadm.close_modal')}
-        ref={setServiceExpiredWarningModalRef}
-        footer={
-          <>
-            <StudioButton
-              disabled={!isMigrateCheckboxChecked}
-              onClick={() => postMigrateDelegations()}
-              size='md'
-            >
-              {t('resourceadm.migration_disable_service_confirm')}
-            </StudioButton>
-            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='md'>
-              {t('general.cancel')}
-            </StudioButton>
-          </>
-        }
-      >
-        <StudioAlert severity='warning'>
-          {t('resourceadm.migration_disable_service_modal_body')}
-        </StudioAlert>
-        <StudioCheckbox.Group
-          legend=''
-          onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
-          value={isMigrateCheckboxChecked ? ['checked'] : []}
+      <StudioDialog ref={setServiceExpiredWarningModalRef}>
+        <ResourceAdmDialogContent
+          heading={t('resourceadm.migration_disable_service_modal_header')}
+          footer={
+            <>
+              <StudioButton
+                disabled={!isMigrateCheckboxChecked}
+                onClick={() => postMigrateDelegations()}
+                data-size='md'
+              >
+                {t('resourceadm.migration_disable_service_confirm')}
+              </StudioButton>
+              <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} data-size='md'>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
         >
-          <StudioCheckbox value='checked'>
-            {t('resourceadm.migration_confirm_migration')}
-          </StudioCheckbox>
-        </StudioCheckbox.Group>
-      </StudioModal.Dialog>
+          <StudioAlert data-color='warning' data-size='md'>
+            {t('resourceadm.migration_disable_service_modal_body')}
+          </StudioAlert>
+          <StudioCheckbox
+            data-size='md'
+            className={classes.migrationPanelCheckbox}
+            onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
+            value={isMigrateCheckboxChecked ? 'checked' : ''}
+            label={t('resourceadm.migration_confirm_migration')}
+          />
+        </ResourceAdmDialogContent>
+      </StudioDialog>
       <div className={classes.migrationPanel}>
         <div className={classes.migrationPanelInner}>
-          <StudioHeading size='sm'>{t(env.label)}</StudioHeading>
+          <StudioHeading data-size='sm'>{t(env.label)}</StudioHeading>
           <div>
             {t('resourceadm.migration_altinn2_delegations')}{' '}
             {!isLoadingDelegationCount && (
@@ -123,12 +122,12 @@ export const MigrationPanel = ({
             {t('resourceadm.migration_altinn3_delegations')} <strong>N/A</strong>
           </div>
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
-            <StudioAlert severity='info' size='sm'>
+            <StudioAlert data-color='info' data-size='sm'>
               {t('resourceadm.migration_not_needed')}
             </StudioAlert>
           )}
           {errorMessage && (
-            <StudioAlert severity={errorMessage.severity}>
+            <StudioAlert data-color={errorMessage.severity}>
               {t(errorMessage.errorMessage)}
             </StudioAlert>
           )}
