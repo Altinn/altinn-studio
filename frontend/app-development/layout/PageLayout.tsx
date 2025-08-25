@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
-import { PageHeader as PageHeaderNew } from './PageHeaderNew';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
@@ -48,11 +47,7 @@ export const PageLayout = (): React.ReactNode => {
   return (
     <>
       <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
-        {/*<PageHeader
-          showSubMenu={!repoStatus?.hasMergeConflict}
-          isRepoError={repoStatusError !== null}
-        />*/}
-        <PageHeaderNew
+        <PageHeader
           showSubMenu={!repoStatus?.hasMergeConflict}
           isRepoError={repoStatusError !== null}
         />

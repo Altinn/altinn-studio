@@ -1,8 +1,0 @@
-.previewLink {
-  display: flex;
-  gap: var(--fds-spacing-1);
-}
-
-.playIcon {
-  font-size: var(--fds-sizing-5);
-}

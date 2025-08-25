@@ -19,7 +19,7 @@ export const InformationPanelComponent = ({
   const { t } = useTranslation();
   return (
     <StudioPopover.TriggerContext>
-      <StudioPopover.Trigger variant='tertiary'>
+      <StudioPopover.Trigger>
         <InformationIcon />
       </StudioPopover.Trigger>
       <StudioPopover placement='right'>

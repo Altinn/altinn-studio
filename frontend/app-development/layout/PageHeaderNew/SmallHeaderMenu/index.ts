@@ -1,1 +1,0 @@
-export { SmallHeaderMenu } from './SmallHeaderMenu';
