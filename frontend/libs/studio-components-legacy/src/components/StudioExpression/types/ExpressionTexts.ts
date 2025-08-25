@@ -24,8 +24,7 @@ export type ExpressionTexts = {
   expression: string;
   false: string;
   firstOperand: string;
-  gatewayActionContext: Record<PredefinedGatewayAction, string>;
-  gatewayActionKey: string;
+  gatewayAction: string;
   instanceContext: Record<InstanceContext, string>;
   instanceContextKey: string;
   invalidExpression: string;
@@ -35,9 +34,10 @@ export type ExpressionTexts = {
   manual: string;
   numberValidationError: string;
   or: string;
+  predefinedGatewayActions: Record<PredefinedGatewayAction, string>;
   readonlyComponentId: string;
   readonlyDataModelPath: string;
-  readonlyGatewayActionContext: string;
+  readonlyPredefinedGatewayAction: string;
   readonlyInstanceContext: string;
   relationalOperator: string;
   relationalOperators: Record<RelationalOperator, string>;

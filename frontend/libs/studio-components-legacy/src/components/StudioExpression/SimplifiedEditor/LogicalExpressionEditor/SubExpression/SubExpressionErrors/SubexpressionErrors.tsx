@@ -8,7 +8,9 @@ export type SubexpressionErrorsProps = {
   errorKeys: ExpressionErrorKey[];
 };
 
-export const SubexpressionErrors = ({ errorKeys }: SubexpressionErrorsProps) => {
+export const SubexpressionErrors = ({
+  errorKeys,
+}: SubexpressionErrorsProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   return (

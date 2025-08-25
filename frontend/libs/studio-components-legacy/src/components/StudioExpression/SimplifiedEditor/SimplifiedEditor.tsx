@@ -18,7 +18,7 @@ export const SimplifiedEditor = ({
   expression,
   showAddSubexpression,
   onChange,
-}: SimplifiedEditorProps) => {
+}: SimplifiedEditorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   if (!isExpressionSimple(expression)) {
@@ -27,7 +27,7 @@ export const SimplifiedEditor = ({
 
   const simplifiedExpression = complexToSimpleExpression(expression);
 
-  const handleChange = (updatedExpression: SimplifiedExpression) => {
+  const handleChange = (updatedExpression: SimplifiedExpression): void => {
     const updatedComplexExpression = simpleToComplexExpression(updatedExpression);
     onChange(updatedComplexExpression);
   };

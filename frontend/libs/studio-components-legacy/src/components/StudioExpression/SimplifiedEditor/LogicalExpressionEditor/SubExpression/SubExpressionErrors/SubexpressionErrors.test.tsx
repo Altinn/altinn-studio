@@ -1,10 +1,11 @@
 import React from 'react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import { texts } from '../../../../test-data/texts';
 import { SubexpressionErrors } from './SubexpressionErrors';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { render, screen } from '@testing-library/react';
 import { dataLookupOptions } from '../../../../test-data/dataLookupOptions';
+import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
 
 describe('SubexpressionErrors', () => {
   it('Displays a list of the given errors', () => {
@@ -13,9 +14,11 @@ describe('SubexpressionErrors', () => {
       ExpressionErrorKey.InvalidSecondOperand,
     ];
     render(
-      <StudioExpressionContext.Provider value={{ texts, dataLookupOptions }}>
+      <StudioExpressionContextProvider
+        value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
+      >
         <SubexpressionErrors errorKeys={errorKeys} />
-      </StudioExpressionContext.Provider>,
+      </StudioExpressionContextProvider>,
     );
     const listItems = screen.getAllByRole('listitem');
     errorKeys.forEach((errorKey, index) => {

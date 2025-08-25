@@ -13,7 +13,7 @@ export const InternalFormatEditor = ({
   simplifiedExpression,
   showAddSubexpression,
   onChange,
-}: InternalFormatEditorProps) => {
+}: InternalFormatEditorProps): React.ReactElement => {
   if (typeof simplifiedExpression === 'boolean') {
     return <BooleanEditor expression={simplifiedExpression} onChange={onChange} />;
   } else {

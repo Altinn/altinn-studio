@@ -4,6 +4,7 @@ import {
   GeneralRelationOperator,
   KeyLookupFuncName,
   PredefinedGatewayAction,
+  SimpleSubexpressionValueType,
   StudioButton,
   StudioExpression,
   StudioSectionHeader,
@@ -33,7 +34,10 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     expressionModeler.conditionExpression,
   );
 
-  const expressionOptions: string[] = ['currentGatewayAction', 'predefinedGatewayAction'];
+  const supportedExpressionValueTypes: SimpleSubexpressionValueType[] = [
+    SimpleSubexpressionValueType.CurrentGatewayAction,
+    SimpleSubexpressionValueType.PredefinedGatewayAction,
+  ];
 
   const onAddNewExpressionClicked = (): void => {
     handleOnExpressionChange(defaultExpression);
@@ -93,7 +97,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
             expression={expression}
             onChange={handleOnExpressionChange}
             texts={texts}
-            expressionOptions={expressionOptions}
+            types={supportedExpressionValueTypes}
             dataLookupOptions={undefined}
           />
         )}
