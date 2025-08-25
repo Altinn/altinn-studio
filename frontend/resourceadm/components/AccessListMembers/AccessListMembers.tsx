@@ -60,7 +60,7 @@ export const AccessListMembers = ({
 
   const { getRadioProps } = useStudioRadioGroup({
     value: isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE,
-    onChange: (value) => setIsSubPartySearch((old) => !old),
+    onChange: () => setIsSubPartySearch((old) => !old),
   });
 
   const { mutate: removeListMember, isPending: isRemovingMember } =

@@ -86,7 +86,6 @@ export const ResourceRadioGroup = ({
     <div className={classes.inputWrapper}>
       <StudioRadioGroup
         id={id}
-        data-size='md'
         legend={<ResourceFieldHeader label={label} required={required} />}
         description={description}
         required={required}
