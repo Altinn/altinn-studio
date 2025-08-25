@@ -1,3 +1,17 @@
 .fieldset > legend {
   display: contents;
 }
+
+.fieldset.withHiddenLegend > legend {
+  block-size: 1px;
+  border: 0;
+  clip-path: inset(50%);
+  clip: rect(0 0 0 0);
+  display: block;
+  inline-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+}
