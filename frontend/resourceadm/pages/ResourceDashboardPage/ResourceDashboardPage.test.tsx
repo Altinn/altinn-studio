@@ -116,7 +116,9 @@ describe('ResourceDashBoardPage', () => {
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
-    expect(screen.queryByRole(textMock('resourceadm.dashboard_spinner'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),

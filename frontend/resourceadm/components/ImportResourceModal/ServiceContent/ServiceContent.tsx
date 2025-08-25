@@ -99,9 +99,7 @@ export const ServiceContent = ({
       }
       return (
         <StudioSelect
-          value={
-            selectedService ? [mapAltinn2LinkServiceToSelectOption(selectedService).value] : ''
-          }
+          value={selectedService ? mapAltinn2LinkServiceToSelectOption(selectedService).value : ''}
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onChange={(event) => {
             handleSelectService(event.target.value);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './ResourcePageInputs.module.css';
 import {
   StudioRadio,
@@ -71,15 +71,10 @@ export const ResourceRadioGroup = ({
   errors,
   required,
 }: ResourceRadioGroupProps): React.JSX.Element => {
-  const [selected, setSelected] = useState(value);
-
   const { getRadioProps } = useStudioRadioGroup({
-    value: selected,
-    error: errors.length > 0,
-    onChange: (newValue: string) => {
-      setSelected(newValue);
-      onChange(newValue);
-    },
+    value: value,
+    error: errors?.length > 0,
+    onChange: (newValue: string) => onChange(newValue),
   });
 
   return (

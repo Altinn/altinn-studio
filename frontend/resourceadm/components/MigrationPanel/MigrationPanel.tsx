@@ -104,7 +104,7 @@ export const MigrationPanel = ({
             data-size='md'
             className={classes.migrationPanelCheckbox}
             onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
-            value={isMigrateCheckboxChecked ? 'checked' : ''}
+            checked={isMigrateCheckboxChecked}
             label={t('resourceadm.migration_confirm_migration')}
           />
         </ResourceAdmDialogContent>
