@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ServiceContentProps } from './ServiceContent';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
