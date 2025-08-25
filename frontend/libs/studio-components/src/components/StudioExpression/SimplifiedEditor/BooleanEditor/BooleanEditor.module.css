@@ -1,0 +1,22 @@
+.booleanEditor {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-expression-spacing);
+}
+
+.toggle {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.toggle [role='radiogroup'] {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.toggle button {
+  flex: 1;
+}
