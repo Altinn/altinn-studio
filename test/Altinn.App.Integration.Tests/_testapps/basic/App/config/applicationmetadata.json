@@ -19,6 +19,23 @@
       "enabledFileValidators": []
     },
     {
+      "id": "attachment",
+      "allowedContentTypes": [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "text/plain"
+      ],
+      "maxCount": 10,
+      "minCount": 0,
+      "taskId": "Task_1",
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
       "id": "model",
       "allowedContentTypes": [
         "application/xml"

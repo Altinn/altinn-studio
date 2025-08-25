@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Extensions;
@@ -54,16 +55,14 @@ public static class DataRestrictionValidation
             return (false, errors);
         }
 
-        string? filename = GetFileNameFromHeader(headerValues);
-
-        if (string.IsNullOrEmpty(filename))
+        if (!TryGetFileNameFromHeader(headerValues, out string? filename))
         {
             errors.Add(
                 new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.MissingFileName,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} The Content-Disposition header must contain a filename",
+                    Description = $"{errorBaseMessage} The Content-Disposition header must contain a valid filename",
                 }
             );
 
@@ -163,5 +162,35 @@ public static class DataRestrictionValidation
         filename = filename?.Trim('\"').AsFileName(false);
 
         return filename;
+    }
+
+    /// <summary>
+    /// Tries to extract the filename from the provided header using safe parsing
+    /// </summary>
+    /// <param name="headerValues">The Content-Disposition header values</param>
+    /// <param name="filename">The extracted filename if successful</param>
+    /// <returns>True if filename was successfully extracted, false otherwise</returns>
+    public static bool TryGetFileNameFromHeader(StringValues headerValues, [NotNullWhen(true)] out string? filename)
+    {
+        filename = null;
+        string? headerValue = headerValues;
+
+        if (string.IsNullOrEmpty(headerValue))
+        {
+            return false;
+        }
+
+        if (!ContentDispositionHeaderValue.TryParse(headerValue, out ContentDispositionHeaderValue? contentDisposition))
+        {
+            return false;
+        }
+
+        filename = contentDisposition.FileNameStar ?? contentDisposition.FileName;
+
+        // We actively remove quotes because we don't want them replaced with '_'.
+        // Quotes around filename in Content-Disposition is valid, but not as part of the filename.
+        filename = filename?.Trim('\"').AsFileName(false);
+
+        return !string.IsNullOrEmpty(filename);
     }
 }

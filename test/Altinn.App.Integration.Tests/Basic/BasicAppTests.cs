@@ -209,4 +209,48 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         await Verify(response);
         Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
     }
+
+    [Theory]
+    [InlineData("Test Doc 2025.pdf", false, false)]
+    [InlineData("Test Doc 2025.pdf", true, false)]
+    [InlineData("Test Doc 2025.pdf", false, true)]
+    [InlineData("Test Doc 2025.pdf", true, true)]
+    public async Task DataUpload(string filename, bool useNewEndpoint, bool filenameQuoted)
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+        var verifier = fixture.ScopedVerifier;
+        verifier.UseTestCase(new { useNewEndpoint, filenameQuoted });
+
+        var token = await fixture.Auth.GetUserToken(userId: 1337);
+
+        // Create instance
+        using var instantiationResponse = await fixture.Instances.PostSimplified(
+            token,
+            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+        );
+        using var readInstantiationResponse = await instantiationResponse.Read<Instance>();
+
+        // Create sample PDF data
+        var pdfData = System.Text.Encoding.UTF8.GetBytes("%PDF-1.4 fake pdf content");
+
+        // Test uploading attachment using the specified endpoint
+        using var uploadResponse = await fixture.Instances.PostData(
+            token,
+            readInstantiationResponse,
+            "attachment",
+            pdfData,
+            "application/pdf",
+            filenameQuoted ? $"\"{filename}\"" : filename,
+            useNewEndpoint
+        );
+        using var readUploadResponse = await uploadResponse.Read<DataPostResponse>();
+        using var updatedInstance = await fixture.Instances.Get(token, readInstantiationResponse);
+        using var readUpdatedInstance = await updatedInstance.Read<Instance>();
+
+        var scrubbers = new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(readUpdatedInstance));
+        if (!useNewEndpoint && readUploadResponse.Response.IsSuccessStatusCode)
+            readUploadResponse.IncludeBodyInSnapshot = false; // The old endpoint has different body, not `DataPostResponse`, so it messes with scrubbing
+        await verifier.Verify(readUploadResponse, scrubbers: scrubbers, snapshotName: "UploadResponse");
+    }
 }

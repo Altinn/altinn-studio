@@ -62,7 +62,9 @@ public class DataRestrictionValidationTests
         errors
             .FirstOrDefault()!
             .Description.Should()
-            .BeEquivalentTo("Invalid data provided. Error: The Content-Disposition header must contain a filename");
+            .BeEquivalentTo(
+                "Invalid data provided. Error: The Content-Disposition header must contain a valid filename"
+            );
     }
 
     [Fact]

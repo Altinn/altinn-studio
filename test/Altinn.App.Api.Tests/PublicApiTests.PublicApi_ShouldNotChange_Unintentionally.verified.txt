@@ -758,6 +758,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 "Errors"})]
         public static System.ValueTuple<bool, System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssue>> CompliesWithDataRestrictions(Microsoft.AspNetCore.Http.HttpRequest request, Altinn.Platform.Storage.Interface.Models.DataType? dataType) { }
         public static string? GetFileNameFromHeader(Microsoft.Extensions.Primitives.StringValues headerValues) { }
+        public static bool TryGetFileNameFromHeader(Microsoft.Extensions.Primitives.StringValues headerValues, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? filename) { }
     }
     public static class MultipartRequestReader
     {

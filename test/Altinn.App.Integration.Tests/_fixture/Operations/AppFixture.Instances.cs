@@ -268,6 +268,37 @@ public partial class AppFixture : IAsyncDisposable
             var response = await client.SendAsync(request);
             return new ApiResponse(_fixture, response);
         }
+
+        public async Task<ApiResponse> PostData(
+            string token,
+            ReadApiResponse<Instance> instanceData,
+            string dataType,
+            byte[] data,
+            string contentType,
+            string filename,
+            bool useNewEndpoint = false
+        )
+        {
+            var client = _fixture.GetAppClient();
+            if (instanceData.Data.Model is null)
+                throw new InvalidOperationException("Instance data model is null");
+            var instance = instanceData.Data.Model;
+            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            var instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+
+            var endpoint = useNewEndpoint
+                ? $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/type/{dataType}"
+                : $"/ttd/{_fixture._app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data?dataType={dataType}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = new ByteArrayContent(data);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            request.Content.Headers.TryAddWithoutValidation("Content-Disposition", $"attachment; filename={filename}");
+
+            var response = await client.SendAsync(request);
+            return new ApiResponse(_fixture, response);
+        }
     }
 }
 
