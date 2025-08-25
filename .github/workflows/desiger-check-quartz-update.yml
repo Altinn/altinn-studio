@@ -3,12 +3,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/packagegroups/NuGet.props'
+      - 'src/Designer/backend/packagegroups/NuGet.props'
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
+      - 'src/Designer/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     name: Check Quartz update
     runs-on: ubuntu-latest
     env:
-      tables-file: backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
+      tables-file: src/Designer/backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
     steps:
       - name: Checkout repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -35,6 +35,7 @@ jobs:
           else
             echo "is-updated=false" >> $GITHUB_OUTPUT
           fi
+        working-directory: src/Designer
 
       - name: Get the new quartz version
         id: get-quartz-version
@@ -45,6 +46,7 @@ jobs:
         run: |
           version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- backend/packagegroups/NuGet.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
           echo "quartz-version=$version" >> $GITHUB_OUTPUT
+        working-directory: src/Designer
 
       - name: Verify tables sql is not updated
         id: check-tables-update
@@ -66,5 +68,6 @@ jobs:
           else
             echo "Tables file is up to date"
           fi
+        working-directory: src/Designer
 
 
