@@ -5,7 +5,7 @@ import {
   type StudioProfileMenuItem,
   type StudioPageHeaderProps,
   type StudioProfileMenuGroup,
-} from '@studio/components';
+} from '@studio/components-legacy';
 import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
