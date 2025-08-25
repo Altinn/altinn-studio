@@ -1,4 +1,4 @@
-import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -132,7 +132,7 @@ export const ResourceNameAndId = ({
             <div>
               <p className={classes.idText}>id</p>
             </div>
-            <StudioParagraph size='sm'>
+            <StudioParagraph data-size='sm'>
               <strong>{formatIdString(id)}</strong>
             </StudioParagraph>
             <div className={classes.editButtonWrapper}>

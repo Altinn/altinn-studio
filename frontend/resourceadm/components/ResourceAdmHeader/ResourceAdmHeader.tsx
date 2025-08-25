@@ -3,12 +3,12 @@ import classes from './ResourceAdmHeader.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  StudioAvatar,
   StudioPageHeader,
   type StudioProfileMenuGroup,
-  useMediaQuery,
   type StudioProfileMenuItem,
 } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
+import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

@@ -2,13 +2,7 @@ import React from 'react';
 import classes from './MergeConflict.module.css';
 import { useTranslation } from 'react-i18next';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import {
-  StudioButton,
-  StudioHeading,
-  StudioLabelAsParagraph,
-  StudioLink,
-  StudioParagraph,
-} from '@studio/components-legacy';
+import { StudioButton, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
 import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictProps = {
@@ -49,21 +43,23 @@ export const MergeConflict = ({ org, repo }: MergeConflictProps): React.JSX.Elem
 
   return (
     <div className={classes.mergeConflictWrapper}>
-      <StudioHeading size='lg'>{t('resourceadm.merge_conflict_header')}</StudioHeading>
-      <StudioParagraph size='sm' spacing>
+      <StudioHeading data-size='lg' level={1}>
+        {t('resourceadm.merge_conflict_header')}
+      </StudioHeading>
+      <StudioParagraph data-size='sm' spacing>
         {t('resourceadm.merge_conflict_body')}
       </StudioParagraph>
       <div className={classes.downloadWrapper}>
-        <StudioLabelAsParagraph size='md' weight='medium'>
+        <StudioHeading data-size='xs' level={2}>
           {t('merge_conflict.download')}
-        </StudioLabelAsParagraph>
+        </StudioHeading>
         <StudioLink href={repoDownloadPath(org, repo)}>
           {t('merge_conflict.download_edited_files')}
         </StudioLink>
         <StudioLink href={repoDownloadPath(org, repo, true)}>
           {t('merge_conflict.download_entire_repo')}
         </StudioLink>
-        <StudioParagraph size='sm' spacing>
+        <StudioParagraph data-size='sm' spacing>
           {t('resourceadm.merge_conflict_footer')}
         </StudioParagraph>
       </div>

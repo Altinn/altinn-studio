@@ -107,7 +107,9 @@ describe('AccessListDetail', () => {
     const user = userEvent.setup();
     renderAccessListDetail();
 
-    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    const deleteListButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_delete_list'),
+    });
     await user.click(deleteListButton);
 
     const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
@@ -125,7 +127,9 @@ describe('AccessListDetail', () => {
     );
     renderAccessListDetail({}, { deleteAccessList: deleteMock });
 
-    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    const deleteListButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_delete_list'),
+    });
     await user.click(deleteListButton);
 
     const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
@@ -140,7 +144,9 @@ describe('AccessListDetail', () => {
     const user = userEvent.setup();
     renderAccessListDetail();
 
-    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    const deleteListButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_delete_list'),
+    });
     await user.click(deleteListButton);
 
     const cancelDeleteButton = screen.getByText(textMock('general.cancel'));
@@ -148,7 +154,7 @@ describe('AccessListDetail', () => {
 
     expect(
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),
-    ).not.toBeInTheDocument();
+    ).not.toBeVisible();
   });
 
   it('should call back on back click', async () => {

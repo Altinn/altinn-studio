@@ -1,4 +1,4 @@
-import { StudioErrorMessage } from '@studio/components-legacy';
+import { StudioValidationMessage } from '@studio/components';
 import classes from './ResourcePageInputs.module.css';
 import React from 'react';
 
@@ -22,7 +22,9 @@ export const InputFieldErrorMessage = ({
 }: InputFieldErrorMessageProps): React.JSX.Element => {
   return (
     <div className={classes.warningCardWrapper}>
-      <StudioErrorMessage size='sm'>{message}</StudioErrorMessage>
+      <StudioValidationMessage data-size='sm' data-color='danger'>
+        {message}
+      </StudioValidationMessage>
     </div>
   );
 };
