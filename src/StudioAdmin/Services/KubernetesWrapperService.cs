@@ -4,18 +4,17 @@ using Altinn.Studio.Admin.Services.Interfaces;
 namespace Altinn.Studio.Admin.Services;
 
 /// <summary>
-/// Implementation of the applications service using kuberneteswrapper.
+/// Implementation of the Kubernetes Wrapper service.
 /// </summary>
 public class KubernetesWrapperService : IKubernetesWrapperService
 {
     private readonly HttpClient _httpClient;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ApplicationsService"/> class.
+    /// Initializes a new instance of the <see cref="KubernetesWrapperService"/> class.
     /// </summary>
     /// <param name="httpClient">The HTTP client to be used for API requests.</param>
-    /// <param name="cdnConfigService">The CDN configuration service.</param>
-    public KubernetesWrapperService(HttpClient httpClient, ICdnConfigService cdnConfigService)
+    public KubernetesWrapperService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
