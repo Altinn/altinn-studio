@@ -8,7 +8,7 @@ on:
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
-      - 'gitea/**'
+      - 'src/gitea/**'
       - 'charts/altinn-repositories/**'
       - 'charts/altinn-repositories-config/**'
 
@@ -55,8 +55,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-repositories
-      context: gitea
-      dockerfile: gitea/Dockerfile
+      context: src/gitea
+      dockerfile: src/gitea/Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
