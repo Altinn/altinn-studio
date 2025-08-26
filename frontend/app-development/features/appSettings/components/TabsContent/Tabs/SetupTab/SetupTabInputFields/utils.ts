@@ -14,7 +14,7 @@ function enableOnEntryShow(metadata: ApplicationMetadata): ApplicationMetadata {
   return {
     ...metadata,
     onEntry: {
-      ...metadata.onEntry,
+      ...(metadata.onEntry ?? {}),
       show: onEntryShowKey,
     },
   };
