@@ -161,7 +161,9 @@ export const ResourceLanguageTextField = ({
           startIndex = caretIndex + text.indexOf(selectionText);
           endIndex = caretIndex + text.indexOf(selectionText) + selectionText.length;
         }
-        inputRef.current.setSelectionRange(startIndex, endIndex);
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(startIndex, endIndex);
+        }
       });
     }
   };
