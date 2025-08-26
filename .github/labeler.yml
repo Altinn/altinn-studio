@@ -5,7 +5,7 @@ solution/platform:
 
 solution/studio/designer:
 - changed-files:
-  - any-glob-to-any-file: ['backend/**/*', 'frontend/**/*']
+  - any-glob-to-any-file: ['src/Designer/backend/**/*', 'frontend/**/*']
 
 solution/studio/repos:
 - changed-files:
@@ -18,7 +18,7 @@ area/app-deploy:
 
 area/app-preview:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-preview/**/*', 'backend/src/Designer/Controllers/PreviewController.cs']
+  - any-glob-to-any-file: ['frontend/app-preview/**/*', 'src/Designer/backend/src/Designer/Controllers/PreviewController.cs']
 
 area/authorization:
 - changed-files:
@@ -67,11 +67,11 @@ area/version-control:
 ## Other labels
 kind/dependencies:
 - changed-files:
-  - any-glob-to-any-file: ['backend/packagegroups/NuGet.props', 'frontend/**/package.json']
+  - any-glob-to-any-file: ['src/Designer/backend/Directory.Packages.props', 'frontend/**/package.json']
 
 quality/testing:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/testing/**/*', 'backend/tests/**/*', 'testdata/**/*']
+  - any-glob-to-any-file: ['frontend/testing/**/*', 'src/Designer/backend/tests/**/*', 'testdata/**/*']
 
 skip-releasenotes:
 - changed-files:
@@ -79,7 +79,7 @@ skip-releasenotes:
 
 backend:
 - changed-files:
-  - any-glob-to-any-file: 'backend/**/*'
+  - any-glob-to-any-file: 'src/Designer/backend/**/*'
 
 frontend:
 - changed-files:

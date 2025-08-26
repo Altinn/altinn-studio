@@ -8,7 +8,7 @@ on:
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
-      - 'backend/**'
+      - 'src/Designer/backend/**'
       - 'frontend/**'
       - '!frontend/admin/**'
       - 'Dockerfile'
