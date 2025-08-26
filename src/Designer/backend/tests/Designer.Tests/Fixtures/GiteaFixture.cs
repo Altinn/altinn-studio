@@ -90,7 +90,7 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartAltinnGiteaAsync()
         {
-            string giteaDockerFilePath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "src", "gitea");
+            string giteaDockerFilePath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "gitea");
 
             const string GiteaTestImageName = "repositories:latest";
 
@@ -169,7 +169,7 @@ namespace Designer.Tests.Fixtures
 
         private async Task CreateTestOrgTeams(string org = GiteaConstants.TestOrgUsername)
         {
-            string teamsJsonFile = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "development", "data", "gitea-teams.json");
+            string teamsJsonFile = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "..", "development", "data", "gitea-teams.json");
             string teamsContent = await File.ReadAllTextAsync(teamsJsonFile);
             JsonNode teams = JsonNode.Parse(teamsContent);
             foreach (var team in teams as JsonArray)
