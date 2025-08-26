@@ -508,10 +508,11 @@ public sealed partial class AppFixture : IAsyncDisposable
             if (_logFromTestContainers)
                 localtestBuilder = localtestBuilder.WithLogger(testContainersLogger);
 
-            _localtestContainerImage = localtestBuilder.Build();
+            var localtestContainerImage = localtestBuilder.Build();
 
-            await _localtestContainerImage.CreateAsync(cancellationToken);
+            await localtestContainerImage.CreateAsync(cancellationToken);
             logger.LogInformation("Built localtest container image..");
+            _localtestContainerImage = localtestContainerImage;
             return _localtestContainerImage;
         }
         finally
@@ -596,9 +597,10 @@ public sealed partial class AppFixture : IAsyncDisposable
             if (_logFromTestContainers)
                 pdfServiceContainerBuilder = pdfServiceContainerBuilder.WithLogger(testContainersLogger);
 
-            _pdfServiceContainer = pdfServiceContainerBuilder.Build();
-            await _pdfServiceContainer.StartAsync(cancellationToken);
+            var pdfServiceContainer = pdfServiceContainerBuilder.Build();
+            await pdfServiceContainer.StartAsync(cancellationToken);
             logger.LogInformation("Started PDF service container");
+            _pdfServiceContainer = pdfServiceContainer;
 
             return _pdfServiceContainer;
         }

@@ -1,7 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
@@ -9,11 +9,17 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 #nullable enable
 
@@ -26,9 +32,8 @@ namespace TestApp.Shared;
 public sealed class FixtureConfigurationService : IDisposable
 {
     private const int ConfigurationPort = 5006;
-    private readonly HttpListener _httpListener;
     private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly Task _listenerTask;
+    private readonly KestrelServer _server;
     private readonly ManualResetEventSlim _initialResetEvent;
     private readonly object _lock = new();
 
@@ -43,20 +48,32 @@ public sealed class FixtureConfigurationService : IDisposable
     {
         _initialResetEvent = new ManualResetEventSlim(false);
 
+        var timer = Stopwatch.StartNew();
         try
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _httpListener = new HttpListener();
-            _httpListener.Prefixes.Add($"http://+:{ConfigurationPort}/");
-            _httpListener.Start();
 
-            _listenerTask = Task.Run(async () => await HandleHttpRequests(), _cancellationTokenSource.Token);
+            var loggerFactory = new LoggerFactory();
+            var kestrelServer = new KestrelServer(
+                new ConfigureKestrelServerOptions(),
+                new SocketTransportFactory(new ConfigureSocketTransportOptions(), loggerFactory),
+                loggerFactory
+            );
+            kestrelServer.Options.ListenAnyIP(ConfigurationPort);
+            kestrelServer.StartAsync(new HttpApp(this), CancellationToken.None).GetAwaiter().GetResult();
+            _server = kestrelServer;
 
-            Console.WriteLine($"Configuration HTTP server started on port {ConfigurationPort}");
+            timer.Stop();
+            Console.WriteLine(
+                $"Configuration HTTP server started on port {ConfigurationPort} in {timer.Elapsed.TotalMilliseconds:0} ms"
+            );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to start HTTP configuration server: {ex.Message}");
+            timer.Stop();
+            Console.WriteLine(
+                $"Failed to start HTTP configuration server in {timer.Elapsed.TotalMilliseconds:0} ms: {ex.Message}"
+            );
             throw;
         }
     }
@@ -123,50 +140,28 @@ public sealed class FixtureConfigurationService : IDisposable
         }
     }
 
-    private async Task HandleHttpRequests()
-    {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            try
-            {
-                var context = await _httpListener.GetContextAsync();
-                Console.WriteLine($"Received configuration request from {context.Request.RemoteEndPoint}");
-                await ProcessConfigurationRequest(context);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Expected when shutting down
-                break;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error handling HTTP request: {ex.Message}");
-            }
-        }
-    }
+    private readonly byte[] _payloadErrorPayload = "Invalid configuration JSON"u8.ToArray();
+    private readonly byte[] _okPayload = "Configuration updated successfully"u8.ToArray();
 
-    private async Task ProcessConfigurationRequest(HttpListenerContext context)
+    private async Task ProcessConfigurationRequest(
+        IHttpRequestFeature request,
+        IHttpResponseFeature response,
+        IHttpResponseBodyFeature responseBody
+    )
     {
-        var request = context.Request;
-        var response = context.Response;
-
         try
         {
-            if (
-                request.HttpMethod != "POST"
-                || !request.Url?.AbsolutePath.Equals("/configure", StringComparison.OrdinalIgnoreCase) == true
-            )
+            if (request.Method != "POST" || !request.Path.Equals("/configure", StringComparison.OrdinalIgnoreCase))
             {
                 response.StatusCode = 404;
                 return;
             }
 
-            var config = await JsonSerializer.DeserializeAsync<FixtureConfiguration>(request.InputStream);
+            var config = await JsonSerializer.DeserializeAsync<FixtureConfiguration>(request.Body);
             if (config is null)
             {
                 response.StatusCode = 400;
-                var errorBytes = Encoding.UTF8.GetBytes("Invalid configuration JSON");
-                await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                await responseBody.Stream.WriteAsync(_payloadErrorPayload);
                 return;
             }
 
@@ -191,19 +186,13 @@ public sealed class FixtureConfigurationService : IDisposable
             }
 
             response.StatusCode = 200;
-            var successBytes = Encoding.UTF8.GetBytes("Configuration updated successfully");
-            await response.OutputStream.WriteAsync(successBytes, 0, successBytes.Length);
+            await responseBody.Stream.WriteAsync(_okPayload);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error processing configuration request: {ex.Message}");
+            Console.WriteLine($"Error processing configuration request: {ex}");
             response.StatusCode = 500;
-            var errorBytes = Encoding.UTF8.GetBytes($"Internal server error: {ex.Message}");
-            await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
-        }
-        finally
-        {
-            response.Close();
+            await responseBody.Stream.WriteAsync(Encoding.UTF8.GetBytes($"Internal server error: {ex}"));
         }
     }
 
@@ -276,7 +265,7 @@ public sealed class FixtureConfigurationService : IDisposable
                 && method.GetParameters()[0].ParameterType == typeof(IServiceCollection)
             )
             {
-                method.Invoke(null, new object[] { services });
+                method.Invoke(null, [services]);
                 registeredCount++;
             }
         }
@@ -288,9 +277,8 @@ public sealed class FixtureConfigurationService : IDisposable
         try
         {
             _cancellationTokenSource?.Cancel();
-            _httpListener?.Stop();
-            _httpListener?.Close();
-            _listenerTask?.Wait(TimeSpan.FromSeconds(5));
+            _server?.StopAsync(default).GetAwaiter().GetResult();
+            _server?.Dispose();
         }
         catch (Exception ex)
         {
@@ -300,5 +288,84 @@ public sealed class FixtureConfigurationService : IDisposable
         {
             _cancellationTokenSource?.Dispose();
         }
+    }
+
+    private sealed class HttpApp(FixtureConfigurationService svc) : IHttpApplication<IFeatureCollection>
+    {
+        public IFeatureCollection CreateContext(IFeatureCollection contextFeatures)
+        {
+            return contextFeatures;
+        }
+
+        public void DisposeContext(IFeatureCollection context, Exception? exception) { }
+
+        public async Task ProcessRequestAsync(IFeatureCollection features)
+        {
+            var request = (IHttpRequestFeature)(
+                features[typeof(IHttpRequestFeature)] ?? throw new InvalidOperationException("No IHttpRequestFeature")
+            );
+            var response = (IHttpResponseFeature)(
+                features[typeof(IHttpResponseFeature)] ?? throw new InvalidOperationException("No IHttpResponseFeature")
+            );
+            var responseBody = (IHttpResponseBodyFeature)(
+                features[typeof(IHttpResponseBodyFeature)]
+                ?? throw new InvalidOperationException("No IHttpResponseBodyFeature")
+            );
+
+            await svc.ProcessConfigurationRequest(request, response, responseBody);
+        }
+    }
+
+    private sealed class Logger : ILogger, IDisposable
+    {
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => this;
+
+        public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Information;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        )
+        {
+            var message = formatter(state, exception);
+            Console.WriteLine($"Kestrel: {message}");
+        }
+
+        public void Dispose() { }
+    }
+
+    private sealed class LoggerFactory : ILoggerFactory
+    {
+        private readonly ILogger _logger = new Logger();
+
+        public void Dispose() { }
+
+        public void AddProvider(ILoggerProvider provider) { }
+
+        public ILogger CreateLogger(string categoryName) => this._logger;
+    }
+
+    private sealed class ConfigureKestrelServerOptions : IOptions<KestrelServerOptions>
+    {
+        public ConfigureKestrelServerOptions()
+        {
+            this.Value = new KestrelServerOptions() { };
+        }
+
+        public KestrelServerOptions Value { get; }
+    }
+
+    private sealed class ConfigureSocketTransportOptions : IOptions<SocketTransportOptions>
+    {
+        public ConfigureSocketTransportOptions()
+        {
+            this.Value = new SocketTransportOptions() { };
+        }
+
+        public SocketTransportOptions Value { get; }
     }
 }
