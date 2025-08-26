@@ -73,8 +73,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-designer-db-migrations
-      context: backend
-      dockerfile: backend/Migrations.Dockerfile
+      context: src/Designer/backend
+      dockerfile: src/Designer/backend/Migrations.Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
