@@ -23,6 +23,11 @@ export type TextResourceActionProps = {
   disableSearch?: boolean;
 };
 
+enum TextResourceTab {
+  Type = 'type',
+  Search = 'search',
+}
+
 export const TextResourceAction = ({
   legend,
   textResourceId,
@@ -35,6 +40,7 @@ export const TextResourceAction = ({
   const { t } = useTranslation();
   const initialValue = useTextResourceValue(textResourceId);
   const [textResourceValue, setTextResourceValue] = useState(initialValue);
+  const [activeTab, setActiveTab] = useState<TextResourceTab>(TextResourceTab.Type);
 
   useEffect(() => {
     setTextResourceValue(initialValue);
@@ -53,6 +59,8 @@ export const TextResourceAction = ({
     onDelete();
     onCancel();
   };
+
+  const shouldShowButtons = !(activeTab === TextResourceTab.Search && disableSearch);
 
   return (
     <StudioFieldset
@@ -79,19 +87,24 @@ export const TextResourceAction = ({
         onReferenceChange={onReferenceChange}
         disableSearch={disableSearch}
         textResourceValue={textResourceValue}
+        onTabChange={setActiveTab}
       />
       <div className={classes.buttonGroup}>
-        <StudioButton
-          variant='primary'
-          onClick={handleSave}
-          icon={<CheckmarkIcon />}
-          disabled={!textResourceValue || textResourceValue.trim() === ''}
-        >
-          {t('general.save')}
-        </StudioButton>
-        <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
-          {t('general.cancel')}
-        </StudioButton>
+        {shouldShowButtons && (
+          <>
+            <StudioButton
+              variant='primary'
+              onClick={handleSave}
+              icon={<CheckmarkIcon />}
+              disabled={!textResourceValue?.trim() && !(activeTab === TextResourceTab.Search)}
+            >
+              {t('general.save')}
+            </StudioButton>
+            <StudioButton variant='secondary' onClick={handleCancel} icon={<XMarkIcon />}>
+              {t('general.cancel')}
+            </StudioButton>
+          </>
+        )}
       </div>
     </StudioFieldset>
   );

@@ -271,7 +271,7 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       onChange: onChangeMock,
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: textKeyMock,
         cellContent: { query: addressDataField },
       },
     });
@@ -290,16 +290,19 @@ describe('EditColumnElementComponentSelect', () => {
       screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
       textKeyMock,
     );
-    await act(async () => {
-      await user.click(
-        screen.getAllByRole('button', {
-          name: textMock('general.delete'),
-        })[0],
-      );
-    });
+    await user.click(
+      screen.getAllByRole('button', {
+        name: textMock('general.delete'),
+      })[0],
+    );
 
     expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ headerContent: '' }));
+    expect(onChangeMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        headerContent: '',
+        cellContent: { query: addressDataField },
+      }),
+    );
   });
 
   it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {
@@ -339,7 +342,7 @@ describe('EditColumnElementComponentSelect', () => {
         screen.queryByRole('option', { name: new RegExp(postPlaceDataField) }),
       ).not.toBeInTheDocument(),
     );
-    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+    const saveButton = await screen.getAllByRole('button', { name: textMock('general.save') })[0];
     await act(async () => {
       await user.click(saveButton);
     });

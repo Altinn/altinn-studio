@@ -7,7 +7,6 @@ import { useTextResourceValue } from './hooks/useTextResourceValue';
 import { TextResourceAction } from './TextResourceEditor/TextResourceValueEditor/TextResourceAction';
 import { useUpsertTextResourceMutation } from '../../hooks/mutations/useUpsertTextResourceMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useTextIdMutation } from 'app-development/hooks/mutations/useTextIdMutation';
 import type { TranslationKey } from 'language/type';
 
 export interface TextResourceProps {
@@ -44,39 +43,49 @@ export const TextResource = ({
 }: TextResourceProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
-  const { mutate: textIdMutation } = useTextIdMutation(org, app);
 
-  const fallbackId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
-
+  const defaultId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
+  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
-    if (!textResourceId) {
-      handleIdChange(fallbackId);
-    }
+    if (!textResourceId) setCurrentTextResourceId(defaultId);
+    else setCurrentTextResourceId(textResourceId);
     setIsOpen(true);
   };
 
   const handleSave = (id: string, value: string) => {
-    upsertTextResourceMutation({ textId: id, language: DEFAULT_LANGUAGE, translation: value });
+    if (currentTextResourceId === '') handleRemoveTextResource?.();
+    else {
+      const textId = currentTextResourceId || id;
+      handleIdChange(textId);
+      upsertTextResourceMutation({
+        textId: textId,
+        language: DEFAULT_LANGUAGE,
+        translation: value,
+      });
+    }
     setIsOpen(false);
+    setCurrentTextResourceId('');
   };
 
-  const handleCancel = () => setIsOpen(false);
-
-  const handleDelete = () => {
-    handleRemoveTextResource?.();
-    if (textResourceId) textIdMutation([{ oldId: textResourceId }]);
+  const handleCancel = () => {
+    setIsOpen(false);
+    setCurrentTextResourceId('');
   };
+
+  const handleDelete = () => handleRemoveTextResource?.();
+
+  const handleLocalReferenceChange = (id: string) => setCurrentTextResourceId(id || '');
 
   return isOpen ? (
     <TextResourceAction
       legend={label}
-      textResourceId={textResourceId || fallbackId}
+      textResourceId={currentTextResourceId || defaultId}
       onSave={handleSave}
       onCancel={handleCancel}
       onDelete={handleDelete}
-      onReferenceChange={handleIdChange}
+      onReferenceChange={handleLocalReferenceChange}
       disableSearch={disableSearch}
     />
   ) : (
