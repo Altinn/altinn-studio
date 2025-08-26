@@ -1,4 +1,4 @@
-name: Run gitea and db integration tests
+name: Designer run gitea and db integration tests
 on:
   push:
     branches: [ main ]
@@ -11,7 +11,7 @@ on:
     paths:
       - 'backend/**'
       - 'testdata/**'
-      - 'gitea/**'
+      - 'src/gitea/**'
   workflow_dispatch:
 
 jobs:
