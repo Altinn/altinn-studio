@@ -3,12 +3,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/packagegroups/NuGet.props'
+      - 'src/Designer/backend/Directory.Packages.props'
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
+      - 'src/Designer/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     name: Check Quartz update
     runs-on: ubuntu-latest
     env:
-      tables-file: backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
+      tables-file: src/Designer/backend/src/Designer/Migrations/SqlScripts/QuartzTables/tables_postgres.sql
     steps:
       - name: Checkout repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -29,7 +29,7 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          diff=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- backend/packagegroups/NuGet.props | grep + | grep Quartz | grep Version || true)
+          diff=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- src/Designer/backend/Directory.Packages.props | grep + | grep Quartz | grep Version || true)
           if [ -n "$diff" ]; then
             echo "is-updated=true" >> $GITHUB_OUTPUT
           else
@@ -43,7 +43,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         if: steps.check-quartz-update.outputs.is-updated == 'true'
         run: |
-          version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- backend/packagegroups/NuGet.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
+          version=$(git diff --unified=0 origin/$BASE_REF...origin/$HEAD_REF -- src/Designer/backend/Directory.Packages.props | grep \"Quartz\" | grep Version | grep + | sed -n 's/.*Version="\([^"]*\)".*/\1/p')
           echo "quartz-version=$version" >> $GITHUB_OUTPUT
 
       - name: Verify tables sql is not updated

@@ -17,7 +17,7 @@
       "ignoreDeps": ["yarn"]
     }
   ],
-  "ignorePaths": ["testdata/**", "src/Altinn.Platform/**", "src/test/**"],
+  "ignorePaths": ["src/Altinn.Platform/**", "src/test/**"],
   "ignoreDeps": [
     "Moq",
     "Altinn.App.Core",

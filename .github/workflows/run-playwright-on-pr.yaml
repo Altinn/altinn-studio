@@ -6,7 +6,7 @@ on:
       - 'frontend/**'
       - '!frontend/admin/**'
       - '!frontend/stats/**'
-      - 'backend/**'
+      - 'src/Designer/backend/**'
       - '.github/workflows/run-playwright-on-pr.yaml'
       - 'compose.yaml'
       - 'Dockerfile'

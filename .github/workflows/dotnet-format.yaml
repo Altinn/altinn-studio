@@ -3,11 +3,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/**'
+      - 'src/Designer/backend/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
+      - 'src/Designer/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -26,3 +26,4 @@ jobs:
       - name: FormatCheck
         run: |
            dotnet format backend/Designer.sln --verify-no-changes
+        working-directory: src/Designer

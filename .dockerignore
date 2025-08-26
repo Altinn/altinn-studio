@@ -1,6 +1,6 @@
 *
 !frontend
-!backend
+!src/Designer/backend
 !development/azure-devops-mock
 !package.json
 !environments.json
