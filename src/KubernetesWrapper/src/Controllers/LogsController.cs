@@ -10,12 +10,12 @@ namespace KubernetesWrapper.Controllers;
 ///  Controller containing all actions related to failed requests
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="AppFailedRequestsController"/> class
+/// Initializes a new instance of the <see cref="LogsController"/> class
 /// </remarks>
-/// <param name="appFailedRequestsService">The service</param>
+/// <param name="logsService">The service</param>
 [Route("api/v1/[controller]")]
 [ApiController]
-public class AppFailedRequestsController(IAppFailedRequestsService appFailedRequestsService) : ControllerBase
+public class LogsController(ILogsService logsService) : ControllerBase
 {
     /// <summary>
     /// Get all failed requests
@@ -27,7 +27,7 @@ public class AppFailedRequestsController(IAppFailedRequestsService appFailedRequ
     [EnableCors]
     public async Task<ActionResult<IEnumerable<Log>>> GetAll([FromQuery] LogFiltersDto logFiltersDto, CancellationToken cancellationToken = default)
     {
-        var logs = await appFailedRequestsService.GetAll(logFiltersDto.App, logFiltersDto.Take, logFiltersDto.Time, cancellationToken);
+        var logs = await logsService.GetAll(logFiltersDto.App, logFiltersDto.Take, logFiltersDto.Time, cancellationToken);
         return Ok(logs);
     }
 }

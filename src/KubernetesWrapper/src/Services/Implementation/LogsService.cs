@@ -12,11 +12,11 @@ namespace KubernetesWrapper.Services.Implementation;
 /// Service containing all actions related to failed requests
 /// </summary>
 /// <remarks>
-/// Initializes a new instance of the <see cref="AppFailedRequestsService"/> class
+/// Initializes a new instance of the <see cref="LogsService"/> class
 /// </remarks>
 /// <param name="generalSettings">The general settings</param>
 /// <param name="logsQueryClient">The logs query client for querying logs from Azure Monitor</param>
-public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings, LogsQueryClient logsQueryClient) : IAppFailedRequestsService
+public class LogsService(IOptions<GeneralSettings> generalSettings, LogsQueryClient logsQueryClient) : ILogsService
 {
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
@@ -39,13 +39,13 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
 
         // | summarize FailedCount = sumif(ItemCount, Success == false), Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
         var query = $@"
-                    AppRequests
-                    | join kind=inner (
-                        AppExceptions
-                    ) on OperationId
-                    | where Success == false
-                    | where ClientType != 'Browser'{appNameFilter}
-                    | where toint(ResultCode) >= 500
+                AppRequests
+                | where Success == false
+                | where ClientType != 'Browser'
+                | where toint(ResultCode) >= 500{appNameFilter}
+                | join kind=leftanti (
+                    AppExceptions
+                    | where ClientType != 'Browser'
                     | where ExceptionType !in (
                         'System.Threading.Tasks.TaskCanceledException',
                         'System.Net.Sockets.SocketException',
@@ -53,8 +53,9 @@ public class AppFailedRequestsService(IOptions<GeneralSettings> generalSettings,
                         'Altinn.App.Core.Features.Correspondence.Exceptions.CorrespondenceArgumentException',
                         'System.Security.Cryptography.CryptographicException'
                     )
-                    | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
-                    | order by DateTimeOffset asc";
+                ) on OperationId
+                | summarize Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
+                | order by DateTimeOffset asc";
 
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 

@@ -16,8 +16,8 @@ public class KubernetesWrapperController(
     private readonly ILogger<ApplicationsController> _logger = logger;
 
 
-    [HttpGet("appexceptions")]
-    public async Task<ActionResult<Log>> GetAppExceptions(
+    [HttpGet("logs")]
+    public async Task<ActionResult<Log>> GetLogs(
         string org,
         string env,
         CancellationToken ct,
@@ -27,36 +27,8 @@ public class KubernetesWrapperController(
     {
         try
         {
-            var appExceptions = await _kubernetesWrapperService.GetAppExceptions(org, env, time, app, ct);
+            var appExceptions = await _kubernetesWrapperService.GetLogs(org, env, time, app, ct);
             return Ok(appExceptions);
-        }
-        catch (HttpRequestException ex)
-        {
-            return StatusCode((int?)ex.StatusCode ?? 500);
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(499);
-        }
-    }
-
-    [HttpGet("appfailedrequests")]
-    public async Task<ActionResult<Log>> GetAppFailedRequests(
-        string org,
-        string env,
-        CancellationToken ct,
-        [FromQuery] string? app,
-        [FromQuery] int time = 24
-    )
-    {
-        try
-        {
-            var appFailedRequests = await _kubernetesWrapperService.GetAppFailedRequests(org, env, time, app, ct);
-            return Ok(appFailedRequests);
         }
         catch (HttpRequestException ex)
         {

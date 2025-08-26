@@ -9,7 +9,6 @@ namespace Altinn.Studio.Admin.Services;
 public class KubernetesWrapperService : IKubernetesWrapperService
 {
     private readonly HttpClient _httpClient;
-    private readonly ICdnConfigService _cdnConfigService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationsService"/> class.
@@ -19,11 +18,10 @@ public class KubernetesWrapperService : IKubernetesWrapperService
     public KubernetesWrapperService(HttpClient httpClient, ICdnConfigService cdnConfigService)
     {
         _httpClient = httpClient;
-        _cdnConfigService = cdnConfigService;
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Log>> GetAppExceptions(
+    public async Task<IEnumerable<Log>> GetLogs(
         string org,
         string env,
         int time,
@@ -35,27 +33,7 @@ public class KubernetesWrapperService : IKubernetesWrapperService
 
         //var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
         var response = await _httpClient.GetAsync(
-            $"http://localhost:5004/api/v1/appexceptions?app={app}&time={time}"
-        );
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<IEnumerable<Log>>(cancellationToken: ct) ?? [];
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<Log>> GetAppFailedRequests(
-        string org,
-        string env,
-        int time,
-        string? app,
-        CancellationToken ct
-    )
-    {
-        ct.ThrowIfCancellationRequested();
-
-        //var appsBaseUrl = await _cdnConfigService.GetAppsBaseUrl(org, env);
-        var response = await _httpClient.GetAsync(
-            $"http://localhost:5004/api/v1/appfailedrequests?app={app}&time={time}"
+            $"http://localhost:5004/api/v1/logs?app={app}&time={time}"
         );
         response.EnsureSuccessStatusCode();
 

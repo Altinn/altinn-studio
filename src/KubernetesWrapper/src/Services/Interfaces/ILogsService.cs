@@ -5,7 +5,7 @@ namespace KubernetesWrapper.Services.Interfaces;
 /// <summary>
 /// Interface for the failed requests service
 /// </summary>
-public interface IAppFailedRequestsService
+public interface ILogsService
 {
     /// <summary>
     /// Get all failed requests

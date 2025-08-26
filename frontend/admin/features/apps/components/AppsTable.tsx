@@ -6,12 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { StudioError, StudioSearch, StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import classes from './AppsTable.module.css';
-import { grafanaExceptionsUrl, grafanaFailedRequestsUrl } from 'app-shared/ext-urls';
+import { grafanaFailedRequestsUrl } from 'app-shared/ext-urls';
 import { ExternalLinkIcon } from '@studio/icons';
-import { useAppExceptionsQuery } from 'admin/hooks/queries/useAppExceptionsQuery';
-import { useAppFailedRequestsQuery } from 'admin/hooks/queries/useAppFailedRequestsQuery';
-import type { AppFailedRequestDataPoint } from 'admin/types/AppFailedRequestDataPoint';
-import type { AppExceptionDataPoint } from 'admin/types/AppExceptionDataPoint';
+import { useLogsQuery } from 'admin/hooks/queries/useLogsQuery';
 import 'chartjs-adapter-date-fns';
 
 import {
@@ -28,6 +25,7 @@ import {
 } from 'chart.js';
 
 import { Line } from 'react-chartjs-2';
+import type { LogDataPoint } from 'admin/types/LogDataPoint';
 
 type AppsTableProps = {
   org: string;
@@ -110,21 +108,7 @@ const getChartOptions = (time: number) => ({
     },
   },
 });
-const getExceptions = (dataPoints: AppExceptionDataPoint[]) => ({
-  labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
-  datasets: [
-    {
-      fill: true,
-      data: dataPoints?.map((dataPoint) => dataPoint.count),
-      borderColor: '#ce4d4d',
-      backgroundColor: '#fbe3e6',
-      // tension: 0.4,
-      borderWidth: 2,
-      pointRadius: 1,
-    },
-  ],
-});
-const getFailedRequests = (dataPoints: AppFailedRequestDataPoint[]) => ({
+const getLogsChartData = (dataPoints: LogDataPoint[]) => ({
   labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
   datasets: [
     {
@@ -158,7 +142,17 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
   };
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(undefined);
-  const handleSort = (field) => {};
+  const handleSort = (field) => {
+    if (sortField === field && sortDirection === 'descending') {
+      setSortField(null);
+      setSortDirection(undefined);
+    } else {
+      setSortField(field);
+      setSortDirection(
+        sortField === field && sortDirection === 'ascending' ? 'descending' : 'ascending',
+      );
+    }
+  };
 
   return (
     <StudioTabs defaultValue={availableEnvironments[0]}>
@@ -182,39 +176,12 @@ const AppsTableWithData = ({ org, runningApps }: AppsTableWithDataProps) => {
               <StudioTable.Row>
                 <StudioTable.HeaderCell>{t('Navn')}</StudioTable.HeaderCell>
                 <StudioTable.HeaderCell
-                  sort={sortField === 'count' ? sortDirection : 'none'}
-                  onClick={() => handleSort('count')}
+                  sort={sortField === 'errors' ? sortDirection : 'none'}
+                  onClick={() => handleSort('errors')}
                   className={classes.errorHeaderCell}
                 >
                   <div className={classes.errorHeaderCellContent}>
-                    <div>{t('Feil')}</div>
-                    <div className={classes.errorHeaderCellLast}>
-                      {t('Siste')}
-                      <StudioSelect
-                        label={null}
-                        // description={'Time'}
-                        value={time}
-                        onChange={(e) => handleTime(Number(e.target.value))}
-                        className={classes.select}
-                      >
-                        <StudioSelect.Option value='1'>1t</StudioSelect.Option>
-                        <StudioSelect.Option value='6'>6t</StudioSelect.Option>
-                        <StudioSelect.Option value='12'>12t</StudioSelect.Option>
-                        <StudioSelect.Option value='24'>1d</StudioSelect.Option>
-                        <StudioSelect.Option value='72'>3d</StudioSelect.Option>
-                        <StudioSelect.Option value='168'>7d</StudioSelect.Option>
-                        <StudioSelect.Option value='720'>30d</StudioSelect.Option>
-                      </StudioSelect>
-                    </div>
-                  </div>
-                </StudioTable.HeaderCell>
-                <StudioTable.HeaderCell
-                  sort={sortField === 'count' ? sortDirection : 'none'}
-                  onClick={() => handleSort('count')}
-                  className={classes.errorHeaderCell}
-                >
-                  <div className={classes.errorHeaderCellContent}>
-                    <div>{t('Mislykkede forespørsler')}</div>
+                    <div>{t('Ant. feil')}</div>
                     <div className={classes.errorHeaderCellLast}>
                       {t('Siste')}
                       <StudioSelect
@@ -257,25 +224,16 @@ type AppsTableBodyProps = {
 const AppsTableBody = ({ org, env, runningApps, time }: AppsTableBodyProps) => {
   const { t } = useTranslation();
 
-  const { data: appExceptions } = useAppExceptionsQuery(org, env, time);
-  const { data: appFailedRequests } = useAppFailedRequestsQuery(org, env, time);
+  const { data: logs } = useLogsQuery(org, env, time);
 
   const options = getChartOptions(time);
 
   return runningApps
     .filter((app) => app.environments.includes(env))
     .map((app) => {
-      const appException = appExceptions?.find((e) => e.appName === app.app);
-      const exceptions = getExceptions(appException?.dataPoints);
-      const exceptionsCount = appException
-        ? appException?.dataPoints.reduce((sum, e) => sum + e.count, 0)
-        : 0;
-
-      const appFailedRequest = appFailedRequests?.find((e) => e.appName === app.app);
-      const failedRequests = getFailedRequests(appFailedRequest?.dataPoints);
-      const failedRequestsCount = appFailedRequest
-        ? appFailedRequest?.dataPoints.reduce((sum, e) => sum + e.count, 0)
-        : 0;
+      const appLogs = logs?.find((e) => e.appName === app.app);
+      const appLogsChartData = getLogsChartData(appLogs?.dataPoints);
+      const appLogsCount = appLogs ? appLogs?.dataPoints.reduce((sum, e) => sum + e.count, 0) : 0;
 
       return (
         <StudioTable.Row key={app.app}>
@@ -284,14 +242,14 @@ const AppsTableBody = ({ org, env, runningApps, time }: AppsTableBodyProps) => {
           </StudioTable.Cell>
           <StudioTable.Cell className={classes.errorCell}>
             <div className={classes.errorCellContent}>
-              {exceptionsCount !== undefined ? (
+              {appLogsCount !== undefined ? (
                 <div>
                   <div
                     className={
-                      exceptionsCount > 0 ? classes.errorDangerCount : classes.errorSuccessCount
+                      appLogsCount > 0 ? classes.errorDangerCount : classes.errorSuccessCount
                     }
                   >
-                    {exceptionsCount ?? <StudioSpinner aria-label={t('general.loading')} />}
+                    {appLogsCount}
                   </div>
                 </div>
               ) : (
@@ -299,47 +257,7 @@ const AppsTableBody = ({ org, env, runningApps, time }: AppsTableBodyProps) => {
               )}
               <div>
                 <div className={classes.chart}>
-                  <Line options={options} data={exceptions} />
-                </div>
-                <div className={classes.grafanaLink}>
-                  <StudioLink
-                    href={grafanaExceptionsUrl({
-                      org,
-                      env,
-                      app: app.app,
-                      isProduction: false,
-                      //isProduction: org.type.toLowerCase() === PROD_ENV_TYPE,
-                      from: time + 'h',
-                    })}
-                    rel='noopener noreferrer'
-                    target='_blank'
-                    icon={<ExternalLinkIcon title={t('general.open_app_in_new_window')} />}
-                    iconPlacement={'right'}
-                  >
-                    Grafana
-                  </StudioLink>
-                </div>
-              </div>
-            </div>
-          </StudioTable.Cell>
-          <StudioTable.Cell className={classes.errorCell}>
-            <div className={classes.errorCellContent}>
-              {failedRequestsCount !== undefined ? (
-                <div>
-                  <div
-                    className={
-                      failedRequestsCount > 0 ? classes.errorDangerCount : classes.errorSuccessCount
-                    }
-                  >
-                    {failedRequestsCount}
-                  </div>
-                </div>
-              ) : (
-                <StudioSpinner aria-label={t('general.loading')} />
-              )}
-              <div>
-                <div className={classes.chart}>
-                  <Line options={options} data={failedRequests} />
+                  <Line options={options} data={appLogsChartData} />
                 </div>
                 <div className={classes.grafanaLink}>
                   <StudioLink

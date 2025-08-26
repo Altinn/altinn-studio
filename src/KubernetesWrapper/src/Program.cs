@@ -60,8 +60,7 @@ static void RegisterServices(IServiceCollection services)
     });
     services.AddControllers();
     services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
-    services.AddTransient<IAppExceptionsService, AppExceptionsService>();
-    services.AddTransient<IAppFailedRequestsService, AppFailedRequestsService>();
+    services.AddTransient<ILogsService, LogsService>();
     services.AddTransient<IContainerLogsService, ContainerLogsService>();
 
     services.AddSwaggerGen(c =>
