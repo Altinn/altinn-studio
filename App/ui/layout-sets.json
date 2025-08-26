@@ -39,6 +39,12 @@
         "taskId": "Task_2"
       },
       {
+        "taskId": "Task_3"
+      },
+      {
+        "taskId": "Task_5"
+      },
+      {
         "type": "receipt"
       }
     ]
