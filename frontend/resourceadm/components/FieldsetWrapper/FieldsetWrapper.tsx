@@ -109,7 +109,7 @@ export const FieldsetWrapper = <T,>({
   const displayFields = listItems.map((listItem: T, pos: number) => (
     <div key={`${pos}/${listItems.length}`} className={classes.fieldset}>
       {pos > 0 && <div className={classes.divider} />}
-      <div className={classes.itemWrapper}>
+      <div data-color='neutral' className={classes.itemWrapper}>
         {renderItem(listItem, pos, (item: T) => {
           onChangeListItemField(item, pos);
         })}

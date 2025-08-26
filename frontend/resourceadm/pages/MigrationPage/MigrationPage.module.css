@@ -1,7 +1,7 @@
 .pageWrapper {
   width: 90%;
   margin: 0;
-  padding: var(--fds-spacing-10);
+  padding: var(--ds-size-10);
 }
 
 .contentWrapper {
@@ -12,9 +12,9 @@
 }
 
 .contentDivider {
-  border: solid 1px var(--fds-semantic-border-neutral-subtle);
-  margin-top: var(--fds-spacing-6);
-  margin-bottom: var(--fds-spacing-4);
+  border: solid 1px var(--ds-color-border-subtle);
+  margin-top: var(--ds-size-6);
+  margin-bottom: var(--ds-size-4);
 }
 
 .migrationLink {
@@ -24,5 +24,5 @@
 .environmentWrapper {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-gap: var(--fds-spacing-5);
+  grid-gap: var(--ds-size-5);
 }

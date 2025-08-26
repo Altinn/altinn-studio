@@ -137,7 +137,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
             <TasklistIcon />
           </ButtonRouterLink>
-          <div className={classes.verticalDivider} />
+          <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
             color='second'
@@ -148,7 +148,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
           </StudioButton>
-          <div className={classes.verticalDivider} />
+          <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
             color='second'
@@ -161,7 +161,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           </StudioButton>
         </div>
       </div>
-      <div className={classes.horizontalDivider} />
+      <div className={classes.horizontalDivider} data-color='neutral' />
       <div className={classes.componentWrapper}>{displayContent()}</div>
       <NewResourceModal
         ref={createResourceModalRef}

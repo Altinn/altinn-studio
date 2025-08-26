@@ -70,7 +70,8 @@ export const ResourceSwitchInput = ({
             label={
               <StudioParagraph
                 data-size='sm'
-                className={value ? classes.toggleTextActive : classes.toggleTextInactive}
+                data-color={value ? 'success' : 'neutral'}
+                className={classes.toggleText}
               >
                 {t(toggleTextTranslationKey, {
                   shouldText: !value ? t('resourceadm.switch_should_not') : '',

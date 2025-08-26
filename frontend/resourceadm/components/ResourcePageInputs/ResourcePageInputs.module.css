@@ -21,16 +21,8 @@
   gap: 1rem;
 }
 
-.toggleTextActive {
-  color: var(--fds-semantic-text-success-default);
-}
-
-.toggleTextInactive {
-  color: var(--fds-semantic-text-neutral-subtle);
-}
-
-.description {
-  color: var(--fds-semantic-text-neutral-subtle);
+.toggleText {
+  color: var(--ds-color-text-subtle);
 }
 
 .markdownToolbar {

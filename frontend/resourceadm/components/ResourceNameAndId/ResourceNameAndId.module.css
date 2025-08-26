@@ -15,10 +15,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--ds-color-background-tinted);
   width: 20px;
   height: 20px;
-  border: 1px solid var(--fds-semantic-border-neutral-default);
+  border: 1px solid var(--ds-color-border-default);
   border-radius: 1px;
   margin-right: 10px;
 }

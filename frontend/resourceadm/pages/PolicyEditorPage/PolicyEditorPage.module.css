@@ -1,7 +1,7 @@
 .policyEditorWrapper {
   max-width: 40rem;
   margin: 0;
-  padding: var(--fds-spacing-10);
+  padding: var(--ds-size-10);
 }
 
 .spinnerWrapper {

@@ -2,16 +2,16 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: var(--fds-spacing-4);
-  border: solid 1px var(--fds-semantic-border-divider-default);
-  border-radius: var(--fds-border_radius-xlarge);
-  gap: var(--fds-spacing-2);
+  padding: var(--ds-size-4);
+  border: solid 1px var(--ds-color-border-subtle);
+  border-radius: var(--ds-border-radius-xl);
+  gap: var(--ds-size-2);
 }
 
 .migrationPanelInner {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
 }
 .migrationPanelCheckbox {
   margin-top: var(--ds-size-4);

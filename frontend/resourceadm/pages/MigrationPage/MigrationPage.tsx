@@ -76,7 +76,7 @@ export const MigrationPage = ({
               {t('resourceadm.migration_help_link')}
             </StudioLink>
           </StudioParagraph>
-          <div className={classes.contentDivider} />
+          <div data-color='neutral' className={classes.contentDivider} />
           <StudioHeading data-size='sm' level={2}>
             {t('resourceadm.migration_select_environment_header')}
           </StudioHeading>

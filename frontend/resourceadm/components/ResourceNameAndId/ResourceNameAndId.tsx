@@ -130,7 +130,9 @@ export const ResourceNameAndId = ({
         ) : (
           <div className={classes.editFieldWrapper}>
             <div>
-              <p className={classes.idText}>id</p>
+              <p className={classes.idText} data-color='neutral'>
+                id
+              </p>
             </div>
             <StudioParagraph data-size='sm'>
               <strong>{formatIdString(id)}</strong>
