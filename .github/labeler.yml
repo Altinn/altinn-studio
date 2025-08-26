@@ -71,11 +71,11 @@ kind/dependencies:
 
 quality/testing:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/testing/**/*', 'src/Designer/backend/tests/**/*', 'testdata/**/*']
+  - any-glob-to-any-file: ['frontend/testing/**/*', 'src/Designer/backend/tests/**/*', 'src/Designer/testdata/**/*']
 
 skip-releasenotes:
 - changed-files:
-  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'testdata/**/*', 'development/**/*', 'src/**/*']
+  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'src/Designer/testdata/**/*', 'development/**/*', 'src/**/*']
 
 backend:
 - changed-files:

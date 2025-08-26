@@ -6,7 +6,7 @@ on:
       - 'frontend/**'
       - '!frontend/testing/cypress/**'
       - '!frontend/stats/**'
-      - 'testdata/**'
+      - 'src/Designer/testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
   workflow_dispatch:
