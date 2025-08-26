@@ -1,16 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
+﻿using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Models.Process;
 using Altinn.App.Models.Model2;
 using Altinn.App.Models.Model3;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Code;
 
@@ -25,33 +19,17 @@ public class FailServiceTask : IServiceTask
 
     public string Type => "fail";
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskParameters parameters)
+    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        Instance instance = parameters.InstanceDataMutator.Instance;
+        Instance instance = context.InstanceDataMutator.Instance;
 
         DataElement dataElement2 = instance.Data.Find(x => x.DataType == "Model2");
         DataElement dataElement3 = instance.Data.Find(x => x.DataType == "Model3");
 
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        var formDataModel2 = (Model2)
-            await _dataClient.GetFormData(
-                instanceIdentifier.InstanceGuid,
-                typeof(Model2),
-                instance.Org,
-                instance.AppId,
-                int.Parse(instance.InstanceOwner.PartyId),
-                Guid.Parse(dataElement2.Id)
-            );
+        var formDataModel2 = (Model2) await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement2));
 
         var formDataModel3 = (Model3)
-            await _dataClient.GetFormData(
-                instanceIdentifier.InstanceGuid,
-                typeof(Model3),
-                instance.Org,
-                instance.AppId,
-                int.Parse(instance.InstanceOwner.PartyId),
-                Guid.Parse(dataElement3.Id)
-            );
+            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement3));
 
         if (
             formDataModel2.fail.HasValue
@@ -59,14 +37,11 @@ public class FailServiceTask : IServiceTask
             && (!formDataModel3.fail.HasValue || formDataModel3.fail.Value)
         )
         {
-            return new ServiceTaskFailedResult
-            {
-                ErrorTitle = "Something went wrong",
-                ErrorMessage = "The service task failed intentionally. Try again later?",
-                ErrorType = ProcessErrorType.Conflict
-            };
+            return new ServiceTaskFailedResult();
         }
 
+        formDataModel2.property1 = "Satt fra service task.";
+        
         return new ServiceTaskSuccessResult();
     }
 }
