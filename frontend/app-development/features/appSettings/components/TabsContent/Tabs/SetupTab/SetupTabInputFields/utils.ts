@@ -1,5 +1,4 @@
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { ObjectUtils } from '@studio/pure-functions';
 
 export const onEntryShowKey = 'select-instance';
 
@@ -21,9 +20,6 @@ function enableOnEntryShow(metadata: ApplicationMetadata): ApplicationMetadata {
 }
 
 function disableOnEntryShow(metadata: ApplicationMetadata): ApplicationMetadata {
-  const newMetadata = ObjectUtils.deepCopy(metadata);
-  if (newMetadata.onEntry) {
-    delete newMetadata.onEntry;
-  }
-  return newMetadata;
+  const { onEntry, ...rest } = metadata;
+  return rest;
 }

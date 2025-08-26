@@ -6,7 +6,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { StudioCard, StudioSwitch } from '@studio/components';
-import { updateOnEntryShow } from './utils';
+import { onEntryShowKey, updateOnEntryShow } from './utils';
 
 export type SetupTabInputFieldsProps = {
   appMetadata: ApplicationMetadata;
@@ -95,7 +95,7 @@ export function SetupTabInputFields({ appMetadata }: SetupTabInputFieldsProps): 
       {renderConfigSwitch(
         t('app_settings.setup_tab_switch_onEntry_show'),
         t('app_settings.setup_tab_switch_onEntry_show_description'),
-        appMetadata?.onEntry?.show === 'select-instance',
+        appMetadata?.onEntry?.show === onEntryShowKey,
         handleSaveShow,
       )}
     </>
