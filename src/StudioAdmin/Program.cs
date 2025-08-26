@@ -23,6 +23,7 @@ builder.Services.AddHttpClient<ICdnConfigService, CdnConfigService>();
 builder.Services.AddHttpClient<TestToolsTokenGeneratorService>();
 builder.Services.AddHttpClient<IStorageService, TestStorageService>();
 builder.Services.AddHttpClient<IApplicationsService, ApplicationsService>();
+builder.Services.AddHttpClient<IKubernetesWrapperService, KubernetesWrapperService>();
 builder.Services.AddHttpClient<IAppResourcesService, AppResourcesService>();
 builder.Services.AddControllers();
 

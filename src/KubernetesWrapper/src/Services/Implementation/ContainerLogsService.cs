@@ -21,7 +21,7 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
     private readonly GeneralSettings _generalSettings = generalSettings.Value;
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ContainerLog>> GetAll(string app = null, int take = 50, double time = 1, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ContainerLog>> GetAll(string app, int take, double time, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(take, LogQueryLimits.MaxTake);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(time, LogQueryLimits.MaxTime);
@@ -48,7 +48,7 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
 
         return response.Value.Table.Rows.Select(row => new ContainerLog
         {
-            TimeGenerated = row.GetDateTimeOffset("TimeGenerated")?.UtcDateTime ?? DateTime.MinValue,
+            TimeGenerated = row.GetDateTimeOffset("TimeGenerated").Value,
             LogMessage = row.GetString("LogMessage") ?? string.Empty,
         });
     }

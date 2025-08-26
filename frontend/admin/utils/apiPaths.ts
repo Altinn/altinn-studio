@@ -36,6 +36,11 @@ export const instanceDataElementPath = (
   dataElementId: string,
 ) => `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/data/${dataElementId}`; // Get
 
+export const logsPath = (org: string, env: string, time: number, app?: string) =>
+  `${adminApiBasePath}/kuberneteswrapper/${org}/${env}/logs?time=${time}`; // Get
+export const containerLogsPath = (org: string, env: string, time: number, app: string) =>
+  `${adminApiBasePath}/kuberneteswrapper/${org}/${env}/containerlogs?time=${time}`; // Get
+
 /**
  * Returns an encoded query string from a key-value object, or an empty string if the object is empty.
  * Also removes parameters that are empty, null, or undefined.
