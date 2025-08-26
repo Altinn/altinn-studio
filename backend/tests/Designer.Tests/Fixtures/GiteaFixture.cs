@@ -90,7 +90,7 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartAltinnGiteaAsync()
         {
-            string giteaDockerFilePath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "src", "gitea");
+            string giteaDockerFilePath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "src", "gitea");
 
             const string GiteaTestImageName = "repositories:latest";
 
