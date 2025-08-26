@@ -6,6 +6,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { StudioCard, StudioSwitch } from '@studio/components';
+import { updateOnEntryShow } from './utils';
 
 export type SetupTabInputFieldsProps = {
   appMetadata: ApplicationMetadata;
@@ -48,13 +49,8 @@ export function SetupTabInputFields({ appMetadata }: SetupTabInputFieldsProps): 
   };
 
   const handleSaveShow = (e: ChangeEvent<HTMLInputElement>) => {
-    updateAppMetadataMutation({
-      ...appMetadata,
-      onEntry: {
-        ...appMetadata.onEntry,
-        show: e.target.checked ? 'select-instance' : undefined,
-      },
-    });
+    const updatedMetadata = updateOnEntryShow(appMetadata, e.target.checked);
+    updateAppMetadataMutation(updatedMetadata);
   };
 
   const renderConfigSwitch = (
