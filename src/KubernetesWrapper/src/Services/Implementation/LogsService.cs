@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace KubernetesWrapper.Services.Implementation;
 
 /// <summary>
-/// Service containing all actions related to failed requests
+/// Service containing all actions related to logs
 /// </summary>
 /// <remarks>
 /// Initializes a new instance of the <see cref="LogsService"/> class
@@ -37,7 +37,6 @@ public class LogsService(IOptions<GeneralSettings> generalSettings, LogsQueryCli
             ? string.Empty
             : $" | where AppRoleName has '{app.Replace("'", "''")}'";
 
-        // | summarize FailedCount = sumif(ItemCount, Success == false), Count = sum(ItemCount) by AppRoleName, DateTimeOffset = bin(TimeGenerated, 1h)
         var query = $@"
                 AppRequests
                 | where Success == false

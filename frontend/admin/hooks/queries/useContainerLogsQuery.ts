@@ -8,12 +8,12 @@ import type { ContainerLog } from 'admin/types/ContainerLog';
 export const useContainerLogsQuery = (
   org: string,
   env: string,
-  app: string,
   time: number,
+  app: string,
 ): UseQueryResult<ContainerLog[]> => {
   return useQuery<ContainerLog[]>({
-    queryKey: [QueryKey.ContainerLogs, org, env, app, time],
+    queryKey: [QueryKey.ContainerLogs, org, env, time, app],
     queryFn: async ({ signal }) =>
-      (await axios.get<ContainerLog[]>(containerLogsPath(org, env, app, time), { signal })).data,
+      (await axios.get<ContainerLog[]>(containerLogsPath(org, env, time, app), { signal })).data,
   });
 };

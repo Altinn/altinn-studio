@@ -44,8 +44,6 @@ public class ContainerLogsService(IOptions<GeneralSettings> generalSettings, Log
                 | project TimeGenerated, LogMessage
                 | take {take}";
 
-        System.Console.WriteLine("query: " + query);
-
         Response<LogsQueryResult> response = await logsQueryClient.QueryWorkspaceAsync(logAnalyticsWorkspaceId, query, new QueryTimeRange(TimeSpan.FromHours(time)), cancellationToken: cancellationToken);
 
         return response.Value.Table.Rows.Select(row => new ContainerLog

@@ -2,9 +2,6 @@ import { RoutePaths } from 'admin/enums/RoutePaths';
 import { Apps } from 'admin/features/apps/Apps';
 import { InstanceDetails } from 'admin/features/instanceDetails/InstanceDetails';
 import { Instances } from 'admin/features/instances/Instances';
-import { Exceptions } from 'admin/features/exceptions/Exceptions';
-import { FailedRequests } from 'admin/features/failed-requests/FailedRequests';
-import { Errors } from 'admin/features/errors/Errors';
 import { Overview } from 'admin/features/overview/Overview';
 import type { ComponentType } from 'react';
 
