@@ -198,7 +198,7 @@ services:
       studio_db:
         condition: service_healthy
     build:
-      context: backend
+      context: src/Designer/backend
       dockerfile: Migrations.Dockerfile
     environment:
       - PGHOST=studio_db
