@@ -16,9 +16,9 @@ const meta: Meta = {
   },
 };
 export const Preview: Story = (args): ReactElement => (
-  <StudioPopover.TriggerContext {...args}>
+  <StudioPopover.TriggerContext>
     <StudioPopover.Trigger>Trigger</StudioPopover.Trigger>
-    <StudioPopover>Content</StudioPopover>
+    <StudioPopover {...args}>Content</StudioPopover>
   </StudioPopover.TriggerContext>
 );
 
