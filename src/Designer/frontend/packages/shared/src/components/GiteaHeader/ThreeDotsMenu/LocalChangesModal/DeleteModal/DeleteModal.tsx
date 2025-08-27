@@ -7,7 +7,7 @@ import {
   StudioSpinner,
   StudioTextfield,
 } from '@studio/components-legacy';
-import { useForwardedRef } from 'libs/studio-hooks/src';
+import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from 'libs/studio-icons/src';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { Paragraph } from '@digdir/designsystemet-react';

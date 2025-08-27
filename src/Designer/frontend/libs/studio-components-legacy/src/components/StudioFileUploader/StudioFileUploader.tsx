@@ -4,7 +4,7 @@ import classes from './StudioFileUploader.module.css';
 import { UploadIcon } from '../../../../studio-icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
-import { useForwardedRef } from 'libs/studio-hooks/src';
+import { useForwardedRef } from '@studio/hooks';
 
 export type StudioFileUploaderProps = {
   uploaderButtonText?: string;

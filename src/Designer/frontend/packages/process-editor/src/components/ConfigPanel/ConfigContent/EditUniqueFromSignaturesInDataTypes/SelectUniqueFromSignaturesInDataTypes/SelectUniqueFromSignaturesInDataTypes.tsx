@@ -1,7 +1,7 @@
 import React, { useId, useState } from 'react';
 import { Combobox, Label } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components-legacy';
-import { useDebounce } from 'libs/studio-hooks/src';
+import { useDebounce } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from 'libs/studio-icons/src';
 import classes from './SelectUniqueFromSignaturesInDataTypes.module.css';

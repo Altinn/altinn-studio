@@ -7,7 +7,7 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
-import { useUniqueKeys } from 'libs/studio-hooks/src';
+import { useUniqueKeys } from '@studio/hooks';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
 jest.mock('libs/studio-hooks/src/hooks/useUniqueKeys');

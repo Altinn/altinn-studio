@@ -25,7 +25,7 @@ import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
 import type { TextResource } from '../../types/TextResource';
-import { usePropState } from 'libs/studio-hooks/src';
+import { usePropState } from '@studio/hooks';
 import { StudioParagraph } from '../StudioParagraph';
 import type { CodeListItemType } from './types/CodeListItemType';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';

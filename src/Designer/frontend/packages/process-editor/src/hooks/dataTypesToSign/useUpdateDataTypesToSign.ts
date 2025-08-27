@@ -3,7 +3,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { useDebounce } from 'libs/studio-hooks/src';
+import { useDebounce } from '@studio/hooks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 const updateDataTypes = (

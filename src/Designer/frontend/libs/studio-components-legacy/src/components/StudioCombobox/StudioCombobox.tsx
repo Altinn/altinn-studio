@@ -3,7 +3,7 @@ import { Combobox } from '@digdir/designsystemet-react';
 //TODO: Update import path when v1 of the Design system has been updated to export it from index: https://github.com/Altinn/altinn-studio/issues/13531
 import type { ComboboxProps } from '@digdir/designsystemet-react/dist/types/components/form/Combobox/Combobox';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
-import { useForwardedRef } from 'libs/studio-hooks/src';
+import { useForwardedRef } from '@studio/hooks';
 import { isWithinDialog } from './isWithinDialog';
 
 export type StudioComboboxProps = WithoutAsChild<ComboboxProps>;

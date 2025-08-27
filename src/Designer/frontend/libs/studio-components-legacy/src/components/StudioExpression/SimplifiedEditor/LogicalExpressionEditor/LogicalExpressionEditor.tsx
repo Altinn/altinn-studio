@@ -20,7 +20,7 @@ import { useStudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
 import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
 import { Fieldset } from '@digdir/designsystemet-react';
-import { type UseUniqueKey, useUniqueKeys } from 'libs/studio-hooks/src';
+import { type UseUniqueKey, useUniqueKeys } from '@studio/hooks';
 
 export type LogicalExpressionEditorProps = {
   expression: SimpleLogicalExpression;

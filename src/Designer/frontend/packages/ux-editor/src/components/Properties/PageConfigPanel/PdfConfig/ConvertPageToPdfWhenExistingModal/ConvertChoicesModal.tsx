@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { StudioModal } from '@studio/components-legacy';
-import { useForwardedRef } from 'libs/studio-hooks/src';
+import { useForwardedRef } from '@studio/hooks';
 import { OverrideCurrentPdfByConversionChoices } from './OverrideCurrentPdfByConversionChoices';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '@altinn/ux-editor/hooks/usePdf/usePdf';

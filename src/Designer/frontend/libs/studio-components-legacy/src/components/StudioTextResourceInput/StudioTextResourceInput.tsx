@@ -9,7 +9,7 @@ import classes from './StudioTextResourceInput.module.css';
 import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
 import { editTextResourceValue, createNewTextResource } from './utils';
-import { usePropState } from 'libs/studio-hooks/src';
+import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import cn from 'classnames';
 import { Mode } from './types/Mode';

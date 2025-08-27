@@ -3,7 +3,7 @@ import type { StudioTableProps } from '../StudioTable';
 import { StudioTable } from '../StudioTable';
 import classes from './StudioInputTable.module.css';
 import cn from 'classnames';
-import { useForwardedRef } from 'libs/studio-hooks/src';
+import { useForwardedRef } from '@studio/hooks';
 import type { StudioInputTableContextValue } from './StudioInputTableContext';
 import { StudioInputTableContext } from './StudioInputTableContext';
 

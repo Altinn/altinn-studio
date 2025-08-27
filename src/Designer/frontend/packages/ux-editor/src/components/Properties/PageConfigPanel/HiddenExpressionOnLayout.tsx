@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { useDebounce } from 'libs/studio-hooks/src';
+import { useDebounce } from '@studio/hooks';
 import classes from './HiddenExpressionOnLayout.module.css';
 
 export const HiddenExpressionOnLayout = () => {

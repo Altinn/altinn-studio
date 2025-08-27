@@ -7,7 +7,7 @@ import { type IGenericEditComponent } from '../../config/componentConfig';
 import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from './types/TableColumn';
 import { filterOutTableColumn, updateComponentWithSubform } from './utils';
-import { useUniqueKeys } from 'libs/studio-hooks/src';
+import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
 import { useSubformLayoutValidation } from './hooks/useSubformLayoutValidation';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning/SubformMissingContentWarning';

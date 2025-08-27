@@ -1,7 +1,7 @@
 import React, { type ChangeEvent } from 'react';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import { StudioTextarea } from '@studio/components-legacy';
-import { useDebounce } from 'libs/studio-hooks/src';
+import { useDebounce } from '@studio/hooks';
 
 export function TextQuestion({ id, label, value, onChange }: QuestionsProps): React.ReactElement {
   const { debounce } = useDebounce({ debounceTimeInMs: 500 });
