@@ -40,8 +40,6 @@ public class FailServiceTask : IServiceTask
             return new ServiceTaskFailedResult();
         }
 
-        formDataModel2.property1 = "Satt fra service task.";
-        
         return new ServiceTaskSuccessResult();
     }
 }
