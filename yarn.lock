@@ -4500,6 +4500,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"app-preview@workspace:src/Designer/frontend/app-preview":
+  version: 0.0.0-use.local
+  resolution: "app-preview@workspace:src/Designer/frontend/app-preview"
+  dependencies:
+    jest: "npm:29.7.0"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-router-dom: "npm:6.30.1"
+    typescript: "npm:5.9.2"
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "app-shared@workspace:src/Designer/frontend/packages/shared":
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"

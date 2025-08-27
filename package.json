@@ -69,7 +69,7 @@
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
-    "./frontend/language/src/*.json": "yarn run sort-texts"
+    "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
   "packageManager": "yarn@4.9.2",
   "private": true,
@@ -113,7 +113,7 @@
   "workspaces": [
     "development/azure-devops-mock",
     "src/Designer/frontend/app-development",
-    "src/Designer/frontend/frontend/app-preview",
+    "src/Designer/frontend/app-preview",
     "src/Designer/frontend/dashboard",
     "src/Designer/frontend/resourceadm",
     "src/Designer/frontend/resourceadm/testing/playwright",
