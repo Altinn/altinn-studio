@@ -1,4 +1,4 @@
-name: Configuration coverage stats
+name: Designer frontend Configuration coverage stats
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'frontend/app-development/**'
       - 'frontend/packages/ux-editor/**'
       - 'frontend/scripts/configurationStats/**'
-      - '.github/workflows/frontend-config-coverage.yml'
+      - '.github/workflows/designer-frontend-config-coverage.yml'
 
 jobs:
   stats:
