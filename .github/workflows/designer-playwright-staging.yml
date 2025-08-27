@@ -1,4 +1,4 @@
-name: Playwright Tests in Staging
+name: Designer Playwright Tests in Staging
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'frontend/**'
-      - '.github/workflows/playwright.yml'
+      - '.github/workflows/designer-playwright-staging.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -1,4 +1,4 @@
-name: Build and Test on windows, linux and macos
+name: Designer Build and Test on windows, linux and macos
 on:
   push:
     branches: [ main ]

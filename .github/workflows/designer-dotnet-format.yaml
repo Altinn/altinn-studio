@@ -1,4 +1,4 @@
-name: Dotnet format check
+name: Designer Dotnet format check
 on:
   push:
     branches: [ main ]
