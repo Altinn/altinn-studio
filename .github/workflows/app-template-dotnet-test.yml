@@ -1,4 +1,4 @@
-name: Build and Test on windows and macos
+name: App Template Build and Test on windows and macos
 on:
   push:
     branches: [ main ]

@@ -1,4 +1,4 @@
-name: Verify Quartz migrations
+name: Designer Verify Quartz migrations
 on:
   push:
     branches: [ main ]

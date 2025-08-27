@@ -1,4 +1,4 @@
-name: Playwright tests on pr
+name: Designer Playwright tests on pr
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -7,10 +7,10 @@ on:
       - '!frontend/admin/**'
       - '!frontend/stats/**'
       - 'src/Designer/backend/**'
-      - '.github/workflows/run-playwright-on-pr.yaml'
+      - '.github/workflows/designer-run-playwright-on-pr.yaml'
       - 'compose.yaml'
       - 'Dockerfile'
-      - 'gitea/**'
+      - 'src/gitea/**'
       - 'package.json'
       - 'development/**'
       - 'src/App/app-template-dotnet/**'
