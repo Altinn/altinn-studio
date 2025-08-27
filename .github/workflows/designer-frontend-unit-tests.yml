@@ -1,4 +1,4 @@
-name: Frontend Tests
+name: Designer Frontend Tests
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - '!frontend/testing/cypress/**'
       - '!frontend/stats/**'
       - 'src/Designer/testdata/**'
-      - '.github/workflows/frontend-unit-tests.yml'
+      - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
   workflow_dispatch:
 
