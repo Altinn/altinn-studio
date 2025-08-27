@@ -132,7 +132,7 @@ export const ResourceLanguageTextField = ({
   };
 
   const onAddMarkdownLink = (): void => {
-    onAddMarkdown('[Link](https://altinn.no)', 'Link');
+    onAddMarkdown('[Skriv inn lenketekst](https://altinn.no)', 'Skriv inn lenketekst');
   };
 
   const onAddMarkdownList = (): void => {
@@ -161,7 +161,9 @@ export const ResourceLanguageTextField = ({
           startIndex = caretIndex + text.indexOf(selectionText);
           endIndex = caretIndex + text.indexOf(selectionText) + selectionText.length;
         }
-        inputRef.current.setSelectionRange(startIndex, endIndex);
+        if (inputRef.current) {
+          inputRef.current.setSelectionRange(startIndex, endIndex);
+        }
       });
     }
   };

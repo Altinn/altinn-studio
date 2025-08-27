@@ -420,7 +420,7 @@ describe('AboutResourcePage', () => {
     await user.click(linkMarkdownButton);
     await waitFor(() => consentTextNbInput.blur());
 
-    const linkMarkdown = `[Link](https://altinn.no)`;
+    const linkMarkdown = `[Skriv inn lenketekst](https://altinn.no)`;
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockConsentResource,
