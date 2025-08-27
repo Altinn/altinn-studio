@@ -236,7 +236,7 @@ namespace Designer.Tests.Services
             }
         }
 
-         [Fact]
+        [Fact]
         public async Task CopyRepository_WithConfigJson_InRoot_UpdatesServiceConfiguration()
         {
             // Arrange
