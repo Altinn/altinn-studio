@@ -1,5 +1,7 @@
 name: Resource admin playwright tests on pr
 on:
+  push:
+    branches: ['refactor/move-frontned-to-new-folder']
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]

@@ -2,6 +2,7 @@ name: Designer Frontend Tests
 
 on:
   push:
+    branches: ['refactor/move-frontned-to-new-folder']
     paths:
       - '../../src/Designer/frontend/**'
       - '!frontend/testing/cypress/**'

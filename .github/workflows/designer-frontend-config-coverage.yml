@@ -2,6 +2,7 @@ name: Designer frontend Configuration coverage stats
 
 on:
   push:
+    branches: ['refactor/move-frontned-to-new-folder']
     paths:
       - '../../src/Designer/frontend/app-development/**'
       - '../../src/Designer/frontend/packages/ux-editor/**'
