@@ -91,7 +91,7 @@
     "start-admin": "yarn workspace admin start",
     "stats": "node src/Designer/frontend/stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
-    "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
+    "test": "jest --maxWorkers=50% --config=src/Designer/frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=src/Designer/frontend/jest.config.js",
     "typecheck": "tsc --noEmit -p src/Designer/frontend",
     "strict-null-checks": "tsc --noEmit -p src/Designer/frontend/tsconfig-strict.json",
