@@ -20,7 +20,7 @@ import {
   mapSelectedValuesToPartyTypesAllowed,
 } from './utils';
 import { useAppMetadataMutation } from '../../../../../../../hooks/mutations';
-import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { toast } from 'react-toastify';
 import { ArrayUtils } from '@studio/pure-functions';
 

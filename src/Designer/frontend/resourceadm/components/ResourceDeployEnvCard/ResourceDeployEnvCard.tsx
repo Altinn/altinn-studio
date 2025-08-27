@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import classes from './ResourceDeployEnvCard.module.css';
-import { ArrowRightIcon } from 'libs/studio-icons/src';
+import { ArrowRightIcon } from '@studio/icons';
 import {
   StudioAlert,
   StudioButton,

@@ -4,7 +4,7 @@ import classes from './TasksTable.module.css';
 import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';
 import { useTranslation } from 'react-i18next';
-import { EyeClosedIcon, EyeIcon, PlayFillIcon } from 'libs/studio-icons/src';
+import { EyeClosedIcon, EyeIcon, PlayFillIcon } from '@studio/icons';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTaskNavigationGroupMutation } from '@altinn/ux-editor/hooks/mutations/useTaskNavigationGroupMutation';

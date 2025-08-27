@@ -3,7 +3,7 @@ import classes from './ResourceNarrowingList.module.css';
 import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../../ExpandablePolicyElement';
 import { StudioButton } from '@studio/components-legacy';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import type { PolicyRuleResource } from '../../../../../types';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../../contexts/PolicyEditorContext';

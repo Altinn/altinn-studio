@@ -3,7 +3,7 @@ import React from 'react';
 import { StudioAlert, StudioHeading, StudioTabs } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
-import { CompassIcon, DatabaseIcon } from 'libs/studio-icons/src';
+import { CompassIcon, DatabaseIcon } from '@studio/icons';
 import { SettingsNavigation } from './SettingsNavigation/SettingsNavigation';
 
 enum Tabs {

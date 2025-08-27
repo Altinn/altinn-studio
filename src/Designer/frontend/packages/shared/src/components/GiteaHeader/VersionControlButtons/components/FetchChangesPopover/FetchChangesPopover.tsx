@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
-import { DownloadIcon } from 'libs/studio-icons/src';
+import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';

@@ -1,1 +1,1 @@
-export * from '../../../../../libs/studio-hooks/src/hooks';
+export * from '@studio/hooks';

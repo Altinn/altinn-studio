@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { ButtonProps } from '@digdir/designsystemet-react';
 import classes from './InputActionWrapper.module.css';

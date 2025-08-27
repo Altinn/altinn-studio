@@ -3,7 +3,7 @@ import {
   type SupportedStorage,
   type UseOrgAppScopedStorage,
   useOrgAppScopedStorage,
-} from '../../../../../../libs/studio-hooks/src/hooks/useOrgAppScopedStorage';
+} from '../@studio/hooks/useOrgAppScopedStorage';
 import { useParams } from 'react-router-dom';
 
 jest.mock('react-router-dom', () => ({

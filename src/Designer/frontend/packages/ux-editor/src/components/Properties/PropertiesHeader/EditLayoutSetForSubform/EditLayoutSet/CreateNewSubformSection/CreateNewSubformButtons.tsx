@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CreateNewSubformButtons.module.css';
-import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

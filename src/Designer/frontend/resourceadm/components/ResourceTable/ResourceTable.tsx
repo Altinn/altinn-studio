@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, FileImportIcon } from 'libs/studio-icons/src';
+import { PencilIcon, FileImportIcon } from '@studio/icons';
 import {
   StudioButton,
   StudioSpinner,

@@ -5,7 +5,7 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
 import { StudioSpinner, StudioAlert, StudioList, StudioParagraph } from '@studio/components-legacy';
-import { ArrowForwardIcon } from 'libs/studio-icons/src';
+import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 

@@ -4,7 +4,7 @@ import classes from './CreatedFor.module.css';
 import { useTranslation } from 'react-i18next';
 import { RepositoryType } from 'app-shared/types/global';
 import type { Repository } from 'app-shared/types/Repository';
-import { PersonCircleIcon } from 'libs/studio-icons/src';
+import { PersonCircleIcon } from '@studio/icons';
 import { formatDateToDateAndTimeString } from '../../../../../../../utils/dateUtils';
 import { StudioParagraph } from '@studio/components';
 

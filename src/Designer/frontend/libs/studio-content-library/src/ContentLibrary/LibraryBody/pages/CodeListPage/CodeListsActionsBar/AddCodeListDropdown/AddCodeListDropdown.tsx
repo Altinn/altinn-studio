@@ -7,7 +7,7 @@ import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';
-import { FileImportIcon, PlusCircleIcon, PlusIcon, UploadIcon } from 'libs/studio-icons/src';
+import { FileImportIcon, PlusCircleIcon, PlusIcon, UploadIcon } from '@studio/icons';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
 import type { TextResource } from '@studio/components-legacy';
 import { ImportFromOrgLibraryDialog } from './ImportFromOrgLibraryDialog';

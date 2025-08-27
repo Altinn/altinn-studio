@@ -1,4 +1,4 @@
-import type { CodeListIdSource } from 'libs/studio-content-library/src';
+import type { CodeListIdSource } from '@studio/content-library';
 
 export type OptionListReferences = OptionListReference[];
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ContactSection, type ContactSectionProps } from './ContactSection';
 import { render, screen } from '@testing-library/react';
-import { SlackIcon } from 'libs/studio-icons/src';
+import { SlackIcon } from '@studio/icons';
 
 const defaultContactSectionProps: ContactSectionProps = {
   title: '',

@@ -3,7 +3,7 @@ import {
   createTextResourceWithLanguage,
   convertTextResourceToMutationArgs,
 } from './utils';
-import type { TextResources, TextResourceWithLanguage } from 'libs/studio-content-library/src';
+import type { TextResources, TextResourceWithLanguage } from '@studio/content-library';
 import type { TextResource } from '@studio/components-legacy';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 

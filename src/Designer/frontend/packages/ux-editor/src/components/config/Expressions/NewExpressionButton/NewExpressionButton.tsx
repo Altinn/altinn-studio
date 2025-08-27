@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../../hooks';
 import { StudioDropdownMenu } from '@studio/components-legacy';
 import { useFormItemContext } from '../../../../containers/FormItemContext';

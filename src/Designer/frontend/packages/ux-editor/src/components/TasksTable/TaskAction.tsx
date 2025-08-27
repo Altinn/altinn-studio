@@ -6,7 +6,7 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { StudioPopover, StudioButton } from '@studio/components';
 import { StudioDivider } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';

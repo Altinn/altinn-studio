@@ -12,7 +12,7 @@ import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCenter } from '@studio/components-legacy';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
-import { ArrowRightIcon } from 'libs/studio-icons/src';
+import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export const Preview = () => {

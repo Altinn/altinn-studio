@@ -4,7 +4,7 @@ import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
 import { usePrevious } from '@studio/components-legacy';
 import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
-import { CheckmarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';

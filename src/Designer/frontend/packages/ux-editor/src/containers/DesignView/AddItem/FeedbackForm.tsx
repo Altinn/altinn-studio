@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FeedbackFormImpl } from 'libs/studio-feedback-form/src';
+import { FeedbackFormImpl } from '@studio/feedback-form';
 
 /**
  * This is a feedback form to gather feedback on the new design for adding components.

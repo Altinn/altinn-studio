@@ -11,7 +11,7 @@ import {
 } from '../../../../utils/language';
 import type { AddedItem } from '../types';
 import { useTranslation } from 'react-i18next';
-import { PencilIcon } from 'libs/studio-icons/src';
+import { PencilIcon } from '@studio/icons';
 import classes from './ItemInfo.module.css';
 
 export type ItemInfoProps = {

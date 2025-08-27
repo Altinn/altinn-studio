@@ -4,7 +4,7 @@ import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
-import { ExternalLinkIcon } from 'libs/studio-icons/src';
+import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
 
 export interface DeploymentEnvironmentStatusProps {

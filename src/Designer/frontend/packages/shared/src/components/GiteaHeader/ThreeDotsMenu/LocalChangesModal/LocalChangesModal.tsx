@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { StudioButton, StudioModal } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
-import { MonitorIcon } from 'libs/studio-icons/src';
+import { MonitorIcon } from '@studio/icons';
 
 export type LocalChangesModalProps = {
   triggerClassName?: string;

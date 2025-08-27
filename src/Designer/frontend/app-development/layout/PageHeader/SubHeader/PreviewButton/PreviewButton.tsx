@@ -4,7 +4,7 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
-import { PlayFillIcon } from 'libs/studio-icons/src';
+import { PlayFillIcon } from '@studio/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from '../../../../contexts/PageHeaderContext';
 import { useSearchParams } from 'react-router-dom';

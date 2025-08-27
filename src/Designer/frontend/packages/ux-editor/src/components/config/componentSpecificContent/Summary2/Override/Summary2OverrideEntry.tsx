@@ -1,5 +1,5 @@
 import { StudioAlert, StudioCard, StudioDivider } from '@studio/components-legacy';
-import { CheckmarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React from 'react';

@@ -9,7 +9,7 @@ import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { CheckmarkCircleIcon, ExclamationmarkTriangleIcon } from 'libs/studio-icons/src';
+import { CheckmarkCircleIcon, ExclamationmarkTriangleIcon } from '@studio/icons';
 
 interface IReleaseComponent {
   release: AppRelease;

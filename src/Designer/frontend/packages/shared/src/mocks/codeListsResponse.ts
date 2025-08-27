@@ -1,5 +1,5 @@
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
-import type { CodeListData } from 'libs/studio-content-library/src';
+import type { CodeListData } from '@studio/content-library';
 import {
   description1TextResource,
   description2TextResource,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioSectionHeader } from '@studio/components-legacy';
 import classes from './DesignViewNavigation.module.css';
-import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from 'libs/studio-icons/src';
+import { EyeClosedIcon, EyeIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { useConvertToPageOrder } from '../../hooks/mutations/useConvertToPageOrder';

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './SubResources.module.css';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';
 import { createNewPolicyResource } from '../../../../utils';

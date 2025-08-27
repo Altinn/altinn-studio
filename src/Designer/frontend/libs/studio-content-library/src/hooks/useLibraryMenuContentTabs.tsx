@@ -1,6 +1,6 @@
 import React from 'react';
 import type { PageName } from '../types/PageName';
-import { BookIcon, CodeListsIcon, ImageIcon } from 'libs/studio-icons/src';
+import { BookIcon, CodeListsIcon, ImageIcon } from '@studio/icons';
 import type { StudioContentMenuLinkTabProps } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

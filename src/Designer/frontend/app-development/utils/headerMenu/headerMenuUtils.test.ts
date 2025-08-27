@@ -11,7 +11,7 @@ import {
 import { type HeaderMenuItem } from '../../types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { RoutePaths } from '../../enums/RoutePaths';
-import { DatabaseIcon } from 'libs/studio-icons/src';
+import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';

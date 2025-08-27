@@ -16,7 +16,7 @@ import {
   type MaskinportenScopes,
   type MaskinportenScope,
 } from 'app-shared/types/MaskinportenScope';
-import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { useUpdateSelectedMaskinportenScopesMutation } from '../../../../../../../../hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
 import { ArrayUtils } from '@studio/pure-functions';

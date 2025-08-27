@@ -4,7 +4,7 @@ import {
   StudioRecommendedNextAction,
   useStudioRecommendedNextActionContext,
 } from '@studio/components-legacy';
-import { KeyVerticalIcon } from 'libs/studio-icons/src';
+import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';

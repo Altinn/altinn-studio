@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { PersonPencilIcon } from 'libs/studio-icons/src';
+import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';

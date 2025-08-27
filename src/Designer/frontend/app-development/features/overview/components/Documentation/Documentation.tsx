@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Documentation.module.css';
 import { Heading, Link } from '@digdir/designsystemet-react';
-import { ExternalLinkIcon } from 'libs/studio-icons/src';
+import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 

@@ -2,7 +2,7 @@ import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
 import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components-legacy';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../../hooks/mutations';

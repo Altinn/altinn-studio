@@ -5,7 +5,7 @@ import { StudioButton, StudioDialog, StudioFieldset } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { TextResourceEditor } from '../TextResource/TextResourceEditor';
-import { CheckmarkIcon, PencilIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, PencilIcon, XMarkIcon } from '@studio/icons';
 import classes from './EditNameAction.module.css';
 import { defaultLangCode } from 'packages/text-editor';
 import { useTranslation } from 'react-i18next';

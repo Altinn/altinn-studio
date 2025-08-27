@@ -9,7 +9,7 @@ import {
   StudioDialog,
   StudioSelect,
 } from '@studio/components';
-import { StudioSaveIcon, StudioCancelIcon } from 'libs/studio-icons/src';
+import { StudioSaveIcon, StudioCancelIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
 import {

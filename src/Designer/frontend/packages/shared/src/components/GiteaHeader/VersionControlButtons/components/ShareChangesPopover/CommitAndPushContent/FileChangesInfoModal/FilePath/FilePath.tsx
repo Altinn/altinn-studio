@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './FilePath.module.css';
 import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
-import { ChevronRightIcon } from 'libs/studio-icons/src';
+import { ChevronRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { FileNameUtils } from '@studio/pure-functions';
 import type { QueryStatus } from '@tanstack/react-query';

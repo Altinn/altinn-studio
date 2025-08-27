@@ -1,7 +1,7 @@
 import React, { useState, type MouseEvent } from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import { StudioIconCard } from '@studio/components-legacy/components/StudioIconCard/StudioIconCard';
-import { PencilIcon } from 'libs/studio-icons/src';
+import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDeleteButton, StudioHeading } from '@studio/components-legacy';

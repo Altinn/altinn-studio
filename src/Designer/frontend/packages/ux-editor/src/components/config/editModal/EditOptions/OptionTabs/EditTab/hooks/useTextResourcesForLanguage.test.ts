@@ -1,7 +1,7 @@
 import { useTextResourcesForLanguage } from './useTextResourcesForLanguage';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/components-legacy';
-import type { TextResources } from 'libs/studio-content-library/src';
+import type { TextResources } from '@studio/content-library';
 
 // Test data:
 const language = 'nb';

@@ -6,7 +6,7 @@ import { StudioParagraph } from '@studio/components';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { type NavigationMenuSmallItem } from '../../../types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from '../../../types/HeaderMenu/NavigationMenuSmallGroup';
-import { MenuHamburgerIcon } from 'libs/studio-icons/src';
+import { MenuHamburgerIcon } from '@studio/icons';
 import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';

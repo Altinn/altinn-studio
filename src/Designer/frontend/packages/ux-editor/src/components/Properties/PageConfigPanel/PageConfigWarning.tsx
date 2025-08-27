@@ -6,7 +6,7 @@ import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
-import { SectionHeaderWarningIcon } from 'libs/studio-icons/src';
+import { SectionHeaderWarningIcon } from '@studio/icons';
 import classes from './PageConfigWarning.module.css';
 
 type PageConfigWarningProps = {

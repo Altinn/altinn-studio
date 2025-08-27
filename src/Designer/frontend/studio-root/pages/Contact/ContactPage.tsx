@@ -1,12 +1,7 @@
 import React from 'react';
 import classes from './ContactPage.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import {
-  EnvelopeClosedIcon,
-  SlackIcon,
-  GitHubIcon,
-  PersonHeadsetIcon,
-} from 'libs/studio-icons/src';
+import { EnvelopeClosedIcon, SlackIcon, GitHubIcon, PersonHeadsetIcon } from '@studio/icons';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,

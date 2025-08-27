@@ -4,7 +4,7 @@ import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioAvatar, StudioButton } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';
-import { MenuHamburgerIcon } from 'libs/studio-icons/src';
+import { MenuHamburgerIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useHeaderContext } from '../../../../context/HeaderContext';
 import type { HeaderMenuGroup } from '../../../../types/HeaderMenuGroup';

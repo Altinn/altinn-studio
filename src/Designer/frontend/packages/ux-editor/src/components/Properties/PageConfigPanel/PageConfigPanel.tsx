@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
-import { FileIcon } from 'libs/studio-icons/src';
+import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components-legacy';
 import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';

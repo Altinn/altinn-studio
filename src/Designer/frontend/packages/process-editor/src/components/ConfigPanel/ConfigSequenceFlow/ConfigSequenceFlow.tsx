@@ -9,7 +9,7 @@ import {
   StudioExpression,
   StudioSectionHeader,
 } from '@studio/components-legacy';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';

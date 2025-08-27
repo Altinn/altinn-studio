@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
-import { CheckmarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon } from '@studio/icons';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';

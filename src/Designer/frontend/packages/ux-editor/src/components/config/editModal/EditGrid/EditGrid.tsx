@@ -4,13 +4,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/designsystemet-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import {
-  LaptopIcon,
-  MobileIcon,
-  MobileSmallIcon,
-  MonitorIcon,
-  TabletIcon,
-} from 'libs/studio-icons/src';
+import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
 import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';

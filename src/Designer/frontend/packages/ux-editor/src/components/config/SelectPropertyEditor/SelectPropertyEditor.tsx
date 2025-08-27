@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { XMarkIcon } from 'libs/studio-icons/src';
+import { XMarkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components-legacy';
 import { StudioProperty } from '@studio/components';
 import classes from './SelectPropertyEditor.module.css';

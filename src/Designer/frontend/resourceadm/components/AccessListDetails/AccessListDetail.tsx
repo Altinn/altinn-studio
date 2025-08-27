@@ -7,7 +7,7 @@ import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
-import { TrashIcon } from 'libs/studio-icons/src';
+import { TrashIcon } from '@studio/icons';
 import {
   StudioButton,
   StudioHeading,

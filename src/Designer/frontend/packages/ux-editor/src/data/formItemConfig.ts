@@ -34,7 +34,7 @@ import {
   TextIcon,
   TitleIcon,
   WalletIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';

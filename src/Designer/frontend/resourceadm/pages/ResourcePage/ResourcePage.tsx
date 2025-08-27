@@ -18,7 +18,7 @@ import {
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { deepCompare, getAltinn2Reference, validateResource } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';

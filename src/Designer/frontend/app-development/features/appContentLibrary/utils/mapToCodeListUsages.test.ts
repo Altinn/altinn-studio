@@ -1,7 +1,7 @@
-import type { CodeListIdSource } from 'libs/studio-content-library/src';
+import type { CodeListIdSource } from '@studio/content-library';
 import { mapToCodeListUsages } from './mapToCodeListUsages';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import { CodeListUsageTaskType } from 'libs/studio-content-library/src';
+import { CodeListUsageTaskType } from '@studio/content-library';
 
 const optionListId: string = 'optionListId';
 const optionListIdSources: CodeListIdSource[] = [

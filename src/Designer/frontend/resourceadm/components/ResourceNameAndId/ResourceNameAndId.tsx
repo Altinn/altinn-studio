@@ -1,5 +1,5 @@
 import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components-legacy';
-import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './ResourceNameAndId.module.css';

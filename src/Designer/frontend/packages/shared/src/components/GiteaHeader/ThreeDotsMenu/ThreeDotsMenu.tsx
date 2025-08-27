@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from 'libs/studio-icons/src';
+import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components-legacy';

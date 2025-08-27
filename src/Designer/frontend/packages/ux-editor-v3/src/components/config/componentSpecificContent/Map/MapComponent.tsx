@@ -1,5 +1,5 @@
 import React, { type ChangeEvent } from 'react';
-import { PlusIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';

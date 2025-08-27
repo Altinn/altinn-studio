@@ -1,5 +1,5 @@
 import type { OptionListData } from 'app-shared/types/OptionList';
-import type { CodeListData } from 'libs/studio-content-library/src';
+import type { CodeListData } from '@studio/content-library';
 
 export const mapToCodeListDataList = (optionListDataList: OptionListData[]): CodeListData[] =>
   optionListDataList.map(convertOptionListDataToCodeListData);

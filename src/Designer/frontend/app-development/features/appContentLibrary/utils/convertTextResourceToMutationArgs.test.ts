@@ -1,4 +1,4 @@
-import type { TextResource, TextResourceWithLanguage } from 'libs/studio-content-library/src';
+import type { TextResource, TextResourceWithLanguage } from '@studio/content-library';
 import { convertTextResourceToMutationArgs } from './convertTextResourceToMutationArgs';
 
 describe('convertTextResourceToMutationArgs', () => {

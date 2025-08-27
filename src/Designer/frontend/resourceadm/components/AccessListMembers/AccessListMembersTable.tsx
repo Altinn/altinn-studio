@@ -9,7 +9,7 @@ import {
 } from '@studio/components-legacy';
 import type { Columns } from '@studio/components-legacy';
 import classes from './AccessListMembers.module.css';
-import { PlusCircleIcon, MinusCircleIcon } from 'libs/studio-icons/src';
+import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 import { stringNumberToAriaLabel } from '../../utils/stringUtils';
 
 interface AccessListMembersTableProps {

@@ -16,14 +16,14 @@ import type {
   PagesConfig,
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
-} from 'libs/studio-content-library/src';
+} from '@studio/content-library';
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { codeListTitles } from './test-data/codeListTitles';
 
 // Mocks:
-jest.mock('libs/studio-content-library/src', () => ({
+jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
   ResourceContentLibraryImpl: mockContentLibrary,
 }));

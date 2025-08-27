@@ -5,7 +5,7 @@ import { StudioError, StudioModal, StudioSpinner } from '@studio/components-lega
 import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
-import { ClockDashedIcon } from 'libs/studio-icons/src';
+import { ClockDashedIcon } from '@studio/icons';
 import { FilePath } from './FilePath/FilePath';
 import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
 import type { QueryStatus } from '@tanstack/react-query';

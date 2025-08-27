@@ -6,7 +6,7 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ContactPointCard } from './ContactPointCard';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { ArrayUtils } from '@studio/pure-functions';
 
 const emptyContactPoint: ContactPoint = {

@@ -22,7 +22,7 @@ const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-jest.mock('libs/studio-hooks/src/hooks/useDebounce.ts', () => ({
+jest.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
   useDebounce: jest.fn().mockReturnValue({
     debounce: jest.fn((fn) => fn()),
   }),

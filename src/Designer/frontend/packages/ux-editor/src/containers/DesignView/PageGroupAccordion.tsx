@@ -13,7 +13,7 @@ import {
   TrashIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,

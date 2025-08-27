@@ -4,7 +4,7 @@ import classes from './InputPopover.module.css';
 import { DropdownMenu, ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
-import { PencilIcon } from 'libs/studio-icons/src';
+import { PencilIcon } from '@studio/icons';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components-legacy';
 
 export type InputPopoverProps = {

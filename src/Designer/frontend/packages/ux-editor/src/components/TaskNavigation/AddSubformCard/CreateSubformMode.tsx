@@ -9,7 +9,7 @@ import {
 import { StudioButton, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
-import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';

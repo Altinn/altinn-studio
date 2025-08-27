@@ -6,7 +6,7 @@ import {
   ArrowDownIcon,
   FolderPlusIcon,
   FolderIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
 import { StudioDropdown } from '@studio/components';

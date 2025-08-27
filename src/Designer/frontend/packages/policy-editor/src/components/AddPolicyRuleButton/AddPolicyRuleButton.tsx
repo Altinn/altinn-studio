@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './AddPolicyRuleButton.module.css';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import type { PolicyRuleResource, PolicyRuleCard } from '../../types';

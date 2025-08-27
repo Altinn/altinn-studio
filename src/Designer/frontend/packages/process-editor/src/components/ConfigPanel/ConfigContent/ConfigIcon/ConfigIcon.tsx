@@ -9,7 +9,7 @@ import {
   EndEventIcon,
   PaymentTaskIcon,
   SignTaskIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 
 export type ConfigIconProps = {

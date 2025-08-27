@@ -3,8 +3,8 @@ import type {
   CodeListReference,
   CodeListWithMetadata,
   TextResourceWithLanguage,
-} from 'libs/studio-content-library/src';
-import { ResourceContentLibraryImpl } from 'libs/studio-content-library/src';
+} from '@studio/content-library';
+import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type { ReactElement } from 'react';
 import React, { useCallback } from 'react';
 

@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
-import { UploadIcon, CheckmarkIcon } from 'libs/studio-icons/src';
+import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { StudioSpinner, StudioPopover, StudioError } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';

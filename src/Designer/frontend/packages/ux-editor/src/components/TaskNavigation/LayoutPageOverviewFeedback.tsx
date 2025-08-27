@@ -1,5 +1,5 @@
 import type React from 'react';
-import { FeedbackFormImpl } from 'libs/studio-feedback-form/src';
+import { FeedbackFormImpl } from '@studio/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 

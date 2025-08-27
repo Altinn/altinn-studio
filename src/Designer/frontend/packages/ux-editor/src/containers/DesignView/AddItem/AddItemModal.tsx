@@ -4,7 +4,7 @@ import type { IInternalLayout, IToolbarElement } from '../../../types/global';
 import { StudioButton, StudioModal } from '@studio/components-legacy';
 import type { AddedItem } from './types';
 import { AddItemContent } from './AddItemContent';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import classes from './AddItemModal.module.css';
 import { useTranslation } from 'react-i18next';

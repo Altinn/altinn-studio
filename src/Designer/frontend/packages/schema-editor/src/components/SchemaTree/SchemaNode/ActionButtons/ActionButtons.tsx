@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ReferenceIcon, TrashIcon } from 'libs/studio-icons/src';
+import { ReferenceIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';

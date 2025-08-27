@@ -10,7 +10,7 @@ import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from '../../../contexts/PageHeaderContext';
 import { StudioButton } from '@studio/components-legacy';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftIcon } from 'libs/studio-icons/src';
+import { ArrowLeftIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
 export type SubHeaderProps = {

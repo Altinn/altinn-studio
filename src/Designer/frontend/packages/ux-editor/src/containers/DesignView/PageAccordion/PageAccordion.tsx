@@ -4,7 +4,7 @@ import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { accordionHeaderId, pageAccordionContentId } from '@studio/testing/testids';
-import { FilePdfIcon, TrashIcon } from 'libs/studio-icons/src';
+import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';

@@ -17,7 +17,7 @@ import {
   StudioTextfield,
 } from '@studio/components-legacy';
 import { useDebounce } from '@studio/hooks';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
 import { isOrgNrString } from '../../utils/stringUtils';

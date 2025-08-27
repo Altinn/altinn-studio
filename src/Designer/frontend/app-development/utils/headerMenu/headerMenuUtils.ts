@@ -10,7 +10,7 @@ import {
   PencilIcon,
   TenancyIcon,
   UploadIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { RoutePaths } from '../../enums/RoutePaths';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { type NavigationMenuSmallGroup } from '../../types/HeaderMenu/NavigationMenuSmallGroup';

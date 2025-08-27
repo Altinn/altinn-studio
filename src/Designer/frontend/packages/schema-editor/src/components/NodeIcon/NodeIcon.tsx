@@ -10,8 +10,8 @@ import {
   QuestionmarkIcon,
   ReferenceIcon,
   StringIcon,
-} from 'libs/studio-icons/src';
-import type { IconProps } from 'libs/studio-icons/src';
+} from '@studio/icons';
+import type { IconProps } from '@studio/icons';
 import classes from './NodeIcon.module.css';
 import cn from 'classnames';
 

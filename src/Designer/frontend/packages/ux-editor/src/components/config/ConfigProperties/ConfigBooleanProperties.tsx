@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditBooleanValue } from '../editModal/EditBooleanValue';
 import { StudioProperty } from '@studio/components';
-import { ChevronDownIcon, ChevronUpIcon } from 'libs/studio-icons/src';
+import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import classes from './ConfigBooleanProperties.module.css';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { SchemaConfigProps } from './types';

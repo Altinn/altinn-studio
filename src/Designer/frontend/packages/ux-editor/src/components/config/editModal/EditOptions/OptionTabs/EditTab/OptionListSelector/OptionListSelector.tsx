@@ -5,7 +5,7 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioModal, StudioSpinner } from '@studio/components-legacy';
-import { BookIcon } from 'libs/studio-icons/src';
+import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 import classes from './OptionListSelector.module.css';

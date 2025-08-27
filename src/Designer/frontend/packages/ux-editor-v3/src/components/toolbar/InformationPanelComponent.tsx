@@ -8,7 +8,7 @@ import {
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph, StudioPopover } from '@studio/components-legacy';
-import { InformationIcon } from 'libs/studio-icons/src';
+import { InformationIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 
 export type InformationPanelProvidedProps = {

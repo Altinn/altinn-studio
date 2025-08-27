@@ -3,7 +3,7 @@ import { useText } from '../../../../hooks';
 import type { GridSize } from '@studio/components-legacy';
 import { StudioGridSelector } from '@studio/components-legacy';
 import { Paragraph, Switch } from '@digdir/designsystemet-react';
-import { PadlockLockedFillIcon } from 'libs/studio-icons/src';
+import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
 import { ObjectUtils } from '@studio/pure-functions';
 import type { GridSizes } from './types/GridSizes';

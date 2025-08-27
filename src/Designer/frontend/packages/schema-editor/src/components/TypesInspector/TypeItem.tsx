@@ -1,7 +1,7 @@
 import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model/index';
 import { extractNameFromPointer } from '@altinn/schema-model/index';
-import { CogIcon, FileJsonIcon } from 'libs/studio-icons/src';
+import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import { typeItemId } from '@studio/testing/testids';

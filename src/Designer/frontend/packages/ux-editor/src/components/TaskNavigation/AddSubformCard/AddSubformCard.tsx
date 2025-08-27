@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioCard } from '@studio/components-legacy';
 import { StudioHeading } from '@studio/components';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import classes from './AddSubformCard.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';

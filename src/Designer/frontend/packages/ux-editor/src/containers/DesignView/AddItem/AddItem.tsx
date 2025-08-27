@@ -1,6 +1,6 @@
 import React, { type ReactElement, useState } from 'react';
 import { StudioButton } from '@studio/components-legacy';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';

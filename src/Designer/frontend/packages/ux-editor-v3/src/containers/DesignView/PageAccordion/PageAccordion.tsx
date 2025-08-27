@@ -5,7 +5,7 @@ import cn from 'classnames';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
-import { TrashIcon } from 'libs/studio-icons/src';
+import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

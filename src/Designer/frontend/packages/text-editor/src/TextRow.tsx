@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { TrashIcon, PencilIcon } from 'libs/studio-icons/src';
+import { TrashIcon, PencilIcon } from '@studio/icons';
 import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { validateTextId } from './utils';

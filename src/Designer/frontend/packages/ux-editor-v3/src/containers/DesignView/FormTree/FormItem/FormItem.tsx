@@ -8,7 +8,7 @@ import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useItemTitle } from './useItemTitle';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
-import { QuestionmarkDiamondIcon } from 'libs/studio-icons/src';
+import { QuestionmarkDiamondIcon } from '@studio/icons';
 
 export type FormItemProps = {
   layout: IInternalLayout;

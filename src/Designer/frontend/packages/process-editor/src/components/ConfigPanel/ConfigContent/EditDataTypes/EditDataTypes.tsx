@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { LinkIcon } from 'libs/studio-icons/src';
+import { LinkIcon } from '@studio/icons';
 import { SelectDataTypes } from './SelectDataTypes';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 

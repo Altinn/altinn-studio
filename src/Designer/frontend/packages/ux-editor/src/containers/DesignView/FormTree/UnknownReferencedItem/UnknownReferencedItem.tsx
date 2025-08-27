@@ -2,7 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components-legacy';
 import { StudioHelpText } from '@studio/components';
-import { QuestionmarkDiamondIcon, TrashIcon } from 'libs/studio-icons/src';
+import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
 import type { IInternalLayout } from '../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
 import classes from './UnknownReferencedItem.module.css';

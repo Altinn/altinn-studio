@@ -5,7 +5,7 @@ import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph } from '@studio/components-legacy';
 import { StudioPopover, StudioParagraph } from '@studio/components';
-import { InformationIcon } from 'libs/studio-icons/src';
+import { InformationIcon } from '@studio/icons';
 
 export type InformationPanelProvidedProps = {
   componentTitle: string;

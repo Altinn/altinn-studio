@@ -13,7 +13,7 @@ import {
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { StudioLink } from '@studio/components';
 import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';

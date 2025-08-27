@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import classes from './AnsattportenLogin.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioParagraph } from '@studio/components';
-import { EnterIcon } from 'libs/studio-icons/src';
+import { EnterIcon } from '@studio/icons';
 import { loginWithAnsattPorten } from 'app-shared/api/paths';
 import type { SettingsPageTabId } from '../../../../../../../types/SettingsPageTabId';
 import { settingsPageQueryParamKey } from '../../../../../utils';

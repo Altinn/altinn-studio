@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import { type FeedbackFormConfig, FeedbackFormImpl } from 'libs/studio-feedback-form/src';
+import { type FeedbackFormConfig, FeedbackFormImpl } from '@studio/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 

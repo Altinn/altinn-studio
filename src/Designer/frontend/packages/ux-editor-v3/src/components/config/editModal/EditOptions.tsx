@@ -4,7 +4,7 @@ import { Fieldset, Radio, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { PlusIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';

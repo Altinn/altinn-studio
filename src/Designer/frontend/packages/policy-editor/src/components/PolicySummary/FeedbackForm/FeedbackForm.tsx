@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { type FeedbackFormConfig, FeedbackFormImpl } from 'libs/studio-feedback-form/src';
+import { type FeedbackFormConfig, FeedbackFormImpl } from '@studio/feedback-form';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 
 /**

@@ -8,7 +8,7 @@ import {
   StudioTextfield,
 } from '@studio/components-legacy';
 import { useForwardedRef } from '@studio/hooks';
-import { TrashIcon } from 'libs/studio-icons/src';
+import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { Paragraph } from '@digdir/designsystemet-react';
 

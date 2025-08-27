@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageIcon } from 'libs/studio-icons/src';
+import { ImageIcon } from '@studio/icons';
 import { StudioDeleteButton } from '@studio/components-legacy';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';

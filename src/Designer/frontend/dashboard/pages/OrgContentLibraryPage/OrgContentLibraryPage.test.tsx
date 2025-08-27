@@ -14,7 +14,7 @@ import type {
   ResourceContentLibraryImpl,
   TextResourceWithLanguage,
   TextResources,
-} from 'libs/studio-content-library/src';
+} from '@studio/content-library';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
 import { codeList1Data, codeListDataList } from './test-data/codeListDataList';
@@ -41,7 +41,7 @@ const orgCodeListsQueryKey: string[] = [QueryKey.OrgCodeLists, orgName];
 const orgTextResourcesQueryKey: string[] = [QueryKey.OrgTextResources, orgName, DEFAULT_LANGUAGE];
 
 // Mocks:
-jest.mock('libs/studio-content-library/src', () => ({
+jest.mock('@studio/content-library', () => ({
   ...jest.requireActual('@studio/content-library'),
   ResourceContentLibraryImpl: mockContentLibrary,
 }));

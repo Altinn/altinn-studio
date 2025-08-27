@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusCircleIcon, XMarkIcon } from 'libs/studio-icons/src';
+import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';

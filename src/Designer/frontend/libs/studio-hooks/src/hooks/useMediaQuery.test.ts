@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { useMediaQuery } from '../../../../../../libs/studio-hooks/src/hooks/useMediaQuery';
+import { useMediaQuery } from '../@studio/hooks/useMediaQuery';
 import MockedFunction = jest.MockedFunction;
 
 // Test data:

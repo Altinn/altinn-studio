@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { StudioPopover, StudioButton } from '@studio/components-legacy';
-import { ExternalLinkIcon, MenuElipsisVerticalIcon } from 'libs/studio-icons/src';
+import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
 import { useTranslation } from 'react-i18next';

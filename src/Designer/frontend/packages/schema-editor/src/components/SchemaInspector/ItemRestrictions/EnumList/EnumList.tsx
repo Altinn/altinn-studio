@@ -5,7 +5,7 @@ import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { EnumField } from './EnumField';
 import { ErrorMessage, Fieldset } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from 'libs/studio-icons/src';
+import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { StudioButton } from '@studio/components-legacy';

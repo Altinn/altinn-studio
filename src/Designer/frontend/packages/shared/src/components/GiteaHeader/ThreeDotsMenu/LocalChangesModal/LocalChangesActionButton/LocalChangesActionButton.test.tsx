@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
-import { TestFlaskIcon } from 'libs/studio-icons/src';
+import { TestFlaskIcon } from '@studio/icons';
 import userEvent from '@testing-library/user-event';
 
 const mockLabel: string = 'Test label';

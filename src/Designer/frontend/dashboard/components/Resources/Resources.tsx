@@ -9,7 +9,7 @@ import {
   DesignResourceIcon,
   RoadmapResourceIcon,
   OperationStatusResourceIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { StudioHeading } from '@studio/components-legacy';
 import { type Resource } from '../../types/Resource';

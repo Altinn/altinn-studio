@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
-import type { CodeListData } from 'libs/studio-content-library/src';
+import type { CodeListData } from '@studio/content-library';
 
 type UpdateOrgCodeListIdMutationArgs = { codeListId: string; newCodeListId: string };
 

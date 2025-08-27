@@ -6,7 +6,7 @@ import {
   ShieldLockIcon,
   TimerStartIcon,
   MaskinportenIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 

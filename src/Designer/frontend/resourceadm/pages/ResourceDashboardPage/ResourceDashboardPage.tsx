@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
-import { PlusCircleIcon, MigrationIcon, TasklistIcon } from 'libs/studio-icons/src';
+import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';

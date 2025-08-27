@@ -1,4 +1,4 @@
-import type { CodeListData } from 'libs/studio-content-library/src';
+import type { CodeListData } from '@studio/content-library';
 import { mapToCodeListDataList } from './mapToCodeListDataList';
 import type { OptionListData } from 'app-shared/types/OptionList';
 

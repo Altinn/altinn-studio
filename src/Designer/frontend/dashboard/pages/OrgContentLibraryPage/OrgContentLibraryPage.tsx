@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import React, { useMemo, useCallback } from 'react';
-import { ResourceContentLibraryImpl } from 'libs/studio-content-library/src';
+import { ResourceContentLibraryImpl } from '@studio/content-library';
 import type {
   CodeListData,
   CodeListWithMetadata,
   TextResourceWithLanguage,
-} from 'libs/studio-content-library/src';
+} from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,

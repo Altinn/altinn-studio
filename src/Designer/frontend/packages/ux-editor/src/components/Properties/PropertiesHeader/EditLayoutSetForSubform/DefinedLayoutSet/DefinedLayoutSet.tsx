@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClipboardIcon } from 'libs/studio-icons/src';
+import { ClipboardIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

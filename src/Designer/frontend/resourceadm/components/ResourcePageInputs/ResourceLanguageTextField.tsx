@@ -3,7 +3,7 @@ import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { StudioTabs } from '@studio/components-legacy';
 import { StudioButton, StudioTextfield } from '@studio/components';
-import { BulletListIcon, LinkIcon, XMarkOctagonFillIcon } from 'libs/studio-icons/src';
+import { BulletListIcon, LinkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type {
   ResourceFormError,
   SupportedLanguage,

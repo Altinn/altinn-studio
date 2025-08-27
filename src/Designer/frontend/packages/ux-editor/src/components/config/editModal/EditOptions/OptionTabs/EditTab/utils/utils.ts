@@ -2,7 +2,7 @@ import type {
   TextResource,
   TextResources,
   TextResourceWithLanguage,
-} from 'libs/studio-content-library/src';
+} from '@studio/content-library';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export const getTextResourcesForLanguage = (

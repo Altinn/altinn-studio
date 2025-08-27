@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Paragraph } from '@digdir/designsystemet-react';
-import {
-  MagnifyingGlassIcon,
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-  XMarkIcon,
-} from 'libs/studio-icons/src';
+import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';

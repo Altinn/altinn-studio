@@ -6,7 +6,7 @@ import type {
   TextResource,
   TextResources,
   TextResourceWithLanguage,
-} from 'libs/studio-content-library/src';
+} from '@studio/content-library';
 import type { UpdateOrgTextResourcesMutationArgs } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 

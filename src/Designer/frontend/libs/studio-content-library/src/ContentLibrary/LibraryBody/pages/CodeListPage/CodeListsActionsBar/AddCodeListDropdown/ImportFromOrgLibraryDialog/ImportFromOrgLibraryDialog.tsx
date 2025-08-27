@@ -3,7 +3,7 @@ import type { ChangeEvent, ReactElement, RefObject } from 'react';
 import classes from './ImportFromOrgLibraryDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDialog, StudioHeading, StudioSelect } from '@studio/components';
-import { BookIcon, FileImportIcon } from 'libs/studio-icons/src';
+import { BookIcon, FileImportIcon } from '@studio/icons';
 
 export type ImportFromOrgLibraryDialogProps = {
   codeListIds: string[];

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LinkIcon } from 'libs/studio-icons/src';
+import { LinkIcon } from '@studio/icons';
 import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import classes from './ExternalImage.module.css';

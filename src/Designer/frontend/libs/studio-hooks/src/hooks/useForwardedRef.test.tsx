@@ -1,5 +1,5 @@
 import React, { createRef, forwardRef } from 'react';
-import { useForwardedRef } from '../../../../../../libs/studio-hooks/src/hooks/useForwardedRef';
+import { useForwardedRef } from '../@studio/hooks/useForwardedRef';
 import { render, screen } from '@testing-library/react';
 
 const TestComponent = forwardRef<HTMLButtonElement>(({}, ref) => {

@@ -13,7 +13,7 @@ import {
   StudioSwitch,
   StudioToggleGroup,
 } from '@studio/components';
-import { CheckmarkIcon } from 'libs/studio-icons/src';
+import { CheckmarkIcon } from '@studio/icons';
 import type {
   ConsentMetadata,
   ConsentTemplate,

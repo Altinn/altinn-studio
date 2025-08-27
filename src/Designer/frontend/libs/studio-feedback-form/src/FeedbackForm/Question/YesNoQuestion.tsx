@@ -1,11 +1,6 @@
 import React from 'react';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
-import {
-  ThumbDownFillIcon,
-  ThumbDownIcon,
-  ThumbUpFillIcon,
-  ThumbUpIcon,
-} from 'libs/studio-icons/src';
+import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import classes from './YesNoQuestion.module.css';
 

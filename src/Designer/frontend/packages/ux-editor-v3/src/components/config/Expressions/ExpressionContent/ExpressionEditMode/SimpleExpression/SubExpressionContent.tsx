@@ -6,7 +6,7 @@ import {
   ExpressionFunction,
   expressionFunctionTexts,
 } from '../../../../../../types/Expressions';
-import { TrashIcon } from 'libs/studio-icons/src';
+import { TrashIcon } from '@studio/icons';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import {

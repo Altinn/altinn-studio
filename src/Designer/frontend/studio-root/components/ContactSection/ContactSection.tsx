@@ -1,7 +1,7 @@
 import React, { type ComponentType, type ReactElement, type ReactNode } from 'react';
 import { StudioHeading, StudioLink } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';
-import { type IconProps } from 'libs/studio-icons/src';
+import { type IconProps } from '@studio/icons';
 import classes from './ContactSection.module.css';
 
 export type ContactSectionProps = {

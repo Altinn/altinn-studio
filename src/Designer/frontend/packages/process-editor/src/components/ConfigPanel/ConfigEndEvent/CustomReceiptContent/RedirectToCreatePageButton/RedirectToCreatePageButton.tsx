@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './RedirectToCreatePageButton.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { PencilWritingIcon } from 'libs/studio-icons/src';
+import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
 import { useLocalStorage } from '@studio/components-legacy/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';

@@ -6,7 +6,7 @@ import type {
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
-import { PlusCircleIcon } from 'libs/studio-icons/src';
+import { PlusCircleIcon } from '@studio/icons';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

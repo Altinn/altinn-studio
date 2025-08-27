@@ -1,4 +1,4 @@
-import { PencilIcon } from 'libs/studio-icons/src';
+import { PencilIcon } from '@studio/icons';
 import { StudioAlert, StudioButton, StudioHeading } from '@studio/components-legacy';
 import { StudioParagraph } from '@studio/components';
 import type { ReactElement } from 'react';

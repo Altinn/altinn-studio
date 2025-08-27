@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
-import { ChevronDownIcon, ChevronUpIcon } from 'libs/studio-icons/src';
+import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph } from '@studio/components-legacy';

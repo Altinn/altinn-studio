@@ -9,7 +9,7 @@ import {
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { StudioSectionHeader } from '@studio/components-legacy';
-import { FileIcon, InformationIcon, TasklistIcon } from 'libs/studio-icons/src';
+import { FileIcon, InformationIcon, TasklistIcon } from '@studio/icons';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { useAppContext } from '../../../hooks';

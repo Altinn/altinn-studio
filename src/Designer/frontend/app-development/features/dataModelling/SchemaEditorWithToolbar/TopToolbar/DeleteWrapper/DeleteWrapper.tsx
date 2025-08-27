@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { TrashIcon } from 'libs/studio-icons/src';
+import { TrashIcon } from '@studio/icons';
 import { useDeleteDataModelMutation } from '../../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';

@@ -9,7 +9,7 @@ import {
   StudioCheckbox,
   StudioHeading,
 } from '@studio/components-legacy';
-import { PencilWritingIcon, PlusIcon } from 'libs/studio-icons/src';
+import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';

@@ -22,7 +22,7 @@ import {
   ObjectIcon,
   PlusIcon,
   StringIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import type { TranslationKey } from 'language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';

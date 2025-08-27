@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioTextfield, StudioNativeSelect } from '@studio/components-legacy';
 import { StudioProperty } from '@studio/components';
-import { LinkIcon } from 'libs/studio-icons/src';
+import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SubformDataModel.module.css';
 

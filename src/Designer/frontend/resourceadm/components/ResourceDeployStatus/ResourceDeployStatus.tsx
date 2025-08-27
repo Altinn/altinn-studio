@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
 import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon } from 'libs/studio-icons/src';
+import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import { LinkButton } from '../LinkButton';

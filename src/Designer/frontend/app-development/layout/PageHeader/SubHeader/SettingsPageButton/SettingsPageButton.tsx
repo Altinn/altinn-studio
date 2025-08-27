@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
-import { ArrowLeftIcon, CogIcon } from 'libs/studio-icons/src';
+import { ArrowLeftIcon, CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from '../../../../contexts/PageHeaderContext';

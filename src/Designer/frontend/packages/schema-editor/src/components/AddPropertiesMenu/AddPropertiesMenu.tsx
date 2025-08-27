@@ -9,7 +9,7 @@ import {
   DivideIcon,
   IntegerIcon,
   PlusIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model/index';
 import { type StudioButtonProps, StudioDropdownMenu } from '@studio/components-legacy';
 

@@ -10,7 +10,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnCon
 import { useUniqueKeys } from '@studio/hooks';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
-jest.mock('libs/studio-hooks/src/hooks/useUniqueKeys');
+jest.mock('@studio/hooks/src/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',

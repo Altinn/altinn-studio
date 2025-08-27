@@ -8,7 +8,7 @@ import {
   GiteaIcon,
   MenuElipsisVerticalIcon,
   PencilIcon,
-} from 'libs/studio-icons/src';
+} from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';

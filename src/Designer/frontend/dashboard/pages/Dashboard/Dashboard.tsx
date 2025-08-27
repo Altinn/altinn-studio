@@ -3,7 +3,7 @@ import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';
 import { StudioSearch } from '@studio/components';
-import { PlusCircleIcon, PlusCircleFillIcon } from 'libs/studio-icons/src';
+import { PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';

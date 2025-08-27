@@ -1,6 +1,6 @@
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { usePropState } from '../../../../../../libs/studio-hooks/src/hooks/usePropState';
+import { usePropState } from '../@studio/hooks/usePropState';
 import type { Dispatch, SetStateAction } from 'react';
 import { act } from 'react';
 

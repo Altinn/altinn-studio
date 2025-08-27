@@ -6,7 +6,7 @@ import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/designsystemet
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { ExternalLinkIcon } from 'libs/studio-icons/src';
+import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type DeploymentStatusProps = {

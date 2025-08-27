@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
 import { Fieldset } from '@digdir/designsystemet-react';
-import { XMarkIcon } from 'libs/studio-icons/src';
+import { XMarkIcon } from '@studio/icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';

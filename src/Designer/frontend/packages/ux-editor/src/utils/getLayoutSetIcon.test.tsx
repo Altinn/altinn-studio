@@ -1,7 +1,7 @@
 import React from 'react';
 import { getLayoutSetIcon } from './getLayoutSetIcon';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
-import { QuestionmarkIcon } from 'libs/studio-icons/src';
+import { QuestionmarkIcon } from '@studio/icons';
 
 describe('getLayoutSetIcon', () => {
   it('should return default icon for unknown types', () => {

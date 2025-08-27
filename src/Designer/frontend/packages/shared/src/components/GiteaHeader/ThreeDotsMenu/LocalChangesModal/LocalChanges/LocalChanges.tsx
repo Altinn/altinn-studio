@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { DownloadIcon, TrashIcon } from 'libs/studio-icons/src';
+import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
