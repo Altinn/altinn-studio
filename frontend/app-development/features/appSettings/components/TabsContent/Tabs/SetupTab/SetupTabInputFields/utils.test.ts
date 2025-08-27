@@ -14,7 +14,7 @@ describe('SetupTabInputFields utils', () => {
     });
 
     it('Returns application metadata without onEntry when set to false and instanceSelection is not set', () => {
-      const result = updateOnEntryShow(metadataWithoutOnEntry, false);
+      const result = updateOnEntryShow(metadataWithOnEntryShow, false);
       expect(result).toEqual(metadataWithoutOnEntry);
     });
 
