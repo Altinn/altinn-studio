@@ -9,7 +9,7 @@ on:
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
       - 'src/Designer/backend/**'
-      - 'frontend/**'
+      - '../../src/Designer/frontend/**'
       - '!frontend/admin/**'
       - 'Dockerfile'
       - 'package.json'

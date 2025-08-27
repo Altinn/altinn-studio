@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'src/Designer/frontend/**'
       - '.github/workflows/designer-playwright-staging.yml'
 
 concurrency:

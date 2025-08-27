@@ -3,9 +3,9 @@ name: Designer Frontend Tests
 on:
   push:
     paths:
-      - 'frontend/**'
-      - '!frontend/testing/cypress/**'
-      - '!frontend/stats/**'
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'

@@ -26,15 +26,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn-studio/language@workspace:frontend/language":
+"@altinn-studio/language@workspace:src/Designer/frontend/language":
   version: 0.0.0-use.local
-  resolution: "@altinn-studio/language@workspace:frontend/language"
+  resolution: "@altinn-studio/language@workspace:src/Designer/frontend/language"
   languageName: unknown
   linkType: soft
 
-"@altinn/policy-editor@workspace:frontend/packages/policy-editor":
+"@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/policy-editor@workspace:frontend/packages/policy-editor"
+  resolution: "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor"
   dependencies:
     jest: "npm:29.7.0"
   peerDependencies:
@@ -44,9 +44,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/process-editor@workspace:frontend/packages/process-editor":
+"@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"
+  resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
   dependencies:
     bpmn-js: "npm:^13.2.2"
     jest: "npm:29.7.0"
@@ -57,9 +57,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/schema-editor@workspace:frontend/packages/schema-editor":
+"@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/schema-editor@workspace:frontend/packages/schema-editor"
+  resolution: "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor"
   dependencies:
     jest: "npm:29.7.0"
   peerDependencies:
@@ -70,18 +70,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/schema-model@workspace:frontend/packages/schema-model":
+"@altinn/schema-model@workspace:src/Designer/frontend/packages/schema-model":
   version: 0.0.0-use.local
-  resolution: "@altinn/schema-model@workspace:frontend/packages/schema-model"
+  resolution: "@altinn/schema-model@workspace:src/Designer/frontend/packages/schema-model"
   dependencies:
     jest: "npm:29.7.0"
     jsonpointer: "npm:5.0.1"
   languageName: unknown
   linkType: soft
 
-"@altinn/text-editor@workspace:frontend/packages/text-editor":
+"@altinn/text-editor@workspace:src/Designer/frontend/packages/text-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/text-editor@workspace:frontend/packages/text-editor"
+  resolution: "@altinn/text-editor@workspace:src/Designer/frontend/packages/text-editor"
   dependencies:
     iso-639-1: "npm:3.1.5"
     jest: "npm:29.7.0"
@@ -92,9 +92,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/ux-editor-v3@workspace:frontend/packages/ux-editor-v3":
+"@altinn/ux-editor-v3@workspace:src/Designer/frontend/packages/ux-editor-v3":
   version: 0.0.0-use.local
-  resolution: "@altinn/ux-editor-v3@workspace:frontend/packages/ux-editor-v3"
+  resolution: "@altinn/ux-editor-v3@workspace:src/Designer/frontend/packages/ux-editor-v3"
   dependencies:
     "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
@@ -110,9 +110,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/ux-editor@workspace:frontend/packages/ux-editor":
+"@altinn/ux-editor@workspace:src/Designer/frontend/packages/ux-editor":
   version: 0.0.0-use.local
-  resolution: "@altinn/ux-editor@workspace:frontend/packages/ux-editor"
+  resolution: "@altinn/ux-editor@workspace:src/Designer/frontend/packages/ux-editor"
   dependencies:
     "@studio/icons": "workspace:^"
     classnames: "npm:2.5.1"
@@ -2910,9 +2910,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:frontend/libs/studio-components-legacy":
+"@studio/components-legacy@workspace:^, @studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy":
   version: 0.0.0-use.local
-  resolution: "@studio/components-legacy@workspace:frontend/libs/studio-components-legacy"
+  resolution: "@studio/components-legacy@workspace:src/Designer/frontend/libs/studio-components-legacy"
   dependencies:
     "@chromatic-com/storybook": "npm:^4.0.0"
     "@storybook/addon-docs": "npm:9.1.1"
@@ -2940,9 +2940,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/components@workspace:^, @studio/components@workspace:frontend/libs/studio-components":
+"@studio/components@workspace:^, @studio/components@workspace:src/Designer/frontend/libs/studio-components":
   version: 0.0.0-use.local
-  resolution: "@studio/components@workspace:frontend/libs/studio-components"
+  resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
   dependencies:
     "@chromatic-com/storybook": "npm:^4.0.0"
     "@digdir/designsystemet-css": "npm:1.1.10"
@@ -2970,9 +2970,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/content-library@workspace:^, @studio/content-library@workspace:frontend/libs/studio-content-library":
+"@studio/content-library@workspace:^, @studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library":
   version: 0.0.0-use.local
-  resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
+  resolution: "@studio/content-library@workspace:src/Designer/frontend/libs/studio-content-library"
   dependencies:
     "@digdir/designsystemet-theme": "npm:^1.0.8"
     "@studio/components": "workspace:^"
@@ -2980,17 +2980,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:frontend/libs/studio-feedback-form":
+"@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form":
   version: 0.0.0-use.local
-  resolution: "@studio/feedback-form@workspace:frontend/libs/studio-feedback-form"
+  resolution: "@studio/feedback-form@workspace:src/Designer/frontend/libs/studio-feedback-form"
   dependencies:
     "@studio/components-legacy": "workspace:^"
   languageName: unknown
   linkType: soft
 
-"@studio/hooks@workspace:^, @studio/hooks@workspace:frontend/libs/studio-hooks":
+"@studio/hooks@workspace:^, @studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks":
   version: 0.0.0-use.local
-  resolution: "@studio/hooks@workspace:frontend/libs/studio-hooks"
+  resolution: "@studio/hooks@workspace:src/Designer/frontend/libs/studio-hooks"
   dependencies:
     "@studio/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.6.4"
@@ -3009,9 +3009,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/icons@workspace:^, @studio/icons@workspace:frontend/libs/studio-icons":
+"@studio/icons@workspace:^, @studio/icons@workspace:src/Designer/frontend/libs/studio-icons":
   version: 0.0.0-use.local
-  resolution: "@studio/icons@workspace:frontend/libs/studio-icons"
+  resolution: "@studio/icons@workspace:src/Designer/frontend/libs/studio-icons"
   dependencies:
     "@navikt/aksel-icons": "npm:^6.0.0"
     "@testing-library/jest-dom": "npm:6.6.4"
@@ -3026,9 +3026,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:frontend/libs/studio-pure-functions":
+"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions":
   version: 0.0.0-use.local
-  resolution: "@studio/pure-functions@workspace:frontend/libs/studio-pure-functions"
+  resolution: "@studio/pure-functions@workspace:src/Designer/frontend/libs/studio-pure-functions"
   dependencies:
     "@types/jest": "npm:^29.5.5"
     eslint: "npm:8.57.1"
@@ -4195,9 +4195,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"admin@workspace:frontend/admin":
+"admin@workspace:src/Designer/frontend/admin":
   version: 0.0.0-use.local
-  resolution: "admin@workspace:frontend/admin"
+  resolution: "admin@workspace:src/Designer/frontend/admin"
   dependencies:
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
@@ -4478,9 +4478,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"app-development@workspace:frontend/app-development":
+"app-development@workspace:src/Designer/frontend/app-development":
   version: 0.0.0-use.local
-  resolution: "app-development@workspace:frontend/app-development"
+  resolution: "app-development@workspace:src/Designer/frontend/app-development"
   dependencies:
     "@studio/content-library": "workspace:^"
     "@studio/feedback-form": "workspace:^"
@@ -4500,22 +4500,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"app-preview@workspace:frontend/app-preview":
+"app-shared@workspace:src/Designer/frontend/packages/shared":
   version: 0.0.0-use.local
-  resolution: "app-preview@workspace:frontend/app-preview"
-  dependencies:
-    jest: "npm:29.7.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-    react-router-dom: "npm:6.30.1"
-    typescript: "npm:5.9.2"
-    vite: "npm:^6.3.2"
-  languageName: unknown
-  linkType: soft
-
-"app-shared@workspace:frontend/packages/shared":
-  version: 0.0.0-use.local
-  resolution: "app-shared@workspace:frontend/packages/shared"
+  resolution: "app-shared@workspace:src/Designer/frontend/packages/shared"
   dependencies:
     "@types/react": "npm:18.3.23"
     classnames: "npm:2.5.1"
@@ -6026,9 +6013,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress-studio@workspace:frontend/testing/cypress":
+"cypress-studio@workspace:src/Designer/frontend/testing/cypress":
   version: 0.0.0-use.local
-  resolution: "cypress-studio@workspace:frontend/testing/cypress"
+  resolution: "cypress-studio@workspace:src/Designer/frontend/testing/cypress"
   dependencies:
     "@testing-library/cypress": "npm:10.0.3"
     axe-core: "npm:4.10.3"
@@ -6100,9 +6087,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dashboard@workspace:frontend/dashboard":
+"dashboard@workspace:src/Designer/frontend/dashboard":
   version: 0.0.0-use.local
-  resolution: "dashboard@workspace:frontend/dashboard"
+  resolution: "dashboard@workspace:src/Designer/frontend/dashboard"
   dependencies:
     jest: "npm:29.7.0"
     react: "npm:18.3.1"
@@ -12538,9 +12525,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-resourceadm@workspace:frontend/resourceadm/testing/playwright":
+"playwright-resourceadm@workspace:src/Designer/frontend/resourceadm/testing/playwright":
   version: 0.0.0-use.local
-  resolution: "playwright-resourceadm@workspace:frontend/resourceadm/testing/playwright"
+  resolution: "playwright-resourceadm@workspace:src/Designer/frontend/resourceadm/testing/playwright"
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
@@ -12550,9 +12537,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"playwright-studio@workspace:frontend/testing/playwright":
+"playwright-studio@workspace:src/Designer/frontend/testing/playwright":
   version: 0.0.0-use.local
-  resolution: "playwright-studio@workspace:frontend/testing/playwright"
+  resolution: "playwright-studio@workspace:src/Designer/frontend/testing/playwright"
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
@@ -13534,9 +13521,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resourceadm@workspace:frontend/resourceadm":
+"resourceadm@workspace:src/Designer/frontend/resourceadm":
   version: 0.0.0-use.local
-  resolution: "resourceadm@workspace:frontend/resourceadm"
+  resolution: "resourceadm@workspace:src/Designer/frontend/resourceadm"
   dependencies:
     cross-env: "npm:7.0.3"
     dompurify: "npm:^3.2.6"
@@ -14719,9 +14706,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"studio-root@workspace:frontend/studio-root":
+"studio-root@workspace:src/Designer/frontend/studio-root":
   version: 0.0.0-use.local
-  resolution: "studio-root@workspace:frontend/studio-root"
+  resolution: "studio-root@workspace:src/Designer/frontend/studio-root"
   dependencies:
     vite: "npm:^6.3.2"
   languageName: unknown

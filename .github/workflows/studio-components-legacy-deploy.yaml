@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/libs/studio-components-legacy/**'
+      - 'src/Designer/frontend/libs/studio-components-legacy/**'
 
 jobs:
   build-and-deploy:
