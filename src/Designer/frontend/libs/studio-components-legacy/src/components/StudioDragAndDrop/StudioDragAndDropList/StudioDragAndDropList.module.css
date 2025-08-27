@@ -1,0 +1,7 @@
+.root {
+  --list-item-gap: 1rem;
+  --list-item-gap-hover-color: #66a1d6;
+  --list-empty-space-hover-color: #b3d0ea;
+
+  height: 100%;
+}

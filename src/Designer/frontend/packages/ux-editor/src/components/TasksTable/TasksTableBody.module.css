@@ -1,0 +1,54 @@
+.alertMessage {
+  margin: var(--fds-spacing-2);
+}
+
+.alertTitle {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.taskNameCell,
+.taskTypeCell {
+  max-width: 200px;
+}
+
+.taskNameCell,
+.taskType {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.taskRow td:last-child {
+  width: 1px;
+  white-space: nowrap;
+}
+
+.taskRow td {
+  padding-top: 0;
+  padding-bottom: 0;
+  border: none;
+}
+
+.hiddenTaskRow .taskTypeCell,
+.hiddenTaskRow .taskPageCountCell {
+  opacity: 0.5;
+}
+
+.taskTypeCellContent {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--fds-spacing-1);
+}
+.taskIcon {
+  flex-shrink: 0;
+}
+
+.taskTypeCellContent svg {
+  font-size: 1.3rem;
+  border: 2px solid var(--fds-colors-grey-600);
+  border-radius: var(--fds-border_radius-interactive);
+
+  background-color: var(--fds-colors-grey-100);
+  color: var(--fds-colors-grey-800);
+}

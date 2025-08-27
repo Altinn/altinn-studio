@@ -1,0 +1,30 @@
+.textOption {
+  --spacing: 3px;
+  align-items: stretch;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  margin: var(--spacing) 0;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.textOptionId {
+  display: inline-block;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.textOptionValue {
+  display: inline-block;
+  margin: 0;
+  overflow: hidden;
+  padding-left: 0;
+  text-overflow: ellipsis;
+}
+
+.textOptionValue.empty {
+  color: #888;
+}

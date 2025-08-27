@@ -1,0 +1,19 @@
+.modal[open] {
+  --code-list-modal-min-width: min(40rem, 100%);
+  --code-list-modal-height: min(30rem, 100%);
+
+  min-width: var(--code-list-modal-min-width);
+  height: var(--code-list-modal-height);
+}
+
+.modalContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.codeListButton {
+  display: flex;
+  justify-content: flex-start;
+}

@@ -1,0 +1,1 @@
+export { PropertiesHeader } from './PropertiesHeader';

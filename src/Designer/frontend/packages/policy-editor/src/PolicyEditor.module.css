@@ -1,0 +1,15 @@
+.policyEditor {
+  --policy-editor-width: 100%;
+
+  width: var(--policy-editor-width);
+  min-width: var(--policy-editor-width);
+}
+
+.alertWrapper {
+  margin-bottom: var(--fds-spacing-5);
+}
+
+.heading {
+  margin-top: var(--fds-spacing-7);
+  margin-bottom: var(--fds-spacing-2);
+}

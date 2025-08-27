@@ -1,0 +1,1 @@
+export { DeleteWrapper } from './DeleteWrapper';

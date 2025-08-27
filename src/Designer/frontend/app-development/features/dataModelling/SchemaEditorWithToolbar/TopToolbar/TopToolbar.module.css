@@ -1,0 +1,35 @@
+.toolbar {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #c9c9c9;
+  display: flex;
+  padding: 8px;
+}
+
+.toolbar > * {
+  margin-right: 1rem;
+}
+
+.toolbar button[class*='selected'] {
+  color: #fff;
+}
+
+.toolbar button[class*='toggle'] {
+  font-size: 1em;
+  padding-top: 4px;
+}
+
+.generateButtonWrapper {
+  flex: 1;
+}
+
+.toggleButtonGroupWrapper {
+  flex: 0.5;
+}
+
+.right {
+  display: flex;
+  flex: 3;
+  gap: 1rem;
+  justify-content: flex-end;
+}

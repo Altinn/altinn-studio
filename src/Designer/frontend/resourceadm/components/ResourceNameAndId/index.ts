@@ -1,0 +1,1 @@
+export { ResourceNameAndId } from './ResourceNameAndId';

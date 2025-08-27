@@ -1,0 +1,32 @@
+.settingsWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsHeading {
+  display: flex;
+  align-items: center;
+  padding-left: var(--ds-size-4);
+  padding-block: var(--ds-size-4);
+}
+
+.pageContentWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.leftNavWrapper {
+  width: 250px;
+  top: 0;
+  position: sticky;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+.contentWrapper {
+  flex: 1;
+  padding-block: var(--ds-size-6);
+  border-top: 1px solid var(--ds-color-neutral-surface-tinted);
+  overflow-y: auto;
+}

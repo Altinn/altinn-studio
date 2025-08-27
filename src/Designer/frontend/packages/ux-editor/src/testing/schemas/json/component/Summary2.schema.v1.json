@@ -1,0 +1,106 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Summary2.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "sm": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "md": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "lg": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "xl": { "default": "auto", "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "Summary2" },
+    "target": {
+      "description": "Config for what should be rendered. If you set taskId, this property is optional.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Mode",
+          "default": "component",
+          "enum": ["page", "layoutSet", "component"]
+        },
+        "id": { "type": "string" },
+        "taskId": {
+          "title": "Task ID",
+          "description": "Use this if you want to render something from another task.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "showPageInAccordion": { "type": "boolean" },
+    "isCompact": { "type": "boolean" },
+    "hideEmptyFields": {
+      "description": "Set this to true if you don't want to show fields that have not been filled out.",
+      "type": "boolean"
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "title": "AnySummaryOverrideProps",
+        "anyOf": [
+          { "$ref": "#/definitions/InputSummaryOverrideProps" },
+          { "$ref": "#/definitions/CheckboxSummaryOverrideProps" },
+          { "$ref": "#/definitions/RadioSummaryOverrideProps" },
+          { "$ref": "#/definitions/DropdownSummaryOverrideProps" },
+          { "$ref": "#/definitions/MultipleSelectSummaryOverrideProps" },
+          { "$ref": "#/definitions/GroupSummaryOverrideProps" },
+          { "$ref": "#/definitions/TextAreaSummaryOverrideProps" },
+          { "$ref": "#/definitions/RepeatingGroupSummaryOverrideProps" },
+          { "$ref": "#/definitions/DatepickerSummaryOverrideProps" },
+          { "$ref": "#/definitions/ListSummaryOverrideProps" },
+          { "$ref": "#/definitions/TabsSummaryOverrideProps" },
+          { "$ref": "#/definitions/MapSummaryOverrideProps" },
+          { "$ref": "#/definitions/SubformSummaryOverrideProps" },
+          { "$ref": "#/definitions/LikertSummaryOverrideProps" },
+          { "$ref": "#/definitions/PaymentSummaryOverrideProps" },
+          { "$ref": "#/definitions/HeaderSummaryOverrideProps" },
+          { "$ref": "#/definitions/ParagraphSummaryOverrideProps" },
+          { "$ref": "#/definitions/TextSummaryOverrideProps" },
+          { "$ref": "#/definitions/NumberSummaryOverrideProps" },
+          { "$ref": "#/definitions/DateSummaryOverrideProps" }
+        ]
+      }
+    }
+  },
+  "required": ["id", "type"],
+  "title": "Summary2 component schema"
+}

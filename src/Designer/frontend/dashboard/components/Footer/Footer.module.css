@@ -1,0 +1,18 @@
+.footer {
+  background-color: #f5f5f5;
+  margin-top: 48px;
+  justify-content: center;
+  padding-top: 55px;
+}
+.footerContent {
+  width: 83.33%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.footerContent h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.00833em;
+}

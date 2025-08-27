@@ -1,0 +1,13 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  background-color: var(--fds-semantic-surface-danger-default);
+}
+
+.number {
+  color: var(--fds-semantic-text-neutral-on_inverted);
+}

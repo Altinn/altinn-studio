@@ -1,0 +1,11 @@
+.container {
+  width: 100%;
+}
+
+.alert {
+  padding: var(--fds-spacing-5);
+}
+
+.duplicatedIdField {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+}

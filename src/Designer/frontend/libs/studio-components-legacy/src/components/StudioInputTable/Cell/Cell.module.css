@@ -1,0 +1,40 @@
+.textfieldCell,
+.textareaCell,
+.textResourceCell,
+.numberfieldCell {
+  padding-block: var(--fds-spacing-1);
+  padding-inline-end: var(--fds-spacing-2);
+  padding-inline-start: 0;
+  font-size: var(--studio-input-table-font-size);
+}
+
+.buttonCell {
+  text-align: center;
+}
+
+.buttonCell button {
+  display: inline-flex;
+}
+
+:is(
+    .textfieldCell:not(:hover) input,
+    .numberfieldCell:not(:hover) input,
+    .textareaCell:not(:hover) textarea,
+    .textResourceCell:not(:hover) input
+  ):not(:hover):not(:active):not(:focus),
+.textResourceCell:not(:hover) div:has(input:not(:hover):not(:active):not(:focus)) {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.textResourceCell:not(:hover) .textInput div:has(input:not(:hover):not(:active):not(:focus)) svg {
+  visibility: hidden;
+}
+
+.textResourceCell:not(:hover):not(:focus-within) .toggle {
+  visibility: hidden;
+}
+
+.textResourceCell .currentTextId {
+  padding-inline-start: var(--fds-spacing-2);
+}

@@ -1,0 +1,5 @@
+.buttonContainer {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-1);
+}

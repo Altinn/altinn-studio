@@ -1,0 +1,31 @@
+{
+  "name": "app-preview",
+  "version": "1.0.0",
+  "author": "Altinn",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 10",
+    "not op_mini all"
+  ],
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.1"
+  },
+  "devDependencies": {
+    "jest": "29.7.0",
+    "typescript": "5.9.2",
+    "vite": "^6.3.2"
+  },
+  "license": "3-Clause BSD",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "start": "vite serve --host 0.0.0.0",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "jest --maxWorkers=50%",
+    "typecheck": "npx tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit -w"
+  }
+}

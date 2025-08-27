@@ -1,0 +1,7 @@
+.tabPageWrapper {
+  flex-grow: 1;
+}
+
+.wrapperSpaceInline {
+  padding-inline: var(--ds-size-6);
+}

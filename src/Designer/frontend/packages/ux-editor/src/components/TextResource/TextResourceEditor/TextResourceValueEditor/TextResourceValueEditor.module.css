@@ -1,0 +1,11 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-legacy-property-fieldset-spacing);
+}
+
+.id {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+}

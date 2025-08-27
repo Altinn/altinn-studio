@@ -1,0 +1,5 @@
+.pageWrapper {
+  padding-inline: 10%;
+  padding-block: var(--fds-spacing-5);
+  flex-grow: 1;
+}

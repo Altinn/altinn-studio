@@ -1,0 +1,8 @@
+.dialog[open] {
+  --studio-image-library-modal-height: 75vh;
+  --studio-image-library-modal-width: 75vw;
+
+  height: var(--studio-image-library-modal-height);
+  max-width: unset;
+  width: var(--studio-image-library-modal-width);
+}

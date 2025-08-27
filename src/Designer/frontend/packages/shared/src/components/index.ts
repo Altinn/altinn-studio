@@ -1,0 +1,1 @@
+export { AltinnConfirmDialog } from './AltinnConfirmDialog';

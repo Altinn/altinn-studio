@@ -1,0 +1,23 @@
+.cardHeader {
+  padding: var(--ds-size-3);
+}
+
+.cardContent {
+  padding: var(--ds-size-4);
+  padding-bottom: 0;
+}
+
+.tabsContent {
+  padding: var(--ds-size-4) 0;
+}
+
+.container {
+  margin: 0 var(--fds-spacing-3);
+  width: inherit;
+}
+
+.cardFooter {
+  display: flex;
+  gap: var(--ds-size-3);
+  padding: 0 0 var(--ds-size-4) var(--ds-size-4);
+}

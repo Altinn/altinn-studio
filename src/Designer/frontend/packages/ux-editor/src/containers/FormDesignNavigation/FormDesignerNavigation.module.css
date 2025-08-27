@@ -1,0 +1,38 @@
+.wrapper {
+  background-color: #e6eff8;
+  overflow-x: hidden;
+}
+
+.container {
+  margin: auto;
+  padding: var(--fds-spacing-6);
+  position: relative;
+}
+
+.alert {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  width: 80%;
+  max-width: 1050px;
+  margin-left: var(--fds-spacing-5);
+}
+
+.panel {
+  background-color: white;
+  border-radius: var(--fds-border_radius-medium);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+  padding: var(--fds-spacing-5);
+  position: relative;
+  margin: var(--fds-spacing-5);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-10);
+}
+
+.footer {
+  border-top: 2px solid #efefef;
+  margin-top: var(--fds-spacing-10);
+  padding-top: var(--fds-spacing-8);
+}

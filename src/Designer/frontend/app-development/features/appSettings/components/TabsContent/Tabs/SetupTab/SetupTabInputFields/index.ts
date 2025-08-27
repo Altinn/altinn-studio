@@ -1,0 +1,1 @@
+export { SetupTabInputFields } from './SetupTabInputFields';

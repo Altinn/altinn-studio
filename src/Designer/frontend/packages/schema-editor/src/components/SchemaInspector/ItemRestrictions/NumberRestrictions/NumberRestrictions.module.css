@@ -1,0 +1,20 @@
+.formatFieldsRowContent {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.formatFieldsRowContent :first-child {
+  flex: 1;
+}
+
+.minNumberErrorMassage {
+  margin-top: 5px;
+}
+
+.lengthFields {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: space-between;
+}

@@ -1,0 +1,1 @@
+export { AccessListDetail } from './AccessListDetail';

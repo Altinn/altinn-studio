@@ -1,0 +1,10 @@
+.configPanel {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  overflow-y: scroll;
+  border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.configPanelParagraph {
+  margin-inline: 1rem;
+  margin-top: 1rem;
+}

@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  background-color: #3e4f62;
+  padding-block: var(--fds-spacing-2);
+}
+
+.leftContentWrapper {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--fds-spacing-4);
+}
+
+.rightContentWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  padding-inline: var(--fds-spacing-4);
+}

@@ -1,0 +1,50 @@
+.root {
+  --margin-horizontal: 50px;
+  --margin-top: 50px;
+  --elements-width-fraction: 1;
+  --structure-width-fraction: 2;
+  --properties-width-fraction: 2;
+  --preview-width-fraction: 3;
+
+  flex-grow: 1;
+  height: calc(100vh - var(--header-height));
+  overflow-y: hidden;
+}
+
+.container {
+  align-items: stretch;
+  background-color: #fff;
+  display: flex;
+  height: 100%;
+  top: 69px;
+}
+
+.container > * {
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--header-height));
+}
+
+.container > div:not(:last-child) {
+  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.warningMessage {
+  margin: 1rem var(--margin-horizontal);
+}
+
+.logicEditor {
+  background-color: #022f5180;
+  display: grid; /* Make content fill up all available space */
+  height: 100vh;
+  left: 0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: 2;
+}
+
+.logicEditor > * {
+  margin: 1rem;
+}

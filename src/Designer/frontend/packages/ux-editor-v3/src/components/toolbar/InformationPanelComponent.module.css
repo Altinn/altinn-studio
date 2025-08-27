@@ -1,0 +1,7 @@
+.informationPanelHeader {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.informationPanelText {
+  margin-bottom: var(--fds-spacing-3);
+}

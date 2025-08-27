@@ -1,0 +1,27 @@
+.toolbarItem {
+  background-color: var(--fds-semantic-background-subtle);
+  cursor: grab;
+  margin: var(--fds-spacing-1);
+  display: flex;
+  padding: var(--fds-spacing-2);
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}
+
+.componentIcon {
+  min-width: var(--fds-spacing-10);
+  display: flex;
+  font-size: var(--fds-spacing-8);
+  flex: 0 0 40;
+}
+
+.componentLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+}
+
+.componentHelpIcon {
+  flex: 0 0 var(--fds-spacing-8);
+}

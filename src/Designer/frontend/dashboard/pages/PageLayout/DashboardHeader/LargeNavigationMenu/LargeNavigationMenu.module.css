@@ -1,0 +1,11 @@
+.menu {
+  display: flex;
+  align-items: center;
+  list-style-type: none;
+  padding: 0 var(--fds-spacing-4);
+  gap: var(--fds-spacing-2);
+}
+
+.active {
+  border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
+}

@@ -1,0 +1,1 @@
+export { StudioParagraph } from './StudioParagraph';

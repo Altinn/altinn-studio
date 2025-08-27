@@ -1,0 +1,60 @@
+:root {
+  --mask-icon-size: 0 0 /46px 46px;
+  --canvas-background-image:
+    linear-gradient(45deg, var(--fds-semantic-surface-neutral-subtle) 25%, transparent 25%),
+    linear-gradient(135deg, var(--fds-semantic-surface-neutral-subtle) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--fds-semantic-surface-neutral-subtle) 75%),
+    linear-gradient(135deg, transparent 75%, var(--fds-semantic-surface-neutral-subtle) 75%);
+  --canvas-background-size: 32px 32px; /* Must be a square */
+  --canvas-background-position:
+    0 0, 16px 0, 16px -16px, 0px 16px; /* Must be half of one side of the square */
+}
+
+.container {
+  flex: 3;
+  height: calc(90vh - var(--header-height));
+}
+
+.wrapper {
+  display: flex;
+  flex: 3;
+  height: 100%;
+}
+
+div[class*='bpmn-icon-task-generic'] {
+  background-color: var(--palette-entry-color);
+}
+
+div[class*='bpmn-icon-task-generic']:hover {
+  background-color: var(--palette-entry-hover-color);
+}
+
+div[class*='bpmn-icon-data-task'] {
+  -webkit-mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-confirmation-task'] {
+  -webkit-mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-feedback-task'] {
+  -webkit-mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-signing-task'] {
+  -webkit-mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-user-controlled-signing-task'] {
+  -webkit-mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/UserSignTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-payment-task'] {
+  -webkit-mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
+}

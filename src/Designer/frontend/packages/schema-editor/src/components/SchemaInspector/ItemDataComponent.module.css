@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.fieldSet {
+  border-top: var(--studio-legacy-border-divider);
+  padding-top: var(--fds-spacing-8);
+}
+
+.fieldSet > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.switch {
+  width: fit-content;
+}

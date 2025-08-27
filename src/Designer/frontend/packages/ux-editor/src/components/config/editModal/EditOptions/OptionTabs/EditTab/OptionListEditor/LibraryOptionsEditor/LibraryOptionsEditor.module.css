@@ -1,0 +1,11 @@
+.editOptionTabModal[open] {
+  --code-list-modal-height: min(50rem, 100%);
+
+  width: 80vw;
+  max-width: unset;
+  height: var(--code-list-modal-height);
+}
+
+.content {
+  height: 100%;
+}

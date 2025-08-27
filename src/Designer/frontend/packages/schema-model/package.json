@@ -1,0 +1,16 @@
+{
+  "name": "@altinn/schema-model",
+  "description": "JSON schema internal model",
+  "version": "0.1.0",
+  "dependencies": {
+    "jsonpointer": "5.0.1"
+  },
+  "devDependencies": {
+    "jest": "29.7.0"
+  },
+  "main": "src/index.ts",
+  "private": true,
+  "scripts": {
+    "test": "jest --maxWorkers=50%"
+  }
+}

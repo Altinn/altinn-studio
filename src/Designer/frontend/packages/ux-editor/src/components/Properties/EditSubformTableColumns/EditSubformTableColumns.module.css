@@ -1,0 +1,14 @@
+.wrapper {
+  border-top: 1px solid var(--fds-semantic-border-divider-default);
+  margin-inline: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
+}
+
+.content-wrapper {
+  margin-top: var(--fds-spacing-4);
+}
+
+.addColumnButton {
+  margin-top: var(--fds-spacing-3);
+  margin-left: var(--fds-spacing-5);
+}

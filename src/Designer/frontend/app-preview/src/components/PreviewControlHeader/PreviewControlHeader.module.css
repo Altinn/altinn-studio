@@ -1,0 +1,58 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: var(--fds-spacing-4);
+}
+
+.viewSizeButtons {
+  flex: 0 0 auto;
+  width: fit-content;
+  margin-right: 100px;
+  --component-toggle_button-color-border-inactive: white;
+  --component-toggle_button-color-border-active: white;
+  --component-toggle_button-color-background-active: white;
+  --component-toggle_button-color-background-inactive: transparent;
+  --component-toggle_button-color-text-active: black;
+  --component-toggle_button-color-text-inactive: white;
+}
+
+.layoutSetSelector input {
+  color: white;
+}
+
+.layoutSetSelector {
+  width: 200px;
+}
+
+.layoutSetSelector > * {
+  color: white;
+  --arrow-color: white;
+  --arrow-border_left: none;
+  --component-input-color-border-hover: white;
+  --component-input-color-background-default: #3e845e;
+  --component-input-color-border-default: none;
+}
+
+.rightSubHeaderButtons {
+  flex-direction: row;
+  text-align: right;
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  flex: 3;
+}
+
+/* Overriding this style because it is hardcoded in the design system */
+.viewSizeButtons button[aria-pressed='false']:hover {
+  background-color: #dbf5d5 !important;
+  color: black !important;
+}
+
+.backToEditorBtn {
+  width: fit-content;
+  color: black;
+  background-color: white;
+  border: none;
+}

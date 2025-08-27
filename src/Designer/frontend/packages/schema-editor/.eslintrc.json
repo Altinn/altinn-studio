@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "ignoreRestSiblings": true
+      }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["**/schema-model", "!@altinn/schema-model"],
+            "message": "Import from @altinn/schema-model instead of using relative path."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+export { CustomReceiptContent } from './CustomReceiptContent';

@@ -1,0 +1,120 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Summary.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "Summary" },
+    "componentRef": {
+      "title": "Component reference",
+      "description": "String value indicating which layout component (by ID) the summary is for.",
+      "type": "string"
+    },
+    "largeGroup": {
+      "title": "Large group",
+      "description": "Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups.",
+      "default": false,
+      "type": "boolean"
+    },
+    "excludedChildren": {
+      "title": "Excluded child components",
+      "description": "Array of component IDs that should not be shown in a repeating group's summary",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "returnToSummaryButtonTitle": {
+          "title": "ReturnToSummaryButtonTitle",
+          "description": "Used to specify the text on the NavigationButtons component that should be used after clicking \"Change\" on the summary component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "display": {
+      "title": "Display properties",
+      "description": "Optional properties to configure how summary is displayed",
+      "type": "object",
+      "properties": {
+        "hideChangeButton": {
+          "title": "Hide change button",
+          "description": "Set to true if the change button should be hidden for the summary component. False by default.",
+          "default": false,
+          "type": "boolean"
+        },
+        "hideValidationMessages": {
+          "title": "Hide validation messages",
+          "description": "Set to true if the validation messages should be hidden for the component when shown in Summary. False by default.",
+          "default": false,
+          "type": "boolean"
+        },
+        "useComponentGrid": {
+          "title": "Use component grid",
+          "description": "Set to true to allow summary component to use the grid setup of the referenced component. For group summary, this will apply for all group child components.",
+          "default": false,
+          "type": "boolean"
+        },
+        "hideBottomBorder": {
+          "title": "Hide bottom border",
+          "description": "Set to true to hide the blue dashed border below the summary component. False by default.",
+          "default": false,
+          "type": "boolean"
+        },
+        "nextButton": {
+          "title": "Display the next button",
+          "description": "Set to to true display a \"next\" button as well as the return to summary button",
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "type", "componentRef"],
+  "title": "Summary component schema"
+}

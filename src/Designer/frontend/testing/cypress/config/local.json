@@ -1,0 +1,12 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "http://studio.localhost",
+  "env": {
+    "orgFullName": "Testdepartementet",
+    "orgUserName": "ttd",
+    "deployAppName": "auto-deploy-app-v3",
+    "designerAppName": "auto-designer-app-local"
+  },
+  "defaultCommandTimeout": 10000,
+  "requestTimeout": 10000
+}

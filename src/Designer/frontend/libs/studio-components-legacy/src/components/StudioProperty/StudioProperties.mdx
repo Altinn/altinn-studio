@@ -1,0 +1,44 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import * as StudioPropertyStories from './StudioProperty.stories';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph';
+import { StudioList } from '../StudioList';
+import { PlusCircleIcon } from '@studio/icons';
+
+<Meta of={StudioPropertyStories} />
+
+<StudioHeading level={1} size='small'>
+  StudioProperty
+</StudioHeading>
+<StudioParagraph>
+  StudioProperty is a composed component designed to present configurable content. It may be used to
+  let the user view and edit complex data structures.
+</StudioParagraph>
+<StudioParagraph>
+  It provides the following elements:
+  <StudioList.Root>
+    <StudioList.Unordered>
+      <StudioList.Item>
+        `StudioProperty.Group`: Groups the list of `Fieldset` and `Button` components together,
+        providing proper spacing between the components.
+      </StudioList.Item>
+      <StudioList.Item>
+        `StudioProperty.Fieldset`: Editable state of a property. Its children should be form
+        elements to set up the given property. It may also contain a nested `StudioProperty.Group`
+        component.
+      </StudioList.Item>
+      <StudioList.Item>
+        `StudioProperty.Button`: A button element to represent a given property. When no value is
+        given, it defaults to only show the property name with a <PlusCircleIcon /> icon.
+      </StudioList.Item>
+    </StudioList.Unordered>
+  </StudioList.Root>
+</StudioParagraph>
+<StudioParagraph>
+  The `StudioProperty.Fieldset` and `StudioProperty.Button` are designed to switch between each
+  other, but this switching must be implemented by the consumer. The button should switch to a
+  fieldset when clicked, while the fieldset should contain a button in its `menubar` prop to switch
+  back to a button.
+</StudioParagraph>
+
+<Canvas of={StudioPropertyStories.Preview} />

@@ -1,0 +1,64 @@
+.createServiceContainer {
+  margin-top: var(--fds-spacing-12);
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--fds-spacing-10);
+}
+
+.search {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}
+
+.clearIcon {
+  font-size: 26px;
+  width: 26px;
+}
+
+.plusIcon,
+.plusFillIcon {
+  font-size: 30px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.plusIcon {
+  display: inline;
+}
+.plusFillIcon {
+  display: none;
+}
+.newLink {
+  color: #022f51;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+.newLink:hover {
+  color: #022f51;
+  text-decoration: none;
+}
+.newLink:hover span {
+  text-decoration: underline;
+}
+.newLink:hover .plusIcon {
+  display: none;
+}
+.newLink:hover .plusFillIcon {
+  display: inline;
+}
+
+.clearSearchButton {
+  height: 32px;
+  width: 32px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}

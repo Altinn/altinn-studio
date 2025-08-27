@@ -1,0 +1,14 @@
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  gap: 2rem;
+}
+
+.infoContainer {
+  background-image: url('/designer/img/Altinn-studio-2.svg');
+  background-size: 40% auto;
+  background-position: 90% 40%;
+  background-repeat: no-repeat;
+  padding: 1rem;
+}

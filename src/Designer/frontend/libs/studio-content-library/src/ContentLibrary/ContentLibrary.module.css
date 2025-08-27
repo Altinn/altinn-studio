@@ -1,0 +1,17 @@
+.libraryBackground {
+  display: flex;
+  background-color: var(--ds-color-background-tinted);
+  --padding-library: var(--ds-size-7);
+  padding: var(--padding-library);
+  height: calc(100% - 2 * var(--padding-library));
+}
+
+.libraryContainer {
+  background-color: var(--ds-color-background-default);
+  border-radius: var(--ds-border-radius-lg);
+  border: solid 1px var(--ds-color-neutral-border-subtle);
+  overflow: hidden;
+  min-height: 80%;
+  max-height: 100%;
+  width: 100%;
+}

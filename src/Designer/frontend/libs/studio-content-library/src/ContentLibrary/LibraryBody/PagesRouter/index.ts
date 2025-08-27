@@ -1,0 +1,1 @@
+export { PagesRouter } from './PagesRouter';

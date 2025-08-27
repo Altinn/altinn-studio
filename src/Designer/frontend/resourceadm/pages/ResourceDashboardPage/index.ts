@@ -1,0 +1,1 @@
+export { ResourceDashboardPage } from './ResourceDashboardPage';

@@ -1,0 +1,22 @@
+.popover {
+  position: fixed !important;
+  max-width: 25rem;
+  width: 20rem;
+  padding: var(--fds-spacing-4);
+  z-index: 1301;
+}
+
+.popover > *:first-child {
+  margin-top: 10px;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.errorMessage {
+  margin-top: 10px;
+}

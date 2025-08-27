@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+}
+
+.root:hover .label {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+}
+
+.deleteButton {
+  border-radius: 0;
+}
+
+.root:not(:hover):not(:focus-within) .deleteButton {
+  visibility: hidden;
+}

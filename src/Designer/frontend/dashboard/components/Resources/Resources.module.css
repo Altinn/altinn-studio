@@ -1,0 +1,17 @@
+.header {
+  border-bottom: var(--studio-legacy-border-divider);
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-4);
+}
+
+.resourcesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fds-spacing-5);
+  padding-block: var(--fds-spacing-5);
+}

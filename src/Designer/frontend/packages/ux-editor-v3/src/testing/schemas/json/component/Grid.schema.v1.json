@@ -1,0 +1,55 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Grid.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Grid component",
+  "description": "Schema that describes the layout configuration for a Grid component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Grid"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "rows": {
+      "title": "Rows",
+      "description": "An array of rows to be rendered in the grid.",
+      "type": "array",
+      "items": {
+        "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridRow"
+      }
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "rows"],
+  "additionalProperties": false
+}

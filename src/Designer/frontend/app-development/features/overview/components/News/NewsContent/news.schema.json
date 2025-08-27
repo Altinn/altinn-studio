@@ -1,0 +1,32 @@
+{
+  "$id": "news.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Altinn Studio news schema",
+  "description": "Schema that describes the structure in which news items are stored in Altinn Studio",
+  "type": "object",
+  "properties": {
+    "news": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "The date the news item was published"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the news item"
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the news item"
+          }
+        },
+        "required": ["date", "title", "content"]
+      }
+    }
+  }
+}

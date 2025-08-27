@@ -1,0 +1,11 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}

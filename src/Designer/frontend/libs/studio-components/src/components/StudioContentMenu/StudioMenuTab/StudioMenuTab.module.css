@@ -1,0 +1,13 @@
+.tabIcon {
+  display: flex;
+  align-items: center;
+  font-size: var(--ds-size-8);
+  color: var(--ds-color-neutral-text-default);
+}
+
+.tabTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  color: var(--ds-color-neutral-text-default);
+}

@@ -1,0 +1,23 @@
+.root {
+  background: var(--fds-semantic-surface-neutral-subtle);
+  flex: var(--elements-width-fraction);
+}
+
+.pagesContent {
+  padding: var(--fds-spacing-2);
+}
+
+.pagesContent .addButton {
+  padding-bottom: var(--fds-spacing-3);
+  padding-top: var(--fds-spacing-2);
+}
+
+.componentsHeader {
+  margin: var(--fds-spacing-3);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.noPageSelected {
+  padding-inline: var(--fds-spacing-3);
+}

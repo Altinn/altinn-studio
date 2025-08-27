@@ -1,0 +1,120 @@
+.wrapper {
+  width: 100%;
+  border: solid 1px var(--fds-semantic-border-divider-default);
+}
+
+.wrapper.buttonHovered {
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-divider-default);
+}
+
+.buttonFocused:focus-visible,
+.buttonFocused:focus-within {
+  outline: var(--focus-border-width) solid var(--focus-border-outline-color);
+  outline-offset: var(--focus-border-width);
+  box-shadow: 0 0 0 var(--focus-border-width) var(--focus-border-inner-color);
+}
+
+.cardWrapper {
+  border-radius: var(--fds-sizing-3);
+}
+
+.elementWrapper {
+  border-radius: var(--fds-sizing-1);
+  background-color: var(--fds-semantic-background-subtle);
+}
+
+.cardError {
+  border: solid 2px var(--fds-semantic-border-danger-default);
+}
+
+.cardErrorHover {
+  border: solid 2px var(--fds-semantic-border-danger-hover);
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-danger-hover);
+}
+
+.topWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: var(--fds-spacing-4);
+}
+
+.topWrapperCard {
+  border-radius: var(--fds-sizing-3);
+}
+
+.topWrapperCardOpen {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.topWrapperElement {
+  border-radius: var(--fds-sizing-1);
+}
+
+.topWrapperElementOpen {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.topWrapperError {
+  border-radius: var(--fds-sizing-3);
+  background-color: var(--fds-semantic-surface-danger-subtle);
+}
+
+.topWrapperErrorOpen {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.cardExpandButton {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-1);
+  margin: 0;
+}
+
+.elementExpandButton {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-block: var(--fds-spacing-3);
+  padding-left: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-1);
+  margin: 0;
+}
+
+.cardExpandButton:focus,
+.elementExpandButton:focus {
+  outline: none;
+}
+
+.cardBottomWrapper {
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-5);
+}
+
+.elementBottomWrapper {
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.headerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.headerDescription {
+  text-align: start;
+}

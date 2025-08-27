@@ -1,0 +1,6 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--fds-spacing-22);
+}

@@ -1,0 +1,14 @@
+.wrapper {
+  padding: var(--fds-spacing-3);
+}
+
+.buttonContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fds-spacing-3);
+  margin-top: var(--fds-spacing-5);
+}
+
+.buttonContainer button {
+  flex-shrink: 0;
+}

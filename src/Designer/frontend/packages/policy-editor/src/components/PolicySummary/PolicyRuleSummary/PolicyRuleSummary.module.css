@@ -1,0 +1,5 @@
+.subjectCell {
+  display: 'flex';
+  flex-wrap: 'wrap';
+  gap: --fds-spacing-1;
+}

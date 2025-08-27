@@ -1,0 +1,1 @@
+export { ObjectRestrictions } from './ObjectRestrictions';

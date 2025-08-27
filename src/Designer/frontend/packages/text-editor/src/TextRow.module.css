@@ -1,0 +1,38 @@
+.deleteButton {
+  border: none;
+  background: transparent;
+  margin-left: 8px;
+}
+.deleteButton:hover {
+  color: red;
+}
+
+.textId {
+  overflow: scroll;
+  overflow-wrap: break-word;
+}
+
+.textAreaCell {
+  min-width: 450px;
+  vertical-align: top;
+}
+
+.textEntryComponent textArea {
+  margin: 10px 0px 0px 0;
+  min-width: 340px;
+}
+
+.textIdContainer {
+  justify-content: space-between;
+  max-width: 300px;
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-spacing-3);
+  padding-top: var(--ds-spacing-3);
+  padding-bottom: var(--ds-spacing-3);
+  align-items: center;
+}
+
+.cellContent {
+  padding: 0px 15px;
+}

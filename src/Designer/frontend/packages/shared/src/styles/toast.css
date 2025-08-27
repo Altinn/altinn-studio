@@ -1,0 +1,12 @@
+:root {
+  --toastify-color-info: var(--fds-semantic-surface-action-primary-default);
+  --toastify-color-success: var(--fds-semantic-surface-success-default);
+  --toastify-color-warning: var(--fds-semantic-surface-warning-default);
+  --toastify-color-error: var(--fds-semantic-surface-danger-default);
+  --toastify-toast-width: 400px;
+}
+
+.Toastify__toast {
+  line-height: 1.5rem;
+  padding: var(--fds-spacing-3) var(--fds-spacing-3) var(--fds-spacing-4) var(--fds-spacing-3);
+}

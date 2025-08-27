@@ -1,0 +1,78 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Panel.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Panel component",
+  "description": "Schema that describes the layout configuration for a Panel component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Panel"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Title text",
+          "description": "The text displayed in the panel title"
+        },
+        "body": {
+          "type": "string",
+          "title": "Body text",
+          "description": "The text displayed in the panel body"
+        }
+      },
+      "required": ["title", "body"],
+      "additionalProperties": true
+    },
+    "variant": {
+      "title": "Panel variant",
+      "description": "Change the look of the panel.",
+      "type": "string",
+      "enum": ["info", "warning", "success"],
+      "default": "info"
+    },
+    "showIcon": {
+      "title": "Show icon",
+      "description": "Boolean value indicating if the icon should be shown.",
+      "type": "boolean",
+      "default": true
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type"],
+  "additionalProperties": false
+}

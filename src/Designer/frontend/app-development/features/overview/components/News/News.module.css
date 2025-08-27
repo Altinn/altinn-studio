@@ -1,0 +1,26 @@
+.news {
+  max-height: 70vh;
+  overflow-y: scroll;
+  padding-top: 24px;
+  border-top: #efefef solid 1px;
+}
+
+.noNews {
+  background-image: url('/designer/img/Altinn-studio-1.svg');
+  background-size: 40% auto;
+  background-position: 80% 90%;
+  background-repeat: no-repeat;
+  height: 18rem;
+}
+
+.newsContent {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
+
+.newsContent:not(:last-child) {
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.newsContainer {
+  padding-top: 24px;
+}

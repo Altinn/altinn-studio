@@ -1,0 +1,18 @@
+.listContainer {
+  padding: 0;
+  list-style: none;
+}
+
+.content {
+  padding: 0;
+}
+
+.itemButton {
+  justify-content: flex-start;
+}
+
+.trigger {
+  position: absolute;
+  top: var(--fds-spacing-3);
+  right: var(--fds-spacing-3);
+}

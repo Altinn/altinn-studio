@@ -1,0 +1,30 @@
+:root {
+  --logo-size: var(--fds-sizing-5);
+}
+
+.serviceContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  background-color: var(--fds-semantic-background-default);
+  padding: 0 var(--fds-spacing-2);
+  min-height: var(--fds-spacing-8);
+  font-size: var(--fds-sizing-3);
+  box-shadow: var(--fds-shadow-small);
+}
+
+.serviceLabel {
+  flex: 1;
+  font-weight: 500;
+}
+
+.logo {
+  max-height: var(--logo-size);
+  max-width: var(--logo-size);
+}
+
+.emptyLogo {
+  height: var(--logo-size);
+  width: var(--logo-size);
+}

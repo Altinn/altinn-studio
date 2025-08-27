@@ -1,0 +1,204 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Group.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Group component",
+  "description": "Schema that describes the layout configuration for a Group component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Group"
+    },
+    "dataModelBindings": {
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string",
+          "title": "Group",
+          "description": "Data model binding for repeating group connection to a group in the data model"
+        }
+      },
+      "required": ["group"],
+      "additionalProperties": false
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Label",
+          "description": "The title/label text for the group"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The description text for the group"
+        },
+        "help": {
+          "type": "string",
+          "title": "Help text",
+          "description": "The help text for the group"
+        },
+        "shortName": {
+          "type": "string",
+          "title": "Short name",
+          "description": "The short name for the group (used in validation messages) (optional). If it is not specified, 'title' text is used."
+        },
+        "add_button": {
+          "type": "string",
+          "title": "Add button",
+          "description": ""
+        },
+        "edit_button_open": {
+          "type": "string",
+          "title": "Edit button open",
+          "description": ""
+        },
+        "edit_button_close": {
+          "type": "string",
+          "title": "Edit button close",
+          "description": ""
+        },
+        "save_button": {
+          "type": "string",
+          "title": "Save button",
+          "description": ""
+        },
+        "save_and_next_button": {
+          "type": "string",
+          "title": "Save and next button",
+          "description": ""
+        }
+      },
+      "additionalProperties": true
+    },
+    "children": {
+      "title": "Children",
+      "description": "An array of the \"id\" of child components belonging to the group.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "hiddenRow": {
+      "title": "Hidden row",
+      "description": "Boolean to decide whether the row should be displayed.",
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "edit": {
+      "title": "Edit",
+      "description": "Alternatives for edit view of repeating group",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/groupEditOptions"
+    },
+    "panel": {
+      "title": "Panel",
+      "description": "Alternatives for panel view of repeating group",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/groupPanelOptions"
+    },
+    "showGroupingIndicator": {
+      "title": "Show grouping indicator",
+      "description": "Boolean to decide whether a vertical line indicating grouping of fields should be visible. Only relevant for non-repeating groups.",
+      "type": "boolean",
+      "default": false
+    },
+    "maxCount": {
+      "type": "integer",
+      "title": "Maximum count",
+      "description": "The maximum number of iterations of a group. Only relevant if group is repeating.",
+      "minimum": 0
+    },
+    "rowsBefore": {
+      "title": "Static rows before",
+      "description": "An array of rows to be rendered before the group table (using Grid component configuration)",
+      "type": "array",
+      "items": {
+        "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridRow"
+      }
+    },
+    "rowsAfter": {
+      "title": "Static rows after",
+      "description": "An array of rows to be rendered after the group table (using Grid component configuration)",
+      "type": "array",
+      "items": {
+        "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridRow"
+      }
+    },
+    "tableHeaders": {
+      "title": "Table Headers",
+      "description": "An array of the id of child components that should be included as table headers. If not defined all components are shown.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "tableColumns": {
+      "title": "Table Columns",
+      "description": "An object containing key-value pairs where the key is a table header and the value is an object containing settings for the headers column",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/tableColumnOptions"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "editInTable": {
+                "title": "Edit in table",
+                "description": "Boolean to decide whether the component should be editable in table view",
+                "default": false,
+                "type": "boolean"
+              },
+              "showInExpandedEdit": {
+                "title": "Show in expanded edit",
+                "description": "Boolean to decide whether the component should be shown in the expanded edit view",
+                "default": true,
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type"],
+  "additionalProperties": false
+}

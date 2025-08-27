@@ -1,0 +1,11 @@
+.root {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.appDashboardSpinner {
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}

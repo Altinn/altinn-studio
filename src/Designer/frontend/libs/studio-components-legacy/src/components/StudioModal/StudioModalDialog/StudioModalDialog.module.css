@@ -1,0 +1,38 @@
+.dialog {
+  overflow: hidden; /* Avoid double scrollbars; overflow is handled by Modal.Content */
+  display: flex;
+  flex-direction: column;
+}
+
+.heading {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  padding: var(--studio-legacy-modal-spacing);
+}
+
+.heading > * {
+  align-items: center;
+  display: flex;
+  line-height: 1;
+}
+
+.icon {
+  display: flex;
+  margin-right: var(--studio-legacy-modal-spacing);
+}
+
+.icon > * {
+  transform: scale(1.5);
+}
+
+.content {
+  padding: 0;
+}
+
+.dialog.withContentPadding .content,
+.footer {
+  padding: var(--studio-legacy-modal-spacing);
+}
+
+.footer {
+  border-top: 1px solid var(--fds-semantic-border-divider-default);
+}

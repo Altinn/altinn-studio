@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.formField {
+  flex: 1;
+  width: 100%;
+}
+
+.errorMessageText {
+  margin-top: 10px;
+}

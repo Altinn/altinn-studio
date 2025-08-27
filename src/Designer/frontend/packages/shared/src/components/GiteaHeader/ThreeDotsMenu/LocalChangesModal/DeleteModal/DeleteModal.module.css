@@ -1,0 +1,6 @@
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--fds-spacing-6);
+  gap: var(--fds-spacing-6);
+}

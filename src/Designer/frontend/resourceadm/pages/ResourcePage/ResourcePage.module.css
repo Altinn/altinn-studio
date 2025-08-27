@@ -1,0 +1,17 @@
+.resourceWrapper {
+  display: flex;
+}
+
+.resourcePageWrapper {
+  flex-grow: 1;
+}
+
+.leftNavWrapper {
+  height: 100vh;
+  top: 0;
+  position: sticky;
+}
+
+.spinnerWrapper {
+  padding: 10%;
+}

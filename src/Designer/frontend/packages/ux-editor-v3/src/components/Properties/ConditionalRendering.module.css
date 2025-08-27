@@ -1,0 +1,26 @@
+.conditionalRendering {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dynamicsVersionCheckBox {
+  z-index: 1;
+}
+
+.alert {
+  border-top: var(--studio-legacy-border-divider);
+  padding-block: var(--fds-spacing-8);
+}
+
+.conditionalRenderingWrapper {
+  border-bottom: var(--studio-legacy-border-divider);
+}

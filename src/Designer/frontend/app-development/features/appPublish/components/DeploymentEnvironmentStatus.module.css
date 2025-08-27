@@ -1,0 +1,22 @@
+.alert {
+  border: none;
+  box-shadow: unset;
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+.loadingSpinner {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-4);
+}
+
+.loadingSpinner * {
+  font-size: inherit !important;
+}
+
+.content {
+  word-break: break-all;
+}

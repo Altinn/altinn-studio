@@ -1,0 +1,17 @@
+.previewContainer {
+  --toolbar-height: 80px;
+  --subtoolbar-height: 60px;
+  --header-border-bottom-width: 1px;
+  --header-height: calc(
+    var(--toolbar-height) + var(--subtoolbar-height) + var(--header-border-bottom-width)
+  );
+  --left-menu-width: 68px;
+
+  background-color: #efefef;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

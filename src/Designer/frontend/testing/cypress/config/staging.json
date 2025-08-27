@@ -1,0 +1,13 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://staging.altinn.studio",
+  "env": {
+    "autoTestUser": "AutoTest",
+    "orgFullName": "Testdepartementet",
+    "orgUserName": "ttd",
+    "deployAppName": "auto-deploy-app-v3-dev",
+    "designerAppName": "auto-designer-app-dev"
+  },
+  "defaultCommandTimeout": 20000,
+  "requestTimeout": 20000
+}

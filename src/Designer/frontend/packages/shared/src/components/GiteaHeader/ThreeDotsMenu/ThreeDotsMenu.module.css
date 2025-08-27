@@ -1,0 +1,35 @@
+.popover {
+  padding: 0;
+}
+
+.menuButton {
+  justify-content: flex-start;
+  border-radius: 0;
+}
+
+.popoverContent {
+  width: 319px;
+}
+
+.link {
+  width: 100%;
+}
+
+.menuItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style-type: none;
+  margin: 0;
+  padding: 1rem 0;
+  align-items: stretch;
+}
+
+.menuItems li {
+  padding: 0;
+  margin: 0;
+}
+
+.icon {
+  font-size: var(--fds-sizing-2);
+}

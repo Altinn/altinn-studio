@@ -1,0 +1,1 @@
+export { TextWithIcon } from './TextWithIcon';

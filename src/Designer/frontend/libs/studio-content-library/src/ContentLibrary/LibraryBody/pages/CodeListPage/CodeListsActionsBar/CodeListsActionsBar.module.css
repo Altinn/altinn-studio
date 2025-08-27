@@ -1,0 +1,12 @@
+.actionsBar {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--ds-size-4);
+  justify-content: flex-start;
+}
+
+.search {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}

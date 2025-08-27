@@ -1,0 +1,1 @@
+export { useConcatOptionListLabels } from './useConcatOptionListLabels';

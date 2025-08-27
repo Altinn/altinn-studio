@@ -1,0 +1,79 @@
+.formatFieldsRowContent {
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+}
+
+.formatFieldsRowContent :first-child {
+  flex: 1;
+}
+
+.lengthFields {
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-8);
+  justify-content: space-between;
+  border-bottom: var(--studio-legacy-border-divider);
+  padding-bottom: var(--fds-spacing-8);
+}
+
+.lengthField {
+  flex: 1;
+}
+
+.regexTest {
+  margin-top: 2rem;
+}
+
+.regexTestFieldContainer {
+  position: relative;
+}
+
+.regexTestLabel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.regexTestMatchIndicatorTrue::before,
+.regexTestMatchIndicatorFalse::before {
+  font-family: AltinnNo, sans-serif;
+  margin-right: 0.5rem;
+}
+
+.regexTestMatchIndicatorTrue::before {
+  color: #17c96b;
+  content: '\f052';
+}
+
+.regexTestMatchIndicatorFalse::before {
+  color: #e23b53;
+  content: '\f040';
+}
+
+.regexTestFieldContainer input {
+  background-color: transparent;
+  z-index: 1;
+}
+
+.regexTestStyleField {
+  color: transparent;
+  left: 14px;
+  position: absolute;
+  top: 25px;
+  white-space: pre;
+  z-index: 0;
+}
+
+.regexTestMatch {
+  background-color: #d4f9e4;
+  outline: 1px solid #17c96b;
+}
+
+.regexTestTextFieldMatch {
+  border-color: #17c96b;
+}
+
+.regexTestTextFieldNoMatch {
+  border-color: #e23b53;
+}

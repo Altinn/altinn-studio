@@ -1,0 +1,16 @@
+.cardWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--fds-spacing-5);
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: 12px;
+  gap: var(--fds-spacing-3);
+  border: solid 1px var(--fds-semantic-border-divider-default);
+}
+
+.envWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-3);
+}

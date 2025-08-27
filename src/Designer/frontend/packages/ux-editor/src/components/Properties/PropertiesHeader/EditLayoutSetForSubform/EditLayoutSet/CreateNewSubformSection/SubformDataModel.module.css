@@ -1,0 +1,4 @@
+.displayDataModelButton {
+  padding-left: var(--fds-spacing-1);
+  border-radius: var(--ds-border-radius-md);
+}

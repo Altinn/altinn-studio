@@ -1,0 +1,21 @@
+.dialog[open] {
+  --studio-file-changes-modal-height: 75vh;
+  --studio-file-changes-modal-width: 75vw;
+
+  height: var(--studio-file-changes-modal-height);
+  max-width: unset;
+  width: var(--studio-file-changes-modal-width);
+}
+
+.dialog .table {
+  width: 100%;
+}
+
+.dialog .table .fileStatusCell {
+  vertical-align: top;
+  width: 1%;
+}
+
+.openDialogButton {
+  margin-bottom: var(--fds-spacing-4);
+}

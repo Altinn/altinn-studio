@@ -1,0 +1,15 @@
+.editBinding {
+  background-color: white;
+  border-radius: var(--fds-border_radius-medium);
+  box-shadow: var(--fds-shadow-small);
+  margin: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
+  padding: var(--data-model-binding-spacing);
+  gap: var(--data-model-binding-spacing);
+}
+
+.editBinding legend * {
+  border-bottom: 1px solid var(--fds-semantic-surface-neutral-subtle-hover);
+  padding-bottom: var(--fds-spacing-1);
+  color: var(--fds-semantic-text-neutral-subtle);
+  font-weight: normal;
+}

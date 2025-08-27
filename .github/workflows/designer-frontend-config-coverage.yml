@@ -2,10 +2,11 @@ name: Designer frontend Configuration coverage stats
 
 on:
   push:
+    branches: ['refactor/move-frontned-to-new-folder']
     paths:
-      - 'frontend/app-development/**'
-      - 'frontend/packages/ux-editor/**'
-      - 'frontend/scripts/configurationStats/**'
+      - '../../src/Designer/frontend/app-development/**'
+      - '../../src/Designer/frontend/packages/ux-editor/**'
+      - '../../src/Designer/frontend/scripts/configurationStats/**'
       - '.github/workflows/designer-frontend-config-coverage.yml'
 
 jobs:
@@ -23,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Installing Dependencies'
-        run: cd frontend/scripts && yarn --immutable
+        run: cd src/Designer/frontend/scripts && yarn --immutable
 
       - name: 'Running stats generation'
-        run: cd frontend/scripts && yarn run generate-config-coverage-stats
+        run: cd src/Designer/frontend/scripts && yarn run generate-config-coverage-stats

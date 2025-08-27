@@ -1,0 +1,28 @@
+.editCodeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.codeListUsageButton {
+  display: contents;
+}
+
+.codeListUsageModal[open] {
+  width: min(80rem, 100%);
+  max-width: unset;
+}
+
+.seeUsageIcon {
+  font-size: var(--ds-size-6);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-size-4);
+}
+
+.displayTitle {
+  padding-inline: var(--ds-size-6);
+}

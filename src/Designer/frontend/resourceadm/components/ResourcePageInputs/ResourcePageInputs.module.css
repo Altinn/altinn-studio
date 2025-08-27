@@ -1,0 +1,56 @@
+.resourceFieldHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inputWrapper {
+  width: 32rem;
+  position: relative;
+}
+
+.warningCardWrapper {
+  margin-top: var(--ds-size-1);
+}
+
+.toggleWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggleTextActive {
+  color: var(--fds-semantic-text-success-default);
+}
+
+.toggleTextInactive {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.description {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.markdownToolbar {
+  display: flex;
+  align-items: flex-end;
+}
+.tabControlContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.translationFieldDescription {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+.translationFieldTabError {
+  color: var(--ds-color-danger-text-subtle);
+}
+.translationFieldError {
+  display: block;
+}

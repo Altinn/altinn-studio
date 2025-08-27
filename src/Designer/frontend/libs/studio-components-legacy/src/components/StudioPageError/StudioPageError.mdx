@@ -1,0 +1,38 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
+import * as StudioPageErrorStories from './StudioPageError.stories';
+
+<Meta of={StudioPageErrorStories} />
+
+<Heading level={1} size='small'>
+  StudioPageError
+</Heading>
+<Paragraph>
+  The `StudioPageError` component is used to display error messages on a page. It includes an alert
+  box with a title and a message.
+</Paragraph>
+
+<Heading level={2} size='small'>
+  Props
+</Heading>
+<Paragraph>`StudioPageError` component has two props:</Paragraph>
+<Table size='sm'>
+  <Table.Head>
+    <Table.Row>
+      <Table.HeaderCell>Name</Table.HeaderCell>
+      <Table.HeaderCell>Description</Table.HeaderCell>
+    </Table.Row>
+  </Table.Head>
+  <Table.Body>
+    <Table.Row>
+      <Table.Cell>`title`</Table.Cell>
+      <Table.Cell>A string representing the title of the error message.</Table.Cell>
+    </Table.Row>
+    <Table.Row>
+      <Table.Cell>`message`</Table.Cell>
+      <Table.Cell>A string representing the error message content.</Table.Cell>
+    </Table.Row>
+  </Table.Body>
+</Table>
+
+<Canvas of={StudioPageErrorStories.Preview} />

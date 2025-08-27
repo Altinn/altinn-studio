@@ -1,0 +1,105 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Image.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Image component",
+  "description": "Schema that describes the layout configuration for a Image component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Image"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "altTextImg": {
+          "type": "string",
+          "title": "Alternate text",
+          "description": "Alternate text is read aloud to someone using assistive technology, but is hidden from a sighted user."
+        }
+      },
+      "required": ["altTextImg"],
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "title": "Image properties",
+      "description": "Set of options for image field.",
+      "properties": {
+        "src": {
+          "title": "Image source",
+          "description": "",
+          "type": "object",
+          "properties": {
+            "nb": {
+              "type": "string",
+              "title": "Bokmål"
+            },
+            "nn": {
+              "type": "string",
+              "title": "Nynorsk"
+            },
+            "en": {
+              "type": "string",
+              "title": "English"
+            }
+          },
+          "additionalProperties": true
+        },
+        "width": {
+          "type": "string",
+          "title": "Image width",
+          "examples": ["100%"]
+        },
+        "align": {
+          "type": "string",
+          "title": "Align image",
+          "enum": [
+            "flex-start",
+            "center",
+            "flex-end",
+            "space-between",
+            "space-around",
+            "space-evenly"
+          ]
+        }
+      },
+      "required": ["src", "width", "align"]
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "src", "width", "align"],
+  "additionalProperties": false
+}

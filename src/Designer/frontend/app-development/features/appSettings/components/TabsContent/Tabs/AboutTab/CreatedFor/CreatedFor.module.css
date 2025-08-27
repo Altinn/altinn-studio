@@ -1,0 +1,50 @@
+.createdForWrapper {
+  padding-bottom: var(--ds-size-6);
+  margin-inline: var(--inline-spacing-size);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  width: 32rem;
+}
+
+.boldText {
+  font-weight: 600;
+}
+
+.createdFor {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  background-color: var(--ds-color-neutral-background-tinted);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-4);
+  margin-block: var(--ds-size-4);
+}
+
+.createdBy {
+  display: flex;
+  gap: var(--ds-size-2);
+  align-items: center;
+  color: var(--ds-color-accent-text-default);
+  margin-block: var(--ds-size-2);
+}
+
+.createdForText {
+  margin-left: var(--ds-size-3);
+  color: var(--ds-color-accent-text-default);
+}
+
+.createdByText {
+  color: inherit;
+}
+
+.createdByIcon {
+  font-size: var(--ds-size-7);
+  color: inherit;
+}
+
+.avatar {
+  max-height: var(--ds-size-9);
+}
+
+.createdDate {
+  color: var(--ds-color-neutral-text-subtle);
+}

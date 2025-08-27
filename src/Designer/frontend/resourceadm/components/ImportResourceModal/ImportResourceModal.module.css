@@ -1,0 +1,16 @@
+.importModal {
+  overflow: visible;
+}
+
+.importModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  width: 80%;
+}
+
+.contentDivider {
+  border: solid 1px var(--fds-semantic-border-neutral-subtle);
+  margin-top: var(--fds-spacing-6);
+  margin-bottom: var(--fds-spacing-4);
+}

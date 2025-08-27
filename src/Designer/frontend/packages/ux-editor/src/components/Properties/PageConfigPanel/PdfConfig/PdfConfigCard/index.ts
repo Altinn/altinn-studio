@@ -1,0 +1,1 @@
+export { PdfConfigCard } from './PdfConfigCard';

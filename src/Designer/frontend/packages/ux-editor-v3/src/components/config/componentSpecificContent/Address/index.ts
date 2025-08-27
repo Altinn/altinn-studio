@@ -1,0 +1,1 @@
+export { AddressComponent } from './AddressComponent';

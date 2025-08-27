@@ -1,0 +1,36 @@
+.accordion {
+  box-shadow: var(--fds-shadow-small);
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+}
+
+.accordionButton {
+  width: 100%;
+  display: flex;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}
+
+.accordionIcon {
+  font-size: var(--fds-spacing-7);
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.accordionContent {
+  padding: var(--fds-spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.accordionTitle {
+  text-align: left;
+}
+
+.accordionSubTitle {
+  color: var(--fds-colors-grey-700);
+  font-size: var(--fds-sizing-3);
+}

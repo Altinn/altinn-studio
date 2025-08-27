@@ -1,0 +1,21 @@
+.root {
+  --gap: var(--fds-spacing-2);
+  align-items: center;
+  display: flex;
+  padding: var(--gap) 0;
+  gap: var(--gap);
+}
+
+.heading .headingButton {
+  display: flex;
+  font: var(--fds-typography-paragraph-short-medium);
+  border: none;
+  border-radius: 0;
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.root.selected .headingButton {
+  background-color: var(--studio-legacy-treeitem-selected-background-colour);
+  box-shadow: inset var(--studio-legacy-treeitem-vertical-line-width) 0 0 0
+    var(--studio-legacy-treeitem-vertical-line-colour-root);
+}

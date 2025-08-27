@@ -1,0 +1,10 @@
+.button svg {
+  height: 16px;
+  width: 16px;
+}
+.headerStyling {
+  justify-content: flex-end;
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-2);
+}

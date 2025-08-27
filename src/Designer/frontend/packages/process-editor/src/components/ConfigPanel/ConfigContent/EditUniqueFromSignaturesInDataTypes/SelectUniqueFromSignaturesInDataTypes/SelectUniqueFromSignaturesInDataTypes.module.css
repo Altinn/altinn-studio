@@ -1,0 +1,18 @@
+.container {
+  display: grid;
+  gap: var(--fds-spacing-2);
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.dataTypeSelectAndButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--fds-spacing-4);
+  vertical-align: middle;
+}
+
+.dataTypeSelect {
+  flex: 1;
+}

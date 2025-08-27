@@ -1,0 +1,25 @@
+.deployPageWrapper {
+  width: 90%;
+  margin: 0;
+  padding: var(--fds-spacing-10);
+}
+
+.contentWrapper {
+  width: 40rem;
+}
+
+.informationText {
+  margin-top: var(--fds-spacing-7);
+}
+
+.environmentWrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-gap: var(--fds-spacing-5);
+}
+
+.newVersionWrapper {
+  margin-top: var(--fds-spacing-7);
+  width: 100%;
+  margin-bottom: var(--fds-spacing-10);
+}

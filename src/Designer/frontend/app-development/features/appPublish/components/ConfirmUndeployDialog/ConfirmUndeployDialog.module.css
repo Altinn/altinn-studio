@@ -1,0 +1,11 @@
+.confirmUndeployButton {
+  margin-top: var(--fds-spacing-3);
+}
+
+.errorContainer {
+  margin-top: var(--fds-spacing-2);
+}
+
+.errorMessage {
+  display: inline;
+}

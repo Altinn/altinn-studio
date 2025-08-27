@@ -1,0 +1,10 @@
+.card {
+  margin-inline: var(--ds-size-4);
+}
+
+.headerWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--fds-spacing-2);
+}

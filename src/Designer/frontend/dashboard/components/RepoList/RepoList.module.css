@@ -1,0 +1,20 @@
+.favoriteIconHeaderCell {
+  font-size: 0; /*Hides text, but keeps it accessible for screen readers*/
+  width: 46px; /*Has to be exactly 46px to make the width the same for empty and filled table columns*/
+}
+
+.nameHeaderCell {
+  width: 25%;
+}
+
+.createdByHeaderCell {
+  width: 20%;
+}
+
+.lastUpdatedHeaderCell {
+  width: 15%;
+}
+
+.actionIconsHeaderCell {
+  font-size: 0;
+}

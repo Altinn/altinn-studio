@@ -1,0 +1,5 @@
+.root > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fieldset-gap);
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@altinn-studio/language",
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "@swc/jest"
+    },
+    "testRegex": "(test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ]
+  },
+  "scripts": {
+    "sort": "node ./sort-keys.js",
+    "test": "jest"
+  }
+}

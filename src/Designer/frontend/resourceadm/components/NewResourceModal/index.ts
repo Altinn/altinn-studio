@@ -1,0 +1,1 @@
+export { NewResourceModal } from './NewResourceModal';

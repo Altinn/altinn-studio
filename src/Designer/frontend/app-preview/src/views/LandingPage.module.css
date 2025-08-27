@@ -1,0 +1,26 @@
+.iframeDesktop {
+  height: 100%;
+  width: 100%;
+  border: none;
+}
+
+.iframeContainer {
+  display: flex;
+  justify-content: center;
+  background-color: var(--fds-semantic-surface-neutral-dark);
+  flex: 1;
+}
+
+.iframeMobile {
+  --phone-width: 390px;
+  width: var(--phone-width);
+  border: none;
+}
+
+.previewArea {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  gap: var(--fds-spacing-4);
+  margin-inline: var(--fds-spacing-18);
+}

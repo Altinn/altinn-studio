@@ -1,0 +1,23 @@
+.label {
+  margin-top: var(--fds-spacing-7);
+  margin-bottom: var(--fds-spacing-1);
+}
+
+.chipWrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dropdownWrapper {
+  margin-bottom: var(--fds-spacing-3);
+}
+
+.inputParagraph {
+  margin-bottom: var(--fds-spacing-1);
+}
+
+.chip {
+  margin: 0;
+  margin-right: var(--fds-spacing-1);
+  margin-top: var(--fds-spacing-1);
+}

@@ -1,0 +1,12 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 600px;
+}
+
+.actionContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+}

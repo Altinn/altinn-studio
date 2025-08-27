@@ -1,0 +1,11 @@
+.checkboxCell {
+  padding-right: var(--fds-spacing-8);
+}
+
+.descriptionText {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.chexboxTextContent {
+  width: 100%;
+}

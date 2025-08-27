@@ -1,0 +1,32 @@
+.root {
+  box-sizing: border-box;
+  padding: 24px 24px;
+  min-height: 100%;
+  background: rgba(224, 224, 224, 0.3);
+  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.types {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+}
+
+.addRowText {
+  grid-column: 1 / 3;
+  font-size: 18px;
+}
+
+.addRowButton {
+  grid-column: 3;
+  margin-left: auto;
+  margin-right: 0;
+  color: #000000;
+}

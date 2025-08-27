@@ -1,0 +1,10 @@
+.jsonPaper {
+  background-color: #efefef;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.informationPaper {
+  background-color: #e3f7ff;
+  padding: 24px;
+}

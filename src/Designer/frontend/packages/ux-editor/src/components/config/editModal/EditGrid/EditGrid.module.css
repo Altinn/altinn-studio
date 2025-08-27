@@ -1,0 +1,22 @@
+.gridContainer {
+  background-color: white;
+  display: grid;
+}
+
+.tab {
+  white-space: nowrap;
+}
+
+.tabs {
+  overflow: scroll;
+  --scroll-bar-color: white;
+}
+
+.tabs:hover {
+  overflow: scroll;
+  --scroll-bar-color: lightgray;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-bar-color);
+}

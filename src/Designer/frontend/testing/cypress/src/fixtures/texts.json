@@ -1,0 +1,7 @@
+{
+  "ttd": "Testdepartementet",
+  "welcome": "Velkommen til Altinn Studio",
+  "appExists": "En app med det navnet finnes allerede.",
+  "invalidAppName": "Navnet er ugyldig. Kan kun inneholde lowercase alfanumeriske tegn og bindestrek (-), og må begynne på en bokstav og ende med bokstav eller tall.",
+  "noDeployAccess": "Du har ikke rettigheter til å starte en deploy til AT21-miljøet. Tilgang kan delegeres av owners"
+}

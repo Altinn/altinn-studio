@@ -1,0 +1,558 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Common definitions",
+  "description": "Schema that contains common definitions used by components",
+  "type": "object",
+  "definitions": {
+    "id": {
+      "type": "string",
+      "title": "id",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>."
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "required": {
+      "title": "Required",
+      "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "readOnly": {
+      "title": "Read only",
+      "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "basicTextResources": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Label",
+          "description": "The title/label text for the component"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The description text for the component"
+        },
+        "help": {
+          "type": "string",
+          "title": "Help text",
+          "description": "The help text for the component"
+        },
+        "shortName": {
+          "type": "string",
+          "title": "Short name",
+          "description": "The short name for the component (used in validation messages) (optional). If it is not specified, 'title' text is used."
+        },
+        "tableTitle": {
+          "type": "string",
+          "title": "Table title",
+          "description": "The text shown in column title when component is used in repeating group (optional). If it is not specified, 'title' text is used."
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "basicDataModelBindings": {
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "type": "object",
+      "properties": {
+        "simpleBinding": {
+          "type": "string",
+          "title": "Simple binding",
+          "description": "Data model binding for components connection to a single field in the data model"
+        }
+      },
+      "required": ["simpleBinding"],
+      "additionalProperties": false
+    },
+    "gridProps": {
+      "properties": {
+        "xs": {
+          "$ref": "#/definitions/gridValue",
+          "title": "xs",
+          "description": "Grid breakpoint at 0px"
+        },
+        "sm": {
+          "$ref": "#/definitions/gridValue",
+          "title": "sm",
+          "description": "Grid breakpoint at 600px"
+        },
+        "md": {
+          "$ref": "#/definitions/gridValue",
+          "title": "md",
+          "description": "Grid breakpoint at 960px"
+        },
+        "lg": {
+          "$ref": "#/definitions/gridValue",
+          "title": "lg",
+          "description": "Grid breakpoint at 1280px"
+        },
+        "xl": {
+          "$ref": "#/definitions/gridValue",
+          "title": "xl",
+          "description": "Grid breakpoint at 1920px"
+        }
+      }
+    },
+    "gridSettings": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/gridProps"
+        }
+      ],
+      "properties": {
+        "labelGrid": {
+          "title": "labelGrid",
+          "description": "Optional grid for the component label. Used in combination with innerGrid to align labels on the side.",
+          "examples": [
+            {
+              "xs": 12
+            }
+          ],
+          "$ref": "#/definitions/gridProps"
+        },
+        "innerGrid": {
+          "title": "innerGrid",
+          "description": "Optional grid for inner component content like input field or dropdown. Used to avoid inner content filling the component width.",
+          "examples": [
+            {
+              "xs": 12
+            }
+          ],
+          "$ref": "#/definitions/gridProps"
+        }
+      }
+    },
+    "gridValue": {
+      "type": "integer",
+      "maximum": 12,
+      "minimum": 1,
+      "examples": [12]
+    },
+    "labelSettings": {
+      "type": "object",
+      "title": "Label settings",
+      "description": "A collection of settings for how the component label should be rendered.",
+      "properties": {
+        "optionalIndicator": {
+          "type": "boolean",
+          "title": "Optional indicator",
+          "description": "Controls whether the text that is indicating that a field is optional should be displayed.",
+          "default": true
+        }
+      }
+    },
+    "pageBreak": {
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "type": "string",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "enum": ["auto", "always", "avoid"],
+          "default": "auto"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "type": "string",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "enum": ["auto", "always", "avoid"],
+          "default": "auto"
+        }
+      }
+    },
+    "triggers": {
+      "title": "Triggers",
+      "description": "An array of actions that should be triggered when data connected to this component changes.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "validation",
+          "validateRow",
+          "validatePage",
+          "validateAllPages",
+          "calculatePageOrder"
+        ]
+      }
+    },
+    "saveWhileTyping": {
+      "title": "Automatic saving while typing",
+      "description": "Boolean or number. True = feature on (default), false = feature off (saves on focus blur), number = timeout in milliseconds (400 by default)",
+      "default": true,
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "autocomplete": {
+      "title": "HTML attribute: autocomplete",
+      "description": "The HTML autocomplete attribute lets web developers specify what if any permission the user agent has to provide automated assistance in filling out form field values, as well as guidance to the browser as to the type of information expected in the field.",
+      "type": "string",
+      "enum": [
+        "on",
+        "off",
+        "name",
+        "honorific-prefix",
+        "given-name",
+        "additional-name",
+        "family-name",
+        "honorific-suffix",
+        "nickname",
+        "email",
+        "username",
+        "new-password",
+        "current-password",
+        "one-time-code",
+        "organization-title",
+        "organization",
+        "street-address",
+        "address-line1",
+        "address-line2",
+        "address-line3",
+        "address-level4",
+        "address-level3",
+        "address-level2",
+        "address-level1",
+        "country",
+        "country-name",
+        "postal-code",
+        "cc-name",
+        "cc-given-name",
+        "cc-additional-name",
+        "cc-family-name",
+        "cc-number",
+        "cc-exp",
+        "cc-exp-month",
+        "cc-exp-year",
+        "cc-csc",
+        "cc-type",
+        "transaction-currency",
+        "transaction-amount",
+        "language",
+        "bday",
+        "bday-day",
+        "bday-month",
+        "bday-year",
+        "sex",
+        "tel",
+        "tel-country-code",
+        "tel-national",
+        "tel-area-code",
+        "tel-local",
+        "tel-extension",
+        "url",
+        "photo"
+      ]
+    },
+    "mapping": {
+      "type": "object",
+      "title": "Mapping",
+      "examples": [
+        {
+          "some.source.field": "key1",
+          "some.other.source": "key2"
+        }
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "optionsId": {
+      "type": "string",
+      "title": "Options ID",
+      "description": "Reference to connected options by id."
+    },
+    "options": {
+      "properties": {
+        "label": {
+          "type": "string",
+          "title": "Label",
+          "description": "The option label. Can be plain text or a text resource binding."
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "description": "The option value."
+        }
+      },
+      "required": ["label", "value"]
+    },
+    "gridRow": {
+      "properties": {
+        "header": {
+          "title": "Header?",
+          "description": "A boolean indicating if the row should be a header row",
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "title": "Read only?",
+          "description": "A boolean indicating if the row should be a read only row (yellow background)",
+          "type": "boolean",
+          "default": false
+        },
+        "cells": {
+          "title": "Grid row cells",
+          "description": "An array of cells to be rendered in the row",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/gridCellText"
+              },
+              {
+                "$ref": "#/definitions/gridCellComponent"
+              },
+              {
+                "$ref": "#/definitions/tableColumnOptions"
+              },
+              {
+                "type": "null",
+                "title": "Empty cell"
+              }
+            ]
+          }
+        }
+      },
+      "required": ["cells"]
+    },
+    "gridCellText": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "description": "The text or text resource ID to be rendered in the cell",
+          "type": "string"
+        }
+      },
+      "$ref": "#/definitions/tableColumnOptions",
+      "required": ["text"]
+    },
+    "gridCellComponent": {
+      "properties": {
+        "component": {
+          "title": "Component ID",
+          "description": "The ID of the component to be rendered in the cell",
+          "type": "string"
+        }
+      },
+      "$ref": "#/definitions/tableColumnOptions",
+      "required": ["component"]
+    },
+    "groupEditOptions": {
+      "properties": {
+        "mode": {
+          "title": "Edit mode",
+          "description": "Mode for how repeating group table is displayed in edit mode",
+          "type": "string",
+          "enum": ["hideTable", "likert", "showAll", "showTable", "onlyTable"]
+        },
+        "filter": {
+          "title": "Filter",
+          "description": "Conditions for filtering visible items in repeating group",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/groupFilterItem"
+          }
+        },
+        "saveButton": {
+          "title": "Save button",
+          "description": "Boolean or expression indicating whether save button should be shown or not for a given row",
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "saveAndNextButton": {
+          "title": "Save and open next button",
+          "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button",
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "deleteButton": {
+          "title": "Delete button",
+          "description": "Boolean or expression indicating whether delete button should be shown or not for a given row",
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "editButton": {
+          "title": "Edit button",
+          "description": "Boolean or expression indicating whether edit button should be shown or not for a given row",
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "multiPage": {
+          "title": "Multi-page",
+          "description": "Boolean value indicating if form components in edit mode should be shown over multiple pages/views.",
+          "type": "boolean"
+        },
+        "addButton": {
+          "title": "Add button",
+          "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
+          "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+        },
+        "alwaysShowAddButton": {
+          "title": "Show add button on open group",
+          "description": "Boolean value indicating whether add new button should be shown or not under the table when a group is open.",
+          "type": "boolean",
+          "default": false
+        },
+        "openByDefault": {
+          "title": "Open by default",
+          "description": "Boolean or string indicating if group should be opened by default. If no items exist: 'first', 'last', and true adds a new item. If items exist already, true does not open anything, but 'first' opens the first item, and 'last' opens the last item in the group.",
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "enum": ["first", "last"]
+            }
+          ]
+        },
+        "alertOnDelete": {
+          "title": "Alert on delete",
+          "description": "Boolean value indicating if warning popup should be displayed when attempting to delete a row",
+          "type": "boolean"
+        }
+      }
+    },
+    "groupPanelOptions": {
+      "properties": {
+        "variant": {
+          "title": "Panel variant",
+          "description": "Change the look of the panel.",
+          "type": "string",
+          "enum": ["info", "warning", "success"],
+          "default": "info"
+        },
+        "showIcon": {
+          "title": "Show icon",
+          "description": "Boolean value indicating if the icon should be shown.",
+          "type": "boolean",
+          "default": true
+        },
+        "iconUrl": {
+          "title": "Icon url",
+          "description": "Url of the icon to be shown in panel. Can be relative if hosted by app or full if referencing a cdn or other hosting.",
+          "type": "string",
+          "examples": ["fancyIcon.svg", "https://cdn.example.com/fancyIcon.svg"]
+        },
+        "iconAlt": {
+          "title": "Icon alt",
+          "description": "Alternative text for the icon. Only applicable if iconUrl is provided. Can be plain text or a text resource reference.",
+          "type": "string"
+        },
+        "groupReference": {
+          "title": "Group reference",
+          "description": "Reference to the group that is being displayed in the panel. Used for referencing another repeating group context.",
+          "type": "object",
+          "properties": {
+            "group": {
+              "type": "string",
+              "title": "Group",
+              "description": "Group reference. Can be either the group id or the group data model binding.",
+              "examples": ["the-group-id", "some.model.theGroup"]
+            }
+          }
+        }
+      }
+    },
+    "groupFilterItem": {
+      "properties": {
+        "key": {
+          "title": "Key",
+          "description": "Key representing field in data model to check.",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "description": "Value to check against.",
+          "type": "string"
+        }
+      }
+    },
+    "paginationProperties": {
+      "type": "object",
+      "properties": {
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "title": "Alternatives",
+          "description": "List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing."
+        },
+        "default": {
+          "type": "number",
+          "title": "Default",
+          "description": "The pagination size that is set to default."
+        }
+      },
+      "required": ["alternatives", "default"]
+    },
+    "tableColumnOptions": {
+      "title": "Column options",
+      "description": "Column options for specified header.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/tableColumnTextOptions"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "width": {
+              "title": "Width",
+              "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
+              "type": "string",
+              "pattern": "^([0-9]{1,2}%|100%|auto)$"
+            }
+          }
+        }
+      ]
+    },
+    "tableColumnTextOptions": {
+      "properties": {
+        "alignText": {
+          "title": "Align Text",
+          "description": "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
+          "type": "string",
+          "enum": ["left", "center", "right"]
+        },
+        "textOverflow": {
+          "title": "Text Overflow",
+          "description": "Use this property to controll behaviour when text is too large to be displayed in table cell.",
+          "properties": {
+            "lineWrap": {
+              "title": "Line Wrap",
+              "description": "Toggle line wrapping on or off. Defaults to true",
+              "type": "boolean"
+            },
+            "maxHeight": {
+              "title": "Max Height",
+              "description": "Determines the number of lines to display in table cell before hiding the rest of the text with an elipsis (...). Defaults to 2.",
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}

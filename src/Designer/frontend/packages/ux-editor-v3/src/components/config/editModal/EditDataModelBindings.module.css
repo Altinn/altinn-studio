@@ -1,0 +1,29 @@
+.dataModelLink {
+  display: flex;
+  align-items: center;
+}
+
+.linkIcon {
+  font-size: 1.5rem;
+}
+
+.selectDataModelComponent {
+  width: 100%;
+}
+
+.linkedDataModelContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+  padding-block: 0.75rem;
+}
+
+.linkedDataModelIcon {
+  height: var(--fds-sizing-4);
+  width: var(--fds-sizing-4);
+}
+
+.selectedOption {
+  gap: var(--fds-spacing-1);
+  word-break: break-word;
+}

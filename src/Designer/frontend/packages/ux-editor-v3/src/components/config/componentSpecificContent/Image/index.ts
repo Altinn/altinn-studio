@@ -1,0 +1,1 @@
+export { ImageComponent } from './ImageComponent';

@@ -1,0 +1,16 @@
+.libraryHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  padding: var(--ds-size-5);
+  border-bottom: solid 1px var(--ds-color-neutral-border-subtle);
+}
+
+.headingIcon {
+  display: flex;
+  font-size: var(--ds-size-11);
+}
+
+.headingText {
+  display: contents;
+}

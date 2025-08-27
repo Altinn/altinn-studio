@@ -1,0 +1,30 @@
+.releaseWrapper {
+  padding: 1.2rem;
+  border-bottom: 1px solid #bcc7cc;
+}
+.buildFailedIcon,
+.buildSucceededIcon {
+  height: 16px;
+  width: 16px;
+  margin-right: 5px;
+}
+.buildFailedIcon {
+  color: #e23b53;
+}
+
+.buildSucceededIcon {
+  color: #12aa64;
+}
+.spinnerRoot {
+  margin-right: 1rem;
+}
+
+.releaseRow {
+  font-size: 1.1rem;
+  word-break: break-word;
+  word-wrap: normal;
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 4px;
+  padding-top: 4px;
+}

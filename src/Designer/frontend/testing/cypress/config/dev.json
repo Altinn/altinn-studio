@@ -1,0 +1,15 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://dev.altinn.studio",
+  "env": {
+    "autoTestUser": "AutoTest",
+    "useCaseUser": "bruksmonsterDev",
+    "orgFullName": "Testdepartementet",
+    "orgUserName": "ttd",
+    "deployAppName": "auto-deploy-app-v3",
+    "designerAppName": "auto-designer-app-dev"
+  },
+  "defaultCommandTimeout": 20000,
+  "requestTimeout": 20000,
+  "chromeWebSecurity": false
+}

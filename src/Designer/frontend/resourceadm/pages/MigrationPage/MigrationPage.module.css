@@ -1,0 +1,28 @@
+.pageWrapper {
+  width: 90%;
+  margin: 0;
+  padding: var(--fds-spacing-10);
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 40rem;
+}
+
+.contentDivider {
+  border: solid 1px var(--fds-semantic-border-neutral-subtle);
+  margin-top: var(--fds-spacing-6);
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.migrationLink {
+  display: inline;
+}
+
+.environmentWrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: var(--fds-spacing-5);
+}

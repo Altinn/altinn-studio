@@ -1,0 +1,79 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  flex: 1;
+}
+
+.heading {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.tableWrapper {
+  max-height: 550px;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: var(--fds-spacing-1);
+}
+
+.tableHeaderCell,
+.tableCell {
+  padding: var(--fds-spacing-2);
+}
+
+.tableCell {
+  border: unset;
+}
+
+.tableIconCell {
+  text-align: center;
+  width: 1px;
+}
+
+.tableIconCell svg {
+  vertical-align: middle;
+}
+
+.canceled {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
+.failed {
+  background-color: var(--fds-semantic-surface-danger-subtle);
+}
+.none {
+  background-color: var(--fds-semantic-surface-info-subtle);
+}
+.partiallySucceeded {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
+.succeeded {
+  background-color: var(--fds-semantic-surface-success-subtle);
+}
+
+.icon {
+  --icon-size: calc((4 * 6 / 16) * var(--fds-font-size-f0)); /** Fluid sizing-6 */
+  display: block;
+
+  height: var(--icon-size);
+  width: var(--icon-size);
+}
+
+.canceledIcon {
+  color: var(--fds-semantic-border-warning-default);
+}
+.failedIcon {
+  color: var(--fds-semantic-border-danger-default);
+}
+.noneIcon {
+  color: var(--fds-semantic-border-info-default);
+}
+.partiallySucceededIcon {
+  color: var(--fds-semantic-border-warning-default);
+}
+.succeededIcon {
+  color: var(--fds-semantic-border-success-default);
+}

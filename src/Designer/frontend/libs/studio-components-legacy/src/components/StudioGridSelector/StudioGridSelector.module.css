@@ -1,0 +1,93 @@
+.sliderContainer {
+  position: relative;
+  --outline: 1px solid var(--fds-semantic-border-action-active);
+  --outline-offset: 1px;
+  --border-radius: var(--fds-border_radius-small);
+  --selected-square-colour: var(--fds-semantic-surface-action-second-default);
+  --unselected-square-colour: var(--fds-semantic-surface-action-second-no_fill-active);
+  --hover-square-color: var(--fds-semantic-surface-action-hover);
+  --slider-width: min(100%, 500px);
+  --thumb-width: calc(var(--slider-width) / 12);
+  max-width: var(--slider-width);
+}
+
+.sliderContainer.disabled {
+  opacity: var(--fds-opacity-disabled);
+}
+
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  aspect-ratio: 12;
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
+  cursor: pointer;
+  margin: 0;
+  outline-offset: var(--outline-offset);
+  outline: var(--outline);
+  padding: 0;
+  width: var(--slider-width);
+}
+
+.range:disabled {
+  --thumb-background-colour: var(--fds-semantic-border-neutral-default);
+  cursor: not-allowed;
+}
+
+.range::-webkit-slider-runnable-track {
+  aspect-ratio: 12;
+  background: var(--background);
+  border-radius: var(--border-radius);
+}
+
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--thumb-width);
+}
+
+.range::-moz-range-track {
+  height: 100%;
+  background: var(--background);
+  border-radius: var(--border-radius);
+}
+
+.range::-moz-range-thumb {
+  visibility: hidden;
+  width: var(--thumb-width);
+}
+
+datalist {
+  align-items: center;
+  aspect-ratio: 12;
+  border-radius: var(--border-radius);
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: var(--slider-width);
+}
+
+.option {
+  display: flex;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  height: 100%;
+  align-items: center;
+}
+
+.option:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+}
+
+.option:last-child {
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}
+
+.option.outside {
+  color: var(--fds-semantic-surface-action-second-default);
+}

@@ -1,0 +1,4 @@
+.link {
+  padding: var(--fds-sizing-3);
+  border-radius: var(--fds-border_radius-interactive);
+}

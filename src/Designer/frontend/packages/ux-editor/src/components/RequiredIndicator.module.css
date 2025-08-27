@@ -1,0 +1,4 @@
+.requiredIndicator {
+  display: inline;
+  padding: var(--fds-spacing-2);
+}

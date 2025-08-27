@@ -1,0 +1,10 @@
+.createReleaseForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.releaseVersionInput {
+  width: 50%;
+  margin-bottom: 8px;
+}

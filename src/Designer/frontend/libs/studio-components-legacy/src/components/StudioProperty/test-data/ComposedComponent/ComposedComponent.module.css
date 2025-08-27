@@ -1,0 +1,4 @@
+.textfield {
+  margin: 0 var(--studio-legacy-property-fieldset-spacing)
+    var(--studio-legacy-property-fieldset-spacing);
+}

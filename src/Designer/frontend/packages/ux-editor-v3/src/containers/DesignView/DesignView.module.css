@@ -1,0 +1,39 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: var(--structure-width-fraction);
+  overflow-y: auto;
+}
+
+.root > *:last-child {
+  flex: 1;
+}
+
+.pageHeader {
+  margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--fds-spacing-5);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  padding-bottom: var(--fds-spacing-4);
+}
+
+.button {
+  height: max-content;
+}
+
+.wrapper {
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow-wrap: anywhere;
+
+  --background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--background-color);
+}
+
+.accordionWrapper {
+  flex: 1;
+}

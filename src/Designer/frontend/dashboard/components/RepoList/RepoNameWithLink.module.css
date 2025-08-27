@@ -1,0 +1,10 @@
+.repoLink,
+.repoLink:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.repoLink:hover {
+  color: inherit;
+  text-decoration: underline;
+}

@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.noItem {
+  margin: 0;
+  border-bottom: var(--studio-legacy-border-divider);
+  width: 100%;
+  padding-block: var(--fds-spacing-5);
+  text-align: center;
+}

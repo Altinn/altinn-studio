@@ -1,0 +1,47 @@
+.allComponentsWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 75vh;
+  flex: 3;
+  padding: 20px;
+  overflow-y: scroll;
+  gap: var(--ds-size-4);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  width: fit-content;
+}
+
+.componentsGrid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
+}
+
+.componentCategory {
+  padding-top: 12px;
+}
+
+.componentHelpText {
+  width: 100%;
+}
+
+.componentsInfoWrapper {
+  flex: 1;
+  background-color: var(--fds-semantic-surface-info-subtle);
+  padding: 20px;
+  height: 600px;
+  max-width: 500px;
+}
+
+.root {
+  display: flex;
+  flex-direction: row;
+  overflow-y: hidden;
+  height: 100%;
+  /* min-width: 70vw; */
+}

@@ -1,0 +1,4 @@
+.enumListFieldsset {
+  border-top: var(--studio-legacy-border-divider);
+  padding-top: var(--fds-spacing-5);
+}

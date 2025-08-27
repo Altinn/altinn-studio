@@ -1,0 +1,4 @@
+.studioDropdownMenuButton {
+  display: flex;
+  gap: var(--ds-size-1);
+}

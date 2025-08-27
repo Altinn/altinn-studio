@@ -1,0 +1,10 @@
+.textfieldCell:has(input:invalid) {
+  background-color: var(--fds-semantic-surface-danger-subtle);
+  --fds-semantic-border-input-default: var(--fds-semantic-border-danger-default);
+  --fds-semantic-border-input-hover: var(
+    --fds-semantic-border-danger-hover
+  ); /* Todo: Remove this when https://github.com/digdir/designsystemet/issues/2701 is fixed. */
+  --fds-semantic-border-input-active: var(
+    --fds-semantic-border-danger-active
+  ); /* Todo: Remove this when https://github.com/digdir/designsystemet/issues/2701 is fixed. */
+}

@@ -1,0 +1,14 @@
+.layoutSetsOption {
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.createSubformLinkButton {
+  padding-left: var(--fds-spacing-1);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.saveSubformButton,
+.createSubformLinkButton {
+  align-self: flex-start;
+}

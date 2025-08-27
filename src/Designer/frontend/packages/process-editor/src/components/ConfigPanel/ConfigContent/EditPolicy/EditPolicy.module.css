@@ -1,0 +1,12 @@
+.configContent {
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
+  margin-bottom: var(--studio-legacy-property-button-vertical-spacing);
+}
+
+.alert {
+  margin-bottom: var(--fds-spacing-5);
+}
+
+.link {
+  color: var(--fds-semantic-text-action-second-on_action);
+}

@@ -1,0 +1,1 @@
+export { ItemFieldsTab } from './ItemFieldsTab';

@@ -1,0 +1,38 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { StudioHeading } from '../StudioHeading';
+import { StudioParagraph } from '../StudioParagraph/';
+import * as StudioCheckboxTableStories from './StudioCheckboxTable.stories';
+
+<Meta of={StudioCheckboxTableStories} />
+
+<StudioHeading level={1}>StudioCheckboxTable</StudioHeading>
+<StudioParagraph>
+  The `StudioCheckboxTable` component is an extension of `@digdir-designsystemet` `Checkbox`
+  component with table formatting. It also extends the error handling of the component to make it
+  work for cases where error handling is needed.
+</StudioParagraph>
+<StudioParagraph>
+  The `StudioCheckboxTable` package also exports a hook, `useStudioCheckboxTable`, that handles
+  the logic of the state and error for the `StudioCheckboxTable` component. Use this hook if you
+  want the logic for error handling. The hook takes in three parameters:
+  <li>`initialOptions` - The list of string values that are initially checked</li>
+  <li>`checkBoxTitle` - The name of the checkbox table</li>
+  <li>`minCountCheckedOptions` - The number of boxes that are required to be checked</li>
+</StudioParagraph>
+<StudioParagraph>
+  The hook returns an object that looks like this:
+  ```
+  {
+    // The selected values
+    selectedValues: string[];
+    // Function to update the state of the selected values
+    setSelectedValues: React.Dispatch<React.SetStateAction<string[]>>;
+    // If there is an error in the checkbox group
+    hasError: boolean;
+    // Function that returns all other props for a HTML checkbox element, e.g., disabled, required, onChange, ...
+    getCheckboxProps: (propsOrValue?: string | StudioGetCheckboxProps) => StudioGetCheckboxProps;
+  }
+```
+</StudioParagraph>
+
+<Canvas of={StudioCheckboxTableStories.Preview} />

@@ -1,0 +1,41 @@
+.table {
+  --table-column-name-width: 35%;
+  --table-column-type-width: 25%;
+  --table-column-required-width: 15%;
+  --table-column-delete-width: 5%;
+}
+
+.tableColumnName {
+  width: var(--table-column-name-width);
+}
+
+.tableColumnType {
+  width: var(--table-column-type-width);
+}
+
+.tableColumnRequired {
+  width: var(--table-column-required-width);
+}
+
+.tableColumnDelete {
+  width: var(--table-column-delete-width);
+}
+
+.tableHeaderLeft {
+  text-align: left;
+}
+
+.tableHeaderCenter {
+  text-align: center;
+}
+
+.tableCell {
+  vertical-align: middle;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
+  padding-right: 3rem;
+}
+
+.tableCell:last-child {
+  padding-right: 0;
+}

@@ -1,0 +1,12 @@
+.customReceiptForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+  margin-top: var(--fds-spacing-3);
+  padding-inline: var(--custom-receipt-spacing);
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}

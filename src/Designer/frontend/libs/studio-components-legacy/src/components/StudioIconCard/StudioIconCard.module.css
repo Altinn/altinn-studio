@@ -1,0 +1,119 @@
+:root {
+  --icon-font-color: #23262a;
+  --icon-container-height: 130px;
+  --icon-size: 43px;
+  --icon-background-size: 63px;
+
+  --icon-card-width: 300px;
+  --icon-card-height: 320px;
+}
+
+.card {
+  width: var(--icon-card-width);
+  min-height: var(--icon-card-height);
+  height: fit-content;
+  background-color: var(--fds-semantic-background-default);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-radius: var(--fds-border_radius-large);
+  border: var(--fds-border_width-default) solid #b8bcc1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  text-align: left;
+  font-weight: normal;
+}
+
+.content button {
+  width: 100%;
+}
+
+.card:not(:hover) .popoverContent {
+  display: none;
+}
+
+.popoverContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.popoverContent button {
+  width: 100%;
+  justify-content: left;
+}
+
+.link {
+  padding: var(--fds-sizing-0);
+  display: block;
+  height: 100%;
+}
+
+.editIcon {
+  padding: var(--fds-sizing-0);
+  position: absolute;
+  border-radius: var(--fds-border_radius-medium);
+  right: var(--fds-spacing-1);
+  top: var(--fds-spacing-1);
+  height: var(--fds-sizing-10);
+  width: var(--fds-sizing-10);
+}
+
+.iconContainer {
+  padding: var(--fds-spacing-1);
+  height: var(--icon-container-height);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.iconBackground {
+  height: var(--icon-background-size);
+  width: var(--icon-background-size);
+  transform: rotate(45deg);
+  margin: var(--fds-sizing-0) auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBackground svg,
+.iconBackground img {
+  transform: rotate(-45deg);
+  height: var(--icon-size);
+  width: var(--icon-size);
+  color: var(--fds-semantic-neutral-default);
+}
+
+.blue {
+  background-color: var(--fds-colors-blue-100);
+  color: var(--icon-font-color);
+}
+
+.red {
+  background-color: var(--fds-colors-red-100);
+  color: var(--icon-font-color);
+}
+
+.green {
+  background-color: var(--fds-colors-green-200);
+  color: var(--icon-font-color);
+}
+
+.grey {
+  background-color: var(--fds-colors-grey-200);
+  color: var(--icon-font-color);
+}
+
+.yellow {
+  background-color: var(--fds-colors-yellow-200);
+  color: var(--icon-font-color);
+}
+
+.title {
+  letter-spacing: var(--fds-spacing-0);
+}

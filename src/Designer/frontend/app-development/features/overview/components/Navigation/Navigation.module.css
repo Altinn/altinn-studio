@@ -1,0 +1,69 @@
+.navigation {
+  background-color: #f4f5f6;
+  border-radius: var(--ds-border-radius-md);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+
+  padding: var(--fds-spacing-6);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fds-spacing-6);
+}
+
+.link {
+  border-radius: var(--ds-border-radius-md);
+
+  display: flex;
+
+  padding: var(--fds-spacing-3);
+  gap: var(--fds-spacing-2);
+
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+
+  width: 150px;
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+/* TODO: Remove this custom style for links once the Link component can be displayed as a button: https://github.com/digdir/designsystem/issues/939. */
+
+.link,
+.link:focus {
+  background: var(--fds-semantic-surface-action-second-default);
+}
+
+.link,
+.link:focus,
+.link:hover,
+.link:active,
+.link:visited {
+  color: var(--fds-semantic-text-action-on_action);
+}
+
+.link:active {
+  background-color: var(--fds-semantic-surface-action-second-active);
+  box-shadow: unset;
+}
+
+.link:focus,
+.link:focus-within,
+.link:focus-visible {
+  outline: var(--focus-border-width) solid var(--focus-border-outline-color);
+  outline-offset: var(--focus-border-width);
+  box-shadow: 0 0 0 var(--focus-border-width) var(--focus-border-inner-color);
+}
+
+.link:hover {
+  background-color: var(--fds-semantic-surface-action-second-hover);
+}
+
+/**********/
