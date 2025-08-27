@@ -15,7 +15,7 @@ public class NationalIdentityNumberTests
         .InvalidNationalIdentityNumbers;
 
     [Fact]
-    public void Parse_ValidNumber_ShouldReturnOrganisationNumber()
+    public void Parse_ValidNumber_ShouldReturnNationalIdentityNumber()
     {
         foreach (var validNumber in _validNationalIdentityNumbers)
         {

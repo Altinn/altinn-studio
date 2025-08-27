@@ -1,6 +1,6 @@
 using Altinn.App.Core.Features;
 
-namespace Altinn.App.Core.Tests.Models.AuthenticationMethodTest;
+namespace Altinn.App.Core.Tests.Features;
 
 public class AuthenticationMethodTest
 {
