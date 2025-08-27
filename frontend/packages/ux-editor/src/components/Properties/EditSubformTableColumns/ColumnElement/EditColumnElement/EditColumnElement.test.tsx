@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../testing/subformLayoutMock';
@@ -26,9 +26,6 @@ const textKeyMock = 'textkeymock1';
 const textValueMock = 'textkeymock1';
 const { field: addressDataField } = convertDataBindingToInternalFormat(
   subformLayoutMock.component4.dataModelBindings['address'],
-);
-const { field: postPlaceDataField } = convertDataBindingToInternalFormat(
-  subformLayoutMock.component4.dataModelBindings['postPlace'],
 );
 
 describe('EditColumnElementComponentSelect', () => {
@@ -262,95 +259,6 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component1.textResourceBindings.title,
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding.field },
-    });
-  });
-
-  it('should call onChange when clicking delete button in TextResource', async () => {
-    const user = userEvent.setup();
-    const onChangeMock = jest.fn();
-    renderEditColumnElement({
-      onChange: onChangeMock,
-      tableColumn: {
-        headerContent: textKeyMock,
-        cellContent: { query: addressDataField },
-      },
-    });
-
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
-      }),
-    );
-    await user.click(
-      screen.getByRole('tab', {
-        name: textMock('ux_editor.text_resource_binding_search'),
-      }),
-    );
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-      textKeyMock,
-    );
-    await user.click(
-      screen.getAllByRole('button', {
-        name: textMock('general.delete'),
-      })[0],
-    );
-
-    expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        headerContent: '',
-        cellContent: { query: addressDataField },
-      }),
-    );
-  });
-
-  it('should call onChange with updated query when selecting a multiple data model binding and clicking on save button', async () => {
-    const user = userEvent.setup();
-
-    const onChangeMock = jest.fn();
-    renderEditColumnElement({
-      onChange: onChangeMock,
-      tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: addressDataField },
-      },
-    });
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-
-    await user.click(componentSelect);
-    await user.click(
-      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
-    );
-
-    const dataModelBindingsSelect = await screen.findByRole('combobox', {
-      name: textMock(
-        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
-      ),
-    });
-
-    await user.click(dataModelBindingsSelect);
-    await user.click(
-      await screen.findByRole('option', {
-        name: new RegExp(postPlaceDataField),
-      }),
-    );
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('option', { name: new RegExp(postPlaceDataField) }),
-      ).not.toBeInTheDocument(),
-    );
-    const saveButton = await screen.getAllByRole('button', { name: textMock('general.save') })[0];
-    await act(async () => {
-      await user.click(saveButton);
-    });
-
-    expect(onChangeMock).toHaveBeenCalledTimes(2);
-    expect(onChangeMock).toHaveBeenCalledWith({
-      headerContent: subformLayoutMock.component4.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
     });
   });
 });

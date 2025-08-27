@@ -3,21 +3,18 @@ import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  renderHookWithProviders,
-  renderWithProviders,
-  textLanguagesMock,
-} from '../../../../../testing/mocks';
+import { renderHookWithProviders, renderWithProviders } from '../../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
-import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-
-import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
+const textValue = 'Some text';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -57,6 +54,7 @@ describe('EditTextResourceBindings component', () => {
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
     await user.click(button);
+    await fillTextAndSave();
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
@@ -72,7 +70,7 @@ describe('EditTextResourceBindings component', () => {
     await user.click(searchTab);
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, textResources[1].id);
-
+    await user.click(getSaveButton());
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
@@ -93,29 +91,31 @@ describe('EditTextResourceBindings component', () => {
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
     await user.click(button);
-    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+
+    const deleteButton = await screen.findByRole('button', { name: textMock('general.delete') });
+
+    await user.click(deleteButton);
+
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       textResourceBindings: {},
     });
     expect(removeTextResourceBinding).toHaveBeenCalledTimes(1);
+    jest.restoreAllMocks();
   });
+
+  const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
+
+  const fillTextAndSave = async (text: string = textValue) => {
+    const textbox = screen.getByRole('textbox');
+    await user.type(textbox, text);
+    await user.click(getSaveButton());
+  };
 
   const waitForData = async () => {
     const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-    const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
-      queries: {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-        getTextResources: (_o, _a, lang) =>
-          Promise.resolve<ITextResourcesWithLanguage>({
-            language: lang,
-            resources: textResources,
-          }),
-      },
-    }).result;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
 
   const renderEditTextResourceBindingsComponent = async ({
@@ -126,6 +126,10 @@ describe('EditTextResourceBindings component', () => {
     labelKey = 'ux_editor.modal_text',
   }: Partial<EditTextResourceBindingProps>) => {
     await waitForData();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.TextResources, org, app], {
+      nb: textResources,
+    });
 
     return renderWithProviders(
       <EditTextResourceBinding
@@ -135,6 +139,7 @@ describe('EditTextResourceBindings component', () => {
         textKey={textKey}
         labelKey={labelKey}
       />,
+      { queryClient },
     );
   };
 });
