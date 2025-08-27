@@ -121,7 +121,7 @@ describe('SetupTabInputFields', () => {
     expect(switchInput).toBeChecked();
   });
 
-  it('calls the "updateAppMetadataMutation" function when updating "onEntry.show" switch', async () => {
+  it('calls the "updateAppMetadataMutation" function with correct data when the user clicks the "onEntry.show" switch', async () => {
     const user = userEvent.setup();
     renderSetupTabInputFields();
 
@@ -134,10 +134,7 @@ describe('SetupTabInputFields', () => {
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
     expect(updateAppMetadataMutation).toHaveBeenCalledWith({
       ...mockAppMetadata,
-      onEntry: {
-        ...mockAppMetadata.onEntry,
-        show: undefined,
-      },
+      onEntry: undefined,
     });
   });
 });
