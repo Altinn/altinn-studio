@@ -64,7 +64,7 @@ namespace Designer.Tests.Services
         {
             string unitTestFolder =
                 Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "development",
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "..", "..", "..", "..", "..", "development",
                 "azure-devops-mock", filename);
             if (File.Exists(path))
             {
