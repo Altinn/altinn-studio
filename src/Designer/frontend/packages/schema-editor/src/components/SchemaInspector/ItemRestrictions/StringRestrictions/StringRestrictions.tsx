@@ -1,5 +1,5 @@
-import type { ChangeEvent } from 'react';
-import React, { useReducer, useState } from 'react';
+import type { ChangeEvent, ChangeEventHandler } from 'react';
+import React, { useCallback, useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
@@ -15,6 +15,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
+import {
+  getFormatMaximum,
+  getFormatMinimum,
+  isDateOrTimeFormat,
+  isLatestInclusive,
+  isEarliestInclusive,
+} from './utils';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -35,42 +43,25 @@ export function StringRestrictions({
     }
   };
 
-  const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
-    earliestIsInclusive: restrictions[StrRestrictionKey.formatExclusiveMinimum] === undefined,
-    latestIsInclusive: restrictions[StrRestrictionKey.formatExclusiveMaximum] === undefined,
-    earliest:
-      restrictions[StrRestrictionKey.formatExclusiveMinimum] ??
-      restrictions[StrRestrictionKey.formatMinimum],
-    latest:
-      restrictions[StrRestrictionKey.formatExclusiveMaximum] ??
-      restrictions[StrRestrictionKey.formatMaximum],
-    restrictions: Object.fromEntries(
-      Object.values(StrRestrictionKey).map((key) => [key, restrictions[key]]),
-    ),
-  });
-
   const changeCallback = (changedRestrictions: KeyValuePairs) => {
     onChangeRestrictions(path, changedRestrictions);
   };
 
-  const setRestriction = (restriction: StrRestrictionKey, value: string) =>
-    dispatch({
-      type: StringRestrictionsReducerActionType.setRestriction,
-      restriction,
-      value,
-      changeCallback,
-    });
+  const setRestriction = (restriction: StrRestrictionKey, value: string): void => {
+    const newRestrictions = ObjectUtils.deepCopy(restrictions);
+    newRestrictions[restriction] = value;
+    changeCallback(newRestrictions);
+  };
 
-  const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
-    dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
+  const handleUpdateDateTimeRestrictions = (newRestrictions: KeyValuePairs) => {
+    changeCallback(newRestrictions);
+  };
 
   const formatOptions = Object.values(StringFormat).map((f) => ({
     key: f,
     value: f as string,
     label: t(`format_${f}`),
   }));
-  const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
-  const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   return (
     <ItemWrapper>
@@ -88,51 +79,11 @@ export function StringRestrictions({
           </option>
         ))}
       </StudioNativeSelect>
-      {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
-        restrictions[StrRestrictionKey.format],
-      ) && (
-        <>
-          <div>
-            <div className={classes.formatFieldsRowContent}>
-              <StudioTextfield
-                label={t(formatMinLangKey)}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
-                }
-                value={formatState.earliest}
-              />
-              <Switch
-                size='small'
-                checked={formatState.earliestIsInclusive}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
-                }
-              >
-                {t('format_date_inclusive')}
-              </Switch>
-            </div>
-          </div>
-          <div>
-            <div className={classes.formatFieldsRowContent}>
-              <StudioTextfield
-                label={t(formatMaxLangKey)}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
-                }
-                value={formatState.latest}
-              />
-              <Switch
-                size='small'
-                checked={formatState.latestIsInclusive}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
-                }
-              >
-                {t('format_date_inclusive')}
-              </Switch>
-            </div>
-          </div>
-        </>
+      {isDateOrTimeFormat(restrictions) && (
+        <DateOrTimeFormatRestrictions
+          onUpdateRestrictions={handleUpdateDateTimeRestrictions}
+          restrictions={restrictions}
+        />
       )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
@@ -198,6 +149,108 @@ export function StringRestrictions({
         </div>
       </Fieldset>
     </ItemWrapper>
+  );
+}
+
+type DateOrTimeFormatRestrictionsProps = {
+  onUpdateRestrictions: (newRestrictions: KeyValuePairs) => void;
+  restrictions: KeyValuePairs;
+};
+
+function DateOrTimeFormatRestrictions({
+  onUpdateRestrictions,
+  restrictions,
+}: DateOrTimeFormatRestrictionsProps) {
+  const translation = useTranslation();
+  const t = (key: string) => translation.t('schema_editor.' + key);
+
+  const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
+    earliestIsInclusive: isEarliestInclusive(restrictions),
+    latestIsInclusive: isLatestInclusive(restrictions),
+    earliest: getFormatMinimum(restrictions),
+    latest: getFormatMaximum(restrictions),
+    restrictions,
+  });
+
+  const dispatchAction = useCallback(
+    (action: Omit<StringRestrictionsReducerAction, 'changeCallback'>) =>
+      dispatch({
+        ...action,
+        changeCallback: onUpdateRestrictions,
+      } as StringRestrictionsReducerAction),
+    [dispatch, onUpdateRestrictions],
+  );
+
+  const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
+  const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
+
+  const handleSetEarliest: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) =>
+      dispatchAction({
+        type: StringRestrictionsReducerActionType.setEarliest,
+        value: e.target.value,
+      }),
+    [dispatchAction],
+  );
+
+  const handleSetLatest: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) =>
+      dispatchAction({
+        type: StringRestrictionsReducerActionType.setLatest,
+        value: e.target.value,
+      }),
+    [dispatchAction],
+  );
+
+  const handleSetMinIncl: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) =>
+      dispatchAction({
+        type: StringRestrictionsReducerActionType.setMinIncl,
+        value: e.target.checked,
+      }),
+    [dispatchAction],
+  );
+
+  const handleSetMaxIncl: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) =>
+      dispatchAction({
+        type: StringRestrictionsReducerActionType.setMaxIncl,
+        value: e.target.checked,
+      }),
+    [dispatchAction],
+  );
+
+  return (
+    <>
+      <div>
+        <div className={classes.formatFieldsRowContent}>
+          <StudioTextfield
+            label={t(formatMinLangKey)}
+            onChange={handleSetEarliest}
+            value={formatState.earliest}
+          />
+          <Switch
+            size='small'
+            checked={formatState.earliestIsInclusive}
+            onChange={handleSetMinIncl}
+          >
+            {t('format_date_inclusive')}
+          </Switch>
+        </div>
+      </div>
+      <div>
+        <div className={classes.formatFieldsRowContent}>
+          <StudioTextfield
+            label={t(formatMaxLangKey)}
+            onChange={handleSetLatest}
+            value={formatState.latest}
+          />
+          <Switch size='small' checked={formatState.latestIsInclusive} onChange={handleSetMaxIncl}>
+            {t('format_date_inclusive')}
+          </Switch>
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -8,7 +8,6 @@ export enum StringRestrictionsReducerActionType {
   setLatest = 'setLatest',
   setMaxIncl = 'setMaxIncl',
   setMinIncl = 'setMinIncl',
-  setRestriction = 'setRestriction',
 }
 
 interface SetInclAction {
@@ -27,17 +26,9 @@ interface SetEarliestOrLatestAction {
   changeCallback: ChangeCallback;
 }
 
-interface SetRestrictionAction {
-  type: StringRestrictionsReducerActionType.setRestriction;
-  restriction: StrRestrictionKey;
-  value: string;
-  changeCallback: ChangeCallback;
-}
-
 export type StringRestrictionsReducerAction =
   | SetInclAction
-  | SetEarliestOrLatestAction
-  | SetRestrictionAction;
+  | SetEarliestOrLatestAction;
 
 export type StringRestricionsReducerState = {
   earliestIsInclusive: boolean;
@@ -101,9 +92,6 @@ const setLatest = (state: StringRestricionsReducerState, action: SetEarliestOrLa
   state.restrictions[key] = value;
 };
 
-const setRestriction = (state: StringRestricionsReducerState, action: SetRestrictionAction) =>
-  (state.restrictions[action.restriction] = action.value);
-
 export const stringRestrictionsReducer = (
   state: StringRestricionsReducerState,
   action: StringRestrictionsReducerAction,
@@ -121,8 +109,6 @@ export const stringRestrictionsReducer = (
     case StringRestrictionsReducerActionType.setLatest:
       setLatest(state, action);
       break;
-    case StringRestrictionsReducerActionType.setRestriction:
-      setRestriction(state, action);
   }
   action.changeCallback(state.restrictions);
   return state;
