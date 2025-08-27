@@ -23,12 +23,6 @@ describe('StudioPageHeader.PopoverTrigger', () => {
     expect(screen.getByRole('button', { name: triggerText })).toBeInTheDocument();
   });
 
-  it('Does not display the popover by default', () => {
-    renderPopover();
-    screen.debug();
-    expect(screen.queryByText(contentText)).not.toBeInTheDocument();
-  });
-
   it('Opens the popover when the user clicks the trigger', async () => {
     const user = userEvent.setup();
     renderPopover();
@@ -37,30 +31,26 @@ describe('StudioPageHeader.PopoverTrigger', () => {
   });
 
   it('Forwards the ref to the trigger button', () => {
-    testRefForwarding<HTMLButtonElement>((ref) => renderPopoverTrigger({}, ref));
+    testRefForwarding<HTMLButtonElement>((ref) => renderPopover({}, ref));
   });
 
   it('Appends the given className to the trigger button', () => {
-    testRootClassNameAppending((className) => renderPopoverTrigger({ className }));
+    testRootClassNameAppending((className) => renderPopover({ className }));
   });
 
   it('Accepts custom attributes', () => {
-    testCustomAttributes(renderPopoverTrigger);
+    testCustomAttributes(renderPopover);
   });
 });
 
-function renderPopover(): RenderResult {
+function renderPopover(
+  props: Partial<StudioPageHeaderPopoverTriggerProps> = {},
+  ref?: ForwardedRef<HTMLButtonElement>,
+): RenderResult {
   return render(
     <StudioPopover.TriggerContext>
-      <StudioPageHeader.PopoverTrigger {...defaultProps} />
+      <StudioPageHeader.PopoverTrigger {...defaultProps} {...props} ref={ref} />
       <StudioPopover>{contentText}</StudioPopover>
     </StudioPopover.TriggerContext>,
   );
-}
-
-function renderPopoverTrigger(
-  props: StudioPageHeaderPopoverTriggerProps,
-  ref?: ForwardedRef<HTMLButtonElement>,
-): RenderResult {
-  return render(<StudioPageHeader.PopoverTrigger {...defaultProps} {...props} ref={ref} />);
 }

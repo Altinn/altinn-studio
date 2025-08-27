@@ -4,6 +4,7 @@ import { StudioPageHeader } from './index';
 import { StudioParagraph } from '../StudioParagraph';
 import { type StudioProfileMenuGroup } from './StudioPageHeaderProfileMenu';
 import { StudioAvatar } from '../StudioAvatar';
+import { StudioPopover } from '../StudioPopover';
 
 const profileMenuGroups: StudioProfileMenuGroup[] = [
   {
@@ -55,7 +56,7 @@ const PreviewComponent = (args): React.ReactElement => (
       </StudioPageHeader.Right>
     </StudioPageHeader.Main>
     <StudioPageHeader.Sub>
-      <div style={{ padding: '10px' }}>
+      <div style={{ padding: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
         <StudioParagraph data-size='sm' style={{ color: 'white' }}>
           <StudioPageHeader.HeaderButton
             color={args.variant === 'regular' ? 'dark' : 'light'}
@@ -64,6 +65,10 @@ const PreviewComponent = (args): React.ReactElement => (
             Subheader Button
           </StudioPageHeader.HeaderButton>
         </StudioParagraph>
+        <StudioPopover.TriggerContext>
+          <StudioPageHeader.PopoverTrigger>Popover</StudioPageHeader.PopoverTrigger>
+          <StudioPopover>Popover content</StudioPopover>
+        </StudioPopover.TriggerContext>
       </div>
     </StudioPageHeader.Sub>
   </StudioPageHeader>

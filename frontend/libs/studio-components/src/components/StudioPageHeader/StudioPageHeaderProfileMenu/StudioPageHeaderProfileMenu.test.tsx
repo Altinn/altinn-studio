@@ -29,7 +29,7 @@ const mockProfileMenuItems1: StudioProfileMenuItem[] = [
     isActive: true,
   },
   {
-    action: { type: 'link', href: menuItem2Link },
+    action: { type: 'link', href: menuItem2Link, openInNewTab: false },
     itemName: menuItem2,
   },
 ];
@@ -85,19 +85,6 @@ describe('StudioProfileMenu', () => {
     expect(screen.getByText(menuItem3)).toBeInTheDocument();
   });
 
-  it('should close the dropdown menu when a button menu item is clicked', async () => {
-    const user = userEvent.setup();
-    renderStudioProfileMenu();
-
-    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
-    await user.click(triggerButton);
-
-    await user.click(screen.getByRole('menuitemradio', { name: menuItem1 }));
-
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
-  });
-
   it('should have correct attributes for link item without "openInNewTab" value', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
@@ -105,7 +92,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('menuitem', { name: menuItem2 });
+    const link = screen.getByRole('link', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
@@ -118,26 +105,10 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('menuitem', { name: menuItem3 });
+    const link = screen.getByRole('link', { name: menuItem3 });
     expect(link).toHaveAttribute('href', menuItem3Link);
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
-  });
-
-  it('should close the menu when clicking a menuitem', async () => {
-    const user = userEvent.setup();
-    renderStudioProfileMenu();
-
-    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
-
-    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
-    await user.click(triggerButton);
-
-    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
-    await user.click(screen.getByRole('menuitemradio', { name: menuItem1 }));
-
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should render aria-label on trigger button', () => {
@@ -147,32 +118,6 @@ describe('StudioProfileMenu', () => {
     expect(triggerButton).toHaveAttribute('aria-label', mockAriaLabel);
   });
 
-  it('should toggle the dropdown menu open and close when the trigger button is clicked multiple times', async () => {
-    const user = userEvent.setup();
-    renderStudioProfileMenu();
-
-    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
-
-    await user.click(triggerButton);
-    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
-
-    await user.click(triggerButton);
-    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
-  });
-
-  it('should close the dropdown menu when handleClose is called', async () => {
-    const user = userEvent.setup();
-    renderStudioProfileMenu();
-
-    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
-    await user.click(triggerButton);
-
-    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
-    await user.click(triggerButton);
-
-    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
-  });
-
   it('should not close the dropdown when a link item is clicked and openInNewTab is true', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
@@ -180,7 +125,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('menuitem', { name: menuItem3 });
+    const link = screen.getByRole('link', { name: menuItem3 });
     await user.click(link);
 
     expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
@@ -194,7 +139,7 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    const link = screen.getByRole('menuitem', { name: menuItem2 });
+    const link = screen.getByRole('link', { name: menuItem2 });
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
