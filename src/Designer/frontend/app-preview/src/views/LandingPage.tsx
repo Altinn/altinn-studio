@@ -3,7 +3,7 @@ import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'libs/studio-components-legacy/src/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components-legacy/hooks/useLocalStorage';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -13,7 +13,7 @@ import {
   StudioPageHeader,
   StudioPageSpinner,
   useMediaQuery,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

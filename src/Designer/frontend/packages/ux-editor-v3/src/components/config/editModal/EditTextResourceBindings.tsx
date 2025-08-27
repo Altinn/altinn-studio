@@ -5,7 +5,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 

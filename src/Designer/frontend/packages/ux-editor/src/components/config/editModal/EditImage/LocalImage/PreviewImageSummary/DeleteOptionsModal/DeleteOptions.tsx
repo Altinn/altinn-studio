@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './DeleteOptionsModal.module.css';
-import { StudioDeleteButton } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioDeleteButton } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type DeleteOptionsProps = {

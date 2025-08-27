@@ -1,7 +1,7 @@
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import type { CodeListData } from '../CodeListPage';
 import type { TextResources } from '../../../../../types/TextResources';
-import type { TextResource } from 'libs/studio-components-legacy/src';
+import type { TextResource } from '@studio/components-legacy';
 import type { TextResourceWithLanguage } from '../../../../../types/TextResourceWithLanguage';
 import { CodeListUsageTaskType } from '../../../../../types/CodeListUsageTaskType';
 

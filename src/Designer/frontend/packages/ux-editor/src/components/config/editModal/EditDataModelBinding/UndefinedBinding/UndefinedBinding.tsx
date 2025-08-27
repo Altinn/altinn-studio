@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import { LinkIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 

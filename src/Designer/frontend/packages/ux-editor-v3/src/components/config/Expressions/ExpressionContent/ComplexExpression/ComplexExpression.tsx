@@ -4,7 +4,7 @@ import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { Expression } from '../../../../../types/Expressions';
 import { stringifyData } from '../../../../../utils/jsonUtils';
-import { StudioTextarea } from 'libs/studio-components-legacy/src';
+import { StudioTextarea } from '@studio/components-legacy';
 
 export type ComplexExpressionProps = {
   disabled?: boolean;

@@ -1,8 +1,8 @@
 import React, { forwardRef, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioTabs } from 'libs/studio-components-legacy/src';
-import { StudioButton, StudioTextfield } from 'libs/studio-components/src';
+import { StudioTabs } from '@studio/components-legacy';
+import { StudioButton, StudioTextfield } from '@studio/components';
 import { BulletListIcon, LinkIcon, XMarkOctagonFillIcon } from 'libs/studio-icons/src';
 import type {
   ResourceFormError,

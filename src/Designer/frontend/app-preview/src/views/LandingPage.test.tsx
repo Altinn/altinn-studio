@@ -3,7 +3,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
-import { useMediaQuery } from 'libs/studio-components-legacy/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components-legacy/hooks/useMediaQuery';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -11,7 +11,7 @@ import { userMock } from 'app-development/test/userMock';
 import { typedLocalStorage } from 'libs/studio-pure-functions/src';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
-jest.mock('libs/studio-components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/hooks/useMediaQuery');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

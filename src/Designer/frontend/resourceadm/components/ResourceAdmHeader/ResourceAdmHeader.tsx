@@ -8,7 +8,7 @@ import {
   type StudioProfileMenuGroup,
   useMediaQuery,
   type StudioProfileMenuItem,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

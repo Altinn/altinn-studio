@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioHeading, StudioList } from 'libs/studio-components-legacy/src';
+import { StudioHeading, StudioList } from '@studio/components-legacy';
 import classes from './Section.module.css';
 
 type SectionProps = {

@@ -1,11 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioCodeListEditor, StudioTextfield } from 'libs/studio-components-legacy/src';
-import type {
-  CodeList,
-  CodeListEditorTexts,
-  TextResource,
-} from 'libs/studio-components-legacy/src';
+import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
@@ -13,7 +9,7 @@ import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from 'libs/studio-pure-functions/src';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
-import { StudioDialog, StudioHeading, StudioButton } from 'libs/studio-components/src';
+import { StudioDialog, StudioHeading, StudioButton } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;

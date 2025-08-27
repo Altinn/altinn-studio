@@ -5,7 +5,7 @@ import { RouterRouteMapperImpl } from '../utils/router/RouterRouteMapper';
 import type { PagePropsMap } from '../types/PagesProps';
 import classes from './ContentLibrary.module.css';
 import { LibraryHeader } from './LibraryHeader';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioHeading } from '@studio/components-legacy';
 import type { PageName } from '../types/PageName';
 import { LibraryBody } from './LibraryBody';
 import type { ContentLibraryConfig } from '../types/ContentLibraryConfig';

@@ -7,8 +7,8 @@ import {
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
-} from 'libs/studio-components-legacy/src';
-import { StudioParagraph, StudioActionCloseButton } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioParagraph, StudioActionCloseButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';

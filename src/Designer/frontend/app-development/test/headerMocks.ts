@@ -3,10 +3,7 @@ import { HeaderMenuGroupKey } from '../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../enums/HeaderMenuItemKey';
 import { type HeaderMenuItem } from '../types/HeaderMenu/HeaderMenuItem';
 import { userMock } from './userMock';
-import {
-  type StudioProfileMenuGroup,
-  type StudioProfileMenuItem,
-} from 'libs/studio-components-legacy/src';
+import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components-legacy';
 import { type PreviewContextProps } from '../contexts/PreviewContext';
 
 const menuItemsMock: HeaderMenuItem[] = [

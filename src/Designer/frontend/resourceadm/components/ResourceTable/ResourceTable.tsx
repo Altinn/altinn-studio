@@ -6,8 +6,8 @@ import {
   StudioSpinner,
   StudioTableLocalPagination,
   StudioTag,
-} from 'libs/studio-components-legacy/src';
-import type { Columns } from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
+import type { Columns } from '@studio/components-legacy';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { CodeList, TextResource } from 'libs/studio-components-legacy/src';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
+import type { CodeList, TextResource } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';

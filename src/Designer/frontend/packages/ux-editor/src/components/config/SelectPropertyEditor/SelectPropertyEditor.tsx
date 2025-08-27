@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { XMarkIcon } from 'libs/studio-icons/src';
-import { StudioButton } from 'libs/studio-components-legacy/src';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import classes from './SelectPropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';

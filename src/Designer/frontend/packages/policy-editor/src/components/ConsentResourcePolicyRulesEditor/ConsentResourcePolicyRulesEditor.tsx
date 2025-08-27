@@ -15,7 +15,7 @@ import {
   StudioHeading,
   StudioFieldset,
   useStudioCheckboxGroup,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
 

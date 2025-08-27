@@ -15,7 +15,7 @@ import {
   addFunctionToSubExpression,
 } from '../../../../../../utils/expressionsUtils';
 import { useText } from '../../../../../../hooks';
-import { StudioButton, StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioNativeSelect } from '@studio/components-legacy';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;

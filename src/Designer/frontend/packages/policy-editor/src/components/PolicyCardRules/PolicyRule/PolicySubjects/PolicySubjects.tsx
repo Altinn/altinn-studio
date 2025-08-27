@@ -7,7 +7,7 @@ import { getSubjectOptions, getUpdatedRules } from '../../../../utils/PolicyRule
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export const PolicySubjects = (): React.ReactElement => {
   const { t } = useTranslation();

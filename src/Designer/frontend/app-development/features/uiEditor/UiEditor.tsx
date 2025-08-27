@@ -5,7 +5,7 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
-import { StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';

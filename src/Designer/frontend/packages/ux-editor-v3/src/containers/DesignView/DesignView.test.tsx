@@ -4,7 +4,7 @@ import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { StudioDragAndDrop } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDrop } from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

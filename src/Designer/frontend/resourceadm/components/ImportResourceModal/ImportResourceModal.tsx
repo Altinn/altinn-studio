@@ -17,7 +17,7 @@ import {
   StudioModal,
   StudioParagraph,
   StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { formatIdString } from '../../utils/stringUtils';
 import {
   getAvailableEnvironments,

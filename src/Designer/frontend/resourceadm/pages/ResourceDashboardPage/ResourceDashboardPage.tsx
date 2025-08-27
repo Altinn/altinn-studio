@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioHeading, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components-legacy';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';

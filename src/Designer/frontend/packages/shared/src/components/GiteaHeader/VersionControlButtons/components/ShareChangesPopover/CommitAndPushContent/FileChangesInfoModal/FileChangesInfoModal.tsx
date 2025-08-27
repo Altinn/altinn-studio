@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioError, StudioModal, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioError, StudioModal, StudioSpinner } from '@studio/components-legacy';
 import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';

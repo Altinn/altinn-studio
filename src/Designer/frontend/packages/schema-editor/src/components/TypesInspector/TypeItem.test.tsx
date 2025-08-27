@@ -4,7 +4,7 @@ import { FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model/index'
 import { screen } from '@testing-library/react';
 import { TypeItem } from './TypeItem';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 
 describe('TypeItem', () => {
   const uiSchemaNode: FieldNode = {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioHeading } from '@studio/components-legacy';
 import { RequiredIndicator } from '../../RequiredIndicator';
 import classes from './HeaderMainConfig.module.css';
 import { useTranslation } from 'react-i18next';

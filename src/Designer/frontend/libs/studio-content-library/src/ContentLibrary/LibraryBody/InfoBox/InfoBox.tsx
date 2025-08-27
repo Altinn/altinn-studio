@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './InfoBox.module.css';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { PageName } from '../../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';

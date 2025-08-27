@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioDetails, StudioCard, StudioTag } from 'libs/studio-components/src';
+import { StudioDetails, StudioCard, StudioTag } from '@studio/components';
 import classes from './TranslationDetails.module.css';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';

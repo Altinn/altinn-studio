@@ -1,6 +1,6 @@
 import React from 'react';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 

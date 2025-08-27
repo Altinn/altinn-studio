@@ -4,7 +4,7 @@ import { imagePath } from 'app-shared/api/paths';
 import { FileNameUtils } from 'libs/studio-pure-functions/src';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { WWWROOT_FILE_PATH } from '../../../../constants';
-import { StudioCard, StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioCard, StudioHeading } from '@studio/components-legacy';
 
 type ImageLibraryPreviewProps = {
   imagesFileNames: string[];

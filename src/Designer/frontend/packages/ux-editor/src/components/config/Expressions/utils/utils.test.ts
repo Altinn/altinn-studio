@@ -11,8 +11,8 @@ import {
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
-import type { BooleanExpression } from 'libs/studio-components-legacy/src';
-import { GeneralRelationOperator } from 'libs/studio-components-legacy/src';
+import type { BooleanExpression } from '@studio/components-legacy';
+import { GeneralRelationOperator } from '@studio/components-legacy';
 
 describe('utils', () => {
   describe('expressionPropertiesOnFormItem', () => {

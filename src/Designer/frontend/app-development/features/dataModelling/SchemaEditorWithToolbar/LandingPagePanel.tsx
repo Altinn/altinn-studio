@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './LandingPagePanel.module.css';
-import { StudioButton, StudioHeading } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioButton, StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
 import { useTranslation } from 'react-i18next';
 

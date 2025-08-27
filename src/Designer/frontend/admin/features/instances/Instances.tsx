@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './Instances.module.css';
 import { Link, useParams } from 'react-router-dom';
 import { InstancesTable } from './components/InstancesTable';
-import { StudioBreadcrumbs } from 'libs/studio-components/src';
+import { StudioBreadcrumbs } from '@studio/components';
 import { ProcessTaskPicker, useProcessTaskPicker } from './components/ProcessTaskPicker';
 
 export const Instances = () => {

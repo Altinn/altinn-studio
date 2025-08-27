@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
-import { StudioButton, StudioCard } from 'libs/studio-components-legacy/src';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioButton, StudioCard } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from 'libs/studio-icons/src';
 import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';

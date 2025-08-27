@@ -4,12 +4,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import {
-  StudioSpinner,
-  StudioAlert,
-  StudioList,
-  StudioParagraph,
-} from 'libs/studio-components-legacy/src';
+import { StudioSpinner, StudioAlert, StudioList, StudioParagraph } from '@studio/components-legacy';
 import { ArrowForwardIcon } from 'libs/studio-icons/src';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';

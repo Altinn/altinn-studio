@@ -8,7 +8,7 @@ import {
   StudioLink,
   StudioCheckbox,
   StudioHeading,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { PencilWritingIcon, PlusIcon } from 'libs/studio-icons/src';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';

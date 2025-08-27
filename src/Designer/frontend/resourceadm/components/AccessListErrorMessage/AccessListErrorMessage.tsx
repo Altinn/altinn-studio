@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert } from 'libs/studio-components-legacy/src';
+import { StudioAlert } from '@studio/components-legacy';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import { type EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';

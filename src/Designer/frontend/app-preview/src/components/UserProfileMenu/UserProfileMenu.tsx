@@ -9,7 +9,7 @@ import {
   StudioPageHeader,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
-import { StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioTextfield } from '@studio/components-legacy';
 
 export interface IRestrictionFieldProps {
   className?: string;

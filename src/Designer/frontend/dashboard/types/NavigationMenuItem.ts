@@ -1,3 +1,3 @@
-import type { StudioProfileMenuItem } from 'libs/studio-components-legacy/src';
+import type { StudioProfileMenuItem } from '@studio/components-legacy';
 
 export type NavigationMenuItem = StudioProfileMenuItem;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from 'libs/studio-icons/src';
-import { StudioButton, StudioRedirectBox } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
 import classes from './RedirectToLayoutSet.module.css';
 import { useAppContext } from '../../../../hooks';
 

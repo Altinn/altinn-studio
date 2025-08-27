@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioLabelAsParagraph, StudioSectionHeader } from 'libs/studio-components-legacy/src';
+import { StudioLabelAsParagraph, StudioSectionHeader } from '@studio/components-legacy';
 import { Accordion, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';

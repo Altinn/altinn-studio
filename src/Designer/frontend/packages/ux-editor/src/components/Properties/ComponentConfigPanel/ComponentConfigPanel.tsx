@@ -2,7 +2,7 @@ import { Text } from '../Text';
 import { useFormItemContext } from '../../../containers/FormItemContext';
 import { Accordion } from '@digdir/designsystemet-react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioSpinner } from 'libs/studio-components/src';
+import { StudioSpinner } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';

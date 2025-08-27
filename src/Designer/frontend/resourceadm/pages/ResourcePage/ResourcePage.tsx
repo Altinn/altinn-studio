@@ -25,8 +25,8 @@ import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioContentMenu, StudioSpinner } from 'libs/studio-components-legacy/src';
-import type { StudioContentMenuButtonTabProps } from 'libs/studio-components-legacy/src';
+import { StudioContentMenu, StudioSpinner } from '@studio/components-legacy';
+import type { StudioContentMenuButtonTabProps } from '@studio/components-legacy';
 import { useGetConsentTemplates } from '../../hooks/queries/useGetConsentTemplates';
 
 /**

@@ -1,4 +1,4 @@
-import { StudioButton, StudioParagraph, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components-legacy';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from 'libs/studio-icons/src';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

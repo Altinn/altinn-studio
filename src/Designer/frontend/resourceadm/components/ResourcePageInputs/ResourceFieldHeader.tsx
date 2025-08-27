@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTag } from 'libs/studio-components-legacy/src';
+import { StudioTag } from '@studio/components-legacy';
 import classes from './ResourcePageInputs.module.css';
 
 interface ResourceFieldHeaderProps {

@@ -7,7 +7,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';

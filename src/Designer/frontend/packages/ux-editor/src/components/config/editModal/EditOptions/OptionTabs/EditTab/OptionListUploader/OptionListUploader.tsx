@@ -4,7 +4,7 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { StudioFileUploader } from 'libs/studio-components-legacy/src';
+import { StudioFileUploader } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FileNameErrorResult, FileNameUtils } from 'libs/studio-pure-functions/src';
 import type { AxiosError } from 'axios';

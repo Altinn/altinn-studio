@@ -5,7 +5,7 @@ import { FormField } from '../../FormField';
 import { Combobox } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
-import { StudioNativeSelect, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { useComponentPropertyHelpText } from '../../../hooks';
 
 const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';

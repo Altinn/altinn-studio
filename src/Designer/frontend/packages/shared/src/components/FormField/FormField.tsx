@@ -1,5 +1,5 @@
 import { ErrorMessage } from '@digdir/designsystemet-react';
-import { StudioHelpText } from 'libs/studio-components/src';
+import { StudioHelpText } from '@studio/components';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { TranslationKey } from '../../../../../language/type';
 import React, { useCallback, useEffect, useState } from 'react';

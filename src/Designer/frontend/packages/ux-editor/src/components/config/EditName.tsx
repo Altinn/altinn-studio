@@ -1,9 +1,4 @@
-import {
-  StudioButton,
-  StudioLabel,
-  StudioParagraph,
-  StudioTextfield,
-} from 'libs/studio-components/src';
+import { StudioButton, StudioLabel, StudioParagraph, StudioTextfield } from '@studio/components';
 import { StudioCancelIcon, StudioEditIcon, StudioSaveIcon } from 'libs/studio-icons/src';
 import React, { type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';

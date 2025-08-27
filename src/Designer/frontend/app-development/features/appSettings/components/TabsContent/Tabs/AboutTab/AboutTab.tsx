@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioValidationMessage } from 'libs/studio-components/src';
+import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';

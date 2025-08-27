@@ -6,8 +6,8 @@ import {
   StudioTextfield,
   StudioAlert,
   StudioLink,
-} from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './ConfirmUndeployDialog.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

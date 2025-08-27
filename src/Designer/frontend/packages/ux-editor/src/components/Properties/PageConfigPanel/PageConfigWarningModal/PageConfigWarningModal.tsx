@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './PageConfigWarningModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioDialog, StudioHeading } from 'libs/studio-components/src';
+import { StudioDialog, StudioHeading } from '@studio/components';
 
 export interface PageConfigWarningModalProps {
   open: boolean;

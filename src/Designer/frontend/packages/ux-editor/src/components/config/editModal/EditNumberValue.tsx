@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
 import { setComponentProperty } from '@altinn/ux-editor/utils/component';
-import { StudioDecimalInput, StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioDecimalInput, StudioNativeSelect } from '@studio/components-legacy';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';

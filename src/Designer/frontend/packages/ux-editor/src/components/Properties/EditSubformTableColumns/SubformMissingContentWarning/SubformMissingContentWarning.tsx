@@ -1,6 +1,6 @@
 import { PencilIcon } from 'libs/studio-icons/src';
-import { StudioAlert, StudioButton, StudioHeading } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioAlert, StudioButton, StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

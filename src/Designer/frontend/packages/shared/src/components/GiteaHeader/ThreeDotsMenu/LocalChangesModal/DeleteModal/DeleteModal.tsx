@@ -6,7 +6,7 @@ import {
   StudioModal,
   StudioSpinner,
   StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { useForwardedRef } from 'libs/studio-hooks/src';
 import { TrashIcon } from 'libs/studio-icons/src';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';

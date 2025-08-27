@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 
 export type SyncLoadingIndicatorProps = {
   heading: string;

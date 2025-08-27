@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { InstanceDataView } from './components/InstanceDataView';
-import { StudioBreadcrumbs } from 'libs/studio-components/src';
+import { StudioBreadcrumbs } from '@studio/components';
 
 export const InstanceDetails = () => {
   const { org, env, app, instanceId } = useParams();

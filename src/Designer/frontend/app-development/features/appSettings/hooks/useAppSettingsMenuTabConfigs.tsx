@@ -8,7 +8,7 @@ import {
   MaskinportenIcon,
 } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
-import type { StudioContentMenuButtonTabProps } from 'libs/studio-components/src';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
 
 const aboutTabId: SettingsPageTabId = 'about';
 const setupTabId: SettingsPageTabId = 'setup';

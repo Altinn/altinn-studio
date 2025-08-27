@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StudioNativeSelect, StudioRecommendedNextAction } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect, StudioRecommendedNextAction } from '@studio/components-legacy';
 import { CheckmarkIcon, PlusIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectSubformSection.module.css';
-import { StudioButton, StudioProperty } from 'libs/studio-components/src';
+import { StudioButton, StudioProperty } from '@studio/components';
 
 type SelectSubformSectionProps = {
   setShowCreateSubformCard: (showCreateSubformCard: boolean) => void;

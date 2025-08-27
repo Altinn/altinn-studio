@@ -1,8 +1,8 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { StudioContentMenu } from 'libs/studio-components/src';
-import type { StudioContentMenuButtonTabProps } from 'libs/studio-components/src';
+import { StudioContentMenu } from '@studio/components';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from '../../../../types/SettingsPageTabId';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';

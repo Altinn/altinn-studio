@@ -14,8 +14,8 @@ import {
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
 } from 'libs/studio-icons/src';
-import { StudioLink } from 'libs/studio-components/src';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioLink } from '@studio/components';
+import { StudioSpinner } from '@studio/components-legacy';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';

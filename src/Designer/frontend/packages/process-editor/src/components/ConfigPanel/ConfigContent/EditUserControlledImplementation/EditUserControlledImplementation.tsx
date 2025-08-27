@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioToggleableTextfield } from 'libs/studio-components-legacy/src';
+import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useGetDefaultUserControlledSigningInterfaceId } from './useGetDefaultUserControlledSigningInterfaceId';
 import { useUpdateUserControlledImplementation } from './useUpdateUserControlledImplementation';
 import { useTranslation } from 'react-i18next';

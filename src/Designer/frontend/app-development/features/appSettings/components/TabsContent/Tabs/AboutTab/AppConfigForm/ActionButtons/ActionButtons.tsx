@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ActionButtons.module.css';
-import { StudioButton } from 'libs/studio-components/src';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
 

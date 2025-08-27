@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioCombobox } from 'libs/studio-components-legacy/src';
+import { StudioCombobox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { IDataModelBindingsKeyValue } from '../../../../../types/global';
 import { convertDataBindingToInternalFormat } from '../../../../../utils/dataModelUtils';

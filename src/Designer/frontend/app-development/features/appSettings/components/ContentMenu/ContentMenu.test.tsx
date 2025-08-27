@@ -4,7 +4,7 @@ import { ContentMenu } from './ContentMenu';
 import { typedLocalStorage } from 'libs/studio-pure-functions/src';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
-import type { StudioContentMenuButtonTabProps } from 'libs/studio-components/src';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
 import type { SettingsPageTabId } from '../../../../types/SettingsPageTabId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';

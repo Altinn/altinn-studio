@@ -10,7 +10,7 @@ import {
   StudioTag,
   StudioTextfield,
   StudioValidationMessage,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type ContactPointCardProps = {

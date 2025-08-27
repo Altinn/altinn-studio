@@ -1,5 +1,5 @@
 import classes from './Variables.module.css';
-import { StudioHelpText } from 'libs/studio-components/src';
+import { StudioHelpText } from '@studio/components';
 import React from 'react';
 import type { TextResourceVariable } from './types';
 import { useTranslation, Trans } from 'react-i18next';

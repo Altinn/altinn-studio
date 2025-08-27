@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioTextarea } from 'libs/studio-components-legacy/src';
+import { StudioTextarea } from '@studio/components-legacy';
 import {
   DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
   DEFAULT_MIN_HEIGHT_PX_TEXTAREA,

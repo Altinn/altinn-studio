@@ -1,6 +1,6 @@
 import React from 'react';
-import type { TextResource } from 'libs/studio-components-legacy/src';
-import { StudioSearch } from 'libs/studio-components/src';
+import type { TextResource } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import classes from './AccessListMembers.module.css';
 import type { BrregSearchResult } from 'app-shared/types/ResourceAdm';
 

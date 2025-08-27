@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioPopover, StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioPopover, StudioButton } from '@studio/components-legacy';
 import { ExternalLinkIcon, MenuElipsisVerticalIcon } from 'libs/studio-icons/src';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import classes from './DeployMoreOptionsMenu.module.css';

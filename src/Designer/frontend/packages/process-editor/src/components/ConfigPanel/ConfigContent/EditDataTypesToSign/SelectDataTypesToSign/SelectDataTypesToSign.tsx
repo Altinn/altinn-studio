@@ -1,6 +1,6 @@
 import React, { useId, useState } from 'react';
 import { Combobox, Label } from '@digdir/designsystemet-react';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from 'libs/studio-icons/src';
 import classes from './SelectDataTypesToSign.module.css';

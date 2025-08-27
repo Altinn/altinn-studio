@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { useStudioCheckboxGroup, StudioCheckboxGroup } from 'libs/studio-components/src';
+import { useStudioCheckboxGroup, StudioCheckboxGroup } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { LabelAndValue } from '../../../../../../types/LabelAndValue';

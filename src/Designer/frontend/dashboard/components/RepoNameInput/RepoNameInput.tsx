@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './RepoNameInput.module.css';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import type { StudioTextfieldProps } from 'libs/studio-components-legacy/src';
-import { StudioTextfield } from 'libs/studio-components-legacy/src';
+import type { StudioTextfieldProps } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components-legacy';
 
 type RepoNameInputProps = {
   repoName?: string;

@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCodeListEditor, StudioModal, StudioAlert } from 'libs/studio-components-legacy/src';
-import type { CodeListEditorTexts } from 'libs/studio-components-legacy/src';
+import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components-legacy';
+import type { CodeListEditorTexts } from '@studio/components-legacy';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

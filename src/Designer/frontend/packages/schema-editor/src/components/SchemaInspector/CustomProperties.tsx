@@ -12,8 +12,8 @@ import { TrashIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton, StudioTextfield } from 'libs/studio-components-legacy/src';
-import { StudioHelpText } from 'libs/studio-components/src';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;

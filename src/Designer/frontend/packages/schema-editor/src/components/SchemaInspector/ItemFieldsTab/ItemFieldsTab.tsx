@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model/index';
 import { isField, isObject, isReference } from '@altinn/schema-model/index';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from 'libs/studio-components-legacy/src';
+import { usePrevious } from '@studio/components-legacy';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';

@@ -5,8 +5,8 @@ import {
   StudioTabs,
   StudioNativeSelect,
   StudioSpinner,
-} from 'libs/studio-components-legacy/src';
-import { StudioButton, StudioParagraph } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';

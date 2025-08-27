@@ -4,7 +4,7 @@ import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
 import classes from './TextResourceEditor.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert } from 'libs/studio-components/src';
+import { StudioAlert } from '@studio/components';
 
 export interface TextResourceProps {
   textResourceId: string;

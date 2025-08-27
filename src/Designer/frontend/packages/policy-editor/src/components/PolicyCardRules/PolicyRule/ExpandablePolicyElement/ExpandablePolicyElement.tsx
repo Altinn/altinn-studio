@@ -4,8 +4,8 @@ import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from 'libs/studio-icons/src';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 
 export type ExpandablePolicyElementProps = {

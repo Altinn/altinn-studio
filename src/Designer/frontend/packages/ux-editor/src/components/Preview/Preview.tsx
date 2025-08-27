@@ -13,7 +13,7 @@ import {
   StudioCenter,
   StudioErrorMessage,
   StudioSpinner,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from 'libs/studio-icons/src';

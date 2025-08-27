@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioDeleteButton } from 'libs/studio-components-legacy/src';
+import { StudioDeleteButton } from '@studio/components-legacy';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';

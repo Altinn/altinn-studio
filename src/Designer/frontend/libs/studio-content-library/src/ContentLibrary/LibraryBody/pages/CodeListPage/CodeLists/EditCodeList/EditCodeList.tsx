@@ -1,15 +1,11 @@
-import type {
-  CodeList,
-  CodeListEditorTexts,
-  TextResource,
-} from 'libs/studio-components-legacy/src';
+import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import {
   StudioDeleteButton,
   StudioModal,
   StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';

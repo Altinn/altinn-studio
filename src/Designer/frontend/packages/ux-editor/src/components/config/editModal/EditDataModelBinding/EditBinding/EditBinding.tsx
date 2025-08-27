@@ -13,7 +13,7 @@ import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';

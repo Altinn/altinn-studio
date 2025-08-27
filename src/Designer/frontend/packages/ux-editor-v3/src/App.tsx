@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText } from './hooks';
-import { StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioPageSpinner } from '@studio/components-legacy';
 import { ErrorPage } from './components/ErrorPage';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';

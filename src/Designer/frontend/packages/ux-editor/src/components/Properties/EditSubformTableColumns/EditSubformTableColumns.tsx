@@ -1,6 +1,6 @@
 import React, { useState, type ReactElement, type ReactNode } from 'react';
 import classes from './EditSubformTableColumns.module.css';
-import { StudioButton, StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioHeading } from '@studio/components-legacy';
 import { PlusIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';

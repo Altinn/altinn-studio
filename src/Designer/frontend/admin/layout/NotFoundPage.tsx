@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioNotFoundPage } from 'libs/studio-components/src';
+import { StudioNotFoundPage } from '@studio/components';
 import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
 

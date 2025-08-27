@@ -1,6 +1,6 @@
 import { useTextResourcesForLanguage } from './useTextResourcesForLanguage';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import type { TextResource } from 'libs/studio-components-legacy/src';
+import type { TextResource } from '@studio/components-legacy';
 import type { TextResources } from 'libs/studio-content-library/src';
 
 // Test data:

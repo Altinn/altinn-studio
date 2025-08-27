@@ -1,7 +1,7 @@
 import React, { useId } from 'react';
 import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../hooks';

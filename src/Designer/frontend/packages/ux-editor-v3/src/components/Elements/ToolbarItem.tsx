@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 
 interface IToolbarItemProps {
   text: string;

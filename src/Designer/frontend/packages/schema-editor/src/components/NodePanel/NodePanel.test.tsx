@@ -9,8 +9,8 @@ import {
   stringDefinitionNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
-import type { StudioDragAndDropTreeProviderProps } from 'libs/studio-components-legacy/src';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import type { StudioDragAndDropTreeProviderProps } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

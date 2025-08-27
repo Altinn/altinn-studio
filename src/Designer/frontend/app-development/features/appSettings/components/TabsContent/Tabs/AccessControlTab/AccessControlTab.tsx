@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { StudioLink, StudioParagraph, StudioValidationMessage } from 'libs/studio-components/src';
+import { StudioLink, StudioParagraph, StudioValidationMessage } from '@studio/components';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 

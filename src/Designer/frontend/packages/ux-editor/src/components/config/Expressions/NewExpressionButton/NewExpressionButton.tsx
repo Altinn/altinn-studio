@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlusIcon } from 'libs/studio-icons/src';
 import { useText } from '../../../../hooks';
-import { StudioDropdownMenu } from 'libs/studio-components-legacy/src';
+import { StudioDropdownMenu } from '@studio/components-legacy';
 import { useFormItemContext } from '../../../../containers/FormItemContext';
 import { addExpressionToFormItem, getUndefinedExpressionProperties } from '../utils';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';

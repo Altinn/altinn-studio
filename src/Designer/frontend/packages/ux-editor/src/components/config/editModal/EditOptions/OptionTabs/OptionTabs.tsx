@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs } from 'libs/studio-components-legacy/src';
+import { StudioTabs } from '@studio/components-legacy';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { EditTab } from './EditTab';
 import { SelectedOptionsType } from '../EditOptions';

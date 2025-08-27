@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioTextfield } from '@studio/components-legacy';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';

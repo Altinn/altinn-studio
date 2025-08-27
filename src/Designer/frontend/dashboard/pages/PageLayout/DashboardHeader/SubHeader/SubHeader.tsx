@@ -4,7 +4,7 @@ import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { useOrgRepoName } from '../../../../hooks/useOrgRepoName';
 import { isOrg } from '../../../../utils/orgUtils';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export const SubHeader = (): ReactElement | null => {

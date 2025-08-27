@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioAvatar, StudioPageHeader, useMediaQuery } from 'libs/studio-components-legacy/src';
+import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';

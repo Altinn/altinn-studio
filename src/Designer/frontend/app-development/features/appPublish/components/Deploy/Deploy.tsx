@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from '../../../../hooks/queries';
-import { StudioError, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioError, StudioSpinner } from '@studio/components-legacy';
 
 export interface DeployProps {
   appDeployedVersion: string;

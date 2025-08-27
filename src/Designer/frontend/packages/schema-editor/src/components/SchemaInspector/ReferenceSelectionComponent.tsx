@@ -4,7 +4,7 @@ import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Keyword } from '@altinn/schema-model/index';
 import classes from './ReferenceSelectionComponent.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 export interface IReferenceSelectionProps {
   buttonText: string;

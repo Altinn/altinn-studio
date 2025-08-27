@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState } from 'react';
-import { StudioCallToActionBar } from 'libs/studio-components/src';
+import { StudioCallToActionBar } from '@studio/components';
 import type { IInternalLayout } from '../../types/global';
 import classes from './WithHoverAddButton.module.css';
 import { InlineItemAdder } from '../../containers/DesignView/AddItem/AddItem';

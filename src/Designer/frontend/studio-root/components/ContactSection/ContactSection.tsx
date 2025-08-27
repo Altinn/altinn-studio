@@ -1,6 +1,6 @@
 import React, { type ComponentType, type ReactElement, type ReactNode } from 'react';
-import { StudioHeading, StudioLink } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioHeading, StudioLink } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { type IconProps } from 'libs/studio-icons/src';
 import classes from './ContactSection.module.css';
 

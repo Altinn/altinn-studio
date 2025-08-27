@@ -3,7 +3,7 @@ import { EditLayoutSet } from './EditLayoutSet';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IGenericEditComponent } from '../../../config/componentConfig';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
-import { StudioButton, StudioDivider } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioDivider } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from 'libs/studio-icons/src';
 import { useAppContext } from '@altinn/ux-editor/hooks';

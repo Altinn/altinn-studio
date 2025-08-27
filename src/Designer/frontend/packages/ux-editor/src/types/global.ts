@@ -3,7 +3,7 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
-import type { BooleanExpression } from 'libs/studio-components-legacy/src';
+import type { BooleanExpression } from '@studio/components-legacy';
 import type React from 'react';
 
 export interface IOption {

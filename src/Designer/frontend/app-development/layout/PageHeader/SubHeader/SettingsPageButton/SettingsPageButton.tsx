@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioPageHeader, useMediaQuery } from 'libs/studio-components-legacy/src';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { ArrowLeftIcon, CogIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';

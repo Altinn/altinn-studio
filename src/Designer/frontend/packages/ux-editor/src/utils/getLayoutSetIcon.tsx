@@ -10,7 +10,7 @@ import {
 } from 'libs/studio-icons/src';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
-import type { StudioIconCardIconColors } from 'libs/studio-components-legacy/src';
+import type { StudioIconCardIconColors } from '@studio/components-legacy';
 
 type IconMetaData = {
   icon: ReactElement;

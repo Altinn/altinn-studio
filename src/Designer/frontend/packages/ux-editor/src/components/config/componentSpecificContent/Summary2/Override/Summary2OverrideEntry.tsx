@@ -1,4 +1,4 @@
-import { StudioAlert, StudioCard, StudioDivider } from 'libs/studio-components-legacy/src';
+import { StudioAlert, StudioCard, StudioDivider } from '@studio/components-legacy';
 import { CheckmarkIcon } from 'libs/studio-icons/src';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -12,7 +12,7 @@ import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowCompon
 import { Summary2OverrideDisplaySelect } from './OverrideFields/Summary2OverrideDisplaySelect';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import classes from './Summary2OverrideEntry.module.css';
-import { StudioButton, StudioDeleteButton, StudioProperty } from 'libs/studio-components/src';
+import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
 
 type Summary2OverrideEntryProps = {
   index: number;

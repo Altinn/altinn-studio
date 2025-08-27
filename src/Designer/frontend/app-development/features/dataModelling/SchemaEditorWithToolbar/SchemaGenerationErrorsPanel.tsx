@@ -3,7 +3,7 @@ import React from 'react';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { XMarkIcon } from 'libs/studio-icons/src';
-import { StudioButton, StudioError } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioError } from '@studio/components-legacy';
 
 export interface SchemaGenerationErrorsPanelProps {
   onCloseErrorsPanel: () => void;

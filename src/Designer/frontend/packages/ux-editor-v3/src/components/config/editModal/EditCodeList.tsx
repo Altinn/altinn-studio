@@ -8,7 +8,7 @@ import {
   StudioNativeSelect,
   StudioSpinner,
   StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StudioCodeFragment } from 'libs/studio-components-legacy/src';
+import { StudioCodeFragment } from '@studio/components-legacy';
 import { Trans, useTranslation } from 'react-i18next';
 import { TextResource } from '../../../../TextResource/TextResource';
 import type { TableColumn } from '../../types/TableColumn';

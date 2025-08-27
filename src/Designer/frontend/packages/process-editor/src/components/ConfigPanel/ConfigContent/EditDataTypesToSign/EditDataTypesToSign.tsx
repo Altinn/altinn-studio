@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from 'libs/studio-icons/src';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';

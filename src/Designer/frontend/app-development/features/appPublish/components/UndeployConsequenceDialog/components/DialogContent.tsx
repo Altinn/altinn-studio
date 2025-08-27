@@ -4,7 +4,7 @@ import { Section } from './Section';
 import { ListItemWithLink } from './ListItemWithLink';
 import { useTranslation } from 'react-i18next';
 import { isItemWithLink } from '../utils/isItemWithLink';
-import { StudioList } from 'libs/studio-components-legacy/src';
+import { StudioList } from '@studio/components-legacy';
 import { ConfirmUndeployDialog } from '../../ConfirmUndeployDialog';
 
 type DialogContentProps = {

@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import React from 'react';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { PlusIcon } from 'libs/studio-icons/src';
 import type { UiSchemaNode } from '@altinn/schema-model/index';
 import { SchemaModel } from '@altinn/schema-model/index';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioPageSpinner } from '@studio/components-legacy';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useBranchStatusQuery } from '../../hooks/queries';

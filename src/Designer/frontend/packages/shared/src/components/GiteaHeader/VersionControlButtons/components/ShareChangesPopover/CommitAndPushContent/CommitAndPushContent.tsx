@@ -3,7 +3,7 @@ import classes from './CommitAndPushContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioTextarea } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioTextarea } from '@studio/components-legacy';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
 

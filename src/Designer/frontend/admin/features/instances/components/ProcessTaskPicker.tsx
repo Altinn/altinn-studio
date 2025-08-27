@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { StudioSpinner, StudioSelect } from 'libs/studio-components/src';
-import { StudioError } from 'libs/studio-components-legacy/src';
+import { StudioSpinner, StudioSelect } from '@studio/components';
+import { StudioError } from '@studio/components-legacy';
 import { useAppProcessTasks } from '../../../hooks/queries/useAppProcessTasks';
 import { useTranslation } from 'react-i18next';
 import type { ProcessTask } from '../../../types/ProcessTask';

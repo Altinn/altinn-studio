@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioCard, StudioNativeSelect } from '@studio/components-legacy';
 import type {
   Summary2OverrideConfig,
   OverrideDisplayType,

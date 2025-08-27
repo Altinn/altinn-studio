@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from 'libs/studio-icons/src';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 
 export type EnumListProps = {
   schemaNode: FieldNode;

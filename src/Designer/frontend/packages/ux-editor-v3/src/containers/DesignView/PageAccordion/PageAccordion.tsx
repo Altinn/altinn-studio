@@ -12,7 +12,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { useDeleteLayout } from './useDeleteLayout';
 
 export type PageAccordionProps = {

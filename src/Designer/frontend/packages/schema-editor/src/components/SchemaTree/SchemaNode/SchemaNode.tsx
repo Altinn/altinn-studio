@@ -7,7 +7,7 @@ import {
   isNodeValidParent,
   isReference,
 } from '@altinn/schema-model/index';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { renderSchemaNodeList } from '../renderSchemaNodeList';
 import { renderIcon } from './renderIcon';
 import { ActionButtons } from './ActionButtons';

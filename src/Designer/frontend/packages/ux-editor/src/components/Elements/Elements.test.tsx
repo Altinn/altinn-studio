@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

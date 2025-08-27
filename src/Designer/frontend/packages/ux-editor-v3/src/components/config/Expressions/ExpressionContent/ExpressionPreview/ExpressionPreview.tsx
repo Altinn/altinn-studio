@@ -5,7 +5,7 @@ import { expressionInPreviewPropertyTextKeys } from '../../../../../types/Expres
 import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { PencilIcon, TrashIcon } from 'libs/studio-icons/src';
 import { useText } from '../../../../../hooks';
 import cn from 'classnames';

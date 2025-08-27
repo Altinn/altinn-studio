@@ -14,10 +14,10 @@ import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionC
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
-import { useMediaQuery } from 'libs/studio-components-legacy/src';
+import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-jest.mock('libs/studio-components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/hooks/useMediaQuery');
 
 const mockGetRepoStatus = jest.fn();
 

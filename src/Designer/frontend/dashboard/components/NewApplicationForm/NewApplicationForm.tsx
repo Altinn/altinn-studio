@@ -1,6 +1,6 @@
 import React, { type FormEvent, type ChangeEvent, useState } from 'react';
 import classes from './NewApplicationForm.module.css';
-import { StudioButton, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { ServiceOwnerSelector } from '../ServiceOwnerSelector';
 import { RepoNameInput } from '../RepoNameInput';

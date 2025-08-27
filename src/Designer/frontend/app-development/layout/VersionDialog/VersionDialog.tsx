@@ -7,10 +7,10 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioTable,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLocalStorage } from 'libs/studio-components-legacy/src';
+import { useLocalStorage } from '@studio/components-legacy';
 import {
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,

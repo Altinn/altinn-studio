@@ -4,7 +4,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioModal, StudioSpinner } from '@studio/components-legacy';
 import { BookIcon } from 'libs/studio-icons/src';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';

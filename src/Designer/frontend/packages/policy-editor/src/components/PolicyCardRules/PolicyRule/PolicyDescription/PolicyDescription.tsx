@@ -4,7 +4,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioTextarea } from 'libs/studio-components-legacy/src';
+import { StudioTextarea } from '@studio/components-legacy';
 
 export const PolicyDescription = (): React.ReactElement => {
   const { t } = useTranslation();

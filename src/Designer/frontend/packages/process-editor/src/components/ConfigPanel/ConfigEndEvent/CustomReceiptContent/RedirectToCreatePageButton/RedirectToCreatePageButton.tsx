@@ -3,8 +3,8 @@ import classes from './RedirectToCreatePageButton.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from 'libs/studio-icons/src';
-import { StudioButton, StudioRedirectBox } from 'libs/studio-components-legacy/src';
-import { useLocalStorage } from 'libs/studio-components-legacy/src/hooks/useLocalStorage';
+import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
+import { useLocalStorage } from '@studio/components-legacy/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 

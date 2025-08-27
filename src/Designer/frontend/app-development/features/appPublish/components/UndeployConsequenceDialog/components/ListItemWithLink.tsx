@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { Trans } from 'react-i18next';
-import { StudioList, StudioLink } from 'libs/studio-components-legacy/src';
+import { StudioList, StudioLink } from '@studio/components-legacy';
 
 type ListItemWithLinkProps = {
   textKey: string;

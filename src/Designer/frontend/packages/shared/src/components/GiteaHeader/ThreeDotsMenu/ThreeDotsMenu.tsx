@@ -3,7 +3,7 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioButton, StudioPageHeader, StudioPopover } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components-legacy';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';

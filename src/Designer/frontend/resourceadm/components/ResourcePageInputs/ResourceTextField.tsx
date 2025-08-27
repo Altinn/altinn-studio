@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioTextfield } from 'libs/studio-components/src';
+import { StudioTextfield } from '@studio/components';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 type ResourceTextFieldProps = {

@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './AppSettings.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading } from 'libs/studio-components/src';
+import { StudioHeading } from '@studio/components';
 import { TabsContent } from './components/TabsContent';
 import { ContentMenu } from './components/ContentMenu';
 

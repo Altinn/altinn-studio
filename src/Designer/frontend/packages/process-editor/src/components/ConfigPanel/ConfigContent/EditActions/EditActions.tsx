@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import { useUniqueKeys } from 'libs/studio-hooks/src';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { useChecksum } from './useChecksum';

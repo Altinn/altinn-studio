@@ -1,4 +1,4 @@
-import type { CodeList } from 'libs/studio-components-legacy/src';
+import type { CodeList } from '@studio/components-legacy';
 
 export type CodeListWithMetadata = {
   codeList: CodeList;

@@ -1,7 +1,7 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import type { Expression } from 'libs/studio-components-legacy/src';
+import type { Expression } from '@studio/components-legacy';
 import type { IDataModelBindingsKeyValue } from '@altinn/ux-editor/types/global';
 
 export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;

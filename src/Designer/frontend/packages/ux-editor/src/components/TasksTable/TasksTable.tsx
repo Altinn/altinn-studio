@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioButton, StudioLinkButton, StudioTable } from 'libs/studio-components/src';
+import { StudioButton, StudioLinkButton, StudioTable } from '@studio/components';
 import classes from './TasksTable.module.css';
 import cn from 'classnames';
 import { TasksTableBody } from './TasksTableBody';

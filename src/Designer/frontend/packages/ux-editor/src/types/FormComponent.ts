@@ -3,7 +3,7 @@ import type { ITextResourceBindings, IOption, IDataModelBindingsKeyValueExplicit
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
-import type { BooleanExpression } from 'libs/studio-components-legacy/src';
+import type { BooleanExpression } from '@studio/components-legacy';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;

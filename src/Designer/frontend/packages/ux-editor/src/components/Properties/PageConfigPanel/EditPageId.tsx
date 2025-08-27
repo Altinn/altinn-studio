@@ -9,7 +9,7 @@ import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
 import type { PageModel } from 'app-shared/types/api/dto/PageModel';
 import { ItemType } from '../ItemType';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
-import { StudioSpinner } from 'libs/studio-components/src';
+import { StudioSpinner } from '@studio/components';
 import { EditName } from '../../config/EditName';
 
 export interface EditPageIdProps {

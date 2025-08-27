@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import classes from './BreadcrumbsTaskNavigation.module.css';
-import { StudioBreadcrumbs } from 'libs/studio-components/src';
+import { StudioBreadcrumbs } from '@studio/components';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import { UrlUtils } from 'libs/studio-pure-functions/src';
 import { useTranslation } from 'react-i18next';

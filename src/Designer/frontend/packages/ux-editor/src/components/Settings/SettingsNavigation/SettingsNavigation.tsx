@@ -1,7 +1,7 @@
 import { useTaskNavigationGroupQuery } from 'app-shared/hooks/queries/useTaskNavigationGroupQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioDivider, StudioSpinner } from 'libs/studio-components-legacy/src';
-import { StudioParagraph, StudioHeading } from 'libs/studio-components/src';
+import { StudioDivider, StudioSpinner } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsNavigation.module.css';

@@ -4,7 +4,7 @@ import {
   StudioCard,
   StudioRecommendedNextAction,
   StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';

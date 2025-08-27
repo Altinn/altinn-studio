@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabPageHeader } from '../../TabPageHeader';
 import { TabPageWrapper } from '../../TabPageWrapper';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioParagraph } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from '../../../../../../hooks/queries/useIsLoggedInWithAnsattportenQuery';
 import { AnsattportenLogin } from './AnsattportenLogin';
 import { ScopeListContainer } from './ScopeListContainer';

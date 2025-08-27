@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioButton, StudioModal, StudioParagraph } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';

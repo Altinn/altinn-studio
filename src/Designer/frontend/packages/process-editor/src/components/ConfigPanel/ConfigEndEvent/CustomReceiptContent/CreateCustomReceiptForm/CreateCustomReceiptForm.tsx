@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CreateCustomReceiptForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';

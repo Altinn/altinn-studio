@@ -15,8 +15,8 @@ import {
 import type { FormItemProperty } from '../../../types/FormItemProperty';
 import { ExpressionHeading } from './ExpressionHeading';
 import type { FormItem } from '../../../types/FormItem';
-import type { BooleanExpression } from 'libs/studio-components-legacy/src';
-import { StudioCodeFragment } from 'libs/studio-components-legacy/src';
+import type { BooleanExpression } from '@studio/components-legacy';
+import { StudioCodeFragment } from '@studio/components-legacy';
 import { useText } from '../../../hooks';
 
 export const Expressions = () => {

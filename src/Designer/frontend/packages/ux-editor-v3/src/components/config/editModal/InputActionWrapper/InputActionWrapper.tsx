@@ -3,7 +3,7 @@ import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from 'libs/studio-icons/s
 import { useTranslation } from 'react-i18next';
 import type { ButtonProps } from '@digdir/designsystemet-react';
 import classes from './InputActionWrapper.module.css';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
 export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';

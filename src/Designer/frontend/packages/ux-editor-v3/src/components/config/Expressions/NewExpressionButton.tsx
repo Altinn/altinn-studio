@@ -4,7 +4,7 @@ import { PlusIcon } from 'libs/studio-icons/src';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];

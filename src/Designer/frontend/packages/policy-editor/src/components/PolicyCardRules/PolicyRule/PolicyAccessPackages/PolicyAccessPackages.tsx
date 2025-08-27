@@ -1,6 +1,6 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { StudioAlert, StudioSectionHeader } from 'libs/studio-components-legacy/src';
+import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';

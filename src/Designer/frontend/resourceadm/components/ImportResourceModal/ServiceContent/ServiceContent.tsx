@@ -8,7 +8,7 @@ import {
   StudioErrorMessage,
   StudioParagraph,
   StudioSpinner,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';

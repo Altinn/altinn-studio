@@ -1,4 +1,4 @@
-import { StudioErrorMessage } from 'libs/studio-components-legacy/src';
+import { StudioErrorMessage } from '@studio/components-legacy';
 import classes from './ResourcePageInputs.module.css';
 import React from 'react';
 

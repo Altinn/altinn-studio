@@ -8,7 +8,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioModal, StudioParagraph } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {

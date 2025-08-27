@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
-import { StudioButton, StudioRedirectBox } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from 'libs/studio-icons/src';
 import classes from './EditPolicy.module.css';

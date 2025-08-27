@@ -1,6 +1,6 @@
 import type { ComponentProps, MouseEvent } from 'react';
 import React, { forwardRef, useCallback } from 'react';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import type { LinkProps } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 

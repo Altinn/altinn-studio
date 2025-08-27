@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { StudioSpinner } from 'libs/studio-components/src';
+import { StudioSpinner } from '@studio/components';
 import { useGetScopesQuery } from '../../../../../../../hooks/queries/useGetScopesQuery';
 import { useTranslation } from 'react-i18next';
 import { useGetSelectedScopesQuery } from '../../../../../../../hooks/queries/useGetSelectedScopesQuery';

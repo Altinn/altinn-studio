@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './RemindChoiceDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from 'libs/studio-icons/src';
-import { StudioButton, StudioParagraph, StudioPopover } from 'libs/studio-components/src';
+import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
 import cn from 'classnames';
 
 export type RemindChoiceDialogProps = {

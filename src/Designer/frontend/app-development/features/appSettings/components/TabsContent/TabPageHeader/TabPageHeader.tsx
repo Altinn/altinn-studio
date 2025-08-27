@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React from 'react';
 import classes from './TabPageHeader.module.css';
-import { StudioHeading } from 'libs/studio-components/src';
+import { StudioHeading } from '@studio/components';
 
 export type TabPageHeaderProps = {
   text: string;

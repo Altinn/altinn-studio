@@ -2,13 +2,13 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { UserProfileMenu, type UserProfileMenuProps } from './UserProfileMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from 'libs/studio-components-legacy/src';
+import { useMediaQuery } from '@studio/components-legacy';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
 
-jest.mock('libs/studio-components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/hooks/useMediaQuery');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

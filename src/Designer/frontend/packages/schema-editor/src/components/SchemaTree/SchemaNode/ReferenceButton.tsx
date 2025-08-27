@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReferenceNode } from '@altinn/schema-model/index';
 import { extractNameFromPointer } from '@altinn/schema-model/index';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import classes from './ReferenceButton.module.css';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../../hooks/useSchemaEditorAppContext';

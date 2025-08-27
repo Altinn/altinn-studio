@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
-import { StudioDecimalInput } from 'libs/studio-components-legacy/src';
+import { StudioDecimalInput } from '@studio/components-legacy';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;

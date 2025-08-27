@@ -2,11 +2,7 @@ import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { MultiplyIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioLabelAsParagraph,
-  StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
 import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';

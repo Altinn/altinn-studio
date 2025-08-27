@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
-import { StudioDeleteButton, StudioToggleableTextfield } from 'libs/studio-components-legacy/src';
+import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/components-legacy';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';

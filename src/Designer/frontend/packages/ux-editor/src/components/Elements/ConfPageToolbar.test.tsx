@@ -6,7 +6,7 @@ import {
   paymentLayoutComponents,
   subformLayoutComponents,
 } from '../../data/formItemConfig';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ConfPageType } from './types/ConfigPageType';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from 'libs/studio-icons/src';
-import { StudioButton, StudioPopover, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components-legacy';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../../hooks/mutations';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';

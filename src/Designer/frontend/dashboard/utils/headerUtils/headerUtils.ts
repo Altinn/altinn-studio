@@ -4,7 +4,7 @@ import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import { type StudioProfileMenuGroup } from 'libs/studio-components-legacy/src';
+import { type StudioProfileMenuGroup } from '@studio/components-legacy';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [
   {

@@ -8,7 +8,7 @@ import {
   StudioButton,
   StudioDialog,
   StudioSelect,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { StudioSaveIcon, StudioCancelIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';

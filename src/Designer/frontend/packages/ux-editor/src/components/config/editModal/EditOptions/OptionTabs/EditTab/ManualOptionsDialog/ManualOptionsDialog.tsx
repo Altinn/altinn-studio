@@ -13,7 +13,7 @@ import type { Option } from 'app-shared/types/Option';
 import { useOptionListEditorTexts } from '../../hooks';
 import { useTextResourcesForLanguage } from '../hooks/useTextResourcesForLanguage';
 import { useHandleUpdateTextResource } from '../hooks/useHandleUpdateTextResource';
-import { StudioCodeListEditor, StudioModal } from 'libs/studio-components-legacy/src';
+import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
 
 export type ManualOptionsDialogProps = {
   textResources: ITextResources;

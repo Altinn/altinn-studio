@@ -4,7 +4,7 @@ import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { StudioRecommendedNextActionContext } from 'libs/studio-components-legacy/src';
+import { StudioRecommendedNextActionContext } from '@studio/components-legacy';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';

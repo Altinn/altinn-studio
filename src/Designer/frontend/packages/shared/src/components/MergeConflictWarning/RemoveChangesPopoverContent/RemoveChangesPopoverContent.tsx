@@ -5,8 +5,8 @@ import {
   StudioButton,
   StudioSpinner,
   StudioHeading,
-} from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 

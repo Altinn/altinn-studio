@@ -3,7 +3,7 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioCenter, StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';

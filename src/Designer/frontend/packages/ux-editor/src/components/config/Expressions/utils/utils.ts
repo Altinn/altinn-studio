@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
-import type { BooleanExpression, Expression } from 'libs/studio-components-legacy/src';
+import type { BooleanExpression, Expression } from '@studio/components-legacy';
 import { ObjectUtils } from 'libs/studio-pure-functions/src';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
 

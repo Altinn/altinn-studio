@@ -9,7 +9,7 @@ import {
 } from 'libs/studio-icons/src';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
-import { StudioDropdown } from 'libs/studio-components/src';
+import { StudioDropdown } from '@studio/components';
 import { usePagesQuery } from '../../../../hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';

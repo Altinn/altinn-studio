@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { getAccessListPageUrl } from '../../utils/urlUtils';

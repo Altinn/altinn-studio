@@ -9,7 +9,7 @@ import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from 'libs/studio-components-legacy/src';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components-legacy';
 import { BpmnConfigPanelFormContextProvider } from '../contexts/BpmnConfigPanelContext';
 import type { TaskEvent } from '../types/TaskEvent';
 import { EventListeners } from '../../test/EventListeners';

@@ -8,7 +8,7 @@ import {
   StudioCheckboxTable,
   useStudioCheckboxTable,
   StudioButton,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import type {
   AllowedPartyTypes,
   ApplicationMetadata,

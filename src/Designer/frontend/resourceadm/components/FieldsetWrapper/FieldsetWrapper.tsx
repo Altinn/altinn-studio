@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './FieldsetWrapper.module.css';
-import { StudioButton, StudioModal } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioModal } from '@studio/components-legacy';
 import { TrashIcon, PlusIcon } from 'libs/studio-icons/src';
 
 const DELETE_ID_NOT_SET = -1;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PersonPencilIcon } from 'libs/studio-icons/src';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';

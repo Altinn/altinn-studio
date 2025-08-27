@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PreviewFileInfo.module.css';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioParagraph } from '@studio/components';
 import { FileNameUtils } from 'libs/studio-pure-functions/src';
 
 interface PreviewFileInfoProps {

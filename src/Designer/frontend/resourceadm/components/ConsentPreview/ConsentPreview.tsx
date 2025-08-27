@@ -12,7 +12,7 @@ import {
   StudioParagraph,
   StudioSwitch,
   StudioToggleGroup,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { CheckmarkIcon } from 'libs/studio-icons/src';
 import type {
   ConsentMetadata,

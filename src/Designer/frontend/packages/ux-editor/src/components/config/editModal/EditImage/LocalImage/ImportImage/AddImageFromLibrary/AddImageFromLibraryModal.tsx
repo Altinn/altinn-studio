@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { StudioModal } from 'libs/studio-components-legacy/src';
+import { StudioModal } from '@studio/components-legacy';
 import { ChooseFromLibrary } from './ChooseFromLibrary/ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';
 import classes from './AddImageFromLibraryModal.module.css';

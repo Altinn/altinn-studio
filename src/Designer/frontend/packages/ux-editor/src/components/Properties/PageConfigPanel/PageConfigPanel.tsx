@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from 'libs/studio-icons/src';
-import { StudioSectionHeader } from 'libs/studio-components-legacy/src';
+import { StudioSectionHeader } from '@studio/components-legacy';
 import { useText, useTextResourcesSelector, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';

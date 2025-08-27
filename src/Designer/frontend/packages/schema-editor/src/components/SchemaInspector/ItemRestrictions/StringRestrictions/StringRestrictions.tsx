@@ -13,7 +13,7 @@ import {
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect, StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function StringRestrictions({

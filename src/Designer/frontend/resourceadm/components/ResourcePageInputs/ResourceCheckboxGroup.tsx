@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioCheckbox } from 'libs/studio-components-legacy/src';
+import { StudioCheckbox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';

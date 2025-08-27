@@ -9,7 +9,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppDevelopmentContextProvider } from '../../../../contexts/AppDevelopmentContext';
-import { useMediaQuery } from 'libs/studio-components-legacy/src';
+import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from '../../../../test/mocks';
 import { pageHeaderContextMock } from '../../../../test/headerMocks';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
@@ -18,7 +18,7 @@ import { RoutePaths } from '../../../../enums/RoutePaths';
 import { typedLocalStorage } from 'libs/studio-pure-functions/src';
 import { useNavigateFrom } from './useNavigateFrom';
 
-jest.mock('libs/studio-components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/components-legacy/hooks/useMediaQuery');
 
 jest.mock('./useNavigateFrom.ts', () => ({
   ...jest.requireActual('./useNavigateFrom.ts'),

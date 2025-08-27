@@ -1,6 +1,6 @@
 import React, { type ChangeEvent } from 'react';
 import type { QuestionsProps } from '../../types/QuestionsProps';
-import { StudioTextarea } from 'libs/studio-components-legacy/src';
+import { StudioTextarea } from '@studio/components-legacy';
 import { useDebounce } from 'libs/studio-hooks/src';
 
 export function TextQuestion({ id, label, value, onChange }: QuestionsProps): React.ReactElement {

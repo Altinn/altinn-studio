@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioError } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioError } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export type SafeErrorViewProps = {

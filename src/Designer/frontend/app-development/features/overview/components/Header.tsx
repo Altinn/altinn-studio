@@ -4,7 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 
 export const Header = () => {
   const { org, app } = useStudioEnvironmentParams();

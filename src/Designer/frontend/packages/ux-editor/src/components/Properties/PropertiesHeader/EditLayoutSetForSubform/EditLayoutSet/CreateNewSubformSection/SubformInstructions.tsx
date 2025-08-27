@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioList } from 'libs/studio-components-legacy/src';
+import { StudioList } from '@studio/components-legacy';
 
 export const SubformInstructions = (): React.ReactElement => {
   const { t } = useTranslation();

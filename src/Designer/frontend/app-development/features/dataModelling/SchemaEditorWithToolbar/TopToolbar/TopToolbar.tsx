@@ -7,7 +7,7 @@ import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
-import { usePrevious } from 'libs/studio-components-legacy/src';
+import { usePrevious } from '@studio/components-legacy';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
 

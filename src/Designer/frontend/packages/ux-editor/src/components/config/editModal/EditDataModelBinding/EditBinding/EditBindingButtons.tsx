@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioDeleteButton } from 'libs/studio-components/src';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { CheckmarkIcon } from 'libs/studio-icons/src';
 import classes from './EditBindingButtons.module.css';
 import { useTranslation } from 'react-i18next';

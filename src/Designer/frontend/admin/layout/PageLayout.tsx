@@ -3,7 +3,7 @@ import classes from './PageLayout.module.css';
 import { Outlet, matchPath, useLocation, Navigate } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { StudioCenter, StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioCenter, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 

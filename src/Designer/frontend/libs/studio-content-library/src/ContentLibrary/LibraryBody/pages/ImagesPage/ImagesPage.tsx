@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ImagesPage.module.css';
 import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioHeading } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { InfoBox } from '../../InfoBox';
 

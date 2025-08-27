@@ -7,7 +7,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from '../../utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from '../../hooks/queries';
 import type { User } from 'app-shared/types/Repository';

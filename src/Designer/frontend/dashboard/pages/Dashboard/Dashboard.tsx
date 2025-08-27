@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Link } from '@digdir/designsystemet-react';
-import { StudioSearch } from 'libs/studio-components/src';
+import { StudioSearch } from '@studio/components';
 import { PlusCircleIcon, PlusCircleFillIcon } from 'libs/studio-icons/src';
 import { useDebounce } from 'libs/studio-hooks/src';
 import { CenterContainer } from '../../components/CenterContainer';

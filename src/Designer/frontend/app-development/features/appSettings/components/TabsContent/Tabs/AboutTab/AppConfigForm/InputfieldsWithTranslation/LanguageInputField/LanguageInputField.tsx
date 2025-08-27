@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { StudioTextfield } from 'libs/studio-components/src';
+import { StudioTextfield } from '@studio/components';
 
 type LanguageInputProps = {
   id: string;

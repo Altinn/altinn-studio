@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 
 type ToolbarItemProps = {
   componentTitle: string;

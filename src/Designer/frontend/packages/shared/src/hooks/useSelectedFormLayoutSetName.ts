@@ -1,5 +1,5 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLocalStorage } from 'libs/studio-components-legacy/src/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components-legacy/hooks/useLocalStorage';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 export type UseSelectedFormLayoutSetNameResult = {

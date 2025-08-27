@@ -5,7 +5,7 @@ import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { FormItemContextProvider } from '../FormItemContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';

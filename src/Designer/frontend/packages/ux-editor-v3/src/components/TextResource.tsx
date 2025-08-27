@@ -26,7 +26,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioButton, StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioNativeSelect } from '@studio/components-legacy';
 
 export interface TextResourceProps {
   description?: string;

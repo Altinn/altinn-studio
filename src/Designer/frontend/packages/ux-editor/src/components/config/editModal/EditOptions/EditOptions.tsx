@@ -3,7 +3,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { OptionTabs } from './OptionTabs';

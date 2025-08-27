@@ -17,7 +17,7 @@ import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

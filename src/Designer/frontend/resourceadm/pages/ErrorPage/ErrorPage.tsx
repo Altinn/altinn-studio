@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ErrorPage.module.css';
-import { StudioHeading, StudioLink } from 'libs/studio-components-legacy/src';
+import { StudioHeading, StudioLink } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { UrlConstants } from '../../utils/urlUtils';
 

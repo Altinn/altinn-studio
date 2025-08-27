@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
-import type { Expression, DataLookupOptions } from 'libs/studio-components-legacy/src';
-import { DataLookupFuncName, StudioDeleteButton } from 'libs/studio-components-legacy/src';
+import type { Expression, DataLookupOptions } from '@studio/components-legacy';
+import { DataLookupFuncName, StudioDeleteButton } from '@studio/components-legacy';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';

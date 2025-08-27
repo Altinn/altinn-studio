@@ -6,7 +6,7 @@ import { EditTaskId } from './EditTaskId/EditTaskId';
 import {
   StudioDisplayTile,
   useStudioRecommendedNextActionContext,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 import { getPredefinedActions, isActionAvailable } from '../../../../../../utils/processActions';

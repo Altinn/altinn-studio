@@ -4,7 +4,7 @@ import { DateUtils } from 'libs/studio-pure-functions/src';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioSpinner } from '@studio/components-legacy';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';

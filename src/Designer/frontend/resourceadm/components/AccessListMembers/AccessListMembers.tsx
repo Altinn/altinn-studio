@@ -15,7 +15,7 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioTextfield,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { useDebounce } from 'libs/studio-hooks/src';
 import { PlusIcon } from 'libs/studio-icons/src';
 import { AccessListMembersPaging } from './AccessListMembersPaging';

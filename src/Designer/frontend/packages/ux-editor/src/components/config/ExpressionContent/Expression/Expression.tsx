@@ -1,6 +1,6 @@
 import React from 'react';
-import type { StudioExpressionProps } from 'libs/studio-components-legacy/src';
-import { StudioExpression } from 'libs/studio-components-legacy/src';
+import type { StudioExpressionProps } from '@studio/components-legacy';
+import { StudioExpression } from '@studio/components-legacy';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 
 export type ExpressionProps = Omit<StudioExpressionProps, 'texts'>;

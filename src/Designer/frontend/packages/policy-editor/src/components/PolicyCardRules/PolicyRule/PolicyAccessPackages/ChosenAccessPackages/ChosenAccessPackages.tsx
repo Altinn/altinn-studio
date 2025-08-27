@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
 import { PolicyAccessPackageAccordion } from '../PolicyAccessPackageAccordion';
 import { flatMapAreaPackageList } from '../policyAccessPackageUtils';
 import type {

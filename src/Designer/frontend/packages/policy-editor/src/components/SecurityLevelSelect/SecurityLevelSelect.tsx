@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
 import { Heading, Label, Paragraph, Link } from '@digdir/designsystemet-react';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
-import { StudioHelpText } from 'libs/studio-components/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 

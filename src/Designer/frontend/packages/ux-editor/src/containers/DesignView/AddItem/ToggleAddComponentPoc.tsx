@@ -1,7 +1,7 @@
 import React from 'react';
 import { FeedbackForm } from './FeedbackForm';
-import { StudioSwitch } from 'libs/studio-components-legacy/src';
-import { StudioHelpText, StudioParagraph } from 'libs/studio-components/src';
+import { StudioSwitch } from '@studio/components-legacy';
+import { StudioHelpText, StudioParagraph } from '@studio/components';
 import {
   addFeatureFlagToLocalStorage,
   FeatureFlag,

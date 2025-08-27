@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
-import { StudioPageError } from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioPageError } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from '@digdir/designsystemet-react';
 

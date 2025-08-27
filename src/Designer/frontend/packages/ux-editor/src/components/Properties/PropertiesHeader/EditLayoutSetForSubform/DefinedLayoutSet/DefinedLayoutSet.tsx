@@ -1,6 +1,6 @@
 import React from 'react';
 import { ClipboardIcon } from 'libs/studio-icons/src';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type DefinedLayoutSetProps = {

@@ -1,7 +1,7 @@
 import type { ChangeEvent, ReactElement } from 'react';
 import React, { useCallback, useState } from 'react';
 import { isFeatureActivatedByLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { StudioSwitch, StudioCodeFragment, StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioSwitch, StudioCodeFragment, StudioHeading } from '@studio/components-legacy';
 import { setFeatureFlagInLocalStorage } from './setFeatureFlagInLocalStorage';
 import classes from './FlagsPage.module.css';
 import { useTranslation } from 'react-i18next';

@@ -6,7 +6,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import type { Repository } from 'app-shared/types/Repository';
 import { PersonCircleIcon } from 'libs/studio-icons/src';
 import { formatDateToDateAndTimeString } from '../../../../../../../utils/dateUtils';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioParagraph } from '@studio/components';
 
 export type CreatedForProps = {
   repositoryType: RepositoryType;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioTabs } from 'libs/studio-components-legacy/src';
+import { StudioTabs } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { PolicySummary } from '../PolicySummary';
 import { PolicyRulesEditor } from '../PolicyRulesEditor';

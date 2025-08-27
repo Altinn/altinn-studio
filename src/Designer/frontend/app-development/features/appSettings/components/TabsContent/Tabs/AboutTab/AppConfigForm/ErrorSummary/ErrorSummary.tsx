@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { ReactElement } from 'react';
 import classes from './ErrorSummary.module.css';
-import { StudioErrorSummary } from 'libs/studio-components/src';
+import { StudioErrorSummary } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 

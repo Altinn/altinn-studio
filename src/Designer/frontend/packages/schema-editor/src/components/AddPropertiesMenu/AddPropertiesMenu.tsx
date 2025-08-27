@@ -11,7 +11,7 @@ import {
   PlusIcon,
 } from 'libs/studio-icons/src';
 import { ObjectKind, FieldType } from '@altinn/schema-model/index';
-import { type StudioButtonProps, StudioDropdownMenu } from 'libs/studio-components-legacy/src';
+import { type StudioButtonProps, StudioDropdownMenu } from '@studio/components-legacy';
 
 export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;

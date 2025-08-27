@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
-import { StudioTable } from 'libs/studio-components/src';
+import { StudioTable } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

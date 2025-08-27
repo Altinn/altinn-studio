@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { DefaultItems, type DefaultItemsProps } from './DefaultItems';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { CircleFillIcon } from 'libs/studio-icons/src';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 

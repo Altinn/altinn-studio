@@ -10,8 +10,8 @@ import {
   StudioLink,
   StudioAlert,
   StudioErrorMessage,
-} from 'libs/studio-components-legacy/src';
-import { StudioSpinner } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {

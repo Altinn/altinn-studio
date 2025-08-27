@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createNewTextResourceId, taskNavigationType } from '../Settings/SettingsUtils';
-import { StudioButton, StudioDialog, StudioFieldset } from 'libs/studio-components/src';
+import { StudioButton, StudioDialog, StudioFieldset } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { TextResourceEditor } from '../TextResource/TextResourceEditor';

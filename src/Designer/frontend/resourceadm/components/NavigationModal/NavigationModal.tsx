@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioParagraph } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
 
 export type NavigationModalProps = {
   onClose: () => void;

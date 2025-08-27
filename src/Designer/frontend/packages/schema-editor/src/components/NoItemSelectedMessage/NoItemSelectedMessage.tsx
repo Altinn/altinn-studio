@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './NoItemSelectedMessage.module.css';
-import { StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 
 export const NoItemSelectedMessage = (): ReactElement => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { useStudioRadioGroup, StudioRadioGroup } from 'libs/studio-components/src';
+import { useStudioRadioGroup, StudioRadioGroup } from '@studio/components';
 import type { StatusOption } from 'app-shared/types/AppConfig';
 import { useTranslation } from 'react-i18next';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';

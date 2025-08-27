@@ -3,7 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioNativeSelect, StudioSpinner } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect, StudioSpinner } from '@studio/components-legacy';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type PreviewControlHeaderProps = {

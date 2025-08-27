@@ -4,7 +4,7 @@ import { ArrRestrictionKey } from '@altinn/schema-model/index';
 import { Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { StudioTextfield } from 'libs/studio-components-legacy/src';
+import { StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function ArrayRestrictions({

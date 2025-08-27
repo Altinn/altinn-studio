@@ -6,7 +6,7 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
 } from 'packages/policy-editor';
 import type { Policy } from 'packages/policy-editor';
-import { StudioSpinner, StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
 import { useResourcePolicyQuery, useSinlgeResourceQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';

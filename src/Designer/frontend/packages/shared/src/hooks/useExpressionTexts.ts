@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { ExpressionTexts, RelationalOperator } from 'libs/studio-components-legacy/src';
+import type { ExpressionTexts, RelationalOperator } from '@studio/components-legacy';
 import {
   ExpressionErrorKey,
   LogicalTupleOperator,
@@ -8,7 +8,7 @@ import {
   GeneralRelationOperator,
   InstanceContext,
   PredefinedGatewayAction,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 
 export const useExpressionTexts = (): ExpressionTexts => {
   const { t } = useTranslation();

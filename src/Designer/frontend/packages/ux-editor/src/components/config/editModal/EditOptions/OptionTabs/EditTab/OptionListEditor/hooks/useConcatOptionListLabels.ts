@@ -1,5 +1,5 @@
 import type { Option } from 'app-shared/types/Option';
-import type { TextResource } from 'libs/studio-components-legacy/src';
+import type { TextResource } from '@studio/components-legacy';
 import { ArrayUtils } from 'libs/studio-pure-functions/src';
 import { useTranslation } from 'react-i18next';
 

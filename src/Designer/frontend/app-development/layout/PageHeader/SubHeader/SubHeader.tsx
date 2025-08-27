@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from '../../../contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 import { usePageHeaderContext } from '../../../contexts/PageHeaderContext';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';

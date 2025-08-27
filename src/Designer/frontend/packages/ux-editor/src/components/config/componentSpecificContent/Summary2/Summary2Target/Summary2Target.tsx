@@ -1,10 +1,6 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import {
-  StudioHeading,
-  StudioNativeSelect,
-  StudioTextfield,
-} from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+import { StudioHeading, StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

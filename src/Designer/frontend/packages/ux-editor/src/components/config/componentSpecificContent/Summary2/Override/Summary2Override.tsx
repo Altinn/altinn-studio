@@ -1,4 +1,4 @@
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioProperty } from '@studio/components';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,

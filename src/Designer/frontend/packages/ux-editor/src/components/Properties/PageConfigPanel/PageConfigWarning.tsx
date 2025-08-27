@@ -5,7 +5,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
-import { StudioSectionHeader } from 'libs/studio-components-legacy/src';
+import { StudioSectionHeader } from '@studio/components-legacy';
 import { SectionHeaderWarningIcon } from 'libs/studio-icons/src';
 import classes from './PageConfigWarning.module.css';
 

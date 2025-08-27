@@ -3,8 +3,8 @@ import classes from './InformationPanelComponent.module.css';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
-import { StudioPopover, StudioParagraph } from 'libs/studio-components/src';
+import { StudioLabelAsParagraph } from '@studio/components-legacy';
+import { StudioPopover, StudioParagraph } from '@studio/components';
 import { InformationIcon } from 'libs/studio-icons/src';
 
 export type InformationPanelProvidedProps = {

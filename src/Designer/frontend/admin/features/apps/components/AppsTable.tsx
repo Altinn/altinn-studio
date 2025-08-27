@@ -1,9 +1,9 @@
 import { useRunningAppsQuery } from '../../../hooks/queries/useRunningAppsQuery';
 import type { RunningApplication } from '../../../types/RunningApplication';
-import { StudioSpinner, StudioTable } from 'libs/studio-components/src';
+import { StudioSpinner, StudioTable } from '@studio/components';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError, StudioSearch, StudioTabs } from 'libs/studio-components-legacy/src';
+import { StudioError, StudioSearch, StudioTabs } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 
 type AppsTableProps = {

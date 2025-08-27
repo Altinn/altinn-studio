@@ -15,7 +15,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mapToCodeListDataList } from './utils/mapToCodeListDataList';
-import { StudioPageError, StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioPageError, StudioPageSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';

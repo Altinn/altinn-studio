@@ -5,7 +5,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
 import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
-import { StudioNativeSelect } from 'libs/studio-components-legacy/src';
+import { StudioNativeSelect } from '@studio/components-legacy';
 
 const wellKnownActionsIds: string[] = [
   'complete',

@@ -4,8 +4,8 @@ import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { Chip } from '@digdir/designsystemet-react';
 import { ArrowsUpDownIcon } from 'libs/studio-icons/src';
-import { StudioButton } from 'libs/studio-components-legacy/src';
-import { StudioSearch } from 'libs/studio-components/src';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';

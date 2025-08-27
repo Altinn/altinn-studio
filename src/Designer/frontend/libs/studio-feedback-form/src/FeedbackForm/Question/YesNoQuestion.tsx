@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
 import {
   ThumbDownFillIcon,
   ThumbDownIcon,

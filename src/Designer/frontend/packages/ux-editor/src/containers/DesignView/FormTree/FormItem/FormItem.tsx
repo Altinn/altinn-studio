@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
-import { StudioDragAndDropTree } from 'libs/studio-components-legacy/src';
+import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './SwitchInput.module.css';
-import { StudioSwitch, StudioCard, StudioParagraph, StudioTag } from 'libs/studio-components/src';
+import { StudioSwitch, StudioCard, StudioParagraph, StudioTag } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type SwitchInputProps = {

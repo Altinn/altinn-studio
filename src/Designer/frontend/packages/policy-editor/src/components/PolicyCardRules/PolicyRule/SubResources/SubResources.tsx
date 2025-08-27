@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './SubResources.module.css';
-import { StudioButton, StudioLabelAsParagraph } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components-legacy';
 import { PlusIcon } from 'libs/studio-icons/src';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';

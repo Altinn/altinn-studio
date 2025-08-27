@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
-import { StudioHeading } from 'libs/studio-components-legacy/src';
-import { StudioAlert } from 'libs/studio-components/src';
+import { StudioHeading } from '@studio/components-legacy';
+import { StudioAlert } from '@studio/components';
 import type {
   Resource,
   ResourceTypeOption,

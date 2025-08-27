@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './VersionHelpText.module.css';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioHelpText } from 'libs/studio-components/src';
+import { StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 

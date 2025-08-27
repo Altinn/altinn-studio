@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useComponentPropertyLabel, useText } from '../../../hooks';
-import { StudioButton, StudioCard } from 'libs/studio-components-legacy/src';
-import { StudioProperty } from 'libs/studio-components/src';
+import { StudioButton, StudioCard } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from 'libs/studio-icons/src';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { FormComponentConfig } from '../FormComponentConfig';

@@ -5,8 +5,8 @@ import {
   StudioLabelAsParagraph,
   StudioLink,
   StudioList,
-} from 'libs/studio-components-legacy/src';
-import { StudioParagraph } from 'libs/studio-components/src';
+} from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const PolicyAccessPackagesWarning = (): ReactElement => {

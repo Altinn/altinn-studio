@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioLinkButton, StudioTable } from 'libs/studio-components/src';
+import { StudioLinkButton, StudioTable } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type VersionDialogTableRowProps = {

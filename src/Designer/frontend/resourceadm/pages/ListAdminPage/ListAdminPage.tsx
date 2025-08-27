@@ -2,12 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ToggleGroup } from '@digdir/designsystemet-react';
-import {
-  StudioSpinner,
-  StudioButton,
-  StudioLink,
-  StudioHeading,
-} from 'libs/studio-components-legacy/src';
+import { StudioSpinner, StudioButton, StudioLink, StudioHeading } from '@studio/components-legacy';
 import { PencilWritingIcon, PlusIcon } from 'libs/studio-icons/src';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';

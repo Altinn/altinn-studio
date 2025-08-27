@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeader, StudioPopover, useMediaQuery } from 'libs/studio-components-legacy/src';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components-legacy';
 import { UploadIcon } from 'libs/studio-icons/src';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';

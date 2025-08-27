@@ -7,7 +7,7 @@ import {
   StudioLink,
   StudioParagraph,
   useStudioCheckboxTable,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { LoggedInTitle } from '../LoggedInTitle';
 import { GetInTouchWith } from 'app-shared/getInTouch';

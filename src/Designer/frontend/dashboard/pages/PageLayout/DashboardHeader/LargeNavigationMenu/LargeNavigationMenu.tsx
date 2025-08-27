@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
 import { StringUtils, UrlUtils } from 'libs/studio-pure-functions/src';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioPageHeader } from 'libs/studio-components-legacy/src';
+import { StudioPageHeader } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';

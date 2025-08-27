@@ -3,7 +3,7 @@ import classes from './PolicyEditorDropdownMenu.module.css';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from 'libs/studio-components-legacy/src';
+import { StudioButton } from '@studio/components-legacy';
 
 export type PolicyEditorDropdownMenuProps = {
   isOpen: boolean;

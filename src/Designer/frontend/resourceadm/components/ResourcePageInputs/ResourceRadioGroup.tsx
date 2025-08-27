@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioRadio } from 'libs/studio-components-legacy/src';
+import { StudioRadio } from '@studio/components-legacy';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';

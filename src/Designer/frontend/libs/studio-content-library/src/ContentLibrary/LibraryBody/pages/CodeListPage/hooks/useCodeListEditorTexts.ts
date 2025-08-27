@@ -3,7 +3,7 @@ import type {
   CodeListEditorTexts,
   CodeListItemTextProperty,
   TextResourceInputTexts,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 
 export function useCodeListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();

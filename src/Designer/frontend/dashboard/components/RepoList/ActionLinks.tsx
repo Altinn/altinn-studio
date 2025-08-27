@@ -1,5 +1,5 @@
-import { StudioButton, StudioDropdownMenu } from 'libs/studio-components-legacy/src';
-import type { StudioButtonProps } from 'libs/studio-components-legacy/src';
+import { StudioButton, StudioDropdownMenu } from '@studio/components-legacy';
+import type { StudioButtonProps } from '@studio/components-legacy';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
 import {

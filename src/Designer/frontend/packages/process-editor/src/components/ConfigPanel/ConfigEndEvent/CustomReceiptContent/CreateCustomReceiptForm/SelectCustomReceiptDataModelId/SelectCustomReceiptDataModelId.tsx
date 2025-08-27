@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { StudioCombobox } from 'libs/studio-components-legacy/src';
+import { StudioCombobox } from '@studio/components-legacy';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;

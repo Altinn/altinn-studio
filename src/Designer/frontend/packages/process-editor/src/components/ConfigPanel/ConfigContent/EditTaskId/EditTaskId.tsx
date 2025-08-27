@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioToggleableTextfield } from 'libs/studio-components-legacy/src';
+import { StudioToggleableTextfield } from '@studio/components-legacy';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';

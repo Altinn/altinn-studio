@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from 'libs/studio-components-legacy/src';
+import { StudioCard, StudioHeading } from '@studio/components-legacy';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './AddNewTask.module.css';
 import { RoutePaths } from 'app-development/enums/RoutePaths';

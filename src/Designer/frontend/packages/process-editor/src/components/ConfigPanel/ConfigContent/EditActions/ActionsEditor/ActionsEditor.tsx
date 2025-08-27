@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs, StudioButton, StudioDeleteButton } from 'libs/studio-components-legacy/src';
-import { StudioCard, StudioParagraph, StudioProperty } from 'libs/studio-components/src';
+import { StudioTabs, StudioButton, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioCard, StudioParagraph, StudioProperty } from '@studio/components';
 import { XMarkIcon } from 'libs/studio-icons/src';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';

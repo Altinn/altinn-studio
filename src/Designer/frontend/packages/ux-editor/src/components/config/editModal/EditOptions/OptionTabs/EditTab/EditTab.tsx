@@ -4,7 +4,7 @@ import {
   StudioButton,
   StudioErrorMessage,
   StudioSpinner,
-} from 'libs/studio-components-legacy/src';
+} from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';

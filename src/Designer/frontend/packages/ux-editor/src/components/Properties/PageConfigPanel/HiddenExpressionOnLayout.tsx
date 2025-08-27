@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExpressionContent } from '../../config/ExpressionContent';
-import type { Expression } from 'libs/studio-components-legacy/src';
+import type { Expression } from '@studio/components-legacy';
 import type { IInternalLayout } from '../../../types/global';
 import { ObjectUtils } from 'libs/studio-pure-functions/src';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';

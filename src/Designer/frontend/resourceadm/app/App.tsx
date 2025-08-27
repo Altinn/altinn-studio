@@ -5,7 +5,7 @@ import classes from './App.module.css';
 import './App.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-import { StudioPageSpinner } from 'libs/studio-components-legacy/src';
+import { StudioPageSpinner } from '@studio/components-legacy';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { PageLayout } from '../pages/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';

@@ -8,7 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph, StudioSearch } from 'libs/studio-components/src';
+import { StudioParagraph, StudioSearch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useSearchComponent } from './useSearchComponent';
 

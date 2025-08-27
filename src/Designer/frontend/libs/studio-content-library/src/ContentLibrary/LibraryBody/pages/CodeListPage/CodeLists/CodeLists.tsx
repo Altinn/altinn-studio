@@ -1,14 +1,14 @@
 import React from 'react';
 import type { CodeListData } from '../CodeListPage';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
-import { StudioAlert } from 'libs/studio-components-legacy/src';
+import { StudioAlert } from '@studio/components-legacy';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
-import type { TextResource } from 'libs/studio-components-legacy/src';
-import { StudioDetails, StudioCard } from 'libs/studio-components/src';
+import type { TextResource } from '@studio/components-legacy';
+import { StudioDetails, StudioCard } from '@studio/components';
 
 export type CodeListsProps = {
   codeListDataList: CodeListData[];

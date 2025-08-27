@@ -1,4 +1,4 @@
-import type { TextResource } from 'libs/studio-components-legacy/src';
+import type { TextResource } from '@studio/components-legacy';
 import type { Option } from 'app-shared/types/Option';
 import { useConcatOptionListLabels } from './useConcatOptionListLabels';
 import { textMock } from '@studio/testing/mocks/i18nMock';

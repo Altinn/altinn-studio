@@ -6,9 +6,9 @@ import {
   StudioSwitch,
   StudioRadio,
   useStudioRadioGroup,
-} from 'libs/studio-components/src';
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { StudioSectionHeader } from 'libs/studio-components-legacy/src';
+import { StudioSectionHeader } from '@studio/components-legacy';
 import { FileIcon, InformationIcon, TasklistIcon } from 'libs/studio-icons/src';
 import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
