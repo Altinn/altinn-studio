@@ -28,7 +28,7 @@ jobs:
           cache: 'yarn'
 
       - name: Get yarn cache directory path
-        working-directory: frontend
+        working-directory: src/Designer/frontend
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
@@ -49,7 +49,7 @@ jobs:
           fi
 
       - name: Resourceadm Playwright run
-        working-directory: frontend/resourceadm/testing/playwright
+        working-directory: src/Designer/frontend/resourceadm/testing/playwright
         env:
           PLAYWRIGHT_TEST_BASE_URL: 'https://staging.altinn.studio'
           PLAYWRIGHT_RESOURCES_ORGANIZATION: ttd
