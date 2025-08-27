@@ -8,13 +8,21 @@ import cn from 'classnames';
 export type StudioFieldsetProps = FieldsetProps & {
   legend?: ReactNode;
   description?: ReactNode;
+  hideLegend?: boolean;
 };
 
 function StudioFieldset(
-  { children, legend, description, className: givenClass, ...rest }: StudioFieldsetProps,
+  {
+    children,
+    className: givenClass,
+    description,
+    hideLegend = false,
+    legend,
+    ...rest
+  }: StudioFieldsetProps,
   ref: Ref<HTMLFieldSetElement>,
 ): ReactElement {
-  const className = cn(classes.fieldset, givenClass);
+  const className = cn(classes.fieldset, givenClass, hideLegend && classes.withHiddenLegend);
   return (
     <Fieldset className={className} {...rest} ref={ref}>
       {legend && (
@@ -27,6 +35,7 @@ function StudioFieldset(
     </Fieldset>
   );
 }
+
 const ForwardedStudioFieldset = forwardRef(StudioFieldset);
 
 export { ForwardedStudioFieldset as StudioFieldset };

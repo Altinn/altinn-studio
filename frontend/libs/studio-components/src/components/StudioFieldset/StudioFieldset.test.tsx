@@ -21,9 +21,9 @@ describe('StudioFieldset', () => {
     testCustomAttributes(renderFieldset);
   });
 
-  it('Renders the legend ', () => {
+  it('Renders a group element connected to the given legend', () => {
     renderFieldset();
-    expect(screen.getByText(legend)).toBeInTheDocument();
+    expect(screen.getByRole('group')).toHaveAccessibleName(legend);
   });
 
   it('Renders the description ', () => {
@@ -31,6 +31,19 @@ describe('StudioFieldset', () => {
     renderFieldset({ description });
     expect(screen.getByText(description)).toBeInTheDocument();
   });
+
+  it('Renders with the withHiddenLegend class when hideLegend is true', () => {
+    renderFieldset({ hideLegend: true });
+    expect(screen.getByRole('group')).toHaveClass('withHiddenLegend');
+  });
+
+  it.each([false, undefined])(
+    'Does not render with the withHiddenLegend class when hideLegend is %s',
+    (hideLegend) => {
+      renderFieldset({ hideLegend });
+      expect(screen.getByRole('group')).not.toHaveClass('withHiddenLegend');
+    },
+  );
 });
 
 const legend: string = 'Legend';
