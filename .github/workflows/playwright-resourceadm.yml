@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/resourceadm/**'
+      - 'src/Designer/frontend/resourceadm/**'
       - '.github/workflows/playwright-resourceadm.yml'
 
 concurrency:
@@ -69,4 +69,4 @@ jobs:
         if: failure()
         with:
           name: playwright-resourceadm-screenshots
-          path: frontend/resourceadm/testing/playwright/test-results
+          path: src/Designer/frontend/resourceadm/testing/playwright/test-results
