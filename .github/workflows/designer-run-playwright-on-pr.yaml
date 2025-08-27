@@ -1,5 +1,8 @@
 name: Designer Playwright tests on pr
 on:
+  push:
+    branches:
+      - refactor/move-frontend-to-new-folder
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
