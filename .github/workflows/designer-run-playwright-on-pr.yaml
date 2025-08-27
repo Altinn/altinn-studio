@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: Playwright run
-        working-directory: frontend/testing/playwright
+        working-directory: src/Designer/frontend/testing/playwright
         env:
           environment: local
         run: |
@@ -69,4 +69,4 @@ jobs:
         if: failure()
         with:
           name: playwright-screenshots
-          path: frontend/testing/playwright/test-results
+          path: src/Designer/frontend/testing/playwright/test-results
