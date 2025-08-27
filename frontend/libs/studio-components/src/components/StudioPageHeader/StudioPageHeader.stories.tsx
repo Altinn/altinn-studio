@@ -47,8 +47,8 @@ const PreviewComponent = (args): React.ReactElement => (
           <StudioPageHeader.ProfileMenu
             triggerButtonText='Triggerbutton text'
             ariaLabelTriggerButton='Triggerbutton aria-label'
-            color='dark'
-            variant='regular'
+            color={args.variant === 'regular' ? 'light' : 'dark'}
+            variant={args.variant}
             profileMenuGroups={profileMenuGroups}
             profileImage={<StudioAvatar />}
           />
