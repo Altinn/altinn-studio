@@ -105,7 +105,7 @@
     "semverRange": ""
   },
   "browserslist": [
-    ">0.3%",
+    ">0.2%",
     "not dead",
     "not ie <= 8",
     "not op_mini all"
