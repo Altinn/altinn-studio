@@ -378,6 +378,7 @@ export function en() {
     'list_component.previousPageAriaLabel': 'Previous page in the table',
     'list_component.nextPage': 'Next',
     'list_component.nextPageAriaLabel': 'Next page in the table',
+    'list_component.controlsHeader': 'Row selectors',
     'config_error.layoutset_subform_config_error':
       'Layout set with id <strong>{0}</strong> is configured incorrectly.<br /><br />The layout set cannot have both <strong>type</strong> <em>and</em> <strong>tasks</strong> defined.',
     'config_error.layoutset_error': 'Layout set error',

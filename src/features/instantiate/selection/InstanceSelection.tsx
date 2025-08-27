@@ -141,6 +141,7 @@ function InstanceSelection() {
               <Table.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
+                    id='instance-selection'
                     nextLabel={langAsString('list_component.nextPage')}
                     nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
                     previousLabel={langAsString('list_component.previousPage')}
@@ -210,6 +211,7 @@ function InstanceSelection() {
               <Table.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
+                    id='instance-selection'
                     nextLabel={langAsString('list_component.nextPage')}
                     nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
                     previousLabel={langAsString('list_component.previousPage')}

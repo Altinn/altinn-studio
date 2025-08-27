@@ -26,6 +26,7 @@ import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
+import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
@@ -36,6 +37,7 @@ type Row = Record<string, string | number | boolean>;
 
 export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'List'>) => {
   const isMobile = useIsMobile();
+  const { langAsString } = useLanguage();
   const item = useItemWhenType(baseComponentId, 'List');
   const {
     tableHeaders,
@@ -123,6 +125,21 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
 
   const indexedId = useIndexedId(baseComponentId);
 
+  const getRowLabel = (row: Row): string =>
+    Object.entries(row)
+      .map(([key]) => {
+        const headerId = tableHeaders[key];
+        if (!headerId) {
+          return '';
+        }
+        const header = langAsString(headerId);
+        const raw = row[key];
+        const value = typeof raw === 'string' ? langAsString(raw) : String(raw);
+        return `${header}: ${value}`;
+      })
+      .filter(Boolean)
+      .join(', ');
+
   const { getRadioProps } = useRadioGroup({
     name: indexedId,
     value: JSON.stringify(selectedRow),
@@ -195,6 +212,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           </Fieldset>
         )}
         <Pagination
+          id={baseComponentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -228,7 +246,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
         )}
         <Table.Head>
           <Table.Row>
-            <Table.HeaderCell />
+            <Table.HeaderCell>
+              <span className={utilClasses.visuallyHidden}>
+                <Lang id='list_component.controlsHeader' />
+              </span>
+            </Table.HeaderCell>
             {Object.entries(tableHeaders).map(([key, value]) => {
               const isSortable = sortableColumns?.includes(key);
               let sort: AriaAttributes['aria-sort'] = undefined;
@@ -261,7 +283,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                 {enabled ? (
                   <Checkbox
                     className={classes.toggleControl}
-                    aria-label={JSON.stringify(row)}
+                    label={<span className='sr-only'>{getRowLabel(row)}</span>}
                     onChange={() => {}}
                     value={JSON.stringify(row)}
                     checked={isChecked(row)}
@@ -270,7 +292,8 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
                 ) : (
                   <RadioButton
                     className={classes.toggleControl}
-                    aria-label={JSON.stringify(row)}
+                    label={getRowLabel(row)}
+                    hideLabel
                     onChange={() => {
                       handleSelectedRadioRow({ selectedValue: row });
                     }}
@@ -296,6 +319,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
       </Table>
       {pagination && (
         <Pagination
+          id={baseComponentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -309,6 +333,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
 };
 
 type PaginationProps = {
+  id: string;
   pageSize: number;
   setPageSize: (pageSize: number) => void;
   currentPage: number;
@@ -318,6 +343,7 @@ type PaginationProps = {
 };
 
 function Pagination({
+  id,
   pageSize,
   setPageSize,
   currentPage,
@@ -335,6 +361,7 @@ function Pagination({
   return (
     <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'ds-table__header__cell')}>
       <CustomPagination
+        id={id}
         nextLabel={langAsString('list_component.nextPage')}
         nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
         previousLabel={langAsString('list_component.previousPage')}

@@ -380,6 +380,7 @@ export function nn() {
     'list_component.previousPageAriaLabel': 'Førre side i tabell',
     'list_component.nextPage': 'Neste',
     'list_component.nextPageAriaLabel': 'Neste side i tabell',
+    'list_component.controlsHeader': 'Vel rad',
     'config_error.layoutset_subform_config_error':
       'Layout set med id <strong>{0}</strong> er feilkonfigurert.<br /><br />Layout set kan ikkje ha både <strong>type</strong> <em>og</em> <strong>tasks</strong> definert.',
     'config_error.layoutset_error': 'Layout set error',

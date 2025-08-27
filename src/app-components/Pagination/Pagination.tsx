@@ -13,6 +13,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMini, useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 
 type PaginationProps = {
+  id: string;
   nextLabel: string;
   nextLabelAriaLabel: string;
   previousLabel: string;
@@ -32,6 +33,7 @@ type PaginationProps = {
 } & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>;
 
 export const Pagination = ({
+  id,
   nextLabel,
   previousLabel,
   size,
@@ -73,7 +75,7 @@ export const Pagination = ({
       {showRowsPerPageDropdown && !isMobile && (
         <Field className={classes.rowsPerPageField}>
           <Select
-            id='paginationRowsPerPageDropdown'
+            id={`paginationRowsPerPageDropdown-${id}`}
             data-size='sm'
             value={pageSize}
             onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
@@ -88,7 +90,7 @@ export const Pagination = ({
               </Select.Option>
             ))}
           </Select>
-          <Label htmlFor='paginationRowsPerPageDropdown'>{rowsPerPageText}</Label>
+          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{rowsPerPageText}</Label>
         </Field>
       )}
       <DesignSystemPagination

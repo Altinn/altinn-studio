@@ -383,6 +383,7 @@ export function nb() {
     'list_component.previousPageAriaLabel': 'Forrige side i tabell',
     'list_component.nextPage': 'Neste',
     'list_component.nextPageAriaLabel': 'Neste side i tabell',
+    'list_component.controlsHeader': 'Velg rad',
     'config_error.layoutset_subform_config_error':
       'Layout set med id <strong>{0}</strong> er konfigurert feil.<br /><br />Layout set kan ikke ha både <strong>type</strong> <em>og</em> <strong>tasks</strong> definert.',
     'config_error.layoutset_error': 'Layout set error',
