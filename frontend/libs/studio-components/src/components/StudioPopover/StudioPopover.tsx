@@ -42,6 +42,9 @@ function StudioPopoverTrigger(
   );
 }
 
+const ForwardedStudioPopoverTrigger = forwardRef(StudioPopoverTrigger);
+export { ForwardedStudioPopoverTrigger as StudioPopoverTrigger };
+
 export function StudioPopoverTriggerContext({
   children,
   ...rest

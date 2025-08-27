@@ -1,11 +1,11 @@
-name: Ensure Migrations Compatibility
+name: Designer Ensure Migrations Compatibility
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
-      - '.github/workflows/dotnet-migrations-ensure-compatibility.yaml'
+      - 'src/Designer/backend/**'
+      - '.github/workflows/designer-dotnet-migrations-ensure-compatibility.yaml'
   workflow_dispatch:
 
 jobs:
@@ -31,7 +31,9 @@ jobs:
       - name: Check if migrations script can be generated
         run: |
             dotnet ef migrations script --project backend/src/Designer
+        working-directory: src/Designer
 
       - name: Check if it's possible to add a new migration
         run: |
             dotnet ef migrations add Test --project backend/src/Designer
+        working-directory: src/Designer

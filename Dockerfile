@@ -42,7 +42,7 @@ RUN yarn build
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:430bd56f4348f9dd400331f0d71403554ec83ae1700a7dcfe1e1519c9fd12174 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
-COPY backend .
+COPY src/Designer/backend .
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file

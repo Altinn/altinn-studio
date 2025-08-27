@@ -316,9 +316,9 @@ namespace Designer.Tests.Services
 
             GeneralSettings generalSettings = new()
             {
-                TemplateLocation = @"../../../../../../src/App/app-template-dotnet/src",
-                DeploymentLocation = @"../../../../../../src/App/app-template-dotnet/src/deployment",
-                AppLocation = @"../../../../../../src/App/app-template-dotnet/src/App"
+                TemplateLocation = @"../../../../../../../App/app-template-dotnet/src",
+                DeploymentLocation = @"../../../../../../../App/app-template-dotnet/src/deployment",
+                AppLocation = @"../../../../../../../App/app-template-dotnet/src/App"
             };
 
             EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
