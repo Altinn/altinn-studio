@@ -8,3 +8,5 @@ export const StudioPopover = Object.assign(StudioPopoverParent, {
   TriggerContext: StudioPopoverTriggerContext,
   Trigger: StudioPopoverTrigger,
 });
+
+export type { StudioPopoverTriggerProps } from './StudioPopover';
