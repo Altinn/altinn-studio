@@ -13,7 +13,7 @@ namespace Designer.Tests.Helpers
         [InlineData("NonExistingNuget", false)]
         public void TryGetPackageVersionFromCsprojFile_GivenValidCsprojFile_ReturnsTrue(string packageName, bool expectedResult, string expectedVersion = "")
         {
-            string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "src", "App", "app-template-dotnet", "src", "App", "App.csproj");
+            string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "App", "app-template-dotnet", "src", "App", "App.csproj");
 
             string[] packages = [packageName, $"{packageName}.Experimental"];
             string[][] inputs = [packages, packages.Reverse().ToArray()];
