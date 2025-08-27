@@ -3,7 +3,7 @@ name: Designer Frontend Tests
 on:
   push:
     paths:
-      - 'frontend/**'
+      - '../../src/Designer/frontend/**'
       - '!frontend/testing/cypress/**'
       - '!frontend/stats/**'
       - 'src/Designer/testdata/**'

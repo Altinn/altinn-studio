@@ -1,5 +1,5 @@
 *
-!frontend
+!src/Designer/frontend
 !src/Designer/backend
 !development/azure-devops-mock
 !package.json

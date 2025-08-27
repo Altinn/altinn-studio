@@ -1,0 +1,56 @@
+import type { FieldType, NodePosition } from '@altinn/schema-model/index';
+import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model/index';
+import { useTranslation } from 'react-i18next';
+import { useSavableSchemaModel } from './useSavableSchemaModel';
+
+type AddProperty = (
+  objectKind: ObjectKind,
+  fieldType?: FieldType,
+  parentPointer?: string,
+) => string | undefined;
+
+export const useAddProperty = (): AddProperty => {
+  const savableModel = useSavableSchemaModel();
+  const { t } = useTranslation();
+
+  const addProperty: AddProperty = (
+    objectKind: ObjectKind,
+    fieldType?: FieldType,
+    parentPointer: string = ROOT_POINTER,
+  ): string | undefined => {
+    const target: NodePosition = { parentPointer, index: -1 };
+    const name = savableModel.generateUniqueChildName(parentPointer, 'name');
+    switch (objectKind) {
+      case ObjectKind.Reference:
+        return addReference(name, target);
+      case ObjectKind.Field:
+        return addField(name, target, fieldType);
+      case ObjectKind.Combination:
+        return addCombination(name, target);
+    }
+  };
+
+  const addReference = (name: string, target: NodePosition): string | undefined => {
+    const reference = prompt(t('schema_editor.add_reference.prompt'));
+    if (!reference) return undefined;
+    if (savableModel.hasDefinition(reference)) {
+      const { schemaPointer } = savableModel.addReference(name, reference, target);
+      return schemaPointer;
+    } else {
+      alert(t('schema_editor.add_reference.type_does_not_exist', { reference }));
+      return undefined;
+    }
+  };
+
+  const addField = (name: string, target: NodePosition, fieldType?: FieldType): string => {
+    const { schemaPointer } = savableModel.addField(name, fieldType, target);
+    return schemaPointer;
+  };
+
+  const addCombination = (name: string, target: NodePosition): string => {
+    const { schemaPointer } = savableModel.addCombination(name, target);
+    return schemaPointer;
+  };
+
+  return addProperty;
+};

@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/libs/studio-components-legacy/**'
+      - '../../src/Designer/frontend/libs/studio-components-legacy/**'
       - '.github/workflows/storybook-to-github-pages.yml'
 jobs:
   build:

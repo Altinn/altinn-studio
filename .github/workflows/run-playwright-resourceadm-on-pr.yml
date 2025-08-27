@@ -4,7 +4,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
-      - 'frontend/resourceadm/**'
+      - '../../src/Designer/frontend/resourceadm/**'
       - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
   workflow_dispatch:
 

@@ -1,0 +1,54 @@
+import React from 'react';
+import type { UiSchemaNode } from '@altinn/schema-model/index';
+import { FieldType, ObjectKind } from '@altinn/schema-model/index';
+import {
+  BooleanIcon,
+  CombinationIcon,
+  IntegerIcon,
+  DivideIcon,
+  ObjectIcon,
+  QuestionmarkIcon,
+  ReferenceIcon,
+  StringIcon,
+} from 'libs/studio-icons/src';
+import type { IconProps } from 'libs/studio-icons/src';
+import classes from './NodeIcon.module.css';
+import cn from 'classnames';
+
+export interface NodeIconProps extends IconProps {
+  node: UiSchemaNode;
+}
+
+export const NodeIcon = ({ node, className, ...rest }: NodeIconProps) => (
+  <InternalIcon
+    node={node}
+    className={cn(classes.icon, node.isArray && classes.isArray, className)}
+    {...rest}
+  />
+);
+
+type InternalIconProps = IconProps & NodeIconProps;
+
+const InternalIcon = ({ node, ...iconProps }: InternalIconProps) => {
+  switch (node.objectKind) {
+    case ObjectKind.Combination:
+      return <CombinationIcon {...iconProps} />;
+    case ObjectKind.Reference:
+      return <ReferenceIcon {...iconProps} />;
+    case ObjectKind.Field:
+      switch (node.fieldType) {
+        case FieldType.Object:
+          return <ObjectIcon {...iconProps} />;
+        case FieldType.Boolean:
+          return <BooleanIcon {...iconProps} />;
+        case FieldType.Integer:
+          return <IntegerIcon {...iconProps} />;
+        case FieldType.Number:
+          return <DivideIcon {...iconProps} />;
+        case FieldType.String:
+          return <StringIcon {...iconProps} />;
+        default:
+          return <QuestionmarkIcon />;
+      }
+  }
+};

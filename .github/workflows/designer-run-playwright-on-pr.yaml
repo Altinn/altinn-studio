@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'frontend/**'
+      - '../../src/Designer/frontend/**'
       - '!frontend/admin/**'
       - '!frontend/stats/**'
       - 'src/Designer/backend/**'

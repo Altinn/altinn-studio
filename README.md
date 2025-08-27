@@ -124,13 +124,13 @@ yarn run build
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
 which is located in the root folder of each react project, example `frontend/dashboard`.
 
-More about developing frontend [can be found here](frontend/README.md).
+More about developing frontend [can be found here](src/Designer/frontend/README.md).
 
 ## End-to-end tests
 
 Altinn Studio has two sets of automated end-to-end tests; regression tests and usecase tests. [The regression tests][17] are created with Playwright and run on every pull request. [The usecase tests][18] are created with Cypress and run periodically.
 
-For more information about testing, please refer to the following resources: [Playwright](frontend/testing/playwright/README.md) and [Cypress](frontend/testing/cypress/README.md).
+For more information about testing, please refer to the following resources: [Playwright](src/Designer/frontend/testing/playwright/README.md) and [Cypress](src/Designer/frontend/testing/cypress/README.md).
 
 ## Deployment
 

@@ -3,9 +3,9 @@ name: Designer frontend Configuration coverage stats
 on:
   push:
     paths:
-      - 'frontend/app-development/**'
-      - 'frontend/packages/ux-editor/**'
-      - 'frontend/scripts/configurationStats/**'
+      - '../../src/Designer/frontend/app-development/**'
+      - '../../src/Designer/frontend/packages/ux-editor/**'
+      - '../../src/Designer/frontend/scripts/configurationStats/**'
       - '.github/workflows/designer-frontend-config-coverage.yml'
 
 jobs:

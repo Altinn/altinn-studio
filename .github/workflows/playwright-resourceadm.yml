@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/resourceadm/**'
+      - '../../src/Designer/frontend/resourceadm/**'
       - '.github/workflows/playwright-resourceadm.yml'
 
 concurrency:
