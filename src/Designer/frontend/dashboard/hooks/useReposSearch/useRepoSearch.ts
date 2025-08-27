@@ -4,7 +4,7 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export enum Direction {

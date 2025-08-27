@@ -1,4 +1,4 @@
-import { FileNameErrorResult } from 'libs/studio-pure-functions/src';
+import { FileNameErrorResult } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from './useInputCodeListNameErrorMessage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 

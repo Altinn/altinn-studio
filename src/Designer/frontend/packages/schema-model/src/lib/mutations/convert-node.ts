@@ -10,7 +10,7 @@ import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
 import { ROOT_POINTER } from '../constants';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { makePointerFromArray } from '../pointerUtils';
 import { SchemaModel } from '../SchemaModel';
 

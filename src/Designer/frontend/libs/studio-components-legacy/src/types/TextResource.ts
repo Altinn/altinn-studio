@@ -1,1 +1,1 @@
-export type { TextResource } from 'libs/studio-pure-functions/src';
+export type { TextResource } from '@studio/pure-functions';

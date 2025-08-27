@@ -12,7 +12,7 @@ import {
   removeCodeListItem,
   updateCodeList,
 } from './utils';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { codeListWithNumbers } from './test-data/codeListWithNumbers';

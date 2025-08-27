@@ -7,7 +7,7 @@ import {
 } from './formLayoutUtils';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { generateComponentId } from './generateId';
-import { ObjectUtils, ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';

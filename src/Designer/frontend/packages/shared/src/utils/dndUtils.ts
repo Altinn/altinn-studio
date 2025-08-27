@@ -2,7 +2,7 @@ import type { DropTargetMonitor } from 'react-dnd';
 import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
 import type { RefObject } from 'react';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 /**
  * Calculates the position of the dragged item relative to the drop target.

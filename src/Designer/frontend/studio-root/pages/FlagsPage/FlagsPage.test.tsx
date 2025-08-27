@@ -1,5 +1,5 @@
 import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src'; // Todo: Move this to a more suitable place: https://github.com/Altinn/altinn-studio/issues/14230
+import { typedLocalStorage } from '@studio/pure-functions'; // Todo: Move this to a more suitable place: https://github.com/Altinn/altinn-studio/issues/14230
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { FlagsPage } from './FlagsPage';

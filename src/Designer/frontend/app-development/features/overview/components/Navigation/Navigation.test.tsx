@@ -8,7 +8,7 @@ import {
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { type HeaderMenuItem } from '../../../../types/HeaderMenu/HeaderMenuItem';
 
 describe('Navigation', () => {

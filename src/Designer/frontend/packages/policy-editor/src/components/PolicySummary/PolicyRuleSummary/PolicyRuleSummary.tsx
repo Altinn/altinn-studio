@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { StudioTable, StudioTag } from '@studio/components-legacy';
 import { getSubjectDisplayName, getSubResourceDisplayText } from '../../../utils/AppPolicyUtils';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import classes from './PolicyRuleSummary.module.css';
 
 export type PolicyRuleSummaryProps = {

@@ -3,7 +3,7 @@ import type { OptionList } from 'app-shared/types/OptionList';
 import type { FormItem } from '../../../../../../types/FormItem';
 import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../../types/FormContainer';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export function getSelectedOptionsType(
   codeListId: string | undefined,

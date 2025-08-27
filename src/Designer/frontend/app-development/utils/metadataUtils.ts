@@ -3,7 +3,7 @@ import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
 } from 'app-shared/types/DataModelMetadata';
-import { ArrayUtils, StringUtils, FileNameUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils, StringUtils, FileNameUtils } from '@studio/pure-functions';
 import type { MetadataOption } from '../types/MetadataOption';
 import type { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
 

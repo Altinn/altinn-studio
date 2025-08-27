@@ -3,7 +3,7 @@ import type { NodeMap } from '../../types/NodeMap';
 import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { isDefinition, isReference } from '../utils';
 import { ROOT_POINTER } from '../constants';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export class CircularReferenceDetector extends SchemaModelBase {
   constructor(nodes: NodeMap) {

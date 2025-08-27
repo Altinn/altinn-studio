@@ -7,7 +7,7 @@ import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { ContactPointCard } from './ContactPointCard';
 import { PlusIcon } from 'libs/studio-icons/src';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 const emptyContactPoint: ContactPoint = {
   email: '',

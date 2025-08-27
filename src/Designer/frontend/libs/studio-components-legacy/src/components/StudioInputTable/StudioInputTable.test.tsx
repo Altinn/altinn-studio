@@ -32,7 +32,7 @@ import type { HTMLCellInputElement } from './types/HTMLCellInputElement';
 import type { EventName } from './types/EventName';
 import type { FormEventProps } from './types/FormEventProps';
 import type { EventPropName } from './types/EventPropName';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 import type { CellTextResourceInputProps } from './Cell/CellTextResource';
 
 type ElementName =

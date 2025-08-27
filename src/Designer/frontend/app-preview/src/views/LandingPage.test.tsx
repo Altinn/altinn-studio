@@ -8,7 +8,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 jest.mock('@studio/components-legacy/hooks/useMediaQuery');

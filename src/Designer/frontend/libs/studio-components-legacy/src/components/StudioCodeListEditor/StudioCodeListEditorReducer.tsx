@@ -2,7 +2,7 @@ import type { TextResource } from '../../types/TextResource';
 import type { CodeList } from './types/CodeList';
 import type { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 import { updateCodeList } from './utils';
-import { TextResourceUtils } from 'libs/studio-pure-functions/src';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export type ReducerState = {
   codeList: CodeList;

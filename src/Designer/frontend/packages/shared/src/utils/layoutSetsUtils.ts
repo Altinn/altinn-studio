@@ -2,7 +2,7 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string | undefined => {
   return layoutSets?.sets?.find((set) => set.tasks?.includes(PROTECTED_TASK_NAME_CUSTOM_RECEIPT))

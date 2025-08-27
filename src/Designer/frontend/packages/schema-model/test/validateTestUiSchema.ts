@@ -11,7 +11,7 @@ import {
   isNotTheRootNode,
   isTheRootNode,
 } from '@altinn/schema-model/lib/utils';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 /** Verifies that there is a root node */
 export const hasRootNode = (uiSchema: UiSchemaNodes) =>

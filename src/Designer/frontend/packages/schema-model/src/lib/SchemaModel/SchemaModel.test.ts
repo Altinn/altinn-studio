@@ -35,7 +35,7 @@ import { extractNameFromPointer } from '../pointerUtils';
 import { isArray, isDefinition } from '../utils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { CombinationNode } from '../../types/CombinationNode';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 // Test data:
 

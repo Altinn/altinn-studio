@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ContentMenu } from './ContentMenu';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppSettingsMenuTabConfigs } from '../../hooks/useAppSettingsMenuTabConfigs';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';

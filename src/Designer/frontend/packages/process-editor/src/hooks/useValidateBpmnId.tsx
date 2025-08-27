@@ -2,7 +2,7 @@ import { useTaskIds } from './useTaskIds';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();

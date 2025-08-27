@@ -7,7 +7,7 @@ import {
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import { groupAccessPackagesByArea } from '../../PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
 
 export type PolicyRuleAccessPackageSummaryProps = {

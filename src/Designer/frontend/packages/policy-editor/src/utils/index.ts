@@ -1,4 +1,4 @@
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import type {
   PolicyAction,
   PolicyEditorUsage,

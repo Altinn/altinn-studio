@@ -5,7 +5,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { SelectedContextType } from '../../../enums/SelectedContextType';
 import { useLocation, useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 import { Subroute } from '../../../enums/Subroute';
 import { HeaderContextProvider } from '../../../context/HeaderContext';
 import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';

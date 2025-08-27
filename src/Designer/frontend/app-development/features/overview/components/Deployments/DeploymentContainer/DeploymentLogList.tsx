@@ -3,7 +3,7 @@ import classes from './DeploymentLogList.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
 import { Heading } from '@digdir/designsystemet-react';
-import { DateUtils } from 'libs/studio-pure-functions/src';
+import { DateUtils } from '@studio/pure-functions';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import { PROD_ENV_TYPE } from 'app-shared/constants';

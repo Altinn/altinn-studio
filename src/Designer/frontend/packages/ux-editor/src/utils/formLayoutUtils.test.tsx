@@ -34,7 +34,7 @@ import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/l
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import {
   component3_1_1Id,
   component3_1Id,

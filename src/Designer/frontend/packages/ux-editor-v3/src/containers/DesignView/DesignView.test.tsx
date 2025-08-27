@@ -8,7 +8,7 @@ import { StudioDragAndDrop } from '@studio/components-legacy';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {

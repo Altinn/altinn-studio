@@ -5,7 +5,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { setTextResourcesForLanguage, updateEntireLanguage } from '../../utils/textResourceUtils';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { TextResourceUtils } from 'libs/studio-pure-functions/src';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export interface UpsertTextResourcesMutationArgs {
   language: string;

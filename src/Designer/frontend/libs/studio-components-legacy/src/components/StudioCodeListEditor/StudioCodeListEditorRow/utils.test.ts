@@ -1,5 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 
 // Test data:

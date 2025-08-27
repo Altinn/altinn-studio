@@ -3,7 +3,7 @@ import type { CodeListIdSource } from '../../../types/CodeListReference';
 import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
-import { ArrayUtils, FileNameUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { getUsageTaskTypeTextKey } from '../../../utils';
 
 export type CodeListUsagesProps = {

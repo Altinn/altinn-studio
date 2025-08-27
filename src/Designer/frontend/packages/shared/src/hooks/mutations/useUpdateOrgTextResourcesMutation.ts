@@ -8,7 +8,7 @@ import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { TextResourceUtils } from 'libs/studio-pure-functions/src';
+import { TextResourceUtils } from '@studio/pure-functions';
 
 export type UpdateOrgTextResourcesMutationArgs = {
   language: string;

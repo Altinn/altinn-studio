@@ -22,7 +22,7 @@ import {
 import { useAppMetadataMutation } from '../../../../../../../hooks/mutations';
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
 import { toast } from 'react-toastify';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;

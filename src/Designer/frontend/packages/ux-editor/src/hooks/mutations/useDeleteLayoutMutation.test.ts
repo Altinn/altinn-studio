@@ -13,7 +13,7 @@ import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

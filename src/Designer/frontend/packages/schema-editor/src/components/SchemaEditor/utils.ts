@@ -1,8 +1,8 @@
 import type { ItemPosition } from 'app-shared/types/dndTypes';
 import type { SchemaModel, UiSchemaNode } from '@altinn/schema-model/index';
 import { ROOT_POINTER } from '@altinn/schema-model/index';
-import { NumberUtils } from 'libs/studio-pure-functions/src';
-import type { Interval } from 'libs/studio-pure-functions/src';
+import { NumberUtils } from '@studio/pure-functions';
+import type { Interval } from '@studio/pure-functions';
 
 // This is necessary because the root node's children list contains both properties and definitions, but only properties are visible in the tree.
 // TODO: Remove this function when properties and definitions are in separate lists: https://github.com/Altinn/altinn-studio/issues/11824

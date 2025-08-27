@@ -3,7 +3,7 @@ import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 
 type AttachmentListInternalFormatProps = {

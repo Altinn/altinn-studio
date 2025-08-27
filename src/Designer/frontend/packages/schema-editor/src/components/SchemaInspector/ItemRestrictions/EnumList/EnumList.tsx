@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './EnumList.module.css';
 import type { FieldNode } from '@altinn/schema-model/index';
-import { ObjectUtils, ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { EnumField } from './EnumField';
 import { ErrorMessage, Fieldset } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';

@@ -1,7 +1,7 @@
 import { useTableSorting } from './useTableSorting';
 import { act, renderHook } from '@testing-library/react';
 import type { Rows } from '../components';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { TableSortStorageKey } from '../types/TableSortStorageKey';
 
 describe('useTableSorting', () => {

@@ -9,7 +9,7 @@ import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Table } from '@digdir/designsystemet-react';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];

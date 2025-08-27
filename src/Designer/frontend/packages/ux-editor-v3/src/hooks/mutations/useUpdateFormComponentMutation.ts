@@ -8,7 +8,7 @@ import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import { useFormLayout } from '../useFormLayoutsSelector';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';

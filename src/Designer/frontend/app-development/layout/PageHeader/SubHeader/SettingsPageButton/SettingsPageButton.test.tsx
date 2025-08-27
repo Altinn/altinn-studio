@@ -15,7 +15,7 @@ import { pageHeaderContextMock } from '../../../../test/headerMocks';
 import { PageHeaderContext } from '../../../../contexts/PageHeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from '../../../../enums/RoutePaths';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { useNavigateFrom } from './useNavigateFrom';
 
 jest.mock('@studio/components-legacy/hooks/useMediaQuery');

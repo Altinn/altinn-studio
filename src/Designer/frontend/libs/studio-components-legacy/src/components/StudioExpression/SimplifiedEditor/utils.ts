@@ -1,7 +1,7 @@
 import type { SimpleLogicalExpression } from '../types/SimplifiedExpression';
 import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { SimpleSubexpression } from '../types/SimpleSubexpression';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SUBEXPRESSION } from '../config';
 
 export const changeOperator = (

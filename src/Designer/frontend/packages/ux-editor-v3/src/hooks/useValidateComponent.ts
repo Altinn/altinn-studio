@@ -1,4 +1,4 @@
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,

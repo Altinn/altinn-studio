@@ -1,4 +1,4 @@
-import { FileNameErrorResult } from 'libs/studio-pure-functions/src';
+import { FileNameErrorResult } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 
 export function useUploadCodeListNameErrorMessage(): (

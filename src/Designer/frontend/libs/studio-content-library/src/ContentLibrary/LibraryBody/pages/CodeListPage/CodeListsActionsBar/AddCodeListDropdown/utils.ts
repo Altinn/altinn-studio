@@ -1,6 +1,6 @@
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export const getCodeListIdsFromExternalResources = (
   externalResources: ExternalResource[],

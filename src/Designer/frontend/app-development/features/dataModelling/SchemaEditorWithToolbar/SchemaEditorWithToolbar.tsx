@@ -7,7 +7,7 @@ import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useCanUseFeatureQuery } from '../../../hooks/queries/useCanUseFeatureQuery';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 

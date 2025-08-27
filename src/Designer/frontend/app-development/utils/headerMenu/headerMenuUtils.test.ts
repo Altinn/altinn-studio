@@ -13,7 +13,7 @@ import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import { RoutePaths } from '../../enums/RoutePaths';
 import { DatabaseIcon } from 'libs/studio-icons/src';
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 jest.mock('app-shared/utils/featureToggleUtils');

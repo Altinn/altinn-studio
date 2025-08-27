@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,

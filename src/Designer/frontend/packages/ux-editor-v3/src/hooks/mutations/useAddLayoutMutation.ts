@@ -2,7 +2,7 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDispatch } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';

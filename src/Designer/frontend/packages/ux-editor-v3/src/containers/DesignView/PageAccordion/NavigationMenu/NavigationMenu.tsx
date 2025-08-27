@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
 import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { StudioButton } from '@studio/components-legacy';
 

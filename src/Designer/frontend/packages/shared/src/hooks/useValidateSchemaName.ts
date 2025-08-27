@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export const useValidateSchemaName = (
   existingDataModelNames: string[],

@@ -7,7 +7,7 @@ import classes from './EditPolicy.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 export const EditPolicy = () => {

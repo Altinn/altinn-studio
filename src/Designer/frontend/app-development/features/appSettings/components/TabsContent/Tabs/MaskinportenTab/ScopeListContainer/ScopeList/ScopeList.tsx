@@ -19,7 +19,7 @@ import {
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
 import { useUpdateSelectedMaskinportenScopesMutation } from '../../../../../../../../hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import {
   combineSelectedAndMaskinportenScopes,
   mapMaskinPortenScopesToScopeList,

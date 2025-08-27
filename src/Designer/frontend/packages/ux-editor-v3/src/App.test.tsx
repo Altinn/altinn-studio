@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appStateMock } from './testing/stateMocks';
 import type { AppContextProps } from './AppContext';

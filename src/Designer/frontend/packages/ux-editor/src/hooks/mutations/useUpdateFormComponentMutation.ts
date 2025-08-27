@@ -5,7 +5,7 @@ import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetada
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
 import { useFormLayout } from '../index';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';

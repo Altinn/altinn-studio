@@ -5,7 +5,7 @@ import { StudioGridSelector } from '@studio/components-legacy';
 import { Paragraph, Switch } from '@digdir/designsystemet-react';
 import { PadlockLockedFillIcon } from 'libs/studio-icons/src';
 import classes from './EditGridForGivenViewSize.module.css';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { GridSizes } from './types/GridSizes';
 import type { ViewSize } from './types/ViewSize';
 import { findEffectiveGridSize } from './utils';

@@ -19,7 +19,7 @@ import {
 } from '../utils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { ReferenceNode } from '../../types/ReferenceNode';
-import { ObjectUtils, ArrayUtils, StringUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
 import {
   createDefinitionPointer,
   createPropertyPointer,

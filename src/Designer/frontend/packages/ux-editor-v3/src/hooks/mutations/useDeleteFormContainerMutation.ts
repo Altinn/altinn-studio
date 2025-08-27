@@ -2,7 +2,7 @@ import type { IInternalLayout } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();

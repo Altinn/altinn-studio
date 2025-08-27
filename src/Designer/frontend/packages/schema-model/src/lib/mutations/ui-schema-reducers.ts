@@ -4,7 +4,7 @@ import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import { changeNameInPointer } from '../pointerUtils';
 
 export const promoteProperty: UiSchemaReducer<string> = (uiSchema, path) => {

@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 import { ChevronRightIcon } from 'libs/studio-icons/src';
 import { useTranslation } from 'react-i18next';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FilePathProps {

@@ -6,7 +6,7 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
-import { ArrayUtils, FileNameUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
 import {
   filterCodeLists,

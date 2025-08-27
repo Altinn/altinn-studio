@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../utils/PolicyRuleUtils';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export type ResourceNarrowingListProps = {
   resources: PolicyRuleResource[];

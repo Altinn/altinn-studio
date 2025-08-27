@@ -8,7 +8,7 @@ import {
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type PolicyRuleSubjectSummaryProps = {
   subject: string;

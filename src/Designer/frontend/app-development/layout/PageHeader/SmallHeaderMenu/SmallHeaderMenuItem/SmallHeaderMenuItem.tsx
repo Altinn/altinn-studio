@@ -3,7 +3,7 @@ import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { UrlUtils } from 'libs/studio-pure-functions/src';
+import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuSmallItem } from '../../../../types/HeaderMenu/NavigationMenuSmallItem';
 import { studioBetaTagClasses } from '@studio/components-legacy';
 

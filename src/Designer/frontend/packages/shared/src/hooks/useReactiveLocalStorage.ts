@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { useLocalStorage } from '@studio/components-legacy/hooks/useLocalStorage';
 import { useEventListener } from './useEventListener';
 

@@ -11,7 +11,7 @@ import {
   getExpressionPropertiesBasedOnComponentType,
   Operator,
 } from '../types/Expressions';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import type { IFormLayouts } from '../types/global';
 import { LayoutItemType } from '../types/global';

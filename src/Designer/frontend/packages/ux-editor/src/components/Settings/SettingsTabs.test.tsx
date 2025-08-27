@@ -4,7 +4,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { SettingsTabs } from './SettingsTabs';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 describe('SettingsTabs', () => {
   afterEach(() => {

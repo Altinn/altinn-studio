@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Release.module.css';
-import { DateUtils } from 'libs/studio-pure-functions/src';
+import { DateUtils } from '@studio/pure-functions';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';

@@ -6,7 +6,7 @@ import type {
 } from '../../types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutWithName } from '../index';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { QueryKey } from 'app-shared/types/QueryKey';

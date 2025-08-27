@@ -8,7 +8,7 @@ import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteButtonId } from '@studio/testing/testids';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;

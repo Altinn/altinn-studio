@@ -1,5 +1,5 @@
 import type { UiSchemaNodes } from '../../types';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 /**
  * Returns all pointers from uiSchema.

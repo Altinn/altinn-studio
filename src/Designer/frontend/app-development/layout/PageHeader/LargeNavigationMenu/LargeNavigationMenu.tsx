@@ -3,7 +3,7 @@ import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { StudioPageHeader } from '@studio/components-legacy';
-import { UrlUtils } from 'libs/studio-pure-functions/src';
+import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuItem } from '../../../types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from '../../../contexts/PageHeaderContext';
 

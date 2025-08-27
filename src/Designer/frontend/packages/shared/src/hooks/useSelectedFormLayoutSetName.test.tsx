@@ -9,7 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { app } from '@studio/testing/testids';
 
 // Test data:

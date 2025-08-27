@@ -5,7 +5,7 @@ import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
 import { PadlockLockedFillIcon, PlusCircleIcon, PencilIcon } from '../../../../../studio-icons';
 import cn from 'classnames';
-import { ValidationUtils } from 'libs/studio-pure-functions/src';
+import { ValidationUtils } from '@studio/pure-functions';
 
 export type StudioPropertyButtonProps = {
   property: string;

@@ -3,7 +3,7 @@ import type { ReactElement } from 'react';
 import classes from './AddCodeListDropdown.module.css';
 import { useTranslation } from 'react-i18next';
 import { CreateNewCodeListDialog } from './CreateNewCodeListDialog';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 import { StudioDropdown } from '@studio/components';

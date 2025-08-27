@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
-import { StringUtils, UrlUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { StudioPageHeader } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';

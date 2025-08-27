@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { useNavigateFrom } from './useNavigateFrom';
 import { RoutePaths } from '../../../../enums/RoutePaths';
 import { useLocation } from 'react-router-dom';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 jest.mock('react-router-dom', () => ({

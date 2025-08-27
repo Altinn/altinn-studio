@@ -3,7 +3,7 @@ import {
   type ScopedStorage,
   type ScopedStorageResult,
   ScopedStorageImpl,
-} from 'libs/studio-pure-functions/src';
+} from '@studio/pure-functions';
 
 type OrgAppParams = {
   org: string;

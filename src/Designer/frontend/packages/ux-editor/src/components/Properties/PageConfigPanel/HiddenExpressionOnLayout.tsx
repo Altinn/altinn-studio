@@ -2,7 +2,7 @@ import React from 'react';
 import { ExpressionContent } from '../../config/ExpressionContent';
 import type { Expression } from '@studio/components-legacy';
 import type { IInternalLayout } from '../../../types/global';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';

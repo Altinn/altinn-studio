@@ -53,7 +53,7 @@ import { SchemaModel } from '../SchemaModel';
 import type { FieldNode } from '../../types/FieldNode';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import type { CombinationNode } from '../../types/CombinationNode';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 describe('ui-schema-reducers', () => {
   let result: SchemaModel;

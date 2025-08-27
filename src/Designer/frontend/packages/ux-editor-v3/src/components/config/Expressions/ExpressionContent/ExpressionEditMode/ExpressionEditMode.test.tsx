@@ -22,7 +22,7 @@ import {
   ExpressionPropertyBase,
   Operator,
 } from '../../../../../types/Expressions';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { ExpressionEditModeProps } from './ExpressionEditMode';
 import { ExpressionEditMode } from './ExpressionEditMode';
 import { app, org } from '@studio/testing/testids';

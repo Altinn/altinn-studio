@@ -11,7 +11,7 @@ import { PolicyDescription } from './PolicyDescription';
 import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { PolicyAccessPackages } from './PolicyAccessPackages';
 
 export type PolicyRuleProps = {

@@ -6,7 +6,7 @@ import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { StudioFileUploader } from '@studio/components-legacy';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FileNameErrorResult, FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';

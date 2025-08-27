@@ -17,7 +17,7 @@ import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { validateAppConfig } from '../utils/appConfigValidationUtils';
 import { ErrorSummary } from './ErrorSummary';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { SwitchInput } from './SwitchInput';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
 import { StatusRadioGroup } from './StatusRadioGroup';

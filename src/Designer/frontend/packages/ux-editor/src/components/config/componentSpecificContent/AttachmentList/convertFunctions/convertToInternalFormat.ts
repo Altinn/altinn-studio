@@ -1,6 +1,6 @@
 import { extractCurrentAvailableAttachments, reservedDataTypes } from '../attachmentListUtils';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export const convertExternalToInternalFormat = (
   availableAttachments: AvailableAttachementLists,

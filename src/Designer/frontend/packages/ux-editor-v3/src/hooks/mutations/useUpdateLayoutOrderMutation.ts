@@ -1,7 +1,7 @@
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useMutation } from '@tanstack/react-query';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export interface UpdateLayoutOrderMutationArgs {
   layoutName: string;

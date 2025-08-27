@@ -1,6 +1,6 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 import { CodeListItemType } from './types/CodeListItemType';
 import { CodeListItemTextProperty } from './types/CodeListItemTextProperty';
 

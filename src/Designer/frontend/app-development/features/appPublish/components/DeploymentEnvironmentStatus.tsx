@@ -3,7 +3,7 @@ import classes from './DeploymentEnvironmentStatus.module.css';
 import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { DateUtils } from 'libs/studio-pure-functions/src';
+import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from 'libs/studio-icons/src';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
 

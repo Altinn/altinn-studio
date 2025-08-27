@@ -4,7 +4,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import classes from './BreadcrumbsTaskNavigation.module.css';
 import { StudioBreadcrumbs } from '@studio/components';
 import { useAppContext } from '@altinn/ux-editor/hooks';
-import { UrlUtils } from 'libs/studio-pure-functions/src';
+import { UrlUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 export const BreadcrumbsTaskNavigation = () => {
   const navigate = useNavigate();

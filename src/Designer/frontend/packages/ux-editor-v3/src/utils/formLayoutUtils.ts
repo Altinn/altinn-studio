@@ -7,7 +7,7 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { ArrayUtils, ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';

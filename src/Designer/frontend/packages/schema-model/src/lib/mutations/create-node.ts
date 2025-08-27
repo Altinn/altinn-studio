@@ -2,7 +2,7 @@ import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { Keyword } from '../../types';
 import { createNodeBase, isCombination, isField, isObject, isReference } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export const insertSchemaNode = (
   uiSchemaNodes: UiSchemaNodes,

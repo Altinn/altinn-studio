@@ -12,7 +12,7 @@ import {
   TabletIcon,
 } from 'libs/studio-icons/src';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';

@@ -13,7 +13,7 @@ import { usePropState } from 'libs/studio-hooks/src';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
 import cn from 'classnames';
 import { Mode } from './types/Mode';
-import { TextResourceUtils } from 'libs/studio-pure-functions/src';
+import { TextResourceUtils } from '@studio/pure-functions';
 import type { RequiredSelection } from '../../types/RequiredSelection';
 
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &

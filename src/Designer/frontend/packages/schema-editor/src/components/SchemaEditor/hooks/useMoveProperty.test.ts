@@ -24,7 +24,7 @@ import {
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 const uniquePointerOfRoot = UNIQUE_POINTER_PREFIX + ROOT_POINTER;
 

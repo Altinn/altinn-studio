@@ -16,7 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeJsonAndXsdData } from '../../../utils/metadataUtils';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }

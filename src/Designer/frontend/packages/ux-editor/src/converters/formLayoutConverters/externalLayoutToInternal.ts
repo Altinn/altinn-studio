@@ -11,7 +11,7 @@ import { externalSimpleComponentToInternal } from '../simpleComponentConverters'
 import type { FormComponent } from '../../types/FormComponent';
 import type { FormContainer } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalContainerComponentToInternal } from '../containerComponentConverters';

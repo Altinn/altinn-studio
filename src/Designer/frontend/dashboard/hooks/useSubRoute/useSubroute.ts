@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
-import { StringUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils } from '@studio/pure-functions';
 
 export function useSubroute(): string {
   const { subroute = defaultSubroute } = useParams();

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditPolicy } from './EditPolicy';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { MemoryRouter } from 'react-router-dom';

@@ -9,7 +9,7 @@ import type { TextResource } from '../../types/TextResource';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { userEvent } from '@testing-library/user-event';
-import { TextResourceUtils } from 'libs/studio-pure-functions/src';
+import { TextResourceUtils } from '@studio/pure-functions';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';

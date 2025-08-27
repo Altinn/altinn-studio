@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type UseUniqueKey = {
   addUniqueKey: () => void;

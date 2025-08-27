@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PreviewFileInfo.module.css';
 import { StudioParagraph } from '@studio/components';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 
 interface PreviewFileInfoProps {
   existingImageUrl: string;

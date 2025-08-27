@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { BlobDownloader } from 'libs/studio-pure-functions/src';
+import { BlobDownloader } from '@studio/pure-functions';
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
 import { DownloadIcon } from '../../../../studio-icons';

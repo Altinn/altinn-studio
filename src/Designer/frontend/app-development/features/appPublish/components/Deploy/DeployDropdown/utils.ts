@@ -1,7 +1,7 @@
 import { type AppRelease } from 'app-shared/types/AppRelease';
 import { type ImageOption } from '../../ImageOption';
 import { BuildResult } from 'app-shared/types/Build';
-import { DateUtils } from 'libs/studio-pure-functions/src';
+import { DateUtils } from '@studio/pure-functions';
 import type i18next from 'i18next';
 
 export const filterSucceededReleases = (appReleases: AppRelease[]): AppRelease[] => {

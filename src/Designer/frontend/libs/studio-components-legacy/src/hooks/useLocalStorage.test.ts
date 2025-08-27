@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useLocalStorage } from './useLocalStorage';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 describe('useLocalStorage', () => {
   it('Gives access to the stored value', () => {

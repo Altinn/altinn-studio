@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Link, Table } from '@digdir/designsystemet-react';
-import { DateUtils } from 'libs/studio-pure-functions/src';
+import { DateUtils } from '@studio/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 

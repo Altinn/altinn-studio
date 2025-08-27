@@ -2,7 +2,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { useAddOptionListMutation } from './useAddOptionListMutation';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import { FileUtils } from 'libs/studio-pure-functions/src';
+import { FileUtils } from '@studio/pure-functions';
 
 // Test data:
 const file = new File(['hello'], 'hello.json', { type: 'text/json' });

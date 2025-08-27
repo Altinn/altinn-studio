@@ -2,7 +2,7 @@ import type { UiSchemaNodes } from '../../types';
 import { CombinationKind } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { isFieldOrCombination, isReference, splitPointerInBaseAndName } from '../utils';
-import { ObjectUtils } from 'libs/studio-pure-functions/src';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export const renameNodePointer = (
   uiSchemaNodes: UiSchemaNodes,

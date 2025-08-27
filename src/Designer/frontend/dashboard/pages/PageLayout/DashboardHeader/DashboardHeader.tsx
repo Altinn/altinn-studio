@@ -7,7 +7,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
 import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
-import { StringUtils, UrlUtils } from 'libs/studio-pure-functions/src';
+import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
 import { isOrg } from '../../../utils/orgUtils';

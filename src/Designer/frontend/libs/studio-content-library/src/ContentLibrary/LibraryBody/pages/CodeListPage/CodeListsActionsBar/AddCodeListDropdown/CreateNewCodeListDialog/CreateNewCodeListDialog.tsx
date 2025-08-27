@@ -7,7 +7,7 @@ import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon, XMarkIcon } from 'libs/studio-icons/src';
 import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
-import { FileNameUtils } from 'libs/studio-pure-functions/src';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
 import { StudioDialog, StudioHeading, StudioButton } from '@studio/components';
 

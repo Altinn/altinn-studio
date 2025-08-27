@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './PreviewLimitationsInfo.module.css';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';
-import { typedLocalStorage } from 'libs/studio-pure-functions/src';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { RemindChoiceDialog } from '../RemindChoiceDialog/RemindChoiceDialog';
 
 export const PreviewLimitationsInfo = () => {

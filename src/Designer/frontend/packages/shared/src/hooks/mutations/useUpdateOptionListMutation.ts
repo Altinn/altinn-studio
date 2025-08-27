@@ -4,7 +4,7 @@ import type { OptionList, OptionListData } from 'app-shared/types/OptionList';
 import type { OptionListsResponse } from 'app-shared/types/api/OptionListsResponse';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { ArrayUtils } from 'libs/studio-pure-functions/src';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export interface UpdateOptionListMutationArgs {
   optionListId: string;
