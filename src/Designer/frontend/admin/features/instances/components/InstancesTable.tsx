@@ -1,8 +1,8 @@
-import { StudioButton, StudioSpinner, StudioTable } from 'libs/studio-components/src';
+import { StudioButton, StudioSpinner, StudioTable } from '@studio/components';
 import classes from './InstancesTable.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioError } from 'libs/studio-components-legacy/src';
+import { StudioError } from '@studio/components-legacy';
 import { Link } from 'react-router-dom';
 import { useAppInstancesQuery } from '../../../hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from '../../../types/InstancesResponse';

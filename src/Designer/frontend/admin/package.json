@@ -19,6 +19,8 @@
     "typecheck:watch": "tsc --noEmit -w"
   },
   "dependencies": {
+    "@studio/components": "workspace:^",
+    "@studio/components-legacy": "workspace:^",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",
