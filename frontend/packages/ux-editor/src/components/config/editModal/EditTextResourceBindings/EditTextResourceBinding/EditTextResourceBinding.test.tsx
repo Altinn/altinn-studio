@@ -10,6 +10,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { QueryClient } from '@tanstack/react-query';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { app, org } from '@studio/testing/testids';
 
@@ -113,8 +114,10 @@ describe('EditTextResourceBindings component', () => {
     await user.click(getSaveButton());
   };
 
-  const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
+  const waitForData = async (queryClient: QueryClient) => {
+    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery(), {
+      queryClient,
+    }).result;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   };
 
@@ -125,8 +128,9 @@ describe('EditTextResourceBindings component', () => {
     textKey = 'test',
     labelKey = 'ux_editor.modal_text',
   }: Partial<EditTextResourceBindingProps>) => {
-    await waitForData();
     const queryClient = createQueryClientMock();
+    await waitForData(queryClient);
+
     queryClient.setQueryData([QueryKey.TextResources, org, app], {
       nb: textResources,
     });

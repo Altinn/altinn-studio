@@ -38,21 +38,15 @@ export const TextResourceEditor = ({
   return (
     <StudioTabs
       data-size='small'
-      defaultValue={TextResourceTab.Type}
+      value={activeTab}
       className={classes.root}
-      onChange={() => setActiveTab(activeTab)}
+      onChange={(newValue) => handleTabClick(newValue as TextResourceTab)}
     >
       <StudioTabs.List>
-        <StudioTabs.Tab
-          value={TextResourceTab.Type}
-          onClick={() => handleTabClick(TextResourceTab.Type)}
-        >
+        <StudioTabs.Tab value={TextResourceTab.Type}>
           {t('ux_editor.text_resource_binding_write')}
         </StudioTabs.Tab>
-        <StudioTabs.Tab
-          value={TextResourceTab.Search}
-          onClick={() => handleTabClick(TextResourceTab.Search)}
-        >
+        <StudioTabs.Tab value={TextResourceTab.Search}>
           {t('ux_editor.text_resource_binding_search')}
         </StudioTabs.Tab>
       </StudioTabs.List>
