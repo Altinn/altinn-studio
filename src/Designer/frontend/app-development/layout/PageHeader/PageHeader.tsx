@@ -22,20 +22,22 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
-    <StudioPageHeader>
-      <StudioPageHeader.Main>
-        <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
-        {shouldDisplayDesktopMenu && <CenterContent />}
-        <StudioPageHeader.Right>
-          <RightContent />
-        </StudioPageHeader.Right>
-      </StudioPageHeader.Main>
-      {showSubMenu && !isRepoError && (
-        <StudioPageHeader.Sub>
-          <SubHeader hasRepoError={isRepoError} />
-        </StudioPageHeader.Sub>
-      )}
-    </StudioPageHeader>
+    <div data-color-scheme='dark'>
+      <StudioPageHeader>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
+          {shouldDisplayDesktopMenu && <CenterContent />}
+          <StudioPageHeader.Right>
+            <RightContent />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        {showSubMenu && !isRepoError && (
+          <StudioPageHeader.Sub>
+            <SubHeader hasRepoError={isRepoError} />
+          </StudioPageHeader.Sub>
+        )}
+      </StudioPageHeader>
+    </div>
   );
 };
 

@@ -3,13 +3,8 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
-import {
-  StudioAlert,
-  StudioButton,
-  StudioParagraph,
-  StudioSpinner,
-  StudioTag,
-} from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioSpinner, StudioTag } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';

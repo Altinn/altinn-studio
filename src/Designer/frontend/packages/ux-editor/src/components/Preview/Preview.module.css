@@ -5,6 +5,7 @@
 }
 
 .openPreviewButton {
+  height: 100%;
   writing-mode: vertical-lr;
   text-transform: uppercase;
   border-radius: 0;

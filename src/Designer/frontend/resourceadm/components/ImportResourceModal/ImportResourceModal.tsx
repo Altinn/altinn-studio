@@ -12,12 +12,12 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import {
-  StudioButton,
   StudioCombobox,
   StudioModal,
   StudioParagraph,
   StudioTextfield,
 } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
 import {
   getAvailableEnvironments,
@@ -113,12 +113,11 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
             <>
               <StudioButton
                 onClick={() => (hasValidValues ? handleImportResource() : undefined)}
-                color='first'
                 aria-disabled={!hasValidValues}
               >
                 {t('resourceadm.dashboard_import_modal_import_button')}
               </StudioButton>
-              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+              <StudioButton onClick={handleClose} variant='tertiary'>
                 {t('general.cancel')}
               </StudioButton>
             </>
