@@ -24,6 +24,14 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// <inheritdoc />
     public string DataType { get; private init; }
 
+    // Add virtual members so that inheriting classes can override them if needed.
+    // Default implementations from the interface are not virtual, so we need to copy them here.
+    /// <inheritdoc/>
+    public virtual string ValidationSource => $"{GetType().FullName}-{DataType}";
+
+    /// <inheritdoc/>
+    public virtual bool NoIncrementalValidation => false;
+
     // ReSharper disable once StaticMemberInGenericType
     private static readonly AsyncLocal<List<ValidationIssue>> _validationIssues = new();
 
@@ -72,8 +80,8 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
             new ValidationIssue
             {
                 Field = LinqExpressionHelpers.GetJsonPath(selector),
-                Description = description ?? textKey,
-                Code = code ?? textKey,
+                Description = description,
+                Code = code,
                 CustomTextKey = textKey,
                 CustomTextParameters = customTextParameters,
                 Severity = severity,

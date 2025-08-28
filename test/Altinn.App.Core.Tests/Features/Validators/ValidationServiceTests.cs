@@ -323,6 +323,7 @@ public class ValidationServiceTests : IAsyncLifetime
             .SetupGet(v => v.ValidationSource)
             .Returns("FormDataValidatorNoAppLogic")
             .Verifiable(Times.AtLeastOnce);
+        formDataValidatorNoAppLogicMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorNoAppLogicMock.Object);
         _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskId = TaskId });
 
@@ -338,6 +339,7 @@ public class ValidationServiceTests : IAsyncLifetime
             .SetupGet(v => v.ValidationSource)
             .Returns("FormDataValidatorWrongTask")
             .Verifiable(Times.AtLeastOnce);
+        formDataValidatorWrongTaskMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorWrongTaskMock.Object);
         _appMetadata.DataTypes.Add(
             new DataType
@@ -367,6 +369,7 @@ public class ValidationServiceTests : IAsyncLifetime
                     },
                 }
             );
+        formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _services.AddSingleton(formDataValidatorMock.Object);
         _appMetadata.DataTypes.Add(
             new DataType

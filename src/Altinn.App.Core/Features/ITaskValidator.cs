@@ -24,6 +24,13 @@ public interface ITaskValidator
     string ValidationSource => $"{GetType().FullName}-{TaskId}";
 
     /// <summary>
+    /// If you override this to false, the validator will run on every PATCH request.
+    /// A default implementation for <see cref="IValidator.HasRelevantChanges"/> will always indicate that the validator should run again.
+    /// <see cref="IValidator.NoIncrementalValidation"/>
+    /// </summary>
+    bool NoIncrementalValidation => true;
+
+    /// <summary>
     /// Actual validation logic for the task
     /// </summary>
     /// <param name="instance">The instance to validate</param>

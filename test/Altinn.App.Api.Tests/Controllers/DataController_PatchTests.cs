@@ -63,6 +63,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     {
         _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
         _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
+        _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);
@@ -991,6 +992,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Verifiable(Times.Once);
         _formDataValidatorMock.SetupGet(fdv => fdv.ValidationSource).Returns("ignored");
         _formDataValidatorMock.SetupGet(fdv => fdv.DataType).Returns("default");
+        _formDataValidatorMock.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock
             .Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
             .Returns(true);
@@ -1075,6 +1077,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         _formDataValidatorMock
             .Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
             .Returns(true);
+        _formDataValidatorMock.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock
             .Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<object>(), "nb"))
             .ReturnsAsync(

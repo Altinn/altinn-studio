@@ -1209,6 +1209,7 @@ namespace Altinn.App.Core.Features
     public interface IDataElementValidator
     {
         string DataType { get; }
+        bool NoIncrementalValidation { get; }
         string ValidationSource { get; }
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssue>> ValidateDataElement(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, Altinn.Platform.Storage.Interface.Models.DataType dataType, string? language);
     }
@@ -1238,6 +1239,7 @@ namespace Altinn.App.Core.Features
     public interface IFormDataValidator
     {
         string DataType { get; }
+        bool NoIncrementalValidation { get; }
         string ValidationSource { get; }
         bool HasRelevantChanges(object current, object previous);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssue>> ValidateFormData(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.DataElement dataElement, object data, string? language);
@@ -1350,6 +1352,7 @@ namespace Altinn.App.Core.Features
     }
     public interface ITaskValidator
     {
+        bool NoIncrementalValidation { get; }
         string TaskId { get; }
         string ValidationSource { get; }
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssue>> ValidateTask(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string? language);
@@ -2015,6 +2018,8 @@ namespace Altinn.App.Core.Features.Validation
     {
         protected GenericFormDataValidator(string dataType) { }
         public string DataType { get; }
+        public virtual bool NoIncrementalValidation { get; }
+        public virtual string ValidationSource { get; }
         protected void AddValidationIssue(Altinn.App.Core.Models.Validation.ValidationIssue issue) { }
         protected void CreateValidationIssue<T>(System.Linq.Expressions.Expression<System.Func<TModel, T>> selector, string textKey, Altinn.App.Core.Models.Validation.ValidationIssueSeverity severity = 1, string? description = null, string? code = null, System.Collections.Generic.Dictionary<string, string>? customTextParameters = null) { }
         protected abstract bool HasRelevantChanges(TModel current, TModel previous);

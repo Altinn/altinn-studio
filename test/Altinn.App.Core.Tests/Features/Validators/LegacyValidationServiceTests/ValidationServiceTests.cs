@@ -190,6 +190,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         taskValidatorMock.Setup(v => v.TaskId).Returns(taskId);
         taskValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
+        taskValidatorMock.Setup(v => v.NoIncrementalValidation).Returns(true);
     }
 
     private void SetupTaskValidatorReturn(
@@ -212,6 +213,7 @@ public sealed class ValidationServiceTests : IDisposable
     {
         taskValidatorMock.Setup(v => v.DataType).Returns(dataType);
         taskValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
+        taskValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(true);
     }
 
     private void SetupDataElementValidatorReturn(
@@ -237,6 +239,8 @@ public sealed class ValidationServiceTests : IDisposable
 
         // ValidatorName (used for source)
         formDataValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
+
+        formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
     }
 
     private void SetupFormDataValidatorReturn(

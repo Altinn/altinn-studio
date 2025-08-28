@@ -78,8 +78,10 @@ public sealed class PatchServiceTests : IDisposable
         _formDataValidator.Setup(fdv => fdv.DataType).Returns(_dataType.Id);
         _formDataValidator.Setup(fdv => fdv.ValidationSource).Returns("formDataValidator");
         _formDataValidator.Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>())).Returns(true);
+        _formDataValidator.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(false);
         _dataElementValidator.Setup(dev => dev.DataType).Returns(_dataType.Id);
         _dataElementValidator.Setup(dev => dev.ValidationSource).Returns("dataElementValidator");
+        _dataElementValidator.SetupGet(fdv => fdv.NoIncrementalValidation).Returns(true);
         _dataClientMock
             .Setup(d =>
                 d.UpdateBinaryData(

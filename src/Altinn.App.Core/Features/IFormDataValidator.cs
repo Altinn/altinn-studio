@@ -28,7 +28,14 @@ public interface IFormDataValidator
     /// Returns the group id of the validator. This is used to run partial validations on the backend.
     /// The default is based on the FullName and DataType fields, and should not need customization
     /// </summary>
-    public string ValidationSource => $"{this.GetType().FullName}-{DataType}";
+    string ValidationSource => $"{this.GetType().FullName}-{DataType}";
+
+    /// <summary>
+    /// If you override this to return true, the validator will only run on process/next, and not continuously.
+    /// <see cref="HasRelevantChanges"/> will never get called
+    /// <see cref="IValidator.NoIncrementalValidation"/>
+    /// </summary>
+    bool NoIncrementalValidation => false;
 
     /// <summary>
     /// The actual validation function

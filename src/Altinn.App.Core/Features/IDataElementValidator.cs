@@ -29,6 +29,12 @@ public interface IDataElementValidator
     string ValidationSource => $"{this.GetType().FullName}-{DataType}";
 
     /// <summary>
+    /// This validator is costly to run, and should only run on process/next or explicit validation requests.
+    /// <see cref="IValidator.NoIncrementalValidation"/>
+    /// </summary>
+    bool NoIncrementalValidation => true;
+
+    /// <summary>
     /// Run validations for a data element. This is supposed to run quickly
     /// </summary>
     /// <param name="instance">The instance to validate</param>
