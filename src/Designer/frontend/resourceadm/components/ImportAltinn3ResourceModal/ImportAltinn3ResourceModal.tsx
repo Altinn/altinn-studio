@@ -1,8 +1,15 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioRadio } from '@studio/components-legacy';
+import {
+  StudioButton,
+  StudioDialog,
+  StudioRadio,
+  StudioRadioGroup,
+  useStudioRadioGroup,
+} from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 interface ImportAltinn3ResourceModalProps {
   availableEnvs: EnvId[];
@@ -18,6 +25,11 @@ export const ImportAltinn3ResourceModal = forwardRef<
 
   const [selectedEnv, setSelectedEnv] = useState<EnvId | null>(null);
 
+  const { getRadioProps } = useStudioRadioGroup({
+    value: selectedEnv,
+    onChange: (value) => setSelectedEnv(value as EnvId),
+  });
+
   const onCloseModal = (): void => {
     setSelectedEnv(null);
     onClose();
@@ -29,12 +41,9 @@ export const ImportAltinn3ResourceModal = forwardRef<
   };
 
   return (
-    <StudioModal.Root>
-      <StudioModal.Dialog
-        ref={ref}
+    <StudioDialog ref={ref} onClose={onCloseModal}>
+      <ResourceAdmDialogContent
         heading={t('resourceadm.dashboard_import_environment_header')}
-        closeButtonTitle={t('resourceadm.close_modal')}
-        onClose={onCloseModal}
         footer={
           <>
             <StudioButton variant='primary' disabled={!selectedEnv} onClick={onImportResource}>
@@ -46,19 +55,13 @@ export const ImportAltinn3ResourceModal = forwardRef<
           </>
         }
       >
-        <StudioRadio.Group
-          legend={t('resourceadm.dashboard_import_environment_radio_header')}
-          value={selectedEnv ?? '-'} // bug: default value of radio cannot be null or undefined; that will cause the component to be uncontrolled until a value is set
-          onChange={(newEnv: string) => setSelectedEnv(newEnv as EnvId)}
-        >
+        <StudioRadioGroup legend={t('resourceadm.dashboard_import_environment_radio_header')}>
           {availableEnvs.map((env) => (
-            <StudioRadio key={env} value={env}>
-              {t(getEnvLabel(env))}
-            </StudioRadio>
+            <StudioRadio key={env} label={t(getEnvLabel(env))} {...getRadioProps({ value: env })} />
           ))}
-        </StudioRadio.Group>
-      </StudioModal.Dialog>
-    </StudioModal.Root>
+        </StudioRadioGroup>
+      </ResourceAdmDialogContent>
+    </StudioDialog>
   );
 });
 

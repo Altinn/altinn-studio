@@ -1,13 +1,7 @@
 import React from 'react';
 import classes from './MigrationPage.module.css';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import {
-  StudioHeading,
-  StudioParagraph,
-  StudioSpinner,
-  StudioLabelAsParagraph,
-  StudioLink,
-} from '@studio/components-legacy';
+import { StudioHeading, StudioParagraph, StudioSpinner, StudioLink } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
@@ -57,21 +51,17 @@ export const MigrationPage = ({
     if (isLoadingPublishStatus) {
       return (
         <div>
-          <StudioSpinner
-            size='xl'
-            variant='interaction'
-            spinnerTitle={t('resourceadm.loading_migration_status')}
-          />
+          <StudioSpinner data-size='xl' aria-label={t('resourceadm.loading_migration_status')} />
         </div>
       );
     }
     return (
       <>
-        <StudioHeading size='lg' spacing level={1}>
+        <StudioHeading data-size='lg' spacing level={1}>
           {t('resourceadm.migration_header')}
         </StudioHeading>
         <div className={classes.contentWrapper}>
-          <StudioParagraph size='sm' spacing>
+          <StudioParagraph data-size='sm' spacing>
             {t('resourceadm.migration_ingress')}{' '}
             <strong>{t('resourceadm.migration_ingress_warning')} </strong>
             <StudioLink
@@ -87,10 +77,10 @@ export const MigrationPage = ({
             </StudioLink>
           </StudioParagraph>
           <div className={classes.contentDivider} />
-          <StudioLabelAsParagraph size='md' spacing htmlFor='selectEnvDropdown'>
+          <StudioHeading data-size='sm' level={2}>
             {t('resourceadm.migration_select_environment_header')}
-          </StudioLabelAsParagraph>
-          <StudioParagraph size='sm'>
+          </StudioHeading>
+          <StudioParagraph data-size='sm'>
             {t('resourceadm.migration_select_environment_body')}
           </StudioParagraph>
           <div className={classes.environmentWrapper}>

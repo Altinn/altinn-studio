@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ServiceContentProps } from './ServiceContent';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -51,7 +51,9 @@ describe('ServiceContent', () => {
   it('initially displays the spinner when loading data', () => {
     renderServiceContent();
 
-    expect(screen.getByTitle(textMock('resourceadm.import_resource_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.import_resource_spinner')),
+    ).toBeInTheDocument();
   });
 
   it('fetches getAltinn2LinkServices on mount', () => {
@@ -69,7 +71,7 @@ describe('ServiceContent', () => {
     );
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.import_resource_spinner')),
     );
 
     expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
@@ -81,7 +83,7 @@ describe('ServiceContent', () => {
     renderServiceContent();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.import_resource_spinner')),
     );
 
     const emptyListError = screen.getByText(
@@ -111,9 +113,7 @@ describe('ServiceContent', () => {
     const select = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(select);
-    await user.click(screen.getByRole('option', { name: mockOption }));
-    await waitFor(() => expect(select).toHaveValue(mockOption));
+    await user.selectOptions(select, mockOption);
 
     expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2LinkService);
   });
@@ -125,9 +125,7 @@ describe('ServiceContent', () => {
     const select = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(select);
-    await user.click(screen.getByRole('option', { name: mockHyphenOption }));
-    await waitFor(() => expect(select).toHaveValue(mockHyphenOption));
+    await user.selectOptions(select, mockHyphenOption);
 
     expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2HyphenLinkService);
   });
@@ -140,7 +138,7 @@ const resolveAndWaitForSpinnerToDisappear = async (props: Partial<ServiceContent
 
   renderServiceContent(props, { getAltinn2LinkServices });
   await waitForElementToBeRemoved(() =>
-    screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
+    screen.queryByLabelText(textMock('resourceadm.import_resource_spinner')),
   );
 };
 

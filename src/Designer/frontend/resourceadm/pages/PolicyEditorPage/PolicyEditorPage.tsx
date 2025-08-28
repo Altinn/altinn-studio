@@ -6,7 +6,7 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
-import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
+import { StudioSpinner, StudioHeading } from '@studio/components';
 import { useResourcePolicyQuery, useSinlgeResourceQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
@@ -93,11 +93,7 @@ export const PolicyEditorPage = ({
     ) {
       return (
         <div className={classes.spinnerWrapper}>
-          <StudioSpinner
-            size='xl'
-            variant='interaction'
-            spinnerTitle={t('resourceadm.policy_editor_spinner')}
-          />
+          <StudioSpinner data-size='xl' aria-label={t('resourceadm.policy_editor_spinner')} />
         </div>
       );
     }
@@ -124,7 +120,7 @@ export const PolicyEditorPage = ({
 
   return (
     <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
-      <StudioHeading size='lg' spacing level={1}>
+      <StudioHeading data-size='lg' spacing level={1}>
         {t('resourceadm.policy_editor_title')}
       </StudioHeading>
       {displayContent()}
