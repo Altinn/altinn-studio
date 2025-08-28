@@ -9,13 +9,13 @@ import { UiEditor } from 'app-development/features/uiEditor/UiEditor';
 import { AppSettings } from 'app-development/features/appSettings/AppSettings';
 
 interface RouterRoute {
-  path: RoutePaths;
+  path: string;
   subapp: any;
 }
 
 export const routerRoutes: RouterRoute[] = [
   {
-    path: RoutePaths.UIEditor,
+    path: RoutePaths.UIEditor + '/*',
     subapp: UiEditor,
   },
   {

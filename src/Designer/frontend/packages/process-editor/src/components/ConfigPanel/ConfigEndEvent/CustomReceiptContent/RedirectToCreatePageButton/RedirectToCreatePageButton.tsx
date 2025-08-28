@@ -1,23 +1,21 @@
 import React from 'react';
 import classes from './RedirectToCreatePageButton.module.css';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
-import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useNavigate } from 'react-router-dom';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const packagesRouter = new PackagesRouter({ org, app });
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
+  const navigate = useNavigate();
 
-  const [, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app);
-
-  const handleClick = () => {
-    setSelectedLayoutSet(existingCustomReceiptLayoutSetId);
+  const navigateToLayoutSet = () => {
+    navigate(getLayoutSetPath(org, app, existingCustomReceiptLayoutSetId));
   };
 
   return (
@@ -26,12 +24,10 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
         <StudioButton
-          as='a'
           className={classes.link}
           color='second'
-          href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+          onClick={navigateToLayoutSet}
           icon={<PencilWritingIcon />}
-          onClick={handleClick}
           variant='primary'
         >
           {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}

@@ -13,6 +13,7 @@ import {
 } from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
 
@@ -30,7 +31,8 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
 }: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const { updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const componentPropertyHelpText = useComponentPropertyHelpText();
 
   const handleValueChange = async (newValue: number) => {
@@ -39,7 +41,7 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
       setComponentProperty<T, number, K>(component, propertyKey, nonNullValue),
       {
         onSuccess: async () => {
-          await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+          await updateLayoutsForPreview(layoutSet, true);
         },
       },
     );
