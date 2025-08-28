@@ -1,0 +1,62 @@
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { PolicySubject } from '@altinn/policy-editor/types';
+import { StudioAlert, StudioCheckbox, StudioSearch } from '@studio/components';
+import { PersonTallShortIcon } from '@studio/icons';
+import classes from './PolicySubjectsNew.module.css';
+import { hasSubject } from '@altinn/policy-editor/utils/PolicyRuleUtils';
+
+interface RoleListProps {
+  selectedSubjects: string[];
+  subjects: PolicySubject[];
+  heading: string;
+  handleChange: (subject: string) => void;
+}
+export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: RoleListProps) => {
+  const { t } = useTranslation();
+  const [search, setSearch] = useState<string>('');
+
+  const filteredSubjects = subjects.filter((subject) => {
+    const isTitleMatch = subject.name.toLowerCase().includes(search.toLowerCase());
+    const isIdMatch = subject.legacyRoleCode?.toLowerCase().includes(search.toLowerCase());
+    const isDescriptionMatch = subject.description?.toLowerCase().includes(search.toLowerCase());
+    return isTitleMatch || isIdMatch || isDescriptionMatch;
+  });
+
+  return (
+    <div className={classes.subjectList}>
+      <StudioSearch
+        label=''
+        aria-label={t('policy_editor.rule_card_subjects_search', { searchCollection: heading })}
+        value={search}
+        onChange={(event: any) => setSearch(event.target.value)}
+      />
+      {!!search && !filteredSubjects.length && (
+        <StudioAlert data-color='info'>
+          {t('policy_editor.rule_card_subjects_search_no_results', { searchCollection: heading })}
+        </StudioAlert>
+      )}
+      {filteredSubjects.map((subject) => {
+        const subjectTitle = `${subject.name} (${subject.legacyRoleCode})`;
+        return (
+          <div key={subject.legacyUrn} className={classes.subjectItem}>
+            <PersonTallShortIcon className={classes.iconContainer} />
+            <div className={classes.subjectTitle}>
+              {subjectTitle}
+              <div data-color='neutral' className={classes.subjectSubTitle}>
+                {subject.description}
+              </div>
+            </div>
+            <StudioCheckbox
+              data-size='md'
+              className={classes.subjectCheckbox}
+              checked={hasSubject(selectedSubjects, subject.legacyUrn)}
+              onChange={() => handleChange(subject.legacyUrn)}
+              aria-label={subjectTitle}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
