@@ -5,13 +5,13 @@ on:
     paths:
       - 'src/Designer/testdata/**'
       - 'src/Designer/backend/**'
-      - 'designer-dotnet-test.yaml'
+      - '.github/workflows/designer-dotnet-test.yaml'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
-      - 'designer-dotnet-test.yaml'
+      - '.github/workflows/designer-dotnet-test.yaml'
 
   workflow_dispatch:
 
