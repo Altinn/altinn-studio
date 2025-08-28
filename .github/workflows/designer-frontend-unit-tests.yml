@@ -3,9 +3,9 @@ name: Designer Frontend Tests
 on:
   push:
     paths:
-      - 'frontend/**'
-      - '!frontend/testing/cypress/**'
-      - '!frontend/stats/**'
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
@@ -92,5 +92,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          directory: frontend/coverage
+          directory: src/Designer/frontend/coverage
           fail_ci_if_error: true
