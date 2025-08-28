@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { ArrowLeftIcon } from '@studio/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useBackToEditingHref } from 'app-preview/src/hooks/useBackToEditingHref';
+import { useBackToEditingHref } from '../../hooks/useBackToEditingHref';
 
 export const AppPreviewSubMenu = () => {
   const { t } = useTranslation();

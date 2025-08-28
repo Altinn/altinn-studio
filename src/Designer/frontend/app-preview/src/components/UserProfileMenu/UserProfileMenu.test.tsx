@@ -6,7 +6,7 @@ import { useMediaQuery } from '@studio/components-legacy';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
-import { renderWithProviders } from 'app-preview/test/mocks';
+import { renderWithProviders } from '../../../test/mocks';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 

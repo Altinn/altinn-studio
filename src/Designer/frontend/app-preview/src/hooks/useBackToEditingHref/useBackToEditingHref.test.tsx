@@ -1,6 +1,6 @@
 import { useBackToEditingHref } from './useBackToEditingHref';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { renderHookWithProviders } from 'app-preview/test/mocks';
+import { renderHookWithProviders } from '../../../test/mocks';
 import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 

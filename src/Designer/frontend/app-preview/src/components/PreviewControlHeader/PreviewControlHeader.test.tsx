@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from 'app-preview/test/mocks';
+import { renderWithProviders } from '../../../test/mocks';
 import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
