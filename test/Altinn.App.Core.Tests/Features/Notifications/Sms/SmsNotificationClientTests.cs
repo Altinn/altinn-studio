@@ -1,7 +1,4 @@
-namespace Altinn.App.Core.Tests.Features.Notifications.Sms;
-
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -18,7 +15,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using Xunit;
+
+namespace Altinn.App.Core.Tests.Features.Notifications.Sms;
 
 public class SmsNotificationClientTests
 {
@@ -255,7 +253,9 @@ public class SmsNotificationClientTests
 
         services.AddSingleton<IAppMetadata>(new Mock<IAppMetadata>().Object);
         services.AddSingleton<IAccessTokenGenerator>(new Mock<IAccessTokenGenerator>().Object);
-        services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(new PlatformSettings()));
+        services.AddSingleton<IOptions<PlatformSettings>>(
+            Microsoft.Extensions.Options.Options.Create(new PlatformSettings())
+        );
         services.AddLogging(logging =>
         {
             logging.ClearProviders();

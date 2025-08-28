@@ -1,7 +1,7 @@
-namespace Altinn.App.Core.Features.Payment;
-
+using Altinn.App.Core.Features.Payment.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Models;
+
+namespace Altinn.App.Core.Features.Payment;
 
 /// <summary>
 /// Interface that app developers need to implement in order to use the payment feature

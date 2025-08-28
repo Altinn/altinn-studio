@@ -1,12 +1,11 @@
 #nullable disable
-namespace Altinn.App.Core.Tests.Infrastructure.Clients.KeyVault;
-
 using System.Text.Json;
 using Altinn.App.Core.Infrastructure.Clients.KeyVault;
 using FluentAssertions;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.Configuration;
-using Xunit;
+
+namespace Altinn.App.Core.Tests.Infrastructure.Clients.KeyVault;
 
 public class SecretsLocalClientTests
 {

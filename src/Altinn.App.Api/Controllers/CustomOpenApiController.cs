@@ -1,14 +1,8 @@
-using Altinn.App.Core.Constants;
-
-namespace Altinn.App.Api.Controllers;
-
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process;
@@ -22,6 +16,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
+
+namespace Altinn.App.Api.Controllers;
 
 /// <summary>
 /// Generate custom OpenAPI documentation for the app that includes all the data types and operations

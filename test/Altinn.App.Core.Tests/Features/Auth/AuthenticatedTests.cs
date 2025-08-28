@@ -1,5 +1,3 @@
-namespace Altinn.App.Core.Tests.Features.Auth;
-
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO.Hashing;
@@ -12,6 +10,8 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Constants;
 using static Altinn.App.Core.Features.Auth.Authenticated;
+
+namespace Altinn.App.Core.Tests.Features.Auth;
 
 public class AuthenticatedTests
 {

@@ -1,7 +1,7 @@
-namespace Altinn.App.Api.Tests.Utils;
-
 using System.Text;
 using System.Text.Json;
+
+namespace Altinn.App.Api.Tests.Utils;
 
 public static class JsonUtils
 {

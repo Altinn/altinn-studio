@@ -1,6 +1,6 @@
-namespace Altinn.App.Core.Tests.Features.Auth;
-
 using Altinn.App.Core.Features.Auth;
+
+namespace Altinn.App.Core.Tests.Features.Auth;
 
 public class ScopesTests
 {

@@ -1,6 +1,6 @@
-﻿namespace Altinn.App.Core.Helpers;
+﻿using System.Text.RegularExpressions;
 
-using System.Text.RegularExpressions;
+namespace Altinn.App.Core.Helpers;
 
 /// <summary>
 /// Provides methods to sanitize user-controlled input before logging.
