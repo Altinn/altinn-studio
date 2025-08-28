@@ -7,12 +7,13 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'src/App/app-template-dotnet/**'
+      - '.github/workflows/app-template-dotnet-test.yml'
   workflow_dispatch:
 jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest,windows-latest,ubuntu-latest]
+        os: [macos-latest,ubuntu-latest] # fix path too long for windows-latest
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
@@ -26,6 +27,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          path:
       - name: Build
         run: |
            dotnet build src/App.sln -v m
