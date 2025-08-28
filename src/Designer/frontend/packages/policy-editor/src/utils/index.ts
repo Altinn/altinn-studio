@@ -20,21 +20,34 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
-export const organizationSubject: PolicySubject = {
-  subjectId: 'organization',
-  subjectSource: 'altinn:partytype',
-  subjectTitle: '',
-  subjectDescription: '',
+export const policySubjectOrg: PolicySubject = {
+  id: '[org]',
+  name: 'Organisasjonen som eier tjenesten', // TODO: mer beskrivende navn på denne
+  description: '[org]',
+  legacyRoleCode: '[org]',
+  urn: 'urn:altinn:org:[org]',
+  legacyUrn: 'urn:altinn:org:[org]',
+  provider: {
+    code: 'sys-internal',
+    id: '',
+    name: '',
+  },
 };
-export const accessListSubjectSource = 'altinn:accesslist';
 
-export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
-  const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
-    const splitted = policySubject.split(':');
-    return splitted[splitted.length - 1];
-  };
-  return policySubjects.map(extractPolicyIdFromPolicySubject);
+export const organizationSubject: PolicySubject = {
+  id: 'organization',
+  legacyUrn: 'urn:altinn:partytype:organization',
+  urn: 'urn:altinn:partytype:organization',
+  name: 'Organisasjon',
+  description: '',
+  legacyRoleCode: 'organization',
+  provider: {
+    code: 'sys-internal',
+    id: '',
+    name: 'Intern',
+  },
 };
+export const accessListSubjectSource = 'urn:altinn:accesslist';
 
 /**
  * Maps the resource string from backend to a resource object with type and id.
@@ -65,7 +78,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       resource.map((resource) => mapResourceFromBackendToResource(resource)),
     );
 
-    const subjectIds: string[] = extractPolicyIdsFromPolicySubjects(r.subject);
+    const subjectIds: string[] = r.subject;
 
     return {
       ruleId: id,
@@ -87,11 +100,11 @@ export const mapSubjectIdToSubjectString = (
   subjectId: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find(
-    (s) => s.subjectId.toLowerCase() === subjectId.toLowerCase(),
+    (s) => s.legacyUrn.toLowerCase() === subjectId.toLowerCase(),
   );
 
   if (!subject) return;
-  return `urn:${subject.subjectSource}:${subject.subjectId}`;
+  return subject.legacyUrn;
 };
 
 /**
@@ -200,16 +213,15 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   rules: PolicyRule[],
   subjects: PolicySubject[],
 ): PolicySubject[] => {
-  const existingSubjectIds = subjects.map((subject) => subject.subjectId);
+  const existingSubjectIds = subjects.map((subject) => subject.legacyUrn);
   const copiedSubjects = ObjectUtils.deepCopy(subjects);
 
   rules.forEach((rule) => {
     rule.subject.forEach((subjectString) => {
-      const subjectId = convertSubjectStringToSubjectId(subjectString);
-      if (!existingSubjectIds.includes(subjectId.toLowerCase())) {
+      if (!existingSubjectIds.some((s) => s.toLowerCase() === subjectString.toLowerCase())) {
         const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
         copiedSubjects.push(newSubject);
-        existingSubjectIds.push(subjectId);
+        existingSubjectIds.push(subjectString);
       }
     });
   });
@@ -226,27 +238,18 @@ export const convertSubjectStringToSubjectId = (subjectString: string): string =
 export const createNewSubjectFromSubjectString = (subjectString: string): PolicySubject => {
   const subjectId: string = convertSubjectStringToSubjectId(subjectString);
   return {
-    subjectId: subjectId.toLowerCase(),
-    subjectTitle: subjectId,
-    subjectSource: convertSubjectStringToSubjectSource(subjectString),
-    subjectDescription: '',
+    legacyRoleCode: subjectId.toLowerCase(),
+    name: subjectId,
+    legacyUrn: subjectString,
+    urn: subjectString,
+    description: '',
+    id: '',
+    provider: {
+      code: 'sys-internal',
+      id: '',
+      name: '',
+    },
   };
-};
-
-export const convertSubjectStringToSubjectSource = (subjectString: string): string => {
-  const firstColonIndex = subjectString.indexOf(':');
-  const lastColonIndex = subjectString.lastIndexOf(':');
-  // Starting at 1 to remove 'urn', and excluding the final to remove the id
-  return subjectString.slice(firstColonIndex + 1, lastColonIndex);
-};
-
-export const findSubjectByPolicyRuleSubject = (
-  subjectOptions: PolicySubject[],
-  policyRuleSubject: string,
-): PolicySubject => {
-  return subjectOptions.find(
-    (subject) => subject.subjectId.toLowerCase() === policyRuleSubject.toLowerCase(),
-  );
 };
 
 const findLargestNumberedRuleId = (rules: PolicyRuleCard[]): number | undefined => {
