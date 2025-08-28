@@ -10,7 +10,7 @@ import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
-import cn from 'classnames';
+import { SelectedSubjectsList } from './SelectedSubjectsList';
 
 const hasSubject = (subjectList: string[], subject: string): boolean => {
   return subjectList.some((s) => s.toLowerCase() === subject.toLowerCase());
@@ -84,65 +84,33 @@ export const PolicySubjectsNew = () => {
       <div data-color='neutral' className={classes.subjectDescription}>
         {t('policy_editor.rule_card_subjects_subtitle')}
       </div>
-      {policyRule.subject.length > 0 && (
-        <div className={classes.subjectList}>
-          <div className={classes.subjectTitle}>
-            {t('policy_editor.rule_card_subjects_chosen_roles')}
-          </div>
-          {policyRule.subject.map((subjectId) => {
-            const subject = subjects.find(
-              (s) => s.legacyUrn.toLowerCase() === subjectId.toLowerCase(),
-            );
-            const subjectTitle = `${subject.name} (${subject.legacyRoleCode})`;
-            return (
-              <div
-                key={`${subject.legacyUrn}-selected`}
-                className={cn(classes.subjectItem, classes.selectedSubject)}
-              >
-                <PersonTallShortIcon className={classes.iconContainer} />
-                <div className={classes.subjectTitle}>{subjectTitle}</div>
-                <StudioCheckbox
-                  data-size='md'
-                  className={classes.subjectCheckbox}
-                  checked={true}
-                  onChange={() => handleSubjectChange(subjectId)}
-                  aria-label={subjectTitle}
-                />
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {policyRule.accessPackages.length > 0 && (
-        <div className={classes.subjectList}>
-          <div className={classes.subjectTitle}>
-            {t('policy_editor.rule_card_subjects_chosen_access_packages')}
-          </div>
-          {policyRule.accessPackages.map((accessPackageUrn) => {
-            let accessPackage = accessPackageList.find((s) => s.urn === accessPackageUrn);
-            if (!accessPackage) {
-              accessPackage = createUnknownAccessPackageData(accessPackageUrn);
-            }
-            const title = accessPackage.name;
-            return (
-              <div
-                key={`${accessPackage.urn}-selected`}
-                className={cn(classes.subjectItem, classes.selectedSubject)}
-              >
-                <PackageIcon className={classes.iconContainer} />
-                <div className={classes.subjectTitle}>{title}</div>
-                <StudioCheckbox
-                  data-size='md'
-                  className={classes.subjectCheckbox}
-                  checked={true}
-                  onChange={() => handleAccessPackageChange(accessPackage.urn)}
-                  aria-label={title}
-                />
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <SelectedSubjectsList
+        items={policyRule.subject.map((urn) => {
+          const subject = subjects.find((s) => s.legacyUrn.toLowerCase() === urn.toLowerCase());
+          return {
+            urn: urn,
+            title: `${subject.name} (${subject.legacyRoleCode})`,
+          };
+        })}
+        title={t('policy_editor.rule_card_subjects_chosen_roles')}
+        icon={<PersonTallShortIcon className={classes.iconContainer} />}
+        handleChange={handleSubjectChange}
+      />
+      <SelectedSubjectsList
+        items={policyRule.accessPackages.map((accessPackageUrn) => {
+          let accessPackage = accessPackageList.find((s) => s.urn === accessPackageUrn);
+          if (!accessPackage) {
+            accessPackage = createUnknownAccessPackageData(accessPackageUrn);
+          }
+          return {
+            urn: accessPackageUrn,
+            title: accessPackage.name,
+          };
+        })}
+        title={t('policy_editor.rule_card_subjects_chosen_access_packages')}
+        icon={<PackageIcon className={classes.iconContainer} />}
+        handleChange={handleAccessPackageChange}
+      />
       <StudioTabs defaultValue={TabId.ErRoles}>
         <StudioTabs.List>
           <StudioTabs.Tab value={TabId.ErRoles}>

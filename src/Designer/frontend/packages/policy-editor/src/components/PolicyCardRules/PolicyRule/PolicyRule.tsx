@@ -11,7 +11,7 @@ import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { getNewRuleId } from '../../../utils';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { PolicySubjectsNew } from './PolicySubjectsNew/PolicySubjectsNew';
+import { PolicySubjectsNew } from './PolicySubjectsNew';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
