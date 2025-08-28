@@ -4,6 +4,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -145,7 +146,7 @@ export const RepGroupHooks = {
     const rows = RepGroupHooks.useAllBaseRows(baseComponentId);
     const row = _row === 'first' ? rows[0] : 'uuid' in _row ? rows.find((r) => r.uuid === _row.uuid) : rows[_row.index];
 
-    return useMemo(() => {
+    return useMemoDeepEqual(() => {
       if (!groupBinding || !row) {
         return undefined;
       }

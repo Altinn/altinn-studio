@@ -5,8 +5,8 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { createContext } from 'src/core/contexts/context';
-import { DisplayError as DefaultDisplayError } from 'src/core/errorHandling/DisplayError';
-import { Loader as DefaultLoader } from 'src/core/loading/Loader';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
 import type { LaxContextProps, StrictContextProps } from 'src/core/contexts/context';
 
 type Err = Error | AxiosError;
@@ -18,17 +18,9 @@ type Query<Req extends boolean, QueryData> = () => Req extends true
 
 type ContextProps<Ctx, Req extends boolean> = Req extends true ? StrictContextProps : LaxContextProps<Ctx>;
 
-export type QueryContextProps<QueryData, Req extends boolean, ContextData = QueryData> = ContextProps<
-  ContextData,
-  Req
-> & {
+export type QueryContextProps<QueryData, Req extends boolean> = ContextProps<QueryData, Req> & {
   query: Query<Req, QueryData>;
-
-  process?: (data: QueryData) => ContextData;
   shouldDisplayError?: (error: Err) => boolean;
-
-  DisplayError?: React.ComponentType<{ error: Err }>;
-  Loader?: React.ComponentType<{ reason: string }>;
 };
 
 /**
@@ -38,26 +30,16 @@ export type QueryContextProps<QueryData, Req extends boolean, ContextData = Quer
  * Remember to call this through a delayedContext() call to prevent problems with cyclic imports.
  * @see delayedContext
  */
-export function createQueryContext<QD, Req extends boolean, CD = QD>(props: QueryContextProps<QD, Req, CD>) {
-  const {
-    name,
-    required,
-    query,
-    process = (i: QD) => i as unknown as CD,
-    shouldDisplayError = () => true,
-    DisplayError = DefaultDisplayError,
-    Loader = DefaultLoader,
-    ...rest
-  } = props;
+export function createQueryContext<QD, Req extends boolean>(props: QueryContextProps<QD, Req>) {
+  const { name, required, query: useQuery, shouldDisplayError = () => true, ...rest } = props;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<CD>({ name, required, ...(rest as any) });
-  const defaultValue = ('default' in rest ? rest.default : undefined) as CD;
+  const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<QD>({ name, required, ...(rest as any) });
+  const defaultValue = ('default' in rest ? rest.default : undefined) as QD;
 
-  const WrappingProvider = ({ children }: PropsWithChildren) => {
-    const { data, isPending, error, ...rest } = query();
+  function WrappingProvider({ children }: PropsWithChildren) {
+    const { data, isPending, error, ...rest } = useQuery();
     const enabled = 'enabled' in rest && !required ? rest.enabled : true;
-
-    const value = useMemo(() => (typeof data !== 'undefined' ? process(data) : undefined), [data]);
+    const value = useMemo(() => data, [data]);
 
     if (enabled && isPending) {
       return <Loader reason={`query-${name}`} />;
@@ -68,7 +50,7 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
     }
 
     return <Provider value={enabled ? (value ?? defaultValue) : defaultValue}>{children}</Provider>;
-  };
+  }
 
   return {
     Provider: WrappingProvider,

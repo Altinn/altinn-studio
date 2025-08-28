@@ -12,15 +12,18 @@ export function useTableComponentIds(baseComponentId: string) {
   const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
   const tableHeaders = component.tableHeaders;
   const multiPage = component.edit?.multiPage ?? false;
-  const children =
-    component.children.map((id) => {
-      if (multiPage) {
-        const [, childId] = id.split(':', 2);
-        return layoutLookups.getComponent(childId);
-      }
+  const children = useMemo(
+    () =>
+      component.children.map((id) => {
+        if (multiPage) {
+          const [, childId] = id.split(':', 2);
+          return layoutLookups.getComponent(childId);
+        }
 
-      return layoutLookups.getComponent(id);
-    }) ?? emptyArray;
+        return layoutLookups.getComponent(id);
+      }) ?? emptyArray,
+    [component.children, layoutLookups, multiPage],
+  );
 
   return useMemo(() => {
     const ids = children

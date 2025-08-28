@@ -147,7 +147,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               key={`edit-container-${row.uuid}`}
               baseComponentId={baseComponentId}
               dataModelBindings={dataModelBindings}
-              row={row}
+              index={row.index}
+              uuid={row.uuid}
               displayDeleteColumn={displayDeleteColumn}
               displayEditColumn={displayEditColumn}
               tableIds={tableIds}
@@ -170,16 +171,16 @@ function RowToDisplay({
   dataModelBindings: { group },
   displayDeleteColumn,
   displayEditColumn,
-  row: { index, uuid },
+  index,
+  uuid,
   tableIds,
 }: {
   baseComponentId: string;
   dataModelBindings: IDataModelBindings<'RepeatingGroup'>;
-  row: BaseRow;
   displayDeleteColumn: boolean;
   displayEditColumn: boolean;
   tableIds: string[];
-}) {
+} & BaseRow) {
   const component = useExternalItem(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);

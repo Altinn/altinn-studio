@@ -14,11 +14,11 @@ import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 // Also used for prefetching @see formPrefetcher.ts
-export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ILayoutSettings | null> {
+export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ProcessedLayoutSettings> {
   const { fetchLayoutSettings } = useAppQueries();
   return {
     queryKey: ['layoutSettings', layoutSetId],
-    queryFn: () => (layoutSetId ? fetchLayoutSettings(layoutSetId) : null),
+    queryFn: async () => processData(layoutSetId ? await fetchLayoutSettings(layoutSetId) : null),
   };
 }
 
@@ -33,50 +33,53 @@ function useLayoutSettingsQuery() {
   return query;
 }
 
+function processData(settings: ILayoutSettings | null): ProcessedLayoutSettings {
+  if (!settings) {
+    return {
+      order: [],
+      groups: [],
+      pageSettings: {},
+      pdfLayoutName: undefined,
+    };
+  }
+
+  if (!('order' in settings.pages) && !('groups' in settings.pages)) {
+    const msg = 'Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json';
+    window.logError(msg);
+    throw new Error(msg);
+  }
+  if ('order' in settings.pages && 'groups' in settings.pages) {
+    const msg = 'Specify one of `pages.order` or `pages.groups` in Settings.json';
+    window.logError(msg);
+    throw new Error(msg);
+  }
+
+  const order: string[] =
+    'order' in settings.pages
+      ? settings.pages.order
+      : settings.pages.groups.filter((group) => 'order' in group).flatMap((group) => group.order);
+
+  return {
+    order,
+    groups: 'groups' in settings.pages ? settings.pages.groups.map((g) => ({ ...g, id: uuidv4() })) : undefined,
+    pageSettings: omitUndefined({
+      autoSaveBehavior: settings.pages.autoSaveBehavior,
+      expandedWidth: settings.pages.expandedWidth,
+      hideCloseButton: settings.pages.hideCloseButton,
+      showExpandWidthButton: settings.pages.showExpandWidthButton,
+      showLanguageSelector: settings.pages.showLanguageSelector,
+      showProgress: settings.pages.showProgress,
+      taskNavigation: settings.pages.taskNavigation?.map((g) => ({ ...g, id: uuidv4() })),
+    }),
+    pdfLayoutName: settings.pages.pdfLayoutName,
+  };
+}
+
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
-  createQueryContext<ILayoutSettings | null, true, ProcessedLayoutSettings>({
+  createQueryContext<ProcessedLayoutSettings, true>({
     name: 'LayoutSettings',
     required: true,
     query: useLayoutSettingsQuery,
-    process: (settings) => {
-      if (!settings) {
-        return {
-          order: [],
-          groups: [],
-          pageSettings: {},
-          pdfLayoutName: undefined,
-        };
-      }
-
-      if (!('order' in settings.pages) && !('groups' in settings.pages)) {
-        window.logError('Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json');
-        throw 'Missing page order, specify one of `pages.order` or `pages.groups` in Settings.json';
-      }
-      if ('order' in settings.pages && 'groups' in settings.pages) {
-        window.logError('Both `pages.order` and `pages.groups` was set in Settings.json');
-        throw 'Both `pages.order` and `pages.groups` was set in Settings.json';
-      }
-
-      const order: string[] =
-        'order' in settings.pages
-          ? settings.pages.order
-          : settings.pages.groups.filter((group) => 'order' in group).flatMap((group) => group.order);
-
-      return {
-        order,
-        groups: 'groups' in settings.pages ? settings.pages.groups.map((g) => ({ ...g, id: uuidv4() })) : undefined,
-        pageSettings: omitUndefined({
-          autoSaveBehavior: settings.pages.autoSaveBehavior,
-          expandedWidth: settings.pages.expandedWidth,
-          hideCloseButton: settings.pages.hideCloseButton,
-          showExpandWidthButton: settings.pages.showExpandWidthButton,
-          showLanguageSelector: settings.pages.showLanguageSelector,
-          showProgress: settings.pages.showProgress,
-          taskNavigation: settings.pages.taskNavigation?.map((g) => ({ ...g, id: uuidv4() })),
-        }),
-        pdfLayoutName: settings.pages.pdfLayoutName,
-      };
-    },
   }),
 );
 

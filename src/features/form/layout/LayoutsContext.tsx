@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
 
@@ -57,15 +57,18 @@ function useLayoutQuery() {
     utils.error && window.logError('Fetching form layout failed:\n', utils.error);
   }, [utils.error]);
 
-  return utils.data
-    ? {
-        ...utils,
-        data: {
-          ...utils.data,
-          lookups: makeLayoutLookups(utils.data.layouts),
-        },
-      }
-    : utils;
+  const data = useMemo(() => {
+    if (utils.data) {
+      return {
+        ...utils.data,
+        lookups: makeLayoutLookups(utils.data.layouts),
+      };
+    }
+
+    return utils.data;
+  }, [utils.data]);
+
+  return { ...utils, data };
 }
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
   createQueryContext({

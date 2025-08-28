@@ -357,26 +357,16 @@ export function RepeatingGroupProvider({ baseComponentId, children }: PropsWithC
 
 export const useRepeatingGroupComponentId = () => ZStore.useSelector((state) => state.baseComponentId);
 
-function useDelayedSelector() {
-  return ZStore.useDelayedSelector({
-    mode: 'innerSelector',
-    makeArgs: (state) => [state],
-  });
-}
-
 function useMaybeValidateRow() {
+  const store = ZStore.useStore();
   const baseComponentId = useRepeatingGroupComponentId();
-  const delayedSelector = useDelayedSelector();
   const { validateOnSaveRow } = useExternalItem(baseComponentId, 'RepeatingGroup');
   const onGroupCloseValidation = useOnGroupCloseValidation();
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
-  const getState = () => produceStateFromRows(getRows() ?? []);
 
   return () => {
-    const editingAll = delayedSelector((s) => s.editingAll, []);
-    const editingId = delayedSelector((s) => s.editingId, []);
-    const editingNone = delayedSelector((s) => s.editingNone, []);
-    const index = getState().editableRows.find((row) => row.uuid === editingId)?.index;
+    const { editingAll, editingId, editingNone } = store.getState();
+    const index = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId)?.index;
     if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || index === undefined) {
       return Promise.resolve(false);
     }
@@ -419,16 +409,16 @@ export const RepGroupContext = {
     return ZStore.useSelector((state) => (uuid ? state.deletingIds.includes(uuid) : false));
   },
   useToggleEditing() {
+    const store = ZStore.useStore();
     const rawOpenForEditing = ZStore.useStaticSelector((state) => state.openForEditing);
     const rawCloseForEditing = ZStore.useStaticSelector((state) => state.closeForEditing);
-    const delayedSelector = useDelayedSelector();
     const maybeValidateRow = useMaybeValidateRow();
 
     return async (row: BaseRow) => {
       if (await maybeValidateRow()) {
         return;
       }
-      const editingId = delayedSelector((s) => s.editingId, []);
+      const editingId = store.getState().editingId;
       if (editingId === row.uuid) {
         rawCloseForEditing(row);
       } else {
@@ -481,20 +471,16 @@ export const RepGroupContext = {
     };
   },
   useChangePageToRow() {
+    const store = ZStore.useStore();
     const baseComponentId = useRepeatingGroupComponentId();
     const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
-    const delayedSelector = useDelayedSelector();
     const maybeValidateRow = useMaybeValidateRow();
 
     const { pagination } = useExternalItem(baseComponentId, 'RepeatingGroup');
     const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
     const getState = () => produceStateFromRows(getRows() ?? []);
     const getPaginationState = () =>
-      producePaginationState(
-        delayedSelector((s) => s.currentPage, []),
-        pagination,
-        getState().visibleRows,
-      );
+      producePaginationState(store.getState().currentPage, pagination, getState().visibleRows);
 
     return async (row: BaseRow) => {
       if (await maybeValidateRow()) {

@@ -22,10 +22,10 @@ const useTextResourcesQuery = () => {
   const enabled = useIsCurrentLanguageResolved();
 
   const utils = {
-    ...useQueryWithStaleData<ITextResourceResult, HttpClientError>({
+    ...useQueryWithStaleData<TextResourceMap, HttpClientError>({
       enabled,
       queryKey: ['fetchTextResources', selectedLanguage],
-      queryFn: () => fetchTextResources(selectedLanguage),
+      queryFn: async () => convertResult(await fetchTextResources(selectedLanguage)),
     }),
     enabled,
   };
@@ -38,12 +38,11 @@ const useTextResourcesQuery = () => {
 };
 
 const { Provider, useCtx, useHasProvider } = delayedContext(() =>
-  createQueryContext<ITextResourceResult, false, TextResourceMap>({
+  createQueryContext<TextResourceMap, false>({
     name: 'TextResources',
     required: false,
     default: {},
     query: useTextResourcesQuery,
-    process: convertResult,
   }),
 );
 
