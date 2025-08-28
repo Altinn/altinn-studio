@@ -1,12 +1,17 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
-import type { TabsContentProps } from './TabsContent';
-import { renderWithProviders } from 'app-development/test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { SettingsTabId } from '../../types/SettingsTabId';
+import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
+import { MemoryRouter } from 'react-router-dom';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+
+const tabs: SettingsPageTabId[] = ['about', 'setup', 'policy', 'access_control', 'maskinporten'];
 
 describe('TabsContent', () => {
   afterEach(() => {
@@ -14,47 +19,38 @@ describe('TabsContent', () => {
     typedLocalStorage.removeItem('featureFlags');
   });
 
-  it('should render About tab content when currentTab is "about"', () => {
-    renderTabsContent({ currentTab: 'about' });
-    expect(screen.getByText('About tab')).toBeInTheDocument();
-  });
-
-  it('should render Setup tab content when currentTab is "setup"', () => {
-    renderTabsContent({ currentTab: 'setup' });
-    expect(screen.getByText('Setup tab')).toBeInTheDocument();
-  });
-
-  it('should render Policy tab content when currentTab is "policy"', () => {
-    renderTabsContent({ currentTab: 'policy' });
-    expect(screen.getByText('Policy tab')).toBeInTheDocument();
-  });
-
-  it('should render Access Control tab content when currentTab is "access_control"', () => {
-    renderTabsContent({ currentTab: 'access_control' });
-    expect(screen.getByText('Access Control tab')).toBeInTheDocument();
-  });
-
-  it('should render Maskinporten tab when feature flag is enabled', () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
-
-    renderTabsContent({ currentTab: 'maskinporten' });
-    expect(screen.getByText('Maskinporten tab')).toBeInTheDocument();
+  it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', (tab) => {
+    tab === 'maskinporten' && addFeatureFlagToLocalStorage(FeatureFlag.Maskinporten);
+    renderTabsContent(tab);
+    expect(getHeading(tab)).toBeInTheDocument();
   });
 
   it('should not render anything when feature flag is disabled for Maskinporten tab', () => {
-    renderTabsContent({ currentTab: 'maskinporten' });
-    expect(screen.queryByText('Maskinporten tab')).not.toBeInTheDocument();
+    const maskinPortenTab: SettingsPageTabId = 'maskinporten';
+    renderTabsContent(maskinPortenTab);
+    expect(queryHeading(maskinPortenTab)).not.toBeInTheDocument();
   });
 });
 
-const defaultProps: TabsContentProps = {
-  currentTab: 'about',
+const renderTabsContent = (initialEntries: string = '') => {
+  const queryClient = createQueryClientMock();
+  return render(
+    <MemoryRouter initialEntries={[`?currentTab=${initialEntries}`]}>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <TabsContent />
+      </ServicesContextProvider>
+    </MemoryRouter>,
+  );
 };
 
-const renderTabsContent = (props: TabsContentProps) => {
-  const queryClient = createQueryClientMock();
-  return renderWithProviders(
-    queriesMock,
-    queryClient,
-  )(<TabsContent {...defaultProps} {...props} />);
-};
+const getHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
+  screen.getByRole('heading', {
+    name: textMock(`app_settings.${tabId}_tab_heading`),
+    level: 3,
+  });
+
+const queryHeading = (tabId: SettingsTabId): HTMLHeadingElement =>
+  screen.queryByRole('heading', {
+    name: textMock(`app_settings.${tabId}_tab_heading`),
+    level: 3,
+  });

@@ -16,5 +16,6 @@ export const usePagesQuery = (
       getPages(org, app, layoutSetName).then((pages) => {
         return pages;
       }),
+    enabled: !!layoutSetName,
   });
 };

@@ -7,12 +7,8 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import {
-  StudioSpinner,
-  StudioPopover,
-  StudioParagraph,
-  StudioError,
-} from '@studio/components-legacy';
+import { StudioSpinner, StudioPopover, StudioError } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,7 +84,7 @@ export function ReleaseContainer() {
             <Trans
               i18nKey={'app_create_release_errors.fetch_release_failed'}
               components={{
-                a: <Link href='/contact'> </Link>,
+                a: <Link href='/info/contact'> </Link>,
               }}
             ></Trans>
           </StudioParagraph>

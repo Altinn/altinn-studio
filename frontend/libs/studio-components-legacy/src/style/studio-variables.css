@@ -1,15 +1,17 @@
 :root {
-  --studio-treeitem-selected-background-colour: var(
+  --studio-legacy-treeitem-selected-background-colour: var(
     --fds-semantic-surface-action-first-no_fill-active
   );
-  --studio-treeitem-vertical-line-colour-root: #000;
-  --studio-treeitem-vertical-line-colour: var(--fds-semantic-border-divider-default);
-  --studio-treeitem-vertical-line-width: 2px;
-  --studio-expression-spacing: var(--fds-spacing-3);
-  --studio-property-vertical-gap: var(--fds-spacing-3);
-  --studio-property-button-vertical-spacing: calc(var(--studio-property-vertical-gap) / 2);
-  --studio-property-fieldset-spacing: var(--fds-spacing-3);
-  --studio-modal-spacing: var(--fds-spacing-6);
+  --studio-legacy-treeitem-vertical-line-colour-root: #000;
+  --studio-legacy-treeitem-vertical-line-colour: var(--fds-semantic-border-divider-default);
+  --studio-legacy-treeitem-vertical-line-width: 2px;
+  --studio-legacy-expression-spacing: var(--fds-spacing-3);
+  --studio-legacy-property-vertical-gap: var(--fds-spacing-3);
+  --studio-legacy-property-button-vertical-spacing: calc(
+    var(--studio-legacy-property-vertical-gap) / 2
+  );
+  --studio-legacy-property-fieldset-spacing: var(--fds-spacing-3);
+  --studio-legacy-modal-spacing: var(--fds-spacing-6);
 
-  --studio-border-divider: 1px solid var(--fds-semantic-border-divider-default);
+  --studio-legacy-border-divider: 1px solid var(--fds-semantic-border-divider-default);
 }

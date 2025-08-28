@@ -15,7 +15,7 @@
 }
 
 .root.selected .headingButton {
-  background-color: var(--studio-treeitem-selected-background-colour);
-  box-shadow: inset var(--studio-treeitem-vertical-line-width) 0 0 0
-    var(--studio-treeitem-vertical-line-colour-root);
+  background-color: var(--studio-legacy-treeitem-selected-background-colour);
+  box-shadow: inset var(--studio-legacy-treeitem-vertical-line-width) 0 0 0
+    var(--studio-legacy-treeitem-vertical-line-colour-root);
 }

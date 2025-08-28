@@ -2,12 +2,8 @@ import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import {
-  StudioAlert,
-  StudioParagraph,
-  StudioSpinner,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioAlert, StudioSpinner, StudioTextfield } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -46,18 +42,14 @@ export function ReferenceTab({
     );
   }
 
-  const shouldDisplayAlert: boolean = hasStaticOptionList(
-    optionListIds,
-    component.optionsId,
-    component.options,
-  );
+  const shouldDisplayAlert: boolean = hasStaticOptionList(optionListIds, component);
 
   return (
     <div className={classes.container}>
-      <StudioParagraph spacing size='small'>
+      <StudioParagraph spacing>
         {t('ux_editor.options.code_list_reference_id.description')}
       </StudioParagraph>
-      <StudioParagraph spacing size='small'>
+      <StudioParagraph spacing>
         {t('ux_editor.options.code_list_reference_id.description_details')}
       </StudioParagraph>
       <StudioTextfield

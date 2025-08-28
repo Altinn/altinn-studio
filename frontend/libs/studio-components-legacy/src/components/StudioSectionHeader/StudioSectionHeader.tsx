@@ -31,11 +31,7 @@ const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>
             {heading.text}
           </Heading>
         </div>
-        {helpText && (
-          <HelpText size='medium' title={helpText.title}>
-            {helpText.text}
-          </HelpText>
-        )}
+        {helpText && <HelpText title={helpText.title}>{helpText.text}</HelpText>}
         {menu}
       </div>
     );

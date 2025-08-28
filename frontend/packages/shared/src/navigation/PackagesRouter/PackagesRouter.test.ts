@@ -63,6 +63,16 @@ describe('PackagesRouter', () => {
 
       expect(result).toEqual(expectedUrl);
     });
+
+    it('should return the correct URL with query parameters', () => {
+      const mockQueryParams = '?layout=123';
+      const packagesRouter = new PackagesRouter({ org, app });
+      const expectedUrl = `/editor/${org}/${app}/data-model${mockQueryParams}`;
+
+      const result = packagesRouter.getPackageNavigationUrl('dataModel', mockQueryParams);
+
+      expect(result).toEqual(expectedUrl);
+    });
   });
 
   describe('replaceOrgAndApp', () => {

@@ -10,7 +10,8 @@ type PackagesRoute =
   | 'editorUiEditor'
   | 'preview'
   | 'editorPublish'
-  | 'latestCommit';
+  | 'latestCommit'
+  | 'appSettings';
 
 const packagesRoutes: Record<PackagesRoute, string> = {
   dashboard: '/dashboard',
@@ -20,6 +21,7 @@ const packagesRoutes: Record<PackagesRoute, string> = {
   editorPublish: '/editor/{{org}}/{{app}}/deploy',
   latestCommit: '/editor/{{org}}/{{app}}/latest-commit',
   preview: '/preview/{{org}}/{{app}}',
+  appSettings: '/editor/{{org}}/{{app}}/app-settings',
 };
 
 export class PackagesRouter {
@@ -35,14 +37,14 @@ export class PackagesRouter {
     window.location.assign(`${this.getPackageNavigationUrl(packageRoute)}${queryParams ?? ''}`);
   }
 
-  public getPackageNavigationUrl(packageRoute: PackagesRoute): string {
+  public getPackageNavigationUrl(packageRoute: PackagesRoute, queryParams?: string): string {
     const selectedPackageRoute = packagesRoutes[packageRoute];
 
     if (selectedPackageRoute.includes('{{org}}') || selectedPackageRoute.includes('{{app}}')) {
-      return this.replaceOrgAndApp(selectedPackageRoute);
+      return `${this.replaceOrgAndApp(selectedPackageRoute)}${queryParams ?? ''}`;
     }
 
-    return selectedPackageRoute;
+    return `${selectedPackageRoute}${queryParams ?? ''}`;
   }
 
   private replaceOrgAndApp(url: string): string {

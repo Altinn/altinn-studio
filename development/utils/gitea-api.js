@@ -17,10 +17,15 @@ module.exports = async (options) => {
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
 
+    console.log(options.method, options.path, response.status, response.statusText);
+
+    if (response.status === 204) {
+      return null; // No content response
+    }
+
     const data = await response.json().catch((err) => {
       console.error('Error:', err);
     });
-    console.log(options.method, options.path, response.status, response.statusText);
     return data;
   } catch (error) {
     console.error('Error:', error);

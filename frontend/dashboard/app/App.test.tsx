@@ -12,7 +12,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import type { Organization } from 'app-shared/types/Organization';
 import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
-import { FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
@@ -20,7 +19,6 @@ jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // 
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   ...jest.requireActual('app-shared/utils/featureToggleUtils'),
-  shouldDisplayFeature: jest.fn().mockImplementation((flag) => flag === FeatureFlag.OrgLibrary),
 }));
 
 // Test data:
@@ -117,7 +115,7 @@ const getFavouriteAppListHeading = (): HTMLElement =>
   screen.getByRole('heading', { name: textMock('dashboard.favourites') });
 
 const getLibraryHeading = (): HTMLElement =>
-  screen.getByRole('heading', { name: textMock('app_content_library.library_heading') });
+  screen.getByRole('heading', { name: textMock('org_content_library.library_heading') });
 
 function createQueryClientWithUserAndOrg(): QueryClient {
   const client = createQueryClientMock();

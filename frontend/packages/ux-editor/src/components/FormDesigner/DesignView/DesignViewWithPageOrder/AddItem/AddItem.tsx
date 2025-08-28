@@ -1,123 +1,127 @@
-import React from 'react';
-import {
-  addItemOfType,
-  getDefaultChildComponentsForContainer,
-  getItem,
-} from '../../../../../utils/formLayoutUtils';
-import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAddItemToLayoutMutation';
-import { useAppContext } from '../../../../../hooks';
-import { useFormItemContext } from '../../../../../containers/FormDesigner/FormItemContext';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { IInternalLayout } from '../../../../../types/global';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import React, { type ReactElement, useState } from 'react';
 import { StudioButton } from '@studio/components-legacy';
-import type { AddedItem } from './types';
 import { PlusIcon } from '@studio/icons';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
+import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import { DefaultItems } from './DefaultItems';
 import { AddItemModal } from './AddItemModal';
+import type { AddedItem } from './types';
+import type { IInternalLayout } from '../../../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
-import { useTranslation } from 'react-i18next';
+import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
+import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
 
 export type AddItemProps = {
   containerId: string;
   layout: IInternalLayout;
 };
-
-export const AddItem = ({ containerId, layout }: AddItemProps) => {
-  const [showDefaultComponents, setShowDefaultComponents] = React.useState(false);
-
-  const { doReloadPreview } = usePreviewContext();
-  const { handleEdit } = useFormItemContext();
-
-  const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+export const AddItem = ({ containerId, layout }: AddItemProps): ReactElement => {
+  const [showDefault, setShowDefault] = useState(false);
   const { t } = useTranslation(['translation', 'addComponentModal']);
+  const { addItem } = useAddComponentHandlerSilent(layout);
 
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-
-  const addItem = (
-    type: ComponentType | CustomComponentType,
-    parentId: string,
-    index: number,
-    newId: string,
-  ) => {
-    const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-
-    addItemToLayout(
-      { componentType: type, newId, parentId, index },
-      {
-        onSuccess: () => {
-          doReloadPreview();
-        },
-      },
-    );
-    handleEdit(getItem(updatedLayout, newId));
+  const handleAdd = (item: AddedItem) => {
+    addItem(item.componentType, containerId, layout.order[containerId].length, item.componentId);
   };
-
-  const onAddComponent = (addedItem: AddedItem) => {
-    addItem(
-      addedItem.componentType,
-      containerId,
-      layout.order[containerId].length,
-      addedItem.componentId,
-    );
-  };
-
-  const handleShowDefaultComponents = () => {
-    setShowDefaultComponents(true);
-  };
-
-  const handleHideDefaultComponents = () => {
-    setShowDefaultComponents(false);
-  };
-
-  const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
-  const shouldShowAllComponentsButton = defaultComponents.length > 8;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: containerId === BASE_CONTAINER_ID ? 'center' : 'flex-start',
-        marginLeft: 12,
-        marginRight: 12,
-      }}
-    >
-      {!showDefaultComponents && (
+    <TemplateContainer containerId={containerId}>
+      {!showDefault ? (
         <StudioButton
           icon={<PlusIcon />}
-          onClick={handleShowDefaultComponents}
+          onClick={() => setShowDefault(true)}
           variant='tertiary'
           fullWidth={containerId === BASE_CONTAINER_ID}
         >
           {t('ux_editor.add_item.add_component')}
         </StudioButton>
+      ) : (
+        <DefaultItemButtons
+          layout={layout}
+          containerId={containerId}
+          onAddComponent={handleAdd}
+          onCancel={() => setShowDefault(false)}
+        />
       )}
-      {showDefaultComponents && (
-        <div className={classes.addItemButtons}>
-          <DefaultItems
-            onAddItem={onAddComponent}
-            onCancel={handleHideDefaultComponents}
-            availableComponents={defaultComponents}
-            showAllButton={
-              shouldShowAllComponentsButton && (
-                <AddItemModal
-                  containerId={containerId}
-                  layout={layout}
-                  onAddComponent={onAddComponent}
-                />
-              )
-            }
-          />
-        </div>
-      )}
+    </TemplateContainer>
+  );
+};
+
+export type InlineItemAdderProps = {
+  containerId: string;
+  layout: IInternalLayout;
+  toggleIsOpen: () => void;
+  saveAtIndexPosition: number;
+};
+
+export const InlineItemAdder = ({
+  containerId,
+  layout,
+  toggleIsOpen,
+  saveAtIndexPosition,
+}: InlineItemAdderProps): ReactElement => {
+  const { addItem } = useAddComponentHandlerWithCallback(layout, toggleIsOpen);
+
+  const handleAdd = (item: AddedItem) => {
+    addItem(item.componentType, containerId, saveAtIndexPosition, item.componentId);
+  };
+
+  return (
+    <TemplateContainer containerId={containerId}>
+      <DefaultItemButtons
+        layout={layout}
+        containerId={containerId}
+        onAddComponent={handleAdd}
+        onCancel={toggleIsOpen}
+      />
+    </TemplateContainer>
+  );
+};
+
+const TemplateContainer = ({
+  containerId,
+  children,
+}: {
+  containerId: string;
+  children: React.ReactNode;
+}) => (
+  <div className={cn(classes.root, { [classes.center]: containerId === BASE_CONTAINER_ID })}>
+    {children}
+  </div>
+);
+
+const DefaultItemButtons = ({
+  layout,
+  containerId,
+  onAddComponent,
+  onCancel,
+}: {
+  layout: IInternalLayout;
+  containerId: string;
+  onAddComponent: (item: AddedItem) => void;
+  onCancel: () => void;
+}) => {
+  const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
+  const shouldShowAllComponentsButton = defaultComponents.length > 8;
+
+  return (
+    <div className={classes.addItemButtons}>
+      <DefaultItems
+        onAddItem={onAddComponent}
+        onCancel={onCancel}
+        availableComponents={defaultComponents}
+        showAllButton={
+          shouldShowAllComponentsButton && (
+            <AddItemModal
+              containerId={containerId}
+              layout={layout}
+              onAddComponent={onAddComponent}
+            />
+          )
+        }
+      />
     </div>
   );
 };

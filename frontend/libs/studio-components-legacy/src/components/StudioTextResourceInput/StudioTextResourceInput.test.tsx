@@ -9,7 +9,7 @@ import type { TextResource } from '../../types/TextResource';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { userEvent } from '@testing-library/user-event';
-import { getTextResourceById } from './utils';
+import { TextResourceUtils } from '@studio/pure-functions';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -26,20 +26,20 @@ const texts: TextResourceInputTexts = {
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
-const onBlurTextResource = jest.fn();
 const onChangeCurrentId = jest.fn();
 const onChangeTextResource = jest.fn();
 const onCreateTextResource = jest.fn();
+const onUpdateTextResource = jest.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
   texts,
-  onBlurTextResource,
   onChangeCurrentId,
   onChangeTextResource,
   onCreateTextResource,
+  onUpdateTextResource,
   currentId,
 };
-const currentTextResource = getTextResourceById(textResources, currentId);
+const currentTextResource = TextResourceUtils.fromArray(textResources).get(currentId);
 
 describe('StudioTextResourceInput', () => {
   afterEach(jest.clearAllMocks);
@@ -59,28 +59,44 @@ describe('StudioTextResourceInput', () => {
     expect(onChangeTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
   });
 
-  it('Calls the onBlurTextResource callback with the updated text resource when the field is blurred', async () => {
-    const user = userEvent.setup();
-    renderTextResourceInput();
-    const additionalText = 'abc';
-    const newValue = currentTextResource.value + additionalText;
-    await user.type(getValueField(), additionalText);
-    await user.tab();
-    expect(onBlurTextResource).toHaveBeenCalledTimes(1);
-    expect(onBlurTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
-  });
-
   it('Calls the onCreateTextResource callback when current id is undefined and the field is blurred', async () => {
     const user = userEvent.setup();
     renderTextResourceInput({ currentId: undefined });
     const text = 'a test text';
     await user.type(getValueField(), text);
     await user.tab();
-    expect(onCreateTextResource).toBeCalledTimes(1);
+    expect(onCreateTextResource).toHaveBeenCalledTimes(1);
     expect(onCreateTextResource).toHaveBeenCalledWith({
       id: expect.any(String),
       value: text,
     });
+  });
+
+  it('Does not call the onCreateTextResource callback when the field is blurred and a current id is set', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput();
+    await user.type(getValueField(), 'abc');
+    await user.tab();
+    expect(onCreateTextResource).not.toHaveBeenCalled();
+  });
+
+  it('Calls the onUpdateTextResource callback with the updated text resource when the field is blurred', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput();
+    const additionalText = 'xyz';
+    const newValue = currentTextResource.value + additionalText;
+    await user.type(getValueField(), additionalText);
+    await user.tab();
+    expect(onUpdateTextResource).toHaveBeenCalledTimes(1);
+    expect(onUpdateTextResource).toHaveBeenCalledWith({ ...currentTextResource, value: newValue });
+  });
+
+  it('Does not call the onUpdateTextResource callback when current id is undefined and the field is blurred', async () => {
+    const user = userEvent.setup();
+    renderTextResourceInput({ currentId: undefined });
+    await user.type(getValueField(), 'some text');
+    await user.tab();
+    expect(onUpdateTextResource).not.toHaveBeenCalled();
   });
 
   it('Renders the text resource picker when the search button is clicked', async () => {

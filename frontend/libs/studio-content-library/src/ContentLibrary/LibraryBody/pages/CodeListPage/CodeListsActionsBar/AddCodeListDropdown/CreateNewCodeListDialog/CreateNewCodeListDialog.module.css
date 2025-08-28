@@ -1,4 +1,4 @@
-.createNewCodeListModal {
+.createNewCodeListDialog {
   max-width: unset;
   width: 80vw;
 }
@@ -6,7 +6,7 @@
 .createNewCodeList {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-4);
   align-items: flex-start;
   height: 30rem;
 }
@@ -17,4 +17,9 @@
 
 .codeListEditor {
   width: 100%;
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: var(--ds-size-4);
 }

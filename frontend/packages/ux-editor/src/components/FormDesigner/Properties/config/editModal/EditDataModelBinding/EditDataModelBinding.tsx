@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
-import { convertDataBindingToInternalFormat } from '../../../../../../utils/dataModelUtils';
 
 export interface EditDataModelBindingProps<T extends ComponentType>
   extends IGenericEditComponent<T> {
@@ -26,9 +25,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
   const bindingKey = key || 'simpleBinding';
-  const internalBindingFormat = convertDataBindingToInternalFormat(
-    component?.dataModelBindings?.[bindingKey],
-  );
+  const dataModelBinding = component?.dataModelBindings?.[bindingKey];
 
   const labelSpecificText = label
     ? t(`ux_editor.modal_properties_data_model_label.${label}`)
@@ -36,7 +33,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
 
   return (
     <div key={key || ''} className={classes.wrapper}>
-      {!internalBindingFormat.field && !dataModelSelectVisible ? (
+      {!dataModelBinding?.field && !dataModelSelectVisible ? (
         <UndefinedBinding
           onClick={() => setDataModelSelectVisible(true)}
           label={labelSpecificText}
@@ -48,13 +45,13 @@ export const EditDataModelBinding = <T extends ComponentType>({
           label={labelSpecificText}
           handleComponentChange={handleComponentChange}
           onSetDataModelSelectVisible={setDataModelSelectVisible}
-          internalBindingFormat={internalBindingFormat}
+          internalBindingFormat={dataModelBinding}
         />
       ) : (
         <DefinedBinding
           label={labelSpecificText}
           onClick={() => setDataModelSelectVisible(true)}
-          internalBindingFormat={internalBindingFormat}
+          internalBindingFormat={dataModelBinding}
           componentType={component.type}
           bindingKey={bindingKey}
         />

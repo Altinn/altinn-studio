@@ -1,0 +1,9 @@
+.wrapper {
+  background-color: var(--ds-color-neutral-background-tinted);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-5);
+}
+
+.children {
+  margin-top: var(--ds-size-2);
+}

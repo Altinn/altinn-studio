@@ -2,13 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
-import {
-  StudioButton,
-  StudioDeleteButton,
-  StudioProperty,
-  usePrevious,
-} from '@studio/components-legacy';
-import { XMarkIcon } from '@studio/icons';
+import { usePrevious } from '@studio/components-legacy';
+import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
+import { CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormDesigner/FormItemContext';
@@ -22,6 +18,7 @@ export interface TextResourceProps {
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;
+  disableSearch?: boolean;
 }
 
 export interface GenerateTextResourceIdOptions {
@@ -44,6 +41,7 @@ export const TextResource = ({
   handleRemoveTextResource,
   label,
   textResourceId,
+  disableSearch,
 }: TextResourceProps) => {
   const { formItemId } = useFormItemContext();
   const { selectedFormLayoutName: formLayoutName } = useAppContext();
@@ -90,6 +88,7 @@ export const TextResource = ({
       onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
+      disableSearch={disableSearch}
     />
   ) : (
     <TextResourceButton
@@ -109,6 +108,7 @@ type TextResourceFieldsetProps = {
   onReferenceChange: (id: string) => void;
   onSetCurrentValue: (value: string) => void;
   textResourceId: string;
+  disableSearch?: boolean;
 };
 
 const TextResourceFieldset = ({
@@ -119,6 +119,7 @@ const TextResourceFieldset = ({
   onReferenceChange,
   onSetCurrentValue,
   textResourceId,
+  disableSearch = false,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
 
@@ -129,18 +130,16 @@ const TextResourceFieldset = ({
       menubar={
         <>
           <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
-          <StudioButton
-            icon={<XMarkIcon />}
-            onClick={onClose}
-            title={t('general.close')}
-            variant='secondary'
-          />
+          <StudioButton icon={<CheckmarkIcon />} onClick={onClose} variant='primary'>
+            {t('general.save')}
+          </StudioButton>
           <StudioDeleteButton
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
             disabled={!onDelete}
             onDelete={() => onDelete?.()}
-            title={t('general.delete')}
-          />
+          >
+            {t('general.delete')}
+          </StudioDeleteButton>
         </>
       }
     >
@@ -148,6 +147,7 @@ const TextResourceFieldset = ({
         textResourceId={textResourceId}
         onReferenceChange={onReferenceChange}
         onSetCurrentValue={onSetCurrentValue}
+        disableSearch={disableSearch}
       />
     </StudioProperty.Fieldset>
   );

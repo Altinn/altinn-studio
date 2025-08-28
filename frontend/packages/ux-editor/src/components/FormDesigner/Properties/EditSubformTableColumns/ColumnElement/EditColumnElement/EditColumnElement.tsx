@@ -3,13 +3,12 @@ import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import {
-  StudioActionCloseButton,
   StudioCard,
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
-  StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioParagraph, StudioActionCloseButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../../types/FormItem';
@@ -114,7 +113,7 @@ export const EditColumnElement = ({
         )}
         <div className={classes.buttons}>
           <StudioActionCloseButton
-            variant='secondary'
+            data-size='2xs'
             onClick={onClose}
             title={t('general.save')}
             disabled={isSaveButtonDisabled}
@@ -134,7 +133,7 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   return (
     <>
       <StudioCard.Header className={classes.header}>
-        <StudioParagraph size='md'>
+        <StudioParagraph data-size='md'>
           {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
         </StudioParagraph>
       </StudioCard.Header>

@@ -1,25 +1,17 @@
 .navigationTabContent {
-  --icon-size: 28px;
-  --icon-size-locker: 21px;
-  --icon-border-width: 2px;
-  --font-weight-semi-bold: 500;
-  --task-list-height: 637px;
-  --task-list-width: 541px;
-  --border-radius: 8px;
-  --paragraph-width: 750px;
-}
-
-.navigationTabContent {
+  max-width: 744px;
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-5);
 }
 
-.navigationTabContent p {
-  max-width: var(--paragraph-width);
+.navigationDescription {
   padding-top: var(--fds-spacing-1);
 }
 
-.warningMessage {
-  display: inline-flex;
+.divider {
+  border-top: 1px solid;
+  border-color: var(--fds-semantic-border-divider-subtle);
+  width: 90%;
+  margin-left: 0;
 }

@@ -4,11 +4,14 @@ import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
 import classes from './TextResourceEditor.module.css';
 import { useTranslation } from 'react-i18next';
+import { StudioAlert } from '@studio/components';
 
 export interface TextResourceProps {
   textResourceId: string;
   onReferenceChange: (id: string) => void;
   onSetCurrentValue: (value: string) => void;
+  textResourceValue?: string;
+  disableSearch?: boolean;
 }
 
 enum TextResourceTab {
@@ -20,6 +23,8 @@ export const TextResourceEditor = ({
   textResourceId,
   onReferenceChange,
   onSetCurrentValue,
+  textResourceValue,
+  disableSearch = false,
 }: TextResourceProps) => {
   const { t } = useTranslation();
 
@@ -37,10 +42,21 @@ export const TextResourceEditor = ({
         <TextResourceValueEditor
           textResourceId={textResourceId}
           onSetCurrentValue={onSetCurrentValue}
+          textResourceValue={textResourceValue}
         />
       </Tabs.Content>
       <Tabs.Content value={TextResourceTab.Search}>
-        <TextResourcePicker onReferenceChange={onReferenceChange} textResourceId={textResourceId} />
+        {disableSearch && (
+          <StudioAlert data-color='info'>
+            {t('ux_editor.modal_properties_textResourceBindings_page_name_search_disabled')}
+          </StudioAlert>
+        )}
+        {!disableSearch && (
+          <TextResourcePicker
+            onReferenceChange={onReferenceChange}
+            textResourceId={textResourceId}
+          />
+        )}
       </Tabs.Content>
     </Tabs>
   );

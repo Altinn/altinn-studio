@@ -58,6 +58,10 @@ export class ArrayUtils {
   public static removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
     array.filter((_, index) => index !== indexToRemove);
 
+  public static removeLast<T>(array: Array<T>): Array<T> {
+    return array.slice(0, -1);
+  }
+
   /** Returns the provided array if it has at least one item, otherwise returns undefined */
   public static getNonEmptyArrayOrUndefined = <T>(array: T[]): T[] | undefined =>
     array.length > 0 ? array : undefined;
@@ -235,5 +239,15 @@ export class ArrayUtils {
       },
       {} as Record<O[K], O[V]>,
     );
+  }
+
+  /** Checks if the values in two arrays are the same, ignoring the sequence of the values in the arrays */
+  public static arraysEqualUnordered<T>(a: T[], b: T[]): boolean {
+    if (a.length !== b.length) return false;
+
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+
+    return sortedA.every((value, index) => value === sortedB[index]);
   }
 }

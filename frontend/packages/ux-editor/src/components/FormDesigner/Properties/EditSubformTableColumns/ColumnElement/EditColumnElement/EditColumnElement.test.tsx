@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../../testing/subformLayoutMock';
@@ -185,17 +185,17 @@ describe('EditColumnElementComponentSelect', () => {
 
     expect(
       screen.getByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.postPlace')} ${subformLayoutMock.component4.dataModelBindings.postPlace.field}`,
       }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
-        name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode}`,
+        name: `${textMock('ux_editor.modal_properties_data_model_label.zipCode')} ${subformLayoutMock.component4.dataModelBindings.zipCode.field}`,
       }),
     ).not.toBeInTheDocument();
   });
@@ -223,9 +223,9 @@ describe('EditColumnElementComponentSelect', () => {
       textKeyMock,
     );
     await user.click(
-      screen.getByRole('button', {
-        name: textMock('general.close'),
-      }),
+      screen.getAllByRole('button', {
+        name: textMock('general.save'),
+      })[0],
     );
 
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
@@ -261,7 +261,7 @@ describe('EditColumnElementComponentSelect', () => {
     expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component1.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
+      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding.field },
     });
   });
 
@@ -322,28 +322,32 @@ describe('EditColumnElementComponentSelect', () => {
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
     );
 
-    const dataModelBindingsSelect = await screen.findByText(
-      textMock(
+    const dataModelBindingsSelect = await screen.findByRole('combobox', {
+      name: textMock(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       ),
-    );
-
-    await act(async () => {
-      await user.click(dataModelBindingsSelect);
     });
+
+    await user.click(dataModelBindingsSelect);
     await user.click(
-      screen.getByRole('option', {
+      await screen.findByRole('option', {
         name: new RegExp(postPlaceDataField),
       }),
     );
-
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('option', { name: new RegExp(postPlaceDataField) }),
+      ).not.toBeInTheDocument(),
+    );
     const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
-    await user.click(saveButton);
+    await act(async () => {
+      await user.click(saveButton);
+    });
 
     expect(onChangeMock).toHaveBeenCalledTimes(2);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,
-      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace },
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
     });
   });
 });

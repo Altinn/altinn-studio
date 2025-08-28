@@ -21,6 +21,7 @@ import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import { PolicyRulesEditor } from './components/PolicyRulesEditor';
 import { PolicyEditorTabs } from './components/PolicyEditorTabs';
+import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -31,6 +32,7 @@ export type PolicyEditorProps = {
   onSave: (policy: Policy) => void; // MAYBE MOVE TO CONTEXT
   showAllErrors: boolean;
   usageType: PolicyEditorUsage;
+  isConsentResource?: boolean;
 };
 
 export const PolicyEditor = ({
@@ -42,6 +44,7 @@ export const PolicyEditor = ({
   onSave,
   showAllErrors,
   usageType,
+  isConsentResource,
 }: PolicyEditorProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -90,7 +93,7 @@ export const PolicyEditor = ({
         <div className={classes.alertWrapper}>
           <PolicyEditorAlert />
         </div>
-        <PolicyEditorContent usageType={usageType} />
+        <PolicyEditorContent usageType={usageType} isConsentResource={isConsentResource} />
       </div>
     </PolicyEditorContextProvider>
   );
@@ -98,11 +101,17 @@ export const PolicyEditor = ({
 
 type PolicyEditorContentProps = {
   usageType: PolicyEditorUsage;
+  isConsentResource?: boolean;
 };
 
-function PolicyEditorContent({ usageType }: PolicyEditorContentProps): React.ReactElement {
+function PolicyEditorContent({
+  usageType,
+  isConsentResource,
+}: PolicyEditorContentProps): React.ReactElement {
   if (usageType === 'app') {
     return <PolicyEditorTabs />;
+  } else if (isConsentResource) {
+    return <ConsentResourcePolicyRulesEditor />;
   }
   return <PolicyRulesEditor />;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { HelpText } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
 import type { IInternalLayout } from '../../../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
@@ -33,15 +33,14 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           title={t('general.delete')}
           variant='tertiary'
         />
-        <HelpText
-          size='small'
-          title={t('ux_editor.unknown_group_reference_help_text_title')}
+        <StudioHelpText
+          aria-label={t('ux_editor.unknown_group_reference_help_text_title')}
           className={classes.helpText}
         >
           {t('ux_editor.unknown_group_reference', {
             id,
           })}
-        </HelpText>
+        </StudioHelpText>
       </div>
     </div>
   );

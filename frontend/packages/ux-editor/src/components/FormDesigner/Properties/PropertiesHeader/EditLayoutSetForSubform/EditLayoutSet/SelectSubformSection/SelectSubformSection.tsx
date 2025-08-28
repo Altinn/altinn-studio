@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import {
-  StudioNativeSelect,
-  StudioRecommendedNextAction,
-  StudioProperty,
-  StudioButton,
-} from '@studio/components-legacy';
+import { StudioNativeSelect, StudioRecommendedNextAction } from '@studio/components-legacy';
 import { CheckmarkIcon, PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectSubformSection.module.css';
+import { StudioButton, StudioProperty } from '@studio/components';
 
 type SelectSubformSectionProps = {
   setShowCreateSubformCard: (showCreateSubformCard: boolean) => void;
@@ -68,11 +64,11 @@ export const SelectSubformSection = ({
         className={classes.saveSubformButton}
         icon={<CheckmarkIcon />}
         type='submit'
-        title={t('general.save')}
         disabled={!selectedSubform}
-        variant='secondary'
-        color='success'
-      />
+        variant='primary'
+      >
+        {t('ux_editor.component_properties.subform.save_button')}
+      </StudioButton>
     </StudioRecommendedNextAction>
   );
 };

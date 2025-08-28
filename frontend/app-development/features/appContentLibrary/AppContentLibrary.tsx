@@ -96,6 +96,7 @@ function AppContentLibraryWithData({
   const { mutate: deleteOptionList } = useDeleteOptionListMutation(org, app);
   const { mutate: updateTextResource } = useUpsertTextResourceMutation(org, app);
   const { mutate: importCodeListFromOrg } = useImportCodeListFromOrgToAppMutation(org, app);
+  const { t } = useTranslation();
 
   const handleUpload = useUploadOptionList(org, app);
 
@@ -129,14 +130,16 @@ function AppContentLibraryWithData({
   );
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
+    heading: t('app_content_library.library_heading'),
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListDataList,
+          codeListDataList,
           onCreateCodeList: handleCreate,
           onDeleteCodeList: deleteOptionList,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
+          onCreateTextResource: handleUpdateTextResource,
           onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
           codeListsUsages,

@@ -16,26 +16,26 @@ describe('StudioTextfield', () => {
     expect(labelElement).not.toHaveClass('requiredTag');
   });
 
-  it('should render a textfield with required text when showRequiredText is true and required is true', () => {
-    const requiredText: string = 'Required';
+  it('should render a textfield with required text when required is true and required is true', () => {
+    const tagText: string = 'Required';
     renderStudioTextfield({
       label,
       required: true,
-      requiredText,
+      tagText,
     });
-    const tag: HTMLElement = screen.getByText(requiredText);
+    const tag: HTMLElement = screen.getByText(tagText);
     expect(tag).toBeInTheDocument();
     expect(tag).toHaveClass('requiredTag');
   });
 
-  it('should render a textfield with required text when required is false and showRequiredText is true', () => {
-    const requiredText: string = 'Optional';
+  it('should render a textfield with required text when required is false and required is true', () => {
+    const tagText: string = 'Optional';
     renderStudioTextfield({
       label,
       required: false,
-      requiredText: requiredText,
+      tagText,
     });
-    const tag: HTMLElement = screen.getByText(requiredText);
+    const tag: HTMLElement = screen.getByText(tagText);
     expect(tag).toBeInTheDocument();
     expect(tag).toHaveClass('requiredTag');
   });

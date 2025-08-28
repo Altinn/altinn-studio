@@ -1,27 +1,29 @@
 import React, { forwardRef, useState } from 'react';
 import type { RefObject, ReactElement } from 'react';
-import { StudioButton, StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
+import { StudioCodeListEditor, StudioTextfield } from '@studio/components-legacy';
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useCodeListEditorTexts } from '../../../hooks/useCodeListEditorTexts';
-import { CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListDialog.module.css';
 import type { CodeListWithMetadata } from '../../../types/CodeListWithMetadata';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../../hooks/useInputCodeListNameErrorMessage';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading, StudioButton } from '@studio/components';
 
 export type CreateNewCodeListDialogProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
   textResources: TextResource[];
 };
 
 function CreateNewCodeListDialog(
   {
-    onBlurTextResource,
     onCreateCodeList,
+    onCreateTextResource,
+    onUpdateTextResource,
     codeListNames,
     textResources,
   }: CreateNewCodeListDialogProps,
@@ -39,7 +41,7 @@ function CreateNewCodeListDialog(
       closedby='any'
       ref={ref}
       onClose={handleCloseDialog}
-      className={classes.createNewCodeListModal}
+      className={classes.createNewCodeListDialog}
     >
       <StudioDialog.Block>
         <StudioHeading level={2}>
@@ -50,9 +52,10 @@ function CreateNewCodeListDialog(
         <CreateNewCodeList
           codeList={newCodeList}
           codeListNames={codeListNames}
-          onBlurTextResource={onBlurTextResource}
           onCreateCodeList={onCreateCodeList}
+          onCreateTextResource={onCreateTextResource}
           onCloseModal={handleCloseDialog}
+          onUpdateTextResource={onUpdateTextResource}
           textResources={textResources}
         />
       </StudioDialog.Block>
@@ -67,8 +70,9 @@ export { ForwardedCreateNewCodeListDialog as CreateNewCodeListDialog };
 type CreateNewCodeListProps = {
   codeList: CodeList;
   codeListNames: string[];
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   onCloseModal: () => void;
   textResources: TextResource[];
 };
@@ -76,8 +80,9 @@ type CreateNewCodeListProps = {
 function CreateNewCodeList({
   codeList,
   codeListNames,
-  onBlurTextResource,
   onCreateCodeList,
+  onCreateTextResource,
+  onUpdateTextResource,
   onCloseModal,
   textResources,
 }: CreateNewCodeListProps) {
@@ -125,8 +130,8 @@ function CreateNewCodeList({
     setIsCodeListValid(false);
   };
 
-  const shouldSaveButtonBeDisabled =
-    !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
+  const shouldSaveButtonBeDisabled: boolean =
+    !isCodeListValid || !currentCodeListWithMetadata.title || !!codeListTitleError;
 
   return (
     <div className={classes.createNewCodeList}>
@@ -139,24 +144,26 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          onCreateTextResource={onBlurTextResource}
+          onCreateTextResource={onCreateTextResource}
           onInvalid={handleInvalidCodeList}
           onUpdateCodeList={handleUpdateCodeList}
-          onUpdateTextResource={onBlurTextResource}
+          onUpdateTextResource={onUpdateTextResource}
           texts={editorTexts}
           textResources={textResources}
         />
       </div>
-      <StudioButton
-        color='success'
-        title={t('app_content_library.code_lists.save_new_code_list')}
-        icon={<CheckmarkIcon />}
-        onClick={handleSaveCodeList}
-        variant='secondary'
-        disabled={shouldSaveButtonBeDisabled}
-      >
-        {t('app_content_library.code_lists.save_new_code_list')}
-      </StudioButton>
+      <div className={classes.buttonWrapper}>
+        <StudioButton
+          icon={<CheckmarkIcon />}
+          onClick={handleSaveCodeList}
+          disabled={shouldSaveButtonBeDisabled}
+        >
+          {t('general.save')}
+        </StudioButton>
+        <StudioButton icon={<XMarkIcon />} onClick={onCloseModal} variant='secondary'>
+          {t('general.cancel')}
+        </StudioButton>
+      </div>
     </div>
   );
 }

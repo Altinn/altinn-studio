@@ -1,11 +1,19 @@
 .toolbarItem {
-  background-color: var(--fds-semantic-background-subtle);
   cursor: grab;
   margin: var(--fds-spacing-1);
   display: flex;
   padding: var(--fds-spacing-2);
   align-items: center;
   gap: var(--fds-spacing-2);
+}
+
+.toolbarItem:hover {
+  background-color: var(--ds-color-surface-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toolbarItem:active {
+  cursor: grabbing;
 }
 
 .componentIcon {

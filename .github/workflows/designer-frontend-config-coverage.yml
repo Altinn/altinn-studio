@@ -1,0 +1,29 @@
+name: Designer frontend Configuration coverage stats
+
+on:
+  push:
+    paths:
+      - 'frontend/app-development/**'
+      - 'frontend/packages/ux-editor/**'
+      - 'frontend/scripts/configurationStats/**'
+      - '.github/workflows/designer-frontend-config-coverage.yml'
+
+jobs:
+  stats:
+    name: 'Generate stats on configuration coverage'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Installing Dependencies'
+        run: cd frontend/scripts && yarn --immutable
+
+      - name: 'Running stats generation'
+        run: cd frontend/scripts && yarn run generate-config-coverage-stats

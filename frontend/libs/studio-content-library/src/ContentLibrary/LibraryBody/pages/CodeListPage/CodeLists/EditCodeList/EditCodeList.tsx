@@ -20,10 +20,11 @@ import classes from './EditCodeList.module.css';
 export type EditCodeListProps = {
   codeList: CodeList;
   codeListTitle: string;
-  onBlurTextResource?: (textResource: TextResource) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
   onDeleteCodeList: (codeListId: string) => void;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
   textResources?: TextResource[];
@@ -32,10 +33,11 @@ export type EditCodeListProps = {
 export function EditCodeList({
   codeList,
   codeListTitle,
-  onBlurTextResource,
+  onCreateTextResource,
   onDeleteCodeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  onUpdateTextResource,
   codeListNames,
   codeListSources,
   textResources,
@@ -65,8 +67,8 @@ export function EditCodeList({
       />
       <StudioCodeListEditor
         codeList={codeList}
-        onCreateTextResource={onBlurTextResource}
-        onUpdateTextResource={onBlurTextResource}
+        onCreateTextResource={onCreateTextResource}
+        onUpdateTextResource={onUpdateTextResource}
         onUpdateCodeList={handleUpdateCodeList}
         texts={editorTexts}
         textResources={textResources}

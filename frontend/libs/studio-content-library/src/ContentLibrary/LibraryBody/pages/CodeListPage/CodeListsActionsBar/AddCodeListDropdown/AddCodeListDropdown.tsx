@@ -15,8 +15,9 @@ import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { getCodeListIdsFromExternalResources } from './utils';
 
 export type AddCodeListDropdownProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   codeListNames: string[];
   textResources?: TextResource[];
@@ -26,8 +27,9 @@ export type AddCodeListDropdownProps = {
 
 export function AddCodeListDropdown({
   codeListNames,
-  onBlurTextResource,
   onCreateCodeList,
+  onCreateTextResource,
+  onUpdateTextResource,
   onUploadCodeList,
   textResources,
   externalResources,
@@ -94,8 +96,9 @@ export function AddCodeListDropdown({
       </StudioDropdown>
       <CreateNewCodeListDialog
         codeListNames={codeListNames}
-        onBlurTextResource={onBlurTextResource}
         onCreateCodeList={onCreateCodeList}
+        onCreateTextResource={onCreateTextResource}
+        onUpdateTextResource={onUpdateTextResource}
         textResources={textResources}
         ref={addCodeListRef}
       />

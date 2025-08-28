@@ -6,6 +6,8 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormItemContext } from '../../../../../containers/FormDesigner/FormItemContext';
 import { getItem } from '../../../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
+import { useAppContext } from '../../../hooks';
+import { ItemType } from '../../../components/Properties/ItemType';
 
 export type FormTreeProps = {
   layout: IInternalLayout;
@@ -14,9 +16,16 @@ export type FormTreeProps = {
 
 export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
   const { handleEdit, formItemId: formId } = useFormItemContext();
+  const { setSelectedItem } = useAppContext();
   const { t } = useTranslation();
 
-  const handleSelect = async (id: string) => handleEdit(getItem(layout, id));
+  const handleSelect = async (id: string) => {
+    handleEdit(getItem(layout, id));
+    setSelectedItem({
+      type: ItemType.Component,
+      id: id,
+    });
+  };
 
   return (
     <StudioDragAndDropTree.Root

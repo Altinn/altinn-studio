@@ -1,31 +1,48 @@
 import React from 'react';
-import { PlusIcon, XMarkIcon } from '@studio/icons';
+import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioTextfield } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import cn from 'classnames';
+
+type MapComponentProps = IGenericEditComponent<ComponentType.Map> & {
+  className?: string;
+};
 
 export const MapComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.Map>): JSX.Element => {
+  className,
+}: MapComponentProps): JSX.Element => {
   const t = useText();
 
   return (
     <div className={classes.addMapLayerContent}>
-      <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
-      <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
+      <h2 className={cn(classes.subTitle, className)}>{t('ux_editor.add_map_layer')}</h2>
+      <AddMapLayer
+        component={component}
+        handleComponentChange={handleComponentChange}
+        className={className}
+      />
     </div>
   );
 };
 
-interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {}
+interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {
+  className?: string;
+}
 
-const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JSX.Element => {
+const AddMapLayer = ({
+  component,
+  handleComponentChange,
+  className,
+}: AddMapLayerProps): JSX.Element => {
   const t = useText();
 
   const handleOnLayerChange = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -74,7 +91,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     layers.splice(index, 1);
     handleComponentChange({
       ...component,
-      layers,
+      layers: layers.length > 0 ? layers : undefined,
     });
   };
 
@@ -156,15 +173,13 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
           </StudioProperty.Fieldset>
         ),
       )}
-      <StudioButton
-        icon={<PlusIcon title={t('general.add')} />}
-        variant='secondary'
+      <StudioProperty.Button
+        className={classes.addMapButton}
+        icon={<PlusCircleIcon />}
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}
-        fullWidth
-      >
-        {t('ux_editor.add_map_layer')}
-      </StudioButton>
+        property={t('ux_editor.add_map_layer')}
+      />
     </>
   );
 };

@@ -14,6 +14,9 @@ export type StudioBooleanToggleGroupProps = Override<
   WithoutAsChild<ToggleGroupProps>
 >;
 
+/**
+ * @deprecated Use `StudioBooleanToggleGroup` from `@studio/components` instead.
+ */
 const StudioBooleanToggleGroup = forwardRef<HTMLDivElement, StudioBooleanToggleGroupProps>(
   ({ falseLabel, onChange, trueLabel, value: givenValue, ...rest }, ref) => {
     const [value, setValue] = useState<boolean>(givenValue ?? false);
@@ -22,7 +25,7 @@ const StudioBooleanToggleGroup = forwardRef<HTMLDivElement, StudioBooleanToggleG
       setValue(givenValue ?? false);
     }, [givenValue]);
 
-    const handleChange = (stringValue: 'true' | 'false') => {
+    const handleChange = (stringValue: 'true' | 'false'): void => {
       const newValue = stringValue === 'true';
       setValue(newValue);
       onChange?.(newValue);

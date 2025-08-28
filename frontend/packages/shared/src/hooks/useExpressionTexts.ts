@@ -7,7 +7,7 @@ import {
   SimpleSubexpressionValueType,
   GeneralRelationOperator,
   InstanceContext,
-  GatewayActionContext,
+  PredefinedGatewayAction,
 } from '@studio/components-legacy';
 
 export const useExpressionTexts = (): ExpressionTexts => {
@@ -47,10 +47,10 @@ export const useExpressionTexts = (): ExpressionTexts => {
     (key) => `expression.instanceContext.${key}`,
   );
 
-  const gatewayActionContextKeys = Object.values(GatewayActionContext);
-  const gatewayActionContext = mapArrayToTranslations<GatewayActionContext>(
-    gatewayActionContextKeys,
-    (key) => `expression.gatewayActionContext.${key}`,
+  const predefinedGatewayActionKeys = Object.values(PredefinedGatewayAction);
+  const predefinedGatewayActions = mapArrayToTranslations<PredefinedGatewayAction>(
+    predefinedGatewayActionKeys,
+    (key) => `expression.predefinedGatewayAction.${key}`,
   );
 
   return {
@@ -72,8 +72,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     expression: t('expression'),
     false: t('expression.false'),
     firstOperand: t('expression.firstOperand'),
-    gatewayActionKey: t('expression.gatewayActionKey'),
-    gatewayActionContext,
+    gatewayAction: t('expression.gatewayAction'),
     instanceContext,
     instanceContextKey: t('expression.instanceContextKey'),
     invalidExpression: t('expression.invalidExpression'),
@@ -83,10 +82,11 @@ export const useExpressionTexts = (): ExpressionTexts => {
     manual: t('expression.manual'),
     numberValidationError: t('validation_errors.numbers_only'),
     or: t('expression.or'),
+    predefinedGatewayActions,
     readonlyComponentId: t('expression.readonlyComponentId'),
     readonlyDataModelPath: t('expression.readonlyDataModelPath'),
-    readonlyGatewayActionContext: t('expression.readonlyGatewayActionContext'),
     readonlyInstanceContext: t('expression.readonlyInstanceContext'),
+    readonlyPredefinedGatewayAction: t('expression.readonlyPredefinedGatewayAction'),
     relationalOperator: t('expression.relationalOperator'),
     relationalOperators,
     save: t('general.save'),

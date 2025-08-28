@@ -2,9 +2,9 @@ import React from 'react';
 import {
   StudioHeading,
   StudioIconTextfield,
-  StudioParagraph,
   StudioRecommendedNextAction,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,
@@ -32,7 +32,7 @@ export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) 
       {!item && <p>{t('ux_editor.component_add_item.info_no_component_selected')}</p>}
       {item && (
         <div>
-          <StudioParagraph className={classes.componentHelpText} spacing size='small'>
+          <StudioParagraph spacing>
             {getComponentHelperTextByComponentType(item.componentType, t)}
           </StudioParagraph>
         </div>

@@ -5,4 +5,5 @@ export type LayoutSetModel = {
   dataType: string;
   type: string;
   task?: TaskModel;
+  pageCount?: number;
 };

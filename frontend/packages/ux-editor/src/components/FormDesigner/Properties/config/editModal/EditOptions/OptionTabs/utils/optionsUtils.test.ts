@@ -5,7 +5,6 @@ import type { FormItem } from '../../../../../../types/FormItem';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import {
   getSelectedOptionsType,
-  getSelectedOptionsTypeWithManualSupport,
   hasOptionListChanged,
   handleOptionsChange,
   resetComponentOptions,
@@ -13,7 +12,6 @@ import {
   updateComponentOptions,
   isOptionsIdReferenceId,
   hasStaticOptionList,
-  isInitialOptionsSet,
 } from './optionsUtils';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 
@@ -59,55 +57,6 @@ describe('optionsUtils', () => {
       const options = [{ label: 'label1', value: 'value1' }];
       const optionListIds = ['codeListId'];
       const result = getSelectedOptionsType(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.CodeList);
-    });
-  });
-
-  describe('getSelectedOptionsTypeWithManualSupport', () => {
-    it('should return SelectedOptionsType.Unknown if both options and optionsId are set', () => {
-      const codeListId = 'codeListId';
-      const options: OptionList = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = ['codeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Unknown);
-    });
-
-    it('should return SelectedOptionsType.CodeList if options is not set and codeListId is in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const options = undefined;
-      const optionListIds = [codeListId];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.CodeList);
-    });
-
-    it('should return SelectedOptionsType.ReferenceId if options is not set and codeListId is not in optionListIds', () => {
-      const codeListId = 'codeListId';
-      const options = undefined;
-      const optionListIds = ['anotherCodeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.ReferenceId);
-    });
-
-    it('should return SelectedOptionsType.Manual if options is set and codeListId is not set', () => {
-      const codeListId = undefined;
-      const options = [{ label: 'label1', value: 'value1' }];
-      const optionListIds = ['anotherCodeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Manual);
-    });
-
-    it('should return SelectedOptionsType.Manual if options is set and codeListId is not set, even if options has length 0', () => {
-      const codeListId = undefined;
-      const options = [];
-      const optionListIds = ['codeListId'];
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options, optionListIds);
-      expect(result).toEqual(SelectedOptionsType.Manual);
-    });
-
-    it('should use default value for optionListIds if it is not provided', () => {
-      const codeListId = '';
-      const options = undefined;
-      const result = getSelectedOptionsTypeWithManualSupport(codeListId, options);
       expect(result).toEqual(SelectedOptionsType.CodeList);
     });
   });
@@ -192,49 +141,32 @@ describe('optionsUtils', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId: string = 'test1';
       const options: OptionList = [{ value: 'value', label: 'label' }];
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
     it('should return true if options is set on the component', () => {
       const optionListIds: string[] = [];
       const optionsId = '';
       const options: OptionList = [];
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(true);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionList = undefined;
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
 
     it('should return false if options ID is not from library', () => {
       const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionList = undefined;
-      expect(hasStaticOptionList(optionListIds, optionsId, options)).toEqual(false);
-    });
-  });
-
-  describe('isInitialOptionsSet', () => {
-    it('should return true if previousOptions is false and currentOptions is truthy', () => {
-      const previousOptions = undefined;
-      const currentOptions: OptionList = [];
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(true);
-    });
-
-    it('should return false if previousOptions is truthy', () => {
-      const previousOptions = [];
-      const currentOptions: OptionList = [{ value: 'value', label: 'label' }];
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(false);
-    });
-
-    it('should return false if currentOptions is undefined', () => {
-      const previousOptions = [];
-      const currentOptions = undefined;
-
-      expect(isInitialOptionsSet(previousOptions, currentOptions)).toEqual(false);
+      const component: typeof mockedComponent = { ...mockedComponent, optionsId, options };
+      expect(hasStaticOptionList(optionListIds, component)).toEqual(false);
     });
   });
 });

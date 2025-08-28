@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioProperty, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import classes from './DefinedBinding.module.css';
 import { useTranslation } from 'react-i18next';
@@ -50,7 +51,9 @@ export const DefinedBinding = ({
       className={isBindingError ? classes.error : ''}
       aria-label={title}
       onClick={onClick}
-      property={label}
+      property={t('ux_editor.modal_properties_data_model_field_binding_for', {
+        componentName: label,
+      })}
       title={title}
       icon={<LinkIcon />}
       value={currentDataModelField}

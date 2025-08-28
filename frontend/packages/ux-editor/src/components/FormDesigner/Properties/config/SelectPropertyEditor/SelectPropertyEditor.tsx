@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { XMarkIcon } from '@studio/icons';
-import { StudioButton, StudioProperty } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioProperty } from '@studio/components';
 import classes from './SelectPropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
@@ -10,6 +11,7 @@ export type SelectPropertyEditorProps = {
   value?: string | React.ReactNode;
   property?: string;
   title?: string;
+  className?: string;
 };
 
 export const SelectPropertyEditor = ({
@@ -17,6 +19,7 @@ export const SelectPropertyEditor = ({
   value,
   property,
   title,
+  className,
 }: SelectPropertyEditorProps) => {
   const { t } = useTranslation();
   const [dataTypeSelectVisible, setDataTypeSelectVisible] = useState(false);
@@ -24,13 +27,14 @@ export const SelectPropertyEditor = ({
   return (
     <div className={cn(dataTypeSelectVisible ? classes.container : classes.viewMode)}>
       {dataTypeSelectVisible ? (
-        <div className={classes.editSelectProperty}>
+        <div className={cn(classes.editSelectProperty, className)}>
           <div className={classes.selectProperty}>{children}</div>
           <StudioButton
             icon={<XMarkIcon />}
             onClick={() => setDataTypeSelectVisible(false)}
             title={t('general.close')}
             variant='secondary'
+            className={classes.closeButton}
           />
         </div>
       ) : (
@@ -39,7 +43,7 @@ export const SelectPropertyEditor = ({
           property={property}
           title={title}
           value={value}
-          className={classes.viewSelectProperty}
+          className={cn(classes.viewSelectProperty, className)}
         />
       )}
     </div>

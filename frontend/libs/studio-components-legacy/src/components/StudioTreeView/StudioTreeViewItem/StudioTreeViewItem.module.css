@@ -7,26 +7,20 @@
 .button {
   align-items: center;
   border-radius: 0;
-  border-width: 0 0 0 var(--studio-treeitem-vertical-line-width);
+  border-width: 0 0 0 var(--studio-legacy-treeitem-vertical-line-width);
   color: var(--fds-semantic-text-neutral-default);
   justify-content: left;
   width: 100%;
 }
 
-.button span {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .button[aria-selected='true'] {
-  background-color: var(--studio-treeitem-selected-background-colour);
-  border-color: var(--studio-treeitem-vertical-line-colour-root);
+  background-color: var(--studio-legacy-treeitem-selected-background-colour);
+  border-color: var(--studio-legacy-treeitem-vertical-line-colour-root);
 }
 
 .listItem .listItem .button:not([aria-selected='true']) {
   /* This should not apply to the top level, hence the nested .listItem selector */
-  border-color: var(--studio-treeitem-vertical-line-colour);
+  border-color: var(--studio-legacy-treeitem-vertical-line-colour);
 }
 
 .button:focus {
@@ -35,16 +29,18 @@
 
 .childItemList {
   --icon-width: 1em;
-  --icon-left-spacing: calc(var(--studio-treeitem-vertical-line-width) + var(--fds-spacing-3));
+  --icon-left-spacing: calc(
+    var(--studio-legacy-treeitem-vertical-line-width) + var(--fds-spacing-3)
+  );
   --vertical-line-center: calc(var(--icon-left-spacing) + var(--icon-width) / 2);
   --vertical-line-left-spacing: calc(
-    var(--vertical-line-center) - var(--studio-treeitem-vertical-line-width) / 2
+    var(--vertical-line-center) - var(--studio-legacy-treeitem-vertical-line-width) / 2
   );
 
   padding-left: 0;
   margin-left: var(--vertical-line-left-spacing);
-  box-shadow: var(--studio-treeitem-vertical-line-colour) var(--studio-treeitem-vertical-line-width)
-    0 inset;
+  box-shadow: var(--studio-legacy-treeitem-vertical-line-colour)
+    var(--studio-legacy-treeitem-vertical-line-width) 0 inset;
 }
 
 .label {

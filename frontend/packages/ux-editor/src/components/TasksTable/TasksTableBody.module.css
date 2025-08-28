@@ -6,15 +6,19 @@
   margin-bottom: var(--fds-spacing-2);
 }
 
-.taskRow td {
-  border: none;
+.taskNameCell,
+.taskTypeCell {
+  max-width: 200px;
 }
 
-.taskRow td:nth-child(2) {
-  width: 35%;
+.taskNameCell,
+.taskType {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.taskRow td:nth-child(4) {
+.taskRow td:last-child {
   width: 1px;
   white-space: nowrap;
 }
@@ -22,9 +26,11 @@
 .taskRow td {
   padding-top: 0;
   padding-bottom: 0;
+  border: none;
 }
 
-.hiddenTaskRow td:nth-child(-n + 3) {
+.hiddenTaskRow .taskTypeCell,
+.hiddenTaskRow .taskPageCountCell {
   opacity: 0.5;
 }
 
@@ -33,6 +39,9 @@
   align-items: center;
   height: 100%;
   gap: var(--fds-spacing-1);
+}
+.taskIcon {
+  flex-shrink: 0;
 }
 
 .taskTypeCellContent svg {

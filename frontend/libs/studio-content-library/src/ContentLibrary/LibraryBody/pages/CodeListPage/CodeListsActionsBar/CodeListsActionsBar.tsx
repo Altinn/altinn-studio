@@ -1,6 +1,6 @@
 import React from 'react';
 import type { TextResource } from '@studio/components-legacy';
-import { StudioSearch } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import type { ChangeEvent } from 'react';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
@@ -9,8 +9,9 @@ import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 
 export type CodeListsActionsBarProps = {
-  onBlurTextResource?: (textResource: TextResource) => void;
   onCreateCodeList: (newCodeList: CodeListWithMetadata) => void;
+  onCreateTextResource?: (textResource: TextResource) => void;
+  onUpdateTextResource?: (textResource: TextResource) => void;
   onUploadCodeList: (updatedCodeList: File) => void;
   codeListNames: string[];
   onSetSearchString: (searchString: string) => void;
@@ -20,8 +21,9 @@ export type CodeListsActionsBarProps = {
 };
 
 export function CodeListsActionsBar({
-  onBlurTextResource,
+  onCreateTextResource,
   onCreateCodeList,
+  onUpdateTextResource,
   onUploadCodeList,
   codeListNames,
   onSetSearchString,
@@ -34,20 +36,19 @@ export function CodeListsActionsBar({
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     onSetSearchString(event.target.value);
 
-  const handleClearSearch = () => onSetSearchString('');
-
   return (
     <div className={classes.actionsBar}>
       <StudioSearch
+        className={classes.search}
         label={t('app_content_library.code_lists.search_label')}
         onChange={handleChangeSearch}
-        clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
-        onClear={handleClearSearch}
+        clearButtonLabel={t('general.search_clear_button_title')}
       />
       <AddCodeListDropdown
         codeListNames={codeListNames}
-        onBlurTextResource={onBlurTextResource}
         onCreateCodeList={onCreateCodeList}
+        onCreateTextResource={onCreateTextResource}
+        onUpdateTextResource={onUpdateTextResource}
         onUploadCodeList={onUploadCodeList}
         textResources={textResources}
         externalResources={externalResources}

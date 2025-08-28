@@ -7,7 +7,7 @@ import {
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { StudioSpinner, StudioHeading } from '@studio/components-legacy';
-import { useResourcePolicyQuery } from '../../hooks/queries';
+import { useResourcePolicyQuery, useSinlgeResourceQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,6 +16,8 @@ import {
   useResourceAccessPackagesQuery,
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
+import { useGetAllAccessListsQuery } from '../../hooks/queries/useGetAllAccessListsQuery';
+import { getResourcePolicyRules, getResourceSubjects } from '../../utils/resourceUtils';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -45,6 +47,16 @@ export const PolicyEditorPage = ({
     app,
     resourceId,
   );
+  const { data: resourceData, isPending: isLoadingResource } = useSinlgeResourceQuery(
+    org,
+    app,
+    resourceId,
+  );
+  const isConsentResource = resourceData?.resourceType === 'Consent';
+  const { data: accessLists, isPending: isLoadingAccessLists } = useGetAllAccessListsQuery(
+    org,
+    isConsentResource,
+  );
   const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
   const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
     org,
@@ -71,7 +83,14 @@ export const PolicyEditorPage = ({
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (isPolicyPending || isActionPending || isSubjectsPending || isLoadingAccessPackages) {
+    if (
+      isPolicyPending ||
+      isActionPending ||
+      isSubjectsPending ||
+      isLoadingAccessPackages ||
+      isLoadingResource ||
+      (isConsentResource && isLoadingAccessLists)
+    ) {
       return (
         <div className={classes.spinnerWrapper}>
           <StudioSpinner
@@ -84,11 +103,13 @@ export const PolicyEditorPage = ({
     }
 
     const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
-    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjectData);
+    const subjects = getResourceSubjects(accessLists, subjectData, org, isConsentResource);
+    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjects);
+    const policy = getResourcePolicyRules(policyData, resourceId, isConsentResource);
 
     return (
       <PolicyEditor
-        policy={policyData}
+        policy={policy}
         actions={mergedActions}
         subjects={mergedSubjects}
         accessPackages={accessPackages}
@@ -96,6 +117,7 @@ export const PolicyEditorPage = ({
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
         usageType='resource'
+        isConsentResource={isConsentResource}
       />
     );
   };

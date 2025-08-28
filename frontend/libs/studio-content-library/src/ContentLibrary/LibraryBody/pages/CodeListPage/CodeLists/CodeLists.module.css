@@ -1,8 +1,15 @@
+.codeListCard {
+  border-color: var(--ds-color-neutral-border-subtle);
+}
+
 .codeListTitle {
   display: flex;
   flex-direction: column;
+  padding-block: var(--ds-size-2);
+  color: var(--ds-color-neutral-text-default);
 }
 
 .codeListUsages {
-  font: var(--fds-typography-paragraph-xsmall);
+  font-family: var(--ds-font-family), sans-serif;
+  font-size: var(--ds-body-xs-font-size);
 }

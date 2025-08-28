@@ -68,7 +68,7 @@ describe('EditDataModelBinding', () => {
     expect(dataModelFieldSelector).toBeInTheDocument();
   };
 
-  it('should render undefinedBinding initially', () => {
+  it('should render undefinedBinding component initially', () => {
     const label = 'kort svar';
 
     renderEditDataModelBinding({
@@ -80,51 +80,63 @@ describe('EditDataModelBinding', () => {
       },
     });
     const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: labelSpecificText,
+    });
 
-    const undefinedButton = screen.getByRole('button', { name: labelSpecificText });
+    const undefinedButton = screen.getByRole('button', { name: labelText });
     expect(undefinedButton).toBeInTheDocument();
   });
 
   it('should render type as label if no label is provided', () => {
     renderEditDataModelBinding({});
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
 
-    const undefinedButton = screen.getByRole('button', { name: type });
-    expect(undefinedButton).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: labelText });
+    expect(button).toBeInTheDocument();
   });
 
   it('should render EditBinding when undefinedBinding is clicked', async () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
 
-    await navigateAndVerifyEditBinding(user, type);
+    await navigateAndVerifyEditBinding(user, labelText);
   });
 
   it('should close EditBinding when click on close button', async () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
 
-    await navigateAndVerifyEditBinding(user, type);
+    await navigateAndVerifyEditBinding(user, labelText);
 
     const closeButton = screen.getByRole('button', {
-      name: textMock('general.close'),
+      name: textMock('right_menu.data_model_bindings_save_button'),
     });
     expect(closeButton).toBeInTheDocument();
 
     await user.click(closeButton);
 
-    const undefinedButton = screen.getByRole('button', { name: type });
+    const undefinedButton = screen.getByRole('button', { name: labelText });
     expect(undefinedButton).toBeInTheDocument();
   });
 
   it('should render DefinedBinding when binding is defined', async () => {
     const label = 'kort svar';
     const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
-    const binding = 'field1';
+    const binding = { field: 'field1', dataType: '' };
     renderEditDataModelBinding({
       props: {
         ...defaultEditDataModelingBinding,
@@ -154,7 +166,7 @@ describe('EditDataModelBinding', () => {
     window.confirm = jest.fn(() => true);
     const handleComponentChange = jest.fn();
     const label = 'kort svar';
-    const binding = 'field1';
+    const binding = { field: 'field1', dataType: '' };
     const user = userEvent.setup();
     const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
     const definedButtonText = textMock('right_menu.data_model_bindings_edit', {
@@ -186,7 +198,7 @@ describe('EditDataModelBinding', () => {
     await navigateAndVerifyEditBinding(user, definedButtonText);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
+      name: textMock('right_menu.data_model_bindings_delete_button'),
     });
     await user.click(deleteButton);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);

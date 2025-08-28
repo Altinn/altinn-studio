@@ -4,18 +4,15 @@ import { StudioIconCard } from '@studio/components-legacy/src/components/StudioI
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioDeleteButton,
-  StudioHeading,
-  StudioParagraph,
-} from '@studio/components-legacy';
-import { useLayoutSetIcon } from '../../../hooks/useLayoutSetIcon';
+import { StudioButton, StudioDeleteButton, StudioHeading } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
+import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
+import { ExportForm } from '../Elements/ExportForm';
 
 type TaskCardProps = {
   layoutSetModel: LayoutSetModel;
@@ -26,9 +23,8 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
-
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
-  const taskIcon = useLayoutSetIcon(layoutSetModel);
+  const taskIcon = getLayoutSetIcon(layoutSetModel);
 
   const [editing, setEditing] = useState(false);
 
@@ -42,6 +38,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
       >
         <PencilIcon /> {t('ux_editor.task_card.edit')}
       </StudioButton>
+      <ExportForm formLayoutSetName={layoutSetModel.id} />
       {layoutSetModel.type === 'subform' && (
         <StudioDeleteButton
           variant='tertiary'
@@ -68,26 +65,22 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
     <StudioIconCard
       icon={taskIcon.icon}
       iconColor={taskIcon.iconColor}
+      menuButtonTitle={t('general.menu')}
       contextButtons={contextButtons}
     >
       <div className={classes.details}>
         <div>
-          <StudioParagraph size='sm'>{t(taskName)}</StudioParagraph>
+          <StudioParagraph>{t(taskName)}</StudioParagraph>
           <StudioHeading size='xs' title={layoutSetModel.id}>
             {layoutSetModel.id}
           </StudioHeading>
         </div>
-        <StudioParagraph size='sm' title={layoutSetModel.dataType}>
+        <StudioParagraph title={layoutSetModel.dataType}>
           {t('ux_editor.task_card.datamodel')}
           {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
         </StudioParagraph>
       </div>
-      <StudioButton
-        className={classes.navigateButton}
-        onClick={goToFormEditor}
-        color='second'
-        variant='primary'
-      >
+      <StudioButton onClick={goToFormEditor} color='second' variant='primary'>
         {t('ux_editor.task_card.ux_editor')}
       </StudioButton>
     </StudioIconCard>

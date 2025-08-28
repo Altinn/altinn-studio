@@ -10,8 +10,8 @@ export class PolicyEditor extends BasePage {
     super(page, environment);
   }
 
-  public verifySelectedSecurityLevel(level: SecurityLevel) {
-    expect(this.authLevelLocator).toHaveValue(level.toString());
+  public async verifySelectedSecurityLevel(level: SecurityLevel) {
+    await expect(this.authLevelLocator).toHaveValue(level.toString());
   }
 
   public async selectSecurityLevel(level: SecurityLevel): Promise<void> {

@@ -199,7 +199,9 @@ export class UiEditorPage extends BasePage {
 
   public async clickOnDataModelFieldPropertyOption(option: string): Promise<void> {
     await this.page
-      .getByLabel(this.textMock('ux_editor.modal_properties_data_model_field_binding'))
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
+      })
       .selectOption(option);
   }
 

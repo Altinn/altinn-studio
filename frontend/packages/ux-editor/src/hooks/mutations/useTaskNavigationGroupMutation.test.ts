@@ -13,7 +13,6 @@ describe('useTaskNavigationGroupMutation', () => {
         taskType: 'data',
         name: 'name1',
         taskId: 'taskId1',
-        pageCount: 1,
       },
     ];
 

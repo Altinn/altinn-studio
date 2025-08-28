@@ -8,10 +8,14 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
-import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
+import type {
+  PagesModelWithPageGroups,
+  PagesModelWithPageOrder,
+} from 'app-shared/types/api/dto/PagesModel';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
+export const layout3NameMock = 'Side3';
 export const pagelayout1NameMock = 'Sideoppsett 1';
 export const pagelayout2NameMock = 'Sideoppsett 2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
@@ -20,7 +24,7 @@ export const component1TypeMock = ComponentType.Input;
 export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,
@@ -49,7 +53,7 @@ export const component3Mock: FormComponent = {
 export const componentWithOptionsMock: FormComponent = {
   id: 'ComponentWithOptionsMock',
   type: ComponentType.Checkboxes,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
@@ -59,7 +63,7 @@ export const componentWithOptionsMock: FormComponent = {
 export const componentWithMultipleSelectMock: FormComponent = {
   id: 'ComponentWithMultipleSelectMock',
   type: ComponentType.MultipleSelect,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
@@ -69,7 +73,7 @@ export const componentWithMultipleSelectMock: FormComponent = {
 export const subformComponentMock: FormComponent = {
   id: 'SubformComponent',
   type: ComponentType.Subform,
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
   itemType: 'COMPONENT',
   pageIndex: null,
   propertyPath: 'definitions/subformComponent',
@@ -113,7 +117,7 @@ export const layoutMock: IInternalLayout = {
       id: container2IdMock,
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
-      dataModelBindings: { group: 'some-path' },
+      dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       pageIndex: null,
       propertyPath: 'definitions/repeatingGroupComponent',
     },
@@ -148,12 +152,12 @@ export const layout1Mock: ExternalFormLayout = {
           component3IdMock,
           componentMocks[ComponentType.FileUploadWithTag].id,
         ],
-        dataModelBindings: { group: 'some-path' },
+        dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       },
       {
         id: component1IdMock,
         type: component1TypeMock,
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       },
       {
         id: component2IdMock,
@@ -164,7 +168,7 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         optionsId: '',
       },
     ],
@@ -178,30 +182,29 @@ const layout2Mock: ExternalFormLayout = {
     layout: [],
   },
 };
-export const pagesModelMock: PagesModel = {
+export const pagesModelMock: PagesModelWithPageOrder = {
   pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
-  groups: [],
 };
 
-export const groupsPagesModelMock: PagesModel = {
+export const groupsPagesModelMock: PagesModelWithPageGroups = {
   groups: [
     {
       name: pagelayout1NameMock,
-      type: pagelayout1NameMock,
-      order: [{ id: layout1NameMock }],
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
     },
     {
-      name: pagelayout2NameMock,
-      type: pagelayout2NameMock,
       markWhenCompleted: true,
-      order: [{ id: layout2NameMock }],
-    },
-    {
-      name: 'EmptyGroup',
-      order: [],
+      order: [{ id: layout3NameMock }],
     },
   ],
-  pages: [{ id: layout1NameMock }, { id: layout2NameMock }],
+};
+export const pageGroupsMultiplePagesMock: PagesModelWithPageGroups = {
+  groups: [
+    {
+      name: pagelayout1NameMock,
+      order: [{ id: layout1NameMock }, { id: layout2NameMock }],
+    },
+  ],
 };
 export const externalLayoutsMock: FormLayoutsResponse = {
   [layout1NameMock]: layout1Mock,

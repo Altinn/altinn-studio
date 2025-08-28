@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:ad1aedbcc1b0575074a91ac146d6956476c1f9985994810e4ee02efd932a68fd AS generate-studio-frontend
+FROM node:lts-alpine@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -10,6 +10,7 @@ COPY ./development/azure-devops-mock/package.json ./development/azure-devops-moc
 COPY ./frontend/app-development/package.json ./frontend/app-development/
 COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
+COPY ./frontend/admin/package.json ./frontend/admin/
 COPY ./frontend/language/package.json ./frontend/language/
 COPY ./frontend/libs/studio-components/package.json ./frontend/libs/studio-components/
 COPY ./frontend/libs/studio-components-legacy/package.json ./frontend/libs/studio-components-legacy/
@@ -38,23 +39,26 @@ COPY . .
 RUN yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:33be1326b4a2602d08e145cf7e4a8db4b243db3cac3bdec42e91aef930656080 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:430bd56f4348f9dd400331f0d71403554ec83ae1700a7dcfe1e1519c9fd12174 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
-COPY backend .
+COPY src/Designer/backend .
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
-
-# Prepare app template
-WORKDIR /app_template
-RUN apk add jq zip
-RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
 # Create version file
 WORKDIR /version
-RUN echo "{\"designerVersion\":\"$DESIGNER_VERSION\",\"appTemplateVersion\":\"$(curl -s https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq -r .tag_name)\"}" > version.json
+RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
+
+# Prepare app template
+FROM alpine@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS app-template-release
+RUN apk add --no-cache rsync
+
+COPY ./src/App/app-template-dotnet/src /app-template-dotnet-src
+WORKDIR /app-template-dotnet-src
+RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:3fce6771d84422e2396c77267865df61174a3e503c049f1fe242224c012fde65 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:d4bf3d8c8f0236341ddd93d15208152e26bc6dcc9d34c635351a3402c284137f AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
@@ -62,15 +66,17 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl
 
 COPY --from=generate-studio-backend /app_output .
-COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
-COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
-COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
-COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
-COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
+
+COPY --from=generate-studio-frontend /build/frontend/app-development/dist ./wwwroot/editor/
+COPY --from=generate-studio-frontend /build/frontend/dashboard/dist ./wwwroot/dashboard/
+COPY --from=generate-studio-frontend /build/frontend/studio-root/dist ./wwwroot/info/
+COPY --from=generate-studio-frontend /build/frontend/app-preview/dist ./wwwroot/preview/
+COPY --from=generate-studio-frontend /build/frontend/resourceadm/dist ./wwwroot/resourceadm/
+
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
 ## Copying app template
-COPY --from=generate-studio-backend /app_template ./Templates/AspNet
+COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

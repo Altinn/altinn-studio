@@ -1,4 +1,3 @@
-import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -7,17 +6,16 @@ import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { useAddGroupMutation } from './useAddGroupMutation';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { pagesModelMock } from '../../testing/layoutMock';
 
 // Test data
 const layoutSetId = 'test-layout-set';
 const mockPages: PagesModel = {
   groups: [
     {
-      name: `${textMock('general.layout_set')} 1`,
       order: [{ id: `${textMock('general.page')}1` }],
     },
   ],
-  pages: [],
 };
 
 const renderHook = async ({
@@ -40,6 +38,18 @@ describe('useAddGroupMutation', () => {
     jest.clearAllMocks();
   });
 
+  it('throws an error if trying to add group to pages without groups', async () => {
+    const queryClient = createQueryClientMock();
+    const services = {
+      getPages: jest.fn().mockResolvedValue(pagesModelMock),
+      changePageGroups: jest.fn().mockResolvedValue(undefined),
+    };
+    const { result } = await renderHook({ queryClient, queries: services });
+    expect(async () => {
+      await result.current.mutateAsync();
+    }).rejects.toThrow();
+  });
+
   it('successfully adds a new group and invalidates the cache', async () => {
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
@@ -59,7 +69,6 @@ describe('useAddGroupMutation', () => {
     const queryClient = createQueryClientMock();
     const emptyPages: PagesModel = {
       groups: [],
-      pages: [],
     };
     const services = {
       getPages: jest.fn().mockResolvedValue(emptyPages),
@@ -71,11 +80,9 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
-      pages: [],
     });
   });
 
@@ -84,15 +91,12 @@ describe('useAddGroupMutation', () => {
     const multiGroupPages: PagesModel = {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
         {
-          name: `${textMock('general.layout_set')} 2`,
           order: [{ id: `${textMock('general.page')}` }],
         },
       ],
-      pages: [],
     };
     const services = {
       getPages: jest.fn().mockResolvedValue(multiGroupPages),
@@ -104,11 +108,9 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...multiGroupPages.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
-      pages: [],
     });
   });
 
@@ -116,13 +118,11 @@ describe('useAddGroupMutation', () => {
     const queryClient = createQueryClientMock();
     const pagesWithUndefinedOrder: PagesModel = {
       groups: [
-        { name: `${textMock('general.layout_set')} 1`, order: undefined },
+        { order: undefined },
         {
-          name: `${textMock('general.layout_set')} 2`,
-          order: [{ id: `${textMock('general.layout_set')} 1` }],
+          order: [{ id: `${textMock('ux_editor.page_layout_group')} 1` }],
         },
       ],
-      pages: [],
     };
     const services = {
       getPages: jest.fn().mockResolvedValue(pagesWithUndefinedOrder),
@@ -134,22 +134,16 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithUndefinedOrder.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
-      pages: [],
     });
   });
 
   it('handles page IDs that do not match the regex when calculating next page number', async () => {
     const queryClient = createQueryClientMock();
     const pagesWithNonMatchingId: PagesModel = {
-      groups: [
-        { name: 'Layout Set 1', order: [{ id: 'customPage' }] },
-        { name: 'Layout Set 2', order: [{ id: 'page1' }] },
-      ],
-      pages: [],
+      groups: [{ order: [{ id: 'customPage' }] }, { order: [{ id: 'page1' }] }],
     };
     const services = {
       getPages: jest.fn().mockResolvedValue(pagesWithNonMatchingId),
@@ -161,19 +155,16 @@ describe('useAddGroupMutation', () => {
       groups: [
         ...pagesWithNonMatchingId.groups,
         {
-          name: `${textMock('general.layout_set')} 3`,
           order: [{ id: `${textMock('general.page')}2` }],
         },
       ],
-      pages: [],
     });
   });
 
   it('handles undefined groups in updatedPages when adding a new group', async () => {
     const queryClient = createQueryClientMock();
     const pagesWithUndefinedGroups: PagesModel = {
-      groups: undefined,
-      pages: [],
+      groups: [],
     };
     const services = {
       getPages: jest.fn().mockResolvedValue(pagesWithUndefinedGroups),
@@ -184,25 +175,9 @@ describe('useAddGroupMutation', () => {
     expect(services.changePageGroups).toHaveBeenCalledWith(org, app, layoutSetId, {
       groups: [
         {
-          name: `${textMock('general.layout_set')} 1`,
           order: [{ id: `${textMock('general.page')}1` }],
         },
       ],
-      pages: [],
-    });
-  });
-
-  it('handles API errors', async () => {
-    const queryClient = createQueryClientMock();
-    const services = {
-      getPages: jest.fn().mockRejectedValue(new Error('API error')),
-    };
-    const { result } = await renderHook({ queryClient, queries: services });
-    await waitFor(async () => {
-      await expect(result.current.mutateAsync()).rejects.toThrow('API error');
-    });
-    await waitFor(() => {
-      expect(result.current.isError).toBe(true);
     });
   });
 });

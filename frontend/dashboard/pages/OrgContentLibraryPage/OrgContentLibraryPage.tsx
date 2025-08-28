@@ -10,10 +10,11 @@ import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
   StudioCenter,
-  StudioParagraph,
   StudioPageError,
   StudioPageSpinner,
+  StudioSpinner,
 } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -38,6 +39,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
+import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
+import { FeedbackForm } from './FeedbackForm';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -54,9 +57,12 @@ type OrgContentLibraryProps = {
 };
 
 function OrgContentLibrary({ orgName }: OrgContentLibraryProps): ReactElement {
+  const { t } = useTranslation();
   const orgRepoName = useOrgRepoName();
-  const { data: repoStatus } = useRepoStatusQuery(orgName, orgRepoName);
+  const { data: repoStatus, isLoading } = useRepoStatusQuery(orgName, orgRepoName);
   useListenToMergeConflictInRepo(orgName, orgRepoName);
+
+  if (isLoading) return <StudioSpinner spinnerTitle={t('general.loading')} />;
 
   if (repoStatus?.hasMergeConflict) {
     return <MergeConflictWarning owner={orgName} repoName={orgRepoName} />;
@@ -106,10 +112,12 @@ function OrgContentLibraryWithContextAndData({
   orgName,
   textResources: textResourcesWithLanguage,
 }: OrgContentLibraryWithContextAndDataProps): ReactElement {
-  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
-  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
   const { mutate: createCodeList } = useCreateOrgCodeListMutation(orgName);
+  const { mutate: deleteCodeList } = useDeleteOrgCodeListMutation(orgName);
+  const { mutate: updateCodeList } = useUpdateOrgCodeListMutation(orgName);
+  const { mutate: updateCodeListId } = useUpdateOrgCodeListIdMutation(orgName);
   const { mutate: updateTextResources } = useUpdateOrgTextResourcesMutation(orgName);
+  const { t } = useTranslation();
 
   const handleUpload = useUploadCodeList(orgName);
 
@@ -125,6 +133,10 @@ function OrgContentLibraryWithContextAndData({
     [updateTextResources],
   );
 
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string): void => {
+    updateCodeListId({ codeListId, newCodeListId });
+  };
+
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata): void => {
     updateCodeList({ title, data: codeList });
   };
@@ -134,13 +146,15 @@ function OrgContentLibraryWithContextAndData({
   };
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
+    heading: t('org_content_library.library_heading'),
     pages: {
       codeList: {
         props: {
-          codeListsData: codeListDataList,
+          codeListDataList,
           onCreateCodeList: handleCreate,
+          onCreateTextResource: handleUpdateTextResource,
           onDeleteCodeList: deleteCodeList,
-          onUpdateCodeListId: () => {},
+          onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUpdateTextResource: handleUpdateTextResource,
           onUploadCodeList: handleUpload,
@@ -150,7 +164,12 @@ function OrgContentLibraryWithContextAndData({
     },
   });
 
-  return <div>{getContentResourceLibrary()}</div>;
+  return (
+    <div>
+      {getContentResourceLibrary()}
+      <FeedbackForm />
+    </div>
+  );
 }
 
 function ContextWithoutLibraryAccess(): ReactElement {
@@ -158,8 +177,10 @@ function ContextWithoutLibraryAccess(): ReactElement {
   return (
     <StudioCenter>
       <StudioAlert>
-        <StudioParagraph>{t('dashboard.org_library.alert_no_org_selected')}</StudioParagraph>
-        <StudioParagraph>
+        <StudioParagraph data-size='md'>
+          {t('dashboard.org_library.alert_no_org_selected')}
+        </StudioParagraph>
+        <StudioParagraph data-size='md'>
           {t('dashboard.org_library.alert_no_org_selected_no_access')}
         </StudioParagraph>
       </StudioAlert>

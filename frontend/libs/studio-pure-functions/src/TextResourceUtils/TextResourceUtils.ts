@@ -1,5 +1,6 @@
 import type { TextResource } from '../types/TextResource';
 import type { TextResourceMap } from '../types/TextResourceMap';
+import type { TextResourcesWithLanguage } from '../types/TextResourcesWithLanguage';
 
 export class TextResourceUtils {
   private readonly textResources: TextResourceMap;
@@ -21,19 +22,73 @@ export class TextResourceUtils {
     return Array.from(this.textResources.values());
   }
 
+  public toObject(): Record<string, string> {
+    const array = this.asArray();
+    const entries: Array<[string, string]> = array.map((textResource) => [
+      textResource.id,
+      textResource.value,
+    ]);
+    return Object.fromEntries(entries);
+  }
+
   public get(id: string): TextResource | undefined {
     return this.textResources.get(id);
   }
 
-  public set(textResource: TextResource): TextResourceMap {
-    const newMap = this.cloneMap();
-    return newMap.set(textResource.id, textResource);
+  public getValueIfExists(id: string): string | null {
+    const textResource = this.get(id);
+    return textResource ? textResource.value : null;
   }
 
-  public delete(id: string): TextResourceMap {
+  public withLanguage(language: string): TextResourcesWithLanguage {
+    return {
+      language,
+      resources: this.asArray(),
+    };
+  }
+
+  public set(textResource: TextResource): TextResourceUtils {
+    const newMap = this.cloneMap();
+    newMap.set(textResource.id, textResource);
+    return new TextResourceUtils(newMap);
+  }
+
+  public setValues(updates: Record<string, string>): TextResourceUtils {
+    const newMap = this.cloneMap();
+    Object.entries(updates).forEach(([id, value]) => {
+      const textResource = newMap.get(id);
+      newMap.set(id, { ...textResource, id, value });
+    });
+    return new TextResourceUtils(newMap);
+  }
+
+  public setMultiple(textResources: TextResource[]): TextResourceUtils {
+    const newMap = this.cloneMap();
+    textResources.forEach((textResource) => {
+      newMap.set(textResource.id, textResource);
+    });
+    return new TextResourceUtils(newMap);
+  }
+
+  public prependOrUpdateMultiple(textResources: TextResource[]): TextResourceUtils {
+    const newResources = this.filterOutExisting(textResources);
+    const newMap = this.prependMultiple(newResources);
+    return newMap.setMultiple(textResources);
+  }
+
+  private filterOutExisting(textResources: TextResource[]): TextResource[] {
+    return textResources.filter((textResource) => !this.textResources.has(textResource.id));
+  }
+
+  private prependMultiple(textResources: TextResource[]): TextResourceUtils {
+    const existingResources: TextResource[] = this.asArray();
+    return TextResourceUtils.fromArray([...textResources, ...existingResources]);
+  }
+
+  public delete(id: string): TextResourceUtils {
     const newMap = this.cloneMap();
     newMap.delete(id);
-    return newMap;
+    return new TextResourceUtils(newMap);
   }
 
   private cloneMap(): TextResourceMap {

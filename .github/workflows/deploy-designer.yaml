@@ -8,9 +8,10 @@ on:
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
-      - 'backend/**'
+      - 'src/Designer/backend/**'
       - 'frontend/**'
-      - 'Dockefile'
+      - '!frontend/admin/**'
+      - 'Dockerfile'
       - 'package.json'
       - 'charts/altinn-designer/**'
       - 'charts/altinn-designer-config/**'
@@ -72,8 +73,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-designer-db-migrations
-      context: backend
-      dockerfile: backend/Migrations.Dockerfile
+      context: src/Designer/backend
+      dockerfile: src/Designer/backend/Migrations.Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}

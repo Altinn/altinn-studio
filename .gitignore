@@ -392,3 +392,11 @@ stats.csv
 /playwright/.cache/
 **/playwright/playwright-report/
 .playwright/
+
+
+## Storybook
+**/storybook-static
+
+## AI settings
+.claude/settings.local.json
+

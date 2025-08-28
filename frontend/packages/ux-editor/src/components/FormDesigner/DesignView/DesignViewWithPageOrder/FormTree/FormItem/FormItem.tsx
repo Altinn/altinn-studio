@@ -1,6 +1,6 @@
-import React from 'react';
-import type { IInternalLayout } from '../../../../../../types/global';
-import { getItem, isContainer } from '../../../../../../utils/formLayoutUtils';
+import React, { type ReactElement } from 'react';
+import type { IInternalLayout } from '../../../../types/global';
+import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
 import { StudioDragAndDropTree } from '@studio/components-legacy';
 import { FormItemTitle } from './FormItemTitle';
@@ -10,21 +10,58 @@ import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
 import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
 
 export type FormItemProps = {
   layout: IInternalLayout;
   id: string;
+  saveAtIndexPosition: number;
   duplicateComponents?: string[];
+  containerId?: string;
 };
 
-export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => {
+export const FormItem = ({
+  layout,
+  id,
+  saveAtIndexPosition,
+  duplicateComponents,
+  containerId,
+}: FormItemProps): ReactElement => {
   const { t } = useTranslation();
-  const componentTitle = useComponentTitle();
   const formItem = getItem(layout, id);
-
   if (!formItem) {
     return <UnknownReferencedItem id={id} layout={layout} />;
   }
+
+  const shouldRenderWithHoverAddButton = shouldDisplayFeature(FeatureFlag.AddComponentModal);
+
+  if (shouldRenderWithHoverAddButton) {
+    return (
+      <WithHoverAddButton
+        layout={layout}
+        saveAtIndexPosition={saveAtIndexPosition}
+        containerId={containerId || BASE_CONTAINER_ID}
+        title={t('ux_editor.add_item.new_component')}
+      >
+        <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />
+      </WithHoverAddButton>
+    );
+  }
+
+  return <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />;
+};
+
+type ItemProps = {
+  layout: IInternalLayout;
+  id: string;
+  duplicateComponents?: string[];
+};
+const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
+  const { t } = useTranslation();
+  const componentTitle = useComponentTitle();
+
+  const formItem = getItem(layout, id);
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
 
@@ -39,8 +76,9 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
   );
 
   const shouldDisplayAddButton =
-    isContainer(layout, id) && shouldDisplayFeature(FeatureFlag.AddComponentModal);
-
+    isContainer(layout, id) &&
+    !getChildIds(layout, id).length &&
+    shouldDisplayFeature(FeatureFlag.AddComponentModal);
   return (
     <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}

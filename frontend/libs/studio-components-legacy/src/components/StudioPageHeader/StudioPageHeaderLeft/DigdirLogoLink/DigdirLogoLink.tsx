@@ -1,9 +1,9 @@
 import React from 'react';
 import classes from './DigdirLogoLink.module.css';
 import { DigdirLogo } from './DigdirLogo';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioPageHeaderHeaderButton } from '../../StudioPageHeaderHeaderButton';
 import { useStudioPageHeaderContext } from '../../context';
+import { StudioParagraph } from '../../../StudioParagraph';
 
 export type DigdirLogoLinkProps = {
   title: string;
@@ -20,9 +20,9 @@ export const DigdirLogoLink = ({ title, showTitle }: DigdirLogoLinkProps): React
         <DigdirLogo />
       </StudioPageHeaderHeaderButton>
       {showTitle && (
-        <Paragraph size='large' className={classes.titleText}>
+        <StudioParagraph data-size='lg' className={classes.titleText}>
           {title}
-        </Paragraph>
+        </StudioParagraph>
       )}
     </div>
   );

@@ -105,29 +105,9 @@ When running the backend locally, the .env file will be used to fetch the client
 
 If the setup script is run, an OAuth2 application will be created in Gitea, and the CLIENT_ID and CLIENT_SECRET values will be set in the .env file. Alternatively, you can set up the OAuth2 application yourself in Gitea and manually set the client ID and client secret values in the configuration.
 
-If you want to work on creating apps locally, the [app-template-dotnet][16] repo
-should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done,
-otherwise it should be referenced in `appsettings.development.json`.
-
-```json
-{
-  "GeneralSettings": {
-    "TemplateLocation": "Path to src folder of app-template-dotnet repo",
-    "DeploymentLocation": "Path to src/deployment folder of app-template-dotnet repo",
-    "AppLocation": "Path to src/App folder of app-template-dotnet repo"
-  }
-}
-```
-
-Alternative to cloning app-templates-dotnet repo is to use following script to download template dependencies:
-
-```sh
-wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
-```
-
 ## Developing Frontend
 
-Start the webpack dev server for the respective app you want to develop:
+Start the vite dev server for the respective app you want to develop:
 
 ```bash
 yarn run start-app-development

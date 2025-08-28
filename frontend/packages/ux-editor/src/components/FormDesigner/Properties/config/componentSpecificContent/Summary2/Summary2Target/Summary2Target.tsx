@@ -1,10 +1,6 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import {
-  StudioHeading,
-  StudioParagraph,
-  StudioNativeSelect,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioHeading, StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioParagraph } from '@studio/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -28,10 +24,10 @@ import cn from 'classnames';
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
   onChange: (target: Summary2TargetConfig) => void;
-  mainConfigClass?: string;
+  className?: string;
 };
 
-export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2TargetProps) => {
+export const Summary2Target = ({ target, onChange, className }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -71,14 +67,9 @@ export const Summary2Target = ({ target, onChange, mainConfigClass }: Summary2Ta
   };
 
   return (
-    <div
-      className={cn(
-        mainConfigClass ? mainConfigClass : classes.targetConfig,
-        classes.wrapperConfig,
-      )}
-    >
+    <div className={cn(className, classes.wrapperConfig)}>
       <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      <StudioParagraph size='sm'>
+      <StudioParagraph spacing>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
       <StudioNativeSelect

@@ -1,14 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioCard,
-  StudioTabs,
-  StudioDivider,
-  StudioButton,
-  StudioDeleteButton,
-  StudioProperty,
-  StudioParagraph,
-} from '@studio/components-legacy';
+import { StudioTabs, StudioButton, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioCard, StudioParagraph, StudioProperty } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
@@ -97,21 +90,16 @@ const ActionEditable = ({
     !getPredefinedActions(bpmnDetails.taskType).includes(actionElement.action);
 
   return (
-    <StudioCard className={classes.container}>
-      <StudioCard.Header className={classes.cardHeader}>
-        <StudioParagraph size='small'>
+    <StudioCard className={classes.container} data-color='neutral'>
+      <div className={classes.cardHeader}>
+        <StudioParagraph>
           {t('process_editor.configuration_panel_actions_action_card_title', {
             actionIndex: actionIndex + 1,
           })}
         </StudioParagraph>
-      </StudioCard.Header>
-      <StudioDivider color='subtle' className={classes.cardDivider} />
-      <StudioCard.Content className={classes.cardContent}>
-        <StudioTabs
-          defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined}
-          size='small'
-          className={classes.tabsContainer}
-        >
+      </div>
+      <StudioCard.Block className={classes.cardContent}>
+        <StudioTabs defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined} size='small'>
           <StudioTabs.List>
             <StudioTabs.Tab value={TabIds.Predefined}>
               {t('process_editor.configuration_panel_actions_action_tab_predefined')}
@@ -127,8 +115,8 @@ const ActionEditable = ({
             <CustomActions actionElement={actionElement} />
           </StudioTabs.Content>
         </StudioTabs>
-      </StudioCard.Content>
-      <StudioCard.Footer className={classes.cardFooter}>
+      </StudioCard.Block>
+      <div className={classes.cardFooter}>
         <StudioButton
           aria-label={t('general.close_item', {
             item: actionElement.action,
@@ -144,7 +132,7 @@ const ActionEditable = ({
             item: actionElement.action,
           })}
         />
-      </StudioCard.Footer>
+      </div>
     </StudioCard>
   );
 };

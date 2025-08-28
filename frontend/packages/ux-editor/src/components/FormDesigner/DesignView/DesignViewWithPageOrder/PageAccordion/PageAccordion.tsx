@@ -9,7 +9,12 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../hooks';
 import { StudioButton } from '@studio/components-legacy';
-import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
+import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
+import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
+import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
+import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
+import cn from 'classnames';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -20,6 +25,7 @@ export type PageAccordionProps = {
   hasDuplicatedIds?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
+  groupIndex?: number;
 };
 
 /**
@@ -44,25 +50,39 @@ export const PageAccordion = ({
   hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
+  groupIndex,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedItem, setSelectedItem } = useAppContext();
+  const { data: pages } = usePagesQuery(org, app, selectedFormLayoutSetName);
 
   const { mutate: deletePage, isPending } = useDeletePageMutation(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, selectedFormLayoutSetName);
 
+  const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
+    if (!confirm(t('ux_editor.page_delete_text'))) return;
+    if (selectedItem?.id === pageName) setSelectedItem(null);
+
+    if (isUsingGroups) {
+      const updatedGroups = getUpdatedGroupsExcludingPage({
+        pageId: pageName,
+        groups: pages.groups,
+        groupIndex,
+      });
+      changePageGroups({ ...pages, groups: updatedGroups });
+    } else {
       deletePage(pageName);
     }
   };
 
   return (
-    <Accordion.Item open={isOpen}>
+    <Accordion.Item open={isOpen} className={classes.accordionItem}>
       <div className={classes.accordionHeaderRow}>
         <div
           data-testid={accordionHeaderId(pageName)}
@@ -74,8 +94,7 @@ export const PageAccordion = ({
             {pageName}
           </Accordion.Header>
         </div>
-
-        <div className={classes.navigationMenu}>
+        <div className={cn(classes.navigationMenu, { [classes.accordionSelected]: isOpen })}>
           {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton

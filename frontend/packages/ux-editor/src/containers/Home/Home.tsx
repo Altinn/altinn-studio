@@ -22,7 +22,7 @@ export const FormDesignerNavigation = () => {
             <SettingsTabs />
           </div>
           <footer className={classes.footer}>
-            <Link href='/contact'>{t('general.contact')}</Link>
+            <Link href='/info/contact'>{t('general.contact')}</Link>
             <LayoutPageOverviewFeedback />
           </footer>
         </div>

@@ -8,45 +8,55 @@ import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import type { BooleanExpression, StringExpression } from '@studio/components-legacy';
 import type {
-  IDataModelBindings,
-  IDataModelBindingsKeyValue,
+  ExplicitDataModelBinding,
+  IDataModelBindingsKeyValueExplicit,
 } from '@altinn/ux-editor/types/global';
 
 type DataModelBindingsForAddress = {
-  address: IDataModelBindings;
-  zipCode: IDataModelBindings;
-  postPlace: IDataModelBindings;
-  careOf?: IDataModelBindings;
-  houseNumber?: IDataModelBindings;
+  address: ExplicitDataModelBinding;
+  zipCode: ExplicitDataModelBinding;
+  postPlace: ExplicitDataModelBinding;
+  careOf?: ExplicitDataModelBinding;
+  houseNumber?: ExplicitDataModelBinding;
 };
 
-type DataModelBindingsForCustom = IDataModelBindingsKeyValue;
+type DataModelBindingsForCustom = IDataModelBindingsKeyValueExplicit;
 
 type DataModelBindingsForGroup = {
-  group: IDataModelBindings;
+  group: ExplicitDataModelBinding;
 };
 
-type DataModelBindingsForList = IDataModelBindingsKeyValue;
+type DataModelBindingsForList = IDataModelBindingsKeyValueExplicit;
 
 type DataModelBindingsLikert = {
-  answer: IDataModelBindings;
-  questions: IDataModelBindings;
+  answer: ExplicitDataModelBinding;
+  questions: ExplicitDataModelBinding;
 };
 
 type DataModelBindingsList = {
-  list: IDataModelBindings;
+  list: ExplicitDataModelBinding;
 };
 
 type DataModelBindingsOptionsSimple = {
-  simpleBinding: IDataModelBindings;
-  metadata?: IDataModelBindings;
+  simpleBinding: ExplicitDataModelBinding;
+  metadata?: ExplicitDataModelBinding;
 };
 
 export type DataModelBindingsSimple = {
-  simpleBinding: IDataModelBindings;
+  simpleBinding: ExplicitDataModelBinding;
 };
 
 type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
+
+type DataModelBindingsOrganisationLookup = {
+  organisation_lookup_orgnr: ExplicitDataModelBinding;
+  organisation_lookup_name?: ExplicitDataModelBinding;
+};
+
+type DataModelBindingsPersonLookup = {
+  person_lookup_ssn: ExplicitDataModelBinding;
+  person_lookup_name: ExplicitDataModelBinding;
+};
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
@@ -329,6 +339,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     validateOnNext?: PageValidation;
     validateOnPrevious?: PageValidation;
   };
+  [ComponentType.OrganisationLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsOrganisationLookup;
+    };
   [ComponentType.Panel]: {
     variant?: FormPanelVariant;
     showIcon?: boolean;
@@ -336,6 +350,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Paragraph]: {};
   [ComponentType.Payment]: SummarizableComponentProps;
   [ComponentType.PaymentDetails]: {};
+  [ComponentType.PersonLookup]: FormComponentProps &
+    SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsPersonLookup;
+    };
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &
     SummarizableComponentProps &

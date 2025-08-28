@@ -1,9 +1,11 @@
 import {
-  isTaskReceipt,
+  getHiddenTasks,
+  getLayoutSetForTask,
+  getLayoutSetIdForTask,
   getTaskIcon,
+  isDefaultReceiptTask,
   taskNavigationType,
   TaskType,
-  getTaskName,
 } from './SettingsUtils';
 import {
   CardIcon,
@@ -13,6 +15,13 @@ import {
   SealCheckmarkIcon,
   TasklistIcon,
 } from '@studio/icons';
+
+const layoutSetsMock = [
+  { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },
+  { id: 'layout3', dataType: null, type: '', task: { id: 'task3', type: 'subform' } },
+  { id: 'layout4', dataType: null, type: '', task: { id: 'task4', type: 'signing' } },
+  { id: 'layout5', dataType: null, type: '', task: { id: 'CustomReceipt', type: '' } },
+];
 
 describe('taskNavigationType', () => {
   it('should return the correct text key', () => {
@@ -26,7 +35,7 @@ describe('taskNavigationType', () => {
   });
 });
 
-describe('taskNavigationIcon', () => {
+describe('getTaskIcon', () => {
   it('should return the correct icon', () => {
     expect(getTaskIcon(TaskType.Data)).toBe(TasklistIcon);
     expect(getTaskIcon(TaskType.Confirmation)).toBe(SealCheckmarkIcon);
@@ -37,41 +46,75 @@ describe('taskNavigationIcon', () => {
   });
 });
 
-describe('isTaskReceipt', () => {
-  it('should return true if taskType is receipt', () => {
-    expect(isTaskReceipt('receipt')).toBe(true);
+describe('getHiddenTasks', () => {
+  const taskNavigationGroups = [
+    { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data },
+    { taskId: 'task3', name: 'Task 3', taskType: TaskType.Signing },
+  ];
+
+  it('should return the correct hidden tasks', () => {
+    const result = getHiddenTasks({ taskNavigationGroups, layoutSets: layoutSetsMock });
+    expect(result).toEqual([
+      { taskId: 'task4', taskType: TaskType.Signing, pageCount: undefined },
+      { taskType: TaskType.Receipt },
+    ]);
   });
 
-  it('should return false if taskType is not receipt', () => {
-    expect(isTaskReceipt('data')).toBe(false);
+  it('should not include layout sets without a task', () => {
+    const result = getHiddenTasks({
+      taskNavigationGroups: [],
+      layoutSets: [
+        { id: 'layout1', dataType: null, type: '', task: null },
+        { id: 'layout2', dataType: null, type: '', task: { id: 'task2', type: 'data' } },
+      ],
+    });
+    expect(result).toEqual([
+      { taskId: 'task2', taskType: TaskType.Data, pageCount: undefined },
+      { taskType: TaskType.Receipt },
+    ]);
   });
 });
 
-describe('getTaskName', () => {
-  const layoutSetsModel = {
-    sets: [
-      { id: 'laaang', dataType: '', type: null, task: { id: 'task1', type: '' } },
-      { id: 'tang', dataType: '', type: null, task: { id: 'task2', type: '' } },
-    ],
-  };
-
-  it('should return the task name if it exists', () => {
-    const task = { name: 'Task Name', taskType: 'data', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('Task Name');
+describe('getLayoutSetForTask', () => {
+  it('should return the correct layout set for a given task', () => {
+    const task = { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data };
+    expect(getLayoutSetForTask(task, layoutSetsMock)).toBe(layoutSetsMock[0]);
   });
 
-  it('should return the layout set id if name does not exist', () => {
-    const task = { taskType: 'data', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('laaang');
+  it('should return the correct layout set for a custom receipt', () => {
+    const task = { taskType: TaskType.Receipt };
+    expect(getLayoutSetForTask(task, layoutSetsMock)).toBe(layoutSetsMock[3]);
+  });
+});
+
+describe('getLayoutSetIdForTask', () => {
+  it('should return the correct layout set ID for a given task', () => {
+    const task = { taskId: 'task1', name: 'Task 1', taskType: TaskType.Data };
+    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('layout1');
   });
 
-  it('should return receipt text key if taskType is receipt', () => {
-    const task = { taskType: 'receipt', taskId: 'task1' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('ux_editor.task_table_type.receipt');
+  it('should return layout set ID for a custom receipt', () => {
+    const task = { taskType: TaskType.Receipt };
+    expect(getLayoutSetIdForTask(task, layoutSetsMock)).toBe('layout5');
+  });
+});
+
+describe('isDefaultReceiptTask', () => {
+  it('should return true for default receipt task', () => {
+    const layoutSetsWithoutCustomReceipt = layoutSetsMock.filter(
+      (layoutSet) => layoutSet.task.id !== 'CustomReceipt',
+    );
+    const task = { taskType: TaskType.Receipt };
+    expect(isDefaultReceiptTask(task, layoutSetsWithoutCustomReceipt)).toBe(true);
   });
 
-  it('should return the default value if no matching task is found', () => {
-    const task = { name: '', taskType: 'unknown', taskId: 'unknown' };
-    expect(getTaskName(task, layoutSetsModel)).toBe('-');
+  it('should return false for non-receipt task', () => {
+    const task = { taskType: TaskType.Data };
+    expect(isDefaultReceiptTask(task, layoutSetsMock)).toBe(false);
+  });
+
+  it('should return false for custom receipt task', () => {
+    const task = { taskType: TaskType.Receipt };
+    expect(isDefaultReceiptTask(task, layoutSetsMock)).toBe(false);
   });
 });

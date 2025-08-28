@@ -6,14 +6,14 @@ import type { RelationalOperator } from '../types/RelationalOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
+import { PredefinedGatewayAction } from '../enums/PredefinedGatewayAction';
 
 const valueTypes: Record<SimpleSubexpressionValueType, string> = {
   [SimpleSubexpressionValueType.Boolean]: 'Boolean',
   [SimpleSubexpressionValueType.Component]: 'Component',
-  [SimpleSubexpressionValueType.DataModel]: 'DataModel',
-  [SimpleSubexpressionValueType.GatewayAction]: 'Gateway action',
-  [SimpleSubexpressionValueType.GatewayActionContext]: 'Gateway action context',
+  [SimpleSubexpressionValueType.DataModel]: 'Data model',
+  [SimpleSubexpressionValueType.CurrentGatewayAction]: 'Current gateway action',
+  [SimpleSubexpressionValueType.PredefinedGatewayAction]: 'Predefined gateway action',
   [SimpleSubexpressionValueType.InstanceContext]: 'Instance context',
   [SimpleSubexpressionValueType.Null]: 'Null',
   [SimpleSubexpressionValueType.Number]: 'Number',
@@ -34,11 +34,11 @@ const logicalTupleOperators: Record<LogicalTupleOperator, string> = {
   [LogicalTupleOperator.Or]: 'Or',
 };
 
-const gatewayActionContext: Record<GatewayActionContext, string> = {
-  [GatewayActionContext.Confirm]: 'Confirm',
-  [GatewayActionContext.Pay]: 'Pay',
-  [GatewayActionContext.Sign]: 'Sign',
-  [GatewayActionContext.Reject]: 'Reject',
+const predefinedGatewayActions: Record<PredefinedGatewayAction, string> = {
+  [PredefinedGatewayAction.Confirm]: 'Confirm',
+  [PredefinedGatewayAction.Pay]: 'Pay',
+  [PredefinedGatewayAction.Sign]: 'Sign',
+  [PredefinedGatewayAction.Reject]: 'Reject',
 };
 
 const instanceContext: Record<InstanceContext, string> = {
@@ -78,8 +78,7 @@ export const texts: ExpressionTexts = {
   expression: 'Expression',
   false: 'False',
   firstOperand: 'First operand',
-  gatewayActionKey: 'Gateway action key',
-  gatewayActionContext,
+  gatewayAction: 'Gateway action',
   instanceContext,
   instanceContextKey: 'Instance context key',
   invalidExpression: 'Invalid expression',
@@ -89,9 +88,10 @@ export const texts: ExpressionTexts = {
   manual: 'Manual',
   numberValidationError: 'The value must be a number.',
   or: 'or',
+  predefinedGatewayActions,
   readonlyComponentId: 'Component ID:',
   readonlyDataModelPath: 'Data model path:',
-  readonlyGatewayActionContext: 'Gateway action context:',
+  readonlyPredefinedGatewayAction: 'Predefined gateway action:',
   readonlyInstanceContext: 'Instance context:',
   relationalOperator: 'Relational operator',
   relationalOperators,

@@ -2,6 +2,26 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2025-08-22",
+      "title": "Organisasjonsbiblioteket er nå tilgjengelig fra dashbordet",
+      "content": "Nå har Studio fått et organisasjonsbibliotek! Det er et sted der dere kan  opprette kodelister og lagre andre felles ressurser for virksomheten. Vi kommer til å jobbe videre med dette, slik at dere etter hvert kan dele og bruke forskjellige typer ressurser, for eksempel tekster og bilder."
+    },
+    {
+      "date": "2025-06-05",
+      "title": "Nå kan du vise oppgaver i navigasjonen",
+      "content": "Vi har lagt til muligheten for å velge hvilke oppgaver du vil vise i navigasjonen i appen din. Dette gjør det enklere å få oversikt når appen har flere oppgaver."
+    },
+    {
+      "date": "2025-06-02",
+      "title": "Hovedinnstillinger for komponenter",
+      "content": "Nå får du lettere tilgang til hovedinnstillingene for komponenter på Utforming-siden. Vi har startet med noen fellesinnstillinger, men skal jobbe videre med å få med alle de viktigste innstillingene for en komponent i hovedinnstillingene."
+    },
+    {
+      "date": "2025-05-11",
+      "title": "Nytt redigeringsverktøy for kodelister i Utforming",
+      "content": "Vi har forbedret designet på kodelister og gjort det enklere å redigere de du har lastet opp i biblioteket."
+    },
+    {
       "date": "2025-03-11",
       "title": "Biblioteket er nå tilgjengelig fra menylinjen",
       "content": "Vi har lagd et nytt bibliotek! Her finner du nå kodelistene dine. Vi jobber med å utvide biblioteket til at du kan finne eller lagre andre ting der, som bilder og tekster."

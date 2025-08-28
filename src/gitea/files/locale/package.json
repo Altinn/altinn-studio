@@ -1,0 +1,8 @@
+{
+  "name": "merge-locale",
+  "packageManager": "yarn@4.9.2",
+  "private": true,
+  "dependencies": {
+    "ini": "5.0.0"
+  }
+}

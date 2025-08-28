@@ -1,7 +1,5 @@
 import React, { type ReactElement } from 'react';
-import classes from './DashboardHeader.module.css';
-import cn from 'classnames';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
 import { useSelectedContext } from '../../../hooks/useSelectedContext';
@@ -9,13 +7,12 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useHeaderContext } from '../../../context/HeaderContext';
 import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
-import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
 import { StringUtils, UrlUtils } from '@studio/pure-functions';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubHeader } from './SubHeader';
 import { Subroute } from '../../../enums/Subroute';
 import { isOrg } from '../../../utils/orgUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
+import { LargeNavigationMenu } from './LargeNavigationMenu';
 import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
 
 export const DashboardHeader = (): ReactElement => {
@@ -27,8 +24,7 @@ export const DashboardHeader = (): ReactElement => {
 
   const isOrgLibraryPage: boolean =
     currentRoutePath === StringUtils.removeLeadingSlash(Subroute.OrgLibrary);
-  const shouldShowSubMenu: boolean =
-    isOrg(selectedContext) && isOrgLibraryPage && shouldDisplayFeature(FeatureFlag.OrgLibrary);
+  const shouldShowSubMenu: boolean = isOrg(selectedContext) && isOrgLibraryPage;
 
   return (
     <StudioPageHeader>
@@ -52,41 +48,8 @@ function CenterContent(): ReactElement {
   const { menuItems } = useHeaderContext();
   return (
     <StudioPageHeader.Center>
-      {shouldDisplayFeature(FeatureFlag.OrgLibrary) &&
-        menuItems.map((menuItem: HeaderMenuItem) => (
-          <TopNavigationMenuItem key={menuItem.name} menuItem={menuItem} />
-        ))}
+      <LargeNavigationMenu menuItems={menuItems} />
     </StudioPageHeader.Center>
-  );
-}
-
-type TopNavigationMenuProps = {
-  menuItem: HeaderMenuItem;
-};
-
-function TopNavigationMenuItem({ menuItem }: TopNavigationMenuProps): ReactElement {
-  const selectedContext: string = useSelectedContext();
-  const { t } = useTranslation();
-  const location = useLocation();
-  const path: string = `${menuItem.link}/${selectedContext}`;
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
-
-  return (
-    <StudioPageHeader.HeaderLink
-      color='dark'
-      variant='regular'
-      renderLink={(props) => (
-        <NavLink to={path} {...props}>
-          <span
-            className={cn({
-              [classes.active]: StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
-            })}
-          >
-            {t(menuItem.name)}
-          </span>
-        </NavLink>
-      )}
-    />
   );
 }
 

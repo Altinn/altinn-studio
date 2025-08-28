@@ -36,20 +36,17 @@ const appRouteParams: AppRouteParams = { org, app };
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
+const onEditButtonClick = jest.fn();
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render ManualOptionsEditor when component has options property', async () => {
+  it('Calls onEditButtonClick when the options property is set and the user clicks the edit button', async () => {
     const user = userEvent.setup();
     renderOptionListEditor();
 
     await user.click(getEditButton());
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
-    ).toBeInTheDocument();
+    expect(onEditButtonClick).toHaveBeenCalledTimes(1);
   });
 
   it('should render LibraryOptionsEditor when component has optionId property', async () => {
@@ -124,7 +121,9 @@ function getDeleteButton() {
 
 const defaultProps: OptionListEditorProps = {
   component: mockComponent,
+  onEditButtonClick,
   handleComponentChange,
+  textResources,
 };
 
 function renderOptionListEditorWithData({
@@ -136,14 +135,8 @@ function renderOptionListEditorWithData({
 }
 
 function createQueryClientWithData(): QueryClient {
-  const queryClient = createQueryClientWithTextResources();
-  queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
-  return queryClient;
-}
-
-function createQueryClientWithTextResources(): QueryClient {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+  queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], optionList);
   return queryClient;
 }
 
@@ -156,7 +149,7 @@ type RenderOptionListEditorArgs = {
 function renderOptionListEditor({
   queries = {},
   props = {},
-  queryClient = createQueryClientWithTextResources(),
+  queryClient = createQueryClientMock(),
 }: RenderOptionListEditorArgs = {}): void {
   renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries,

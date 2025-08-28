@@ -4,28 +4,16 @@
 
   min-width: var(--code-list-modal-min-width);
   height: var(--code-list-modal-height);
-  border-radius: var(--fds-border_radius-xxlarge);
 }
 
-.content {
+.modalContent {
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-2);
 }
 
-.card {
-  min-height: var(--fds-spacing-10);
+.codeListButton {
   display: flex;
-  justify-content: center;
-}
-
-.card:hover {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  cursor: pointer;
-}
-
-.header {
-  padding-inline: var(--fds-spacing-4);
-  padding-block: var(--fds-spacing-2);
+  justify-content: flex-start;
 }

@@ -1,4 +1,4 @@
-import type { IDataModelBindingsKeyValue, ITextResourceBindings } from './global';
+import type { IDataModelBindingsKeyValueExplicit, ITextResourceBindings } from './global';
 import type { ContainerComponentType } from './ContainerComponent';
 import type { BooleanExpression, StringExpression } from '@studio/components-legacy';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
@@ -10,7 +10,7 @@ export type FormContainer<T extends ContainerComponentType = ContainerComponentT
 }[T];
 
 type ContainerBase<T extends ContainerComponentType> = {
-  dataModelBindings?: IDataModelBindingsKeyValue;
+  dataModelBindings?: IDataModelBindingsKeyValueExplicit;
   grid?: GridSizes;
   hidden?: BooleanExpression;
   id: string;

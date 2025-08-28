@@ -1,4 +1,3 @@
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -9,9 +8,14 @@ import type {
   Resource,
   ResourceFormError,
   ResourceError,
+  ConsentMetadata,
+  AccessList,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
+import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import type { TFunction } from 'i18next';
 
 /**
  * The map of resource type
@@ -22,6 +26,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
   BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
   CorrespondenceService: 'resourceadm.about_resource_resource_type_correspondenceservice',
+  Consent: 'resourceadm.about_resource_resource_type_consentresource',
 };
 
 /**
@@ -96,56 +101,13 @@ export const getAvailableEnvironments = (org: string): Environment[] => {
       environments['at24'],
     );
   }
+  if (org === 'skd') {
+    availableEnvs.push(environments['yt01']);
+  }
   return availableEnvs;
 };
 export const getEnvLabel = (env: EnvId): string => {
   return environments[env]?.label || '';
-};
-
-/**
- * Maps the language key to the text
- */
-export const mapLanguageKeyToLanguageText = (
-  val: ValidLanguage,
-  translationFunction: (key: string) => string,
-) => {
-  if (val === 'nb') return translationFunction('language.nb');
-  if (val === 'nn') return translationFunction('language.nn');
-  return translationFunction('language.en');
-};
-
-/**
- * Gets the correct text to display for input fields with missing value
- *
- * @param language the value
- * @param usageString the type of the field
- * @param translationFunction the translation function
- */
-export const getMissingInputLanguageString = (
-  language: SupportedLanguage,
-  usageString: string,
-  translationFunction: (key: string, params?: KeyValuePairs<string>) => string,
-): string => {
-  const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
-  const missingLanguages = supportedLanguages.filter((lang) => !language[lang]);
-
-  // Return different messages based on the length
-  if (missingLanguages.length === 1) {
-    return translationFunction('resourceadm.about_resource_language_error_missing_1', {
-      usageString,
-      lang: mapLanguageKeyToLanguageText(missingLanguages[0], translationFunction),
-    });
-  } else if (missingLanguages.length > 1) {
-    const lastLang = missingLanguages.pop();
-    return translationFunction('resourceadm.about_resource_language_error_missing_2', {
-      usageString,
-      lang1: missingLanguages
-        .map((lang) => mapLanguageKeyToLanguageText(lang, translationFunction))
-        .join(', '),
-      lang2: mapLanguageKeyToLanguageText(lastLang, translationFunction),
-    });
-  }
-  return '';
 };
 
 /**
@@ -213,7 +175,7 @@ export const deepCompare = (original: any, changed: any) => {
 
 export const validateResource = (
   resourceData: Resource | undefined,
-  t: (key: string, params?: KeyValuePairs<string>) => string,
+  t: TFunction<'translation', undefined>,
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
@@ -229,20 +191,11 @@ export const validateResource = (
   }
 
   // validate title
-  const titleError = getMissingInputLanguageString(
-    {
-      nb: resourceData.title?.nb,
-      nn: resourceData.title?.nn,
-      en: resourceData.title?.en,
-    },
-    t('resourceadm.about_resource_error_usage_string_title'),
-    t,
-  );
-  if (titleError) {
+  if (!resourceData.title?.nb) {
     errors.push({
       field: 'title',
       index: 'nb',
-      error: titleError,
+      error: t('resourceadm.about_resource_error_translation_missing_title_nb'),
     });
   }
   if (!resourceData.title?.nn) {
@@ -261,20 +214,11 @@ export const validateResource = (
   }
 
   // validate description
-  const descriptionError = getMissingInputLanguageString(
-    {
-      nb: resourceData.description?.nb,
-      nn: resourceData.description?.nn,
-      en: resourceData.description?.en,
-    },
-    t('resourceadm.about_resource_error_usage_string_description'),
-    t,
-  );
-  if (descriptionError) {
+  if (!resourceData.description?.nb) {
     errors.push({
       field: 'description',
       index: 'nb',
-      error: descriptionError,
+      error: t('resourceadm.about_resource_error_translation_missing_description_nb'),
     });
   }
   if (!resourceData.description?.nn) {
@@ -294,20 +238,11 @@ export const validateResource = (
 
   // validate rightDescription
   if (resourceData.delegable) {
-    const rightDescriptionError = getMissingInputLanguageString(
-      {
-        nb: resourceData.rightDescription?.nb,
-        nn: resourceData.rightDescription?.nn,
-        en: resourceData.rightDescription?.en,
-      },
-      t('resourceadm.about_resource_error_usage_string_rights_description'),
-      t,
-    );
-    if (rightDescriptionError) {
+    if (!resourceData.rightDescription?.nb) {
       errors.push({
         field: 'rightDescription',
         index: 'nb',
-        error: rightDescriptionError,
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_nb'),
       });
     }
     if (!resourceData.rightDescription?.nn) {
@@ -374,6 +309,78 @@ export const validateResource = (
         error: t('resourceadm.about_resource_reference_maskinporten_missing'),
       });
     }
+  }
+
+  // validate consentTemplate
+  if (resourceData.resourceType === 'Consent') {
+    if (!resourceData.consentTemplate) {
+      errors.push({
+        field: 'consentTemplate',
+        error: t('resourceadm.about_resource_consent_template_missing'),
+      });
+    }
+
+    if (!resourceData.consentText?.nb) {
+      errors.push({
+        field: 'consentText',
+        index: 'nb',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nb'),
+      });
+    }
+    if (!resourceData.consentText?.nn) {
+      errors.push({
+        field: 'consentText',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_nn'),
+      });
+    }
+    if (!resourceData.consentText?.en) {
+      errors.push({
+        field: 'consentText',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_consent_text_en'),
+      });
+    }
+
+    // validate consentMetadata values used in consentText
+    const unknowMetadataValues = getUnknownMetadataValues(
+      resourceData.consentMetadata,
+      resourceData.consentText,
+    );
+
+    Object.keys(unknowMetadataValues).forEach((language: ValidLanguage) => {
+      if (unknowMetadataValues[language].length) {
+        errors.push({
+          field: 'consentText',
+          index: language,
+          error: t('resourceadm.about_resource_error_unknown_metadata_language', {
+            unknownMetadataValues: unknowMetadataValues[language].join(', '),
+            lang1: t(`language.${language}`),
+          }),
+        });
+      }
+    });
+
+    // validate links used in consentText
+    (['nb', 'nn', 'en'] as const).forEach((language: ValidLanguage) => {
+      const text = resourceData.consentText?.[language] ?? '';
+      const links: string[] = (text.match(/\[[^\]]+\]\([^)]+\)/g) ?? []) as string[];
+      links.forEach((link) => {
+        const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
+        const linkUrl = urlMatch?.[1];
+        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        if (!isLinkUrlValid) {
+          errors.push({
+            field: 'consentText',
+            index: language,
+            error: t('resourceadm.about_resource_error_consent_text_link_invalid', {
+              link,
+              interpolation: { escapeValue: false },
+            }),
+          });
+        }
+      });
+    });
   }
 
   // validate contactPoints
@@ -451,4 +458,111 @@ export const getMigrationErrorMessage = (
     };
   }
   return null;
+};
+
+export const convertMetadataStringToConsentMetadata = (metadataString: string): ConsentMetadata => {
+  return metadataString.split(',').reduce((acc: ConsentMetadata, key: string) => {
+    const trimmedKey = key.trim();
+    if (trimmedKey.length) {
+      acc[trimmedKey] = { optional: false };
+    }
+    return acc;
+  }, {});
+};
+
+const getConsentMetadataValuesFromText = (text: string | null | undefined): string[] => {
+  return text?.match(/{([^{}]*?)}/g) ?? [];
+};
+const getUnknownMetadataValuesInText = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentText: string | null | undefined,
+) => {
+  const metadataKeysInConsentText = getConsentMetadataValuesFromText(consentText);
+  const unknownMetadataValueUsed = metadataKeysInConsentText
+    .map((metadataKey) => metadataKey.slice(1, -1))
+    .filter((metadataKey) => !metadataValues?.[metadataKey]);
+
+  return unknownMetadataValueUsed;
+};
+const getUnknownMetadataValues = (
+  metadataValues: ConsentMetadata | null | undefined,
+  consentTexts: SupportedLanguage | null | undefined,
+) => {
+  return {
+    nb: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nb),
+    nn: getUnknownMetadataValuesInText(metadataValues, consentTexts?.nn),
+    en: getUnknownMetadataValuesInText(metadataValues, consentTexts?.en),
+  };
+};
+
+const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
+  const requestConsentRule = {
+    ...emptyPolicyRule,
+    subject: [organizationSubject.subjectId],
+    actions: ['requestconsent'],
+    ruleId: '1',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+  const acceptConsentRule = {
+    ...emptyPolicyRule,
+    actions: ['consent'],
+    ruleId: '2',
+    resources: [[`urn:altinn:resource:${resourceId}`]],
+  };
+
+  return [requestConsentRule, acceptConsentRule];
+};
+
+const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
+  return rule.actions.some((action) => action === targetAction);
+};
+const hasConsentRules = (policyData: Policy): boolean => {
+  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasRequestConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, 'requestconsent'),
+  );
+
+  return hasAcceptConsentAction && hasRequestConsentAction;
+};
+
+export const getResourcePolicyRules = (
+  policyData: Policy,
+  resourceId: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource && !hasConsentRules(policyData)) {
+    return {
+      ...policyData,
+      rules: getConsentResourceDefaultRules(resourceId),
+    };
+  } else if (!isConsentResource && hasConsentRules(policyData)) {
+    // remove consent only-rules if resource has consent rules but is not a consent resource
+    return {
+      ...policyData,
+      rules: policyData.rules.filter(
+        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+      ),
+    };
+  }
+  return policyData;
+};
+
+export const getResourceSubjects = (
+  accessLists: AccessList[],
+  subjectData: PolicySubject[],
+  org: string,
+  isConsentResource: boolean,
+) => {
+  if (isConsentResource) {
+    const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
+      return {
+        subjectId: `${accessList.identifier}`,
+        subjectSource: `altinn:accesslist:${org}`,
+        subjectTitle: accessList.name,
+        subjectDescription: accessList.description,
+      };
+    });
+    return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  return subjectData;
 };

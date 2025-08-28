@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, HelpText, Switch } from '@digdir/designsystemet-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { StudioButton, StudioTextfield } from '@studio/components-legacy';
+import { StudioHelpText } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -128,9 +129,9 @@ export const UnsupportedInput = () => {
   return (
     <span className={classes.unknownFormatValue}>
       {t('schema_editor.custom_props_unknown_format')}
-      <HelpText title={t('general.help')}>
+      <StudioHelpText aria-label={t('general.help')}>
         {t('schema_editor.custom_props_unknown_format_help')}
-      </HelpText>
+      </StudioHelpText>
     </span>
   );
 };

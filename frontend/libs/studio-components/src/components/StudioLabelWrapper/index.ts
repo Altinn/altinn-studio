@@ -1,0 +1,1 @@
+export { StudioLabelWrapper } from './StudioLabelWrapper';

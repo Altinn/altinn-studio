@@ -1,6 +1,6 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
+import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
@@ -108,10 +108,12 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentInformation-1234',
       taskId: 'testElementId',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
@@ -138,9 +140,38 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributers: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  it('should add layoutset and datatype when userControlledSigning task is added', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    const taskMetadata: OnProcessTaskEvent = {
+      taskType: 'userControlledSigning',
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('userControlledSigning').businessObject),
+    };
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+
+    expect(addLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetConfig: {
+        id: 'testElementId',
+        tasks: ['testElementId'],
+      },
+      layoutSetIdToUpdate: 'testElementId',
+      taskType: 'userControlledSigning',
+    });
+
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributers: [AllowedContributor.AppOwned],
+      dataTypeId: 'userControlledSigningInformation-1234',
+      taskId: 'testElementId',
+    });
+
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 

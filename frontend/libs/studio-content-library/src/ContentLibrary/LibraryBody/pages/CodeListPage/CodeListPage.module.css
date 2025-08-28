@@ -1,5 +1,5 @@
 .codeListsContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-4);
 }

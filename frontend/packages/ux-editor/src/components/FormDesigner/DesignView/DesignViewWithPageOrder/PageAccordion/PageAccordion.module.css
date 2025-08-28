@@ -2,8 +2,10 @@
   display: flex;
   align-items: center;
   padding: var(--fds-spacing-1);
-  background-color: var(--background-color);
-  border: 0.5px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.accordionSelected {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
 }
 
 .accordionHeader,
@@ -22,6 +24,10 @@
 
 .accordionItem:not(:first-child) {
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.accordionItem button:first-child {
+  border: none;
 }
 
 .accordionHeaderRow {

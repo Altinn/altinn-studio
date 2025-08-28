@@ -6,12 +6,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 
-const mockLayoutSetsModel = {
-  sets: [
-    { id: '1', name: 'Task 1', dataType: 'default', type: 'default' },
-    { id: '2', name: 'Task 2', dataType: 'default', type: 'default' },
-  ],
-};
+const mockLayoutSetsModel = [
+  { id: '1', name: 'Task 1', dataType: 'default', type: 'default' },
+  { id: '2', name: 'Task 2', dataType: 'default', type: 'default' },
+];
 
 describe('TaskCardBar', () => {
   it('should render TaskCard components for each layout set and an AddNewTask component', () => {

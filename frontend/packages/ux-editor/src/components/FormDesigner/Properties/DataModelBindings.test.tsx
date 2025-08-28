@@ -10,8 +10,7 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '../../../types/FormItem';
-import { componentMocks } from '../../../testing/componentMocks';
+import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
@@ -51,37 +50,15 @@ describe('DataModelBindings', () => {
   it('renders EditDataModelBindings component when schema is present', () => {
     render();
 
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
+
     const dataModelButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_title.Input`),
+      name: labelText,
     });
     expect(dataModelButton).toBeInTheDocument();
-  });
-
-  it('does not render EditDataModelBindings component when schema.properties is undefined', () => {
-    const unknownComponent: FormItem = {
-      id: 'unknownComponentId',
-      type: 'unknown' as any,
-      itemType: 'COMPONENT',
-      propertyPath: 'definitions/unknownComponent',
-    };
-    render({ props: { formItem: unknownComponent, formItemId: 'unknownComponentId' } });
-
-    const spinner = screen.getByText(textMock('general.loading'));
-    expect(spinner).toBeInTheDocument();
-  });
-
-  it('should render alert component with information when component does not have any data model bindings to set', () => {
-    render({
-      props: {
-        formItem: componentMocks[ComponentType.Image],
-        formItemId: componentMocks[ComponentType.Image].id,
-      },
-    });
-
-    const noDataModelBindingsAlert = screen.getByText(
-      textMock('ux_editor.modal_properties_data_model_binding_not_present'),
-    );
-    expect(noDataModelBindingsAlert).toBeInTheDocument();
   });
 
   it('should render alert component with information when attachment component exist inside a repeating group component', () => {
@@ -106,14 +83,23 @@ describe('DataModelBindings', () => {
         props: {
           formItem: {
             ...componentMocks[ComponentType.Address],
-            dataModelBindings: { address: '', zipCode: '', postPlace: '' },
+            dataModelBindings: {
+              address: { field: '', dataType: '' },
+              zipCode: { field: '', dataType: '' },
+              postPlace: { field: '', dataType: '' },
+            },
           },
           formItemId: componentMocks[ComponentType.Address].id,
         },
       });
 
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+        componentName: propText,
+      });
+
       const dataModelButton = screen.getByRole('button', {
-        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: labelText,
       });
       expect(dataModelButton).toBeInTheDocument();
     },
@@ -125,10 +111,10 @@ describe('DataModelBindings', () => {
         formItem: {
           ...componentMocks[ComponentType.Address],
           dataModelBindings: {
-            address: 'someAddressDataModelField',
-            postPlace: '',
-            zipCode: '',
-            careOf: 'someCareOfDataModelField',
+            address: { field: 'someAddressDataModelField', dataType: '' },
+            postPlace: { field: '', dataType: '' },
+            zipCode: { field: '', dataType: '' },
+            careOf: { field: 'someCareOfDataModelField', dataType: '' },
           },
         },
         formItemId: componentMocks[ComponentType.Address].id,
@@ -140,15 +126,21 @@ describe('DataModelBindings', () => {
     );
 
     ['address', 'careOf'].forEach((prop) => {
-      const dataModelButton = screen.getByText(
-        textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
-      );
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('right_menu.data_model_bindings_edit', { binding: propText });
+      const dataModelButton = screen.getByRole('button', {
+        name: labelText,
+      });
       expect(dataModelButton).toBeInTheDocument();
     });
 
     ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
+      const propText = textMock(`ux_editor.modal_properties_data_model_label.${prop}`);
+      const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+        componentName: propText,
+      });
       const dataModelButton = screen.getByRole('button', {
-        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: labelText,
       });
       expect(dataModelButton).toBeInTheDocument();
     });
@@ -162,7 +154,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeInTheDocument();
@@ -176,7 +168,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeInTheDocument();
@@ -187,13 +179,13 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { list: 'someListDataModelField' },
+          dataModelBindings: { list: { field: 'someListDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).toBeChecked();
@@ -204,13 +196,13 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { simpleBinding: 'someSimpleDataModelField' },
+          dataModelBindings: { simpleBinding: { field: 'someSimpleDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
@@ -225,7 +217,7 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
@@ -244,14 +236,17 @@ describe('DataModelBindings', () => {
       },
     });
 
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: { list: '', simpleBinding: undefined },
+      dataModelBindings: {
+        list: { field: '', dataType: '' },
+        simpleBinding: { field: undefined, dataType: '' },
+      },
     });
   });
 
@@ -262,21 +257,20 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
-          dataModelBindings: { list: 'someListDataModelField' },
+          dataModelBindings: { list: { field: 'someListDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
         handleUpdate,
       },
     });
-
-    const switchElement = screen.getByRole('checkbox', {
+    const switchElement = screen.getByRole('switch', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: { list: undefined, simpleBinding: '' },
+      dataModelBindings: { list: undefined, simpleBinding: { field: '', dataType: '' } },
     });
   });
 
@@ -285,8 +279,13 @@ describe('DataModelBindings', () => {
 
     render();
 
+    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: type,
+    });
+
     const dataModelButton = screen.getByRole('button', {
-      name: textMock(`ux_editor.component_title.Input`),
+      name: labelText,
     });
     await user.click(dataModelButton);
 

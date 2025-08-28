@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
 jest.mock('../../hooks/useGetLayoutSetByName', () => ({
@@ -58,15 +59,19 @@ describe('Elements', () => {
     expect(
       screen.queryByText(textMock('ux_editor.collapsable_standard_components')),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.component_title.Header'))).toBeInTheDocument();
+
+    const headerComponent = screen.getAllByText(textMock('ux_editor.component_title.Header'));
+    expect(headerComponent[0]).toBeInTheDocument();
   });
 
   it('should render conf page toolbar when processTaskType is payment', async () => {
     const getProcessTaskType = jest.fn(() => Promise.resolve('payment'));
     renderElements({ selectedFormLayoutSetName: 'test' }, { getProcessTaskType });
-    expect(
-      await screen.findByText(textMock('ux_editor.component_title.Payment')),
-    ).toBeInTheDocument();
+
+    const paymentComponent = await screen.findAllByText(
+      textMock('ux_editor.component_title.Payment'),
+    );
+    expect(paymentComponent[0]).toBeInTheDocument();
   });
 
   it('should render loading spinner when fetching processTaskType', async () => {
@@ -99,11 +104,12 @@ describe('Elements', () => {
   });
 
   it('should collapse element when collapse button is clicked', async () => {
+    const user = userEvent.setup();
     const view = renderElements();
     const collapseButton = screen.getByRole('button', {
       name: textMock('left_menu.close_components'),
     });
-    collapseButton.click();
+    await user.click(collapseButton);
     expect(collapseToggle).toHaveBeenCalled();
 
     view.rerender(<Elements collapsed={true} onCollapseToggle={collapseToggle} />);
@@ -111,7 +117,7 @@ describe('Elements', () => {
     const openButton = screen.getByRole('button', {
       name: textMock('left_menu.open_components'),
     });
-    openButton.click();
+    await user.click(openButton);
     expect(collapseToggle).toHaveBeenCalledTimes(2);
   });
 });

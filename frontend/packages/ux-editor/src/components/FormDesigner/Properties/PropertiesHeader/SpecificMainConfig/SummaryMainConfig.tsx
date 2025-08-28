@@ -2,15 +2,19 @@ import React from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
-import classes from './SpecificMainConfig.module.css';
-import { Summary2Target } from '../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
+import { Summary2Target } from '../../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
 
 export type SummaryMainConfigProps = {
   component: FormItem<ComponentType.Summary2>;
   handleComponentChange: (component: FormItem) => void;
+  className?: string;
 };
 
-export const SummaryMainConfig = ({ component, handleComponentChange }: SummaryMainConfigProps) => {
+export const SummaryMainConfig = ({
+  component,
+  handleComponentChange,
+  className,
+}: SummaryMainConfigProps) => {
   const handleTargetChange = (updatedTarget: Summary2TargetConfig): void => {
     const updatedComponent = { ...component } as FormItem<ComponentType.Summary2>;
     updatedComponent.target = updatedTarget;
@@ -19,10 +23,6 @@ export const SummaryMainConfig = ({ component, handleComponentChange }: SummaryM
   };
 
   return (
-    <Summary2Target
-      target={component.target}
-      onChange={handleTargetChange}
-      mainConfigClass={classes.mainConfigWrapper}
-    />
+    <Summary2Target target={component.target} onChange={handleTargetChange} className={className} />
   );
 };

@@ -14,7 +14,6 @@ const renderEditBooleanValue = ({
   value = false,
   propertyKey = 'required',
   componentOverrides = {},
-  helpText = '',
 } = {}) =>
   renderWithProviders(
     <EditBooleanValue
@@ -28,7 +27,7 @@ const renderEditBooleanValue = ({
         },
         required: value,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
         ...componentOverrides,
       }}
     />,
@@ -59,7 +58,7 @@ describe('EditBooleanValue', () => {
         },
         required: true,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
       });
     });
   });
@@ -75,11 +74,12 @@ describe('EditBooleanValue', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display custom help text', () => {
-    const customHelpText = textMock('ux_editor.component_properties_help_text.required');
-    renderEditBooleanValue({
-      helpText: customHelpText,
-    });
-    expect(screen.getByRole('button')).toHaveTextContent(customHelpText);
+  it('should display help text', () => {
+    renderEditBooleanValue();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_properties_help_text.required'),
+      }),
+    ).toBeInTheDocument();
   });
 });

@@ -60,7 +60,47 @@ class SupportedPaletteProvider {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
                   dataTypes: [],
                 }),
-                signatureDataType: `signatureInformation-${generateRandomId(4)}`,
+                signatureDataType: `signatures-${generateRandomId(4)}`,
+                runDefaultValidator: true,
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    function createUserControlledSigningTask() {
+      const taskType = 'userControlledSigning';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: [
+                  bpmnFactory.create('altinn:Action', { action: 'sign' }),
+                  bpmnFactory.create('altinn:Action', { action: 'reject' }),
+                ],
+              }),
+              signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
+                dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
+                  dataTypes: [],
+                }),
+                signatureDataType: `user-controlled-signatures-${generateRandomId(4)}`,
+                signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
+                signeeProviderId: '', // No default interface exists in the apps
+                signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
+                correspondenceResource: '', // No default
+                runDefaultValidator: true,
               }),
             }),
           ],
@@ -161,7 +201,7 @@ class SupportedPaletteProvider {
         'create.altinn-data-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
-          title: translate('Create Altinn Data Task'),
+          title: translate('Create data task'),
           action: {
             click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
@@ -169,7 +209,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-feedback-task': {
           group: 'activity',
-          title: translate('Create Altinn Feedback Task'),
+          title: translate('Create feedback task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             click: createCustomTask('feedback'),
@@ -179,16 +219,25 @@ class SupportedPaletteProvider {
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
-          title: translate('Create Altinn signing Task'),
+          title: translate('Create signing task'),
           action: {
             click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
           },
         },
+        'create.altinn-user-controlled-signing-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-user-controlled-signing-task',
+          title: translate('Create user-controlled signing task'),
+          action: {
+            click: createUserControlledSigningTask(),
+            dragstart: createUserControlledSigningTask(),
+          },
+        },
         'create.altinn-confirmation-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create Altinn Confirm Task'),
+          title: translate('Create confirm task'),
           action: {
             click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
@@ -197,7 +246,7 @@ class SupportedPaletteProvider {
         'create.altinn-payment-task': {
           group: 'activity',
           className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
-          title: translate('Payment'),
+          title: translate('Create payment task'),
           action: {
             click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),

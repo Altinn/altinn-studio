@@ -1,0 +1,1 @@
+export { MaskinportenTab } from './MaskinportenTab';

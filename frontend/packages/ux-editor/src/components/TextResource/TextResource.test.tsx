@@ -13,6 +13,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 const user = userEvent.setup();
 
@@ -108,6 +109,16 @@ describe('TextResource', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
+  it('Renders info message only when search is disabled', async () => {
+    await renderAndOpenSearchSection({ disableSearch: true });
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('ux_editor.modal_properties_textResourceBindings_page_name_search_disabled'),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('Renders correct number of options in search section', async () => {
     await renderAndOpenSearchSection();
     const combobox = screen.getByRole('combobox');
@@ -167,7 +178,7 @@ describe('TextResource', () => {
     const label = 'Test';
     renderTextResource({ label });
     await user.click(screen.getByRole('button', { name: label }));
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
   });
 
@@ -184,7 +195,9 @@ describe('TextResource', () => {
   it('Mutates text resource when value is changed', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    const upsertTextResources = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(emptyTextResourceListMock(DEFAULT_LANGUAGE)));
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
@@ -208,7 +221,7 @@ describe('TextResource', () => {
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     await user.clear(textbox);
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 
@@ -225,10 +238,10 @@ describe('TextResource', () => {
   });
 });
 
-const renderAndOpenSearchSection = async () => {
+const renderAndOpenSearchSection = async (partialProps?: Partial<TextResourceProps>) => {
   const label = 'Test';
   const textResourceId = textResources[0].id;
-  renderTextResource({ label, textResourceId }, textResources);
+  renderTextResource({ label, textResourceId, ...partialProps }, textResources);
   const textResourceButton = screen.getByRole('button', { name: label });
   await user.click(textResourceButton);
   const searchTab = screen.getByRole('tab', {

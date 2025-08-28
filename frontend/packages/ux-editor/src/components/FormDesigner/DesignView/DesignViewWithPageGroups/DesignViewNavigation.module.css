@@ -6,3 +6,10 @@
   height: var(--menu-height);
   align-items: center;
 }
+
+.changeTaskIcon,
+.groupPagesIcon,
+.deleteGroupIcon {
+  font-size: var(--fds-sizing-4);
+  padding-right: var(--fds-sizing-1);
+}

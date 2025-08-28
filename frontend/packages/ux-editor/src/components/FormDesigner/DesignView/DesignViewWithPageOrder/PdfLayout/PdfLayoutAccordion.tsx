@@ -24,7 +24,7 @@ export const PdfLayoutAccordion = ({
   if (!pdfLayoutData) return null;
 
   return (
-    <Accordion color='neutral'>
+    <Accordion>
       <PageAccordion
         pageName={pdfLayoutData.page}
         isOpen={pdfLayoutData.page === selectedFormLayoutName}

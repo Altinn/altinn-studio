@@ -46,6 +46,13 @@ describe('ArrayUtils', () => {
     });
   });
 
+  describe('removeLast', () => {
+    it('should remove last item from array', () => {
+      const testData = [1, 2, 3];
+      expect(ArrayUtils.removeLast(testData)).toEqual([1, 2]);
+    });
+  });
+
   describe('last', () => {
     it('Returns last item in array', () => {
       expect(ArrayUtils.last([1, 2, 3])).toEqual(3);
@@ -371,6 +378,42 @@ describe('ArrayUtils', () => {
         'value',
       );
       expect(result).toEqual({ a: '1', b: '2', c: '3' });
+    });
+  });
+
+  describe('arraysEqualUnordered', () => {
+    it('Returns true when the arrays have the same values in the same order', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1, 2, 3], [1, 2, 3])).toBe(true);
+      expect(ArrayUtils.arraysEqualUnordered(['a', 'b', 'c'], ['a', 'b', 'c'])).toBe(true);
+    });
+
+    it('Returns true when the arrays have the same values in different order', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1, 2, 3], [2, 1, 3])).toBe(true);
+      expect(ArrayUtils.arraysEqualUnordered(['a', 'b', 'c'], ['c', 'b', 'a'])).toBe(true);
+    });
+
+    it('Returns false when the arrays have different values', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1, 2, 3], [4, 5, 6])).toBe(false);
+      expect(ArrayUtils.arraysEqualUnordered(['a', 'b', 'c'], ['d', 'e', 'f'])).toBe(false);
+    });
+
+    it('Returns false when the arrays have different lengths', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1, 2], [1, 2, 3])).toBe(false);
+      expect(ArrayUtils.arraysEqualUnordered(['a', 'b'], ['a', 'b', 'c'])).toBe(false);
+    });
+
+    it('Returns false when one array is empty', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1, 2, 3], [])).toBe(false);
+      expect(ArrayUtils.arraysEqualUnordered([], [1, 2, 3])).toBe(false);
+    });
+
+    it('Returns true when both arrays are empty', () => {
+      expect(ArrayUtils.arraysEqualUnordered([], [])).toBe(true);
+    });
+
+    it('Returns true when both arrays have the same single value', () => {
+      expect(ArrayUtils.arraysEqualUnordered([1], [1])).toBe(true);
+      expect(ArrayUtils.arraysEqualUnordered(['a'], ['a'])).toBe(true);
     });
   });
 });
