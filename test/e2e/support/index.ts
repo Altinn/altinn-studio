@@ -12,6 +12,7 @@ import '@percy/cypress';
 
 import { register as registerSnapshot } from '@cypress/snapshot';
 import failOnConsoleError from 'cypress-fail-on-console-error';
+import installLogsCollector from 'cypress-terminal-report/src/installLogsCollector';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
@@ -58,3 +59,5 @@ Cypress.Commands.add('ignoreConsoleMessages', (consoleMessages: ConsoleMessage[]
     consoleMessages: config?.consoleMessages ? [...config.consoleMessages, ...consoleMessages] : consoleMessages,
   });
 });
+
+installLogsCollector();

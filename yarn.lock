@@ -5575,6 +5575,7 @@ __metadata:
     cypress-network-idle: "npm:1.15.0"
     cypress-parallel: "npm:0.15.0"
     cypress-plugin-tab: "npm:1.0.5"
+    cypress-terminal-report: "npm:^7.2.1"
     cypress-wait-until: "npm:3.0.2"
     date-fns: "npm:4.1.0"
     dompurify: "npm:3.2.6"
@@ -7050,6 +7051,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"compare-versions@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "compare-versions@npm:6.1.1"
+  checksum: 10c0/415205c7627f9e4f358f571266422980c9fe2d99086be0c9a48008ef7c771f32b0fbe8e97a441ffedc3910872f917a0675fe0fe3c3b6d331cda6d8690be06338
+  languageName: node
+  linkType: hard
+
 "compressible@npm:~2.0.18":
   version: 2.0.18
   resolution: "compressible@npm:2.0.18"
@@ -7520,6 +7528,19 @@ __metadata:
   dependencies:
     ally.js: "npm:^1.4.1"
   checksum: 10c0/2f2f339b87e66da62401b124cf0b06796e755d4220de648bed5eea2dad10f18968b594335c22c09300c0719c5b54e5196e8a545dfab3ec23b87819a7af61d1fc
+  languageName: node
+  linkType: hard
+
+"cypress-terminal-report@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "cypress-terminal-report@npm:7.2.1"
+  dependencies:
+    chalk: "npm:^4.0.0"
+    compare-versions: "npm:^6.1.1"
+    superstruct: "npm:0.14.2"
+  peerDependencies:
+    cypress: ">=10.0.0"
+  checksum: 10c0/8396407f0fc5d8300c71e9026973fa38f370c22a28b08d1b53fa35a4595f7d626d975c304ac9f88c6bb4a239cdc42da163684fb8560ba7bc3bd43bcfce416515
   languageName: node
   linkType: hard
 
@@ -16820,6 +16841,13 @@ __metadata:
   bin:
     stylus: bin/stylus
   checksum: 10c0/62afe3a6d781f66d7d283e8218dc1a15530d7d89fc2f09457a723975b2073e96e0d32c61d7f0dd1bd2686aae4ab6cc6933dc85e1b72eebab8aa30167bd16962b
+  languageName: node
+  linkType: hard
+
+"superstruct@npm:0.14.2":
+  version: 0.14.2
+  resolution: "superstruct@npm:0.14.2"
+  checksum: 10c0/e5518f6701524fb8cbae504a84dc9c304bf3fe01616230a5eb4e14af9bfc4e3518b94bfe457e57a5d1b99a2b54f82881b4a39e0b266caa6053f84aa294613b94
   languageName: node
   linkType: hard
 
