@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -71,7 +72,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/subjectoptions.json";
+            string url = "https://platform.tt02.altinn.no/accessmanagement/api/v1/meta/info/roles/";
 
             List<SubjectOption> subjectOptions;
 
@@ -80,8 +81,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
 
-                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString);
-                return subjectOptions;
+                subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions);
+                return subjectOptions.Where(x => x.LegacyUrn != null).ToList();
             }
             catch (Exception ex)
             {

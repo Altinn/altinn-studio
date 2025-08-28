@@ -26,8 +26,8 @@ export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubjec
     return SERVICE_OWNER_SUBJECT_NAME;
   }
   return (
-    allSubjects.find((sub) => sub.subjectId.toLowerCase() === subject.toLowerCase())
-      ?.subjectTitle || subject
+    allSubjects.find((sub) => sub.legacyUrn.toLowerCase() === subject.toLowerCase())?.name ||
+    subject
   );
 };
 
@@ -153,17 +153,15 @@ export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[
  * @param subjects The list of all subjects
  * @returns The text key for the subject category
  */
-export const getSubjectCategoryTextKey = (
-  subject: string,
-  subjects: PolicySubject[],
-): string | undefined => {
-  const source = subjects.find(
-    (sub) => sub.subjectId.toLowerCase() === subject.toLowerCase(),
-  )?.subjectSource;
-  if (!source) {
-    return 'policy_editor.role_category.unknown';
+export const getSubjectCategoryTextKey = (subject: string): string | undefined => {
+  if (subject.toLowerCase().startsWith('urn:altinn:accesspackage')) {
+    return `policy_editor.role_category.access_package`;
+  } else if (subject.toLowerCase().startsWith('urn:altinn:rolecode')) {
+    return `policy_editor.role_category.altinn_rolecode`;
+  } else if (subject.toLowerCase().startsWith('urn:altinn:org')) {
+    return `policy_editor.role_category.altinn_org`;
   }
-  return `policy_editor.role_category.${source.replace(':', '_')}`;
+  return 'policy_editor.role_category.unknown';
 };
 
 /**

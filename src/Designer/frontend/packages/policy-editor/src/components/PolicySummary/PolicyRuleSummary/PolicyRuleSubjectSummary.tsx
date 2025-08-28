@@ -24,7 +24,7 @@ export const PolicyRuleSubjectSummary = ({
 
   const actionsForRole = mapActionsForRoleOrAccessPackage(policyRules, subject, usageType, t);
   const displayName = getSubjectDisplayName(subject, subjects);
-  const subjectCategoryTextKey = getSubjectCategoryTextKey(subject, subjects);
+  const subjectCategoryTextKey = getSubjectCategoryTextKey(subject);
 
   return (
     <StudioTable.Row>

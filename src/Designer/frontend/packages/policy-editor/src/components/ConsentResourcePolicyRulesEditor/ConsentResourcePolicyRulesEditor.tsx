@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { PolicyRuleContextProvider } from '../../contexts/PolicyRuleContext';
 import type { PolicyError, PolicyRuleCard } from '../../types';
-import { PolicySubjects } from '../PolicyCardRules/PolicyRule/PolicySubjects';
-import { PolicyAccessPackages } from '../PolicyCardRules/PolicyRule/PolicyAccessPackages';
 import { PolicyRuleErrorMessage } from '../PolicyCardRules/PolicyRule/PolicyRuleErrorMessage';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { accessListSubjectSource, organizationSubject } from '../../utils';
@@ -18,6 +16,7 @@ import {
 } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
+import { PolicySubjectsNew } from '../PolicyCardRules/PolicyRule/PolicySubjectsNew/PolicySubjectsNew';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
@@ -67,8 +66,7 @@ const AcceptConsentPolicyRule = ({
           description={t('policy_editor.consent_resource_consent_description')}
         >
           <div>
-            <PolicySubjects />
-            <PolicyAccessPackages />
+            <PolicySubjectsNew />
             {showErrors && <PolicyRuleErrorMessage />}
           </div>
         </StudioFieldset>
@@ -86,16 +84,22 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
     usePolicyEditorContext();
 
   const handleSubjectChange = (newSubjects: string[], currentValue: string[]): void => {
-    const newSubjectsHasOrganizationSubject = newSubjects.includes(organizationSubject.subjectId);
-    const currentValueHasOrganizationSubject = currentValue.includes(organizationSubject.subjectId);
+    const newSubjectsHasOrganizationSubject = newSubjects.some(
+      (s) => s.toLowerCase() === organizationSubject.legacyUrn.toLowerCase(),
+    );
+    const currentValueHasOrganizationSubject = currentValue.some(
+      (s) => s.toLowerCase() === organizationSubject.legacyUrn.toLowerCase(),
+    );
 
     let subjectsToSave = newSubjects;
     if (newSubjectsHasOrganizationSubject && !currentValueHasOrganizationSubject) {
       // If the organization subject is added, remove all other subjects
-      subjectsToSave = [organizationSubject.subjectId];
+      subjectsToSave = [organizationSubject.legacyUrn];
     } else if (currentValueHasOrganizationSubject && newSubjects.length > 1) {
       // If any other subject is added while the organization subject is selected, remove the organization subject
-      subjectsToSave = newSubjects.filter((subject) => subject !== organizationSubject.subjectId);
+      subjectsToSave = newSubjects.filter(
+        (subject) => subject.toLowerCase() !== organizationSubject.legacyUrn.toLowerCase(),
+      );
     }
     setValue(subjectsToSave);
 
@@ -119,7 +123,7 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
   });
 
   const accessListSubjects = subjects.filter((subject) =>
-    subject.subjectSource.startsWith(accessListSubjectSource),
+    subject.legacyUrn.toLowerCase().startsWith(accessListSubjectSource.toLowerCase()),
   );
 
   return (
@@ -134,26 +138,26 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
       >
         <div>
           <StudioCheckbox
-            value={organizationSubject.subjectId}
+            value={organizationSubject.legacyUrn}
             label={
               <span className={classes.allOrganizationsItemLabel}>
                 {t('policy_editor.consent_resource_all_organizations')}
               </span>
             }
             className={cn(classes.accessListItem, classes.allOrganizationsItem)}
-            {...getCheckboxProps(organizationSubject.subjectId)}
+            {...getCheckboxProps(organizationSubject.legacyUrn)}
           />
           {accessListSubjects.length === 0 && (
             <StudioAlert>{t('policy_editor.consent_resource_no_access_lists')}</StudioAlert>
           )}
           {accessListSubjects.map((subject) => (
             <StudioCheckbox
-              key={subject.subjectId}
-              value={subject.subjectId}
-              label={subject.subjectTitle}
-              description={subject.subjectDescription}
+              key={subject.legacyUrn}
+              value={subject.legacyUrn}
+              label={subject.name}
+              description={subject.description}
               className={classes.accessListItem}
-              {...getCheckboxProps(subject.subjectId)}
+              {...getCheckboxProps(subject.legacyUrn)}
             />
           ))}
           {hasSubjectError && (

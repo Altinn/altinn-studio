@@ -429,17 +429,39 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string page
         )
         {
+            /*
             string listUrl = string.IsNullOrEmpty(page) ? $"/{org}" : $"/{GetAccessListPageUrlSuffix(page, env)}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
             AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
-            return new PagedAccessListResponse()
+            */
+            return await Task.FromResult(new PagedAccessListResponse()
             {
-                Data = res.Data,
-                NextPage = res.Links?.Next
-            };
+                Data = new List<AccessList>()
+                {
+                    new AccessList()
+                    {
+                        Identifier = "m_testliste",
+                        Name = "Test liste",
+                        Description = "Dette er en testliste"
+                    },
+                    new AccessList()
+                    {
+                        Identifier = "noe_rart",
+                        Name = "Godkjente banker",
+                        Description = "Banker som kan be om samtykke"
+                    },
+                    new AccessList()
+                    {
+                        Identifier = "liste3",
+                        Name = "Liste 3",
+                        Description = "Enda en liste"
+                    }
+                },
+                NextPage = string.Empty
+            });
 
         }
 
