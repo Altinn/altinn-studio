@@ -16,7 +16,7 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [ubuntu-latest,windows-latest,macos-latest]
+        os: [ubuntu-latest,macos-latest] # fix path too long for windows-latest
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
