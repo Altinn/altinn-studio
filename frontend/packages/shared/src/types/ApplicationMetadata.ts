@@ -91,6 +91,13 @@ export interface HideSettings {
 
 export interface OnEntry {
   show: string;
+  instanceSelection?: InstanceSelection;
+}
+
+export interface InstanceSelection {
+  sortDirection?: string;
+  rowsPerPageOptions?: number[];
+  defaultSelectedOption?: number;
 }
 
 export type AllowedPartyTypes = 'bankruptcyEstate' | 'organisation' | 'person' | 'subUnit';

@@ -33,6 +33,12 @@ const defaultProps = {
 describe('ConsentPreview', () => {
   afterEach(jest.clearAllMocks);
 
+  it('should show consent preview if consentText is null', () => {
+    render(<ConsentPreview {...defaultProps} consentText={null} />);
+
+    expect(screen.getByText(consentTemplates[0].texts.title.person.nb)).toBeInTheDocument();
+  });
+
   it('should show consent template texts for person', () => {
     render(<ConsentPreview {...defaultProps} />);
 

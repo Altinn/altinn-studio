@@ -1,5 +1,6 @@
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
 import React from 'react';
@@ -80,7 +81,7 @@ describe('SubexpressionValueSelector', () => {
       type: SimpleSubexpressionValueType.Boolean,
       value,
     };
-    const booleanText = (b: boolean) => (b ? texts.true : texts.false);
+    const booleanText = (b: boolean): string => (b ? texts.true : texts.false);
 
     it('Displays the value in readonly mode', () => {
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: false });
@@ -186,7 +187,7 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.componentId });
+      const input = (): HTMLElement => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
       expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]));
@@ -214,7 +215,7 @@ describe('SubexpressionValueSelector', () => {
             key,
           };
         renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
-        expect(screen.getByText(texts.gatewayActionContext[key]));
+        expect(screen.getByText(texts.predefinedGatewayActions[key]));
       },
     );
 
@@ -239,7 +240,7 @@ describe('SubexpressionValueSelector', () => {
         onChange,
       });
       const newKey = PredefinedGatewayAction.Sign;
-      const select = screen.getByLabelText(texts.gatewayActionKey);
+      const select = screen.getByLabelText(texts.gatewayAction);
       await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
     });
@@ -318,11 +319,13 @@ const defaultProps: SubexpressionValueSelectorProps = {
   legend: 'legend',
 };
 
-const renderSubexpressionValueSelector = (props: Partial<SubexpressionValueSelectorProps> = {}) =>
+const renderSubexpressionValueSelector = (
+  props: Partial<SubexpressionValueSelectorProps> = {},
+): RenderResult =>
   render(
-    <StudioExpressionContext.Provider
+    <StudioExpressionContextProvider
       value={{ texts, dataLookupOptions, types: Object.values(SimpleSubexpressionValueType) }}
     >
       <SubexpressionValueSelector {...defaultProps} {...props} />
-    </StudioExpressionContext.Provider>,
+    </StudioExpressionContextProvider>,
   );

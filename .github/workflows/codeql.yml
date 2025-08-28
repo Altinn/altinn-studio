@@ -4,15 +4,15 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
       - 'src/StudioAdmin/**'
       - 'src/KubernetesWrapper/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
       - 'src/StudioAdmin/**'
       - 'src/KubernetesWrapper/**'
   schedule:

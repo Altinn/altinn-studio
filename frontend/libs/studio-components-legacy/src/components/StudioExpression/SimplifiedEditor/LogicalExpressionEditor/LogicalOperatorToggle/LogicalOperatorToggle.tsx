@@ -9,7 +9,10 @@ export type LogicalOperatorToggleProps = {
   operator: LogicalTupleOperator;
 };
 
-export const LogicalOperatorToggle = ({ operator, onChange }: LogicalOperatorToggleProps) => {
+export const LogicalOperatorToggle = ({
+  operator,
+  onChange,
+}: LogicalOperatorToggleProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
   return (

@@ -4,10 +4,13 @@ import React from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioDecimalInput } from '../../../../../../StudioDecimalInput';
 
-export const NumberInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.Number>) => {
+export const NumberInput = ({
+  value,
+  onChange,
+}: Props<SimpleSubexpressionValueType.Number>): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
 
-  const handleChange = (number: number) => onChange({ ...value, value: number });
+  const handleChange = (number: number): void => onChange({ ...value, value: number });
 
   return (
     <StudioDecimalInput
