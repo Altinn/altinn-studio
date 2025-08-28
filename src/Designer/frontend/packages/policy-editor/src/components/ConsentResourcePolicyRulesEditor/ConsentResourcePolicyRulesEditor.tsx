@@ -16,7 +16,7 @@ import {
 } from '@studio/components';
 import { getUpdatedRules } from '../../utils/PolicyRuleUtils';
 import classes from './ConsentResourcePolicyRulesEditor.module.css';
-import { PolicySubjectsNew } from '../PolicyCardRules/PolicyRule/PolicySubjectsNew/PolicySubjectsNew';
+import { PolicySubjectsNew } from '../PolicyCardRules/PolicyRule/PolicySubjectsNew';
 
 export const ConsentResourcePolicyRulesEditor = () => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();

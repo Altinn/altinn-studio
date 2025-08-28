@@ -35,6 +35,7 @@ export const policySubjectOrg: PolicySubject = {
 };
 export const accessListSubjectSource = 'urn:altinn:access-list';
 
+// TODO: this subject should not be selectable except the special checkbox in consent rule 1. Set flag to make it un-selectable for consent rule 2
 export const organizationSubject: PolicySubject = {
   id: 'organization',
   legacyUrn: 'urn:altinn:partytype:organization',

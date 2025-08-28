@@ -19,9 +19,6 @@ export const PolicyAccessPackages = (): ReactElement => {
   const { policyRule } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
-  const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
-    policyRule.accessPackages,
-  );
 
   const groupedDelegableAccessPackagesByArea = useMemo(() => {
     const areas = groupAccessPackagesByArea(accessPackages);
@@ -29,7 +26,7 @@ export const PolicyAccessPackages = (): ReactElement => {
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
-    const isChecked = isAccessPackageSelected(packageUrn, chosenAccessPackages);
+    const isChecked = isAccessPackageSelected(packageUrn, policyRule.accessPackages);
 
     if (isChecked) {
       handleDeselectAccessPackage(packageUrn);
@@ -39,13 +36,11 @@ export const PolicyAccessPackages = (): ReactElement => {
   };
 
   const handleDeselectAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
     const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
     handleAccessPackageChange(urnsToSave);
   };
 
   const handleSelectNewAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
     const urnsToSave = [...policyRule.accessPackages, packageUrn];
     handleAccessPackageChange(urnsToSave);
   };
@@ -86,7 +81,7 @@ export const PolicyAccessPackages = (): ReactElement => {
         onChange={handleSearch}
       />
       <AllAccessPackages
-        chosenAccessPackages={chosenAccessPackages}
+        chosenAccessPackages={policyRule.accessPackages}
         accessPackagesToRender={accessPackagesToRender}
         searchValue={searchValue}
         handleSelectAccessPackage={handleSelectAccessPackage}
