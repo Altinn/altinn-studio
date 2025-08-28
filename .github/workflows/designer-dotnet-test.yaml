@@ -1,15 +1,18 @@
-name: Build and Test on windows, linux and macos
+name: Designer Build and Test on windows, linux and macos
 on:
   push:
     branches: [ main ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
+      - '.github/workflows/designer-dotnet-test.yaml'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
-      - 'testdata/**'
+      - 'src/Designer/backend/**'
+      - 'src/Designer/testdata/**'
+      - '.github/workflows/designer-dotnet-test.yaml'
+
   workflow_dispatch:
 
 jobs:
@@ -22,6 +25,10 @@ jobs:
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config --system core.longpaths true
+
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
@@ -33,6 +40,7 @@ jobs:
       - name: Build
         run: |
           dotnet build backend/Designer.sln -v m
+        working-directory: src/Designer
       - name: Test
         run: |
           dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build || exit 1;
@@ -43,3 +51,4 @@ jobs:
           dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build || exit 1;
           dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build || exit 1;
           dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(Category!=DbIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build
+        working-directory: src/Designer
