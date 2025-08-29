@@ -1,0 +1,25 @@
+.studioActionCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--ds-size-2);
+  border-width: var(--ds-border-width-highlight);
+  border-style: dashed;
+}
+
+.studioActionCard:hover,
+.studioActionCard:focus {
+  background: var(--ds-color-accent-surface-hover);
+  border-color: var(--ds-color-accent-base-default);
+  cursor: pointer;
+  outline: none;
+}
+
+.iconContainer {
+  font-size: var(--ds-size-7);
+}
+
+.paragraphLabel {
+  margin: 0;
+}

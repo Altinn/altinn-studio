@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/libs/studio-components-legacy/**'
+      - 'src/Designer/frontend/libs/studio-components-legacy/**'
 
 jobs:
   build-and-deploy:
@@ -24,7 +24,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build Storybook
-        working-directory: frontend/libs/studio-components-legacy
+        working-directory: src/Designer/frontend/libs/studio-components-legacy
         run: yarn build-storybook
 
       - name: Deploy to Azure Static Web Apps
@@ -33,6 +33,6 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.STUDIO_COMPONENTS_LEGACY_STATIC_WEB_APP_KEY }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "frontend/libs/studio-components-legacy/storybook-static"
+          app_location: "src/Designer/frontend/libs/studio-components-legacy/storybook-static"
           api_location: ""
           output_location: ""
