@@ -463,7 +463,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
-            return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+            }
+
+            return [];
         }
 
         /// <inheritdoc/>
