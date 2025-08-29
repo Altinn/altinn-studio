@@ -29,7 +29,7 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
         label=''
         aria-label={t('policy_editor.rule_card_subjects_search', { searchCollection: heading })}
         value={search}
-        onChange={(event: any) => setSearch(event.target.value)}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearch(event.target.value)}
       />
       {!!search && !filteredSubjects.length && (
         <StudioAlert data-color='info'>
