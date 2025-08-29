@@ -1,17 +1,17 @@
-name: Run gitea and db integration tests
+name: Designer run gitea and db integration tests
 on:
   push:
     branches: [ main ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'backend/**'
-      - 'testdata/**'
-      - 'gitea/**'
+      - 'src/Designer/backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/gitea/**'
   workflow_dispatch:
 
 jobs:
@@ -31,7 +31,9 @@ jobs:
       - name: Build
         run: |
            dotnet build backend/Designer.sln -v m
+        working-directory: src/Designer
 
       - name: Run integration tests
         run: |
            dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
+        working-directory: src/Designer
