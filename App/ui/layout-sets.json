@@ -33,6 +33,12 @@
       "id": "TestSubform",
       "dataType": "SubformModel",
       "type": "subform"
+    },
+    {
+      "id": "Activity_1tp8ged",
+      "tasks": [
+        "Activity_1tp8ged"
+      ]
     }
   ],
   "uiSettings": {
