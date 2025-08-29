@@ -6,14 +6,14 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/libs/studio-components-legacy/**'
+      - 'src/Designer/frontend/libs/studio-components-legacy/**'
       - '.github/workflows/storybook-to-github-pages.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Use node LTS and yarn cache
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -24,14 +24,14 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build
-        working-directory: frontend/libs/studio-components-legacy
+        working-directory: src/Designer/frontend/libs/studio-components-legacy
         run: yarn build-storybook
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           name: github-pages-storybook
-          path: frontend/libs/studio-components-legacy/storybook-static
+          path: src/Designer/frontend/libs/studio-components-legacy/storybook-static
 
   deploy:
     needs: build

@@ -11,9 +11,13 @@
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
+    },
+    {
+      "matchFileNames": ["frontend/testing/cypress/**"],
+      "ignoreDeps": ["yarn"]
     }
   ],
-  "ignorePaths": ["testdata/**", "src/Altinn.Platform/**", "src/test/**"],
+  "ignorePaths": ["src/Altinn.Platform/**", "src/test/**"],
   "ignoreDeps": [
     "Moq",
     "Altinn.App.Core",

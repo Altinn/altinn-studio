@@ -1,11 +1,12 @@
 *
-!frontend
-!backend
+!src/Designer/frontend
+!src/Designer/backend
 !development/azure-devops-mock
 !package.json
 !environments.json
 !yarn.lock
 !.yarn*
+!src/App/app-template-dotnet/src
 **/node_modules
 **/bin
 **/obj

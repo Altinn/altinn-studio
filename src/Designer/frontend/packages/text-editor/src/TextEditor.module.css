@@ -1,0 +1,52 @@
+.textEditor {
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  display: grid;
+  grid-template-columns: auto minmax(20%, 400px);
+  justify-items: center;
+}
+
+.search {
+  width: 100%;
+  max-width: var(--studio-search-max-width);
+}
+
+.textEditorMain {
+  width: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.textEditorTopRow {
+  border-bottom: 1px solid #bcc7cc;
+  padding: var(--fds-spacing-6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.filterAndSearch {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--fds-spacing-4);
+  justify-content: flex-end;
+}
+
+.sortAlphabetically {
+  gap: var(--fds-spacing-4);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.textEditorBody {
+  margin-left: var(--fds-spacing-6);
+  overflow: auto;
+}
+
+::-webkit-scrollbar {
+  height: 5px;
+}

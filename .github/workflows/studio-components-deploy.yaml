@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/libs/studio-components/**'
+      - 'src/Designer/frontend/libs/studio-components/**'
 
 jobs:
   build-and-deploy:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Use node LTS and yarn cache
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 #v4
@@ -24,7 +24,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build Storybook
-        working-directory: frontend/libs/studio-components
+        working-directory: src/Designer/frontend/libs/studio-components
         run: yarn build-storybook
 
       - name: Deploy to Azure Static Web Apps
@@ -33,6 +33,6 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.STUDIO_COMPONENTS_STATIC_WEB_APP_KEY }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "frontend/libs/studio-components/storybook-static"
+          app_location: "src/Designer/frontend/libs/studio-components/storybook-static"
           api_location: ""
           output_location: ""

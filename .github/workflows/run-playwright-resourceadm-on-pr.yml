@@ -4,7 +4,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
-      - 'frontend/resourceadm/**'
+      - 'src/Designer/frontend/resourceadm/**'
       - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
 
@@ -49,7 +49,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: Playwright resourceadm run
-        working-directory: frontend/resourceadm/testing/playwright
+        working-directory: src/Designer/frontend/resourceadm/testing/playwright
         env:
           environment: local
         run: |
@@ -61,4 +61,4 @@ jobs:
         if: failure()
         with:
           name: playwright-resourceadm-screenshots
-          path: frontend/resourceadm/testing/playwright/test-results
+          path: src/Designer/frontend/resourceadm/testing/playwright/test-results

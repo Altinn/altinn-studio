@@ -1,9 +1,0 @@
-.codeListTitle {
-  display: flex;
-  flex-direction: column;
-}
-
-.codeListUsages {
-  font-family: var(--ds-font-family), sans-serif;
-  font-size: var(--ds-body-xs-font-size);
-}

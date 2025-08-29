@@ -1,0 +1,43 @@
+.navigationMenu {
+  display: flex;
+  align-items: center;
+  padding: var(--fds-spacing-1);
+}
+
+.accordionSelected {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+}
+
+.accordionHeader,
+.accordionHeaderWarning {
+  flex: 1;
+}
+
+.accordionHeaderWarning button {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+}
+
+.accordionContent {
+  padding: 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
+}
+
+.accordionItem:not(:first-child) {
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.accordionItem button:first-child {
+  border: none;
+}
+
+.accordionHeaderRow {
+  display: flex;
+}
+
+.pdfIcon {
+  font-size: var(--fds-sizing-6);
+}
+
+.customNavigationMenu {
+  background-color: var(--fds-semantic-surface-neutral-neutral);
+}

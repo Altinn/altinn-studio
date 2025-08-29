@@ -1,0 +1,30 @@
+{
+  "name": "cypress-studio",
+  "description": "studio tests",
+  "version": "1.0.0",
+  "packageManager": "yarn@4.6.0",
+  "devDependencies": {
+    "@testing-library/cypress": "10.0.3",
+    "axe-core": "4.10.3",
+    "cypress": "14.5.4",
+    "cypress-axe": "1.6.0",
+    "cypress-plugin-tab": "1.0.5",
+    "eslint": "8.57.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "cy:cachelist": "cypress cache list",
+    "cy:open": "cypress open -e environment=local",
+    "cy:prunecache": "cypress cache prune",
+    "cy:run": "cypress run",
+    "cy:verify": "cypress verify",
+    "cy:version": "cypress -v",
+    "delete:reports": "rm reports/* || true",
+    "eslint:check": "eslint \"src/**\"",
+    "eslint:fix": "eslint \"src/**\" --fix",
+    "prettier:check": "prettier -c src/**/*.js",
+    "prettier:format": "prettier -w src/**/*.js",
+    "test:all": "cypress run -b chrome -s 'src/integration/**/*.js'",
+    "test:usecase": "cypress run -b chrome -s 'src/integration/usecase/*.js'"
+  }
+}
