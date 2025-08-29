@@ -83,9 +83,10 @@ export const PolicySubjectsNew = () => {
       <SelectedSubjectsList
         items={policyRule.subject.map((urn) => {
           const subject = subjects.find((s) => s.legacyUrn.toLowerCase() === urn.toLowerCase());
+          const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
           return {
             urn: urn,
-            title: `${subject.name} (${subject.legacyRoleCode})`,
+            title: `${subject.name}${legacyRoleCode}`,
           };
         })}
         title={t('policy_editor.rule_card_subjects_chosen_roles')}
@@ -138,7 +139,9 @@ export const PolicySubjectsNew = () => {
         <StudioTabs.Panel value={TabId.AltinnRoles}>
           <RoleList
             selectedSubjects={policyRule.subject}
-            subjects={subjects.filter((s) => s.provider?.code === 'sys-altinn2')}
+            subjects={subjects.filter(
+              (s) => s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3',
+            )}
             heading={t('policy_editor.rule_card_subjects_altinn_roles')}
             handleChange={handleSubjectChange}
           />
