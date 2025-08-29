@@ -1,5 +1,0 @@
-{
-  "parserOptions": {
-    "project": "./frontend/testing/cypress/tsconfig.json"
-  }
-}

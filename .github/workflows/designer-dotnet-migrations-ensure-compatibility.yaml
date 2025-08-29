@@ -1,0 +1,39 @@
+name: Designer Ensure Migrations Compatibility
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/Designer/backend/**'
+      - '.github/workflows/designer-dotnet-migrations-ensure-compatibility.yaml'
+  workflow_dispatch:
+
+jobs:
+  ensure-migrations-compatibility:
+    name: Try to generate script and to add a new migrations
+    runs-on: ubuntu-latest
+    env:
+      OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile: 'false'
+      OidcLoginSettings__ClientId: 'dummyRequired'
+      OidcLoginSettings__ClientSecret: 'dummyRequired'
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: |
+            9.0.x
+
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Install dotnet ef # Version should be the same as Migrations docker file and project
+        run: dotnet tool install --version 9.0.0 --global dotnet-ef
+
+      - name: Check if migrations script can be generated
+        run: |
+            dotnet ef migrations script --project backend/src/Designer
+        working-directory: src/Designer
+
+      - name: Check if it's possible to add a new migration
+        run: |
+            dotnet ef migrations add Test --project backend/src/Designer
+        working-directory: src/Designer
