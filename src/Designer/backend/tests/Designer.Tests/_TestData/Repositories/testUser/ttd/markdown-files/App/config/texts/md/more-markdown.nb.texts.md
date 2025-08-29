@@ -1,2 +1,3 @@
-# Some more Markdown 
- **FOO** _BAR_
+# Some more Markdown
+
+**FOO** _BAR_
