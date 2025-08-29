@@ -1,91 +1,91 @@
 var ruleHandlerObject = {
-  sum: function(obj) {
+  sum: function (obj) {
     obj.a = obj.a ? +obj.a : 0;
     obj.b = obj.b ? +obj.b : 0;
     return obj.a + obj.b;
   },
 
-  fullName: function(obj) {
+  fullName: function (obj) {
     return obj.first + ' ' + obj.last;
-  }
-}
+  },
+};
 var ruleHandlerHelper = {
-  fullName: function() {
+  fullName: function () {
     return {
-      first: "first name",
-      last: "last name"
+      first: 'first name',
+      last: 'last name',
     };
   },
 
-  sum: function() {
+  sum: function () {
     return {
-      a: "a",
-      b: "b",
-    }
-  }
-}
+      a: 'a',
+      b: 'b',
+    };
+  },
+};
 
 var conditionalRuleHandlerObject = {
-  biggerThan10: function(obj) {
+  biggerThan10: function (obj) {
     obj.number = +obj.number;
     return obj.number > 10;
   },
 
-  smallerThan10: function(obj) {
+  smallerThan10: function (obj) {
     obj.number = +obj.number;
     return obj.number > 10;
   },
 
-  lengthBiggerThan4: function(obj) {
+  lengthBiggerThan4: function (obj) {
     if (obj.value == null) return false;
     return obj.value.length >= 4;
   },
 
-  showGroup: function(obj) {
-    return (obj.value === "Ja");
+  showGroup: function (obj) {
+    return obj.value === 'Ja';
   },
 
   showExtraOptions: function (obj) {
-    return (obj.value === 'Ja');
+    return obj.value === 'Ja';
   },
 
   hideCommentField: function (obj) {
-    return (obj.value === 'Ja');
-  }
-}
+    return obj.value === 'Ja';
+  },
+};
 var conditionalRuleHandlerHelper = {
-  biggerThan10: function() {
+  biggerThan10: function () {
     return {
-      number: "number"
+      number: 'number',
     };
   },
 
-  smallerThan10: function() {
+  smallerThan10: function () {
     return {
-      number: "number"
-    }
+      number: 'number',
+    };
   },
 
-  lengthBiggerThan4: function() {
+  lengthBiggerThan4: function () {
     return {
-      value: "value"
-    }
+      value: 'value',
+    };
   },
 
-  showGroup: function() {
+  showGroup: function () {
     return {
-        value: "value"
-    }
+      value: 'value',
+    };
   },
 
   showExtraOptions: function () {
     return {
-      value: 'value'
-    }
+      value: 'value',
+    };
   },
   hideCommentField: function () {
     return {
-      value: 'value'
-    }
-  }
-}
+      value: 'value',
+    };
+  },
+};
