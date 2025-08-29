@@ -4,12 +4,12 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'src/KubernetesWrapper/**'
+      - 'src/Runtime/KubernetesWrapper/**'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
     paths:
-      - 'src/KubernetesWrapper/**'
+      - 'src/Runtime/KubernetesWrapper/**'
 
 jobs:
   integrationtests:
@@ -22,6 +22,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
     - name: Run integration tests
-      working-directory: src/KubernetesWrapper
+      working-directory: src/Runtime/KubernetesWrapper
       run: |
         make test
