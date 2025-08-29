@@ -74,9 +74,7 @@ jobs:
         run: yarn lint --cache
 
       - name: 'Checking code style'
-        run: |
-          cd src/Designer/frontend
-          yarn run codestyle:check
+        run: yarn run codestyle:check
 
   test:
     name: 'Testing'
