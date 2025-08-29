@@ -4543,6 +4543,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio@workspace:."
   dependencies:
+    eslint: "npm:8.57.1"
     husky: "npm:9.1.7"
     lint-staged: "npm:15.5.2"
   languageName: unknown
@@ -14101,7 +14102,6 @@ __metadata:
     ajv-formats: "npm:3.0.1"
     cross-env: "npm:7.0.3"
     css-loader: "npm:7.1.2"
-    eslint: "npm:8.57.1"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
     eslint-plugin-react: "npm:7.37.5"
