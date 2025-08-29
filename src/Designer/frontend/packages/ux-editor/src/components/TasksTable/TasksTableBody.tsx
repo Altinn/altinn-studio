@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
-import { StudioHeading, StudioParagraph, StudioTable } from '@studio/components';
-import { StudioAlert } from '@studio/components-legacy';
+import { StudioHeading, StudioParagraph, StudioAlert, StudioTable } from '@studio/components';
 import classes from './TasksTableBody.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
