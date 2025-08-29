@@ -7,23 +7,23 @@ var ruleHandlerObject = {
 
   fullName: (obj) => {
     return obj.first + ' ' + obj.last;
-  }
-}
+  },
+};
 var ruleHandlerHelper = {
   fullName: () => {
     return {
-      first: "first name",
-      last: "last name"
+      first: 'first name',
+      last: 'last name',
     };
   },
 
   sum: () => {
     return {
-      a: "a",
-      b: "b",
-    }
-  }
-}
+      a: 'a',
+      b: 'b',
+    };
+  },
+};
 
 var conditionalRuleHandlerObject = {
   biggerThan10: (obj) => {
@@ -39,25 +39,24 @@ var conditionalRuleHandlerObject = {
   lengthBiggerThan4: (obj) => {
     if (obj.value == null) return false;
     return obj.value.length >= 4;
-  }
-}
+  },
+};
 var conditionalRuleHandlerHelper = {
   biggerThan10: () => {
     return {
-      number: "number"
+      number: 'number',
     };
   },
 
   smallerThan10: () => {
     return {
-      number: "number"
-    }
+      number: 'number',
+    };
   },
 
   lengthBiggerThan4: () => {
     return {
-      value: "value"
-    }
-  }
-
-}
+      value: 'value',
+    };
+  },
+};
