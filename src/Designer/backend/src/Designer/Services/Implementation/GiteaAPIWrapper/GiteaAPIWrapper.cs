@@ -460,12 +460,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
-            if (response.StatusCode == HttpStatusCode.OK)
+            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>();
             }
 
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return [];
+            }
+            _logger.LogError("User {DeveloperUserName} GetDirectoryAsync failed with status code {StatusCode} {Org}/{App}/{DirectoryPath} (ref {Ref}).",
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), response.StatusCode, org, app, directoryPath, shortCommitId);
             return [];
         }
 

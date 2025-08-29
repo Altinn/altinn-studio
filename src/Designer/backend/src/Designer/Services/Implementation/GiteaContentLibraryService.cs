@@ -33,11 +33,6 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     public async Task<List<string>> GetCodeListIds(string orgName)
     {
         List<FileSystemObject> files = await GetDirectoryFromGitea(orgName, CodeListFolderPath);
-        if (files is null)
-        {
-            return [];
-        }
-
         IEnumerable<string> fileNames = files.Select(file => file.Name);
         return fileNames.Select(Path.GetFileNameWithoutExtension).ToList();
     }
@@ -96,13 +91,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     public async Task<List<string>> GetLanguages(string orgName)
     {
         List<FileSystemObject> files = await GetDirectoryFromGitea(orgName, TextResourceFolderPath);
-        if (files is null)
-        {
-            return [];
-        }
-
         List<string> languages = ExtractLanguagesFromResourceFiles(files);
-
         languages.Sort(StringComparer.Ordinal);
         return languages;
     }
