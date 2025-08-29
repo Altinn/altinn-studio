@@ -406,6 +406,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     hideEmptyFields?: boolean;
     overrides?: Summary2OverrideConfig[];
   };
+  [ComponentType.Text]: { value: string };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
