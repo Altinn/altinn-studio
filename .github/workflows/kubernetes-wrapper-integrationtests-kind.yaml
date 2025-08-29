@@ -1,4 +1,4 @@
-name: "Integrationtests"
+name: K8s wrapper Integrationtests
 
 on:
   push:
