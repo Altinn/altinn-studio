@@ -8,7 +8,13 @@
         "target": {
           "type": "layoutSet",
           "taskId": "Task_1"
-        }
+        },
+        "overrides": [
+          {
+            "componentId": "Subform-z8we7d",
+            "hidden": true
+          }
+        ]
       },
       {
         "id": "SummaryTask2",
