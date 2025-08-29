@@ -1,10 +1,20 @@
 using System.Security.Cryptography;
 using System.Text;
+using DotNet.Testcontainers.Builders;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Integration.Tests;
 
+[Trait("Category", "Integration")]
 public class FixtureTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public FixtureTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact(Skip = "Takes some time to pack, so let's not run this every time")]
     public async Task Produces_Deterministic_NuGet_Packages()
     {
@@ -44,5 +54,95 @@ public class FixtureTests
                 builder.Append(hash[i].ToString("x2")); // "x2" formats as two lowercase hexadecimal digits
             return builder.ToString();
         }
+    }
+
+    [Fact]
+    public async Task LogsConsumer()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var cancellationToken = cts.Token;
+        var logger = new TestOutputLogger(_output, 0, "test", "test", false);
+
+        var logsConsumer = new AppFixture.LogsConsumer(logger, 0, cancellationToken);
+
+        await using var container = new ContainerBuilder()
+            .WithImage("busybox:1.37")
+            .WithCommand(
+                "/bin/sh",
+                "-c",
+                // We separate stdout and stderr here because
+                // the current LogsConsumer gets stdout and stderr as separate
+                // streams due to Testcontainers. So we can't really rely on the ordering much
+                """
+                printf 'stdout line 1\n'
+                printf 'stdout line 2\n'
+                printf 'stdout line 3\n'
+                sleep 1
+                printf 'stderr line 1\n' >&2
+                printf 'stderr line 2\n' >&2
+                printf 'stderr line 3\n' >&2
+                exit 0
+                """.ReplaceLineEndings("\n")
+            )
+            .WithOutputConsumer(logsConsumer)
+            .Build();
+
+        await container.StartAsync(cancellationToken);
+        await container.GetExitCodeAsync(cancellationToken);
+
+        var lines = logsConsumer.GetLines();
+
+        await Verify(string.Join("\n", lines));
+    }
+
+    [Fact]
+    public async Task DebugNetworking()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var cancellationToken = cts.Token;
+
+        var hostIp = await ContainerRuntimeService.GetHostIP(cancellationToken);
+
+        var pingScript = $"""
+            echo "--/etc/hosts---------------------"
+            echo ""
+            cat /etc/hosts
+            echo ""
+            echo "---------------------------------"
+
+            echo "--ip routes---------------------"
+            echo ""
+            ip route show
+            echo ""
+            echo "---------------------------------"
+
+            echo "--Ping host IP-------------------"
+            echo ""
+            ping -4 -c1 -W1 {hostIp}
+            echo ""
+            echo "---------------------------------"
+
+            echo "--Ping host.containers.internal--"
+            echo ""
+            ping -4 -c1 -W1 host.containers.internal
+            echo ""
+            echo "---------------------------------"
+            """.ReplaceLineEndings("\n");
+
+        await using var container = new ContainerBuilder()
+            .WithImage("busybox:1.37")
+            .WithName("applib-diagnostics")
+            .WithCommand("/bin/sh", "-c", pingScript)
+            .WithExtraHost("host.containers.internal", hostIp)
+            .Build();
+
+        await container.StartAsync(cancellationToken);
+        await container.GetExitCodeAsync(cancellationToken);
+
+        var (stdout, stderr) = await container.GetLogsAsync(timestampsEnabled: false, ct: cancellationToken);
+
+        var output = $"stdout:\n{stdout}\n\nstderr:\n{stderr}";
+
+        await Verify(output).UseDirectory("_snapshots/_local").AutoVerify(includeBuildServer: true);
     }
 }

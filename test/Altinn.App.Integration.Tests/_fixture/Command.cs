@@ -97,14 +97,27 @@ internal sealed record Command(
 
                     if (ThrowOnNonZero && proc.ExitCode != 0)
                     {
+                        string outputMessage;
+                        lock (@lock)
+                            outputMessage = allOutput.ToString();
+
                         throw new Exception(
-                            $"Command '{cmd}' failed with exit code {proc.ExitCode}.\nOutput: {allOutput}\nWorking Directory: {WorkingDirectory}"
+                            $"Command '{cmd}' failed with exit code {proc.ExitCode}.\nOutput: {outputMessage}\nWorking Directory: {WorkingDirectory}"
                         );
                     }
 
-                    tcs.SetResult(
-                        new CommandResult(proc.ExitCode, stdout.ToString(), stderr.ToString(), allOutput.ToString())
-                    );
+                    CommandResult result;
+                    lock (@lock)
+                    {
+                        result = new CommandResult(
+                            proc.ExitCode,
+                            stdout.ToString(),
+                            stderr.ToString(),
+                            allOutput.ToString()
+                        );
+                    }
+
+                    tcs.SetResult(result);
                     return;
                 }
                 catch (OperationCanceledException)

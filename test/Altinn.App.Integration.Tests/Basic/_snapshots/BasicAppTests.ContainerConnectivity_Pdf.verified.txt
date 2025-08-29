@@ -1,7 +1,7 @@
 ﻿{
   Success: true,
   StatusCode: 200,
-  Url: http://host.docker.internal:<pdfPort>/config,
+  Url: http://host.containers.internal:<pdfPort>/config,
   ResponseContent: {"allowFileProtocol":false,"chromeRefreshTime":1800000,"connectionTimeout":60000,"disabledFeatures":[],"enableAPIGet":false,"enableCors":false,"enableHeapdump":false,"errorAlertURL":null,"exitOnHealthFailure":false,"functionBuiltIns":["url"],"functionEnvVars":[],"functionEnableIncognitoMode":false,"functionExternals":["lighthouse","node-pdftk","sharp"],"healthFailureURL":null,"sessionCheckFailURL":null,"host":"0.0.0.0","keepAlive":false,"maxCPU":99,"maxConcurrentSessions":10,"maxMemory":99,"maxQueueLength":20,"metricsJSONPath":null,"port":3000,"prebootChrome":false,"prebootQuantity":0,"queuedAlertURL":null,"rejectAlertURL":null,"singleRun":false,"timeoutAlertURL":null,"token":null,"workspaceDir":"/usr/src/app/workspace","socketBehavior":"http"},
   Message: PDF service connectivity verified
 }

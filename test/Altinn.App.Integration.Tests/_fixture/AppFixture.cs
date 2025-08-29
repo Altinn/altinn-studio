@@ -1,9 +1,11 @@
+using System.Buffers;
 using System.Diagnostics;
-using System.Globalization;
+using System.IO.Pipelines;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
@@ -63,6 +65,8 @@ public sealed partial class AppFixture : IAsyncDisposable
     private readonly IContainer _localtestContainer;
     private readonly IContainer _appContainer;
     private readonly bool _isClassFixture;
+    private readonly LogsConsumer _localtestLogsConsumer;
+    private readonly LogsConsumer _appLogsConsumer;
 
     internal ScopedVerifier ScopedVerifier { get; private set; }
 
@@ -83,7 +87,9 @@ public sealed partial class AppFixture : IAsyncDisposable
         INetwork network,
         IContainer localtestContainer,
         IContainer appContainer,
-        bool isClassFixture
+        bool isClassFixture,
+        LogsConsumer localtestLogsConsumer,
+        LogsConsumer appLogsConsumer
     )
     {
         _logger = logger;
@@ -94,6 +100,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         _localtestContainer = localtestContainer;
         _appContainer = appContainer;
         _isClassFixture = isClassFixture;
+        _localtestLogsConsumer = localtestLogsConsumer;
+        _appLogsConsumer = appLogsConsumer;
         ScopedVerifier = new ScopedVerifier(this);
     }
 
@@ -129,9 +137,12 @@ public sealed partial class AppFixture : IAsyncDisposable
             // Packing has to occur before building the app image since
             // the app image rely on local nupkg's to be present.
             // The rest can happen in parallel
+            var hostIp = await ContainerRuntimeService.GetHostIP(cancellationToken);
+            logger.LogInformation("Detected host IP for container communication: {HostIP}", hostIp);
+
             await EnsureLocaltestRepositoryCloned(logger, cancellationToken);
             var localtestImageTask = EnsureLocaltestImageBuilt(logger, testContainersLogger, cancellationToken);
-            var pdfServiceTask = EnsurePdfServiceStarted(logger, testContainersLogger, cancellationToken);
+            var pdfServiceTask = EnsurePdfServiceStarted(logger, testContainersLogger, hostIp, cancellationToken);
             await EnsureLibrariesPacked(logger, cancellationToken);
             var appImageTask = EnsureAppImageBuilt(app, logger, testContainersLogger, cancellationToken);
 
@@ -141,16 +152,18 @@ public sealed partial class AppFixture : IAsyncDisposable
             await pdfServiceTask; // We don't capture and dispose this anywhere. Testcontainers will take care of it
 
             // Initialize containers (including network creation and PDF service)
-            var (network, localtestContainer, appContainer) = await InitializeContainers(
-                fixtureInstance,
-                app,
-                scenario,
-                localtestContainerImage,
-                appContainerImage,
-                logger,
-                testContainersLogger,
-                cancellationToken
-            );
+            var (network, localtestContainer, appContainer, localtestLogsConsumer, appLogsConsumer) =
+                await InitializeContainers(
+                    fixtureInstance,
+                    app,
+                    scenario,
+                    localtestContainerImage,
+                    appContainerImage,
+                    logger,
+                    testContainersLogger,
+                    hostIp,
+                    cancellationToken
+                );
 
             logger.LogInformation("Fixture created in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.00"));
             return new AppFixture(
@@ -161,7 +174,9 @@ public sealed partial class AppFixture : IAsyncDisposable
                 network,
                 localtestContainer,
                 appContainer,
-                isClassFixture
+                isClassFixture,
+                localtestLogsConsumer,
+                appLogsConsumer
             );
         }
         catch (Exception ex)
@@ -187,7 +202,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             _appClient.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");
 
             // Add frontendVersion cookie with the app's external URL
-            var appExternalUrl = $"http://host.docker.internal:{_appContainer.GetMappedPublicPort(AppPort)}";
+            var appExternalUrl = $"http://host.containers.internal:{_appContainer.GetMappedPublicPort(AppPort)}";
             var baseUri = _appClient.BaseAddress!;
             cookieContainer.Add(baseUri, new Cookie("frontendVersion", appExternalUrl));
         }
@@ -209,92 +224,58 @@ public sealed partial class AppFixture : IAsyncDisposable
         return _localtestClient;
     }
 
-    public async Task<string> GetSnapshotAppLogs()
+    public string GetSnapshotAppLogs()
     {
-        // Gets stdout and stderr logs from the app container and combines/filters (while sorting by timestamp)
+        // Gets logs from the app container
         // - Log messages from `SnapshotLogger` in the app
         // - Error logs (`fail:` prefix in the default M.E.L log format)
 
-        var logs = await _appContainer.GetLogsAsync(timestampsEnabled: true);
+        var expectedPrefix = $"[{_currentFixtureInstance:00}/{_app}/{_scenario}";
+        var allLines = _appLogsConsumer.GetLines();
 
-        var expectedPrefix = $"[{_currentFixtureInstance:00}/{_app}/{_scenario}]";
-        var stdOut = logs.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var stdErr = logs.Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var firstStdOutIndex = stdOut
-            .Select((line, index) => (line, index))
-            .FirstOrDefault(x =>
-                IsStartOfLogMessage(x.line, expectedPrefix, out _, out _, out var isSnapshotMessage, out _)
-                && isSnapshotMessage
-            )
-            .index;
-        var firstStdErrIndex = stdErr
-            .Select((line, index) => (line, index))
-            .FirstOrDefault(x =>
-                IsStartOfLogMessage(x.line, expectedPrefix, out _, out _, out var isSnapshotMessage, out _)
-                && isSnapshotMessage
-            )
-            .index;
-        stdOut = stdOut[firstStdOutIndex..];
-        stdErr = stdErr[firstStdErrIndex..];
-
-        var data = new List<(DateTime Timestamp, string Line)>(stdOut.Length + stdErr.Length);
+        var data = new List<string>(allLines.Count);
         static bool IsStartOfLogMessage(
             string line,
             string prefix,
-            out ReadOnlySpan<char> timestamp,
             out ReadOnlySpan<char> start,
             out bool isSnapshotMessage,
             out bool isError
         )
         {
-            timestamp = default;
-            start = default;
-            isSnapshotMessage = false;
-            isError = false;
-            var firstWhitespace = line.IndexOf(' ');
-            if (firstWhitespace < 0)
-                return false;
-            timestamp = line.AsSpan(0, firstWhitespace);
-            start = line.AsSpan(firstWhitespace + 1); // Skip timestamp
+            start = line;
             isSnapshotMessage = start.StartsWith(prefix);
-            isError = start.StartsWith("fail:");
+            isError = start.StartsWith("fail:") || start.StartsWith("crit:");
             return isSnapshotMessage
                 || isError
                 || start.StartsWith("info:")
                 || start.StartsWith("warn:")
-                || start.StartsWith("dbug:");
+                || start.StartsWith("dbug:")
+                || start.StartsWith("trce:");
         }
 
-        static void AddLines(string[] source, List<(DateTime Timestamp, string Line)> target, string prefix)
+        static void AddLines(IReadOnlyList<string> source, List<string> target, string prefix)
         {
-            for (int i = 0; i < source.Length; i++)
+            for (int i = 0; i < source.Count; i++)
             {
                 var line = source[i];
                 if (
-                    !IsStartOfLogMessage(
-                        line,
-                        prefix,
-                        out var timestampString,
-                        out var start,
-                        out var isSnapshotMessage,
-                        out var isErrorMessage
-                    )
+                    !IsStartOfLogMessage(line, prefix, out var start, out var isSnapshotMessage, out var isErrorMessage)
                 )
                     continue;
 
-                var timestamp = DateTime.Parse(timestampString, CultureInfo.InvariantCulture);
                 if (isSnapshotMessage)
                 {
-                    start = $"[{start.Slice(4)}"; // Remove the fixture index as tests run with parallelism
-                    target.Add((timestamp, start.ToString()));
+                    // Remove the fixture index as tests run with parallelism - use efficient slicing
+                    target.Add($"[{start[4..]}");
                 }
                 else if (isErrorMessage)
                 {
                     var fullMessage = new StringBuilder();
                     fullMessage.Append(start);
-                    for (int j = i + 1; j < source.Length; j++)
+                    var j = i + 1;
+                    for (; j < source.Count; j++)
                     {
-                        if (IsStartOfLogMessage(source[j], prefix, out _, out start, out _, out _))
+                        if (IsStartOfLogMessage(source[j], prefix, out start, out _, out _))
                             break;
                         if (start.IsEmpty)
                             continue;
@@ -302,17 +283,14 @@ public sealed partial class AppFixture : IAsyncDisposable
                         fullMessage.Append('\n');
                         fullMessage.Append(start);
                     }
-                    target.Add((timestamp, fullMessage.ToString()));
+                    target.Add(fullMessage.ToString());
+                    i = j - 1; // skip lines we just consumed
                 }
             }
         }
-        AddLines(stdOut, data, expectedPrefix);
-        AddLines(stdErr, data, expectedPrefix);
+        AddLines(allLines, data, expectedPrefix);
 
-        // Sort by RFC3339Nano timestamp and remove timestamp prefix
-        data.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
-
-        var result = string.Join('\n', data.Select(d => d.Line));
+        var result = string.Join('\n', data);
         return result;
     }
 
@@ -328,6 +306,9 @@ public sealed partial class AppFixture : IAsyncDisposable
         // Update logger with new test output helper and fixture instance
         if (output is not null && _logger is TestOutputLogger logger)
             logger.UpdateOutput(output, _currentFixtureInstance);
+
+        _localtestLogsConsumer.SetCurrentFixtureInstance(_currentFixtureInstance);
+        _appLogsConsumer.SetCurrentFixtureInstance(_currentFixtureInstance);
 
         // Update fixture configuration in the container with new fixture instance
         await SendFixtureConfiguration(
@@ -371,7 +352,7 @@ public sealed partial class AppFixture : IAsyncDisposable
     {
         Assert.NotNull(_pdfServiceContainer);
         var pdfServiceUrl =
-            $"http://host.docker.internal:{_pdfServiceContainer.GetMappedPublicPort(PdfServicePort)}/pdf";
+            $"http://host.containers.internal:{_pdfServiceContainer.GetMappedPublicPort(PdfServicePort)}/pdf";
 
         return new()
         {
@@ -565,6 +546,7 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static async Task<IContainer> EnsurePdfServiceStarted(
         ILogger logger,
         ILogger testContainersLogger,
+        string hostIp,
         CancellationToken cancellationToken
     )
     {
@@ -588,11 +570,11 @@ public sealed partial class AppFixture : IAsyncDisposable
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(PdfServicePort)))
                 .WithReuse(_reuseContainers)
                 .WithCleanUp(!_keepContainers)
-                // The PDF service doesn't need to run in the same network as localtest and the app
-                // so we communicate between app and PDF service over host network
-                // (host.docker.internal and local.altinn.cloud)
-                .WithExtraHost("host.docker.internal", "host-gateway")
-                .WithExtraHost("local.altinn.cloud", "host-gateway");
+                // The PDF service is very slow so we start it as part of "static initialization" (it runs as a single instance with a host port for the whole testrun).
+                // So we communicate between app and PDF service over host network through `host.containers.internal`.
+                // The PDF calls back to the host over `local.altinn.cloud`. It normally points to 127.0.0.1 so we have to override it in the container.
+                .WithExtraHost("host.containers.internal", hostIp)
+                .WithExtraHost("local.altinn.cloud", hostIp);
 
             if (_logFromTestContainers)
                 pdfServiceContainerBuilder = pdfServiceContainerBuilder.WithLogger(testContainersLogger);
@@ -613,7 +595,9 @@ public sealed partial class AppFixture : IAsyncDisposable
     private static async Task<(
         INetwork network,
         IContainer localtestContainer,
-        IContainer appContainer
+        IContainer appContainer,
+        LogsConsumer localtestLogsConsumer,
+        LogsConsumer appLogsConsumer
     )> InitializeContainers(
         long fixtureInstance,
         string name,
@@ -622,6 +606,7 @@ public sealed partial class AppFixture : IAsyncDisposable
         IFutureDockerImage appContainerImage,
         ILogger logger,
         ILogger testContainersLogger,
+        string hostIp,
         CancellationToken cancellationToken
     )
     {
@@ -632,6 +617,8 @@ public sealed partial class AppFixture : IAsyncDisposable
         IContainer? localtestContainer = null;
         IContainer? appContainer = null;
 
+        var localtestLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
+        var appLogsConsumer = new LogsConsumer(logger, fixtureInstance, cancellationToken);
         try
         {
             logger.LogInformation("Starting containers");
@@ -655,11 +642,10 @@ public sealed partial class AppFixture : IAsyncDisposable
                 .WithEnvironment(_localtestEnv)
                 .WithPortBinding(LocaltestPort, true)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
+                .WithOutputConsumer(localtestLogsConsumer)
                 .WithReuse(_reuseContainers)
                 .WithCleanUp(!_keepContainers)
-                // The PDF service doesn't need to run in the same network as localtest and the app
-                // so we communicate between app and PDF service over host network (host.docker.internal)
-                .WithExtraHost("host.docker.internal", "host-gateway");
+                .WithExtraHost("host.containers.internal", hostIp);
 
             if (_logFromTestContainers)
                 localtestContainerBuilder = localtestContainerBuilder.WithLogger(testContainersLogger);
@@ -676,9 +662,10 @@ public sealed partial class AppFixture : IAsyncDisposable
                 .WithPortBinding(AppPort, assignRandomHostPort: true)
                 .WithPortBinding(ConfigPort, assignRandomHostPort: true)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilContainerIsHealthy(failingStreak: 20))
+                .WithOutputConsumer(appLogsConsumer)
                 .WithReuse(_reuseContainers)
                 .WithCleanUp(!_keepContainers)
-                .WithExtraHost("host.docker.internal", "host-gateway");
+                .WithExtraHost("host.containers.internal", hostIp);
 
             if (_logFromTestContainers)
                 appContainerBuilder = appContainerBuilder.WithLogger(testContainersLogger);
@@ -708,7 +695,7 @@ public sealed partial class AppFixture : IAsyncDisposable
 
             await Task.WhenAll(localtestStartup, appStartup);
             logger.LogInformation("Started fixture in {ElapsedSeconds}s", timer.Elapsed.TotalSeconds.ToString("0.0"));
-            return (network, localtestContainer, appContainer);
+            return (network, localtestContainer, appContainer, localtestLogsConsumer, appLogsConsumer);
         }
         catch (Exception ex)
         {
@@ -717,7 +704,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             try
             {
                 logger.LogError("Crashed during fixture creation, dumping logs:");
-                await LogContainerLogs(logger, localtestContainer, appContainer);
+                LogContainerLogs(logger, localtestLogsConsumer, appLogsConsumer);
             }
             catch (Exception lex)
             {
@@ -815,7 +802,7 @@ public sealed partial class AppFixture : IAsyncDisposable
             await _appContainer.StopAsync();
 
             _logger.LogError("Test errored, logging container output");
-            await LogContainerLogs();
+            LogContainerLogs();
         }
 
         await TryDispose(_appContainer);
@@ -823,19 +810,17 @@ public sealed partial class AppFixture : IAsyncDisposable
         await TryDispose(_network);
     }
 
-    internal Task LogContainerLogs() => LogContainerLogs(_logger, _localtestContainer, _appContainer);
+    internal void LogContainerLogs() => LogContainerLogs(_logger, _localtestLogsConsumer, _appLogsConsumer);
 
-    private static async Task LogContainerLogs(ILogger logger, IContainer? localtestContainer, IContainer? appContainer)
+    private static void LogContainerLogs(ILogger logger, LogsConsumer localtestLogs, LogsConsumer appLogs)
     {
-        if (localtestContainer is not null)
         {
-            var localtestLogs = await GetCombinedLogs(localtestContainer);
-            logger.LogError("Localtest container logs:\n{Logs}", localtestLogs);
+            var logs = string.Join("\n", localtestLogs.GetLines());
+            logger.LogError("Localtest container logs:\n{Logs}", logs);
         }
-        if (appContainer is not null)
         {
-            var appLogs = await GetCombinedLogs(appContainer);
-            logger.LogError("App container logs:\n{Logs}", appLogs);
+            var logs = string.Join("\n", appLogs.GetLines());
+            logger.LogError("App container logs:\n{Logs}", logs);
         }
     }
 
@@ -950,34 +935,108 @@ public sealed partial class AppFixture : IAsyncDisposable
         }
     }
 
-    private static async Task<string> GetCombinedLogs(IContainer container)
+    internal sealed class LogsConsumer : IOutputConsumer
     {
-        var logs = await container.GetLogsAsync(timestampsEnabled: true);
-        var stdOut = logs.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var stdErr = logs.Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        // This is a rather complicated way to actually recombine stdout and stderr
+        // into a single stream. It seems like Testcontainers takes Docker.Dotnet's
+        // multiplexed stream and splits it into 2.
+        // We could use Docker.Dotnet directly but then we would probably get other issues to solve..
+        // NOTE: even though we try to read every line in the order they were printed, it seems thats
+        // not possible due to the way Testcontainers works. See the LogsConsumer test in the fixture tests.
+        private readonly Pipe _pipe;
+        private readonly SynchronizedWriteStream _writeStream;
+        private long _currentFixtureInstance;
+        private readonly Dictionary<long, List<string>> _lines = new(4);
+        private readonly object _lock = new();
+        private readonly ILogger _logger;
+        private readonly CancellationToken _cancellationToken;
 
-        var data = new List<(DateTime Timestamp, string Line)>(stdOut.Length + stdErr.Length);
-        static void AddLines(string[] source, List<(DateTime Timestamp, string Line)> data)
+        public bool Enabled => true;
+
+        public Stream Stdout => _writeStream;
+
+        public Stream Stderr => _writeStream;
+
+        public LogsConsumer(ILogger logger, long fixtureInstance, CancellationToken cancellationToken)
         {
-            foreach (var line in source)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
+            _pipe = new();
+            _writeStream = new SynchronizedWriteStream(_pipe.Writer.AsStream());
 
-                var firstWhitespace = line.IndexOf(' ');
-                data.Add(
-                    (
-                        DateTime.Parse(line.AsSpan(0, firstWhitespace), CultureInfo.InvariantCulture),
-                        line.Substring(firstWhitespace + 1)
-                    )
-                );
-            }
+            _logger = logger;
+            _currentFixtureInstance = fixtureInstance;
+            _cancellationToken = cancellationToken;
+            _ = Task.Run(ReadLines);
         }
-        AddLines(stdOut, data);
-        AddLines(stdErr, data);
 
-        // Sort by timestamp
-        data.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
-        return string.Join('\n', data.Select(d => d.Line));
+        public void SetCurrentFixtureInstance(long fixtureInstance) => _currentFixtureInstance = fixtureInstance;
+
+        public IReadOnlyList<string> GetLines(long? forFixtureInstance = null)
+        {
+            lock (_lock)
+            {
+                if (_lines.TryGetValue(forFixtureInstance ?? _currentFixtureInstance, out var lines))
+                    return lines.ToArray();
+            }
+            return Array.Empty<string>();
+        }
+
+        private async Task ReadLines()
+        {
+            var cancellationToken = _cancellationToken;
+            try
+            {
+                var reader = _pipe.Reader;
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var result = await reader.ReadAsync(cancellationToken);
+                    if (result.IsCanceled)
+                        break;
+
+                    var buffer = result.Buffer;
+                    while (buffer.Length > 0)
+                    {
+                        var eol = buffer.PositionOf((byte)'\n');
+                        if (eol == null)
+                            break;
+
+                        var line = buffer.Slice(0, eol.Value);
+                        var lineStr = Encoding.UTF8.GetString(line.ToArray());
+                        var currentInstance = _currentFixtureInstance;
+                        lock (_lock)
+                        {
+                            if (!_lines.TryGetValue(currentInstance, out var lines))
+                                _lines[currentInstance] = lines = new List<string>(32);
+                            lines.Add(lineStr);
+                        }
+
+                        buffer = buffer.Slice(buffer.GetPosition(1, eol.Value));
+                    }
+
+                    reader.AdvanceTo(buffer.Start, buffer.End);
+
+                    if (result.IsCompleted)
+                        break;
+                }
+
+                await reader.CompleteAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while reading logs");
+                Environment.FailFast("Fatal error in LogsConsumer", ex);
+            }
+
+            _logger.LogInformation("Log reading task is exiting");
+        }
+
+        public void Dispose()
+        {
+            _pipe.Writer.Complete();
+            _writeStream.Dispose();
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace Altinn.App.Integration.Tests;
 
 public sealed record AppFixtureScope(AppFixture Fixture) : IAsyncDisposable
 {
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         if (Fixture.TestErrored)
         {
@@ -13,8 +13,9 @@ public sealed record AppFixtureScope(AppFixture Fixture) : IAsyncDisposable
             // we snapshot app logs. So we have additional code here
             // to output container logs at the end so that test failures in CI for example
             // is easier to debug.
-            await Fixture.LogContainerLogs();
+            Fixture.LogContainerLogs();
         }
+        return default;
     }
 }
 

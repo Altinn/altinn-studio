@@ -119,6 +119,14 @@ The libraries integrate with:
 - We want to minimize external dependencies
 - For HTTP APIs we should have `...Request` and `...Response` DTOs (see `LookupPersonRequest.cs` and the corresponding response as an example)
 - Types meant to be implemented by apps should be marked with the `ImplementableByApps` attribute
+- _Don't_ use `.GetAwaiter().GetResult()`, `.Result()`, `.Wait()` or other blocking APIs on `Task`
+- _Don't_ use `Async` suffix for async methods
+- Write efficient code
+  - _Don't_ allocate unnecessarily. Examples:
+    - Instead of calling `ToString` twice in a row, store it in a variable
+    - Sometimes a for loop is just as good as LINQ
+  - _Don't_ invoke the same async operation multiple times in the same codepath unless necessary
+  - _Don't_ await async operations in a loop (prefer batching, but have an upper bound on parallelism that makes sense) 
 
 ### Feature Implementation
 New features should follow the established pattern in `/src/Altinn.App.Core/Features/`:

@@ -11,7 +11,7 @@ namespace TestApp.Shared;
 
 /// <summary>
 /// Provides connectivity diagnostic endpoints to verify container-to-container communication.
-/// This is useful for testing network connectivity and diagnosing host.docker.internal issues.
+/// This is useful for testing network connectivity and diagnosing host.containers.internal issues.
 /// </summary>
 public static class ConnectivityDiagnostics
 {

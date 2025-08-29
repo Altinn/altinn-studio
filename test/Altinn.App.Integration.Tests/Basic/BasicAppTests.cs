@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -106,7 +105,7 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         using var download2 = await fixture.Instances.Download(token, readInstantiationResponse);
         await download2.Verify(verifier);
 
-        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 
     [Theory]

@@ -33,7 +33,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
             scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(data))
         );
 
-        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 
     [Fact]
@@ -49,6 +49,6 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
         using var applicationMetadata = await response.Read<ApplicationMetadata>();
         await verifier.Verify<ApplicationMetadata>(applicationMetadata);
 
-        await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
+        await verifier.Verify(fixture.GetSnapshotAppLogs(), snapshotName: "Logs");
     }
 }
