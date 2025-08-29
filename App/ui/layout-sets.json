@@ -28,6 +28,11 @@
       "tasks": [
         "Task_5"
       ]
+    },
+    {
+      "id": "TestSubform",
+      "dataType": "SubformModel",
+      "type": "subform"
     }
   ],
   "uiSettings": {

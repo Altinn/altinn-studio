@@ -7,7 +7,9 @@
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": ["application/pdf"],
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
       "maxCount": 0,
       "minCount": 0,
       "enablePdfCreation": false,
@@ -18,7 +20,9 @@
     },
     {
       "id": "model",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.model.model",
@@ -39,7 +43,9 @@
     },
     {
       "id": "Model2",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Model2.Model2",
@@ -60,7 +66,9 @@
     },
     {
       "id": "Model3",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Model3.Model3",
@@ -74,6 +82,28 @@
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "SubformModel",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.SubformModel.SubformModel",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
+      },
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],

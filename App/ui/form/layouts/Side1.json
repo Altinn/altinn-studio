@@ -26,6 +26,22 @@
         "required": true
       },
       {
+        "id": "Subform-z8we7d",
+        "type": "Subform",
+        "layoutSet": "TestSubform",
+        "textResourceBindings": {
+          "title": "Side1.Subform-z8we7d.title"
+        },
+        "tableColumns": [
+          {
+            "headerContent": "Side1.Input-bYOAVi.title",
+            "cellContent": {
+              "query": "property1"
+            }
+          }
+        ]
+      },
+      {
         "id": "Button-BddG51",
         "type": "Button",
         "textResourceBindings": {

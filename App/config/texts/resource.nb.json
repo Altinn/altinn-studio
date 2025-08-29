@@ -2,6 +2,14 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Subform-z8we7d.title",
+      "value": "Subform-1"
+    },
+    {
+      "id": "Side1.Input-bYOAVi.title",
+      "value": "Subform tekstfelt"
+    },
+    {
       "id": "Side1.RadioButtons-aoZwvK.title",
       "value": "Skal Task_5 servicetask feile?"
     },
