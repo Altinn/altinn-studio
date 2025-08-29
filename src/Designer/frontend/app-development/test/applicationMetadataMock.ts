@@ -49,7 +49,7 @@ export const mockAppMetadata: ApplicationMetadata = {
   partyTypesAllowed: mockPartyTypesAllowed,
   validFrom: mockValidFrom,
   validTo: mockValidTo,
-  autoDeleteOnProcessEnd: false,
+  autoDeleteOnProcessEnd: true,
   messageBoxConfig: mockMessageBoxConfig,
   copyInstanceSettings: mockCopyInstanceSettings,
   onEntry: mockOnEntry,
