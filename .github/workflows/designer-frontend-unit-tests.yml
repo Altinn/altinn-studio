@@ -71,9 +71,7 @@ jobs:
           yarn strict-null-checks
 
       - name: 'Running Eslint'
-        run: |
-          cd src/Designer/frontend
-          yarn lint --cache
+        run: yarn lint --cache
 
       - name: 'Checking code style'
         run: |
