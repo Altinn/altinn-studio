@@ -10,6 +10,7 @@ on:
       - '.github/workflows/template-short-sha.yaml'
       - 'charts/gitea-org-runner/**'
       - 'charts/gitea-org-runner-config/**'
+      - 'src/gitea-runner/**'
 
   workflow_dispatch:
     inputs:
@@ -73,8 +74,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-gitea-runner
-      context: gitea-runner
-      dockerfile: gitea-runner/Dockerfile
+      context: src/gitea-runner
+      dockerfile: src/gitea-runner/Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}

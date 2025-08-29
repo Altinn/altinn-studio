@@ -1,0 +1,26 @@
+.consentRuleCard {
+  border: solid 1px var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-5);
+  margin-bottom: var(--ds-size-5);
+  border-radius: var(--ds-size-3);
+}
+
+.accessListItem {
+  padding: var(--ds-size-2);
+  border-bottom: solid 1px var(--ds-color-neutral-border-subtle);
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+.allOrganizationsItem {
+  background-color: var(--ds-color-neutral-background-tinted);
+  border-bottom: 0;
+  min-height: var(--ds-size-12);
+  align-items: center;
+  margin-bottom: var(--ds-size-8);
+  font-weight: 500;
+}
+.allOrganizationsItemLabel {
+  font-weight: var(--ds-font-weight-medium);
+}
