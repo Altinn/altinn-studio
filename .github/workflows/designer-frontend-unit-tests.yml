@@ -61,16 +61,24 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Doing the typecheck'
-        run: yarn typecheck
+        run: |
+          cd src/Designer/frontend
+          yarn typecheck
 
       - name: 'Strict null checks'
-        run: yarn strict-null-checks
+        run: |
+          cd src/Designer/frontend
+          yarn strict-null-checks
 
       - name: 'Running Eslint'
-        run: yarn lint --cache
+        run: |
+          cd src/Designer/frontend
+          yarn lint --cache
 
       - name: 'Checking code style'
-        run: yarn run codestyle:check
+        run: |
+          cd src/Designer/frontend
+          yarn run codestyle:check
 
   test:
     name: 'Testing'
