@@ -51,6 +51,9 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    defaults:
+      run:
+        working-directory: src/Designer/frontend
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -58,6 +61,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Installing Dependencies'
+        working-directory: .
         uses: ./.github/actions/yarn-install
 
       - name: 'Doing the typecheck'
@@ -75,6 +79,9 @@ jobs:
   test:
     name: 'Testing'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Designer/frontend
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -82,6 +89,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Installing Dependencies'
+        working-directory: .
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
