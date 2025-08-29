@@ -82,7 +82,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
 
                 subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions);
-                return subjectOptions.Where(x => x.LegacyUrn != null).ToList();
+                subjectOptions.ForEach(x => {
+                    x.LegacyUrn ??= x.Urn;
+                });
+                return subjectOptions.ToList();
             }
             catch (Exception ex)
             {
