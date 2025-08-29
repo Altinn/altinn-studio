@@ -4546,6 +4546,7 @@ __metadata:
     eslint: "npm:8.57.1"
     husky: "npm:9.1.7"
     lint-staged: "npm:15.5.2"
+    prettier: "npm:3.6.2"
   languageName: unknown
   linkType: soft
 

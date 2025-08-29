@@ -3,7 +3,8 @@
   "devDependencies": {
     "eslint": "8.57.1",
     "husky": "9.1.7",
-    "lint-staged": "15.5.2"
+    "lint-staged": "15.5.2",
+    "prettier": "3.6.2"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
@@ -12,10 +13,10 @@
   "packageManager": "yarn@4.9.2",
   "private": true,
   "scripts": {
-    "lint": "eslint \"src/Designer/frontend/**/*.ts*\"",
-    "lint:fix": "yarn run lint --fix",
-    "codestyle:check": "prettier src/Designer/frontend --check",
-    "codestyle:fix": "prettier src/Designer/frontend --write",
+    "lint": "yarn workspace studio-designer-frontend lint",
+    "lint:fix": "yarn workspace studio-designer-frontend lint:fix",
+    "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
+    "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
     "setup": "husky && node development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start"
