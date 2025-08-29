@@ -5,23 +5,30 @@ on:
     paths:
       - 'src/Designer/testdata/**'
       - 'src/Designer/backend/**'
+      - '.github/workflows/designer-dotnet-test.yaml'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
+      - '.github/workflows/designer-dotnet-test.yaml'
+
   workflow_dispatch:
 
 jobs:
   analyze:
     strategy:
       matrix:
-        os: [ubuntu-latest,macos-latest] # fix path too long for windows-latest
+        os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config --system core.longpaths true
+
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
