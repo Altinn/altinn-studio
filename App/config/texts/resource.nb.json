@@ -58,6 +58,10 @@
       "value": "Eksempel på kort svar komponent med grid på kun selve inputfeltet og kjempelang tittel som forklarer i slitsomt nøye detaljer hva som skal fylles ut i dette feltet, slik at teksten bryter over flere linjer"
     },
     {
+      "id": "ImageUploadPage.ImageUpload.title",
+      "value": "Eksempel på filopplastings komponent."
+    },
+    {
       "id": "TextareaPage",
       "value": "Langt svar"
     },
