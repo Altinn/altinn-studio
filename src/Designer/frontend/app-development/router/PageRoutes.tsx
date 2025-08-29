@@ -59,6 +59,6 @@ const router = createBrowserRouter(
 );
 
 /**
- * Displays the routes for app development pages.
+ * Displays the routes for app development pages
  */
 export const PageRoutes = (): React.ReactElement => <RouterProvider router={router} />;
