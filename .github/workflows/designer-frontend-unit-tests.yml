@@ -61,10 +61,14 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Doing the typecheck'
-        run: yarn typecheck
+        run: |
+          cd src/Designer/frontend
+          yarn typecheck
 
       - name: 'Strict null checks'
-        run: yarn strict-null-checks
+        run: |
+          cd src/Designer/frontend
+          yarn strict-null-checks
 
       - name: 'Running Eslint'
         run: yarn lint --cache
@@ -85,7 +89,9 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: yarn test:ci
+        run:  |
+          cd src/Designer/frontend
+          yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5
