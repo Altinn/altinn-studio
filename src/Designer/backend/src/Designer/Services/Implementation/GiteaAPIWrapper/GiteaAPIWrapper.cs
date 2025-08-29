@@ -470,7 +470,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return [];
             }
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetDirectoryAsync failed with status code " + response.StatusCode + "for org:" + org  + ", app: " + app + ", directory path: " + directoryPath + " and commit id: " + shortCommitId);
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetDirectoryAsync failed with status code " + response.StatusCode + "for org:" + org + ", app: " + app + ", directory path: " + directoryPath + " and commit id: " + shortCommitId);
             return [];
         }
 
