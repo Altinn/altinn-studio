@@ -22,8 +22,9 @@
   box-shadow: var(--ds-shadow-sm);
   padding: var(--ds-size-3);
 }
-.selectedSubject {
+.subjectItem.selectedSubject {
   background-color: var(--ds-color-surface-tinted);
+  padding: var(--ds-size-1);
 }
 
 .subjectTitle {
