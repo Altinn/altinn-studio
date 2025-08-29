@@ -9,6 +9,7 @@ interface MinAndMaxHeightOptions {
   maxHeightInPx?: number;
 }
 
+// Trigger hack
 export const useAutoSizeTextArea = (
   value: string,
   {
