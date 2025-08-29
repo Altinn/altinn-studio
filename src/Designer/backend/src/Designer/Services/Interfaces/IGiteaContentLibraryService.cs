@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IGiteaContentLibraryService
 {
     /// <summary>
-    /// Checks if the repository exists in gitea.
+    /// Checks if the organisation's content repository ({org}-content) exists in Gitea.
     /// </summary>
     /// <param name="orgName">The name of the organisation.</param>
     public Task<bool> OrgContentRepoExists(string orgName);
@@ -19,7 +19,7 @@ public interface IGiteaContentLibraryService
     /// <returns>The code list</returns>
     public Task<List<Option>> GetCodeList(string orgName, string codeListId);
     /// <summary>
-    /// Checks if the code list exists in gitea.
+    /// Checks if the code list exists in Gitea.
     /// </summary>
     /// <param name="orgName">The name of the organisation.</param>
     /// <param name="codeListId">The name of the code list to check if already exists.</param>

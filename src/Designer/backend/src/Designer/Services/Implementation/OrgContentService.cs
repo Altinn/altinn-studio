@@ -78,9 +78,4 @@ public class OrgContentService : IOrgContentService
     }
 
     private static string FormatContentSource(string orgName) => $"org.{orgName}";
-
-    private static string GetContentRepoName(string org)
-    {
-        return $"{org}-content";
-    }
 }
