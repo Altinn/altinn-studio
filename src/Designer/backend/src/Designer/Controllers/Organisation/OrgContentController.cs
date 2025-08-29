@@ -49,8 +49,9 @@ public class OrgContentController : ControllerBase
             return NoContent();
         }
 
-        var editingContext = CreateAltinnOrgContext(orgName);
-        if (!_orgContentService.OrgContentRepoExists(editingContext))
+        AltinnOrgContext editingContext = CreateAltinnOrgContext(orgName);
+        bool repositoryExists = await _orgContentService.OrgContentRepoExists(editingContext);
+        if (!repositoryExists)
         {
             HttpContext.Response.Headers["Reason"] = $"{orgName}-content repo does not exist";
             return NoContent();

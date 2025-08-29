@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -14,13 +13,11 @@ public class OrgContentServiceTests
     private readonly Mock<IGiteaContentLibraryService> _mockGiteaContentLibraryService;
     private readonly OrgContentService _orgContentService;
     private const string OrgName = "ttd";
-    private const string DeveloperName = "testUser";
 
     public OrgContentServiceTests()
     {
-        Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = new();
         _mockGiteaContentLibraryService = new Mock<IGiteaContentLibraryService>();
-        _orgContentService = new OrgContentService(altinnGitRepositoryFactory.Object, _mockGiteaContentLibraryService.Object);
+        _orgContentService = new OrgContentService(_mockGiteaContentLibraryService.Object);
     }
 
     [Fact]
