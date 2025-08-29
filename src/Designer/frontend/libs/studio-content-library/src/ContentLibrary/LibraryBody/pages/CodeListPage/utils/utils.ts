@@ -52,7 +52,7 @@ function caseInsensitiveMatch(target: string, searchString: string): boolean {
 export const getTextResourcesForLanguage = (
   language: string,
   textResources?: TextResources,
-): TextResource[] | undefined => textResources?.[language];
+): TextResource[] => textResources?.[language] ?? [];
 
 export const createTextResourceWithLanguage = (
   language: string,

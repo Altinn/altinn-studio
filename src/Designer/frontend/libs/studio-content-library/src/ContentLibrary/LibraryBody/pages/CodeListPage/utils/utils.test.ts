@@ -182,11 +182,11 @@ describe('utils', () => {
     });
 
     it('Returns undefined when the language does not exist', () => {
-      expect(getTextResourcesForLanguage('eo', textResources)).toBeUndefined();
+      expect(getTextResourcesForLanguage('eo', textResources)).toEqual([]);
     });
 
     it('Returns undefined when the textResources parameter is undefined', () => {
-      expect(getTextResourcesForLanguage('nb', undefined)).toBeUndefined();
+      expect(getTextResourcesForLanguage('nb', undefined)).toEqual([]);
     });
   });
 

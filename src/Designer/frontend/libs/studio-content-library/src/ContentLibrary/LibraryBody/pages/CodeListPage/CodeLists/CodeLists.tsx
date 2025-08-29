@@ -20,7 +20,7 @@ export type CodeListsProps = {
   codeListInEditMode: string | undefined;
   codeListNames: string[];
   codeListsUsages: CodeListReference[];
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 export function CodeLists({

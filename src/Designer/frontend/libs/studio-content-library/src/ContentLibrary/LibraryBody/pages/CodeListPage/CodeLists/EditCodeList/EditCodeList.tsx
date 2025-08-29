@@ -27,7 +27,7 @@ export type EditCodeListProps = {
   onUpdateTextResource?: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
-  textResources?: TextResource[];
+  textResources: TextResource[];
 };
 
 export function EditCodeList({
