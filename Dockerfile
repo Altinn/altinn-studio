@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:8be1dd87743236c7d064aac3733befca88ba9bc6f65c7f6bbd93199f27c33287 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
