@@ -11,9 +11,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appContextMock } from '../../../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
-import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 const user = userEvent.setup();
 
@@ -25,10 +23,10 @@ const textResources: ITextResource[] = [
 ];
 
 const textResourceId = textResources[0].id;
-const mockOnSetCurrentValue = jest.fn();
+const mockOnTextChange = jest.fn();
 const defaultProps: TextResourceValueEditorProps = {
   textResourceId,
-  onSetCurrentValue: mockOnSetCurrentValue,
+  onTextChange: mockOnTextChange,
 };
 
 describe('TextResourceValueEditor', () => {
@@ -47,24 +45,14 @@ describe('TextResourceValueEditor', () => {
     expect(textbox).toHaveValue(textResources[0].value);
   });
 
-  it('Mutates text resource when value is changed', async () => {
-    const upsertTextResources = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(emptyTextResourceListMock(DEFAULT_LANGUAGE)));
-    renderTextResource({}, textResources, { upsertTextResources });
-
+  it('Calls onTextChange when value is changed', async () => {
+    renderTextResource({}, textResources);
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     await user.type(textbox, 'a');
-    await user.tab();
-
-    expect(upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
-      [textResourceId]: textResources[0].value + 'a',
-    });
-
-    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledTimes(1);
-    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
+    expect(mockOnTextChange).toHaveBeenCalled();
+    const lastCall = mockOnTextChange.mock.calls[mockOnTextChange.mock.calls.length - 1];
+    expect(lastCall[0]).toBe(textResources[0].value + 'a');
   });
 });
 

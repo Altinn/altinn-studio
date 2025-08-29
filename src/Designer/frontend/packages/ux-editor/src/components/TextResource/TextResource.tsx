@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
-import { TextResourceEditor } from './TextResourceEditor';
-import { usePrevious } from '@studio/components-legacy';
-import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
-import { CheckmarkIcon } from '@studio/icons';
-import { useTranslation } from 'react-i18next';
+import { StudioProperty } from '@studio/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useFormItemContext } from '../../containers/FormItemContext';
-import { useAppContext } from '../../hooks';
 import { useTextResourceValue } from './hooks/useTextResourceValue';
+import { TextResourceAction } from './TextResourceEditor/TextResourceValueEditor/TextResourceAction';
+import { useUpsertTextResourceMutation } from '../../hooks/mutations/useUpsertTextResourceMutation';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { TranslationKey } from 'language/type';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
   handleRemoveTextResource?: () => void;
-  label?: string;
+  label?: TranslationKey | string;
   textResourceId?: string;
   generateIdOptions?: GenerateTextResourceIdOptions;
   compact?: boolean;
@@ -43,51 +41,51 @@ export const TextResource = ({
   textResourceId,
   disableSearch,
 }: TextResourceProps) => {
-  const { formItemId } = useFormItemContext();
-  const { selectedFormLayoutName: formLayoutName } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { mutate: upsertTextResourceMutation } = useUpsertTextResourceMutation(org, app);
 
-  const prevFormItemId = usePrevious(formItemId);
-  const prevFormLayoutName = usePrevious(formLayoutName);
-
-  const initialTextResourceValue = useTextResourceValue(textResourceId);
-  const [currentValue, setCurrentValue] = useState<string>(initialTextResourceValue);
-
+  const defaultId = useMemo(() => generateId(generateIdOptions), [generateIdOptions]);
+  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
-    if (!textResourceId) {
-      handleIdChange(generateId(generateIdOptions));
-    }
+    if (!textResourceId) setCurrentTextResourceId(defaultId);
+    else setCurrentTextResourceId(textResourceId);
     setIsOpen(true);
   };
 
-  const handleClose = () => {
-    if (currentValue === '') {
-      handleRemoveTextResource?.();
+  const handleSave = (id: string, value: string) => {
+    if (currentTextResourceId === '') handleRemoveTextResource?.();
+    else {
+      const textId = currentTextResourceId || id;
+      handleIdChange(textId);
+      upsertTextResourceMutation({
+        textId: textId,
+        language: DEFAULT_LANGUAGE,
+        translation: value,
+      });
     }
     setIsOpen(false);
+    setCurrentTextResourceId('');
   };
 
-  const handleDelete = () => {
-    handleRemoveTextResource();
+  const handleCancel = () => {
     setIsOpen(false);
+    setCurrentTextResourceId('');
   };
 
-  useEffect(() => {
-    if (formItemId !== prevFormItemId || formLayoutName !== prevFormLayoutName) {
-      setIsOpen(false);
-    }
-  }, [formItemId, prevFormItemId, formLayoutName, prevFormLayoutName]);
+  const handleDelete = () => handleRemoveTextResource?.();
+
+  const handleLocalReferenceChange = (id: string) => setCurrentTextResourceId(id || '');
 
   return isOpen ? (
-    <TextResourceFieldset
-      compact={compact}
+    <TextResourceAction
       legend={label}
-      onClose={handleClose}
-      onDelete={handleRemoveTextResource ? handleDelete : undefined}
-      onSetCurrentValue={setCurrentValue}
-      onReferenceChange={handleIdChange}
-      textResourceId={textResourceId}
+      textResourceId={currentTextResourceId || defaultId}
+      onSave={handleSave}
+      onCancel={handleCancel}
+      onDelete={handleDelete}
+      onReferenceChange={handleLocalReferenceChange}
       disableSearch={disableSearch}
     />
   ) : (
@@ -100,64 +98,11 @@ export const TextResource = ({
   );
 };
 
-type TextResourceFieldsetProps = {
-  compact?: boolean;
-  legend: string;
-  onClose: () => void;
-  onDelete: () => void;
-  onReferenceChange: (id: string) => void;
-  onSetCurrentValue: (value: string) => void;
-  textResourceId: string;
-  disableSearch?: boolean;
-};
-
-const TextResourceFieldset = ({
-  compact,
-  legend,
-  onClose,
-  onDelete,
-  onReferenceChange,
-  onSetCurrentValue,
-  textResourceId,
-  disableSearch = false,
-}: TextResourceFieldsetProps) => {
-  const { t } = useTranslation();
-
-  return (
-    <StudioProperty.Fieldset
-      compact={compact}
-      legend={legend}
-      menubar={
-        <>
-          <span>{t('language.' + DEFAULT_LANGUAGE)}</span>
-          <StudioButton icon={<CheckmarkIcon />} onClick={onClose} variant='primary'>
-            {t('general.save')}
-          </StudioButton>
-          <StudioDeleteButton
-            confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
-            disabled={!onDelete}
-            onDelete={() => onDelete?.()}
-          >
-            {t('general.delete')}
-          </StudioDeleteButton>
-        </>
-      }
-    >
-      <TextResourceEditor
-        textResourceId={textResourceId}
-        onReferenceChange={onReferenceChange}
-        onSetCurrentValue={onSetCurrentValue}
-        disableSearch={disableSearch}
-      />
-    </StudioProperty.Fieldset>
-  );
-};
-
 type TextResourceButtonProps = {
   compact?: boolean;
-  label: string;
+  label?: TranslationKey | string;
   onOpen: () => void;
-  textResourceId: string;
+  textResourceId?: string;
 };
 
 const TextResourceButton = ({
