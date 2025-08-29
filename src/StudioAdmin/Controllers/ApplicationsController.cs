@@ -21,7 +21,7 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpGet("{org}")]
-    public async Task<ActionResult<IEnumerable<RunningApplication>>> GetApps(
+    public async Task<ActionResult<Dictionary<string, List<RunningApplication>>>> GetApps(
         string org,
         CancellationToken ct
     )
