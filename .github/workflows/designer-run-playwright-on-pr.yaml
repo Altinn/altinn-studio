@@ -51,7 +51,7 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node .src/Designer/development/setup.js
+          node src/Designer/development/setup.js
 
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
