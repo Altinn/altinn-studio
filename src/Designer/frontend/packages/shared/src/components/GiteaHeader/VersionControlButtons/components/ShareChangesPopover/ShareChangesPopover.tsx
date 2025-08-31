@@ -73,6 +73,7 @@ export const ShareChangesPopover = () => {
         {displayNotification && <Notification />}
       </StudioPageHeader.PopoverTrigger>
       <StudioPopover.Content
+        data-color-scheme='light'
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >
         {isLoading && (

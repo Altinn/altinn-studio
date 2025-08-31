@@ -43,7 +43,7 @@ describe('ButtonRouterLink', () => {
   });
 
   it('Forwards the ref to the link element if given', () => {
-    const ref = React.createRef<HTMLAnchorElement>();
+    const ref = React.createRef<HTMLButtonElement>();
     renderButtonRouterLink({}, ref);
     expect(ref.current).toBe(screen.getByRole('link'));
   });
@@ -67,7 +67,7 @@ describe('ButtonRouterLink', () => {
 
 function renderButtonRouterLink(
   props: Partial<ButtonRouterLinkProps> = {},
-  ref?: ForwardedRef<HTMLAnchorElement>,
+  ref?: ForwardedRef<HTMLButtonElement>,
 ): RenderResult {
   return render(<ButtonRouterLink {...defaultProps} {...props} ref={ref} />, {
     wrapper: MemoryRouter,

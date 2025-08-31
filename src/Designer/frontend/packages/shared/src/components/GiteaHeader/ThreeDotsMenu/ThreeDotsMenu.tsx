@@ -3,10 +3,12 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components-legacy';
+import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
+import { useNavigate } from 'react-router-dom';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
@@ -16,6 +18,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
@@ -27,7 +30,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         color='light'
         variant='regular'
       />
-      <StudioPopover.Content className={classes.popover}>
+      <StudioPopover.Content data-color-scheme='light' className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
             <li>
@@ -50,13 +53,11 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           )}
           <li>
             <StudioButton
-              as='a'
               className={classes.menuButton + ' ' + classes.link}
               fullWidth
-              href={repositoryPath(owner, repoName)}
+              onClick={() => navigate(repositoryPath(owner, repoName))}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
-              size='small'
               variant='tertiary'
             >
               {t('sync_header.repository')}

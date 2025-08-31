@@ -13,7 +13,9 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components-legacy';
+import { StudioDeleteButton, StudioDropdownMenu } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
+
 import {
   BooleanIcon,
   CombinationIcon,
@@ -48,8 +50,6 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
       <Heading level={1} className={classes.heading}>
         <StudioButton
           className={classes.headingButton}
-          color='first'
-          size='small'
           icon={<NodeIcon node={node} />}
           onClick={selectNodeRoot}
           variant='tertiary'

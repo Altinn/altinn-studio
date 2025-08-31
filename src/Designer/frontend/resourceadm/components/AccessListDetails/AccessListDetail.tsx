@@ -8,13 +8,8 @@ import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessLi
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import {
-  StudioButton,
-  StudioHeading,
-  StudioLink,
-  StudioModal,
-  StudioTextfield,
-} from '@studio/components-legacy';
+import { StudioHeading, StudioLink, StudioModal, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
@@ -100,7 +95,7 @@ export const AccessListDetail = ({
           heading={t('resourceadm.listadmin_delete_list_header')}
           footer={
             <>
-              <StudioButton color='danger' onClick={() => handleDelete()}>
+              <StudioButton data-color='danger' onClick={() => handleDelete()}>
                 {t('resourceadm.listadmin_delete_list')}
               </StudioButton>
               <StudioButton variant='tertiary' onClick={closeModal}>
@@ -150,12 +145,11 @@ export const AccessListDetail = ({
       <div>
         <StudioButton
           variant='tertiary'
-          color='danger'
+          data-color='danger'
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
           disabled={isDeletingAccessList}
-          size='md'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

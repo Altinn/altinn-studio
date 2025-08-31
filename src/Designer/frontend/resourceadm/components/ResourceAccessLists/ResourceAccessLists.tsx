@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import classes from './ResourceAccessLists.module.css';
 import {
   StudioSpinner,
-  StudioButton,
   StudioLink,
   StudioCheckbox,
   StudioHeading,
 } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';

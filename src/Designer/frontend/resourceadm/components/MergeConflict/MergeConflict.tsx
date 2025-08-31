@@ -3,12 +3,12 @@ import classes from './MergeConflict.module.css';
 import { useTranslation } from 'react-i18next';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import {
-  StudioButton,
   StudioHeading,
   StudioLabelAsParagraph,
   StudioLink,
   StudioParagraph,
 } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictProps = {

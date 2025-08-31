@@ -1,5 +1,6 @@
 import React, { type ReactElement } from 'react';
-import { StudioPopover, StudioButton } from '@studio/components-legacy';
+import { StudioPopover } from '@studio/components-legacy';
+import { StudioLink } from '@studio/components';
 import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
@@ -31,18 +32,14 @@ export const DeployMoreOptionsMenu = ({
             <UndeployConsequenceDialog environment={environment} />
           </li>
           <li>
-            <StudioButton
+            <StudioLink
               className={classes.itemButton}
-              as='a'
-              fullWidth
               href={linkToEnv}
               icon={<ExternalLinkIcon />}
               rel='noopener noreferrer'
-              size='sm'
-              variant='tertiary'
             >
               {t('app_deployment.more_options_menu')}
-            </StudioButton>
+            </StudioLink>
           </li>
         </ul>
       </StudioPopover.Content>

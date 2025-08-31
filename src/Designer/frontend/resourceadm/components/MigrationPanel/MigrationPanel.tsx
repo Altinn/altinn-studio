@@ -1,13 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAlert,
-  StudioButton,
-  StudioCheckbox,
-  StudioHeading,
-  StudioModal,
-} from '@studio/components-legacy';
+import { StudioAlert, StudioCheckbox, StudioHeading, StudioModal } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 import classes from './MigrationPanel.module.css';
 import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
@@ -87,11 +82,10 @@ export const MigrationPanel = ({
             <StudioButton
               disabled={!isMigrateCheckboxChecked}
               onClick={() => postMigrateDelegations()}
-              size='md'
             >
               {t('resourceadm.migration_disable_service_confirm')}
             </StudioButton>
-            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='md'>
+            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal}>
               {t('general.cancel')}
             </StudioButton>
           </>

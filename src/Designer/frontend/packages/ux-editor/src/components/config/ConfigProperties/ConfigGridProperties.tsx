@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
-import { StudioButton, StudioCard } from '@studio/components-legacy';
-import { StudioProperty } from '@studio/components';
+import { StudioCard } from '@studio/components-legacy';
+import { StudioButton, StudioProperty } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';
@@ -31,11 +31,11 @@ export const ConfigGridProperties = ({
                 {t('ux_editor.component_properties.grid')}
               </Heading>
               <StudioButton
+                data-size='small' // can be removed once parent component hierarchy is also from @studio/components
                 icon={<XMarkIcon />}
                 onClick={() => setShowGrid(false)}
                 title={t('general.close')}
                 variant='secondary'
-                className={classes.button}
               />
             </div>
           </StudioCard.Header>
