@@ -12,7 +12,7 @@ on:
       - 'src/Designer/Dockerfile'
       - 'src/gitea/**'
       - 'package.json'
-      - './Designer/development/**'
+      - 'src/Designer/development/**'
       - 'src/App/app-template-dotnet/**'
   workflow_dispatch:
 
