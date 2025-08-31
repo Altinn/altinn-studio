@@ -6,14 +6,14 @@ namespace Altinn.Studio.Designer.Helpers;
 
 public static class AltinnStudioRepositoryScanner
 {
-    public static string FindRootDotEnvFilePath()
+    public static string FindDotEnvFilePath()
     {
-        return Path.Combine(FindRootDirectoryPath(), ".env");
+        return Path.Join(FindRootDirectoryPath(), "src", "Designer", ".env");
     }
 
     public static string FindKafkaComposerFilePath()
     {
-        return Path.Combine(FindRootDirectoryPath(), "src", "Designer", "development", "kafka", "compose.yaml");
+        return Path.Join(FindRootDirectoryPath(), "src", "Designer", "development", "kafka", "compose.yaml");
     }
 
     public static string FindRootDirectoryPath([CallerFilePath] string filePath = "")

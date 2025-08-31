@@ -141,7 +141,7 @@ namespace Altinn.Studio.Designer.Infrastructure
         {
             clientId = null;
             clientSecret = null;
-            var keys = DotNetEnv.Env.Load(AltinnStudioRepositoryScanner.FindRootDotEnvFilePath(),
+            var keys = DotNetEnv.Env.Load(AltinnStudioRepositoryScanner.FindDotEnvFilePath(),
                 new DotNetEnv.LoadOptions(false, false, false)).ToList();
 
             clientId = keys.FirstOrDefault(k => k.Key == "CLIENT_ID").Value;

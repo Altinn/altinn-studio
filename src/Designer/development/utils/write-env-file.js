@@ -4,7 +4,7 @@ const os = require('os');
 
 module.exports = (envData) => {
   const newEnv = [];
-  const dotenvLocations = path.resolve(__dirname, '..', '..', '..', '..', '.env');
+  const dotenvLocations = path.resolve(__dirname, '..', '..', '.env');
   const { O_RDWR, O_CREAT } = fs.constants;
   const fd = fs.openSync(dotenvLocations, O_RDWR | O_CREAT, 0o600);
   Object.keys(envData).forEach((key) => newEnv.push([key, envData[key]].join('=')));
