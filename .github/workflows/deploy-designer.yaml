@@ -59,6 +59,8 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-core
+      context: .
+      dockerfile: src/Designer/Dockerfile
       environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}

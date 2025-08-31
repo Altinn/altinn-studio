@@ -17,7 +17,7 @@
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
-    "setup": "husky && node development/setup.js && yarn run git:ignore-revs",
+    "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start"
   },
