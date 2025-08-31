@@ -6,7 +6,6 @@ COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
 
-COPY ./development/azure-devops-mock/package.json ./development/azure-devops-mock/
 COPY src/Designer/frontend/package.json ./src/Designer/frontend/
 COPY src/Designer/frontend/app-development/package.json ./src/Designer/frontend/app-development/
 COPY src/Designer/frontend/app-preview/package.json ./src/Designer/frontend/app-preview/
