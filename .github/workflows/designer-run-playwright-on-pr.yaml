@@ -8,11 +8,11 @@ on:
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-run-playwright-on-pr.yaml'
-      - 'compose.yaml'
-      - 'Dockerfile'
+      - 'src/Designer/compose.yaml'
+      - 'src/Designer/Dockerfile'
       - 'src/gitea/**'
       - 'package.json'
-      - 'development/**'
+      - './Designer/development/**'
       - 'src/App/app-template-dotnet/**'
   workflow_dispatch:
 
@@ -51,7 +51,7 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node ./development/setup.js
+          node .src/Designer/development/setup.js
 
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
