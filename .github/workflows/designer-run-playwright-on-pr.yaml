@@ -48,6 +48,7 @@ jobs:
           echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
+        workflow_directory: src/Designer
 
       - name: Run setup.js script
         run: |
