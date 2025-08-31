@@ -31,7 +31,7 @@
     "not op_mini all"
   ],
   "workspaces": [
-    "development/azure-devops-mock",
+    "src/Designer/development/azure-devops-mock",
     "src/Designer/frontend",
     "src/Designer/frontend/app-development",
     "src/Designer/frontend/app-preview",
