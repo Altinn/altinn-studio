@@ -1,5 +1,3 @@
-version: '3.8'
-
 volumes:
   designer-git-data:
   gitea-git-data:
@@ -198,7 +196,7 @@ services:
       studio_db:
         condition: service_healthy
     build:
-      context: ./Designer/backend
+      context: ./backend
       dockerfile: Migrations.Dockerfile
     environment:
       - PGHOST=studio_db
