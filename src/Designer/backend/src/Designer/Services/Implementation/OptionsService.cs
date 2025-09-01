@@ -244,7 +244,7 @@ public class OptionsService : IOptionsService
     {
         if (appTextResources.TryGetValue(languageCode, out TextResource textResource))
         {
-            return [.. textResource.Resources];
+            return textResource.Resources;
         }
 
         return [];
