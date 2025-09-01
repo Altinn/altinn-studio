@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import { StudioButton, StudioRedirectBox } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';
@@ -29,9 +29,9 @@ export const EditPolicy = () => {
 
   return (
     <div className={classes.configContent}>
-      <Alert severity='info' className={classes.alert}>
+      <StudioAlert severity='info' className={classes.alert}>
         {t('process_editor.configuration_panel.edit_policy_alert_message')}
-      </Alert>
+      </StudioAlert>
       <StudioRedirectBox
         title={t('process_editor.configuration_panel.edit_policy_open_policy_editor_heading')}
       >
