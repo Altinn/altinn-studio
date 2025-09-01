@@ -16,8 +16,8 @@ import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 import {
-  getFormatMaximum,
-  getFormatMinimum,
+  getLatest,
+  getEarliest,
   isDateOrTimeFormat,
   isLatestInclusive,
   isEarliestInclusive,
@@ -167,8 +167,8 @@ function DateOrTimeFormatRestrictions({
   const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
     earliestIsInclusive: isEarliestInclusive(restrictions),
     latestIsInclusive: isLatestInclusive(restrictions),
-    earliest: getFormatMinimum(restrictions),
-    latest: getFormatMaximum(restrictions),
+    earliest: getEarliest(restrictions),
+    latest: getLatest(restrictions),
     restrictions,
   });
 

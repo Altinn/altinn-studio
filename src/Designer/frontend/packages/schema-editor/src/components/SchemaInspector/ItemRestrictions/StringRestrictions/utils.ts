@@ -15,14 +15,14 @@ export function isLatestInclusive(stringRestrictions: KeyValuePairs): boolean {
   return stringRestrictions[StrRestrictionKey.formatExclusiveMaximum] === undefined;
 }
 
-export function getFormatMinimum(stringRestrictions: KeyValuePairs): string | undefined {
+export function getEarliest(stringRestrictions: KeyValuePairs): string | undefined {
   return (
     stringRestrictions[StrRestrictionKey.formatExclusiveMinimum] ??
     stringRestrictions[StrRestrictionKey.formatMinimum]
   );
 }
 
-export function getFormatMaximum(stringRestrictions: KeyValuePairs): string | undefined {
+export function getLatest(stringRestrictions: KeyValuePairs): string | undefined {
   return (
     stringRestrictions[StrRestrictionKey.formatExclusiveMaximum] ??
     stringRestrictions[StrRestrictionKey.formatMaximum]
