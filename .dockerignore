@@ -1,12 +1,12 @@
 *
 !src/Designer/frontend
 !src/Designer/backend
-!development/azure-devops-mock
+!src/Designer/development/azure-devops-mock
 !package.json
-!environments.json
 !yarn.lock
 !.yarn*
 !src/App/app-template-dotnet/src
 **/node_modules
 **/bin
 **/obj
+# Designer needs a wider context since it's using an app-template outside of the Designer folder.

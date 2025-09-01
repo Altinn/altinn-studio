@@ -42,6 +42,7 @@ export * from './StudioRadio';
 export * from './StudioRadioGroup';
 export * from './StudioRedirectBox';
 export * from './StudioSearch';
+export * from './StudioSectionHeader';
 export * from './StudioSelect';
 export * from './StudioSpinner';
 export * from './StudioSwitch';

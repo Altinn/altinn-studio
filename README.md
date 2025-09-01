@@ -55,7 +55,7 @@ The development environment consist of several services defined in [compose.yaml
 
 - `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
-- `studio-repos` which is [gitea][14] with some custom config. More [here](gitea/README.md).
+- `studio-repos` which is [gitea][14] with some custom config. More [here](src/gitea/README.md).
 - `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
 - `database_migrations` which is a one-time task container designed to perform and complete database migrations before exiting.
 - `pgadmin` which is a administration and development platform for PostgreSQL.
