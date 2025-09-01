@@ -1,0 +1,102 @@
+name: Designer Frontend Tests
+
+on:
+  push:
+    paths:
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
+      - 'src/Designer/testdata/**'
+      - '.github/workflows/designer-frontend-unit-tests.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CYPRESS_INSTALL_BINARY: 0
+
+jobs:
+  codeql:
+    name: 'CodeQL'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Initialize CodeQL'
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
+        with:
+          languages: javascript
+          queries: +security-and-quality
+          config-file: .github/codeql/codeql-config.yml
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
+        with:
+          category: '/language:javascript'
+
+  typecheck:
+    name: 'Typechecking and linting'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
+      - name: 'Doing the typecheck'
+        run: |
+          cd src/Designer/frontend
+          yarn typecheck
+
+      - name: 'Strict null checks'
+        run: |
+          cd src/Designer/frontend
+          yarn strict-null-checks
+
+      - name: 'Running Eslint'
+        run: yarn lint --cache
+
+      - name: 'Checking code style'
+        run: yarn run codestyle:check
+
+  test:
+    name: 'Testing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
+      - name: 'Running Unit Tests'
+        run:  |
+          cd src/Designer/frontend
+          yarn test:ci
+
+      - name: 'Upload coverage reports to Codecov'
+        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          directory: src/Designer/frontend/coverage
+          fail_ci_if_error: true

@@ -1,0 +1,55 @@
+.groupWrapper {
+  border-bottom: 0.5px solid var(--fds-semantic-border-neutral-subtle);
+}
+.groupHeaderWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selected {
+  background-color: var(--ds-color-surface-tinted);
+}
+
+.container {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+  padding: var(--fds-spacing-3);
+  flex: 1;
+  align-self: stretch;
+  cursor: pointer;
+}
+
+.container:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.rightIconsContainer {
+  display: flex;
+  align-items: center;
+  padding: var(--fds-spacing-3) var(--fds-spacing-2);
+}
+
+.elipsisIcon {
+  font-size: 0.8em;
+}
+
+.groupPageAccordionWrapper {
+  margin: auto;
+  width: 90%;
+}
+
+.addPagebutton {
+  display: block;
+  margin: var(--fds-spacing-5) auto;
+}
+
+.ellipsisMenuContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.alertMessage {
+  margin: var(--fds-spacing-1) var(--fds-spacing-8);
+}

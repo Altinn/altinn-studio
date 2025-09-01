@@ -4,15 +4,15 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
       - 'src/StudioAdmin/**'
       - 'src/KubernetesWrapper/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'testdata/**'
-      - 'backend/**'
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
       - 'src/StudioAdmin/**'
       - 'src/KubernetesWrapper/**'
   schedule:
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -40,15 +40,15 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@76621b61decf072c1cee8dd1ce2d2a82d33c17ed # v3
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
         with:
           languages: csharp
           queries: +security-and-quality
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@76621b61decf072c1cee8dd1ce2d2a82d33c17ed # v3
+        uses: github/codeql-action/autobuild@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@76621b61decf072c1cee8dd1ce2d2a82d33c17ed # v3
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
         with:
           category: "/language:csharp"

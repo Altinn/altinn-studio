@@ -1,0 +1,25 @@
+.createNewCodeListDialog {
+  max-width: unset;
+  width: 80vw;
+}
+
+.createNewCodeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  align-items: flex-start;
+  height: 30rem;
+}
+
+.codeListTitle {
+  width: 30%;
+}
+
+.codeListEditor {
+  width: 100%;
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: var(--ds-size-4);
+}
