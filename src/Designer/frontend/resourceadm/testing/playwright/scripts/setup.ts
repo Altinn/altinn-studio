@@ -2,10 +2,10 @@
 import fs from 'fs';
 import os from 'os';
 
-const giteaApi = require('../../../../../../../development/utils/gitea-api');
+const giteaApi = require('../../../../../development/utils/gitea-api');
 
 // Configure the dotenv to read form the .env file on root of monorepo.
-require('dotenv').config({ path: path.resolve(__dirname, '../../../../../../../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../../../../.env') });
 
 const PLAYWRIGHT_RESOURCES_ORGANIZATION = 'ttd';
 const PLAYWRIGHT_RESOURCES_REPO_NAME = 'ttd-resources';

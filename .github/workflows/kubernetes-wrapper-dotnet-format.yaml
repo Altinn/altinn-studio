@@ -1,13 +1,13 @@
-name: Dotnet format check
+name: K8s wrapper Dotnet format check
 on:
   push:
     branches: [ main ]
     paths:
-      - 'src/KubernetesWrapper/src/**'
+      - 'src/Runtime/KubernetesWrapper/src/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'src/KubernetesWrapper/src/**'
+      - 'src/Runtime/KubernetesWrapper/src/**'
   workflow_dispatch:
 
 jobs:
@@ -25,4 +25,4 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: FormatCheck
         run: |
-          dotnet format src/KubernetesWrapper/src/KubernetesWrapper.csproj --verify-no-changes
+          dotnet format src/Runtime/KubernetesWrapper/src/KubernetesWrapper.csproj --verify-no-changes
