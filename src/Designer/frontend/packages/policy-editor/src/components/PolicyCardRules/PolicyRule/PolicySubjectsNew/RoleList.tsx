@@ -4,13 +4,13 @@ import type { PolicySubject } from '@altinn/policy-editor/types';
 import { StudioAlert, StudioCheckbox, StudioSearch } from '@studio/components';
 import { PersonTallShortIcon } from '@studio/icons';
 import classes from './PolicySubjectsNew.module.css';
-import { hasSubject } from '@altinn/policy-editor/utils/PolicyRuleUtils';
+import { hasSubject } from '@altinn/policy-editor/utils';
 
 interface RoleListProps {
   selectedSubjects: string[];
   subjects: PolicySubject[];
   heading: string;
-  handleChange: (subject: string) => void;
+  handleChange: (subjectUrn: string, subjectLegacyUrn?: string) => void;
 }
 export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: RoleListProps) => {
   const { t } = useTranslation();
@@ -40,7 +40,7 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
         const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
         const subjectTitle = `${subject.name}${legacyRoleCode}`;
         return (
-          <div key={subject.legacyUrn} className={classes.subjectItem}>
+          <div key={subject.urn} className={classes.subjectItem}>
             <PersonTallShortIcon className={classes.iconContainer} />
             <div className={classes.subjectTitle}>
               {subjectTitle}
@@ -51,8 +51,8 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
             <StudioCheckbox
               data-size='md'
               className={classes.subjectCheckbox}
-              checked={hasSubject(selectedSubjects, subject.legacyUrn)}
-              onChange={() => handleChange(subject.legacyUrn)}
+              checked={hasSubject(selectedSubjects, subject.urn, subject.legacyUrn)}
+              onChange={() => handleChange(subject.urn, subject.legacyUrn)}
               aria-label={subjectTitle}
             />
           </div>

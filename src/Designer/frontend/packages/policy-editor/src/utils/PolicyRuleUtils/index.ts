@@ -52,15 +52,3 @@ export const getActionOptions = (actions: PolicyAction[], policyRule: PolicyRule
 export const getPolicyRuleIdString = (policyRule: PolicyRuleCard) => {
   return policyRule.ruleId.toString();
 };
-
-/**
- * Check if subject list contains subject - case insensitive
- *
- * @param subjectList list of selected subjects
- * @param subjectUrn subject urn to search for
- *
- * @returns the id
- */
-export const hasSubject = (subjectList: string[], subjectUrn: string): boolean => {
-  return subjectList.some((s) => s.toLowerCase() === subjectUrn.toLowerCase());
-};

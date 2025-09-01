@@ -503,7 +503,7 @@ const getUnknownMetadataValues = (
 const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
   const requestConsentRule = {
     ...emptyPolicyRule,
-    subject: [organizationSubject.legacyUrn],
+    subject: [organizationSubject.urn],
     actions: ['requestconsent'],
     ruleId: '1',
     resources: [[`urn:altinn:resource:${resourceId}`]],

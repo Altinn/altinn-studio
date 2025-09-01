@@ -7,6 +7,7 @@ import type {
   PolicySubject,
 } from '../../types';
 import { flatMapAreaPackageList } from '../../components/PolicyCardRules/PolicyRule/PolicyAccessPackages/policyAccessPackageUtils';
+import { findSubject } from '..';
 
 export const APP_SUBRESOURCE_DEFAULT_LIMITATIONS = {
   'urn:altinn:org': '[org]',
@@ -25,10 +26,7 @@ export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubjec
   if (subject.toLowerCase() === SERVICE_OWNER_SUBJECT_CODE) {
     return SERVICE_OWNER_SUBJECT_NAME;
   }
-  return (
-    allSubjects.find((sub) => sub.legacyUrn.toLowerCase() === subject.toLowerCase())?.name ||
-    subject
-  );
+  return findSubject(allSubjects, subject)?.name || subject;
 };
 
 /**
