@@ -30,7 +30,7 @@ export const policySubjectOrg: PolicySubject = {
   provider: {
     code: 'sys-internal',
     id: '',
-    name: '',
+    name: 'Intern',
   },
 };
 export const accessListSubjectSource = 'urn:altinn:access-list';
@@ -79,13 +79,11 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       resource.map((resource) => mapResourceFromBackendToResource(resource)),
     );
 
-    const subjectIds: string[] = r.subject;
-
     return {
       ruleId: id,
       actions: r.actions,
       description: r.description,
-      subject: subjectIds,
+      subject: r.subject,
       accessPackages: r.accessPackages || [],
       resources: mappedResources,
     };
@@ -94,32 +92,15 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
 };
 
 /**
- * Maps a Subject title to the string format to send to backend: "urn:subjectsource:subjectid"
- */
-export const mapSubjectIdToSubjectString = (
-  subjectOptions: PolicySubject[],
-  subjectId: string,
-): string => {
-  const subject: PolicySubject = subjectOptions.find(
-    (s) => s.legacyUrn.toLowerCase() === subjectId.toLowerCase(),
-  );
-
-  if (!subject) return;
-  return subject.legacyUrn;
-};
-
-/**
  * Maps a policy rule object used on the policy cards to a policy rule object
  * to be sent to backend where all fields are strings.
  *
- * @param subjectOptions the possible subjects to select from
  * @param policyRule the policy rule to map
  * @param ruleId the id of the rule
  *
  * @returns a mapped object ready to be sent to backend
  */
 export const mapPolicyRuleToPolicyRuleBackendObject = (
-  subjectOptions: PolicySubject[],
   policyRule: PolicyRuleCard,
   ruleId: string,
 ): PolicyRule => {
@@ -129,14 +110,10 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
       .map((r) => (r.type.startsWith('urn:') ? `${r.type}:${r.id}` : `urn:${r.type}:${r.id}`)),
   );
 
-  const subject: string[] = policyRule.subject.map((s) =>
-    mapSubjectIdToSubjectString(subjectOptions, s),
-  );
-
   return {
     ruleId,
     description: policyRule.description,
-    subject: subject,
+    subject: policyRule.subject,
     actions: policyRule.actions,
     accessPackages: policyRule.accessPackages,
     resources: resources,
@@ -214,20 +191,20 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   rules: PolicyRule[],
   subjects: PolicySubject[],
 ): PolicySubject[] => {
-  const existingSubjectIds = subjects.map((subject) => subject.legacyUrn);
-  const copiedSubjects = ObjectUtils.deepCopy(subjects);
+  const allRuleSubjectUrns = rules
+    .flatMap((rule) => rule.subject)
+    .map((subjectUrn) => subjectUrn.toLowerCase());
+  const allSubjectUrns = subjects
+    .reduce((acc, subject) => [...acc, subject.urn, subject.legacyUrn], [])
+    .filter(Boolean)
+    .map((subjectUrn) => subjectUrn.toLowerCase());
 
-  rules.forEach((rule) => {
-    rule.subject.forEach((subjectString) => {
-      if (!existingSubjectIds.some((s) => s.toLowerCase() === subjectString.toLowerCase())) {
-        const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
-        copiedSubjects.push(newSubject);
-        existingSubjectIds.push(subjectString);
-      }
-    });
-  });
-
-  return copiedSubjects;
+  const diff = new Set(allRuleSubjectUrns).difference(new Set(allSubjectUrns));
+  const unknownSubjectsFromRules = [...diff].map((subjectUrn) =>
+    createNewSubjectFromSubjectString(subjectUrn),
+  );
+  const merged = [...subjects, ...unknownSubjectsFromRules];
+  return merged;
 };
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {
@@ -268,4 +245,40 @@ export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
     return '1';
   }
   return String(largestNumberedRuleId + 1);
+};
+
+/**
+ * Check if subject list contains subject - case insensitive
+ *
+ * @param subjectList list of selected subjects
+ * @param subjectUrn subject urn to search for
+ *
+ * @returns the id
+ */
+export const hasSubject = (
+  subjectList: string[],
+  subjectUrn: string,
+  subjectLegacyUrn?: string,
+): boolean => {
+  return subjectList.some(
+    (s) =>
+      s.toLowerCase() === subjectUrn.toLowerCase() ||
+      s.toLowerCase() === subjectLegacyUrn?.toLowerCase(),
+  );
+};
+
+/**
+ * Find subject in subject list
+ *
+ * @param subjectList list of all subjects
+ * @param subjectUrn subject urn to search for
+ *
+ * @returns the subject, or undefined if not found
+ */
+export const findSubject = (subjectList: PolicySubject[], subjectUrn: string): PolicySubject => {
+  return subjectList.find(
+    (s) =>
+      s.urn.toLowerCase() === subjectUrn.toLowerCase() ||
+      s.legacyUrn?.toLowerCase() === subjectUrn.toLowerCase(),
+  );
 };

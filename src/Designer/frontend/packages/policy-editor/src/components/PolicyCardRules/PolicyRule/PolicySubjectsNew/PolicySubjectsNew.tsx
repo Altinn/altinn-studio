@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { StudioTabs } from '@studio/components';
-import { getUpdatedRules, hasSubject } from '../../../../utils/PolicyRuleUtils';
+import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjectsNew.module.css';
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 import { SelectedSubjectsList } from './SelectedSubjectsList';
 import { RoleList } from './RoleList';
+import { findSubject, hasSubject } from '@altinn/policy-editor/utils';
 
 enum TabId {
   ErRoles = 'ErRoles',
@@ -29,10 +30,10 @@ export const PolicySubjectsNew = () => {
     return accessPackages.flatMap((a) => a.areas).flatMap((a) => a.packages);
   }, [accessPackages]);
 
-  const handleSubjectChange = (selectedSubjectId: string): void => {
-    const updatedSubjects = hasSubject(policyRule.subject, selectedSubjectId)
-      ? policyRule.subject.filter((s) => s !== selectedSubjectId)
-      : [...policyRule.subject, selectedSubjectId];
+  const handleSubjectChange = (subjectUrn: string, subjectLegacyUrn: string): void => {
+    const updatedSubjects = hasSubject(policyRule.subject, subjectUrn, subjectLegacyUrn)
+      ? policyRule.subject.filter((s) => s !== subjectUrn && s !== subjectLegacyUrn)
+      : [...policyRule.subject, subjectLegacyUrn ?? subjectUrn]; // prefer legacyUrn over urn, until AM is updated to handle new subject urns
 
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjects },
@@ -82,11 +83,12 @@ export const PolicySubjectsNew = () => {
       </div>
       <SelectedSubjectsList
         items={policyRule.subject.map((urn) => {
-          const subject = subjects.find((s) => s.legacyUrn.toLowerCase() === urn.toLowerCase());
+          const subject = findSubject(subjects, urn);
           const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
           return {
             urn: urn,
             title: `${subject.name}${legacyRoleCode}`,
+            legacyUrn: subject.legacyUrn,
           };
         })}
         title={t('policy_editor.rule_card_subjects_chosen_roles')}

@@ -26,10 +26,7 @@ export const useResourcePolicySubjectsQuery = (
     queryKey: [QueryKey.ResourcePolicySubjects, org, repo],
     queryFn: () => getPolicySubjects(org, repo),
     select: (policySubjects) => {
-      if (
-        addOrgToList &&
-        !(policySubjects || []).some((d) => d.legacyUrn === policySubjectOrg.legacyUrn)
-      )
+      if (addOrgToList && !(policySubjects || []).some((d) => d.urn === policySubjectOrg.urn))
         policySubjects.push(policySubjectOrg);
       return policySubjects;
     },

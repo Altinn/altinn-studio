@@ -4,10 +4,10 @@ import { StudioCheckbox } from '@studio/components';
 import classes from './PolicySubjectsNew.module.css';
 
 interface SelectedSubjectsListProps {
-  items: { urn: string; title: string }[];
+  items: { urn: string; title: string; legacyUrn?: string }[];
   title: string;
   icon: ReactElement;
-  handleChange: (urn: string) => void;
+  handleChange: (urn: string, legacyUrn?: string) => void;
 }
 
 export const SelectedSubjectsList = ({
@@ -33,7 +33,7 @@ export const SelectedSubjectsList = ({
             data-size='md'
             className={classes.subjectCheckbox}
             checked={true}
-            onChange={() => handleChange(item.urn)}
+            onChange={() => handleChange(item.urn, item.legacyUrn)}
             aria-label={item.title}
           />
         </div>
