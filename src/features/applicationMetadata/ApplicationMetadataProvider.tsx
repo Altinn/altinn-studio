@@ -7,11 +7,10 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
-import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { fetchApplicationMetadata } from 'src/queries/queries';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
+import { isMinimumApplicationVersion } from 'src/utils/versioning/versions';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 // Also used for prefetching @see appPrefetcher.ts
@@ -24,12 +23,7 @@ export function getApplicationMetadataQueryDef(instanceGuid: string | undefined)
 
       return {
         ...data,
-        isValidVersion:
-          !!data.altinnNugetVersion &&
-          isAtLeastVersion({
-            actualVersion: data.altinnNugetVersion,
-            minimumVersion: MINIMUM_APPLICATION_VERSION.build,
-          }),
+        isValidVersion: isMinimumApplicationVersion(data.altinnNugetVersion),
         onEntry,
         isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
         logoOptions: data.logo,

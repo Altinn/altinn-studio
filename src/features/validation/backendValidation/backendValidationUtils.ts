@@ -7,8 +7,6 @@ import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMas
 import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendFieldValidatorGroups,
@@ -178,21 +176,4 @@ export function mapValidatorGroupsToDataModelValidations(
   }
 
   return backendValidations;
-}
-
-/**
- * TODO(Subform): Make sure we reference the correct version here, and in applicationMetadataMock
- *
- * Prior to app-lib version 8.5.0 there was no way of identifying validation messages that were not run incrementally (ITaskValidator),
- * this led to an edge case where if an ITaskValidator returned a validation message with a field, we could not
- * distinguish this from a regular custom backend validation which does runs incrementally. The problem is that we block
- * submit when we have custom backend validation errors until they are fixed, but since ITaskValidator is not run
- * incrementally it would never get fixed until the user refreshed the page. This issue was somewhat mitigated
- * by the old dataElement validation API which did not run ITaskValidators.
- *
- * Therefore, if this function returns false, this means that the app does not make this distinction, but
- * has the old API available, so this needs to be used for backwards compatibility.
- */
-export function appSupportsIncrementalValidationFeatures({ altinnNugetVersion }: ApplicationMetadata) {
-  return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.5.0.141' });
 }

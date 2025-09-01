@@ -7,22 +7,18 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
+import { appSupportsPdfPreviewButton, FEATURE_VERSION_MAP } from 'src/utils/versioning/versions';
 import type { NodeValidationProps } from 'src/layout/layout';
 
 export function PDFPreviewButtonRenderLayoutValidator({ intermediateItem }: NodeValidationProps<'PDFPreviewButton'>) {
   const instanceId = useStrictInstanceId();
   const addError = NodesInternal.useAddError();
   const applicationMetadata = useApplicationMetadata();
-  const minimumBackendVersion = '8.5.0.157';
-  const backendVersionOK = isAtLeastVersion({
-    actualVersion: applicationMetadata.altinnNugetVersion ?? '',
-    minimumVersion: minimumBackendVersion,
-  });
+  const isPdfPreviewButtonSupported = appSupportsPdfPreviewButton(applicationMetadata.altinnNugetVersion);
 
   useEffect(() => {
-    if (!backendVersionOK) {
-      const error = `Need to be on at least backend version: ${minimumBackendVersion} to user this component`;
+    if (!isPdfPreviewButtonSupported) {
+      const error = `Need to be on at least backend version: ${FEATURE_VERSION_MAP.PDF_PREVIEW_BUTTON} to use this component`;
       addError(error, intermediateItem.id, 'node');
       window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
@@ -32,7 +28,7 @@ export function PDFPreviewButtonRenderLayoutValidator({ intermediateItem }: Node
       addError(error, intermediateItem.id, 'node');
       window.logErrorOnce(`Validation error for '${intermediateItem.id}': ${error}`);
     }
-  }, [addError, backendVersionOK, instanceId, intermediateItem.id]);
+  }, [addError, isPdfPreviewButtonSupported, instanceId, intermediateItem.id]);
 
   return null;
 }

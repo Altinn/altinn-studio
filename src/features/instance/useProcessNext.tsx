@@ -12,13 +12,14 @@ import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/in
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
-import { appSupportsIncrementalValidationFeatures } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext } from 'src/queries/queries';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import {
+  appSupportsIncrementalValidationFeatures,
+  appSupportsUnlockingOnProcessNextFailure,
+} from 'src/utils/versioning/versions';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess, ProblemDetails } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -44,11 +45,14 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
   const updateInitialValidations = useUpdateInitialValidations();
   const setShowAllBackendErrors = Validation.useSetShowAllBackendErrors();
   const onSubmitFormValidation = useOnFormSubmitValidation();
-  const applicationMetadata = useApplicationMetadata();
   const queryClient = useQueryClient();
   const displayError = useDisplayError();
   const hasPendingScans = useHasPendingScans();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
+
+  const altinnNugetVersion = useApplicationMetadata().altinnNugetVersion;
+  const isUnlockingOnProcessNextSupported = appSupportsUnlockingOnProcessNextFailure(altinnNugetVersion);
+  const isIncrementalValidationSupported = appSupportsIncrementalValidationFeatures(altinnNugetVersion);
 
   return useMutation({
     scope: { id: 'process/next' },
@@ -76,7 +80,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
           } else if (
             error.response?.status === 500 &&
             error.response?.data?.['detail'] === 'Pdf generation failed' &&
-            appSupportsUnlockingOnProcessNextFailure(applicationMetadata)
+            isUnlockingOnProcessNextSupported
           ) {
             // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
             toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
@@ -100,7 +104,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
         navigateToTask(task);
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible
-        updateInitialValidations(validationIssues, !appSupportsIncrementalValidationFeatures(applicationMetadata));
+        updateInitialValidations(validationIssues, !isIncrementalValidationSupported);
 
         const hasValidationErrors = await onSubmitFormValidation(true);
         if (!hasValidationErrors) {
@@ -111,7 +115,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     onError: async (error: HttpClientError<ProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
-      if (!appSupportsUnlockingOnProcessNextFailure(applicationMetadata)) {
+      if (!isUnlockingOnProcessNextSupported) {
         displayError(error);
         return;
       }
@@ -130,10 +134,6 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       });
     },
   });
-}
-
-function appSupportsUnlockingOnProcessNextFailure({ altinnNugetVersion }: ApplicationMetadata) {
-  return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.1.0.115' });
 }
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {

@@ -11,7 +11,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/index';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
-import { appSupportsNewAttachmentAPI, attachmentSelector } from 'src/features/attachments/tools';
+import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
@@ -28,6 +28,7 @@ import { useWaitForState } from 'src/hooks/useWaitForState';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
+import { appSupportsNewAttachmentAPI } from 'src/utils/versioning/versions';
 import type {
   DataPostResponse,
   IAttachment,
@@ -296,7 +297,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const { mutateAsync: uploadAttachment } = useAttachmentsUploadMutation();
 
         const applicationMetadata = useApplicationMetadata();
-        const supportsNewAttachmentAPI = appSupportsNewAttachmentAPI(applicationMetadata);
+        const supportsNewAttachmentAPI = appSupportsNewAttachmentAPI(applicationMetadata.altinnNugetVersion);
 
         const setAttachmentsInDataModel = useSetAttachmentInDataModel();
         const lock = FD.useLocking('__attachment__upload__');

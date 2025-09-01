@@ -7,7 +7,7 @@ import { useGetAppLanguageQuery } from 'src/features/language/textResources/useG
 import { useProfileQuery } from 'src/features/profile/ProfileProvider';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { isAtLeastVersion } from 'src/utils/versionCompare';
+import { appSupportsFetchAppLanguagesInAnonymous } from 'src/utils/versioning/versions';
 
 interface LanguageCtx {
   current: string;
@@ -91,15 +91,9 @@ export const SetShouldFetchAppLanguages = () => {
   // We make the same assumption as in ProfileProvider that the user is logged in when the app does not allow anonymous.
   const userIsAuthenticated = useIsAllowAnonymous(false);
   const { altinnNugetVersion } = useApplicationMetadata();
-  const appSupportsFetchAppLanguagesInAnonymous =
-    altinnNugetVersion &&
-    isAtLeastVersion({
-      actualVersion: altinnNugetVersion,
-      minimumVersion: '8.5.6.180',
-    });
 
   const setShouldFetchAppLanguages = useCtx().setShouldFetchAppLanguages;
-  const shouldFetchAppLanguages = appSupportsFetchAppLanguagesInAnonymous || userIsAuthenticated;
+  const shouldFetchAppLanguages = appSupportsFetchAppLanguagesInAnonymous(altinnNugetVersion) || userIsAuthenticated;
   useEffect(() => {
     setShouldFetchAppLanguages(shouldFetchAppLanguages);
   }, [shouldFetchAppLanguages, setShouldFetchAppLanguages]);

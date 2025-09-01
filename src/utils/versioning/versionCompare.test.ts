@@ -1,4 +1,4 @@
-import { isAtLeastVersion } from 'src/utils/versionCompare';
+import { isAtLeastVersion } from 'src/utils/versioning/versionCompare';
 
 describe('versionCompare', () => {
   interface TestCase {

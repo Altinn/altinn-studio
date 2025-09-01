@@ -11,9 +11,9 @@ import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { appSupportsIncrementalValidationFeatures } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { fetchBackendValidationsForDataElement } from 'src/queries/queries';
+import { appSupportsIncrementalValidationFeatures } from 'src/utils/versioning/versions';
 import type { fetchBackendValidations } from 'src/queries/queries';
 
 /**
@@ -132,7 +132,9 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
 ) {
   const queryKey = useBackendValidationQueryKey();
   const { fetchBackendValidations, fetchBackendValidationsForDataElement } = useAppQueries();
-  const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(useApplicationMetadata());
+  const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(
+    useApplicationMetadata().altinnNugetVersion,
+  );
   const currentDataElementID = useCurrentDataModelGuid();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage()).current;
