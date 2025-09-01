@@ -7,11 +7,6 @@
   padding-left: 0;
 }
 
-.heading {
-  margin: var(--fds-spacing-3);
-  padding-left: var(--fds-spacing-3);
-}
-
 .gridButton {
   padding: 0;
   margin-bottom: var(--fds-spacing-0);
