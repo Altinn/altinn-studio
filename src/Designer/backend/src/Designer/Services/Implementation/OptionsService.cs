@@ -230,21 +230,24 @@ public class OptionsService : IOptionsService
     private static async Task<Dictionary<string, TextResource>> RetrieveAppTextResources(AltinnAppGitRepository altinnAppGitRepository, CancellationToken cancellationToken)
     {
         List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
-        Dictionary<string, TextResource> appTextResources = [];
 
-        foreach (string languageCode in appLanguageCodes)
+        var tasks = appLanguageCodes.Select(async languageCode => new
         {
-            appTextResources[languageCode] = await altinnAppGitRepository.GetText(languageCode, cancellationToken);
-        }
+            LanguageCode = languageCode,
+            Resources = await altinnAppGitRepository.GetText(languageCode, cancellationToken)
+        });
 
-        return appTextResources;
+        var results = await Task.WhenAll(tasks);
+
+        return results.ToDictionary(x => x.LanguageCode, x => x.Resources);
+
     }
 
     private static List<TextResourceElement> RetrieveAppTextResourceElements(Dictionary<string, TextResource> appTextResources, string languageCode)
     {
         if (appTextResources.TryGetValue(languageCode, out TextResource textResource))
         {
-            return textResource.Resources;
+            return textResource.Resources ?? [];
         }
 
         return [];
