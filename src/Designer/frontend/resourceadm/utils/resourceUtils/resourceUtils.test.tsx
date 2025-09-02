@@ -482,4 +482,9 @@ describe('getResourceSubjects', () => {
     const result = getResourceSubjects(undefined, [], 'ttd', 'Consent');
     expect(result).toEqual([organizationSubject]);
   });
+
+  it('should return subjectData with organization subject if resource is CorrespondenceService resource', () => {
+    const result = getResourceSubjects(undefined, [], 'ttd', 'CorrespondenceService');
+    expect(result).toEqual([organizationSubject]);
+  });
 });
