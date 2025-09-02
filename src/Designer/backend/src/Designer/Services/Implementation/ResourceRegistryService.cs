@@ -435,6 +435,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
             AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+            return new PagedAccessListResponse()
+            {
+                Data = res.Data,
+                NextPage = res.Links?.Next
+            };
         }
 
         public async Task<PagedAccessListResponse> GetResourceAccessLists(
