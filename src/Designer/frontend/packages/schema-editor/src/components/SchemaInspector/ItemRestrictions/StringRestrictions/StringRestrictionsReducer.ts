@@ -26,9 +26,7 @@ interface SetEarliestOrLatestAction {
   changeCallback: ChangeCallback;
 }
 
-export type StringRestrictionsReducerAction =
-  | SetInclAction
-  | SetEarliestOrLatestAction;
+export type StringRestrictionsReducerAction = SetInclAction | SetEarliestOrLatestAction;
 
 export type StringRestricionsReducerState = {
   earliestIsInclusive: boolean;
