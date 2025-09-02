@@ -16,7 +16,7 @@ const items = [
   },
 ];
 
-const handleChange = jest.fn();
+const handleRemove = jest.fn();
 const title = 'Chosen roles';
 
 describe('SelectedSubjectsList', () => {
@@ -42,7 +42,7 @@ describe('SelectedSubjectsList', () => {
     const checkbox = screen.getByLabelText(items[0].title);
     await user.click(checkbox);
 
-    expect(handleChange).toHaveBeenCalledWith(items[0].urn, items[0].legacyUrn);
+    expect(handleRemove).toHaveBeenCalledWith(items[0].urn, items[0].legacyUrn);
   });
 });
 
@@ -54,7 +54,7 @@ const renderSelectedSubjectsList = (
       items={listItems}
       title={title}
       icon={null}
-      handleChange={handleChange}
+      handleRemove={handleRemove}
     />,
   );
 };

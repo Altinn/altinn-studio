@@ -46,10 +46,11 @@ export const PolicySubjectsNew = () => {
     setPolicyError({ ...policyError, subjectsError: updatedSubjects.length === 0 });
   };
 
-  const handleAccessPackageChange = (selectedAccessPackageUrn: string): void => {
-    const updateAccessPackages = hasSubject(policyRule.accessPackages, selectedAccessPackageUrn)
-      ? policyRule.accessPackages.filter((s) => s !== selectedAccessPackageUrn)
-      : [...policyRule.accessPackages, selectedAccessPackageUrn];
+  const handleRemoveAccessPackage = (selectedAccessPackageUrn: string): void => {
+    // access packages can only be removed from this control
+    const updateAccessPackages = policyRule.accessPackages.filter(
+      (s) => s !== selectedAccessPackageUrn,
+    );
 
     const updatedRules = getUpdatedRules(
       {
@@ -93,7 +94,7 @@ export const PolicySubjectsNew = () => {
         })}
         title={t('policy_editor.rule_card_subjects_chosen_roles')}
         icon={<PersonTallShortIcon className={classes.iconContainer} />}
-        handleChange={handleSubjectChange}
+        handleRemove={handleSubjectChange}
       />
       <SelectedSubjectsList
         items={policyRule.accessPackages.map((accessPackageUrn) => {
@@ -108,7 +109,7 @@ export const PolicySubjectsNew = () => {
         })}
         title={t('policy_editor.rule_card_subjects_chosen_access_packages')}
         icon={<PackageIcon className={classes.iconContainer} />}
-        handleChange={handleAccessPackageChange}
+        handleRemove={handleRemoveAccessPackage}
       />
       <StudioTabs defaultValue={TabId.ErRoles}>
         <StudioTabs.List>
