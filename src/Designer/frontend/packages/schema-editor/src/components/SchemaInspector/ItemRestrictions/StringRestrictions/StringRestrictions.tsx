@@ -21,8 +21,8 @@ import {
   isDateOrTimeFormat,
   isLatestInclusive,
   isEarliestInclusive,
+  updateRestriction,
 } from './utils';
-import { ObjectUtils } from '@studio/pure-functions';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -47,10 +47,9 @@ export function StringRestrictions({
     onChangeRestrictions(path, changedRestrictions);
   };
 
-  const setRestriction = (restriction: StrRestrictionKey, value: string): void => {
-    const newRestrictions = ObjectUtils.deepCopy(restrictions);
-    newRestrictions[restriction] = value;
-    changeCallback(newRestrictions);
+  const setRestriction = (key: StrRestrictionKey, value: string): void => {
+    const updatedRestrictions = updateRestriction(restrictions, key, value);
+    changeCallback(updatedRestrictions);
   };
 
   const handleUpdateDateTimeRestrictions = (newRestrictions: KeyValuePairs) => {
