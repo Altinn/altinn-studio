@@ -22,7 +22,7 @@ export const emptyPolicyRule: PolicyRuleCard = {
 
 export const policySubjectOrg: PolicySubject = {
   id: '[org]',
-  name: 'Organisasjonen som eier tjenesten', // TODO: mer beskrivende navn på denne
+  name: 'Tjenesteeier',
   description: '[org]',
   legacyRoleCode: '[org]',
   urn: 'urn:altinn:org:[org]',
