@@ -33,7 +33,7 @@ export const EditPolicy = () => {
         title={t('process_editor.configuration_panel.edit_policy_open_policy_editor_heading')}
       >
         <StudioLink onClick={handleClick} href={settingsPageHref} icon={<ShieldLockIcon />}>
-          {t('process_editor.configuration_panel.edit_policy_open_policy_editor_button')}
+          {t('process_editor.configuration_panel.edit_policy_open_policy_editor_link')}
         </StudioLink>
       </StudioRedirectBox>
     </div>
