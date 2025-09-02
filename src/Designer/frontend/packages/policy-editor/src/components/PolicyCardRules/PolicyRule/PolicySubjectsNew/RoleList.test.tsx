@@ -11,7 +11,7 @@ const subjects = [
     urn: 'urn:altinn:external-role:ccr:revisor',
     name: 'Revisor',
     description: 'Kan revidere regnskap',
-    legacyRoleCode: 'REV',
+    legacyRoleCode: '',
     provider: {
       id: '1',
       name: '',
@@ -32,7 +32,7 @@ const subjects = [
     },
   },
 ];
-const item1Title = `${subjects[0].name} (${subjects[0].legacyRoleCode})`;
+const item1Title = `${subjects[0].name}`;
 const item2Title = `${subjects[1].name} (${subjects[1].legacyRoleCode})`;
 const selectedSubjects = [subjects[0].legacyUrn];
 const handleChange = jest.fn();

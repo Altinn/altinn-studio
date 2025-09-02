@@ -7,14 +7,14 @@ interface SelectedSubjectsListProps {
   items: { urn: string; title: string; legacyUrn?: string }[];
   title: string;
   icon: ReactElement;
-  handleChange: (urn: string, legacyUrn?: string) => void;
+  handleRemove: (urn: string, legacyUrn?: string) => void;
 }
 
 export const SelectedSubjectsList = ({
   items,
   title,
   icon,
-  handleChange,
+  handleRemove,
 }: SelectedSubjectsListProps) => {
   if (items.length === 0) {
     return null;
@@ -33,7 +33,7 @@ export const SelectedSubjectsList = ({
             data-size='md'
             className={classes.subjectCheckbox}
             checked={true}
-            onChange={() => handleChange(item.urn, item.legacyUrn)}
+            onChange={() => handleRemove(item.urn, item.legacyUrn)}
             aria-label={item.title}
           />
         </div>
