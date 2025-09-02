@@ -4,7 +4,8 @@ import { imagePath } from 'app-shared/api/paths';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { WWWROOT_FILE_PATH } from '../../../../../EditImage/constants';
-import { StudioCard, StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components-legacy';
+import { StudioCard } from '@studio/components';
 
 type ImageLibraryPreviewProps = {
   imagesFileNames: string[];
@@ -48,14 +49,14 @@ const ImageFromLibrary = ({
   return (
     <div className={classes.card}>
       <StudioCard onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>
-        <StudioCard.Media>
+        <StudioCard.Block>
           <img src={imageSource} alt={imageFilePath} />
-        </StudioCard.Media>
-        <StudioCard.Header>
+        </StudioCard.Block>
+        <div>
           <StudioHeading size='xs' className={classes.fileName} title={fileName}>
             {fileName}
           </StudioHeading>
-        </StudioCard.Header>
+        </div>
       </StudioCard>
     </div>
   );

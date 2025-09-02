@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCard, StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components-legacy';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';
@@ -7,6 +7,7 @@ import type { AddedItem } from '../types';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getTitleByComponentType } from '../../../../utils/language';
 import { ComponentButton } from '../ComponentButton';
+import { StudioCard } from '@studio/components';
 
 export type ItemCategoryProps = {
   items: IToolbarElement[];
@@ -26,7 +27,7 @@ export const ItemCategory = ({
   const { t } = useTranslation();
 
   return (
-    <StudioCard color='subtle' className={classes.itemCategory}>
+    <StudioCard className={classes.itemCategory}>
       <StudioHeading className={classes.categoryHeading} level={2} size='small'>
         {t(`ux_editor.component_category.${category}`)}
       </StudioHeading>
