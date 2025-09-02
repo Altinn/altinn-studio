@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,6 +46,41 @@ public class OrgCodeListService : IOrgCodeListService
                 {
                     Title = codeListId,
                     Data = codeList,
+                    HasError = false
+                };
+                codeLists.Add(codeListData);
+            }
+            catch (InvalidOptionsFormatException)
+            {
+                OptionListData codeListData = new()
+                {
+                    Title = codeListId,
+                    Data = null,
+                    HasError = true
+                };
+                codeLists.Add(codeListData);
+            }
+        }
+
+        return codeLists;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<OptionListData>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<string> codeListIds = GetCodeListIds(org, developer, cancellationToken);
+        List<OptionListData> codeLists = [];
+        foreach (string codeListId in codeListIds)
+        {
+            try
+            {
+                List<CodeList> codeListList = await GetCodeListNew(org, developer, codeListId, cancellationToken);
+                OptionListData codeListData = new()
+                {
+                    Title = codeListId,
+                    Data = [.. codeListList.Select(c => c.ToOption("nb"))], // Defaulting to "nb" for now
                     HasError = false
                 };
                 codeLists.Add(codeListData);
@@ -178,14 +214,39 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
+    private async Task<List<CodeList>> GetCodeListNew(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        try
+        {
+            List<CodeList> codeList = await altinnOrgGitRepository.GetCodeListNew(codeListId, cancellationToken);
+            codeList.ForEach(ValidateCodeList);
+            return codeList;
+        }
+        catch (Exception ex) when (ex is ValidationException || ex is JsonException)
+        {
+            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code list: {codeListId}.");
+        }
+    }
+
     private void ValidateOption(Option option)
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
     }
 
+    private void ValidateCodeList(CodeList codeList)
+    {
+        var validationContext = new ValidationContext(codeList);
+        Validator.ValidateObject(codeList, validationContext, validateAllProperties: true);
+    }
+
     private static string GetStaticContentRepo(string org)
     {
         return $"{org}-{Repo}";
     }
+
 }

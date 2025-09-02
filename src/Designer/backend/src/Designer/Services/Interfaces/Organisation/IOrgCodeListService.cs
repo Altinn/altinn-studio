@@ -28,6 +28,15 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all code lists from the org repository.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The code list</returns>
+    public Task<List<OptionListData>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>

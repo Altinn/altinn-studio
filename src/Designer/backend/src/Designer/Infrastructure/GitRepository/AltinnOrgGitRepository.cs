@@ -146,6 +146,27 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     }
 
     /// <summary>
+    /// Gets a specific code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to fetch.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The code list as a string.</returns>
+    public async Task<List<CodeList>> GetCodeListNew(string codeListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListFilePath = CodeListFilePath(codeListId);
+        if (!FileExistsByRelativePath(codeListFilePath))
+        {
+            throw new NotFoundException($"code list file {codeListId}.json was not found.");
+        }
+        string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
+        List<CodeList> codeList = JsonSerializer.Deserialize<List<CodeList>>(fileContent, s_jsonOptions);
+
+        return codeList;
+    }
+
+    /// <summary>
     /// Creates a code list with the provided id.
     /// </summary>
     /// <param name="codeListId">The name of the code list to create.</param>
