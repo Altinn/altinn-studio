@@ -106,7 +106,7 @@ export const ServiceContent = ({
           }}
         >
           <StudioSelect.Option value='' disabled>
-            {t('resourceadm.dashboard_import_modal_no_services_found')}
+            {t('resourceadm.dashboard_import_modal_select_service_option')}
           </StudioSelect.Option>
           {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
             <StudioSelect.Option key={ls.value} value={ls.value}>

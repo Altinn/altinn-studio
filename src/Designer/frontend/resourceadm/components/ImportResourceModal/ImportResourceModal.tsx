@@ -131,7 +131,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
               }}
             >
               <StudioSelect.Option value={''} disabled>
-                {'Velg miljø...'}
+                {t('resourceadm.dashboard_import_modal_select_env_option')}
               </StudioSelect.Option>
               {environmentOptions.map((env) => (
                 <StudioSelect.Option key={env.id} value={env.id}>
