@@ -226,7 +226,7 @@ function DateOrTimeFormatRestrictions({
           <StudioTextfield
             label={t(formatMinLangKey)}
             onChange={handleSetEarliest}
-            value={formatState.earliest}
+            value={formatState.earliest ?? ''}
           />
           <Switch
             size='small'
@@ -242,7 +242,7 @@ function DateOrTimeFormatRestrictions({
           <StudioTextfield
             label={t(formatMaxLangKey)}
             onChange={handleSetLatest}
-            value={formatState.latest}
+            value={formatState.latest ?? ''}
           />
           <Switch size='small' checked={formatState.latestIsInclusive} onChange={handleSetMaxIncl}>
             {t('format_date_inclusive')}
