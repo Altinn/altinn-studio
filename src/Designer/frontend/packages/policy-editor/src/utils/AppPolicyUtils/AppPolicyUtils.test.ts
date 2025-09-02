@@ -360,6 +360,11 @@ describe('AppPolicyUtils', () => {
       expect(textKey).toEqual('policy_editor.role_category.altinn_rolecode');
     });
 
+    it('should return the text key for the access package category', () => {
+      const textKey = getSubjectCategoryTextKey('urn:altinn:accesspackage:ansvarlig-revisor');
+      expect(textKey).toEqual('policy_editor.role_category.access_package');
+    });
+
     it('should return unknown key if the subject is not found', () => {
       const textKey = getSubjectCategoryTextKey('subject3');
       expect(textKey).toEqual('policy_editor.role_category.unknown');
