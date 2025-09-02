@@ -199,7 +199,7 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
     .filter(Boolean)
     .map((subjectUrn) => subjectUrn.toLowerCase());
 
-  const diff = new Set(allRuleSubjectUrns).difference(new Set(allSubjectUrns));
+  const diff = allRuleSubjectUrns.filter((urn) => !allSubjectUrns.includes(urn));
   const unknownSubjectsFromRules = [...diff].map((subjectUrn) =>
     createNewSubjectFromSubjectString(subjectUrn),
   );
