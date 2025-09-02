@@ -12,7 +12,11 @@ import { createAccessListSubject, type EnvId } from './resourceUtils';
 import type { Resource, ResourceError, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
+import {
+  emptyPolicyRule,
+  organizationSubject,
+  policySubjectOrg,
+} from '@altinn/policy-editor/utils';
 import type { Policy, PolicyRule } from '@altinn/policy-editor/types';
 
 const policySubject = [
@@ -483,8 +487,8 @@ describe('getResourceSubjects', () => {
     expect(result).toEqual([organizationSubject]);
   });
 
-  it('should return subjectData with organization subject if resource is CorrespondenceService resource', () => {
+  it('should return subjectData with policySubjectOrg subject if resource is CorrespondenceService resource', () => {
     const result = getResourceSubjects(undefined, [], 'ttd', 'CorrespondenceService');
-    expect(result).toEqual([organizationSubject]);
+    expect(result).toEqual([policySubjectOrg]);
   });
 });
