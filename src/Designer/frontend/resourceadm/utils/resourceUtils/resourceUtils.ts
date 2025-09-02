@@ -552,6 +552,23 @@ export const getResourcePolicyRules = (
   return policyData;
 };
 
+export const createAccessListSubject = (accessList: AccessList, org: string) => {
+  const urn = `${accessListSubjectSource}:${org}:${accessList.identifier}`;
+  return {
+    id: accessList.identifier,
+    description: accessList.description,
+    legacyUrn: urn,
+    urn: urn,
+    name: accessList.name,
+    legacyRoleCode: accessList.identifier,
+    provider: {
+      id: '',
+      code: 'sys-accesslist',
+      name: '',
+    },
+  };
+};
+
 export const getResourceSubjects = (
   accessLists: AccessList[],
   subjectData: PolicySubject[],
@@ -560,20 +577,7 @@ export const getResourceSubjects = (
 ) => {
   if (resourceType === 'Consent') {
     const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
-      const urn = `${accessListSubjectSource}:${org}:${accessList.identifier}`;
-      return {
-        id: accessList.identifier,
-        description: accessList.description,
-        legacyUrn: urn,
-        urn: urn,
-        name: accessList.name,
-        legacyRoleCode: accessList.identifier,
-        provider: {
-          id: '',
-          code: 'sys-accesslist',
-          name: '',
-        },
-      };
+      return createAccessListSubject(accessList, org);
     });
     return [...subjectData, ...accessListSubjects, organizationSubject];
   }

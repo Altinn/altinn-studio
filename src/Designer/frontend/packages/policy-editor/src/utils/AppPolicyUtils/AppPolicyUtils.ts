@@ -13,8 +13,6 @@ export const APP_SUBRESOURCE_DEFAULT_LIMITATIONS = {
   'urn:altinn:org': '[org]',
   'urn:altinn:app': '[app]',
 };
-export const SERVICE_OWNER_SUBJECT_CODE = '[org]';
-export const SERVICE_OWNER_SUBJECT_NAME = 'Tjenesteeier';
 
 /**
  * Get the display name for a subject
@@ -23,9 +21,6 @@ export const SERVICE_OWNER_SUBJECT_NAME = 'Tjenesteeier';
  * @returns The display name for the subject, or the subject itself if no display name is found
  */
 export const getSubjectDisplayName = (subject: string, allSubjects: PolicySubject[]): string => {
-  if (subject.toLowerCase() === SERVICE_OWNER_SUBJECT_CODE) {
-    return SERVICE_OWNER_SUBJECT_NAME;
-  }
   return findSubject(allSubjects, subject)?.name || subject;
 };
 
