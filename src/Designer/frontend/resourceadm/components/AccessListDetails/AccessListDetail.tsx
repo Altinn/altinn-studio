@@ -98,7 +98,7 @@ export const AccessListDetail = ({
           heading={t('resourceadm.listadmin_delete_list_header')}
           footer={
             <>
-              <StudioButton color='danger' onClick={() => handleDelete()}>
+              <StudioButton data-color='danger' onClick={() => handleDelete()}>
                 {t('resourceadm.listadmin_delete_list')}
               </StudioButton>
               <StudioButton variant='tertiary' onClick={closeModal}>

@@ -130,7 +130,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <div className={classes.topRightWrapper}>
           <ButtonRouterLink
             variant='tertiary'
-            color='second'
             size='md'
             to={`${getResourceDashboardURL(org, app)}/accesslists`}
           >
@@ -140,7 +139,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
-            color='second'
             onClick={() => importAltinn2ServiceModalRef.current.showModal()}
             data-size='md'
             icon={<MigrationIcon />}
@@ -151,7 +149,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
-            color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
             data-size='md'
             icon={<PlusCircleIcon />}

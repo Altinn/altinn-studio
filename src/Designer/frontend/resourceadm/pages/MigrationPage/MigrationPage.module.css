@@ -7,7 +7,7 @@
 .contentWrapper {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--ds-size-4);
   width: 40rem;
 }
 
@@ -24,5 +24,5 @@
 .environmentWrapper {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-gap: var(--ds-size-5);
+  gap: var(--ds-size-5);
 }

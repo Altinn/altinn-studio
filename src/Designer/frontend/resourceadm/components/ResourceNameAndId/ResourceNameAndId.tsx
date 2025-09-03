@@ -141,7 +141,6 @@ export const ResourceNameAndId = ({
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='first'
                 icon={<PencilWritingIcon />}
                 iconPlacement='right'
                 aria-label={t('resourceadm.dashboard_resource_name_and_id_change', {

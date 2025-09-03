@@ -2,8 +2,8 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2rem;
-  margin: 1rem;
+  gap: var(--ds-size-9);
+  margin: var(--ds-size-4);
 }
 
 .listCheckboxWrapper {
@@ -15,7 +15,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem;
+  gap: var(--ds-size-4);
+  padding: var(--ds-size-2);
   border-bottom: 1px solid var(--ds-color-border-subtle);
 }

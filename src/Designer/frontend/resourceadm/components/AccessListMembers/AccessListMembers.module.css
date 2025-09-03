@@ -1,7 +1,7 @@
 .searchWrapper {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: var(--ds-size-4);
   align-items: flex-end;
   margin-top: var(--ds-size-8);
 }
@@ -17,12 +17,12 @@
 .paginationWrapper {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: var(--ds-size-4);
   align-items: center;
 }
 
 .buttonIcon {
-  font-size: 1.5rem;
+  font-size: var(--ds-font-size-6);
 }
 
 .hiddenHeader {

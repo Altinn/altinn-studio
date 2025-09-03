@@ -1,15 +1,15 @@
 .listAdminPageWrapper {
   display: flex;
   flex-direction: column;
-  margin: 1rem;
-  gap: 0.5rem;
+  margin: var(--ds-size-4);
+  gap: var(--ds-size-2);
   align-items: flex-start;
 }
 
 .environmentSelectorWrapper {
   display: inline-flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--ds-size-7);
 }
 
 .tableRowContent {
@@ -17,7 +17,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem;
+  gap: var(--ds-size-4);
+  padding: var(--ds-size-2);
   border-bottom: 1px solid var(--ds-color-border-subtle);
 }

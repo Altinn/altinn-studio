@@ -17,7 +17,7 @@
 
 .verticalDivider {
   border: 1px solid var(--ds-color-border-subtle);
-  height: 1.5rem;
+  height: var(--ds-size-7);
   margin-inline: var(--ds-size-2);
 }
 

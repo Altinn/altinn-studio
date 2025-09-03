@@ -30,7 +30,7 @@
   gap: var(--ds-size-4);
 }
 .consentRightIcon {
-  font-size: var(--ds-size-7);
+  font-size: var(--ds-font-size-6);
 }
 
 .consentRightContent {

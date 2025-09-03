@@ -140,7 +140,7 @@ export const FieldsetWrapper = <T,>({
           heading={t(translations.deleteHeader)}
           footer={
             <>
-              <StudioButton color='danger' onClick={handleClickRemoveButton}>
+              <StudioButton data-color='danger' onClick={handleClickRemoveButton}>
                 {t(translations.deleteConfirmationButton)}
               </StudioButton>
               <StudioButton variant='tertiary' onClick={onCloseDeleteModal}>

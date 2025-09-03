@@ -14,5 +14,5 @@
 
 .itemWrapper {
   background-color: var(--ds-color-background-tinted);
-  box-shadow: 0 0 0 1rem var(--ds-color-background-tinted);
+  box-shadow: 0 0 0 var(--ds-size-4) var(--ds-color-background-tinted);
 }
