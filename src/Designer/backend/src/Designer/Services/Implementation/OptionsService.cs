@@ -207,11 +207,11 @@ public class OptionsService : IOptionsService
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         List<string> orgLanguageCodes = await _giteaContentLibraryService.GetLanguages(org);
-        Dictionary<string, TextResource> appTextResources = await RetrieveAppTextResources(altinnAppGitRepository, cancellationToken);
+        Dictionary<string, TextResource> importedLanguages = new();
 
         foreach (string orgLanguageCode in orgLanguageCodes)
         {
-            List<TextResourceElement> appTextResourceElements = RetrieveAppTextResourceElements(appTextResources, orgLanguageCode);
+            List<TextResourceElement> appTextResourceElements = await RetrieveAppTextResourceElements(altinnAppGitRepository, orgLanguageCode, cancellationToken);
             List<TextResourceElement> orgTextResourceElements = await RetrieveOrgTextResourceElements(org, orgLanguageCode, optionList);
 
             TextResource mergedTextResources = new()
@@ -220,37 +220,23 @@ public class OptionsService : IOptionsService
                 Resources = MergeTextResources(appTextResourceElements, orgTextResourceElements, overwriteTextResources)
             };
 
-            appTextResources[orgLanguageCode] = mergedTextResources;
+            importedLanguages.Add(orgLanguageCode, mergedTextResources);
             await altinnAppGitRepository.SaveText(orgLanguageCode, mergedTextResources);
         }
 
-        return appTextResources;
+        return importedLanguages;
     }
 
-    private static async Task<Dictionary<string, TextResource>> RetrieveAppTextResources(AltinnAppGitRepository altinnAppGitRepository, CancellationToken cancellationToken)
+    private static async Task<List<TextResourceElement>> RetrieveAppTextResourceElements(AltinnAppGitRepository altinnAppGitRepository, string languageCode, CancellationToken cancellationToken)
     {
-        List<string> appLanguageCodes = altinnAppGitRepository.GetLanguages();
+        HashSet<string> appLanguageCodes = altinnAppGitRepository.GetLanguages().ToHashSet();
 
-        var tasks = appLanguageCodes.Select(async languageCode => new
+        if (!appLanguageCodes.Contains(languageCode))
         {
-            LanguageCode = languageCode,
-            Resources = await altinnAppGitRepository.GetText(languageCode, cancellationToken)
-        });
-
-        var results = await Task.WhenAll(tasks);
-
-        return results.ToDictionary(x => x.LanguageCode, x => x.Resources);
-
-    }
-
-    private static List<TextResourceElement> RetrieveAppTextResourceElements(Dictionary<string, TextResource> appTextResources, string languageCode)
-    {
-        if (appTextResources.TryGetValue(languageCode, out TextResource textResource))
-        {
-            return textResource.Resources ?? [];
+            return [];
         }
-
-        return [];
+        TextResource appTextResources = await altinnAppGitRepository.GetText(languageCode, cancellationToken);
+        return [.. appTextResources.Resources];
 
     }
 
