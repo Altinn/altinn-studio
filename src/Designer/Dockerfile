@@ -54,7 +54,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 FROM alpine@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS app-template-release
 RUN apk add --no-cache rsync
 
-COPY ./src/App/app-template-dotnet/src /app-template-dotnet-src
+COPY ./src/App/template/src /app-template-dotnet-src
 WORKDIR /app-template-dotnet-src
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
