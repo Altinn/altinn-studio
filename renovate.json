@@ -1,6 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>Altinn/renovate-config"],
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
   "packageRules": [
     {
       "groupName": "LibGit2Sharp dependency",
@@ -15,6 +17,40 @@
     {
       "matchFileNames": ["frontend/testing/cypress/**"],
       "ignoreDeps": ["yarn"]
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "additionalBranchPrefix": "app/",
+      "commitMessageSuffix": " (app)"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "@digdir/designsystemet-react",
+        "@digdir/designsystemet-css",
+        "@digdir/designsystemet-theme"
+      ],
+      "groupName": "Digdir design system",
+      "schedule": ["* 0-7 * * 1-5"],
+      "minimumReleaseAge": "0"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "/dotnet(-|\\/)sdk/",
+        "/^Microsoft\\.AspNetCore/",
+        "/^Microsoft\\.Extensions/",
+        "!Microsoft.Extensions.Caching.Hybrid"
+      ],
+      "allowedVersions": "<=8"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
+      "enabled": false
     }
   ],
   "ignorePaths": ["src/Altinn.Platform/**", "src/test/**"],
