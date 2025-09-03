@@ -46,3 +46,6 @@
 .translationFieldError {
   display: block;
 }
+.requiredTag {
+  font-weight: var(--ds-font-weight-regular);
+}
