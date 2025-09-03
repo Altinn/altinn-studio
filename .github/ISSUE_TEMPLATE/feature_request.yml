@@ -1,7 +1,7 @@
 name: Feature Request ✨
 description: Request a new feature or enhancement
 labels: ["kind/feature-request", "status/triage"]
-type: Feature
+type: Enhancement
 body:
   - type: markdown
     attributes:
