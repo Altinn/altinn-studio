@@ -22,9 +22,7 @@ export const InputFieldErrorMessage = ({
 }: InputFieldErrorMessageProps): React.JSX.Element => {
   return (
     <div className={classes.warningCardWrapper}>
-      <StudioValidationMessage data-size='sm' data-color='danger'>
-        {message}
-      </StudioValidationMessage>
+      <StudioValidationMessage data-color='danger'>{message}</StudioValidationMessage>
     </div>
   );
 };

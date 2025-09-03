@@ -17,7 +17,7 @@ export const ResourceFieldHeader = ({
     <div className={classes.resourceFieldHeader}>
       {label}
       {required && (
-        <StudioTag data-size='sm' data-color='warning' aria-hidden>
+        <StudioTag data-color='warning' aria-hidden>
           {t('resourceadm.about_resource_required_field')}
         </StudioTag>
       )}

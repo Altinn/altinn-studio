@@ -104,7 +104,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             </>
           }
         >
-          <StudioParagraph data-size='sm'>
+          <StudioParagraph>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
           </StudioParagraph>
           <ResourceNameAndId

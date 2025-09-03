@@ -258,7 +258,7 @@ export const DeployResourcePage = ({
             </StudioHeading>
             <div className={classes.contentWrapper}>
               {displayStatusCard()}
-              <StudioParagraph data-size='sm' className={classes.informationText}>
+              <StudioParagraph className={classes.informationText}>
                 <Trans i18nKey='resourceadm.deploy_description'>
                   <StudioLink href={UrlConstants.ALTINN} rel='noopener noreferrer' target='_blank'>
                     Altinn.no

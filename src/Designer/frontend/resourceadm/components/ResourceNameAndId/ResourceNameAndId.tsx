@@ -134,7 +134,7 @@ export const ResourceNameAndId = ({
                 id
               </p>
             </div>
-            <StudioParagraph data-size='sm'>
+            <StudioParagraph>
               <strong>{formatIdString(id)}</strong>
             </StudioParagraph>
             <div className={classes.editButtonWrapper}>

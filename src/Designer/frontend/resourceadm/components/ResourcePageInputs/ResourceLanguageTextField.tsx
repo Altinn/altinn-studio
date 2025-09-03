@@ -274,12 +274,7 @@ const LanguageTabs = ({
   };
 
   return (
-    <StudioTabs
-      defaultValue='nb'
-      data-size='sm'
-      value={selectedLanguage}
-      onChange={onLanguageChanged}
-    >
+    <StudioTabs defaultValue='nb' value={selectedLanguage} onChange={onLanguageChanged}>
       <StudioTabs.List>
         {['nb', 'nn', 'en'].map((language) => {
           const languageText = t(`language.${language}`);

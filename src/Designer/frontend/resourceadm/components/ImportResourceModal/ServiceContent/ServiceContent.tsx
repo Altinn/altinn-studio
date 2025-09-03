@@ -72,12 +72,10 @@ export const ServiceContent = ({
       return (
         <StudioCenter className={classes.contentWrapper}>
           <StudioAlert data-color='danger'>
-            <StudioParagraph data-size='sm'>{t('general.fetch_error_message')}</StudioParagraph>
-            <StudioParagraph data-size='sm'>
-              {t('general.error_message_with_colon')}
-            </StudioParagraph>
+            <StudioParagraph>{t('general.fetch_error_message')}</StudioParagraph>
+            <StudioParagraph>{t('general.error_message_with_colon')}</StudioParagraph>
             {altinn2LinkServicesError && (
-              <StudioValidationMessage data-size='sm' data-color='danger'>
+              <StudioValidationMessage data-color='danger'>
                 {altinn2LinkServicesError.message}
               </StudioValidationMessage>
             )}
@@ -88,11 +86,7 @@ export const ServiceContent = ({
     case 'success': {
       if (altinn2LinkServices.length === 0) {
         return (
-          <StudioValidationMessage
-            className={classes.contentWrapper}
-            data-size='sm'
-            data-color='danger'
-          >
+          <StudioValidationMessage className={classes.contentWrapper} data-color='danger'>
             {t('resourceadm.import_resource_empty_list', { env: env })}
           </StudioValidationMessage>
         );
@@ -106,7 +100,7 @@ export const ServiceContent = ({
           }}
         >
           <StudioSelect.Option value='' disabled>
-            {t('resourceadm.dashboard_import_modal_no_services_found')}
+            {t('resourceadm.dashboard_import_modal_select_service_option')}
           </StudioSelect.Option>
           {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
             <StudioSelect.Option key={ls.value} value={ls.value}>

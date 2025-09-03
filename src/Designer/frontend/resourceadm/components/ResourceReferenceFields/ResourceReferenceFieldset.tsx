@@ -142,10 +142,8 @@ export const ResourceReferenceFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_references_description')}
-        data-size='sm'
       >
         <StudioSelect
-          data-size='sm'
           onChange={(event) =>
             handleChangeReferenceSource(event.target.value as ResourceReferenceSource)
           }
@@ -162,7 +160,6 @@ export const ResourceReferenceFieldset = ({
         </StudioSelect>
         <StudioSelect
           id={index === 0 ? 'resourceReferences' : undefined}
-          data-size='sm'
           onChange={(event) =>
             handleChangeReferenceType(event.target.value as ResourceReferenceType)
           }

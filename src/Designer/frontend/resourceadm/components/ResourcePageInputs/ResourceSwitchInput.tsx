@@ -69,9 +69,7 @@ export const ResourceSwitchInput = ({
             aria-description={description}
             label={
               <StudioParagraph
-                data-size='sm'
-                data-color={value ? 'success' : 'neutral'}
-                className={classes.toggleText}
+                className={value ? classes.toggleTextActive : classes.toggleTextInactive}
               >
                 {t(toggleTextTranslationKey, {
                   shouldText: !value ? t('resourceadm.switch_should_not') : '',

@@ -60,8 +60,6 @@ module.exports = async (env) => {
     __dirname,
     '..',
     '..',
-    'src',
-    'Designer',
     'frontend',
     'testing',
     'cypress',

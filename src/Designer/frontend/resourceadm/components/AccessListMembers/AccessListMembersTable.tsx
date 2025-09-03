@@ -36,7 +36,7 @@ export const AccessListMembersTable = ({
     let buttonText: string;
     if (invalidItems?.indexOf(item.orgNr) > -1) {
       return (
-        <StudioValidationMessage data-size='sm' data-color='danger'>
+        <StudioValidationMessage data-color='danger'>
           {t('resourceadm.listadmin_invalid_org')}
         </StudioValidationMessage>
       );

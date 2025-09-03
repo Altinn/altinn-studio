@@ -178,7 +178,7 @@ export const AccessListMembers = ({
       <StudioHeading level={2} data-size='xs' spacing>
         {t('resourceadm.listadmin_list_organizations')}
       </StudioHeading>
-      <StudioParagraph variant='short' data-size='sm'>
+      <StudioParagraph variant='short'>
         {t('resourceadm.listadmin_list_organizations_description')}
       </StudioParagraph>
       <AccessListMembersTable

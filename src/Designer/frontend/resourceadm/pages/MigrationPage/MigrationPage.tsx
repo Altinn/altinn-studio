@@ -61,7 +61,7 @@ export const MigrationPage = ({
           {t('resourceadm.migration_header')}
         </StudioHeading>
         <div className={classes.contentWrapper}>
-          <StudioParagraph data-size='sm' spacing>
+          <StudioParagraph spacing>
             {t('resourceadm.migration_ingress')}{' '}
             <strong>{t('resourceadm.migration_ingress_warning')} </strong>
             <StudioLink
@@ -76,13 +76,11 @@ export const MigrationPage = ({
               {t('resourceadm.migration_help_link')}
             </StudioLink>
           </StudioParagraph>
-          <div data-color='neutral' className={classes.contentDivider} />
-          <StudioHeading data-size='sm' level={2}>
+          <div className={classes.contentDivider} />
+          <StudioHeading level={2}>
             {t('resourceadm.migration_select_environment_header')}
           </StudioHeading>
-          <StudioParagraph data-size='sm'>
-            {t('resourceadm.migration_select_environment_body')}
-          </StudioParagraph>
+          <StudioParagraph>{t('resourceadm.migration_select_environment_body')}</StudioParagraph>
           <div className={classes.environmentWrapper}>
             {envPublishStatus.map((env) => {
               const isPublishedInEnv = env.isResourcePublished;
