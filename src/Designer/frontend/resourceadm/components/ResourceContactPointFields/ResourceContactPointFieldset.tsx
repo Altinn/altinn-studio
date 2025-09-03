@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { ResourceContactPoint, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { StudioFieldset, StudioTextfield } from '@studio/components-legacy';
-import { StudioHelpText } from '@studio/components';
+import { StudioFieldset, StudioTextfield, StudioHelpText } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
@@ -59,7 +58,6 @@ export const ResourceContactPointFieldset = ({
   const [contactPage, setContactPage] = useState(contactPoint.contactPage);
 
   const fieldErrors = errors.filter((x) => x.field === 'contactPoints' && x.index === index);
-  const hasError = fieldErrors.length > 0;
 
   return (
     <>
@@ -71,7 +69,6 @@ export const ResourceContactPointFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_contact_description')}
-        size='sm'
       >
         <StudioTextfield
           id={`contactPoints-${index}`}
@@ -88,28 +85,24 @@ export const ResourceContactPointFieldset = ({
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           onBlur={() => onLeaveTextFields({ ...contactPoint, category })}
-          error={hasError}
         />
         <StudioTextfield
           label={t('resourceadm.about_resource_contact_label_email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onBlur={() => onLeaveTextFields({ ...contactPoint, email })}
-          error={hasError}
         />
         <StudioTextfield
           label={t('resourceadm.about_resource_contact_label_telephone')}
           value={telephone}
           onChange={(e) => setTelephone(e.target.value)}
           onBlur={() => onLeaveTextFields({ ...contactPoint, telephone })}
-          error={hasError}
         />
         <StudioTextfield
           label={t('resourceadm.about_resource_contact_label_contactpage')}
           value={contactPage}
           onChange={(e) => setContactPage(e.target.value)}
           onBlur={() => onLeaveTextFields({ ...contactPoint, contactPage })}
-          error={hasError}
         />
       </StudioFieldset>
       {fieldErrors.map((error) => {

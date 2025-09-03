@@ -228,7 +228,9 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const delegableInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_delegable_label'),
+      textMock('resourceadm.about_resource_delegable_show_text', {
+        shouldText: '',
+      }),
     );
     expect(delegableInput).toBeChecked();
 
@@ -299,7 +301,9 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const input = screen.getByLabelText(
-      textMock('resourceadm.about_resource_self_identified_label'),
+      textMock('resourceadm.about_resource_self_identified_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
     );
     expect(input).not.toBeChecked();
 
@@ -315,7 +319,12 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const input = screen.getByLabelText(textMock('resourceadm.about_resource_enterprise_label'));
+    const input = screen.getByLabelText(
+      textMock('resourceadm.about_resource_enterprise_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
+    );
+
     expect(input).not.toBeChecked();
 
     await user.click(input);
@@ -330,7 +339,11 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const input = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));
+    const input = screen.getByLabelText(
+      textMock('resourceadm.about_resource_visible_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
+    );
     expect(input).not.toBeChecked();
 
     await user.click(input);
@@ -516,7 +529,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
 
     const isOneTimeConsentInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_one_time_consent_label'),
+      textMock('resourceadm.about_resource_one_time_consent_show_text', { shouldText: '' }),
     );
     expect(isOneTimeConsentInput).toBeChecked();
 

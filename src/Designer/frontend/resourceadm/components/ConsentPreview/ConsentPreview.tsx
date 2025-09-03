@@ -120,7 +120,6 @@ export const ConsentPreview = ({
             onChange={(event) => setIsDummyMetadataEnabled(event.target.checked)}
           />
           <StudioToggleGroup
-            data-size='sm'
             value={reporteeType}
             onChange={(newValue: string) => setReporteeType(newValue as 'person' | 'org')}
           >

@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioRadio } from '@studio/components-legacy';
-import { InputFieldErrorMessage } from './InputFieldErrorMessage';
+import {
+  StudioRadio,
+  StudioRadioGroup,
+  StudioValidationMessage,
+  useStudioRadioGroup,
+} from '@studio/components';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
@@ -67,37 +71,36 @@ export const ResourceRadioGroup = ({
   errors,
   required,
 }: ResourceRadioGroupProps): React.JSX.Element => {
-  const [selected, setSelected] = useState(value);
+  const { getRadioProps } = useStudioRadioGroup({
+    value: value,
+    error: errors?.length > 0,
+    onChange: (newValue: string) => onChange(newValue),
+  });
 
   return (
     <div className={classes.inputWrapper}>
-      <StudioRadio.Group
+      <StudioRadioGroup
         id={id}
-        size='sm'
-        onChange={(val: string) => {
-          setSelected(val);
-          onChange(val);
-        }}
-        value={selected}
         legend={<ResourceFieldHeader label={label} required={required} />}
         description={description}
-        error={
-          errors.length > 0
-            ? errors.map((error, index) => (
-                <InputFieldErrorMessage key={index} message={error.error} />
-              ))
-            : undefined
-        }
         required={required}
       >
         {options.map((opt) => {
           return (
-            <StudioRadio key={opt.value} value={opt.value}>
-              {opt.label}
-            </StudioRadio>
+            <StudioRadio
+              key={opt.value}
+              label={opt.label}
+              {...getRadioProps({ value: opt.value })}
+            />
           );
         })}
-      </StudioRadio.Group>
+        {errors.length > 0 &&
+          errors.map((error, index) => (
+            <StudioValidationMessage key={index} data-color='danger'>
+              {error.error}
+            </StudioValidationMessage>
+          ))}
+      </StudioRadioGroup>
     </div>
   );
 };
