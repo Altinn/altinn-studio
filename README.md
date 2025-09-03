@@ -29,8 +29,6 @@ See deployment for notes on how to deploy the project on a live system.
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
 
-_NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
-
 ### Running the solution locally
 
 Clone the [Altinn Studio repo][13] and navigate to the folder.
@@ -39,6 +37,11 @@ Clone the [Altinn Studio repo][13] and navigate to the folder.
 git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio
 ```
+
+Add `127.0.0.1 studio.localhost` as a new line to your hosts file:
+
+- Windows: `C:\WINDOWS\System32\drivers\etc\hosts`
+- MacOS: `/private/etc/hosts`
 
 The fastest way to get things running from scratch is to use our setup-script. This script will start docker and
 ensure that the setup is up to date. As we add more features this script will be updated. It can be run as follows:
