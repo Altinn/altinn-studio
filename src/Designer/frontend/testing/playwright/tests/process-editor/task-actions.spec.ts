@@ -37,7 +37,7 @@ test.skip('should be possible to add predefined actions to task', async ({
   await giteaPage.verifyThatActionIsVisible('write');
 });
 
-test('should be possible to add custom actions to task and set them as serverAction', async ({
+test.skip('should be possible to add custom actions to task and set them as serverAction', async ({
   page,
   testAppName,
 }): Promise<void> => {

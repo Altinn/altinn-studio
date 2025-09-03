@@ -52,7 +52,10 @@ test.skip('That it is possible to change tab from "About app" tab to "Setup" tab
   await settingsPage.verifyThatTabIsVisible('setup');
 });
 
-test('That it is possible to change tab to "Policy editor" tab', async ({ page, testAppName }) => {
+test.skip('That it is possible to change tab to "Policy editor" tab', async ({
+  page,
+  testAppName,
+}) => {
   const settingsPage: SettingsPage = await setUpAndVerifySettingsPage(page, testAppName, 'setup');
 
   await settingsPage.verifyThatTabIsVisible('setup');

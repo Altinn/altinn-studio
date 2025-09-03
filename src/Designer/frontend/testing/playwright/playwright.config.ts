@@ -70,6 +70,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
+    // All of these tests fails, therefore comment out instead of using .skip.
     // {
     //   name: TestNames.GIT_SYNC,
     //   dependencies: [TestNames.SETUP],

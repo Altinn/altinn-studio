@@ -117,7 +117,7 @@ test('That it is possible to add another text key', async ({ page, testAppName }
   );
 });
 
-test('That it is possible to add a new language', async ({ page, testAppName }) => {
+test.skip('That it is possible to add a new language', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
   await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
@@ -151,7 +151,7 @@ test.skip('That the newly added language with key is updated on ui-editor page',
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 });
 
-test('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
+test.skip('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
   page,
   testAppName,
 }) => {

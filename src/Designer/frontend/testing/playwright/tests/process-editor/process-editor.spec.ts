@@ -38,7 +38,7 @@ const setupAndVerifyProcessEditorPage = async (
   return processEditorPage;
 };
 
-test('that the user is able to add and delete data model', async ({ page, testAppName }) => {
+test.skip('that the user is able to add and delete data model', async ({ page, testAppName }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
 

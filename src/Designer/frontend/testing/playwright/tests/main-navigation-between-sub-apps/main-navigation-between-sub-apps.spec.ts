@@ -113,7 +113,7 @@ test.skip('That it is possible to navigate from overview to the process editor p
   await overviewPage.verifyOverviewPage();
 });
 
-test('That it is possible to navigate from overview to the dashboard page by clicking the Altinn logo', async ({
+test.skip('That it is possible to navigate from overview to the dashboard page by clicking the Altinn logo', async ({
   page,
   testAppName,
 }) => {

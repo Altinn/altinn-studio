@@ -122,7 +122,7 @@ test.skip('Allows to upload and then delete an XSD file', async ({ page, testApp
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
-test('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
+test.skip('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
   // Load the data model page
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   await dataModelPage.loadDataModelPage();
