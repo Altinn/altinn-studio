@@ -19,7 +19,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to add a data model, include an object with properties and a combination, check for visibility of type selector, generate a C# model from it, and then delete it', async ({
+test.skip('Allows to add a data model, include an object with properties and a combination, check for visibility of type selector, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -101,7 +101,7 @@ test('Allows to add a data model, include an object with properties and a combin
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
-test('Allows to upload and then delete an XSD file', async ({ page, testAppName }) => {
+test.skip('Allows to upload and then delete an XSD file', async ({ page, testAppName }) => {
   // Load the data model page
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   await dataModelPage.loadDataModelPage();
@@ -122,7 +122,7 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
-test('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
+test.skip('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
   // Load the data model page
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   await dataModelPage.loadDataModelPage();

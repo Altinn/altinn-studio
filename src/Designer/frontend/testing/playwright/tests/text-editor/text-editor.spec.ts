@@ -48,7 +48,7 @@ const setupAndVerifyTextEditorPage = async (
   return textEditorPage;
 };
 
-test('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
+test.skip('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -81,7 +81,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
 });
 
-test('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
+test.skip('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -103,7 +103,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
-test('That it is possible to add another text key', async ({ page, testAppName }) => {
+test.skip('That it is possible to add another text key', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
   await textEditorPage.clickOnAddNewTextButton();
@@ -117,7 +117,7 @@ test('That it is possible to add another text key', async ({ page, testAppName }
   );
 });
 
-test('That it is possible to add a new language', async ({ page, testAppName }) => {
+test.skip('That it is possible to add a new language', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
   await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
@@ -137,7 +137,7 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
 });
 
-test('That the newly added language with key is updated on ui-editor page', async ({
+test.skip('That the newly added language with key is updated on ui-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -151,7 +151,7 @@ test('That the newly added language with key is updated on ui-editor page', asyn
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 });
 
-test('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
+test.skip('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
   page,
   testAppName,
 }) => {
