@@ -21,8 +21,12 @@
   gap: var(--ds-size-4);
 }
 
-.toggleText {
-  color: var(--ds-color-text-subtle);
+.toggleTextActive {
+  color: var(--fds-semantic-text-success-default);
+}
+
+.toggleTextInactive {
+  color: var(--fds-semantic-text-neutral-subtle);
 }
 
 .markdownToolbar {
