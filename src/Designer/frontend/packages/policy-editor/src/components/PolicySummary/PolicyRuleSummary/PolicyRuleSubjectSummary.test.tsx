@@ -13,16 +13,30 @@ import type { PolicySubject } from '../../../types';
 
 const mockSubjects: PolicySubject[] = [
   {
-    subjectId: 's1',
-    subjectTitle: 'Subject 1',
-    subjectDescription: 'Subject 1 description',
-    subjectSource: 'altinn:rolecode',
+    id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
+    name: 'Subject 1',
+    description: 'The first subject',
+    urn: 'urn:altinn:rolecode:s1',
+    legacyRoleCode: 'VARA',
+    legacyUrn: 'urn:altinn:rolecode:s1',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
   {
-    subjectId: 's2',
-    subjectTitle: '[ORG]',
-    subjectDescription: 'Subject 2 description',
-    subjectSource: 'altinn:org',
+    id: '[org]',
+    name: 'Tjenesteeier',
+    description: '[org]',
+    legacyRoleCode: '[org]',
+    urn: 'urn:altinn:org:[org]',
+    legacyUrn: 'urn:altinn:org:[org]',
+    provider: {
+      code: 'sys-internal',
+      id: '',
+      name: 'Intern',
+    },
   },
 ];
 const mockPolicyEditorContextValue: PolicyEditorContextProps = {
@@ -54,7 +68,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
 describe('PolicyRuleSubjectSummary', () => {
   it('should render', () => {
     const actions = [mockAction1.actionId, mockAction2.actionId];
-    renderPolicyRuleSubjectSummary({ subject: 's1', actions }, {}, true);
+    renderPolicyRuleSubjectSummary({ subject: mockSubjects[0].urn, actions }, {}, true);
     expect(screen.getByText('Subject 1')).toBeInTheDocument();
   });
 });

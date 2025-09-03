@@ -1,9 +1,4 @@
-import {
-  getUpdatedRules,
-  getSubjectOptions,
-  getActionOptions,
-  getPolicyRuleIdString,
-} from './index';
+import { getUpdatedRules, getActionOptions, getPolicyRuleIdString } from './index';
 import {
   mockActionId1,
   mockActionId2,
@@ -17,12 +12,6 @@ import {
   mockPolicyRuleCards,
   mockRuleId1,
 } from '../../../test/mocks/policyRuleMocks';
-import {
-  mockSubjects,
-  mockSubjectId1,
-  mockSubjectId2,
-  mockSubjectId3,
-} from '../../../test/mocks/policySubjectMocks';
 
 describe('PolicyRuleUtils', () => {
   describe('getUpdatedRules', () => {
@@ -44,35 +33,6 @@ describe('PolicyRuleUtils', () => {
 
       expect(updatedRules.length).toBe(2);
       expect(updatedRules[0].description).toBe(mockPolicyRuleCard1.description);
-    });
-  });
-
-  describe('getSubjectOptions', () => {
-    it('should return subject options not included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, mockPolicyRuleCard1);
-
-      expect(subjectOptions).toHaveLength(1); // Subject 1 and subject 3 are removed
-      expect(subjectOptions.map((s) => s.value)).toEqual([mockSubjectId2]); // 2 not in the rule
-    });
-
-    it('should return all subject options if none are included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, mockPolicyRuleCard2);
-
-      expect(subjectOptions.length).toBe(3);
-      expect(subjectOptions.map((s) => s.value)).toEqual([
-        mockSubjectId1,
-        mockSubjectId2,
-        mockSubjectId3,
-      ]);
-    });
-
-    it('should return an empty array if all subjects are included in the policy rule', () => {
-      const subjectOptions = getSubjectOptions(mockSubjects, {
-        ...mockPolicyRuleCard1,
-        subject: [mockSubjectId1, mockSubjectId2, mockSubjectId3],
-      });
-
-      expect(subjectOptions).toHaveLength(0);
     });
   });
 

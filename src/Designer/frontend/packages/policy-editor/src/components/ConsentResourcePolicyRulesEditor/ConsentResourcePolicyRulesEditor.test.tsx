@@ -11,17 +11,33 @@ import { ConsentResourcePolicyRulesEditor } from './ConsentResourcePolicyRulesEd
 import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '../../utils';
 
 const accessListSubject = {
-  subjectId: 'test-liste',
-  subjectSource: `${accessListSubjectSource}:ttd`,
-  subjectTitle: 'Testliste',
-  subjectDescription: 'Dette er en testliste',
+  id: 'test-liste',
+  description: 'Dette er en testliste',
+  legacyUrn: `${accessListSubjectSource}:tdd:test-liste`,
+  urn: `${accessListSubjectSource}:ttd:test-liste`,
+  name: 'Testliste',
+  legacyRoleCode: 'test-liste',
+  provider: {
+    id: '',
+    code: 'sys-accesslist',
+    name: '',
+  },
 };
+
 const accessListSubject2 = {
-  subjectId: 'test-liste2',
-  subjectSource: `${accessListSubjectSource}:ttd`,
-  subjectTitle: 'Testliste2',
-  subjectDescription: 'Dette er en testliste2',
+  id: 'test-liste2',
+  description: 'Dette er en testliste2',
+  legacyUrn: `${accessListSubjectSource}:tdd:test-liste2`,
+  urn: `${accessListSubjectSource}:ttd:test-liste2`,
+  name: 'Testliste2',
+  legacyRoleCode: 'test-liste2',
+  provider: {
+    id: '',
+    code: 'sys-accesslist',
+    name: '',
+  },
 };
+
 const resourceId = 'consent-resource';
 const requestConsentRule = {
   ...emptyPolicyRule,
@@ -76,7 +92,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const accessListCheckbox = screen.getByRole('checkbox', {
-      name: accessListSubject.subjectTitle,
+      name: accessListSubject.name,
     });
     await user.click(accessListCheckbox);
 
@@ -86,7 +102,7 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     await user.click(allOrganizationsCheckbox);
 
     expect(onSaveFn).toHaveBeenCalledWith([
-      { ...requestConsentRule, subject: ['organization'] },
+      { ...requestConsentRule, subject: [organizationSubject.urn] },
       acceptConsentRule,
     ]);
   });
@@ -97,19 +113,19 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     renderConsentResourcePolicyRulesEditor({ savePolicy: onSaveFn });
 
     const accessListCheckbox = screen.getByRole('checkbox', {
-      name: accessListSubject.subjectTitle,
+      name: accessListSubject.name,
     });
     await user.click(accessListCheckbox);
 
     const accessListCheckbox2 = screen.getByRole('checkbox', {
-      name: accessListSubject2.subjectTitle,
+      name: accessListSubject2.name,
     });
     await user.click(accessListCheckbox2);
 
     expect(onSaveFn).toHaveBeenCalledWith([
       {
         ...requestConsentRule,
-        subject: [accessListSubject.subjectId, accessListSubject2.subjectId],
+        subject: [accessListSubject.urn, accessListSubject2.urn],
       },
       acceptConsentRule,
     ]);
@@ -126,12 +142,12 @@ describe('ConsentResourcePolicyRulesEditor', () => {
     await user.click(allOrganizationsCheckbox);
 
     const accessListCheckbox = screen.getByRole('checkbox', {
-      name: accessListSubject.subjectTitle,
+      name: accessListSubject.name,
     });
     await user.click(accessListCheckbox);
 
     expect(onSaveFn).toHaveBeenCalledWith([
-      { ...requestConsentRule, subject: [accessListSubject.subjectId] },
+      { ...requestConsentRule, subject: [accessListSubject.urn] },
       acceptConsentRule,
     ]);
   });
