@@ -60,7 +60,7 @@ export const ResourceDeployStatus = ({
         return (
           <div className={classes.cardElement} key={index + resourceId}>
             <ArrowRightIcon fontSize='1.5rem' />
-            <StudioParagraph data-size='sm' className={classes.text}>
+            <StudioParagraph className={classes.text}>
               <Trans i18nKey={errorItem.message} values={{ num: errorItem.numberOfErrors }}>
                 <LinkButton onClick={onNavigateToPageWithError} page={errorItem.pageWithError} />
               </Trans>

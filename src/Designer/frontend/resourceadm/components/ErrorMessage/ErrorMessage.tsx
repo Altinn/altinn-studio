@@ -21,10 +21,8 @@ export const ErrorMessage = ({
       <StudioHeading data-size='md' level={1}>
         {title}
       </StudioHeading>
-      <StudioParagraph data-size='sm'>{message}</StudioParagraph>
-      <StudioParagraph data-size='sm'>
-        {t('resourceadm.dashboard_error_message_info')}
-      </StudioParagraph>
+      <StudioParagraph>{message}</StudioParagraph>
+      <StudioParagraph>{t('resourceadm.dashboard_error_message_info')}</StudioParagraph>
       {children}
     </div>
   );

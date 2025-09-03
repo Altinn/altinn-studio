@@ -69,7 +69,6 @@ export const ResourceContactPointFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_contact_description')}
-        data-size='sm'
       >
         <StudioTextfield
           id={`contactPoints-${index}`}

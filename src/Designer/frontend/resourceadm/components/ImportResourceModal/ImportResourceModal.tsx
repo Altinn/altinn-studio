@@ -153,7 +153,7 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
                 {selectedService && (
                   <div>
                     <div className={classes.contentDivider} />
-                    <StudioParagraph data-size='sm' spacing>
+                    <StudioParagraph spacing>
                       {t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
                     </StudioParagraph>
                     <StudioTextfield

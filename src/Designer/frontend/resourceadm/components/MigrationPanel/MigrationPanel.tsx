@@ -111,7 +111,7 @@ export const MigrationPanel = ({
       </StudioDialog>
       <div className={classes.migrationPanel}>
         <div className={classes.migrationPanelInner}>
-          <StudioHeading data-size='sm'>{t(env.label)}</StudioHeading>
+          <StudioHeading>{t(env.label)}</StudioHeading>
           <div>
             {t('resourceadm.migration_altinn2_delegations')}{' '}
             {!isLoadingDelegationCount && (
@@ -122,9 +122,7 @@ export const MigrationPanel = ({
             {t('resourceadm.migration_altinn3_delegations')} <strong>N/A</strong>
           </div>
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
-            <StudioAlert data-color='info' data-size='sm'>
-              {t('resourceadm.migration_not_needed')}
-            </StudioAlert>
+            <StudioAlert data-color='info'>{t('resourceadm.migration_not_needed')}</StudioAlert>
           )}
           {errorMessage && (
             <StudioAlert data-color={errorMessage.severity}>
