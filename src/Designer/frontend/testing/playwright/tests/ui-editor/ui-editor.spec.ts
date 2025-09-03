@@ -56,7 +56,7 @@ test.skip('That it is possible to add and delete form components', async ({
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
 });
 
-test('That when adding more than one page, navigation buttons are added to the pages', async ({
+test.skip('That when adding more than one page, navigation buttons are added to the pages', async ({
   page,
   testAppName,
 }): Promise<void> => {

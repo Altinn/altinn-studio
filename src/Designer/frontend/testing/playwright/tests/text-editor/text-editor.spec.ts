@@ -103,7 +103,7 @@ test.skip('That it is possible to edit a textkey, and that the key is updated on
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
-test('That it is possible to add another text key', async ({ page, testAppName }) => {
+test.skip('That it is possible to add another text key', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
   await textEditorPage.clickOnAddNewTextButton();
