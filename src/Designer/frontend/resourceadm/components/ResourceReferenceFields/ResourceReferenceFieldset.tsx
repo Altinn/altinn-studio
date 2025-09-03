@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioFieldset, StudioTextfield, StudioNativeSelect } from '@studio/components-legacy';
+import { StudioFieldset, StudioTextfield, StudioSelect } from '@studio/components';
 import type {
   ResourceFormError,
   ResourceReference,
@@ -111,7 +111,6 @@ export const ResourceReferenceFieldset = ({
   const [reference, setReference] = useState(resourceReference.reference);
 
   const fieldError = errors.filter((error) => error.index === index);
-  const hasError = fieldError.length > 0;
 
   const handleChangeReferenceSource = (newSource: ResourceReferenceSource): void => {
     setReferenceSource(newSource);
@@ -143,16 +142,13 @@ export const ResourceReferenceFieldset = ({
           />
         }
         description={t('resourceadm.about_resource_references_description')}
-        size='sm'
       >
-        <StudioNativeSelect
-          size='sm'
+        <StudioSelect
           onChange={(event) =>
             handleChangeReferenceSource(event.target.value as ResourceReferenceSource)
           }
           value={referenceSource}
           label={t('resourceadm.about_resource_reference_source')}
-          error={hasError}
         >
           {referenceSourceOptions.map((opt) => {
             return (
@@ -161,16 +157,14 @@ export const ResourceReferenceFieldset = ({
               </option>
             );
           })}
-        </StudioNativeSelect>
-        <StudioNativeSelect
+        </StudioSelect>
+        <StudioSelect
           id={index === 0 ? 'resourceReferences' : undefined}
-          size='sm'
           onChange={(event) =>
             handleChangeReferenceType(event.target.value as ResourceReferenceType)
           }
           value={referenceType}
           label={t('resourceadm.about_resource_reference_type')}
-          error={hasError}
         >
           {referenceTypeOptions.map((opt) => {
             return (
@@ -179,13 +173,12 @@ export const ResourceReferenceFieldset = ({
               </option>
             );
           })}
-        </StudioNativeSelect>
+        </StudioSelect>
         <StudioTextfield
           id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
           value={reference}
           onChange={(e) => setReference(e.target.value)}
-          error={hasError}
           onBlur={handleBlurReference}
         />
       </StudioFieldset>
