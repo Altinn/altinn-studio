@@ -1,12 +1,13 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:d2166de198f26e17e5a442f537754dd616ab069c47cc57b889310a717e0abbf9 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
 
-COPY ./development/azure-devops-mock/package.json ./development/azure-devops-mock/
+COPY src/Designer/development/azure-devops-mock/package.json ./src/Designer/development/azure-devops-mock/
+COPY src/Designer/frontend/package.json ./src/Designer/frontend/
 COPY src/Designer/frontend/app-development/package.json ./src/Designer/frontend/app-development/
 COPY src/Designer/frontend/app-preview/package.json ./src/Designer/frontend/app-preview/
 COPY src/Designer/frontend/dashboard/package.json ./src/Designer/frontend/dashboard/
@@ -36,7 +37,7 @@ COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/fronte
 RUN yarn --immutable
 
 COPY . .
-RUN yarn build
+RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:430bd56f4348f9dd400331f0d71403554ec83ae1700a7dcfe1e1519c9fd12174 AS generate-studio-backend

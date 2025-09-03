@@ -26,4 +26,10 @@ public interface ICdnConfigService
     /// <param name="env">The environment identifier.</param>
     /// <returns>The task result contains the base URL as a string.</returns>
     public Task<string> GetAppsBaseUrl(string org, string env);
+
+    /// <summary>
+    /// Gets a sorted list of all environment names
+    /// </summary>
+    /// <returns>The task result contains the list of environment names.</returns>
+    public Task<IEnumerable<string>> GetSortedEnvironmentNames();
 }
