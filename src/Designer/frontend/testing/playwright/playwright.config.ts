@@ -22,7 +22,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    /* {
+    {
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -70,18 +70,18 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    {
-      name: TestNames.GIT_SYNC,
-      dependencies: [TestNames.SETUP],
-      testDir: './tests/git-sync/',
-      testMatch: '*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: '.playwright/auth/user.json',
-        testAppName: AppNames.GIT_SYNC_APP,
-        headless: true,
-      },
-    },
+    // {
+    //   name: TestNames.GIT_SYNC,
+    //   dependencies: [TestNames.SETUP],
+    //   testDir: './tests/git-sync/',
+    //   testMatch: '*.spec.ts',
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     storageState: '.playwright/auth/user.json',
+    //     testAppName: AppNames.GIT_SYNC_APP,
+    //     headless: true,
+    //   },
+    // },
     {
       name: TestNames.UI_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -118,7 +118,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.TEXT_EDITOR_APP,
         headless: true,
       },
-    },*/
+    },
     {
       name: TestNames.PROCESS_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -132,20 +132,19 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    /*
-    {
-      name: TestNames.ORG_LIBRARY,
-      dependencies: [TestNames.SETUP],
-      testDir: './tests/org-library/',
-      testMatch: '*.spec.ts',
-      timeout: 60000,
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: '.playwright/auth/user.json',
-        testAppName: AppNames.ORG_LIBRARY,
-        headless: true,
-      },
-    },
+    // {
+    //   name: TestNames.ORG_LIBRARY,
+    //   dependencies: [TestNames.SETUP],
+    //   testDir: './tests/org-library/',
+    //   testMatch: '*.spec.ts',
+    //   timeout: 60000,
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     storageState: '.playwright/auth/user.json',
+    //     testAppName: AppNames.ORG_LIBRARY,
+    //     headless: true,
+    //   },
+    // },
     {
       name: TestNames.LOGOUT,
       dependencies: [
@@ -154,12 +153,12 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.DATA_MODEL,
         TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
-        TestNames.GIT_SYNC,
+        // TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
         TestNames.APP_SETTINGS,
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
-        TestNames.ORG_LIBRARY,
+        // TestNames.ORG_LIBRARY,
       ],
       testDir: './tests/logout/',
       testMatch: '*.spec.ts',
@@ -178,6 +177,6 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         headless: true,
       },
-    },*/
+    },
   ],
 });

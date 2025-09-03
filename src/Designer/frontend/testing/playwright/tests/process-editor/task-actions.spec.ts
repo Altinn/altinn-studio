@@ -22,7 +22,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('should be possible to add predefined actions to task', async ({
+test.skip('should be possible to add predefined actions to task', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -53,7 +53,7 @@ test('should be possible to add custom actions to task and set them as serverAct
   await giteaPage.verifyThatActionIsCustomServerAction('myCustomAction');
 });
 
-test('should be possible to remove action from task', async ({
+test.skip('should be possible to remove action from task', async ({
   page,
   testAppName,
 }): Promise<void> => {

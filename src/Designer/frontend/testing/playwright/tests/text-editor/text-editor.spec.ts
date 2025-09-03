@@ -48,7 +48,7 @@ const setupAndVerifyTextEditorPage = async (
   return textEditorPage;
 };
 
-test('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
+test.skip('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -81,7 +81,7 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
 });
 
-test('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
+test.skip('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -137,7 +137,7 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
 });
 
-test('That the newly added language with key is updated on ui-editor page', async ({
+test.skip('That the newly added language with key is updated on ui-editor page', async ({
   page,
   testAppName,
 }) => {

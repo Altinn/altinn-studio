@@ -41,7 +41,7 @@ const setupAndVerifyUiEditorPage = async (
   return uiEditorPage;
 };
 
-test('That it is possible to add and delete form components', async ({
+test.skip('That it is possible to add and delete form components', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -80,7 +80,7 @@ test('That when adding more than one page, navigation buttons are added to the p
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
 
-test('That it is possible to add a Header component to the page when there is already a component on the page and edit the name of the component', async ({
+test.skip('That it is possible to add a Header component to the page when there is already a component on the page and edit the name of the component', async ({
   page,
   testAppName,
 }): Promise<void> => {

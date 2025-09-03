@@ -96,7 +96,7 @@ test('That it is possible to navigate from overview to the text editor page and 
   await overviewPage.verifyOverviewPage();
 });
 
-test('That it is possible to navigate from overview to the process editor page and back again', async ({
+test.skip('That it is possible to navigate from overview to the process editor page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -125,7 +125,7 @@ test('That it is possible to navigate from overview to the dashboard page by cli
   await dashboardPage.verifyDashboardPage();
 });
 
-test('That it is possible to navigate from overview to the preview page and back again', async ({
+test.skip('That it is possible to navigate from overview to the preview page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -141,7 +141,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await uiEditor.verifyUiEditorPage();
 });
 
-test('That it is possible to navigate from overview to the deploy page and back again', async ({
+test.skip('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
   request,

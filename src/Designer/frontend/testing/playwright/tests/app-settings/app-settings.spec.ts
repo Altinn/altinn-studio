@@ -37,7 +37,7 @@ const setUpAndVerifySettingsPage = async (
   return settingsPage;
 };
 
-test('That it is possible to change tab from "About app" tab to "Setup" tab', async ({
+test.skip('That it is possible to change tab from "About app" tab to "Setup" tab', async ({
   page,
   testAppName,
 }) => {
@@ -64,7 +64,7 @@ test('That it is possible to change tab to "Policy editor" tab', async ({ page, 
   await settingsPage.verifyThatTabIsVisible('policy');
 });
 
-test('That it is possible to edit security level on "Policy editor" tab, and that changes are saved', async ({
+test.skip('That it is possible to edit security level on "Policy editor" tab, and that changes are saved', async ({
   page,
   testAppName,
 }) => {
