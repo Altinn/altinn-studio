@@ -1,0 +1,17 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  min-height: var(--ds-size-12);
+  box-sizing: border-box;
+  max-height: max-content;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-3) var(--ds-size-4);
+  background-color: var(--ds-color-surface-tinted);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.iconTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}

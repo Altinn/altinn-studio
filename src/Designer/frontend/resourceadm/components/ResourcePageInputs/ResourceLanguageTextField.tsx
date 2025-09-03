@@ -1,8 +1,7 @@
 import React, { forwardRef, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement, ReactNode, Ref } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioTabs } from '@studio/components-legacy';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTextfield, StudioTabs } from '@studio/components';
 import { BulletListIcon, LinkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type {
   ResourceFormError,
@@ -275,7 +274,7 @@ const LanguageTabs = ({
   };
 
   return (
-    <StudioTabs defaultValue='nb' size='sm' value={selectedLanguage} onChange={onLanguageChanged}>
+    <StudioTabs defaultValue='nb' value={selectedLanguage} onChange={onLanguageChanged}>
       <StudioTabs.List>
         {['nb', 'nn', 'en'].map((language) => {
           const languageText = t(`language.${language}`);
