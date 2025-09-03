@@ -211,7 +211,7 @@ describe('ListComponent', () => {
     await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
     expect(screen.queryByRole('radio', { checked: true })).not.toBeInTheDocument();
 
-    // Select the second row
+    // Select the second row - find by value since label is empty
     const swedishRow = screen.getByRole('radio', { name: /sweden/i });
     await user.click(swedishRow);
 
@@ -222,6 +222,72 @@ describe('ListComponent', () => {
         { reference: { field: 'CountryPopulation', dataType: defaultDataTypeMock }, newValue: 10 },
         { reference: { field: 'CountryHighestMountain', dataType: defaultDataTypeMock }, newValue: 1738 },
       ],
+    });
+  });
+
+  describe('auto-readonly mode (no dataModelBindings)', () => {
+    it('should not render radio buttons when no dataModelBindings exist', async () => {
+      await render({ component: { dataModelBindings: undefined } });
+
+      // Wait for the data to load
+      await waitFor(() => expect(screen.getByText('Norway')).toBeInTheDocument());
+
+      // No radio buttons should be present
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('should not render radio buttons when dataModelBindings is empty object', async () => {
+      await render({ component: { dataModelBindings: {} } });
+
+      // Wait for the data to load
+      await waitFor(() => expect(screen.getByText('Norway')).toBeInTheDocument());
+
+      // No radio buttons should be present
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('should not allow row selection when no dataModelBindings exist', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { formDataMethods } = await render({ component: { dataModelBindings: undefined } });
+
+      // Wait for the data to load
+      await waitFor(() => expect(screen.getByText('Norway')).toBeInTheDocument());
+
+      // Try to click a row
+      const norwegianRow = screen.getByRole('row', { name: /norway/i });
+      await user.click(norwegianRow);
+
+      // No data should be saved
+      expect(formDataMethods.setMultiLeafValues).not.toHaveBeenCalled();
+    });
+
+    it('should not render controls in mobile view when no dataModelBindings exist', async () => {
+      jest.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+
+      await render({
+        component: {
+          dataModelBindings: undefined,
+          tableHeadersMobile: ['Name', 'FlagLink'],
+        },
+      });
+
+      // Wait for the data to load
+      await waitFor(() => expect(screen.getByText('Norway')).toBeInTheDocument());
+
+      // No radio buttons should be present
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('should still display table data when no dataModelBindings exist', async () => {
+      await render({ component: { dataModelBindings: undefined } });
+
+      // All data should still be visible
+      await waitFor(() => expect(screen.getByText('Norway')).toBeInTheDocument());
+      expect(screen.getByText('Sweden')).toBeInTheDocument();
+      expect(screen.getByText('Denmark')).toBeInTheDocument();
+      expect(screen.getByText('Germany')).toBeInTheDocument();
+      expect(screen.getByText('Spain')).toBeInTheDocument();
+      expect(screen.getByText('France')).toBeInTheDocument();
     });
   });
 });
