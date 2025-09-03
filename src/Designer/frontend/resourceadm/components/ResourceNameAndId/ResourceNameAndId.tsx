@@ -111,7 +111,7 @@ export const ResourceNameAndId = ({
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='danger'
+                data-color='danger'
                 title={t('resourceadm.dashboard_resource_name_and_id_delete_icon', {
                   objectType: idLabel,
                 })}

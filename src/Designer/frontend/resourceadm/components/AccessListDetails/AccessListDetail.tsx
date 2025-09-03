@@ -148,7 +148,7 @@ export const AccessListDetail = ({
       <div>
         <StudioButton
           variant='tertiary'
-          color='danger'
+          data-color='danger'
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
