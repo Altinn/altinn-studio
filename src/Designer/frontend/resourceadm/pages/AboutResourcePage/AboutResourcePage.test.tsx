@@ -18,6 +18,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
+import { useParams } from 'react-router-dom';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -67,7 +68,7 @@ const mockConsentResource: Resource = {
 const consentTemplates = testConsentTemplates;
 
 const mockResourceType: ResourceTypeOption = textMock(
-  'resourceadm.about_resource_resource_type_system_resource',
+  'resourceadm.about_resource_resource_type_generic_access_resource',
 ) as ResourceTypeOption;
 const mockStatus: ResourceStatusOption = 'Deprecated';
 
@@ -81,12 +82,16 @@ const mockId: string = 'page-content-deploy';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    resourceId: mockResource1,
-  }),
+  useParams: jest.fn(),
 }));
 
 describe('AboutResourcePage', () => {
+  beforeEach(() => {
+    (useParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1,
+      org: 'ttd',
+    });
+  });
   afterEach(jest.clearAllMocks);
 
   const mockOnSaveResource = jest.fn();
@@ -114,6 +119,30 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(mockResourceType);
+    await user.click(resourceTypeRadio);
+
+    expect(resourceTypeRadio).toBeChecked();
+  });
+
+  it('should not show resource type Systemresource for org ttd', () => {
+    render(<AboutResourcePage {...defaultProps} />);
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_system_resource')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show resource type Systemresource for org digdir', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1,
+      org: 'digdir',
+    });
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const resourceTypeRadio = screen.getByLabelText(
+      textMock('resourceadm.about_resource_resource_type_system_resource'),
+    );
     await user.click(resourceTypeRadio);
 
     expect(resourceTypeRadio).toBeChecked();
