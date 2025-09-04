@@ -26,7 +26,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test.skip('that it is possible to navigate from dashboard page to library page and back again', async ({
+test('that it is possible to navigate from dashboard page to library page and back again', async ({
   page,
   testAppName,
 }) => {
