@@ -70,19 +70,18 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    // All of these tests fails, therefore comment out instead of using .skip.
-    // {
-    //   name: TestNames.GIT_SYNC,
-    //   dependencies: [TestNames.SETUP],
-    //   testDir: './tests/git-sync/',
-    //   testMatch: '*.spec.ts',
-    //   use: {
-    //     ...devices['Desktop Chrome'],
-    //     storageState: '.playwright/auth/user.json',
-    //     testAppName: AppNames.GIT_SYNC_APP,
-    //     headless: true,
-    //   },
-    // },
+    {
+      name: TestNames.GIT_SYNC,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/git-sync/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.GIT_SYNC_APP,
+        headless: true,
+      },
+    },
     {
       name: TestNames.UI_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -154,7 +153,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.DATA_MODEL,
         TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
-        // TestNames.GIT_SYNC,
+        TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
         TestNames.APP_SETTINGS,
         TestNames.TEXT_EDITOR,
