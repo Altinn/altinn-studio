@@ -18,7 +18,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
-import { useParams } from 'react-router-dom';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -80,15 +80,14 @@ const mockNewRightDescriptionInput: string = 'mock';
 const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: jest.fn(),
+jest.mock('../../hooks/useUrlParams', () => ({
+  useUrlParams: jest.fn(),
 }));
 
 describe('AboutResourcePage', () => {
   beforeEach(() => {
-    (useParams as jest.Mock).mockReturnValue({
-      resourceId: mockResource1,
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
       org: 'ttd',
     });
   });
@@ -133,8 +132,8 @@ describe('AboutResourcePage', () => {
   });
 
   it('should show resource type Systemresource for org digdir', async () => {
-    (useParams as jest.Mock).mockReturnValue({
-      resourceId: mockResource1,
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
       org: 'digdir',
     });
     const user = userEvent.setup();
