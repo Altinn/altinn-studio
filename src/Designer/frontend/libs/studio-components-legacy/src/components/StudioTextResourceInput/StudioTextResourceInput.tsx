@@ -18,7 +18,11 @@ import type { RequiredSelection } from '../../types/RequiredSelection';
 
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &
   HTMLAttributes<HTMLInputElement>;
-
+/**
+ * @remarks StudioCodeFragment lives in `@studio/components-legacy`. We can not import from `@studio/components`
+ *          because of the lint rule forbidding cross-dependency.
+ * @todo When Parent legacy-component StudioTextResourceInput moved out of legacy, replace `StudioCodeFragment` with the one from `@studio/components`.
+ */
 type TextResourceInputPropsBase = {
   currentId?: string | null;
   currentIdClass?: string;
