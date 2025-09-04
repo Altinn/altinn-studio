@@ -7,12 +7,12 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 /// <summary>
 /// Upgrade the csproj file
 /// </summary>
-public class ProjectFileRewriter
+internal sealed class ProjectFileRewriter
 {
-    private XDocument doc;
-    private readonly string projectFilePath;
-    private readonly string targetVersion;
-    private readonly string targetFramework;
+    private readonly XDocument _doc;
+    private readonly string _projectFilePath;
+    private readonly string _targetVersion;
+    private readonly string _targetFramework;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProjectFileRewriter"/> class.
@@ -20,13 +20,17 @@ public class ProjectFileRewriter
     /// <param name="projectFilePath"></param>
     /// <param name="targetVersion"></param>
     /// <param name="targetFramework"></param>
-    public ProjectFileRewriter(string projectFilePath, string targetVersion = "8.0.0", string targetFramework = "net8.0")
+    public ProjectFileRewriter(
+        string projectFilePath,
+        string targetVersion = "8.0.0",
+        string targetFramework = "net8.0"
+    )
     {
-        this.projectFilePath = projectFilePath;
-        this.targetVersion = targetVersion;
+        _projectFilePath = projectFilePath;
+        _targetVersion = targetVersion;
         var xmlString = File.ReadAllText(projectFilePath);
-        doc = XDocument.Parse(xmlString);
-        this.targetFramework = targetFramework;
+        _doc = XDocument.Parse(xmlString);
+        _targetFramework = targetFramework;
     }
 
     /// <summary>
@@ -35,29 +39,31 @@ public class ProjectFileRewriter
     public async Task Upgrade()
     {
         var altinnAppCoreElements = GetAltinnAppCoreElement();
-        altinnAppCoreElements?.ForEach(c => c.Attribute("Version")?.SetValue(targetVersion));
+        altinnAppCoreElements?.ForEach(c => c.Attribute("Version")?.SetValue(_targetVersion));
 
         var altinnAppApiElements = GetAltinnAppApiElement();
-        altinnAppApiElements?.ForEach(a => a.Attribute("Version")?.SetValue(targetVersion));
+        altinnAppApiElements?.ForEach(a => a.Attribute("Version")?.SetValue(_targetVersion));
 
         IgnoreWarnings("1591", "1998"); // Require xml doc and await in async methods
 
-        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(targetFramework));
+        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
 
         await Save();
     }
 
     private void IgnoreWarnings(params string[] warnings)
     {
-        var noWarn = doc.Root?.Elements("PropertyGroup").Elements("NoWarn").ToList();
+        var noWarn = _doc.Root?.Elements("PropertyGroup").Elements("NoWarn").ToList();
         switch (noWarn?.Count)
         {
             case 0:
-                doc.Root?.Elements("PropertyGroup").First().Add(new XElement("NoWarn", "$(NoWarn);" + string.Join(';', warnings)));
+                _doc.Root?.Elements("PropertyGroup")
+                    .First()
+                    .Add(new XElement("NoWarn", "$(NoWarn);" + string.Join(';', warnings)));
                 break;
 
             case 1:
-                var valueElement = noWarn.First();
+                var valueElement = noWarn[0];
                 foreach (var warning in warnings)
                 {
                     if (!valueElement.Value.Contains(warning))
@@ -72,17 +78,25 @@ public class ProjectFileRewriter
 
     private List<XElement>? GetAltinnAppCoreElement()
     {
-        return doc.Root?.Elements("ItemGroup").Elements("PackageReference").Where(x => x.Attribute("Include")?.Value == "Altinn.App.Core").ToList();
+        return _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("PackageReference")
+            .Where(x => x.Attribute("Include")?.Value == "Altinn.App.Core")
+            .ToList();
     }
 
     private List<XElement>? GetAltinnAppApiElement()
     {
-        return doc.Root?.Elements("ItemGroup").Elements("PackageReference").Where(x => x.Attribute("Include")?.Value == "Altinn.App.Api").ToList();
+        return _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("PackageReference")
+            .Where(x => x.Attribute("Include")?.Value == "Altinn.App.Api")
+            .ToList();
     }
-    
+
     private List<XElement>? GetTargetFrameworkElement()
     {
-        return doc.Root?.Elements("PropertyGroup").Elements("TargetFramework").ToList();
+        return _doc.Root?.Elements("PropertyGroup").Elements("TargetFramework").ToList();
     }
 
     private async Task Save()
@@ -92,8 +106,8 @@ public class ProjectFileRewriter
         xws.OmitXmlDeclaration = true;
         xws.Indent = true;
         xws.Encoding = Encoding.UTF8;
-        await using XmlWriter xw = XmlWriter.Create(projectFilePath, xws);
-        await doc.WriteToAsync(xw, CancellationToken.None);
+        await using XmlWriter xw = XmlWriter.Create(_projectFilePath, xws);
+        await _doc.WriteToAsync(xw, CancellationToken.None);
         await xw.FlushAsync();
     }
 }

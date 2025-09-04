@@ -5,10 +5,10 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectChecks;
 /// <summary>
 /// Checks the project file for unsupported versions
 /// </summary>
-public class ProjectChecks
+internal sealed class ProjectChecks
 {
-    private XDocument doc;
-    
+    private readonly XDocument _doc;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProjectChecks"/> class.
     /// </summary>
@@ -16,7 +16,7 @@ public class ProjectChecks
     public ProjectChecks(string projectFilePath)
     {
         var xmlString = File.ReadAllText(projectFilePath);
-        doc = XDocument.Parse(xmlString);
+        _doc = XDocument.Parse(xmlString);
     }
 
     /// <summary>
@@ -27,28 +27,41 @@ public class ProjectChecks
     {
         var altinnAppCoreElements = GetAltinnAppCoreElement();
         var altinnAppApiElements = GetAltinnAppApiElement();
-        if (altinnAppCoreElements == null || altinnAppApiElements == null)
+        if (altinnAppCoreElements is null || altinnAppApiElements is null)
         {
             return false;
         }
 
-        if (altinnAppApiElements.Select(apiElement => apiElement.Attribute("Version")?.Value).Any(altinnAppApiVersion => !SupportedSourceVersion(altinnAppApiVersion)))
+        if (
+            altinnAppApiElements
+                .Select(apiElement => apiElement.Attribute("Version")?.Value)
+                .Any(altinnAppApiVersion => !SupportedSourceVersion(altinnAppApiVersion))
+        )
         {
             return false;
         }
 
-        return altinnAppCoreElements.Select(coreElement => coreElement.Attribute("Version")?.Value).All(altinnAppCoreVersion => SupportedSourceVersion(altinnAppCoreVersion));
-
+        return altinnAppCoreElements
+            .Select(coreElement => coreElement.Attribute("Version")?.Value)
+            .All(altinnAppCoreVersion => SupportedSourceVersion(altinnAppCoreVersion));
     }
-    
+
     private List<XElement>? GetAltinnAppCoreElement()
     {
-        return doc.Root?.Elements("ItemGroup").Elements("PackageReference").Where(x => x.Attribute("Include")?.Value == "Altinn.App.Core").ToList();
+        return _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("PackageReference")
+            .Where(x => x.Attribute("Include")?.Value == "Altinn.App.Core")
+            .ToList();
     }
 
     private List<XElement>? GetAltinnAppApiElement()
     {
-        return doc.Root?.Elements("ItemGroup").Elements("PackageReference").Where(x => x.Attribute("Include")?.Value == "Altinn.App.Api").ToList();
+        return _doc
+            .Root?.Elements("ItemGroup")
+            .Elements("PackageReference")
+            .Where(x => x.Attribute("Include")?.Value == "Altinn.App.Api")
+            .ToList();
     }
 
     /// <summary>
@@ -58,7 +71,7 @@ public class ProjectChecks
     /// <returns></returns>
     private bool SupportedSourceVersion(string? version)
     {
-        if (version == null)
+        if (version is null)
         {
             return false;
         }
@@ -69,12 +82,9 @@ public class ProjectChecks
             return false;
         }
 
-        if (int.TryParse(versionParts[0], out int major))
+        if (int.TryParse(versionParts[0], out int major) && major >= 7)
         {
-            if (major >= 7)
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;

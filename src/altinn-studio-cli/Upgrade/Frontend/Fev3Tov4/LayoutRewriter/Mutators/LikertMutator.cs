@@ -6,18 +6,15 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 /// <summary>
 /// Converts Group + Likert to new Likert component
 /// </summary>
-class LikertMutator : ILayoutMutator
+internal sealed class LikertMutator : ILayoutMutator
 {
-    public override IMutationResult Mutate(
-        JsonObject component,
-        Dictionary<string, JsonObject> componentLookup
-    )
+    public IMutationResult Mutate(JsonObject component, Dictionary<string, JsonObject> componentLookup)
     {
         if (
             !component.TryGetPropertyValue("type", out var typeNode)
             || typeNode is not JsonValue typeValue
             || typeValue.GetValueKind() != JsonValueKind.String
-            || typeValue.GetValue<string>() is var type && type == null
+            || typeValue.GetValue<string>() is var type && type is null
         )
         {
             return new ErrorResult() { Message = "Unable to parse component type" };
@@ -29,8 +26,7 @@ class LikertMutator : ILayoutMutator
             && (
                 !component.TryGetPropertyValue("dataModelBindings", out var oldLikertDmbNode)
                 || oldLikertDmbNode is not JsonObject oldLikertDmbObject
-                || !oldLikertDmbObject.ContainsKey(("questions"))
-                    && !oldLikertDmbObject.ContainsKey(("answer"))
+                || !oldLikertDmbObject.ContainsKey(("questions")) && !oldLikertDmbObject.ContainsKey(("answer"))
             )
         )
         {
@@ -70,10 +66,7 @@ class LikertMutator : ILayoutMutator
                 || !groupDmbObject.TryGetPropertyValue("group", out var groupNode)
             )
             {
-                return new ErrorResult()
-                {
-                    Message = "Group (likert) is missing dataModelBindings.group"
-                };
+                return new ErrorResult() { Message = "Group (likert) is missing dataModelBindings.group" };
             }
             groupDmbObject.Add("questions", groupNode?.DeepClone());
             groupDmbObject.Remove("group");
@@ -85,22 +78,19 @@ class LikertMutator : ILayoutMutator
                 || childrenArray.Count != 1
                 || childrenArray[0] is not JsonValue childIdValue
                 || childIdValue.GetValueKind() != JsonValueKind.String
-                || childIdValue.GetValue<string>() is var childId && childId == null
+                || childIdValue.GetValue<string>() is var childId && childId is null
             )
             {
                 return new ErrorResult()
                 {
-                    Message = "Group (likert) has invalid children, expected array with one string"
+                    Message = "Group (likert) has invalid children, expected array with one string",
                 };
             }
 
             // Find (old) likert component from lookup
             if (!componentLookup.TryGetValue(childId, out var likertComponent))
             {
-                return new ErrorResult()
-                {
-                    Message = $"Unable to find likert component with id {childId}"
-                };
+                return new ErrorResult() { Message = $"Unable to find likert component with id {childId}" };
             }
 
             component.Remove("children");
@@ -130,10 +120,7 @@ class LikertMutator : ILayoutMutator
                 || !likertDmbObject.TryGetPropertyValue("simpleBinding", out var simpleBindingNode)
             )
             {
-                return new ErrorResult()
-                {
-                    Message = "Likert is missing dataModelBindings.simpleBinding"
-                };
+                return new ErrorResult() { Message = "Likert is missing dataModelBindings.simpleBinding" };
             }
             groupDmbObject.Add("answer", simpleBindingNode?.DeepClone());
 

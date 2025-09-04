@@ -5,7 +5,7 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.DockerfileRewriters.Extension
 /// <summary>
 /// Extensions for string replacing tags in dockerfiles
 /// </summary>
-public static class DockerfileStringExtensions
+internal static class DockerfileStringExtensions
 {
     /// <summary>
     /// Replaces the dotnet sdk image tag version in a dockerfile
@@ -18,7 +18,7 @@ public static class DockerfileStringExtensions
         const string pattern = @"(^FROM mcr.microsoft.com/dotnet/sdk):(.+?)( AS .*)?$";
         return Regex.Replace(line, pattern, $"$1:{imageTag}$3");
     }
-    
+
     /// <summary>
     /// Replaces the aspnet image tag version in a dockerfile
     /// </summary>

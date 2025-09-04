@@ -8,33 +8,33 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.CustomReceiptRewriter;
 /// Moves receiptLayout into its own layout set.
 /// Must be run after LayoutSetUpgrader
 /// </summary>
-class CustomReceiptUpgrader
+internal sealed class CustomReceiptUpgrader
 {
-    private readonly IList<string> warnings = new List<string>();
-    private readonly string uiFolder;
-    private readonly string receiptLayoutSetName;
-    private string? receiptLayoutName;
-    private string? receiptLayoutPath;
+    private readonly IList<string> _warnings = new List<string>();
+    private readonly string _uiFolder;
+    private readonly string _receiptLayoutSetName;
+    private string? _receiptLayoutName;
+    private string? _receiptLayoutPath;
 
-    private JsonNode? layoutSets;
-    private Dictionary<string, JsonNode> settingsCollection = new Dictionary<string, JsonNode>();
+    private JsonNode? _layoutSets;
+    private readonly Dictionary<string, JsonNode> _settingsCollection = new();
 
     public CustomReceiptUpgrader(string uiFolder, string receiptLayoutSetName)
     {
-        this.uiFolder = uiFolder;
-        this.receiptLayoutSetName = receiptLayoutSetName;
+        _uiFolder = uiFolder;
+        _receiptLayoutSetName = receiptLayoutSetName;
     }
 
     public IList<string> GetWarnings()
     {
-        return warnings;
+        return _warnings;
     }
 
     public void Upgrade()
     {
         string? oldLayoutSetId = null;
-        var layoutSets = Directory.GetDirectories(uiFolder);
-        foreach (var layoutSet in layoutSets)
+        var layoutSetDirectories = Directory.GetDirectories(_uiFolder);
+        foreach (var layoutSet in layoutSetDirectories)
         {
             var settingsFileName = Path.Combine(layoutSet, "Settings.json");
             if (File.Exists(settingsFileName))
@@ -48,81 +48,106 @@ class CustomReceiptUpgrader
                 )
                 {
                     // Use the first receiptLayout found, and make sure to remove all others as well
-                    if (string.IsNullOrEmpty(receiptLayoutName))
+                    if (string.IsNullOrEmpty(_receiptLayoutName))
                     {
-                        receiptLayoutName = receiptLayoutNameValue.GetValue<string>();
+                        _receiptLayoutName = receiptLayoutNameValue.GetValue<string>();
                         oldLayoutSetId = Path.GetFileName(layoutSet);
-                        receiptLayoutPath = Path.Combine(layoutSet, "layouts", $"{receiptLayoutName}.json");
-                    } else {
-                        var compactSettingsFilePath = string.Join(Path.DirectorySeparatorChar, settingsFileName.Split(Path.DirectorySeparatorChar)[^2..]);
-                        var compactReceiptFilePath = string.Join(Path.DirectorySeparatorChar, receiptLayoutPath!.Split(Path.DirectorySeparatorChar)[^3..]);
-                        warnings.Add($"Found additional receiptLayoutName in {compactSettingsFilePath}. Currently using {compactReceiptFilePath}.");
+                        _receiptLayoutPath = Path.Combine(layoutSet, "layouts", $"{_receiptLayoutName}.json");
+                    }
+                    else
+                    {
+                        var compactSettingsFilePath = string.Join(
+                            Path.DirectorySeparatorChar,
+                            settingsFileName.Split(Path.DirectorySeparatorChar)[^2..]
+                        );
+                        if (_receiptLayoutPath is null)
+                            throw new InvalidOperationException("Receipt layout path is unexpectedly null");
+                        var compactReceiptFilePath = string.Join(
+                            Path.DirectorySeparatorChar,
+                            _receiptLayoutPath.Split(Path.DirectorySeparatorChar)[^3..]
+                        );
+                        _warnings.Add(
+                            $"Found additional receiptLayoutName in {compactSettingsFilePath}. Currently using {compactReceiptFilePath}."
+                        );
                     }
                     settingsObject.Remove("receiptLayoutName");
-                    settingsCollection.Add(settingsFileName, settingsNode);
+                    _settingsCollection.Add(settingsFileName, settingsNode);
                 }
             }
         }
 
-        if (string.IsNullOrEmpty(receiptLayoutName))
+        if (string.IsNullOrEmpty(_receiptLayoutName))
         {
             return;
         }
 
-        if (!File.Exists(receiptLayoutPath))
+        if (!File.Exists(_receiptLayoutPath))
         {
-            var compactReceiptFilePath = string.Join(Path.DirectorySeparatorChar, receiptLayoutPath!.Split(Path.DirectorySeparatorChar)[^3..]);
-            warnings.Add($"Receipt layout file {compactReceiptFilePath} does not exist, skipping upgrade.");
+            if (_receiptLayoutPath is null)
+                throw new InvalidOperationException("Receipt layout path is unexpectedly null");
+            var compactReceiptFilePath = string.Join(
+                Path.DirectorySeparatorChar,
+                _receiptLayoutPath.Split(Path.DirectorySeparatorChar)[^3..]
+            );
+            _warnings.Add($"Receipt layout file {compactReceiptFilePath} does not exist, skipping upgrade.");
             return;
         }
 
         // Add new layout-set for receiptLayout
-        var layoutSetsNode = JsonNode.Parse(File.ReadAllText(Path.Combine(uiFolder, "layout-sets.json")));
+        var layoutSetsNode = JsonNode.Parse(File.ReadAllText(Path.Combine(_uiFolder, "layout-sets.json")));
         if (layoutSetsNode is JsonObject layoutSetsObject)
         {
-          layoutSetsObject.TryGetPropertyValue("sets", out var setsNode);
+            layoutSetsObject.TryGetPropertyValue("sets", out var setsNode);
 
-          if (setsNode is not JsonArray setsArray)
-          {
-            warnings.Add("layout-sets.json is missing 'sets' array");
-            return;
-          }
-
-          // Find out what dataType to use
-          string? dataType = null;
-          foreach (var setNode in setsArray)
-          {
-            if (
-                setNode is JsonObject setObject 
-                && setObject.TryGetPropertyValue("id", out var idNode) 
-                && idNode is JsonValue idValue 
-                && idValue.GetValue<string>() == oldLayoutSetId
-            )
+            if (setsNode is not JsonArray setsArray)
             {
-              setObject.TryGetPropertyValue("dataType", out var dataTypeNode);
-              if (dataTypeNode is JsonValue dataTypeValue) {
-                dataType = dataTypeValue.GetValue<string>();
-                break;
-              }
+                _warnings.Add("layout-sets.json is missing 'sets' array");
+                return;
             }
-          }
 
-          if (dataType == null) {
-            warnings.Add("Could not find dataType for custom receipt, skipping upgrade.");
-            return;
-          }
+            // Find out what dataType to use
+            string? dataType = null;
+            foreach (var setNode in setsArray)
+            {
+                if (
+                    setNode is JsonObject setObject
+                    && setObject.TryGetPropertyValue("id", out var idNode)
+                    && idNode is JsonValue idValue
+                    && idValue.GetValue<string>() == oldLayoutSetId
+                )
+                {
+                    setObject.TryGetPropertyValue("dataType", out var dataTypeNode);
+                    if (dataTypeNode is JsonValue dataTypeValue)
+                    {
+                        dataType = dataTypeValue.GetValue<string>();
+                        break;
+                    }
+                }
+            }
 
-          setsArray.Add(JsonNode.Parse($@"{{""id"": ""{receiptLayoutSetName}"", ""dataType"": ""{dataType}"", ""tasks"": [""CustomReceipt""]}}"));
+            if (dataType is null)
+            {
+                _warnings.Add("Could not find dataType for custom receipt, skipping upgrade.");
+                return;
+            }
 
-          this.layoutSets = layoutSetsObject;
-        } else {
-          warnings.Add("layout-sets.json is not a valid JSON object");
-        } 
+            setsArray.Add(
+                JsonNode.Parse(
+                    $@"{{""id"": ""{_receiptLayoutSetName}"", ""dataType"": ""{dataType}"", ""tasks"": [""CustomReceipt""]}}"
+                )
+            );
+
+            _layoutSets = layoutSetsObject;
+        }
+        else
+        {
+            _warnings.Add("layout-sets.json is not a valid JSON object");
+        }
     }
 
     public async Task Write()
     {
-        if (receiptLayoutName != null && layoutSets != null && receiptLayoutPath != null)
+        if (_receiptLayoutName is not null && _layoutSets is not null && _receiptLayoutPath is not null)
         {
             JsonSerializerOptions options = new JsonSerializerOptions
             {
@@ -132,7 +157,7 @@ class CustomReceiptUpgrader
 
             // Write new settings files
             await Task.WhenAll(
-                settingsCollection.Select(async settingsTuple =>
+                _settingsCollection.Select(async settingsTuple =>
                 {
                     settingsTuple.Deconstruct(out var filePath, out var settingsJson);
 
@@ -142,12 +167,15 @@ class CustomReceiptUpgrader
             );
 
             // Overwrite layout-sets
-            var layoutSetsText = layoutSets.ToJsonString(options);
-            await File.WriteAllTextAsync(Path.Combine(uiFolder, "layout-sets.json"), layoutSetsText);
+            var layoutSetsText = _layoutSets.ToJsonString(options);
+            await File.WriteAllTextAsync(Path.Combine(_uiFolder, "layout-sets.json"), layoutSetsText);
 
             // Move receiptLayout to its own layout-set
-            Directory.CreateDirectory(Path.Combine(uiFolder, receiptLayoutSetName, "layouts"));
-            File.Move(receiptLayoutPath, Path.Combine(uiFolder, receiptLayoutSetName, "layouts", $"{receiptLayoutName}.json"));
+            Directory.CreateDirectory(Path.Combine(_uiFolder, _receiptLayoutSetName, "layouts"));
+            File.Move(
+                _receiptLayoutPath,
+                Path.Combine(_uiFolder, _receiptLayoutSetName, "layouts", $"{_receiptLayoutName}.json")
+            );
         }
     }
 }

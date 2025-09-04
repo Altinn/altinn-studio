@@ -6,18 +6,15 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 /// <summary>
 /// Upgrades AttachmentList component
 /// </summary>
-class AttachmentListMutator : ILayoutMutator
+internal sealed class AttachmentListMutator : ILayoutMutator
 {
-    public override IMutationResult Mutate(
-        JsonObject component,
-        Dictionary<string, JsonObject> componentLookup
-    )
+    public IMutationResult Mutate(JsonObject component, Dictionary<string, JsonObject> componentLookup)
     {
         if (
             !component.TryGetPropertyValue("type", out var typeNode)
             || typeNode is not JsonValue typeValue
             || typeValue.GetValueKind() != JsonValueKind.String
-            || typeValue.GetValue<string>() is var type && type == null
+            || typeValue.GetValue<string>() is var type && type is null
         )
         {
             return new ErrorResult() { Message = "Unable to parse component type" };
@@ -31,11 +28,14 @@ class AttachmentListMutator : ILayoutMutator
                 component.Remove("includePDF");
                 if (includePDFNode is JsonValue includePDFValue && includePDFValue.GetValueKind() == JsonValueKind.True)
                 {
-                    if (component.TryGetPropertyValue("dataTypeIds", out var dataTypeIdsNode1) && dataTypeIdsNode1 is JsonArray dataTypeIdsArray1) 
-                    { 
+                    if (
+                        component.TryGetPropertyValue("dataTypeIds", out var dataTypeIdsNode1)
+                        && dataTypeIdsNode1 is JsonArray dataTypeIdsArray1
+                    )
+                    {
                         dataTypeIdsArray1.Add(JsonValue.Create("ref-data-as-pdf"));
-                    } 
-                    else 
+                    }
+                    else
                     {
                         component["dataTypeIds"] = new JsonArray() { JsonValue.Create("ref-data-as-pdf") };
                     }

@@ -8,29 +8,37 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FooterRewriter;
 /// Fixes footer accessibility link if present, if not adds a default footer
 /// Should be run before SchemaRefUpgrader
 /// </summary>
-class FooterUpgrader
+internal sealed class FooterUpgrader
 {
-    private readonly IList<string> warnings = new List<string>();
-    private JsonNode? footer;
-    private readonly string uiFolder;
+    private readonly IList<string> _warnings = new List<string>();
+    private JsonNode? _footer;
+    private readonly string _uiFolder;
 
     public FooterUpgrader(string uiFolder)
     {
-        this.uiFolder = uiFolder;
+        _uiFolder = uiFolder;
     }
 
     public IList<string> GetWarnings()
     {
-        return warnings;
+        return _warnings;
     }
 
     public void Upgrade()
     {
-        var footerFile = Path.Combine(uiFolder, "footer.json");
+        var footerFile = Path.Combine(_uiFolder, "footer.json");
         if (File.Exists(footerFile))
         {
-            var footerJson = JsonNode.Parse(File.ReadAllText(footerFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
-            if (footerJson is JsonObject footerJsonObject && footerJsonObject.TryGetPropertyValue("footer", out var footerNode) && footerNode is JsonArray footerArray)
+            var footerJson = JsonNode.Parse(
+                File.ReadAllText(footerFile),
+                null,
+                new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+            );
+            if (
+                footerJson is JsonObject footerJsonObject
+                && footerJsonObject.TryGetPropertyValue("footer", out var footerNode)
+                && footerNode is JsonArray footerArray
+            )
             {
                 foreach (var footerItem in footerArray)
                 {
@@ -44,26 +52,29 @@ class FooterUpgrader
                         && targetNode is JsonValue targetValue
                         && targetValue.GetValueKind() == JsonValueKind.String
                         && targetValue.GetValue<string>() == "https://www.altinn.no/om-altinn/tilgjengelighet/"
-                    ) { 
+                    )
+                    {
                         footerItemObject["target"] = JsonValue.Create("general.accessibility_url");
                     }
                 }
-                footer = footerJson;
+                _footer = footerJson;
             }
             else
             {
-                warnings.Add($"Unable to parse footer.json, skipping footer upgrade");
+                _warnings.Add($"Unable to parse footer.json, skipping footer upgrade");
             }
         }
         else
         {
-            footer = JsonNode.Parse(@"{ ""$schema"": ""https://altinncdn.no/schemas/json/layout/footer.schema.v1.json"", ""footer"": [ { ""type"": ""Link"", ""icon"": ""information"", ""title"": ""general.accessibility"", ""target"": ""general.accessibility_url"" } ] }");
+            _footer = JsonNode.Parse(
+                @"{ ""$schema"": ""https://altinncdn.no/schemas/json/layout/footer.schema.v1.json"", ""footer"": [ { ""type"": ""Link"", ""icon"": ""information"", ""title"": ""general.accessibility"", ""target"": ""general.accessibility_url"" } ] }"
+            );
         }
     }
 
     public async Task Write()
     {
-        if (footer == null)
+        if (_footer is null)
         {
             return;
         }
@@ -74,7 +85,7 @@ class FooterUpgrader
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        var footerText = footer.ToJsonString(options);
-        await File.WriteAllTextAsync(Path.Combine(uiFolder, "footer.json"), footerText);
+        var footerText = _footer.ToJsonString(options);
+        await File.WriteAllTextAsync(Path.Combine(_uiFolder, "footer.json"), footerText);
     }
 }

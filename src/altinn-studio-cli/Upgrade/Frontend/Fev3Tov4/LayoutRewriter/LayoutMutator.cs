@@ -8,65 +8,78 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter;
 /// Reads all layout files and applies a set of mutators to them before writing them back
 /// This class requires that the app has already been converted to using layout sets
 /// </summary>
-class LayoutMutator
+internal sealed class LayoutMutator
 {
-    private readonly IList<string> warnings = new List<string>();
-    private Dictionary<string, JsonObject> layoutCollection = new Dictionary<string, JsonObject>();
-    private readonly string uiFolder;
+    private readonly IList<string> _warnings = new List<string>();
+    private readonly Dictionary<string, JsonObject> _layoutCollection = new();
+    private readonly string _uiFolder;
 
     public LayoutMutator(string uiFolder)
     {
-        this.uiFolder = uiFolder;
+        _uiFolder = uiFolder;
     }
 
     public IList<string> GetWarnings()
     {
-        return warnings;
+        return _warnings;
     }
 
     public void ReadAllLayoutFiles()
     {
-        var layoutSets = Directory.GetDirectories(uiFolder);
+        var layoutSets = Directory.GetDirectories(_uiFolder);
         foreach (var layoutSet in layoutSets)
         {
             var layoutsFolder = Path.Combine(layoutSet, "layouts");
             if (!Directory.Exists(layoutsFolder))
             {
-              var compactLayoutsPath = string.Join(Path.DirectorySeparatorChar, layoutSet.Split(Path.DirectorySeparatorChar)[^2..]);
-              warnings.Add($"No layouts folder found in layoutset {compactLayoutsPath}, skipping");
-              continue;
+                var compactLayoutsPath = string.Join(
+                    Path.DirectorySeparatorChar,
+                    layoutSet.Split(Path.DirectorySeparatorChar)[^2..]
+                );
+                _warnings.Add($"No layouts folder found in layoutset {compactLayoutsPath}, skipping");
+                continue;
             }
 
             var layoutFiles = Directory.GetFiles(layoutsFolder, "*.json");
             foreach (var layoutFile in layoutFiles)
             {
                 var layoutText = File.ReadAllText(layoutFile);
-                var layoutJson = JsonNode.Parse(layoutText, null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+                var layoutJson = JsonNode.Parse(
+                    layoutText,
+                    null,
+                    new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+                );
 
                 if (layoutJson is not JsonObject layoutJsonObject)
                 {
-                    var compactLayoutFilePath = string.Join(Path.DirectorySeparatorChar, layoutFile.Split(Path.DirectorySeparatorChar)[^3..]);
-                    warnings.Add($"Unable to parse {compactLayoutFilePath} as a json object, skipping");
+                    var compactLayoutFilePath = string.Join(
+                        Path.DirectorySeparatorChar,
+                        layoutFile.Split(Path.DirectorySeparatorChar)[^3..]
+                    );
+                    _warnings.Add($"Unable to parse {compactLayoutFilePath} as a json object, skipping");
                     continue;
                 }
 
-                layoutCollection.Add(layoutFile, layoutJsonObject);
+                _layoutCollection.Add(layoutFile, layoutJsonObject);
             }
         }
     }
 
     public void Mutate(ILayoutMutator mutator)
     {
-        foreach ((var filePath, var layoutJson) in layoutCollection)
+        foreach ((var filePath, var layoutJson) in _layoutCollection)
         {
-            var compactFilePath = string.Join(Path.DirectorySeparatorChar, filePath.Split(Path.DirectorySeparatorChar)[^3..]);
+            var compactFilePath = string.Join(
+                Path.DirectorySeparatorChar,
+                filePath.Split(Path.DirectorySeparatorChar)[^3..]
+            );
             var components = new List<JsonObject>();
             var componentLookup = new Dictionary<string, JsonObject>();
 
             layoutJson.TryGetPropertyValue("data", out var dataNode);
             if (dataNode is not JsonObject dataObject)
             {
-                warnings.Add($"Unable to parse data node in {compactFilePath}, expected an object");
+                _warnings.Add($"Unable to parse data node in {compactFilePath}, expected an object");
                 continue;
             }
 
@@ -78,13 +91,13 @@ class LayoutMutator
             catch (Exception e)
             {
                 // Duplicate keys in the object will throw an exception here
-                warnings.Add($"Unable to parse layout array in {compactFilePath}, error: {e.Message}");
+                _warnings.Add($"Unable to parse layout array in {compactFilePath}, error: {e.Message}");
                 continue;
             }
 
             if (layoutNode is not JsonArray layoutArray)
             {
-                warnings.Add($"Unable to parse layout node in {compactFilePath}, expected an array");
+                _warnings.Add($"Unable to parse layout node in {compactFilePath}, expected an array");
                 continue;
             }
 
@@ -92,37 +105,39 @@ class LayoutMutator
             {
                 if (componentNode is not JsonObject componentObject)
                 {
-                    warnings.Add($"Unable to parse component {componentNode?.ToJsonString()} in {compactFilePath}, expected an object");
+                    _warnings.Add(
+                        $"Unable to parse component {componentNode?.ToJsonString()} in {compactFilePath}, expected an object"
+                    );
                     continue;
                 }
 
                 JsonNode? idNode;
                 try
                 {
-                    var componentId = componentObject.TryGetPropertyValue("id", out idNode);
+                    componentObject.TryGetPropertyValue("id", out idNode);
                 }
                 catch (Exception e)
                 {
                     // Duplicate keys in the object will throw an exception here
-                    warnings.Add(
+                    _warnings.Add(
                         $"Unable to parse component {componentNode?.ToJsonString()} in {compactFilePath}, error: {e.Message}"
                     );
                     continue;
                 }
 
-                if (
-                    idNode is not JsonValue idValue
-                    || idValue.GetValueKind() != JsonValueKind.String
-                )
+                if (idNode is not JsonValue idValue || idValue.GetValueKind() != JsonValueKind.String)
                 {
-                    warnings.Add($"Unable to parse id {idNode?.ToJsonString()} in {compactFilePath}, expected a string");
+                    _warnings.Add(
+                        $"Unable to parse id {idNode?.ToJsonString()} in {compactFilePath}, expected a string"
+                    );
                     continue;
                 }
 
                 var id = idValue.GetValue<string>();
 
-                if (componentLookup.ContainsKey(id)) {
-                    warnings.Add($"Duplicate id {id} in {compactFilePath}, skipping upgrade of component");
+                if (componentLookup.ContainsKey(id))
+                {
+                    _warnings.Add($"Duplicate id {id} in {compactFilePath}, skipping upgrade of component");
                     continue;
                 }
 
@@ -140,7 +155,9 @@ class LayoutMutator
 
                 if (result is ErrorResult errorResult)
                 {
-                    warnings.Add($"Updating component {component["id"]} in {compactFilePath} failed with the message: {errorResult.Message}");
+                    _warnings.Add(
+                        $"Updating component {component["id"]} in {compactFilePath} failed with the message: {errorResult.Message}"
+                    );
                     continue;
                 }
 
@@ -148,7 +165,9 @@ class LayoutMutator
                 {
                     if (deleteResult.Warnings.Count > 0)
                     {
-                        warnings.Add($"Updating component {component["id"]} in {compactFilePath} resulted in the following warnings: {string.Join(", ", deleteResult.Warnings)}");
+                        _warnings.Add(
+                            $"Updating component {component["id"]} in {compactFilePath} resulted in the following warnings: {string.Join(", ", deleteResult.Warnings)}"
+                        );
                     }
                     layoutArray.Remove(component);
                     continue;
@@ -158,7 +177,9 @@ class LayoutMutator
                 {
                     if (replaceResult.Warnings.Count > 0)
                     {
-                        warnings.Add($"Updating component {component["id"]} in {compactFilePath} resulted in the following warnings: {string.Join(", ", replaceResult.Warnings)}");
+                        _warnings.Add(
+                            $"Updating component {component["id"]} in {compactFilePath} resulted in the following warnings: {string.Join(", ", replaceResult.Warnings)}"
+                        );
                     }
                     var index = layoutArray.IndexOf(component);
                     layoutArray.RemoveAt(index);
@@ -178,7 +199,7 @@ class LayoutMutator
         };
 
         await Task.WhenAll(
-            layoutCollection.Select(async layoutTuple =>
+            _layoutCollection.Select(async layoutTuple =>
             {
                 layoutTuple.Deconstruct(out var filePath, out var layoutJson);
 

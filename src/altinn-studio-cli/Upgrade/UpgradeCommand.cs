@@ -7,7 +7,7 @@ namespace Altinn.Studio.Cli.Upgrade;
 /// <summary>
 /// Contains the upgrade command
 /// </summary>
-public class UpgradeCommand
+public static class UpgradeCommand
 {
     /// <summary>
     /// Gets the upgrade command
@@ -15,11 +15,12 @@ public class UpgradeCommand
     /// <returns></returns>
     public static Command GetUpgradeCommand()
     {
-        var projectFolderOption = new Option<string>(name: "--folder", description: "The project folder to read", getDefaultValue: () => "CurrentDirectory");
-        var upgradeCommand = new Command("upgrade", "Upgrade an app")
-        {
-            projectFolderOption,
-        };
+        var projectFolderOption = new Option<string>(
+            name: "--folder",
+            description: "The project folder to read",
+            getDefaultValue: () => "CurrentDirectory"
+        );
+        var upgradeCommand = new Command("upgrade", "Upgrade an app") { projectFolderOption };
         upgradeCommand.AddCommand(FrontendUpgrade.GetUpgradeCommand(projectFolderOption));
         upgradeCommand.AddCommand(BackendUpgrade.GetUpgradeCommand(projectFolderOption));
         return upgradeCommand;

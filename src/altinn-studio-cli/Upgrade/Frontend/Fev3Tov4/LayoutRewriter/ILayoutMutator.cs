@@ -2,21 +2,21 @@ using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter;
 
-abstract class IMutationResult { }
+internal interface IMutationResult { }
 
-class SkipResult : IMutationResult { }
+internal sealed class SkipResult : IMutationResult { }
 
-class DeleteResult : IMutationResult
+internal sealed class DeleteResult : IMutationResult
 {
     public List<string> Warnings { get; set; } = new List<string>();
 }
 
-class ErrorResult : IMutationResult
+internal sealed class ErrorResult : IMutationResult
 {
     public required string Message { get; set; }
 }
 
-class ReplaceResult : IMutationResult
+internal sealed class ReplaceResult : IMutationResult
 {
     public required JsonObject Component { get; set; }
     public List<string> Warnings { get; set; } = new List<string>();
@@ -26,10 +26,7 @@ class ReplaceResult : IMutationResult
  * Note: The Mutate function receives a clone of the component and can be modified directly, and then returned in ReplaceResult.
  */
 
-abstract class ILayoutMutator
+internal interface ILayoutMutator
 {
-    public abstract IMutationResult Mutate(
-        JsonObject component,
-        Dictionary<string, JsonObject> componentLookup
-    );
+    IMutationResult Mutate(JsonObject component, Dictionary<string, JsonObject> componentLookup);
 }

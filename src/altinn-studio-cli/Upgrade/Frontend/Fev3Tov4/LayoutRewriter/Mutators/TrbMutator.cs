@@ -7,25 +7,22 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 /// Upgrades title/description text resource bindings for Groups and Repeating groups
 /// Assumes that Group components have already been upgraded to new Group components
 /// </summary>
-class TrbMutator : ILayoutMutator
+internal sealed class TrbMutator : ILayoutMutator
 {
-    private readonly bool convertGroupTitles;
+    private readonly bool _convertGroupTitles;
 
     public TrbMutator(bool convertGroupTitles)
     {
-        this.convertGroupTitles = convertGroupTitles;
+        _convertGroupTitles = convertGroupTitles;
     }
 
-    public override IMutationResult Mutate(
-        JsonObject component,
-        Dictionary<string, JsonObject> componentLookup
-    )
+    public IMutationResult Mutate(JsonObject component, Dictionary<string, JsonObject> componentLookup)
     {
         if (
             !component.TryGetPropertyValue("type", out var typeNode)
             || typeNode is not JsonValue typeValue
             || typeValue.GetValueKind() != JsonValueKind.String
-            || typeValue.GetValue<string>() is var type && type == null
+            || typeValue.GetValue<string>() is var type && type is null
         )
         {
             return new ErrorResult() { Message = "Unable to parse component type" };
@@ -57,10 +54,7 @@ class TrbMutator : ILayoutMutator
                 repeatingTrbObject.Remove("body");
             }
 
-            if (
-                this.convertGroupTitles
-                && repeatingTrbObject.TryGetPropertyValue("title", out var repeatingTitleNode)
-            )
+            if (_convertGroupTitles && repeatingTrbObject.TryGetPropertyValue("title", out var repeatingTitleNode))
             {
                 repeatingTrbObject["summaryTitle"] = repeatingTitleNode?.DeepClone();
                 repeatingTrbObject.Remove("title");

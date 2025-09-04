@@ -4,35 +4,38 @@ using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutSetRewriter;
 
-class LayoutSetUpgrader
+internal sealed class LayoutSetUpgrader
 {
-
-    private readonly IList<string> warnings = new List<string>();
-    private readonly string uiFolder;
-    private readonly string layoutSetName;
-    private readonly string applicationMetadataFile;
-    private JsonNode? layoutSetsJson = null;
+    private readonly IList<string> _warnings = new List<string>();
+    private readonly string _uiFolder;
+    private readonly string _layoutSetName;
+    private readonly string _applicationMetadataFile;
+    private JsonNode? _layoutSetsJson = null;
 
     public LayoutSetUpgrader(string uiFolder, string layoutSetName, string applicationMetadataFile)
     {
-        this.uiFolder = uiFolder;
-        this.layoutSetName = layoutSetName;
-        this.applicationMetadataFile = applicationMetadataFile;
+        _uiFolder = uiFolder;
+        _layoutSetName = layoutSetName;
+        _applicationMetadataFile = applicationMetadataFile;
     }
 
     public IList<string> GetWarnings()
     {
-        return warnings;
+        return _warnings;
     }
 
     public void Upgrade()
     {
         // Read applicationmetadata.json file
-        var appMetaText = File.ReadAllText(applicationMetadataFile);
-        var appMetaJson = JsonNode.Parse(appMetaText, null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+        var appMetaText = File.ReadAllText(_applicationMetadataFile);
+        var appMetaJson = JsonNode.Parse(
+            appMetaText,
+            null,
+            new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+        );
         if (appMetaJson is not JsonObject appMetaJsonObject)
         {
-            warnings.Add($"Unable to parse applicationmetadata.json, skipping layout sets upgrade");
+            _warnings.Add($"Unable to parse applicationmetadata.json, skipping layout sets upgrade");
             return;
         }
 
@@ -40,18 +43,22 @@ class LayoutSetUpgrader
         JsonNode? dataTypes;
         try
         {
-          appMetaJsonObject.TryGetPropertyValue("dataTypes", out dataTypes);
+            appMetaJsonObject.TryGetPropertyValue("dataTypes", out dataTypes);
         }
         catch (Exception e)
         {
             // Duplicate keys in the object will throw an exception here
-            warnings.Add($"Unable to parse applicationmetadata.json, skipping layout sets upgrade, error: {e.Message}");
+            _warnings.Add(
+                $"Unable to parse applicationmetadata.json, skipping layout sets upgrade, error: {e.Message}"
+            );
             return;
         }
 
         if (dataTypes is not JsonArray dataTypesArray)
         {
-            warnings.Add($"dataTypes has unexpected value {dataTypes?.ToJsonString()} in applicationmetadata.json, expected an array");
+            _warnings.Add(
+                $"dataTypes has unexpected value {dataTypes?.ToJsonString()} in applicationmetadata.json, expected an array"
+            );
             return;
         }
 
@@ -62,7 +69,9 @@ class LayoutSetUpgrader
         {
             if (dataType is not JsonObject dataTypeObject)
             {
-                warnings.Add($"Unable to parse data type {dataType?.ToJsonString()} in applicationmetadata.json, expected an object");
+                _warnings.Add(
+                    $"Unable to parse data type {dataType?.ToJsonString()} in applicationmetadata.json, expected an object"
+                );
                 continue;
             }
 
@@ -73,7 +82,9 @@ class LayoutSetUpgrader
 
             if (appLogic is not JsonObject appLogicObject)
             {
-                warnings.Add($"Unable to parse appLogic {appLogic?.ToJsonString()} in applicationmetadata.json, expected an object");
+                _warnings.Add(
+                    $"Unable to parse appLogic {appLogic?.ToJsonString()} in applicationmetadata.json, expected an object"
+                );
                 continue;
             }
 
@@ -86,25 +97,34 @@ class LayoutSetUpgrader
 
             if (!dataTypeObject.TryGetPropertyValue("id", out var dataTypeIdNode))
             {
-                warnings.Add($"Unable to find id in {dataTypeObject.ToJsonString()} in applicationmetadata.json");
+                _warnings.Add($"Unable to find id in {dataTypeObject.ToJsonString()} in applicationmetadata.json");
                 break;
             }
 
             if (!dataTypeObject.TryGetPropertyValue("taskId", out var taskIdNode))
             {
-                warnings.Add($"Unable to find taskId in dataType {dataTypeIdNode?.ToJsonString()} in applicationmetadata.json");
+                _warnings.Add(
+                    $"Unable to find taskId in dataType {dataTypeIdNode?.ToJsonString()} in applicationmetadata.json"
+                );
                 break;
             }
 
-            if (dataTypeIdNode is not JsonValue dataTypeIdValue || dataTypeIdValue.GetValueKind() != JsonValueKind.String)
+            if (
+                dataTypeIdNode is not JsonValue dataTypeIdValue
+                || dataTypeIdValue.GetValueKind() != JsonValueKind.String
+            )
             {
-                warnings.Add($"Unable to parse id {dataTypeIdNode?.ToJsonString()} in applicationmetadata.json, expected a string");
+                _warnings.Add(
+                    $"Unable to parse id {dataTypeIdNode?.ToJsonString()} in applicationmetadata.json, expected a string"
+                );
                 break;
             }
 
             if (taskIdNode is not JsonValue taskIdValue || taskIdValue.GetValueKind() != JsonValueKind.String)
             {
-                warnings.Add($"Unable to parse taskId {taskIdNode?.ToJsonString()} in applicationmetadata.json, expected a string");
+                _warnings.Add(
+                    $"Unable to parse taskId {taskIdNode?.ToJsonString()} in applicationmetadata.json, expected a string"
+                );
                 break;
             }
 
@@ -113,19 +133,22 @@ class LayoutSetUpgrader
             break;
         }
 
-        if (dataTypeId == null || taskId == null)
+        if (dataTypeId is null || taskId is null)
         {
-            warnings.Add($"Unable to find a data model (data type with classRef and task) in applicationmetadata.json, skipping layout sets upgrade. Please add a data model and try again.");
+            _warnings.Add(
+                $"Unable to find a data model (data type with classRef and task) in applicationmetadata.json, skipping layout sets upgrade. Please add a data model and try again."
+            );
             return;
         }
 
-        var layoutSetsJsonString = $@"{{""$schema"": ""https://altinncdn.no/schemas/json/layout/layout-sets.schema.v1.json"", ""sets"": [{{""id"": ""{layoutSetName}"", ""dataType"": ""{dataTypeId}"", ""tasks"": [""{taskId}""]}}]}}";
-        layoutSetsJson = JsonNode.Parse(layoutSetsJsonString);
+        var layoutSetsJsonString =
+            $@"{{""$schema"": ""https://altinncdn.no/schemas/json/layout/layout-sets.schema.v1.json"", ""sets"": [{{""id"": ""{_layoutSetName}"", ""dataType"": ""{dataTypeId}"", ""tasks"": [""{taskId}""]}}]}}";
+        _layoutSetsJson = JsonNode.Parse(layoutSetsJsonString);
     }
 
     public async Task Write()
     {
-        if (layoutSetsJson == null)
+        if (_layoutSetsJson is null)
         {
             return;
         }
@@ -137,18 +160,18 @@ class LayoutSetUpgrader
         };
 
         // Create new layout set folder
-        Directory.CreateDirectory(Path.Combine(uiFolder, layoutSetName));
+        Directory.CreateDirectory(Path.Combine(_uiFolder, _layoutSetName));
 
         // Move existing files to new layout set
-        var oldLayoutsPath = Path.Combine(uiFolder, "layouts");
-        var newLayoutsPath = Path.Combine(uiFolder, layoutSetName, "layouts");
+        var oldLayoutsPath = Path.Combine(_uiFolder, "layouts");
+        var newLayoutsPath = Path.Combine(_uiFolder, _layoutSetName, "layouts");
         if (Directory.Exists(oldLayoutsPath))
         {
             if (Directory.Exists(newLayoutsPath))
             {
-                if (Directory.GetFileSystemEntries(newLayoutsPath).Count() > 0)
+                if (Directory.EnumerateFileSystemEntries(newLayoutsPath).Any())
                 {
-                    throw new Exception($"The folder {newLayoutsPath} already exists and is not empty");
+                    throw new InvalidOperationException($"The folder {newLayoutsPath} already exists and is not empty");
                 }
 
                 Directory.Delete(newLayoutsPath, false);
@@ -159,35 +182,37 @@ class LayoutSetUpgrader
         else
         {
             Directory.CreateDirectory(newLayoutsPath);
-            if (File.Exists(Path.Combine(uiFolder, "FormLayout.json")))
+            if (File.Exists(Path.Combine(_uiFolder, "FormLayout.json")))
             {
-                File.Move(Path.Combine(uiFolder, "FormLayout.json"), Path.Combine(newLayoutsPath, "FormLayout.json"));
+                File.Move(Path.Combine(_uiFolder, "FormLayout.json"), Path.Combine(newLayoutsPath, "FormLayout.json"));
             }
         }
-        
 
-        var oldSettingsPath = Path.Combine(uiFolder, "Settings.json");
-        var newSettingsPath = Path.Combine(uiFolder, layoutSetName, "Settings.json");
+        var oldSettingsPath = Path.Combine(_uiFolder, "Settings.json");
+        var newSettingsPath = Path.Combine(_uiFolder, _layoutSetName, "Settings.json");
         if (File.Exists(oldSettingsPath))
         {
             File.Move(oldSettingsPath, newSettingsPath);
         }
 
-        var oldRuleConfigurationPath = Path.Combine(uiFolder, "RuleConfiguration.json");
-        var newRuleConfigurationPath = Path.Combine(uiFolder, layoutSetName, "RuleConfiguration.json");
+        var oldRuleConfigurationPath = Path.Combine(_uiFolder, "RuleConfiguration.json");
+        var newRuleConfigurationPath = Path.Combine(_uiFolder, _layoutSetName, "RuleConfiguration.json");
         if (File.Exists(oldRuleConfigurationPath))
         {
             File.Move(oldRuleConfigurationPath, newRuleConfigurationPath);
         }
 
-        var oldRuleHandlerPath = Path.Combine(uiFolder, "RuleHandler.js");
-        var newRuleHandlerPath = Path.Combine(uiFolder, layoutSetName, "RuleHandler.js");
+        var oldRuleHandlerPath = Path.Combine(_uiFolder, "RuleHandler.js");
+        var newRuleHandlerPath = Path.Combine(_uiFolder, _layoutSetName, "RuleHandler.js");
         if (File.Exists(oldRuleHandlerPath))
         {
             File.Move(oldRuleHandlerPath, newRuleHandlerPath);
         }
 
         // Write new layout-sets.json
-        await File.WriteAllTextAsync(Path.Combine(uiFolder, "layout-sets.json"), layoutSetsJson.ToJsonString(options));
+        await File.WriteAllTextAsync(
+            Path.Combine(_uiFolder, "layout-sets.json"),
+            _layoutSetsJson.ToJsonString(options)
+        );
     }
 }

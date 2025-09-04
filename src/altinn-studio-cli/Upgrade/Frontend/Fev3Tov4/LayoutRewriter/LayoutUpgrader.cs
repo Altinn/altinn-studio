@@ -2,21 +2,21 @@ using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 
 namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter;
 
-class LayoutUpgrader
+internal sealed class LayoutUpgrader
 {
-    private readonly IList<string> warnings = new List<string>();
-    private readonly LayoutMutator layoutMutator;
-    private readonly bool convertGroupTitles;
+    private readonly IList<string> _warnings = new List<string>();
+    private readonly LayoutMutator _layoutMutator;
+    private readonly bool _convertGroupTitles;
 
     public LayoutUpgrader(string uiFolder, bool convertGroupTitles)
     {
-        this.layoutMutator = new LayoutMutator(uiFolder);
-        this.convertGroupTitles = convertGroupTitles;
+        _layoutMutator = new LayoutMutator(uiFolder);
+        _convertGroupTitles = convertGroupTitles;
     }
 
     public IList<string> GetWarnings()
     {
-        return warnings.Concat(layoutMutator.GetWarnings()).Distinct().ToList();
+        return _warnings.Concat(_layoutMutator.GetWarnings()).Distinct().ToList();
     }
 
     /**
@@ -24,19 +24,19 @@ class LayoutUpgrader
      */
     public void Upgrade()
     {
-        layoutMutator.ReadAllLayoutFiles();
-        layoutMutator.Mutate(new AddressMutator());
-        layoutMutator.Mutate(new LikertMutator());
-        layoutMutator.Mutate(new RepeatingGroupMutator());
-        layoutMutator.Mutate(new GroupMutator());
-        layoutMutator.Mutate(new TriggerMutator());
-        layoutMutator.Mutate(new TrbMutator(this.convertGroupTitles));
-        layoutMutator.Mutate(new AttachmentListMutator());
-        layoutMutator.Mutate(new PropertyCleanupMutator());
+        _layoutMutator.ReadAllLayoutFiles();
+        _layoutMutator.Mutate(new AddressMutator());
+        _layoutMutator.Mutate(new LikertMutator());
+        _layoutMutator.Mutate(new RepeatingGroupMutator());
+        _layoutMutator.Mutate(new GroupMutator());
+        _layoutMutator.Mutate(new TriggerMutator());
+        _layoutMutator.Mutate(new TrbMutator(_convertGroupTitles));
+        _layoutMutator.Mutate(new AttachmentListMutator());
+        _layoutMutator.Mutate(new PropertyCleanupMutator());
     }
 
     public async Task Write()
     {
-        await layoutMutator.WriteAllLayoutFiles();
+        await _layoutMutator.WriteAllLayoutFiles();
     }
 }

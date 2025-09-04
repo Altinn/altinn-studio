@@ -7,19 +7,16 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 /// Upgrades repeating groups to new repeating group component
 /// This assumes that likert has already been converted to new likert component
 /// </summary>
-class RepeatingGroupMutator : ILayoutMutator
+internal sealed class RepeatingGroupMutator : ILayoutMutator
 {
-    public override IMutationResult Mutate(
-        JsonObject component,
-        Dictionary<string, JsonObject> componentLookup
-    )
+    public IMutationResult Mutate(JsonObject component, Dictionary<string, JsonObject> componentLookup)
     {
         var warnings = new List<string>();
         if (
             !component.TryGetPropertyValue("type", out var typeNode)
             || typeNode is not JsonValue typeValue
             || typeValue.GetValueKind() != JsonValueKind.String
-            || typeValue.GetValue<string>() is var type && type == null
+            || typeValue.GetValue<string>() is var type && type is null
         )
         {
             return new ErrorResult() { Message = "Unable to parse component type" };
@@ -70,19 +67,32 @@ class RepeatingGroupMutator : ILayoutMutator
                             }
                         }
 
-                        if (expressions.Count == 1) {
+                        if (expressions.Count == 1)
+                        {
                             component["hiddenRow"] = JsonNode.Parse(expressions[0]);
-                        } else if (expressions.Count > 1) {
+                        }
+                        else if (expressions.Count > 1)
+                        {
                             component["hiddenRow"] = JsonNode.Parse(@$"[""or"", {string.Join(", ", expressions)}]");
                         }
 
                         if (expressions.Count == filterArray.Count)
                         {
-                            warnings.Add("filter property has been migrated to hiddenRow property, please verify that the component is still working as intended");
-                        } else if (expressions.Count > 0){
-                            warnings.Add("filter property was partially migrated to hiddenRow property, please verify that the component is still working as intended");
-                        } else {
-                            warnings.Add("filter property could not be migrated to hiddenRow property, something went wrong");
+                            warnings.Add(
+                                "filter property has been migrated to hiddenRow property, please verify that the component is still working as intended"
+                            );
+                        }
+                        else if (expressions.Count > 0)
+                        {
+                            warnings.Add(
+                                "filter property was partially migrated to hiddenRow property, please verify that the component is still working as intended"
+                            );
+                        }
+                        else
+                        {
+                            warnings.Add(
+                                "filter property could not be migrated to hiddenRow property, something went wrong"
+                            );
                         }
                     }
                 }

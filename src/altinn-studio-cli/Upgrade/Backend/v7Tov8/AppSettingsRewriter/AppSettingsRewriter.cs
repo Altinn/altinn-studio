@@ -6,37 +6,40 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.AppSettingsRewriter;
 /// <summary>
 /// Rewrites the appsettings.*.json files
 /// </summary>
-public class AppSettingsRewriter
+internal sealed class AppSettingsRewriter
 {
     /// <summary>
     /// The pattern used to search for appsettings.*.json files
     /// </summary>
     public const string AppSettingsFilePattern = "appsettings*.json";
 
-    private Dictionary<string, JsonObject> appSettingsJsonCollection;
+    private readonly Dictionary<string, JsonObject> _appSettingsJsonCollection;
 
-    private readonly IList<string> warnings = new List<string>();
+    private readonly IList<string> _warnings = new List<string>();
 
-    private readonly JsonDocumentOptions jsonDocumentOptions = new JsonDocumentOptions()
-        { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+    private readonly JsonDocumentOptions _jsonDocumentOptions = new JsonDocumentOptions()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppSettingsRewriter"/> class.
     /// </summary>
     public AppSettingsRewriter(string appSettingsFolder)
     {
-        appSettingsJsonCollection = new Dictionary<string, JsonObject>();
+        _appSettingsJsonCollection = new Dictionary<string, JsonObject>();
         foreach (var file in Directory.GetFiles(appSettingsFolder, AppSettingsFilePattern))
         {
             var json = File.ReadAllText(file);
-            var appSettingsJson = JsonNode.Parse(json, null, jsonDocumentOptions);
+            var appSettingsJson = JsonNode.Parse(json, null, _jsonDocumentOptions);
             if (appSettingsJson is not JsonObject appSettingsJsonObject)
             {
-                warnings.Add($"Unable to parse AppSettings file {file} as a json object, skipping");
+                _warnings.Add($"Unable to parse AppSettings file {file} as a json object, skipping");
                 continue;
             }
 
-            this.appSettingsJsonCollection.Add(file, appSettingsJsonObject);
+            this._appSettingsJsonCollection.Add(file, appSettingsJsonObject);
         }
     }
 
@@ -45,7 +48,7 @@ public class AppSettingsRewriter
     /// </summary>
     public IList<string> GetWarnings()
     {
-        return warnings;
+        return _warnings;
     }
 
     /// <summary>
@@ -53,7 +56,7 @@ public class AppSettingsRewriter
     /// </summary>
     public void Upgrade()
     {
-        foreach ((var fileName, var appSettingsJson) in appSettingsJsonCollection)
+        foreach ((var fileName, var appSettingsJson) in _appSettingsJsonCollection)
         {
             RewriteRemoveHiddenDataSetting(fileName, appSettingsJson);
         }
@@ -64,14 +67,11 @@ public class AppSettingsRewriter
     /// </summary>
     public async Task Write()
     {
-        var tasks = appSettingsJsonCollection.Select(async appSettingsFiles =>
+        var tasks = _appSettingsJsonCollection.Select(async appSettingsFiles =>
         {
             appSettingsFiles.Deconstruct(out var fileName, out var appSettingsJson);
 
-            JsonSerializerOptions options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-            };
+            JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
             await File.WriteAllTextAsync(fileName, appSettingsJson.ToJsonString(options));
         });
 
@@ -102,16 +102,18 @@ public class AppSettingsRewriter
             // Get value of "RemoveHiddenDataPreview" property
             if (!removeHiddenDataPreviewValue.TryGetValue<bool>(out var removeHiddenDataValue))
             {
-                warnings.Add(
-                    $"RemoveHiddenDataPreview has unexpected value {removeHiddenDataPreviewValue.ToJsonString()} in {fileName}, expected a boolean");
+                _warnings.Add(
+                    $"RemoveHiddenDataPreview has unexpected value {removeHiddenDataPreviewValue.ToJsonString()} in {fileName}, expected a boolean"
+                );
                 return;
             }
 
             appSettingsObject.Remove("RemoveHiddenDataPreview");
             if (appSettingsObject.ContainsKey("RemoveHiddenData"))
             {
-                warnings.Add(
-                    $"RemoveHiddenData already exists in AppSettings, skipping. Tool would have set the value to: {removeHiddenDataValue} in {fileName}");
+                _warnings.Add(
+                    $"RemoveHiddenData already exists in AppSettings, skipping. Tool would have set the value to: {removeHiddenDataValue} in {fileName}"
+                );
             }
             else
             {
@@ -120,8 +122,9 @@ public class AppSettingsRewriter
 
             if (appSettingsObject.ContainsKey("RequiredValidation"))
             {
-                warnings.Add(
-                    $"RequiredValidation already exists in AppSettings, skipping. Tool would have set the value to: {removeHiddenDataValue} in {fileName}");
+                _warnings.Add(
+                    $"RequiredValidation already exists in AppSettings, skipping. Tool would have set the value to: {removeHiddenDataValue} in {fileName}"
+                );
             }
             else
             {
@@ -130,8 +133,9 @@ public class AppSettingsRewriter
         }
         catch (Exception e)
         {
-            warnings.Add(
-                $"Unable to parse appsettings file {fileName}, error: {e.Message}. Skipping upgrade of RemoveHiddenDataPreview for this file");
+            _warnings.Add(
+                $"Unable to parse appsettings file {fileName}, error: {e.Message}. Skipping upgrade of RemoveHiddenDataPreview for this file"
+            );
         }
     }
 }

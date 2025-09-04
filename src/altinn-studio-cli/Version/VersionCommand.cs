@@ -6,7 +6,7 @@ namespace Altinn.Studio.Cli.Version;
 /// <summary>
 /// Contains the version command
 /// </summary>
-public class VersionCommand
+public static class VersionCommand
 {
     /// <summary>
     /// Gets the version command
@@ -18,7 +18,11 @@ public class VersionCommand
         var versionCommand = new Command("version", $"Print version of {executableName} cli");
         versionCommand.SetHandler(() =>
         {
-            var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "Unknown";
+            var version =
+                Assembly
+                    .GetEntryAssembly()
+                    ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion ?? "Unknown";
             Console.WriteLine($"{executableName} cli v{version}");
         });
         return versionCommand;
