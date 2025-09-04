@@ -9,12 +9,11 @@ import type {
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
-  StudioCenter,
   StudioPageError,
   StudioPageSpinner,
   StudioSpinner,
 } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioCenter } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
