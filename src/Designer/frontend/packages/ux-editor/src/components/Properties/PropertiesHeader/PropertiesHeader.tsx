@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
 import { formItemConfigs } from '../../../data/formItemConfig';
-import { StudioAlert, StudioSectionHeader } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components-legacy';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -14,6 +14,7 @@ import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
 import { TextMainConfig } from './TextMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
+import { StudioAlert } from '@studio/components';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -46,7 +47,7 @@ export const PropertiesHeader = ({
         }}
       />
       {isComponentDeprecated(formItem.type) && (
-        <StudioAlert size='sm' className={classes.alertWrapper} severity='warning'>
+        <StudioAlert data-size='sm' className={classes.alertWrapper} data-color='warning'>
           {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
         </StudioAlert>
       )}

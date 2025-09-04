@@ -8,12 +8,7 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import {
-  StudioAlert,
-  StudioPageHeader,
-  StudioPageSpinner,
-  useMediaQuery,
-} from '@studio/components-legacy';
+import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components-legacy';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -22,6 +17,7 @@ import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLa
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
+import { StudioAlert } from '@studio/components';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
@@ -99,7 +95,7 @@ export const LandingPage = () => {
         <StudioPageHeader.Sub>
           <AppPreviewSubMenu />
           {isSubform && (
-            <StudioAlert severity='warning'>
+            <StudioAlert data-color='warning'>
               {t('ux_editor.preview.subform_unsupported_warning')}
             </StudioAlert>
           )}
