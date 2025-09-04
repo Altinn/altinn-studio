@@ -6120,11 +6120,11 @@ __metadata:
   linkType: hard
 
 "babel-plugin-react-compiler@npm:^19.1.0-rc.2":
-  version: 19.1.0-rc.2
-  resolution: "babel-plugin-react-compiler@npm:19.1.0-rc.2"
+  version: 19.1.0-rc.3
+  resolution: "babel-plugin-react-compiler@npm:19.1.0-rc.3"
   dependencies:
     "@babel/types": "npm:^7.26.0"
-  checksum: 10c0/d48f6f7956852730c3bb92630e166348bf1849830829cdaaae83cbc29769d1933260dbf4ba77be6dd511f0c0c0a0ad479022f2cad7534e744dc360ce9c8ad7a9
+  checksum: 10c0/6811500cf81a309f104ec1de3fa9336932a1105e3c0e747b81a1d12e80c2cd4f531f7c42ec4441f96527ee20e19342af58d958241061d47a02b0d8bee66fbe35
   languageName: node
   linkType: hard
 
