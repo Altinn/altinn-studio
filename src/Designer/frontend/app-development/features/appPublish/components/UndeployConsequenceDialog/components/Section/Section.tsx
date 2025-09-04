@@ -1,5 +1,6 @@
 import React, { type ReactElement } from 'react';
-import { StudioHeading, StudioList } from '@studio/components-legacy';
+import { StudioList } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import classes from './Section.module.css';
 
 type SectionProps = {
@@ -8,7 +9,7 @@ type SectionProps = {
 };
 export const Section = ({ title, children }: SectionProps): ReactElement => (
   <div className={classes.section}>
-    <StudioHeading level={3} size='2xs' spacing className={classes.heading}>
+    <StudioHeading level={3} data-size='2xs' spacing className={classes.heading}>
       {title}
     </StudioHeading>
     <StudioList.Root size='sm'>

@@ -1,7 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './PdfConfigCard.module.css';
-import { StudioHeading, StudioSwitch } from '@studio/components-legacy';
-import { StudioParagraph, StudioCard } from '@studio/components';
+import { StudioSwitch } from '@studio/components-legacy';
+import { StudioParagraph, StudioCard, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';
 import { useSavableFormLayoutSettings } from '../../../../../hooks/useSavableFormLayoutSettings';
@@ -32,7 +32,7 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
   return (
     <StudioCard color='neutral' className={classes.card}>
       <div className={classes.headerWrapper}>
-        <StudioHeading level={2} size='2xs'>
+        <StudioHeading level={2} data-size='2xs'>
           {t('ux_editor.page_config_pdf_card_heading')}
         </StudioHeading>
         <StudioSwitch
