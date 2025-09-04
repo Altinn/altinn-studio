@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
@@ -20,47 +21,75 @@ public sealed class Code
     /// </summary>
     [NotNullable]
     [JsonPropertyName("label")]
-    public required LanguageSupportedString Label { get; set; }
+    public required Dictionary<string, string> Label { get; set; }
 
     /// <summary>
     /// Description, typically displayed below the label.
     /// </summary>
     [JsonPropertyName("description")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public LanguageSupportedString? Description { get; set; }
+    public Dictionary<string, string>? Description { get; set; }
 
     /// <summary>
     /// Help text, typically wrapped inside a popover.
     /// </summary>
     [JsonPropertyName("helpText")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public LanguageSupportedString? HelpText { get; set; }
-}
+    public Dictionary<string, string>? HelpText { get; set; }
 
-public sealed class LanguageSupportedString
-{
-    public Dictionary<string, string>? LanguageCodes { get; set; }
-
-    public IEnumerable<string> GetAvailableLanguages()
+    public override bool Equals(object? obj)
     {
-        if (LanguageCodes is null)
+        Code? other = obj as Code;
+        if (other is null)
         {
-            return [];
+            return false;
         }
-        return [.. LanguageCodes.Keys];
+
+        if (!other.Value.Equals(Value))
+        {
+            return false;
+        }
+
+        if (!other.Label.Equals(Label))
+        {
+            return false;
+        }
+
+        if (other.Description is not null && Description is null)
+        {
+            return false;
+        }
+
+        if (other.Description is null && Description is not null)
+        {
+            return false;
+        }
+
+        if (!other.Description!.Equals(Description))
+        {
+            return false;
+        }
+
+        if (other.HelpText is not null && HelpText is null)
+        {
+            return false;
+        }
+
+        if (other.HelpText is null && HelpText is not null)
+        {
+            return false;
+        }
+
+        if (!other.HelpText!.Equals(HelpText))
+        {
+            return false;
+        }
+
+        return true;
     }
 
-    public string GetStringForLang(string lang)
+    public override int GetHashCode()
     {
-        if (LanguageCodes is null)
-        {
-            return string.Empty;
-        }
-        if (LanguageCodes.TryGetValue(lang, out string? value))
-        {
-            return value;
-        }
-
-        return string.Empty;
+        return HashCode.Combine(Value, Label, Description, HelpText);
     }
 }

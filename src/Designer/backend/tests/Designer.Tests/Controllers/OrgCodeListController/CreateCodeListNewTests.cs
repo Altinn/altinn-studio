@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
@@ -42,9 +41,8 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        Dictionary<string, string> languageCodes = new() {{"nb", "en tekst"}};
-        LanguageSupportedString languageSupportedString = new() { LanguageCodes = languageCodes };
-        List<Code> listOfCodes = [ new() {Value = "test value", Label = languageSupportedString}];
+        Dictionary<string,string> labelTexts = new() {{"nb", "en tekst"}};
+        List<Code> listOfCodes = [ new() {Value = "test value", Label = labelTexts}];
         CodeList codeList = new() { Codes = listOfCodes, Version = string.Empty, SourceName = string.Empty, };
         string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
 
@@ -56,12 +54,11 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseContent = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseContent, s_jsonOptions);
+        List<CodeListData> responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseContent, s_jsonOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(expectedResponse.Count, responseList.Count);
-
     }
 
     private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/new/{CodeListId}";

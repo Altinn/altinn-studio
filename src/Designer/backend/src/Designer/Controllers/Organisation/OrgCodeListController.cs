@@ -213,7 +213,7 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("new/{codeListId}")]
-    public async Task<ActionResult<List<CodeListData>>> UpdateCodeList(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListData>>> UpdateCodeListNew(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

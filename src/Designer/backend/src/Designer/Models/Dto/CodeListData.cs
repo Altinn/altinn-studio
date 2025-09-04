@@ -1,19 +1,56 @@
+#nullable enable
+using System;
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
 public class CodeListData
 {
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public required string Title { get; set; }
     [JsonPropertyName("data")]
-    [CanBeNull] public CodeList Data { get; set; }
+    public CodeList? Data { get; set; }
     [JsonPropertyName("hasError")]
     public bool? HasError { get; set; }
 
-    // public override bool Equals(object obj)
-    // {
-    //     //TODO
-    // }
+    public override bool Equals(object? obj)
+    {
+        CodeListData? other = obj as CodeListData;
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (other.Title != Title)
+        {
+            return false;
+        }
+
+        if (other.HasError != HasError)
+        {
+            return false;
+        }
+
+        if (other.Data is not null && Data is null)
+        {
+            return false;
+        }
+
+        if (other.Data is null && Data is not null)
+        {
+            return false;
+        }
+
+        if (!other.Data!.Equals(Data))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Title, Data, HasError);
+    }
 }
