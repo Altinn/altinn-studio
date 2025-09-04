@@ -32,28 +32,31 @@ export const StudioIconCard = ({
   className,
 }: StudioIconCardProps) => {
   return (
-    <StudioCard className={cn(classes.card, className)}>
-      {contextButtons && (
-        <StudioPopover placement='bottom-start' size='sm'>
-          <StudioPopoverTrigger
-            title={menuButtonTitle}
-            variant='tertiary'
-            className={classes.editIcon}
-          >
-            <MenuElipsisVerticalIcon />
-          </StudioPopoverTrigger>
-          <StudioPopoverContent className={classes.popoverContent}>
-            {contextButtons}
-          </StudioPopoverContent>
-        </StudioPopover>
-      )}
-      <div className={classes.iconContainer}>
-        <div className={cn(classes.iconBackground, classes[iconColor])} aria-hidden={true}>
-          {icon}
+    <>
+      {/** This StudioCard is not replaced becuase the ESLint rule prevents importing from @studio/components in the legacy package. and the entire StudioIconCard will be removed as it is a part from legacy */}
+      <StudioCard className={cn(classes.card, className)}>
+        {contextButtons && (
+          <StudioPopover placement='bottom-start' size='sm'>
+            <StudioPopoverTrigger
+              title={menuButtonTitle}
+              variant='tertiary'
+              className={classes.editIcon}
+            >
+              <MenuElipsisVerticalIcon />
+            </StudioPopoverTrigger>
+            <StudioPopoverContent className={classes.popoverContent}>
+              {contextButtons}
+            </StudioPopoverContent>
+          </StudioPopover>
+        )}
+        <div className={classes.iconContainer}>
+          <div className={cn(classes.iconBackground, classes[iconColor])} aria-hidden={true}>
+            {icon}
+          </div>
         </div>
-      </div>
 
-      <div className={classes.content}>{children}</div>
-    </StudioCard>
+        <div className={classes.content}>{children}</div>
+      </StudioCard>
+    </>
   );
 };
