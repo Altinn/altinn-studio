@@ -76,7 +76,7 @@ test('It is possible to change context and view only Testdepartementet apps', as
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
 });
 
-test.skip('It is possible to search an app by name', async ({
+test('It is possible to search an app by name', async ({
   page,
   testAppName,
   request,
@@ -108,10 +108,7 @@ test('It is possible to open Gitea repository of an app from the dashboard', asy
   await dashboardPage.verifyGiteaPage();
 });
 
-test.skip('It is possible to open an application from the dashboard', async ({
-  page,
-  testAppName,
-}) => {
+test('It is possible to open an application from the dashboard', async ({ page, testAppName }) => {
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
   const overviewPage = new OverviewPage(page, { app: testAppName });
 
