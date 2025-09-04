@@ -51,15 +51,21 @@
         "/^Microsoft\\.Build/"
       ],
       "enabled": false
+    },
+    {
+      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**", "src/App/Designer/**"],
+      "ignoreDeps": ["Altinn.App.Core"]
+    },
+    {
+      "matchFileNames": ["src/App/Designer/**"],
+      "ignoreDeps": [
+        "Moq",
+        "Basic.Reference.Assemblies",
+        "Microsoft.CodeAnalysis.CSharp",
+        "Microsoft.CodeAnalysis.Common"
+      ]
     }
   ],
   "ignorePaths": ["src/Altinn.Platform/**", "src/test/**"],
-  "ignoreDeps": [
-    "Moq",
-    "Altinn.App.Core",
-    "Basic.Reference.Assemblies",
-    "Microsoft.CodeAnalysis.CSharp",
-    "Microsoft.CodeAnalysis.Common"
-  ],
   "schedule": ["before 07:00 on Monday"]
 }
