@@ -21,32 +21,17 @@ public class CodeListData
             return false;
         }
 
-        if (other.Title != Title)
+        if (!Equals(other.Title, Title))
         {
             return false;
         }
 
-        if (other.HasError != HasError)
+        if (!Equals(other.HasError, HasError))
         {
             return false;
         }
 
-        if (other.Data is not null && Data is null)
-        {
-            return false;
-        }
-
-        if (other.Data is null && Data is not null)
-        {
-            return false;
-        }
-
-        if (!other.Data!.Equals(Data))
-        {
-            return false;
-        }
-
-        return true;
+        return Equals(other.Data, Data);
     }
 
     public override int GetHashCode()

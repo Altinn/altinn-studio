@@ -45,42 +45,22 @@ public sealed class Code
             return false;
         }
 
-        if (!other.Value.Equals(Value))
+        if (!Equals(other.Value, Value))
         {
             return false;
         }
 
-        if (!other.Label.Equals(Label))
+        if (!Equals(other.Label, Label))
         {
             return false;
         }
 
-        if (other.Description is not null && Description is null)
+        if (!Equals(other.Description, Description))
         {
             return false;
         }
 
-        if (other.Description is null && Description is not null)
-        {
-            return false;
-        }
-
-        if (!other.Description!.Equals(Description))
-        {
-            return false;
-        }
-
-        if (other.HelpText is not null && HelpText is null)
-        {
-            return false;
-        }
-
-        if (other.HelpText is null && HelpText is not null)
-        {
-            return false;
-        }
-
-        if (!other.HelpText!.Equals(HelpText))
+        if (!Equals(other.HelpText, HelpText))
         {
             return false;
         }

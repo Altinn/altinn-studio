@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -18,30 +19,17 @@ public class CodeList
             return false;
         }
 
-        if (other.SourceName != SourceName)
+        if (!Equals(other.SourceName, SourceName))
         {
             return false;
         }
 
-        if (other.Version != Version)
+        if (!Equals(other.Version, Version))
         {
             return false;
         }
 
-        if (other.Codes.Count != Codes.Count)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < Codes.Count; i++)
-        {
-            if (!other.Codes[i].Equals(Codes[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return other.Codes.SequenceEqual(Codes);
     }
 
     public override int GetHashCode()
