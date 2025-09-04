@@ -83,7 +83,7 @@
     <bpmn:sequenceFlow id="Flow_0uveanp" sourceRef="Gateway_07jde91" targetRef="Task_2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1t820by" sourceRef="Gateway_07jde91" targetRef="Activity_1tp8ged">
+    <bpmn:sequenceFlow id="Flow_1t820by" sourceRef="Gateway_07jde91" targetRef="SubformPdf">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1xowpt0" sourceRef="Task_5" targetRef="Gateway_0x86z9e" />
@@ -98,16 +98,21 @@
     <bpmn:sequenceFlow id="Flow_1jznfzr" sourceRef="Gateway_0x86z9e" targetRef="Task_2">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:task id="Activity_1tp8ged" name="Subform PDF">
+    <bpmn:serviceTask id="SubformPdf" name="Subform PDF">
       <bpmn:extensionElements>
         <altinn:taskExtension>
-          <altinn:taskType>data</altinn:taskType>
+          <altinn:taskType>subform-pdf</altinn:taskType>
+          <altinn:subformPdfConfig>
+            <altinn:subformComponentId>Subform-z8we7d</altinn:subformComponentId>
+            <altinn:subformDatatTypeId>SubformModel</altinn:subformDatatTypeId>
+            <altinn:filename>subformPdfFileName</altinn:filename>
+          </altinn:subformPdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1t820by</bpmn:incoming>
       <bpmn:outgoing>Flow_1xt56cf</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_1xt56cf" sourceRef="Activity_1tp8ged" targetRef="Gateway_13fvaog" />
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1xt56cf" sourceRef="SubformPdf" targetRef="Gateway_13fvaog" />
     <bpmn:exclusiveGateway id="Gateway_13fvaog">
       <bpmn:incoming>Flow_1xt56cf</bpmn:incoming>
       <bpmn:outgoing>Flow_0qlx6lm</bpmn:outgoing>
@@ -153,7 +158,7 @@
         <dc:Bounds x="1890" y="81" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1tp8ged_di" bpmnElement="Activity_1tp8ged">
+      <bpmndi:BPMNShape id="SubformPdf_di" bpmnElement="SubformPdf">
         <dc:Bounds x="1080" y="81" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
