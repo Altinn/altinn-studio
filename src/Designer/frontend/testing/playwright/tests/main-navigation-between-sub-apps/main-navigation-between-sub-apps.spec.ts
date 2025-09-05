@@ -96,7 +96,7 @@ test('That it is possible to navigate from overview to the text editor page and 
   await overviewPage.verifyOverviewPage();
 });
 
-test.skip('That it is possible to navigate from overview to the process editor page and back again', async ({
+test('That it is possible to navigate from overview to the process editor page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -113,7 +113,7 @@ test.skip('That it is possible to navigate from overview to the process editor p
   await overviewPage.verifyOverviewPage();
 });
 
-test.skip('That it is possible to navigate from overview to the dashboard page by clicking the Altinn logo', async ({
+test('That it is possible to navigate from overview to the dashboard page by clicking the Altinn logo', async ({
   page,
   testAppName,
 }) => {
@@ -125,7 +125,7 @@ test.skip('That it is possible to navigate from overview to the dashboard page b
   await dashboardPage.verifyDashboardPage();
 });
 
-test.skip('That it is possible to navigate from overview to the preview page and back again', async ({
+test('That it is possible to navigate from overview to the preview page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -141,7 +141,7 @@ test.skip('That it is possible to navigate from overview to the preview page and
   await uiEditor.verifyUiEditorPage();
 });
 
-test.skip('That it is possible to navigate from overview to the deploy page and back again', async ({
+test('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
   request,
