@@ -13,7 +13,8 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components-legacy';
+import { StudioButton, StudioDropdownMenu } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import {
   BooleanIcon,
   CombinationIcon,
@@ -166,7 +167,6 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
       disabled={isInUse}
       onDelete={handleDelete}
       confirmMessage={t('schema_editor.confirm_type_deletion')}
-      size='small'
       title={isInUse ? t('schema_editor.cannot_delete_definition_in_use') : t('general.delete')}
     >
       {t('general.delete')}

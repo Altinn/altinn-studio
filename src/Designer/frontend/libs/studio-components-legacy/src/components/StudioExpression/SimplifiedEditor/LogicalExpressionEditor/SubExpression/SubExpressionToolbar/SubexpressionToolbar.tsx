@@ -11,7 +11,11 @@ export type SubexpressionToolbarProps = {
   onDelete: () => void;
   onEnableEditMode: () => void;
 };
-
+/**
+ * @remarks StudioDeleteButton lives in `@studio/components-legacy`. We can not import from `@studio/components`
+ *          because of the lint rule forbidding cross-dependency.
+ * @todo When Parent legacy-component StudioExpression moved out of legacy, replace `StudioDeleteButton` with the one from `@studio/components`.
+ */
 export const SubexpressionToolbar = ({
   isInEditMode,
   onSave,
