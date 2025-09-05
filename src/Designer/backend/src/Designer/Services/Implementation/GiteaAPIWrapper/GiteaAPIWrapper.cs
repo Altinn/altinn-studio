@@ -450,8 +450,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await _httpClient.SendAsync(message);
         }
 
-
-
         /// <inheritdoc />
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
@@ -462,9 +460,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
-            return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+            }
+
+            return [];
         }
+
 
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
