@@ -1,8 +1,8 @@
 .resourceFieldHeader {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--ds-size-2);
 }
 
 .inputWrapper {
@@ -18,7 +18,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1rem;
+  gap: var(--ds-size-4);
 }
 
 .toggleTextActive {
@@ -26,10 +26,6 @@
 }
 
 .toggleTextInactive {
-  color: var(--fds-semantic-text-neutral-subtle);
-}
-
-.description {
   color: var(--fds-semantic-text-neutral-subtle);
 }
 
@@ -53,4 +49,7 @@
 }
 .translationFieldError {
   display: block;
+}
+.requiredTag {
+  font-weight: var(--ds-font-weight-regular);
 }

@@ -1,5 +1,5 @@
 .errorMessage {
   max-width: 45rem;
   margin: 0 auto;
-  margin-top: var(--fds-spacing-12);
+  margin-top: var(--ds-size-12);
 }

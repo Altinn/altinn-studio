@@ -1,5 +1,5 @@
 .searchBox {
   width: 25rem;
-  margin-bottom: var(--fds-spacing-7);
+  margin-bottom: var(--ds-size-7);
   align-self: center;
 }

@@ -1,18 +1,18 @@
 .divider {
-  margin-top: var(--fds-spacing-18);
+  margin-top: var(--ds-size-18);
 }
 
 .fieldset {
   width: 32rem;
-  margin-top: var(--fds-spacing-2);
-  margin-bottom: var(--fds-spacing-3);
+  margin-top: var(--ds-size-2);
+  margin-bottom: var(--ds-size-3);
 }
 
 .buttonWrapper {
-  margin-top: var(--fds-spacing-3);
+  margin-top: var(--ds-size-3);
 }
 
 .itemWrapper {
-  background-color: var(--fds-semantic-background-subtle);
-  box-shadow: 0 0 0 1rem var(--fds-semantic-background-subtle);
+  background-color: var(--ds-color-background-tinted);
+  box-shadow: 0 0 0 var(--ds-size-4) var(--ds-color-background-tinted);
 }

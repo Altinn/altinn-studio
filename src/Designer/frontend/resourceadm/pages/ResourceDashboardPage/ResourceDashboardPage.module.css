@@ -1,6 +1,6 @@
 .pageWrapper {
   padding-inline: 10%;
-  padding-block: var(--fds-spacing-5);
+  padding-block: var(--ds-size-5);
   flex-grow: 1;
 }
 
@@ -16,19 +16,19 @@
 }
 
 .verticalDivider {
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
-  height: 1.5rem;
-  margin-inline: var(--fds-spacing-2);
+  border: 1px solid var(--ds-color-border-subtle);
+  height: var(--ds-size-7);
+  margin-inline: var(--ds-size-2);
 }
 
 .horizontalDivider {
-  border: 1px solid var(--fds-semantic-border-neutral-subtle);
-  margin-block: var(--fds-spacing-5);
+  border: 1px solid var(--ds-color-border-subtle);
+  margin-block: var(--ds-size-5);
 }
 
 .componentWrapper {
   display: flex;
   flex-direction: column;
-  margin-block: var(--fds-spacing-5);
-  padding-block: var(--fds-spacing-5);
+  margin-block: var(--ds-size-5);
+  padding-block: var(--ds-size-5);
 }

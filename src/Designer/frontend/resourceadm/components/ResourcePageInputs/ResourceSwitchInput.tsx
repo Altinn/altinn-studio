@@ -76,7 +76,6 @@ export const ResourceSwitchInput = ({
                 })}
               </StudioParagraph>
             }
-            data-size='md'
             data-color='success'
           />
         </div>

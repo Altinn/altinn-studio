@@ -1,9 +1,9 @@
 .searchWrapper {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: var(--ds-size-4);
   align-items: flex-end;
-  margin-top: var(--fds-spacing-8);
+  margin-top: var(--ds-size-8);
 }
 
 .spinnerContainer {
@@ -11,18 +11,18 @@
 }
 
 .addMoreWrapper {
-  margin-top: var(--fds-spacing-8);
+  margin-top: var(--ds-size-8);
 }
 
 .paginationWrapper {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  gap: var(--ds-size-4);
   align-items: center;
 }
 
 .buttonIcon {
-  font-size: 1.5rem;
+  font-size: var(--ds-font-size-6);
 }
 
 .hiddenHeader {
@@ -31,12 +31,12 @@
 
 .membersTable {
   width: 100%;
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }
 
 .orgNrCell {
-  padding-top: var(--fds-spacing-4);
-  padding-bottom: var(--fds-spacing-4);
+  padding-top: var(--ds-size-4);
+  padding-bottom: var(--ds-size-4);
 }
 
 .smallColumn {
