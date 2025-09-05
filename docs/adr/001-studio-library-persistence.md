@@ -70,7 +70,7 @@ List the pros and cons with the alternatives. This should be in regards to the d
   - It is a complex issue knowing who uses and should pay for using a resource from a shared storage account
 - Neutral, in order to support B9 would require duplication of organisation resources to the marketplace area
 
-### A4 - Cluster hosted file persistence
+### A4 - Cluster hosted file persistence with nginx
 
 - Good, because it supports B1, B2, B3, B4, B5, B6, B7, B8
   - B3: updating the latest version would be the same complexity as any other file storage
