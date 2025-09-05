@@ -6,6 +6,7 @@ jobs:
   publish:
     name: Publish PR packages
     runs-on: ubuntu-latest
+    environment: test
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
     permissions:
       id-token: write
