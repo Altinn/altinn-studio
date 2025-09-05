@@ -25,7 +25,7 @@ describe('StudioBlobDownloader', () => {
   });
 
   afterAll(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should render', () => {

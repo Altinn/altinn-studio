@@ -1,8 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioBlobDownloader } from './StudioBlobDownloader';
 
-type Story = StoryFn<typeof StudioBlobDownloader>;
+type Story = StoryObj<typeof StudioBlobDownloader>;
 
 const meta: Meta = {
   title: 'Components/StudioBlobDownloader',
@@ -10,10 +9,11 @@ const meta: Meta = {
 };
 export default meta;
 
-export const Preview: Story = (args): React.ReactElement => <StudioBlobDownloader {...args} />;
-Preview.args = {
-  data: JSON.stringify({ test: 'test' }),
-  fileName: 'testtest.json',
-  fileType: 'application/json',
-  linkText: 'Download JSON',
+export const Preview: Story = {
+  args: {
+    data: JSON.stringify({ test: 'test' }),
+    fileName: 'testtest.json',
+    fileType: 'application/json',
+    linkText: 'Download JSON',
+  },
 };
