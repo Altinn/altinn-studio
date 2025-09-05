@@ -21,7 +21,7 @@ Examples
 
 - B1: The solution makes it possible to develop an app.
 - B2: Nice to have: The solution make it easier for app developers to develop an app.
-- B3: Nice to have: The solution should be simple to implement for out team.
+- B3: Nice to have: The solution should be simple to implement for our team.
 
 ## Alternatives considered
 
