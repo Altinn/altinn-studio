@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioButton, StudioCombobox, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioButton, StudioCombobox } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -82,7 +83,7 @@ export const SelectDataTypes = ({
         {!hideDeleteButton && (
           <StudioDeleteButton
             onDelete={handleChangeDataModel}
-            size='small'
+            data-size='xs'
             title={t('general.delete')}
           />
         )}
