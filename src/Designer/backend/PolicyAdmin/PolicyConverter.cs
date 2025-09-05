@@ -265,7 +265,13 @@ namespace Altinn.Studio.PolicyAdmin
             foreach (string subject in subjects)
             {
                 List<XacmlMatch> matches = new List<XacmlMatch>();
-                int splitLocation = subject.LastIndexOf(":");
+                int splitLocation = subject.LastIndexOf(':');
+                if (subject.StartsWith("urn:altinn:access-list", StringComparison.OrdinalIgnoreCase))
+                {
+                    // if using access-list subject, set urn:altinn:access-list as attributeDesignator and <org>:<list_identifier> as attributeValue
+                    splitLocation = subject.Substring(0, splitLocation).LastIndexOf(':');
+                }
+
                 string attributeDesignator = subject.Substring(0, splitLocation);
                 string attributeValue = subject.Substring(splitLocation + 1);
 

@@ -557,7 +557,7 @@ export const getResourceSubjects = (
     const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
       return {
         subjectId: `${accessList.identifier}`,
-        subjectSource: `altinn:accesslist:${org}`,
+        subjectSource: `altinn:access-list:${org}`,
         subjectTitle: accessList.name,
         subjectDescription: accessList.description,
       };
