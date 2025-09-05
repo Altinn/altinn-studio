@@ -21,7 +21,6 @@ jobs:
 
       - name: Make template release
         run: |
-          mkdir -p app-template-release
           rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore app-template-release
         working-directory: src/App/template/src
 
