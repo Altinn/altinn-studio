@@ -1,0 +1,35 @@
+name: Pack and publish nuget tool
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dotnet6
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: |
+            8.0.x
+      - name: Install deps
+        run: |
+          dotnet restore
+      - name: Build
+        run: |
+          dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+      - name: Pack
+        run: |
+          dotnet pack --configuration Release --no-restore --no-build -p:BuildNumber=${{ github.run_number }} -p:Deterministic=true
+      - name: Versions
+        run: |
+          dotnet --version
+      - name: Publish
+        run: |
+          dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
