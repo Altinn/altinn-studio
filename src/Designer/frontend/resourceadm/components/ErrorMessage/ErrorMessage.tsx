@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './errorMessage.module.css';
-import { StudioHeading, StudioParagraph } from '@studio/components-legacy';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ErrorMessageProps = {
@@ -18,11 +18,11 @@ export const ErrorMessage = ({
   const { t } = useTranslation();
   return (
     <div className={classes.errorMessage}>
-      <StudioHeading size='md' level={1}>
+      <StudioHeading data-size='md' level={1}>
         {title}
       </StudioHeading>
-      <StudioParagraph size='sm'>{message}</StudioParagraph>
-      <StudioParagraph size='sm'>{t('resourceadm.dashboard_error_message_info')}</StudioParagraph>
+      <StudioParagraph>{message}</StudioParagraph>
+      <StudioParagraph>{t('resourceadm.dashboard_error_message_info')}</StudioParagraph>
       {children}
     </div>
   );

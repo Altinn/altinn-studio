@@ -1,4 +1,4 @@
-FROM node:lts-alpine@sha256:8be1dd87743236c7d064aac3733befca88ba9bc6f65c7f6bbd93199f27c33287
+FROM node:lts-alpine@sha256:d2166de198f26e17e5a442f537754dd616ab069c47cc57b889310a717e0abbf9
 COPY ./package.json ./
 RUN yarn install
 COPY . .
