@@ -1,0 +1,31 @@
+name: App Template docker build on PR
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/App/template/**'
+      - '.github/workflows/app-template-build-on-pr.yaml'
+  workflow_dispatch:
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    name: Run release and docker build
+    runs-on: ${{ matrix.os}}
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Make template release
+        run: |
+          mkdir -p app-template-release
+          rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore app-template-release
+        working-directory: src/App/template/src
+
+      - name: Docker build release
+        run: |
+          docker build .
+        working-directory: src/App/template/src/app-template-release
