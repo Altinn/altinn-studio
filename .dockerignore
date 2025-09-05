@@ -5,7 +5,7 @@
 !package.json
 !yarn.lock
 !.yarn*
-!src/App/app-template-dotnet/src
+!src/App/template/src
 **/node_modules
 **/bin
 **/obj

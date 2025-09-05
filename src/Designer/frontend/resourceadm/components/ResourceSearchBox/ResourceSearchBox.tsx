@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React from 'react';
 import classes from './ResourceSearchBox.module.css';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type SearchBoxProps = {
