@@ -51,7 +51,7 @@ const setupAndVerifyUiEditorPage = async (
   return uiEditorPage;
 };
 
-test.skip('That it is possible to drag in a new component, add a title to the newly added component and add a data model binding', async ({
+test('That it is possible to drag in a new component, add a title to the newly added component and add a data model binding', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -73,7 +73,7 @@ test.skip('That it is possible to drag in a new component, add a title to the ne
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
 });
 
-test.skip('That it is possible to navigate to Gitea and that data model bindings are not present', async ({
+test('That it is possible to navigate to Gitea and that data model bindings are not present', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -91,7 +91,7 @@ test.skip('That it is possible to navigate to Gitea and that data model bindings
   await uiEditorPage.verifyUiEditorPage(pageName);
 });
 
-test.skip('That it is possible to navigate to datamodel page and create a new data model', async ({
+test('That it is possible to navigate to datamodel page and create a new data model', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -107,7 +107,7 @@ test.skip('That it is possible to navigate to datamodel page and create a new da
   await createNewDataModel(dataModelPage, dataModelName);
 });
 
-test.skip('That it is possible to navigate back to ui-editor page and add the data model', async ({
+test('That it is possible to navigate back to ui-editor page and add the data model', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -130,7 +130,7 @@ test.skip('That it is possible to navigate back to ui-editor page and add the da
   await uiEditorPage.waitForDataModelToBeSelected();
 });
 
-test.skip('That it is possible to upload the changes to Gitea and view the changes in Gitea', async ({
+test('That it is possible to upload the changes to Gitea and view the changes in Gitea', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -151,7 +151,7 @@ test.skip('That it is possible to upload the changes to Gitea and view the chang
   );
 });
 
-test.skip('That it is possible to navigate to data model page and create another data model', async ({
+test('That it is possible to navigate to data model page and create another data model', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -164,7 +164,7 @@ test.skip('That it is possible to navigate to data model page and create another
   await createNewDataModel(dataModelPage, newDataModel);
 });
 
-test.skip('That it is possible to navigate back to ui-editor page and add the newly added data model using data model binding combobox', async ({
+test('That it is possible to navigate back to ui-editor page and add the newly added data model using data model binding combobox', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -187,7 +187,7 @@ test.skip('That it is possible to navigate back to ui-editor page and add the ne
   await uiEditorPage.waitForDataModelToBeSelected();
 });
 
-test.skip('That it is possible to upload to Gitea and that files are updated correctly', async ({
+test('That it is possible to upload to Gitea and that files are updated correctly', async ({
   page,
   testAppName,
 }): Promise<void> => {
