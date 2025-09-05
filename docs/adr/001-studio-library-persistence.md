@@ -37,7 +37,7 @@ List the alternatives that were considered as a solution to the problem context.
 - A1: File publishing to CDN from Altinn Studio
 - A2: A studio designer hosted API
 - A3: A storage account in Azure
-- A4: Cluster hosted file persistence
+- A4: Cluster hosted file persistence with Nginx
 
 ## Pros and cons
 
