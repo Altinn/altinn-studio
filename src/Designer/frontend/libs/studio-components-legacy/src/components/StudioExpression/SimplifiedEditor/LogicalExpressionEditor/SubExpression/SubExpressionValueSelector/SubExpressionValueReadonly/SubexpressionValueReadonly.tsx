@@ -11,7 +11,11 @@ import { useStudioExpressionContext } from '../../../../../StudioExpressionConte
 export type SubexpressionValueReadonlyProps<T extends SimpleSubexpressionValueType> = {
   value: SimpleSubexpressionValue<T>;
 };
-
+/**
+ * @remarks StudioCodeFragment lives in `@studio/components-legacy`. Do not import from `@studio/components`
+ *          because of the lint rule forbidding cross-dependency.
+ * @todo When Parent legacy-component StudioExpression moved out of legacy, replace `StudioCodeFragment` with the one from `@studio/components`.
+ */
 export const SubexpressionValueReadonly = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType>): ReactElement => {

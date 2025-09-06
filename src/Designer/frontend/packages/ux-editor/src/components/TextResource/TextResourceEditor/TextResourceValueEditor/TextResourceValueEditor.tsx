@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StudioCodeFragment, StudioTextarea } from '@studio/components-legacy';
+import { StudioTextarea } from '@studio/components-legacy';
+import { StudioCodeFragment } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';

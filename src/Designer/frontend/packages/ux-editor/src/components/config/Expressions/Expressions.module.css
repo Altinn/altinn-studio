@@ -17,4 +17,5 @@
 
 .placeHolder {
   display: grid;
+  gap: var(--ds-size-1);
 }
