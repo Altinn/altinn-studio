@@ -6,31 +6,23 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('AddSubformCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render AddSubformCard', () => {
     renderAddSubformCard();
     expect(screen.getByText(addNewSubformText)).toBeInTheDocument();
   });
 
-  it('should handle keyboard interactions', async () => {
+  it('should call setIsCreateSubformMode when clicked', async () => {
     const user = userEvent.setup();
-    const setIsCreateSubformMode = jest.fn();
-    renderAddSubformCard({ setIsCreateSubformMode });
-    const addSubformCard = screen.getByRole('button');
-    expect(addSubformCard).toBeInTheDocument();
-    addSubformCard.focus();
+    const setIsCreateSubformModeMock = jest.fn();
+    renderAddSubformCard({ setIsCreateSubformMode: setIsCreateSubformModeMock });
 
-    await user.keyboard('{Enter}');
-    expect(setIsCreateSubformMode).toHaveBeenCalledTimes(1);
-    expect(addSubformCard).toHaveAttribute('tabIndex', '0');
-    expect(addSubformCard).toHaveAttribute('role', 'button');
-
-    setIsCreateSubformMode.mockClear();
-
-    addSubformCard.focus();
-    await user.keyboard(' ');
-    expect(setIsCreateSubformMode).toHaveBeenCalledTimes(1);
-    expect(addSubformCard).toHaveAttribute('tabIndex', '0');
-    expect(addSubformCard).toHaveAttribute('role', 'button');
+    const addNewSubformLabel = screen.getByText(addNewSubformText);
+    await user.click(addNewSubformLabel);
+    expect(setIsCreateSubformModeMock).toHaveBeenCalledWith(true);
   });
 
   it('should render CreateSubformMode when isSubformInEditMode is true', () => {

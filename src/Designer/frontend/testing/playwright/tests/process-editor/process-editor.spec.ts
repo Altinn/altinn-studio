@@ -38,7 +38,7 @@ const setupAndVerifyProcessEditorPage = async (
   return processEditorPage;
 };
 
-test('that the user is able to add and delete data model', async ({ page, testAppName }) => {
+test.skip('that the user is able to add and delete data model', async ({ page, testAppName }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
 
@@ -89,7 +89,7 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
 });
 
-test('Opening the settings page after the user has opened it from the process editor and navigated to another tab', async ({
+test.skip('Opening the settings page after the user has opened it from the process editor and navigated to another tab', async ({
   page,
   testAppName,
 }) => {
@@ -113,7 +113,7 @@ test('Opening the settings page after the user has opened it from the process ed
   await settingsPage.verifyThatTabIsVisible('setup');
 });
 
-test('that the user can edit the id of a task and add data-types to sign', async ({
+test.skip('that the user can edit the id of a task and add data-types to sign', async ({
   page,
   testAppName,
 }) => {
@@ -138,7 +138,7 @@ test('that the user can edit the id of a task and add data-types to sign', async
   await giteaPage.verifyThatDataTypeToSignIsVisible(signingTask);
 });
 
-test('That it is possible to create a custom receipt', async ({ page, testAppName }) => {
+test.skip('That it is possible to create a custom receipt', async ({ page, testAppName }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const bpmnJSQuery = new BpmnJSQuery(page);

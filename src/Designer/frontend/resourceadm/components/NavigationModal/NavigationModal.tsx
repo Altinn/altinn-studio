@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton, StudioDialog, StudioParagraph } from '@studio/components';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export type NavigationModalProps = {
   onClose: () => void;
@@ -24,12 +25,9 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
     const { t } = useTranslation();
 
     return (
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={ref}
-          onClose={onClose}
+      <StudioDialog ref={ref} onClose={onClose}>
+        <ResourceAdmDialogContent
           heading={title}
-          closeButtonTitle={t('resourceadm.close_modal')}
           footer={
             <>
               <StudioButton onClick={onNavigate} color='first'>
@@ -41,11 +39,9 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
             </>
           }
         >
-          <StudioParagraph size='sm'>
-            {t('resourceadm.resource_navigation_modal_text')}
-          </StudioParagraph>
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+          <StudioParagraph>{t('resourceadm.resource_navigation_modal_text')}</StudioParagraph>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
     );
   },
 );

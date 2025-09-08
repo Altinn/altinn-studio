@@ -181,7 +181,7 @@ describe('ResourceTable', () => {
   it('should show spinner when importing resource', () => {
     render(<ResourceTable {...defaultProps} importResourceId={mockResourceListItem3.identifier} />);
 
-    const importSpinner = screen.getByText(textMock('dashboard.resource_table_row_importing'));
+    const importSpinner = screen.getByLabelText(textMock('dashboard.resource_table_row_importing'));
     expect(importSpinner).toBeInTheDocument();
   });
 });

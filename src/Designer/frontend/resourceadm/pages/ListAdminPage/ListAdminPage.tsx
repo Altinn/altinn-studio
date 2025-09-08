@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioSpinner, StudioButton, StudioLink, StudioHeading } from '@studio/components-legacy';
+import { StudioSpinner, StudioButton, StudioLink, StudioHeading } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -55,7 +55,7 @@ export const ListAdminPage = (): React.JSX.Element => {
       <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
         {t('resourceadm.listadmin_back')}
       </StudioLink>
-      <StudioHeading level={1} size='lg'>
+      <StudioHeading level={1} data-size='lg'>
         {t('resourceadm.listadmin_header')}
       </StudioHeading>
       <div className={classes.environmentSelectorWrapper}>
@@ -84,14 +84,11 @@ export const ListAdminPage = (): React.JSX.Element => {
               />
             )}
             {isLoadingEnvListData && (
-              <StudioSpinner
-                showSpinnerTitle={false}
-                spinnerTitle={t('resourceadm.loading_env_list')}
-              />
+              <StudioSpinner aria-label={t('resourceadm.loading_env_list')} />
             )}
             {envListData && (
               <div>
-                <StudioHeading level={2} size='xs'>
+                <StudioHeading level={2} data-size='xs'>
                   {t('resourceadm.listadmin_lists_in', {
                     environment: t(getEnvLabel(selectedEnv as EnvId)),
                   })}
