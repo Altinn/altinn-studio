@@ -179,6 +179,7 @@ public class OrgCodeListController : ControllerBase
     }
 
     [HttpGet]
+    [Route("new")]
     public async Task<ActionResult<List<CodeListData>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
