@@ -17,6 +17,9 @@ export type StudioSectionHeaderProps = {
   menu?: React.ReactNode;
 } & HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @deprecated use `StudioSectionHeader` from `@studio/components` instead.
+ */
 const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>(
   (
     { heading, helpText, icon, className: givenClassName, menu, ...rest }: StudioSectionHeaderProps,

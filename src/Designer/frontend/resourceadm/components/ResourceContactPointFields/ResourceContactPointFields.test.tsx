@@ -152,9 +152,9 @@ describe('ResourceContactPointFields', () => {
       />,
     );
 
-    const removeButton = screen.getAllByText(
-      textMock('resourceadm.about_resource_contact_remove_button'),
-    );
+    const removeButton = screen.getAllByRole('button', {
+      name: textMock('resourceadm.about_resource_contact_remove_button'),
+    });
     await user.click(removeButton[0]);
 
     const confirmRemoveButton = screen.getByText(

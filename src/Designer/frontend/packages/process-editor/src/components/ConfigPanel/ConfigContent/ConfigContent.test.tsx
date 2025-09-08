@@ -160,10 +160,10 @@ describe('ConfigContent', () => {
     });
     const user = userEvent.setup();
     await user.click(policyAccordion);
-    const editPolicyButton = await screen.findByText(
-      textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    const editPolicyLink = await screen.findByText(
+      textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     );
-    expect(editPolicyButton).toBeInTheDocument();
+    expect(editPolicyLink).toBeInTheDocument();
   });
 
   it('should render the Design accordion when a task has a connected layoutset', () => {
