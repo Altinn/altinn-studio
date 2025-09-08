@@ -14,9 +14,9 @@ public class CodeList
     [JsonPropertyName("codes")]
     public required List<Code> Codes { get; set; }
 
-    [JsonPropertyName("customColumns")]
+    [JsonPropertyName("tagNames")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? CustomColumns { get; set; }
+    public List<string>? TagNames { get; set; }
 
     public override bool Equals(object? obj)
     {
@@ -31,12 +31,12 @@ public class CodeList
             return false;
         }
 
-        if (other.CustomColumns is null || CustomColumns is null)
+        if (other.TagNames is null || TagNames is null)
         {
             return false;
         }
 
-        if (!other.CustomColumns.SequenceEqual(CustomColumns))
+        if (!other.TagNames.SequenceEqual(TagNames))
         {
             return false;
         }
@@ -49,4 +49,3 @@ public class CodeList
         return HashCode.Combine(SourceName, Codes);
     }
 }
-

@@ -38,9 +38,9 @@ public sealed class Code
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? HelpText { get; set; }
 
-    [JsonPropertyName("customColumnsList")]
+    [JsonPropertyName("tags")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? CustomColumnsList { get; set; }
+    public List<string>? Tags { get; set; }
 
     public override bool Equals(object? obj)
     {
@@ -70,12 +70,12 @@ public sealed class Code
             return false;
         }
 
-        if (other.CustomColumnsList is null || CustomColumnsList is null)
+        if (other.Tags is null || Tags is null)
         {
             return false;
         }
 
-        if (!other.CustomColumnsList.SequenceEqual(CustomColumnsList))
+        if (!other.Tags.SequenceEqual(Tags))
         {
             return false;
         }
