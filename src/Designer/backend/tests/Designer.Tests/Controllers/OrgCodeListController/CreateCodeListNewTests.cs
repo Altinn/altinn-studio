@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using VerifyXunit;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
@@ -49,6 +50,7 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equivalent(expectedResponse, responseList, strict: true);
+        await Verifier.VerifyJson(responseContent, CustomVerifySettings);
     }
 
     private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/new/{CodeListId}";

@@ -67,6 +67,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(responseList.All(codeListData => codeListData.HasError is true));
+        await Verifier.VerifyJson(responseBody, CustomVerifySettings);
     }
 
     [Fact]
@@ -89,7 +90,6 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Empty(responseList);
-        Assert.IsType<List<CodeListData>>(responseList);
     }
 
     private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/new";

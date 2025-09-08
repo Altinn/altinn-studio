@@ -1,0 +1,21 @@
+﻿[
+  {
+    "title": "some_code_list_id",
+    "data": {
+      "sourceName": "",
+      "codes": [
+        {
+          "value": "test value",
+          "label": {
+            "nb": "en tekst"
+          },
+          "description": null,
+          "helpText": null,
+          "tags": null
+        }
+      ],
+      "tagNames": []
+    },
+    "hasError": false
+  }
+]

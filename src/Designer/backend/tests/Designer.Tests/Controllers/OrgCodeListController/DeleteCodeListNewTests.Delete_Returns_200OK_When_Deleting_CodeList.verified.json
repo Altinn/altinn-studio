@@ -1,0 +1,32 @@
+﻿[
+  {
+    "title": "codeListBoolean",
+    "data": null,
+    "hasError": true
+  },
+  {
+    "title": "codeListMissingLabel",
+    "data": null,
+    "hasError": true
+  },
+  {
+    "title": "codeListMissingValue",
+    "data": null,
+    "hasError": true
+  },
+  {
+    "title": "codeListString",
+    "data": null,
+    "hasError": true
+  },
+  {
+    "title": "codeListTrailingComma",
+    "data": null,
+    "hasError": true
+  },
+  {
+    "title": "codeListWithTextResources",
+    "data": null,
+    "hasError": true
+  }
+]

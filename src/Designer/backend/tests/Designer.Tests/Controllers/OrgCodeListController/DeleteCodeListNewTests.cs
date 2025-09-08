@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using VerifyXunit;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
@@ -42,6 +43,7 @@ public class DeleteCodeListNewTests : DesignerEndpointsTestsBase<DeleteCodeListN
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.DoesNotContain(responseList, e => e.Title == CodeListId);
+        await Verifier.VerifyJson(responseBody, CustomVerifySettings);
     }
 
     [Fact]
