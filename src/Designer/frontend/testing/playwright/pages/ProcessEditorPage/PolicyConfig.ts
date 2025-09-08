@@ -16,9 +16,7 @@ export class PolicyConfig extends BasePage {
 
   public async waitForNavigateToPolicyLinkIsVisible(): Promise<void> {
     const link = this.page.getByRole('link', {
-      name: this.textMock(
-        'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
-      ),
+      name: this.textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     });
     await expect(link).toBeVisible();
   }
@@ -27,7 +25,7 @@ export class PolicyConfig extends BasePage {
     await this.page
       .getByRole('link', {
         name: this.textMock(
-          'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
+          'process_editor.configuration_panel.edit_policy_open_policy_editor_link',
         ),
       })
       .click();

@@ -9,7 +9,7 @@ import {
   StudioParagraph,
   StudioSpinner,
   StudioTag,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -65,26 +65,22 @@ export const ResourceDeployEnvCard = ({
   return (
     <div className={classes.cardWrapper}>
       {publisingResourcePending ? (
-        <StudioSpinner spinnerTitle={t('resourceadm.deploy_deploying')}></StudioSpinner>
+        <StudioSpinner aria-label={t('resourceadm.deploy_deploying')}></StudioSpinner>
       ) : (
         <>
-          <StudioParagraph size='sm'>
+          <StudioParagraph>
             <strong>{t(env.label)}</strong>
           </StudioParagraph>
-          <StudioParagraph size='sm'>{t('resourceadm.deploy_version_number_text')}</StudioParagraph>
+          <StudioParagraph>{t('resourceadm.deploy_version_number_text')}</StudioParagraph>
           <div className={classes.envWrapper}>
-            <StudioTag color='neutral' size='sm'>
-              {currentEnvVersion}
-            </StudioTag>
+            <StudioTag data-color='neutral'>{currentEnvVersion}</StudioTag>
             {newEnvVersion && (
               <>
                 <ArrowRightIcon
                   title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
                   fontSize='1.5rem'
                 />
-                <StudioTag color='success' size='sm'>
-                  {newEnvVersion}
-                </StudioTag>
+                <StudioTag data-color='success'>{newEnvVersion}</StudioTag>
               </>
             )}
           </div>
@@ -92,8 +88,8 @@ export const ResourceDeployEnvCard = ({
             {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
           {hasNoPublishAccess && (
-            <StudioAlert severity='danger'>
-              <StudioParagraph size='sm'>
+            <StudioAlert data-color='danger'>
+              <StudioParagraph>
                 {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
               </StudioParagraph>
             </StudioAlert>

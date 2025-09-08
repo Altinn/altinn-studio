@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components-legacy';
+import { StudioButton } from '@studio/components';
 
 export const AccessListPreconditionFailedToast = (): React.ReactNode => {
   const { t } = useTranslation();

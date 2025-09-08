@@ -1,12 +1,13 @@
 name: Chore ✅
 description: Create a none user-story issue (chore, tech issue, backend issue)
 labels: ["kind/chore", "status/draft"]
+type: Task
 body:
   - type: markdown
     attributes:
       value: |
         Please make sure this chore hasn't been already submitted by someone by looking through other open/closed chore issues.
-          
+
   - type: textarea
     id: description
     attributes:

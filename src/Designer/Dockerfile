@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:8be1dd87743236c7d064aac3733befca88ba9bc6f65c7f6bbd93199f27c33287 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:d2166de198f26e17e5a442f537754dd616ab069c47cc57b889310a717e0abbf9 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -54,7 +54,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 FROM alpine@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS app-template-release
 RUN apk add --no-cache rsync
 
-COPY ./src/App/app-template-dotnet/src /app-template-dotnet-src
+COPY ./src/App/template/src /app-template-dotnet-src
 WORKDIR /app-template-dotnet-src
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 

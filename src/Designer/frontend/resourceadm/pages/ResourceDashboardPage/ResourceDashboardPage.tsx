@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components-legacy';
+import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
@@ -93,11 +93,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     if (resourceListPending || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <StudioSpinner
-            size='xl'
-            variant='interaction'
-            spinnerTitle={t('resourceadm.dashboard_spinner')}
-          />
+          <StudioSpinner data-size='xl' aria-label={t('resourceadm.dashboard_spinner')} />
         </div>
       );
     } else {
@@ -105,7 +101,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
           <div>
-            <StudioHeading size='xs' level={2}>
+            <StudioHeading data-size='xs' level={2}>
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </StudioHeading>
           </div>
@@ -123,7 +119,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   return (
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
-        <StudioHeading size='lg' level={1}>
+        <StudioHeading data-size='lg' level={1}>
           {getReposLabel({
             selectedContext: org,
             orgs: organizations ? organizations : [],
@@ -146,7 +142,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-            size='md'
+            data-size='md'
             icon={<MigrationIcon />}
             iconPlacement='right'
           >
@@ -157,7 +153,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             variant='tertiary'
             color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
-            size='md'
+            data-size='md'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
           >
