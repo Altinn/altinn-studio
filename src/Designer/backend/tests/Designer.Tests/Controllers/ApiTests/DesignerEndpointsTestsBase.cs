@@ -12,6 +12,7 @@ using Medallion.Threading;
 using Medallion.Threading.FileSystem;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using VerifyTests;
 
 namespace Designer.Tests.Controllers.ApiTests
 {
@@ -55,6 +56,21 @@ namespace Designer.Tests.Controllers.ApiTests
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Converters = { new JsonStringEnumConverter() }
         };
+
+        /// <summary>
+        /// Custom Verify settings for snapshot testing.
+        /// </summary>
+        protected static VerifySettings CustomVerifySettings
+        {
+            get
+            {
+                VerifySettings settings = new();
+                settings.UseStrictJson();
+                settings.DontScrubGuids();
+                settings.DontIgnoreEmptyCollections();
+                return settings;
+            }
+        }
 
         public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {
