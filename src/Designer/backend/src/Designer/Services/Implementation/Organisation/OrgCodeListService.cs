@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -182,39 +181,36 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListData>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         List<string> codeListIds = GetCodeListIds(org, developer, cancellationToken);
-        List<CodeListData> codeLists = [];
+        List<CodeListWrapper> codeLists = [];
         foreach (string codeListId in codeListIds)
         {
             try
             {
                 CodeList codeList = await GetCodeListNew(org, developer, codeListId, cancellationToken);
-
-                CodeListData codeListData = new()
-                {
-                    Title = codeListId,
-                    Data = codeList,
-                    HasError = false
-                };
-                codeLists.Add(codeListData);
+                codeLists.Add(WrapCodeList(codeListId, codeList, false));
             }
             catch (InvalidOptionsFormatException)
             {
-                CodeListData codeListData = new()
-                {
-                    Title = codeListId,
-                    Data = null,
-                    HasError = true
-                };
-                codeLists.Add(codeListData);
+                codeLists.Add(WrapCodeList(codeListId, null, true));
             }
         }
 
         return codeLists;
+    }
+
+    private static CodeListWrapper WrapCodeList(string codeListId, CodeList? codeList, bool hasError)
+    {
+        return new CodeListWrapper
+        {
+            Title = codeListId,
+            CodeList = codeList,
+            HasError = hasError
+        };
     }
 
     private async Task<CodeList> GetCodeListNew(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
@@ -236,7 +232,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListData>> CreateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> CreateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
@@ -244,12 +240,11 @@ public class OrgCodeListService : IOrgCodeListService
 
         await altinnOrgGitRepository.CreateCodeListNew(codeListId, codeList, cancellationToken);
 
-        List<CodeListData> codeLists = await GetCodeListsNew(org, developer, cancellationToken);
-        return codeLists;
+        return await GetCodeListsNew(org, developer, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListData>> UpdateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> UpdateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
@@ -261,31 +256,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListData>> UploadCodeListNew(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
-        string codeListId = Path.GetFileNameWithoutExtension(payload.FileName);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-
-        Stream stream = payload.OpenReadStream();
-        try
-        {
-            CodeList? deserializedCodeList = JsonSerializer.Deserialize<CodeList>(stream,
-                new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
-
-            await altinnOrgGitRepository.CreateCodeListNew(codeListId, deserializedCodeList, cancellationToken);
-
-            return await GetCodeListsNew(org, developer, cancellationToken);
-        }
-        catch (JsonException)
-        {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<List<CodeListData>> DeleteCodeListNew(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> DeleteCodeListNew(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);

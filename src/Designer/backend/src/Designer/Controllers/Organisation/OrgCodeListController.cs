@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -180,14 +182,14 @@ public class OrgCodeListController : ControllerBase
 
     [HttpGet]
     [Route("new")]
-    public async Task<ActionResult<List<CodeListData>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            List<CodeListData> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
+            List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
 
             return Ok(codeLists);
         }
@@ -199,12 +201,12 @@ public class OrgCodeListController : ControllerBase
 
     [HttpPost]
     [Route("new/{codeListId}")]
-    public async Task<ActionResult<List<CodeListData>>> CreateCodeListNew(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListWrapper>>> CreateCodeListNew(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<CodeListData> codeLists = await _orgCodeListService.CreateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.CreateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
     }
@@ -214,26 +216,29 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("new/{codeListId}")]
-    public async Task<ActionResult<List<CodeListData>>> UpdateCodeListNew(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListWrapper>>> UpdateCodeListNew(string org, [FromRoute] string codeListId, [FromBody] CodeList codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<CodeListData> codeLists = await _orgCodeListService.UpdateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.UpdateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
 
         return Ok(codeLists);
     }
 
     [HttpPost]
     [Route("upload/new/")]
-    public async Task<ActionResult<List<CodeListData>>> UploadCodeListNew(string org, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<CodeListWrapper>>> UploadCodeListNew(string org, [FromForm] IFormFile file, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string codeListId = Path.GetFileNameWithoutExtension(file.FileName);
+        Stream stream = file.OpenReadStream();
 
         try
         {
-            List<CodeListData> codeLists = await _orgCodeListService.UploadCodeListNew(org, developer, file, cancellationToken);
+            CodeList codeList = JsonSerializer.Deserialize<CodeList>(stream, new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+            List<CodeListWrapper> codeLists = await _orgCodeListService.CreateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
             return Ok(codeLists);
         }
         catch (JsonException e)
@@ -246,7 +251,7 @@ public class OrgCodeListController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("new/{codeListId}")]
-    public async Task<ActionResult<List<CodeListData>>> DeleteCodeListNew(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListWrapper>>> DeleteCodeListNew(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -257,7 +262,7 @@ public class OrgCodeListController : ControllerBase
             return NotFound($"The code list file {codeListId}.json does not exist.");
         }
 
-        List<CodeListData> codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
         return Ok(codeLists);
     }
 }

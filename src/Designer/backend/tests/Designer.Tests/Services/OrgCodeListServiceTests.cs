@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +21,7 @@ public class OrgCodeListServiceTests : IDisposable
 
     private const string Org = "ttd";
     private const string Repo = "org-content";
+    private const string RepoNew = "org-content-new";
     private const string Developer = "testUser";
 
     [Fact]
@@ -82,7 +86,7 @@ public class OrgCodeListServiceTests : IDisposable
             }
         };
 
-        const string CodeListId = "newCoodeList";
+        const string CodeListId = "newCodeList";
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
@@ -302,6 +306,162 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         Assert.Empty(codeListIds);
+    }
+
+    [Fact]
+    public async Task GetCodeListsNew_ShouldReturnListOfCodeListData()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, RepoNew, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        const string CodeListId = "codeListNumber";
+        string codeListString = TestDataHelper.GetFileFromRepo(Org, RepoNew, Developer, $"CodeLists/{CodeListId}.json");
+        CodeListWrapper expected = new()
+        {
+            Title = CodeListId,
+            CodeList = JsonSerializer.Deserialize<CodeList>(codeListString),
+            HasError = false
+        };
+
+        // Act
+        List<CodeListWrapper> codeListWrappers = await service.GetCodeListsNew(TargetOrg, Developer);
+
+        // Assert
+        var numberCodeList = codeListWrappers.FirstOrDefault(e => e.Title == CodeListId);
+        Assert.Equal(expected.Title, numberCodeList?.Title);
+        Assert.Equivalent(expected.CodeList, numberCodeList?.CodeList, strict: true);
+        Assert.Equal(expected.HasError, numberCodeList?.HasError);
+    }
+
+    [Fact]
+    public async Task GetCodeListsNew_ShouldReturnEmptyList_IfFileNotFound()
+    {
+        // Arrange
+        const string RepoEmpty = "org-content-empty";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, RepoEmpty, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        // Act
+        List<CodeListWrapper> codeListWrappers = await service.GetCodeListsNew(TargetOrg, Developer);
+
+        // Assert
+        Assert.Empty(codeListWrappers);
+    }
+
+    [Fact]
+    public async Task CreateCodeListNew_ShouldReturnCreatedCodeList()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, RepoNew, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        const string CodeListId = "newCodeList";
+        CodeList codeList = SetupCodeList();
+        CodeListWrapper expected = new()
+        {
+            Title = CodeListId,
+            CodeList = codeList,
+            HasError = false
+        };
+
+        // Act
+        List<CodeListWrapper> codeListWrappers = await service.CreateCodeListNew(TargetOrg, Developer, CodeListId, codeList);
+
+        // Assert
+        Assert.True(codeListWrappers.All(codeListData => codeListData.HasError is false));
+
+        var numberCodeList = codeListWrappers.FirstOrDefault(e => e.Title == CodeListId);
+        Assert.Equal(expected.Title, numberCodeList?.Title);
+        Assert.Equivalent(expected.CodeList, numberCodeList?.CodeList, strict: true);
+        Assert.Equal(expected.HasError, numberCodeList?.HasError);
+    }
+
+    [Fact]
+    public async Task UpdateCodeListNew_ShouldReturnUpdatedCodeList()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, RepoNew, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        const string CodeListId = "codeListTrailingComma";
+        CodeList codeList = SetupCodeList();
+        CodeListWrapper expected = new()
+        {
+            Title = CodeListId,
+            CodeList = codeList,
+            HasError = false
+        };
+
+        // Act
+        List<CodeListWrapper> codeListWrappers = await service.UpdateCodeListNew(TargetOrg, Developer, CodeListId, codeList);
+
+        // Assert
+        Assert.True(codeListWrappers.All(codeListData => codeListData.HasError is false));
+        var numberCodeList = codeListWrappers.FirstOrDefault(e => e.Title == CodeListId);
+        Assert.Equal(expected.Title, numberCodeList?.Title);
+        Assert.Equivalent(expected.CodeList, numberCodeList?.CodeList, strict: true);
+        Assert.Equal(expected.HasError, numberCodeList?.HasError);
+    }
+
+    [Fact]
+    public async Task DeleteCodeListNew_ShouldNotReturnDeletedCodeList()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        const string CodeListId = "codeListNumber";
+
+        // Act
+        List<CodeListWrapper> codeListWrappers = await service.DeleteCodeListNew(TargetOrg, Developer, CodeListId);
+
+        // Assert
+        Assert.DoesNotContain(codeListWrappers, codeListData => codeListData.Title == CodeListId);
+    }
+
+    [Fact]
+    public async Task DeleteCodeListNew_ShouldThrowExceptionIfCodeListDoesNotExist()
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg);
+        var service = GetOrgCodeListService();
+
+        const string CodeListId = "codeListWhichDoesNotExist";
+
+        // Act and assert
+        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await service.DeleteCodeList(TargetOrg, Developer, CodeListId));
+    }
+
+    private static CodeList SetupCodeList()
+    {
+        Dictionary<string, string> label = new() {{"nb", "tekst"}, {"en", "text"}};
+        Dictionary<string, string> description = new() {{"nb", "Dette er en tekst"}, {"en", "This is a text"}};
+        Dictionary<string, string> helpText = new() {{"nb", "Velg dette valget for å få en tekst"}, {"en", "Choose this option to get a text"}};
+        List<Code> listOfCodes =
+        [
+            new()
+            {
+                Value = "value1",
+                Label = label,
+                Description = description,
+                HelpText = helpText,
+                Tags = ["test-data"]
+            }
+        ];
+        CodeList codeList = new()
+        {
+            SourceName = "test-data-files",
+            Codes = listOfCodes,
+            TagNames = ["test-data-category"]
+        };
+        return codeList;
     }
 
     private static OrgCodeListService GetOrgCodeListService()

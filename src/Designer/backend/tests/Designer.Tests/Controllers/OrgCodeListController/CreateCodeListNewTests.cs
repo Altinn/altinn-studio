@@ -38,14 +38,14 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
         string codeListString = JsonSerializer.Serialize(codeList, JsonSerializerOptions);
 
         httpRequestMessage.Content = new StringContent(codeListString, Encoding.UTF8, "application/json");
-        List<CodeListData> expectedResponse = new([
-            new CodeListData {Title = CodeListId, Data = codeList, HasError = false}
+        List<CodeListWrapper> expectedResponse = new([
+            new CodeListWrapper {Title = CodeListId, CodeList = codeList, HasError = false}
         ]);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseContent = await response.Content.ReadAsStringAsync();
-        List<CodeListData> responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseContent, JsonSerializerOptions);
+        List<CodeListWrapper> responseList = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseContent, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

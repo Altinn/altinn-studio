@@ -38,7 +38,7 @@ public class DeleteCodeListNewTests : DesignerEndpointsTestsBase<DeleteCodeListN
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<CodeListData> responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseBody);
+        List<CodeListWrapper> responseList = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
