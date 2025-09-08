@@ -7,7 +7,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 export const PolicyAccessPackagesWarning = (): ReactElement => {
   const { t } = useTranslation();
   return (
-    <StudioAlert data-color='warning' data-size='sm'>
+    <StudioAlert data-color='warning'>
       <StudioLabelAsParagraph size='md' spacing>
         {t('policy_editor.access_package_warning_header')}
       </StudioLabelAsParagraph>

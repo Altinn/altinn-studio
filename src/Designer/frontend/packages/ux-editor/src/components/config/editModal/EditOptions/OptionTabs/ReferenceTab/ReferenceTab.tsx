@@ -59,7 +59,7 @@ export function ReferenceTab({
         value={referenceId}
       />
       {shouldDisplayAlert && (
-        <StudioAlert className={classes.alert} data-color='info' data-size='sm'>
+        <StudioAlert className={classes.alert}>
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}

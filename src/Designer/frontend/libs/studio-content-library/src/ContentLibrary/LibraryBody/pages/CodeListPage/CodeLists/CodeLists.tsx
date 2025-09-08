@@ -137,7 +137,7 @@ function CodeListDetailsContent({
 
 function InvalidCodeListAlert(): React.ReactElement {
   return (
-    <StudioAlert data-size='sm' data-color='danger'>
+    <StudioAlert data-color='danger'>
       <span>
         <Trans
           i18nKey='app_content_library.code_lists.format_error'

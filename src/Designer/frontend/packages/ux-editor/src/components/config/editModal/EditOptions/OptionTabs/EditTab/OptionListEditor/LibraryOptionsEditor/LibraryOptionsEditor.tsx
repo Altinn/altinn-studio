@@ -68,7 +68,7 @@ export function LibraryOptionsEditor({
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.options.modal_header_library_code_list')}
         footer={
-          <StudioAlert data-color='warning' data-size='sm'>
+          <StudioAlert data-color='warning'>
             {t('ux_editor.modal_properties_code_list_alert_title')}
           </StudioAlert>
         }

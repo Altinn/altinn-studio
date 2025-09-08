@@ -35,7 +35,7 @@ export const SettingsTabs = (): ReactElement => {
           <SettingsNavigation />
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Database}>
-          <StudioAlert data-color='info' className={classes.wipMessage}>
+          <StudioAlert className={classes.wipMessage}>
             {t('ux_editor.settings.wip_message')}
           </StudioAlert>
         </StudioTabs.Content>

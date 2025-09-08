@@ -47,7 +47,7 @@ export const PropertiesHeader = ({
         }}
       />
       {isComponentDeprecated(formItem.type) && (
-        <StudioAlert data-size='sm' className={classes.alertWrapper} data-color='warning'>
+        <StudioAlert className={classes.alertWrapper} data-color='warning'>
           {t(`ux_editor.component_properties.deprecated.${formItem.type}`)}
         </StudioAlert>
       )}
