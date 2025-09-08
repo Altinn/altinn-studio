@@ -22,6 +22,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content")]
+    // [Obsolete("Tests for deprecated method. This test will be removed in future versions.")]
     public async Task GetLanguages_WithRepoThatHasTextResources_ShouldReturnCorrectLanguages(string repository)
     {
         // Arrange
@@ -43,6 +44,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "nb")]
+    // [Obsolete("Tests for deprecated method. This test will be removed in future versions.")]
     public async Task GetText_WithRepoThatHasTextResources_ShouldReturnTexts(string repository, string language)
     {
         // Arrange
@@ -60,6 +62,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content-empty", "nb")]
+    // [Obsolete("Tests for deprecated method. This test will be removed in future versions.")]
     public async Task SaveText_WithEmptyRepo_ShouldSaveTexts(string repository, string language)
     {
         // Arrange
@@ -78,6 +81,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content-empty", "nb")]
+    // [Obsolete("Tests for deprecated method. This test will be removed in future versions.")]
     public async Task TextResourceFileExists_WithEmptyRepo_ShouldReturnFalse(string repository, string language)
     {
         // Arrange
@@ -93,6 +97,7 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content", "nb")]
+    // [Obsolete("Tests for deprecated method. This test will be removed in future versions.")]
     public async Task TextResourceFileExists_WithRepoThatHasTextResources_ShouldReturnTrue(string repository, string language)
     {
         // Arrange
@@ -275,6 +280,32 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         string codeListFilePath = Path.Join(repositoryDir, RelativePathCodeList(codeListId));
         Assert.False(File.Exists(codeListFilePath));
     }
+
+#region new tests for new codelist format
+    [Fact]
+    public async Task GetCodeListIds_ShouldReturnCodelistIds()
+    {
+        // Arrange
+        string repository = "org-content-new";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+
+        // Act
+        List<string> codeListIds = altinnOrgGitRepository.GetCodeListIds();
+
+        // Assert
+        Assert.NotNull(codeListIds);
+        Assert.Equal(3, codeListIds.Count);
+        Assert.Multiple(
+            () => Assert.Contains("codeListString", codeListIds),
+            () => Assert.Contains("codeListNumber", codeListIds),
+            () => Assert.Contains("codeListBoolean", codeListIds)
+        );
+    }
+
+
+
+#endregion
 
     private static string RelativePathCodeList(string codeListId) => $"CodeLists/{codeListId}.json";
 
