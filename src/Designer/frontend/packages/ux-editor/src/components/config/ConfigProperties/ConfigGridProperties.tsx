@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditGrid } from '../editModal/EditGrid';
 import { StudioButton } from '@studio/components-legacy';
-import { StudioProperty, StudioCard } from '@studio/components';
+import { StudioProperty, StudioCard, StudioHeading } from '@studio/components';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { Heading } from '@digdir/designsystemet-react';
 import classes from './ConfigGridProperties.module.css';
@@ -25,7 +25,7 @@ export const ConfigGridProperties = ({
     <>
       {showGrid ? (
         <StudioCard className={cn(classes.objectPropertyContainer, className)}>
-          <div className={classes.gridHeader}>
+          <StudioHeading className={classes.gridHeader}>
             <div className={classes.flexContainer}>
               <Heading size='xs'>{t('ux_editor.component_properties.grid')}</Heading>
               <StudioButton
@@ -36,7 +36,7 @@ export const ConfigGridProperties = ({
                 className={classes.button}
               />
             </div>
-          </div>
+          </StudioHeading>
           <EditGrid
             key={component.id}
             component={component}

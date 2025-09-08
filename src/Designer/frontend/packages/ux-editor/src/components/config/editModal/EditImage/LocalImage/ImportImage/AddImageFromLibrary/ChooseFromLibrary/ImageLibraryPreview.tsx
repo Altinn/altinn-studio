@@ -51,12 +51,10 @@ const ImageFromLibrary = ({
       <StudioCard onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>
         <StudioCard.Block>
           <img src={imageSource} alt={imageFilePath} />
-        </StudioCard.Block>
-        <div>
           <StudioHeading size='xs' className={classes.fileName} title={fileName}>
             {fileName}
           </StudioHeading>
-        </div>
+        </StudioCard.Block>
       </StudioCard>
     </div>
   );
