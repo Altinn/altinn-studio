@@ -1,0 +1,38 @@
+{
+  "sourceName": "boolean-options",
+  "codes": [
+    {
+      "value": true,
+      "label": {
+        "no": "Ja",
+        "en": "Yes"
+      },
+      "description": {
+        "no": "Velg dette alternativet hvis svaret er ja",
+        "en": "Choose this option if the answer is yes"
+      },
+      "helpText": {
+        "no": "Brukes når du ønsker å bekrefte et positivt svar",
+        "en": "Use when you want to confirm a positive answer"
+      },
+      "tags": ["confirmation", "positive"]
+    },
+    {
+      "value": false,
+      "label": {
+        "no": "Nei",
+        "en": "No"
+      },
+      "description": {
+        "no": "Velg dette alternativet hvis svaret er nei",
+        "en": "Choose this option if the answer is no"
+      },
+      "helpText": {
+        "no": "Brukes når du ønsker å bekrefte et negativt svar",
+        "en": "Use when you want to confirm a negative answer"
+      },
+      "tags": ["denial", "negative"]
+    }
+  ],
+  "tagNames": ["type", "polarity"]
+}

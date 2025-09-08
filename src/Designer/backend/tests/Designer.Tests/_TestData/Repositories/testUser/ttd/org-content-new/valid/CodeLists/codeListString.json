@@ -1,0 +1,54 @@
+{
+  "sourceName": "scandinavian-countries",
+  "codes": [
+    {
+      "value": "norway",
+      "label": {
+        "no": "Norge",
+        "en": "Norway"
+      },
+      "description": {
+        "no": "Landet Norge",
+        "en": "The country Norway"
+      },
+      "helpText": {
+        "no": "Brukes når Norge er riktig valg",
+        "en": "Use when Norway is the correct choice"
+      },
+      "tags": ["country", "nordic", "eea"]
+    },
+    {
+      "value": "denmark",
+      "label": {
+        "no": "Danmark",
+        "en": "Denmark"
+      },
+      "description": {
+        "no": "Landet Danmark",
+        "en": "The country Denmark"
+      },
+      "helpText": {
+        "no": "Brukes når Danmark er riktig valg",
+        "en": "Use when Denmark is the correct choice"
+      },
+      "tags": ["country", "nordic", "eu"]
+    },
+    {
+      "value": "sweden",
+      "label": {
+        "no": "Sverige",
+        "en": "Sweden"
+      },
+      "description": {
+        "no": "Landet Sverige",
+        "en": "The country Sweden"
+      },
+      "helpText": {
+        "no": "Brukes når Sverige er riktig valg",
+        "en": "Use when Sweden is the correct choice"
+      },
+      "tags": ["country", "nordic", "eu"]
+    }
+  ],
+  "tagNames": ["type", "region", "union"]
+}
