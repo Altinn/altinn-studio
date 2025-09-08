@@ -39,6 +39,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
     }
 
+    // [Obsolete("This method is deprecated and will be removed in future versions. Use GetCodeListIds instead.")]
     public List<string> GetLanguages()
     {
         if (!DirectoryExistsByRelativePath(LanguageResourceFolderName))
@@ -66,6 +67,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <remarks>
     /// Format of the <see cref="TextResource"/> is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
     /// </remarks>
+    // [Obsolete("This method is deprecated and will be removed in future versions. Use GetCodeList instead.")]
     public async Task<TextResource> GetText(string languageCode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -87,6 +89,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// <param name="languageCode">Language code</param>
     /// <param name="jsonTexts">text resource</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    // [Obsolete("This method is deprecated and will be removed in future versions. Use CreateCodeList or UpdateCodeList instead.")]
     public async Task SaveText(string languageCode, TextResource jsonTexts, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -99,6 +102,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     /// Checks if a text resource file corresponding to the specified language code exists.
     /// </summary>
     /// <param name="languageCode">The language code corresponding to the text resource file.</param>
+    // [Obsolete("This method is deprecated and will be removed in future versions. Use GetCodeListIds instead.")]
     public bool TextResourceFileExists(string languageCode)
     {
         string path = TextResourceFilePath(languageCode);
