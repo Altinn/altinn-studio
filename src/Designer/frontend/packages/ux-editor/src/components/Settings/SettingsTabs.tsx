@@ -17,7 +17,7 @@ export const SettingsTabs = (): ReactElement => {
 
   return (
     <div>
-      <StudioHeading level={2} data-size='xs' className={classes.heading}>
+      <StudioHeading level={2} className={classes.heading}>
         {t('ux_editor.settings.other_settings')}
       </StudioHeading>
       <StudioTabs defaultValue={Tabs.Navigation}>

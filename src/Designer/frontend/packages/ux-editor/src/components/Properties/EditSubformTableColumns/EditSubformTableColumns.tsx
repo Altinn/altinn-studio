@@ -99,7 +99,7 @@ const EditSubformTableColumnsWrapper = ({
   const { t } = useTranslation();
   return (
     <div className={cn(className ? className : classes.wrapper)}>
-      <StudioHeading data-size='2xs' level={2} spacing>
+      <StudioHeading level={2} spacing>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
       <div className={classes.contentWrapper}>{children}</div>

@@ -21,7 +21,7 @@ export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) 
   const { t } = useTranslation(['translation', 'addComponentModal']);
   return (
     <div className={classes.root}>
-      <StudioHeading level={2} data-size='md' spacing>
+      <StudioHeading level={2} spacing>
         {!item && t('ux_editor.component_add_item.info_heading')}
         {item && getTitleByComponentType(item.componentType, t)}
       </StudioHeading>

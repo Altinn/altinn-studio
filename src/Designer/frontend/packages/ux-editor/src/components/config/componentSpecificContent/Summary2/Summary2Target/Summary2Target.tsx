@@ -68,7 +68,7 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
 
   return (
     <div className={cn(className, classes.wrapperConfig)}>
-      <StudioHeading data-size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
+      <StudioHeading>{t('ux_editor.component_properties.target')}</StudioHeading>
       <StudioParagraph spacing>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>

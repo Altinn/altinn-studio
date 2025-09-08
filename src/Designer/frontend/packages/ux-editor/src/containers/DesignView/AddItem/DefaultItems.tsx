@@ -31,7 +31,7 @@ export const DefaultItems = ({
   return (
     <div className={classes.root}>
       <div className={classes.closeButtonContainer}>
-        <StudioHeading level={4} data-size='2xs' className={classes.header}>
+        <StudioHeading level={4} className={classes.header}>
           {t('ux_editor.add_item.select_component_header')}
         </StudioHeading>
         <StudioButton

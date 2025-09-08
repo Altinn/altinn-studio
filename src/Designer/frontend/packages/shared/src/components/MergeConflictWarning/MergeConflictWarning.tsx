@@ -20,7 +20,7 @@ export const MergeConflictWarning = ({ owner, repoName }: MergeConflictWarningPr
 
   return (
     <div className={classes.container} role='dialog'>
-      <StudioHeading level={1} spacing data-size='lg'>
+      <StudioHeading level={1} spacing>
         {t('merge_conflict.headline')}
       </StudioHeading>
       <StudioParagraph spacing>

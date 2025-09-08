@@ -77,7 +77,7 @@ export const ContactPage = (): React.ReactElement => {
       <div className={classes.container}>
         <div className={classes.content}>
           <div>
-            <StudioHeading level={1} data-size='md' spacing>
+            <StudioHeading level={1} spacing>
               {t('general.contact')}
             </StudioHeading>
           </div>

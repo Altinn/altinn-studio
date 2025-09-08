@@ -53,7 +53,7 @@ const ImageFromLibrary = ({
           <img src={imageSource} alt={imageFilePath} />
         </StudioCard.Media>
         <StudioCard.Header>
-          <StudioHeading data-size='xs' className={classes.fileName} title={fileName}>
+          <StudioHeading className={classes.fileName} title={fileName}>
             {fileName}
           </StudioHeading>
         </StudioCard.Header>

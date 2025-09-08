@@ -57,7 +57,7 @@ export function Resources(): ReactElement {
   const { t } = useTranslation();
   return (
     <div className={classes.wrapper}>
-      <StudioHeading level={2} data-size='sm' className={classes.header}>
+      <StudioHeading level={2} className={classes.header}>
         {t('dashboard.resources')}
       </StudioHeading>
       <div className={classes.resourcesContainer}>

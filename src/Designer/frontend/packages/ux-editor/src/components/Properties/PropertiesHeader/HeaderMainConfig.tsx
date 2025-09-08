@@ -17,7 +17,7 @@ export const HeaderMainConfig = (): JSX.Element => {
       aria-describedby={requiredIndicatorId}
     >
       <div className={classes.flexContainer}>
-        <StudioHeading id={headingId} data-size='xs'>
+        <StudioHeading id={headingId}>
           {t('ux_editor.component_properties.main_configuration')}
         </StudioHeading>
         <span id={requiredIndicatorId}>

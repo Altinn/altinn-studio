@@ -27,7 +27,7 @@ export const ContactSection = ({
         <Icon className={classes.icon} title={title} aria-hidden />
       </div>
       <div className={classes.textContainer}>
-        <StudioHeading level={2} data-size='xs' spacing>
+        <StudioHeading level={2} spacing>
           {title}
         </StudioHeading>
         <StudioParagraph spacing data-size='md'>

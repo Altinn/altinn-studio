@@ -20,7 +20,7 @@ export function PolicySummary(): React.ReactElement {
 
   return (
     <div>
-      <StudioHeading spacing level={4} data-size='sm'>
+      <StudioHeading spacing level={4}>
         {t('policy_editor.summary_heading')}
       </StudioHeading>
       <StudioAlert severity='info' title='Tilbakemelding' className={classes.feedbackAlert}>

@@ -12,10 +12,7 @@ export function LibraryHeader({ children }: LibraryHeaderProps): React.ReactElem
   return (
     <div className={classes.libraryHeading}>
       <BookIcon className={classes.headingIcon} />
-      <StudioHeading
-        data-size='sm'
-        className={cn(classes.headingText, studioBetaTagClasses.isBeta)}
-      >
+      <StudioHeading className={cn(classes.headingText, studioBetaTagClasses.isBeta)}>
         {children}
       </StudioHeading>
     </div>

@@ -28,7 +28,7 @@ export const ItemCategory = ({
 
   return (
     <StudioCard color='subtle' className={classes.itemCategory}>
-      <StudioHeading className={classes.categoryHeading} level={2} data-size='sm'>
+      <StudioHeading className={classes.categoryHeading} level={2}>
         {t(`ux_editor.component_category.${category}`)}
       </StudioHeading>
       <div className={classes.componentsWrapper}>

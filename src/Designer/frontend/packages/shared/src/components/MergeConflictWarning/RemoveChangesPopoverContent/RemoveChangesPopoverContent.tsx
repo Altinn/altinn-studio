@@ -44,7 +44,7 @@ export const RemoveChangesPopoverContent = ({
 
   return (
     <div className={classes.wrapper}>
-      <StudioHeading level={2} data-size='sm' spacing>
+      <StudioHeading level={2} spacing>
         {t('overview.reset_repo_confirm_heading')}
       </StudioHeading>
       <StudioParagraph spacing>

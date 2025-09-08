@@ -122,9 +122,7 @@ export const PageGroupAccordion = ({
         >
           <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
-            <StudioHeading data-size='2xs' level={2}>
-              {groupDisplayName}
-            </StudioHeading>
+            <StudioHeading level={2}>{groupDisplayName}</StudioHeading>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>

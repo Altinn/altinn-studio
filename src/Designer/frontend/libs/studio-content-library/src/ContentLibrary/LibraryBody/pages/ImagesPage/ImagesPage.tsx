@@ -23,7 +23,7 @@ export function ImagesPage({ images, onUpdateImage }: ImagesPageProps): ReactEle
 
   return (
     <div>
-      <StudioHeading level={3} data-size='sm' spacing>
+      <StudioHeading level={3} spacing>
         {t('app_content_library.images.page_name')}
       </StudioHeading>
       {noExistingImages ? (

@@ -24,7 +24,7 @@ export const SubformMissingContentWarning = ({
 
   return (
     <StudioAlert severity='warning'>
-      <StudioHeading data-size='2xs' level={2} spacing>
+      <StudioHeading level={2} spacing>
         {t('ux_editor.component_properties.subform.layout_set_is_missing_content_heading')}
       </StudioHeading>
       <StudioParagraph>
