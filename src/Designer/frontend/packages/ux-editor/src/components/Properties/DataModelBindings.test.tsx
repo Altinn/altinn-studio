@@ -243,7 +243,10 @@ describe('DataModelBindings', () => {
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: undefined,
+      dataModelBindings: {
+        list: { field: '', dataType: '' },
+        simpleBinding: undefined,
+      },
     });
   });
 
@@ -254,6 +257,7 @@ describe('DataModelBindings', () => {
       props: {
         formItem: {
           ...componentMocks[ComponentType.FileUpload],
+          dataModelBindings: { list: { field: 'someListDataModelField', dataType: '' } },
         },
         formItemId: componentMocks[ComponentType.FileUpload].id,
         handleUpdate,
@@ -266,7 +270,7 @@ describe('DataModelBindings', () => {
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: undefined,
+      dataModelBindings: { list: undefined, simpleBinding: { field: '', dataType: '' } },
     });
   });
 

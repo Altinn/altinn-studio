@@ -40,7 +40,10 @@ export const DataModelBindings = (): React.JSX.Element => {
     const updatedComponent = {
       ...formItem,
       itemType: 'COMPONENT',
-      dataModelBindings: undefined,
+      dataModelBindings: {
+        simpleBinding: updatedValue ? undefined : { field: '', dataType: '' },
+        list: updatedValue ? { field: '', dataType: '' } : undefined,
+      },
     } as FormComponent;
     handleUpdate(updatedComponent);
     debounceSave(formItemId, updatedComponent);
