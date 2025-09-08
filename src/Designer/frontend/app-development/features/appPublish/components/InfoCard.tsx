@@ -2,8 +2,6 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InfoCard.module.css';
 import type { PropsWithChildren } from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import Illustration from './illustration-help-2-circle.svg';
 
 export interface IAltinnInformationCardComponentProvidedProps {
@@ -27,7 +25,7 @@ export const InfoCard = (
             <div className={classes.breadText}>{props.children}</div>
           </div>
           <div className={classes.imageContainer}>
-            <Illustration />
+            <img src={Illustration} alt='' />
           </div>
         </div>
       </div>
