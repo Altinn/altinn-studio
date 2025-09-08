@@ -450,6 +450,17 @@ namespace Designer.Tests.Utils
 
             return targetOrgDirectory;
         }
+        public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg)
+        {
+            string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
+            string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
+            string targetRepoDirectory = GetRepositoryDirectory(developer, targetOrg, GetOrgContentRepoName(targetOrg));
+
+            CreateEmptyDirectory(targetOrgDirectory);
+            await CopyDirectory(sourceDirectory, targetRepoDirectory);
+
+            return targetOrgDirectory;
+        }
 
         public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
         {
