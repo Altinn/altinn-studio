@@ -25,7 +25,7 @@ export const InfoCard = (
             <div className={classes.breadText}>{props.children}</div>
           </div>
           <div className={classes.imageContainer}>
-            <img src={Illustration} alt='' />
+            <img src={Illustration} alt='' aria-hidden />
           </div>
         </div>
       </div>
