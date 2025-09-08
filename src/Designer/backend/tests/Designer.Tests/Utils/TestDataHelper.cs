@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -472,6 +473,13 @@ namespace Designer.Tests.Utils
         {
             return Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
         }
+
+        public static List<string> GetRepositoryFileNamesList(string developer, string org, string repository, string searchPattern)
+        {
+            string[] array = Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
+            return [.. array];
+        }
+
 
         public static void DeleteOrgDirectory(string developer, string org)
         {
