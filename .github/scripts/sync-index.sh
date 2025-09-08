@@ -12,11 +12,6 @@ while [[ $# -gt 0 ]]; do
       shift # pop option
       shift # pop option
       ;;
-    --azure-sa-token)
-      AZURE_STORAGE_ACCOUNT_TOKEN="$2"
-      shift # pop option
-      shift # pop option
-      ;;
     --azure-sync-cdn )
       SYNC_AZURE_CDN=yes
       shift #pop option
@@ -39,7 +34,7 @@ VERSION_REGEX="^[\d\.]+((?:-|.)[a-z0-9.\-]+)?$"
 mkdir -p "$TARGET"
 
 echo "Updating index.json"
-azcopy ls "$AZURE_TARGET_URI/toolkits/${AZURE_STORAGE_ACCOUNT_TOKEN}" | \
+azcopy ls "$AZURE_TARGET_URI/toolkits/" | \
   cut -d/ -f 1 | \
   grep --perl-regexp "$VERSION_REGEX" | \
   sort --version-sort | \
@@ -53,7 +48,7 @@ if [[ "$SYNC_AZURE_CDN" == "no" ]]; then
 else
   echo "Publishing index to azure cdn"
 fi
-azcopy sync "$TARGET/index.json" "$AZURE_TARGET_URI/toolkits/index.json${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_OPTS[@]}"
+azcopy sync "$TARGET/index.json" "$AZURE_TARGET_URI/toolkits/index.json" "${AZCOPY_OPTS[@]}"
 if [[ "$SYNC_AZURE_CDN" == "yes" ]]; then
   bash ".github/scripts/purge-frontdoor-cache.sh" --path "/toolkits/altinn-app-frontend/index.json"
 fi

@@ -94,6 +94,8 @@ jobs:
         working-directory: app-frontend
         if: '!env.ACT'
         env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
           FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
@@ -103,12 +105,13 @@ jobs:
             --pre-release \
             --azure-sync-cdn \
             --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
-            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
       - name: Run sync-index script
         working-directory: app-frontend
         if: '!env.ACT'
         env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
           FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
@@ -117,7 +120,6 @@ jobs:
           bash .github/scripts/sync-index.sh \
            --azure-sync-cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
-           --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
       - name: Update PR comment - failure
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4

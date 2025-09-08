@@ -43,6 +43,8 @@ jobs:
       - name: Run roll back script
         working-directory: app-frontend
         env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
           FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
@@ -52,4 +54,3 @@ jobs:
            --tag "${{ inputs.tag }}" \
            --azure-sync-cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
-           --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"

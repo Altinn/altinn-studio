@@ -17,11 +17,6 @@ while [[ $# -gt 0 ]]; do
       shift # pop option
       shift # pop option
       ;;
-    --azure-sa-token)
-      AZURE_STORAGE_ACCOUNT_TOKEN="$2"
-      shift # pop option
-      shift # pop option
-      ;;
     --azure-sync-cdn )
       SYNC_AZURE_CDN=yes
       shift #pop option
@@ -73,8 +68,8 @@ else
   else
     echo "Publishing files to azure cdn"
   fi
-  azcopy sync "$AZURE_TARGET_URI/toolkits/$APP_FULL/${AZURE_STORAGE_ACCOUNT_TOKEN}" "$AZURE_TARGET_URI/toolkits/$APP_MAJOR/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_OPTS[@]}"
-  azcopy sync "$AZURE_TARGET_URI/toolkits/$APP_FULL/${AZURE_STORAGE_ACCOUNT_TOKEN}" "$AZURE_TARGET_URI/toolkits/$APP_MAJOR_MINOR/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_OPTS[@]}"
+  azcopy sync "$AZURE_TARGET_URI/toolkits/$APP_FULL/" "$AZURE_TARGET_URI/toolkits/$APP_MAJOR/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_OPTS[@]}"
+  azcopy sync "$AZURE_TARGET_URI/toolkits/$APP_FULL/" "$AZURE_TARGET_URI/toolkits/$APP_MAJOR_MINOR/${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_OPTS[@]}"
   echo "-------------------------------------"
   if [[ "$SYNC_AZURE_CDN" != "no" ]]; then
     bash ".github/scripts/purge-frontdoor-cache.sh" --path "/toolkits/altinn-app-frontend/$APP_MAJOR/*" --path "/toolkits/altinn-app-frontend/$APP_MAJOR_MINOR/*"
