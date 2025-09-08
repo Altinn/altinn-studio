@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
@@ -37,6 +38,10 @@ public sealed class Code
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? HelpText { get; set; }
 
+    [JsonPropertyName("customColumnsList")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? CustomColumnsList { get; set; }
+
     public override bool Equals(object? obj)
     {
         Code? other = obj as Code;
@@ -61,6 +66,16 @@ public sealed class Code
         }
 
         if (!Equals(other.HelpText, HelpText))
+        {
+            return false;
+        }
+
+        if (other.CustomColumnsList is null || CustomColumnsList is null)
+        {
+            return false;
+        }
+
+        if (!other.CustomColumnsList.SequenceEqual(CustomColumnsList))
         {
             return false;
         }
