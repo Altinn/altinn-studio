@@ -1,0 +1,197 @@
+﻿[
+  {
+    "title": "codeListBoolean",
+    "data": {
+      "sourceName": "boolean-options",
+      "codes": [
+        {
+          "value": true,
+          "label": {
+            "no": "Ja",
+            "en": "Yes"
+          },
+          "description": {
+            "no": "Velg dette alternativet hvis svaret er ja",
+            "en": "Choose this option if the answer is yes"
+          },
+          "helpText": {
+            "no": "Brukes når du ønsker å bekrefte et positivt svar",
+            "en": "Use when you want to confirm a positive answer"
+          },
+          "tags": [
+            "confirmation",
+            "positive"
+          ]
+        },
+        {
+          "value": false,
+          "label": {
+            "no": "Nei",
+            "en": "No"
+          },
+          "description": {
+            "no": "Velg dette alternativet hvis svaret er nei",
+            "en": "Choose this option if the answer is no"
+          },
+          "helpText": {
+            "no": "Brukes når du ønsker å bekrefte et negativt svar",
+            "en": "Use when you want to confirm a negative answer"
+          },
+          "tags": [
+            "denial",
+            "negative"
+          ]
+        }
+      ],
+      "tagNames": [
+        "type",
+        "polarity"
+      ]
+    },
+    "hasError": false
+  },
+  {
+    "title": "codeListNumber",
+    "data": {
+      "sourceName": "number-options",
+      "codes": [
+        {
+          "value": 1.05,
+          "label": {
+            "no": "En",
+            "en": "One"
+          },
+          "description": {
+            "no": "Det første alternativet",
+            "en": "The first option"
+          },
+          "helpText": {
+            "no": "Brukes når du vil velge det første tallet",
+            "en": "Use when you want to select the first number"
+          },
+          "tags": [
+            "odd",
+            "low"
+          ]
+        },
+        {
+          "value": 2.01,
+          "label": {
+            "no": "To",
+            "en": "Two"
+          },
+          "description": {
+            "no": "Det andre alternativet",
+            "en": "The second option"
+          },
+          "helpText": {
+            "no": "Brukes når du vil velge det andre tallet",
+            "en": "Use when you want to select the second number"
+          },
+          "tags": [
+            "even",
+            "medium"
+          ]
+        },
+        {
+          "value": 3.1,
+          "label": {
+            "no": "Tre",
+            "en": "Three"
+          },
+          "description": {
+            "no": "Det tredje alternativet",
+            "en": "The third option"
+          },
+          "helpText": {
+            "no": "Brukes når du vil velge det tredje tallet",
+            "en": "Use when you want to select the third number"
+          },
+          "tags": [
+            "odd",
+            "high"
+          ]
+        }
+      ],
+      "tagNames": [
+        "parity",
+        "magnitude"
+      ]
+    },
+    "hasError": false
+  },
+  {
+    "title": "codeListString",
+    "data": {
+      "sourceName": "scandinavian-countries",
+      "codes": [
+        {
+          "value": "norway",
+          "label": {
+            "no": "Norge",
+            "en": "Norway"
+          },
+          "description": {
+            "no": "Landet Norge",
+            "en": "The country Norway"
+          },
+          "helpText": {
+            "no": "Brukes når Norge er riktig valg",
+            "en": "Use when Norway is the correct choice"
+          },
+          "tags": [
+            "country",
+            "nordic",
+            "eea"
+          ]
+        },
+        {
+          "value": "denmark",
+          "label": {
+            "no": "Danmark",
+            "en": "Denmark"
+          },
+          "description": {
+            "no": "Landet Danmark",
+            "en": "The country Denmark"
+          },
+          "helpText": {
+            "no": "Brukes når Danmark er riktig valg",
+            "en": "Use when Denmark is the correct choice"
+          },
+          "tags": [
+            "country",
+            "nordic",
+            "eu"
+          ]
+        },
+        {
+          "value": "sweden",
+          "label": {
+            "no": "Sverige",
+            "en": "Sweden"
+          },
+          "description": {
+            "no": "Landet Sverige",
+            "en": "The country Sweden"
+          },
+          "helpText": {
+            "no": "Brukes når Sverige er riktig valg",
+            "en": "Use when Sweden is the correct choice"
+          },
+          "tags": [
+            "country",
+            "nordic",
+            "eu"
+          ]
+        }
+      ],
+      "tagNames": [
+        "type",
+        "region",
+        "union"
+      ]
+    },
+    "hasError": false
+  }
+]

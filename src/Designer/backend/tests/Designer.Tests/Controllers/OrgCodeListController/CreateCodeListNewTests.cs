@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -21,15 +20,6 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
     private const string Repo = "org-content-empty";
     private const string Developer = "testUser";
     private const string CodeListId = "some_code_list_id";
-    private static readonly JsonSerializerOptions s_jsonOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
-    };
-
 
     [Fact]
     public async Task Post_Returns200OK_WhenCreatingNewCodeList()
@@ -41,10 +31,10 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        Dictionary<string,string> labelTexts = new() {{"nb", "en tekst"}};
-        List<Code> listOfCodes = [ new() {Value = "test value", Label = labelTexts}];
-        CodeList codeList = new() { Codes = listOfCodes, Version = string.Empty, SourceName = string.Empty, };
-        string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
+        Dictionary<string, string> labelTexts = new() { { "nb", "en tekst" } };
+        List<Code> listOfCodes = [new() { Value = "test value", Label = labelTexts }];
+        CodeList codeList = new() { Codes = listOfCodes, SourceName = string.Empty, TagNames = [] };
+        string codeListString = JsonSerializer.Serialize(codeList, JsonSerializerOptions);
 
         httpRequestMessage.Content = new StringContent(codeListString, Encoding.UTF8, "application/json");
         List<CodeListData> expectedResponse = new([
@@ -54,11 +44,11 @@ public class CreateCodeListNewTests(WebApplicationFactory<Program> factory)
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseContent = await response.Content.ReadAsStringAsync();
-        List<CodeListData> responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseContent, s_jsonOptions);
+        List<CodeListData> responseList = JsonSerializer.Deserialize<List<CodeListData>>(responseContent, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(expectedResponse.Count, responseList.Count);
+        Assert.Equivalent(expectedResponse, responseList, strict: true);
     }
 
     private static string ApiUrl(string targetOrg) => $"designer/api/{targetOrg}/code-lists/new/{CodeListId}";
