@@ -1,0 +1,14 @@
+[
+    {
+        "value": "norway",
+        "label": "Norge"
+    },
+    {
+        "value": "denmark",
+        "label": "Danmark"
+    },
+    {
+        "value": "sweden",
+        "label": "country.label.sweden"
+    }
+]
