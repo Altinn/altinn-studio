@@ -1,11 +1,11 @@
-name: App Template Build and Test on windows and macos
+name: CLI - build and test on windows, macos and ubuntu
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'src/App/template/**'
-      - '.github/workflows/app-template-test.yml'
+      - "src/cli/**"
+      - .github/workflows/cli-build-test.yaml
   workflow_dispatch:
 jobs:
   analyze:
@@ -26,15 +26,17 @@ jobs:
         with:
           dotnet-version: |
             8.0.x
+
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
+
       - name: Build
+        working-directory: src/cli
         run: |
-           dotnet build src/App.sln -v m
-        working-directory: src/App/template
+          dotnet build -v m
 
       - name: Test
+        working-directory: src/cli
         run: |
-           dotnet test src/App.sln -v m --no-restore --no-build
-        working-directory: src/App/template
+          dotnet test -v m
