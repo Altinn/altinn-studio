@@ -5,7 +5,7 @@ import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import { LinkButton } from '../LinkButton';
-import { StudioAlert, StudioLabelAsParagraph, StudioParagraph } from '@studio/components-legacy';
+import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
 
 export type ResourceDeployStatusProps = {
   /**
@@ -52,15 +52,15 @@ export const ResourceDeployStatus = ({
   resourceId,
 }: ResourceDeployStatusProps): React.JSX.Element => {
   return (
-    <StudioAlert severity={isSuccess ? 'success' : 'danger'}>
-      <StudioLabelAsParagraph size='sm' className={classes.title}>
+    <StudioAlert data-color={isSuccess ? 'success' : 'danger'}>
+      <StudioHeading data-size='2xs' level={2} className={classes.title}>
         {title}
-      </StudioLabelAsParagraph>
+      </StudioHeading>
       {error.map((errorItem, index) => {
         return (
           <div className={classes.cardElement} key={index + resourceId}>
             <ArrowRightIcon fontSize='1.5rem' />
-            <StudioParagraph size='sm' className={classes.text}>
+            <StudioParagraph className={classes.text}>
               <Trans i18nKey={errorItem.message} values={{ num: errorItem.numberOfErrors }}>
                 <LinkButton onClick={onNavigateToPageWithError} page={errorItem.pageWithError} />
               </Trans>

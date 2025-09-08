@@ -2,11 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
-import {
-  StudioButton,
-  StudioErrorMessage,
-  StudioTableLocalPagination,
-} from '@studio/components-legacy';
+import { StudioTableLocalPagination } from '@studio/components-legacy';
+import { StudioButton, StudioValidationMessage } from '@studio/components';
 import type { Columns } from '@studio/components-legacy';
 import classes from './AccessListMembers.module.css';
 import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
@@ -39,7 +36,9 @@ export const AccessListMembersTable = ({
     let buttonText: string;
     if (invalidItems?.indexOf(item.orgNr) > -1) {
       return (
-        <StudioErrorMessage size='sm'>{t('resourceadm.listadmin_invalid_org')}</StudioErrorMessage>
+        <StudioValidationMessage data-color='danger'>
+          {t('resourceadm.listadmin_invalid_org')}
+        </StudioValidationMessage>
       );
     }
     const orgAriaString = `${item.orgName} ${stringNumberToAriaLabel(item.orgNr)}`;
