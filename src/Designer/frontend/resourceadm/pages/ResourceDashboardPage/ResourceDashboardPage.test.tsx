@@ -87,7 +87,7 @@ describe('ResourceDashBoardPage', () => {
     );
     renderResourceDashboardPage({ getOrganizations });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
     expect(
       screen.getByText(textMock('dashboard.org_resources', { orgName: 'Testdepartementet' })),
@@ -96,7 +96,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('shows the loading state when page is loading', () => {
     renderResourceDashboardPage();
-    expect(screen.getByTitle(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
         name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
@@ -114,9 +114,11 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
-    expect(screen.queryByRole(textMock('resourceadm.dashboard_spinner'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
@@ -133,20 +135,18 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
-    expect(modalTitle).not.toBeInTheDocument();
+    expect(modalTitle).not.toBeVisible();
 
     const importButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_import_resource'),
     });
     await user.click(importButton);
 
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_import_modal_title')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.dashboard_import_modal_title'))).toBeVisible();
   });
 
   it('opens the create new resource modal on click', async () => {
@@ -156,7 +156,7 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const modalTitle = screen.queryByRole('heading', {
@@ -173,7 +173,7 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
-        level: 2,
+        level: 1,
       }),
     ).toBeInTheDocument();
   });
@@ -185,7 +185,7 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const resourceRowsBeforeFilter = screen.getAllByRole('row'); // Also selects the <th />
@@ -204,7 +204,7 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     expect(
@@ -219,7 +219,7 @@ describe('ResourceDashBoardPage', () => {
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const resourceRowsBeforeFilter = screen.getAllByRole('row'); // Also selects the <th />
@@ -248,7 +248,7 @@ describe('ResourceDashBoardPage', () => {
     renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const importButton = screen.getByText(
@@ -265,7 +265,7 @@ describe('ResourceDashBoardPage', () => {
 
     expect(
       screen.queryByText(textMock('resourceadm.dashboard_import_environment_header')),
-    ).not.toBeInTheDocument();
+    ).not.toBeVisible();
   });
 
   it('should import resource from chosen test environment', async () => {
@@ -280,7 +280,7 @@ describe('ResourceDashBoardPage', () => {
     renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const importButton = screen.getByText(
@@ -309,7 +309,7 @@ describe('ResourceDashBoardPage', () => {
     renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
     );
 
     const importButton = screen.getByText(

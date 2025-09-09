@@ -1,12 +1,13 @@
 name: Epic 💎
 description: Create a new epic (very big user story)
 labels: ["Epic", "status/draft"]
-body:          
+type: Epic
+body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: A quick introduction to the user need. Make it clear for who, why and what. 
+      description: A quick introduction to the user need. Make it clear for who, why and what.
     validations:
       required: true
 

@@ -5,10 +5,11 @@ import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton, StudioDialog, StudioParagraph } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export interface NewAccessListModalProps {
   org: string;
@@ -65,14 +66,11 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     };
 
     return (
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={ref}
+      <StudioDialog ref={ref} onClose={onCloseModal}>
+        <ResourceAdmDialogContent
           heading={t('resourceadm.listadmin_create_list_header', {
             env: t(getEnvLabel(env)),
           })}
-          closeButtonTitle={t('resourceadm.close_modal')}
-          onClose={onCloseModal}
           footer={
             <>
               <StudioButton
@@ -91,9 +89,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
             </>
           }
         >
-          <StudioParagraph size='sm'>
-            {t('resourceadm.listadmin_create_list_description')}
-          </StudioParagraph>
+          <StudioParagraph>{t('resourceadm.listadmin_create_list_description')}</StudioParagraph>
           <ResourceNameAndId
             idLabel={t('resourceadm.listadmin_list_id')}
             titleLabel={t('resourceadm.listadmin_list_name')}
@@ -103,8 +99,8 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
             onTitleChange={(newTitle: string) => setName(newTitle)}
             conflictErrorMessage={errorMessage}
           />
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
     );
   },
 );

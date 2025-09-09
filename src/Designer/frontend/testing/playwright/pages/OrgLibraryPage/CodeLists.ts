@@ -104,7 +104,7 @@ export class CodeLists extends BasePage {
   }
 
   public async clickOnCodeListDetails(codeListTitle: string): Promise<void> {
-    await this.page.getByRole('heading', { name: codeListTitle }).click();
+    await this.page.getByRole('button', { name: codeListTitle }).click();
   }
 
   public async clickOnDeleteCodelistButton(): Promise<void> {
@@ -170,7 +170,7 @@ export class CodeLists extends BasePage {
     numberOfItems: number,
     codeListTitle: string,
   ): Promise<void> {
-    const detailsTitle = this.page.getByRole('heading', { name: codeListTitle });
+    const detailsTitle = this.page.getByRole('button', { name: codeListTitle });
     const details = detailsTitle.locator('xpath=..');
     const table = details.getByRole('table');
     const rows = table.getByRole('row');

@@ -1,12 +1,8 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import {
-  StudioButton,
-  StudioSpinner,
-  StudioTableLocalPagination,
-  StudioTag,
-} from '@studio/components-legacy';
+import { StudioButton, StudioSpinner, StudioTag } from '@studio/components';
+import { StudioTableLocalPagination } from '@studio/components-legacy';
 import type { Columns } from '@studio/components-legacy';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -80,11 +76,11 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
-          size='md'
+          data-size='md'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
-      return <StudioSpinner spinnerTitle={t('dashboard.resource_table_row_importing')} />;
+      return <StudioSpinner aria-label={t('dashboard.resource_table_row_importing')} />;
     } else if (!!onClickImportResource) {
       return (
         <StudioButton
@@ -98,7 +94,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
-          size='md'
+          data-size='md'
         />
       );
     } else {
@@ -131,7 +127,7 @@ export const ResourceTable = ({
               tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
-              <StudioTag key={env} color='info' size='sm'>
+              <StudioTag key={env} data-color='info'>
                 {tagText}
               </StudioTag>
             );
