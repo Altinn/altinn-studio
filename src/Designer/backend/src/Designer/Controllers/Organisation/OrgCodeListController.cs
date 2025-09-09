@@ -233,7 +233,7 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string codeListId = Path.GetFileNameWithoutExtension(file.FileName);
-        Stream stream = file.OpenReadStream();
+        using Stream stream = file.OpenReadStream();
 
         try
         {
