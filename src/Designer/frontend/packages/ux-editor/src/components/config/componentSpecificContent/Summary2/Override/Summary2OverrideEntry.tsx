@@ -1,4 +1,4 @@
-import { StudioAlert, StudioCard, StudioDivider } from '@studio/components-legacy';
+import { StudioAlert, StudioDivider } from '@studio/components-legacy';
 import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -12,7 +12,7 @@ import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowCompon
 import { Summary2OverrideDisplaySelect } from './OverrideFields/Summary2OverrideDisplaySelect';
 import { Summary2OverrideDisplayType } from './OverrideFields/Summary2OverrideDisplayType';
 import classes from './Summary2OverrideEntry.module.css';
-import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioProperty, StudioCard } from '@studio/components';
 
 type Summary2OverrideEntryProps = {
   index: number;
@@ -76,7 +76,7 @@ export const Summary2OverrideEntry = ({
 
   return (
     <StudioCard className={classes.card}>
-      <StudioCard.Content className={classes.content}>
+      <StudioCard.Block className={classes.content}>
         <Summary2ComponentReferenceSelector
           label={t('ux_editor.component_properties.summary.override.choose_component')}
           value={override.componentId}
@@ -114,7 +114,7 @@ export const Summary2OverrideEntry = ({
             {t('ux_editor.component_properties.summary.override.delete_button')}
           </StudioDeleteButton>
         </div>
-      </StudioCard.Content>
+      </StudioCard.Block>
     </StudioCard>
   );
 };
