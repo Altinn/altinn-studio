@@ -2,7 +2,7 @@ import React from 'react';
 import type { ReactElement } from 'react';
 import classes from './ImagesPage.module.css';
 import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components-legacy';
+import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { InfoBox } from '../../InfoBox';
 
@@ -23,7 +23,7 @@ export function ImagesPage({ images, onUpdateImage }: ImagesPageProps): ReactEle
 
   return (
     <div>
-      <StudioHeading size='small' spacing>
+      <StudioHeading level={3} spacing>
         {t('app_content_library.images.page_name')}
       </StudioHeading>
       {noExistingImages ? (

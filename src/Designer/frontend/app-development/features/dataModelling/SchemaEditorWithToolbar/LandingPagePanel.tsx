@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './LandingPagePanel.module.css';
-import { StudioButton, StudioHeading } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading } from '@studio/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
 import { useTranslation } from 'react-i18next';
 
@@ -14,7 +14,7 @@ export function LandingPagePanel({ openCreateNew, canUseUploadXSDFeature }: Land
   const { t } = useTranslation();
   return (
     <div className={classes.landingDialog}>
-      <StudioHeading size='small'>{t('app_data_modelling.landing_dialog_header')}</StudioHeading>
+      <StudioHeading level={3}>{t('app_data_modelling.landing_dialog_header')}</StudioHeading>
       <StudioParagraph data-size='md'>
         {t('app_data_modelling.landing_dialog_paragraph')}
       </StudioParagraph>
