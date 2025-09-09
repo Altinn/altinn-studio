@@ -185,16 +185,10 @@ public class OrgCodeListController : ControllerBase
     public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
-            return Ok(codeLists);
-        }
-        catch (FileNotFoundException)
-        {
-            return NoContent();
-        }
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
+
+        return Ok(codeLists);
     }
 
     [HttpPost]
