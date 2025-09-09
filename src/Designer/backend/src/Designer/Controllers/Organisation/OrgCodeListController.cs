@@ -188,9 +188,7 @@ public class OrgCodeListController : ControllerBase
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
-
             return Ok(codeLists);
         }
         catch (FileNotFoundException)
@@ -221,10 +219,9 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<CodeListWrapper> codeLists;
         try
         {
-            codeLists = await _orgCodeListService.UpdateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
+            List<CodeListWrapper> codeLists = await _orgCodeListService.UpdateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
             return Ok(codeLists);
         }
         catch (FileNotFoundException)
@@ -263,16 +260,14 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<CodeListWrapper> codeLists;
         try
         {
-            codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
+            List<CodeListWrapper> codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
+            return Ok(codeLists);
         }
         catch (FileNotFoundException)
         {
             return NotFound($"The code list file {codeListId}.json does not exist.");
         }
-
-        return Ok(codeLists);
     }
 }
