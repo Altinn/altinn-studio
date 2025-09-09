@@ -14,6 +14,7 @@ export class BpmnJSQuery {
    */
   public async getTaskByIdAndType(id: string, type: SvgElement): Promise<string> {
     const elementSelector = `${type}[data-element-id="${id}"]`;
+    await this.page.waitForSelector(elementSelector);
     return elementSelector;
   }
 }
