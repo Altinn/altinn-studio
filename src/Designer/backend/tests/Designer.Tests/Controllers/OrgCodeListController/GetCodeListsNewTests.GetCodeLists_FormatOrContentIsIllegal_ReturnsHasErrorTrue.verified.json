@@ -1,17 +1,17 @@
 ﻿[
   {
     "title": "codeListMissingLabel",
-    "data": null,
+    "codeList": null,
     "hasError": true
   },
   {
     "title": "codeListMissingValue",
-    "data": null,
+    "codeList": null,
     "hasError": true
   },
   {
     "title": "codeListTrailingComma",
-    "data": null,
+    "codeList": null,
     "hasError": true
   }
 ]

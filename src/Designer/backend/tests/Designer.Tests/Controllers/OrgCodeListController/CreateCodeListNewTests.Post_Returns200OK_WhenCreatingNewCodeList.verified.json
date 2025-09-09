@@ -1,7 +1,7 @@
 ﻿[
   {
     "title": "some_code_list_id",
-    "data": {
+    "codeList": {
       "sourceName": "",
       "codes": [
         {

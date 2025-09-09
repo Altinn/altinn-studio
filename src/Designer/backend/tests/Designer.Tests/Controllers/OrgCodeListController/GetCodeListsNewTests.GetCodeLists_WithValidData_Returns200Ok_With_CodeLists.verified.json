@@ -1,21 +1,21 @@
 ﻿[
   {
     "title": "codeListBoolean",
-    "data": {
+    "codeList": {
       "sourceName": "boolean-options",
       "codes": [
         {
           "value": true,
           "label": {
-            "no": "Ja",
+            "nb": "Ja",
             "en": "Yes"
           },
           "description": {
-            "no": "Velg dette alternativet hvis svaret er ja",
+            "nb": "Velg dette alternativet hvis svaret er ja",
             "en": "Choose this option if the answer is yes"
           },
           "helpText": {
-            "no": "Brukes når du ønsker å bekrefte et positivt svar",
+            "nb": "Brukes når du ønsker å bekrefte et positivt svar",
             "en": "Use when you want to confirm a positive answer"
           },
           "tags": [
@@ -26,15 +26,15 @@
         {
           "value": false,
           "label": {
-            "no": "Nei",
+            "nb": "Nei",
             "en": "No"
           },
           "description": {
-            "no": "Velg dette alternativet hvis svaret er nei",
+            "nb": "Velg dette alternativet hvis svaret er nei",
             "en": "Choose this option if the answer is no"
           },
           "helpText": {
-            "no": "Brukes når du ønsker å bekrefte et negativt svar",
+            "nb": "Brukes når du ønsker å bekrefte et negativt svar",
             "en": "Use when you want to confirm a negative answer"
           },
           "tags": [
@@ -52,21 +52,21 @@
   },
   {
     "title": "codeListNumber",
-    "data": {
+    "codeList": {
       "sourceName": "number-options",
       "codes": [
         {
           "value": 1.05,
           "label": {
-            "no": "En",
+            "nb": "En",
             "en": "One"
           },
           "description": {
-            "no": "Det første alternativet",
+            "nb": "Det første alternativet",
             "en": "The first option"
           },
           "helpText": {
-            "no": "Brukes når du vil velge det første tallet",
+            "nb": "Brukes når du vil velge det første tallet",
             "en": "Use when you want to select the first number"
           },
           "tags": [
@@ -77,15 +77,15 @@
         {
           "value": 2.01,
           "label": {
-            "no": "To",
+            "nb": "To",
             "en": "Two"
           },
           "description": {
-            "no": "Det andre alternativet",
+            "nb": "Det andre alternativet",
             "en": "The second option"
           },
           "helpText": {
-            "no": "Brukes når du vil velge det andre tallet",
+            "nb": "Brukes når du vil velge det andre tallet",
             "en": "Use when you want to select the second number"
           },
           "tags": [
@@ -96,15 +96,15 @@
         {
           "value": 3.1,
           "label": {
-            "no": "Tre",
+            "nb": "Tre",
             "en": "Three"
           },
           "description": {
-            "no": "Det tredje alternativet",
+            "nb": "Det tredje alternativet",
             "en": "The third option"
           },
           "helpText": {
-            "no": "Brukes når du vil velge det tredje tallet",
+            "nb": "Brukes når du vil velge det tredje tallet",
             "en": "Use when you want to select the third number"
           },
           "tags": [
@@ -122,21 +122,21 @@
   },
   {
     "title": "codeListString",
-    "data": {
+    "codeList": {
       "sourceName": "scandinavian-countries",
       "codes": [
         {
           "value": "norway",
           "label": {
-            "no": "Norge",
+            "nb": "Norge",
             "en": "Norway"
           },
           "description": {
-            "no": "Landet Norge",
+            "nb": "Landet Norge",
             "en": "The country Norway"
           },
           "helpText": {
-            "no": "Brukes når Norge er riktig valg",
+            "nb": "Brukes når Norge er riktig valg",
             "en": "Use when Norway is the correct choice"
           },
           "tags": [
@@ -148,15 +148,15 @@
         {
           "value": "denmark",
           "label": {
-            "no": "Danmark",
+            "nb": "Danmark",
             "en": "Denmark"
           },
           "description": {
-            "no": "Landet Danmark",
+            "nb": "Landet Danmark",
             "en": "The country Denmark"
           },
           "helpText": {
-            "no": "Brukes når Danmark er riktig valg",
+            "nb": "Brukes når Danmark er riktig valg",
             "en": "Use when Denmark is the correct choice"
           },
           "tags": [
@@ -168,15 +168,15 @@
         {
           "value": "sweden",
           "label": {
-            "no": "Sverige",
+            "nb": "Sverige",
             "en": "Sweden"
           },
           "description": {
-            "no": "Landet Sverige",
+            "nb": "Landet Sverige",
             "en": "The country Sweden"
           },
           "helpText": {
-            "no": "Brukes når Sverige er riktig valg",
+            "nb": "Brukes når Sverige er riktig valg",
             "en": "Use when Sweden is the correct choice"
           },
           "tags": [
