@@ -256,13 +256,16 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool codeListExists = await _orgCodeListService.CodeListExists(org, developer, codeListId, cancellationToken);
-        if (!codeListExists)
+        List<CodeListWrapper> codeLists;
+        try
+        {
+            codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
+        }
+        catch (FileNotFoundException)
         {
             return NotFound($"The code list file {codeListId}.json does not exist.");
         }
 
-        List<CodeListWrapper> codeLists = await _orgCodeListService.DeleteCodeListNew(org, developer, codeListId, cancellationToken);
         return Ok(codeLists);
     }
 }

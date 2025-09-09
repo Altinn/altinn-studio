@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -261,6 +262,12 @@ public class OrgCodeListService : IOrgCodeListService
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+
+        bool codeListExists = await CodeListExists(org, developer, codeListId, cancellationToken);
+        if (!codeListExists)
+        {
+            throw new FileNotFoundException($"Code list '{codeListId}' does not exist.");
+        }
 
         altinnOrgGitRepository.DeleteCodeList(codeListId, cancellationToken);
 
