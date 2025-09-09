@@ -1,5 +1,6 @@
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import React, { ChangeEventHandler, useState } from 'react';
+import React, { useState } from 'react';
+import type { ChangeEventHandler } from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
 import type { Props } from './Props';
