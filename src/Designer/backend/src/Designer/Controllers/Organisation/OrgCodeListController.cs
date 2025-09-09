@@ -24,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true, AllowTrailingCommas = true };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
@@ -236,7 +237,7 @@ public class OrgCodeListController : ControllerBase
 
         try
         {
-            CodeList codeList = await JsonSerializer.DeserializeAsync<CodeList>(stream, new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true }, cancellationToken);
+            CodeList codeList = await JsonSerializer.DeserializeAsync<CodeList>(stream, _jsonOptions, cancellationToken);
             List<CodeListWrapper> codeLists = await _orgCodeListService.CreateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
             return Ok(codeLists);
         }
