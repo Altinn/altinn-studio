@@ -236,7 +236,7 @@ public class OrgCodeListController : ControllerBase
 
         try
         {
-            CodeList codeList = JsonSerializer.Deserialize<CodeList>(stream, new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+            CodeList codeList = await JsonSerializer.DeserializeAsync<CodeList>(stream, new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true }, cancellationToken);
             List<CodeListWrapper> codeLists = await _orgCodeListService.CreateCodeListNew(org, developer, codeListId, codeList, cancellationToken);
             return Ok(codeLists);
         }
