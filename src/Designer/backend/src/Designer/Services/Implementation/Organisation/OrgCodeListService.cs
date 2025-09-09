@@ -251,6 +251,12 @@ public class OrgCodeListService : IOrgCodeListService
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
+        bool codeListExists = await CodeListExists(org, developer, codeListId, cancellationToken);
+        if (!codeListExists)
+        {
+            throw new FileNotFoundException($"Code list '{codeListId}' does not exist.");
+        }
+
         await altinnOrgGitRepository.UpdateCodeListNew(codeListId, codeList, cancellationToken);
 
         return await GetCodeListsNew(org, developer, cancellationToken);
