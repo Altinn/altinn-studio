@@ -12,7 +12,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
-
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
@@ -477,6 +477,9 @@ namespace Designer.Tests.Utils
 
         public static string GetRepositoryDirectory(string developer, string org, string repository)
         {
+            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
+            Guard.AssertNotNullOrEmpty(org, nameof(org));
+            Guard.AssertNotNullOrEmpty(repository, nameof(repository));
             return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
         }
 
