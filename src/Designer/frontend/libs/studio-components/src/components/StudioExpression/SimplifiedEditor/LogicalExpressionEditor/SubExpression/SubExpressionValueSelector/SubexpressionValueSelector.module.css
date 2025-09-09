@@ -1,7 +1,7 @@
 .fieldsetContent {
   display: flex;
   flex-direction: column;
-  gap: var(--studio-legacy-expression-spacing);
+  gap: var(--studio-expression-spacing);
 }
 
 .wrapper {

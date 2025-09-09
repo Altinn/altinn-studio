@@ -1,11 +1,10 @@
 import type { Props } from './Props';
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import React, { useState } from 'react';
+import React, { ChangeEventHandler, useState } from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
 import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
-import { StudioSuggestion } from '../../../../../../StudioSuggestion';
-import type { StudioSuggestionProps } from '../../../../../../StudioSuggestion/StudioSuggestion';
+import { StudioSelect } from '../../../../../../StudioSelect';
 
 export const ComponentIdSelector = ({
   value,
@@ -13,37 +12,32 @@ export const ComponentIdSelector = ({
 }: Props<SimpleSubexpressionValueType.Component>): React.ReactElement => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
   const options = dataLookupOptions[DataLookupFuncName.Component];
-  const idValueExist = options.includes(value.id) || value.id === '';
+  const idValueExists = options.includes(value.id) || value.id === '';
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(
-    idValueExist ? null : ExpressionErrorKey.ComponentIDNoLongerExists,
+    idValueExists ? null : ExpressionErrorKey.ComponentIDNoLongerExists,
   );
   const [idValue, setIdValue] = useState<string>(value.id);
 
-  const handleChange: StudioSuggestionProps['onSelectedChange'] = (values) => {
-    if (values.length) {
-      const id = values[0].value;
-      setIdValue(id);
-      onChange({ ...value, id });
-      setErrorKey(null);
-    } else {
-      setIdValue('');
-      setErrorKey(ExpressionErrorKey.InvalidComponentId);
-    }
+  const handleChange: ChangeEventHandler<HTMLSelectElement> = (event) => {
+    const id = event.target.value;
+    setIdValue(id);
+    onChange({ ...value, id });
+    setErrorKey(null);
   };
 
   return (
-    <StudioSuggestion
-      emptyText=''
+    <StudioSelect
       error={errorKey === null ? undefined : texts.errorMessages[errorKey]}
       label={texts.componentId}
-      onSelectedChange={handleChange}
-      selected={idValue && idValueExist ? [idValue] : []}
+      onChange={handleChange}
+      value={idValue && idValueExists ? idValue : ''}
     >
+      <StudioSelect.Option value='' disabled />
       {options.map((option) => (
-        <StudioSuggestion.Option key={option} value={option}>
+        <StudioSelect.Option key={option} value={option}>
           {option}
-        </StudioSuggestion.Option>
+        </StudioSelect.Option>
       ))}
-    </StudioSuggestion>
+    </StudioSelect>
   );
 };

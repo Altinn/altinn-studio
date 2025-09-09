@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -129,20 +129,11 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
       const newPointer = dataModelPointers[1];
-      await user.click(screen.getByRole('combobox', { name: texts.dataModelPath }));
-      await user.click(screen.getByRole('option', { name: newPointer }));
-      await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: texts.dataModelPath }),
+        screen.getByRole('option', { name: newPointer }),
+      );
       expect(onChange).toHaveBeenCalledWith({ ...dataModelValue, path: newPointer });
-    });
-
-    it('Displays an error and does not call the onChange function when the user enters an invalid value', async () => {
-      const user = userEvent.setup();
-      const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
-      const input = screen.getByRole('combobox', { name: texts.dataModelPath });
-      await user.type(input, '{backspace}');
-      await user.click(document.body);
-      expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]));
     });
   });
 
@@ -177,20 +168,11 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const newId = componentIds[1];
-      await user.click(screen.getByRole('combobox', { name: texts.componentId }));
-      await user.click(screen.getByRole('option', { name: newId }));
-      await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: texts.componentId }),
+        screen.getByRole('option', { name: newId }),
+      );
       expect(onChange).toHaveBeenCalledWith({ ...componentValue, id: newId });
-    });
-
-    it('Displays an error and does not call the onChange function when the user enters an invalid value', async () => {
-      const user = userEvent.setup();
-      const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
-      const input = (): HTMLElement => screen.getByRole('combobox', { name: texts.componentId });
-      await user.type(input(), '{backspace}');
-      await user.click(document.body);
-      expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]));
     });
 
     it('Displays initial error and handles non-existing component ID', () => {

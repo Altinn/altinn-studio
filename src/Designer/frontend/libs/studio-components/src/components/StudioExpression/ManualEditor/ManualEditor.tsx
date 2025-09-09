@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { Expression } from '../types/Expression';
 import { isStringValidAsExpression } from '../validators/isStringValidAsExpression';
 import { stringToExpression } from '../converters/stringToExpression';
@@ -6,6 +6,7 @@ import { expressionToString } from '../converters/expressionToString';
 import { StudioTextarea } from '../../StudioTextarea';
 import classes from './ManualEditor.module.css';
 import { useStudioExpressionContext } from '../StudioExpressionContext';
+import { usePropState } from '@studio/hooks';
 
 export type ManualEditorProps = {
   expression: Expression;
@@ -19,24 +20,22 @@ export const ManualEditor = ({
   isManualExpressionValidRef,
 }: ManualEditorProps): React.ReactElement => {
   const { texts } = useStudioExpressionContext();
-  const expressionString = expressionToString(givenExpression);
-  const [isValid, setIsValid] = useState<boolean>(isStringValidAsExpression(expressionString));
-
-  // Sync local validity when the expression is cleared by external deletion
-  useEffect(() => {
-    const isValidAfterExternalChange = isStringValidAsExpression(expressionString);
-    setIsValid(isValidAfterExternalChange);
-    isManualExpressionValidRef.current = isValidAfterExternalChange;
-  }, [expressionString, isManualExpressionValidRef]);
+  const initialExpressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
+  const [expressionString, setExpressionString] = usePropState<string>(initialExpressionString);
+  const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
-    const isValueValid = isStringValidAsExpression(value);
-    isManualExpressionValidRef.current = isValueValid;
-    setIsValid(isValueValid);
-
-    if (isValueValid) {
-      onChange(stringToExpression(value));
+    setExpressionString(value);
+    if (isStringValidAsExpression(value)) {
+      const expression = stringToExpression(value);
+      onChange(expression);
+      setIsValid(true);
+      isManualExpressionValidRef.current = true;
+    } else {
+      setIsValid(false);
+      isManualExpressionValidRef.current = false;
     }
   };
 
