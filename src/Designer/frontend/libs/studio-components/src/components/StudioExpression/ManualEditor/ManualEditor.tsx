@@ -39,7 +39,7 @@ export const ManualEditor = ({
     }
   };
 
-  const errorMessage = isValid ? null : texts.cannotSaveSinceInvalid;
+  const errorMessage = isValid ? undefined : texts.cannotSaveSinceInvalid;
 
   return (
     <StudioTextarea
