@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -193,7 +192,7 @@ public class OrgCodeListController : ControllerBase
 
             return Ok(codeLists);
         }
-        catch (NotFoundException)
+        catch (FileNotFoundException)
         {
             return NoContent();
         }

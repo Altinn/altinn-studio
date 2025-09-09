@@ -237,7 +237,7 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         string codeListFilePath = CodeListFilePath(codeListId);
         if (!FileExistsByRelativePath(codeListFilePath))
         {
-            throw new NotFoundException($"code list file {codeListId}.json was not found.");
+            throw new FileNotFoundException($"code list file {codeListId}.json was not found.");
         }
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
         CodeList codeList = JsonSerializer.Deserialize<CodeList>(fileContent, s_jsonOptions);
