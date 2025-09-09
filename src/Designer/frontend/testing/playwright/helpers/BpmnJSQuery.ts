@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 type SvgElement = 'svg' | 'g';
@@ -14,7 +15,8 @@ export class BpmnJSQuery {
    */
   public async getTaskByIdAndType(id: string, type: SvgElement): Promise<string> {
     const elementSelector = `${type}[data-element-id="${id}"]`;
-    await this.page.waitForSelector(elementSelector);
+    const locator = this.page.locator(elementSelector);
+    await expect(locator).toBeVisible();
     return elementSelector;
   }
 }
