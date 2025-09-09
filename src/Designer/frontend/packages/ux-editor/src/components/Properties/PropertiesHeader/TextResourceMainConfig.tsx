@@ -6,17 +6,17 @@ import { useAppContext } from '../../../hooks';
 
 const TITLE_TEXT_RESOURCE_KEY = 'title';
 
-type TextMainConfigProps = {
+type TextResourceMainConfigProps = {
   component: FormItem;
   componentSchemaTextKeys: string[];
   handleComponentChange: (component: FormItem) => void;
 };
 
-export const TextMainConfig = ({
+export const TextResourceMainConfig = ({
   component,
   componentSchemaTextKeys,
   handleComponentChange,
-}: TextMainConfigProps): React.JSX.Element => {
+}: TextResourceMainConfigProps): React.JSX.Element => {
   const { t } = useTranslation();
   const { selectedFormLayoutName } = useAppContext();
 
