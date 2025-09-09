@@ -4,15 +4,15 @@
     {
       "value": "norway",
       "label": {
-        "no": "Norge",
+        "nb": "Norge",
         "en": "Norway"
       },
       "description": {
-        "no": "Landet Norge",
+        "nb": "Landet Norge",
         "en": "The country Norway"
       },
       "helpText": {
-        "no": "Brukes når Norge er riktig valg",
+        "nb": "Brukes når Norge er riktig valg",
         "en": "Use when Norway is the correct choice"
       },
       "tags": ["country", "nordic", "eea"]
@@ -20,15 +20,15 @@
     {
       "value": "denmark",
       "label": {
-        "no": "Danmark",
+        "nb": "Danmark",
         "en": "Denmark"
       },
       "description": {
-        "no": "Landet Danmark",
+        "nb": "Landet Danmark",
         "en": "The country Denmark"
       },
       "helpText": {
-        "no": "Brukes når Danmark er riktig valg",
+        "nb": "Brukes når Danmark er riktig valg",
         "en": "Use when Denmark is the correct choice"
       },
       "tags": ["country", "nordic", "eu"]
@@ -36,15 +36,15 @@
     {
       "value": "sweden",
       "label": {
-        "no": "Sverige",
+        "nb": "Sverige",
         "en": "Sweden"
       },
       "description": {
-        "no": "Landet Sverige",
+        "nb": "Landet Sverige",
         "en": "The country Sweden"
       },
       "helpText": {
-        "no": "Brukes når Sverige er riktig valg",
+        "nb": "Brukes når Sverige er riktig valg",
         "en": "Use when Sweden is the correct choice"
       },
       "tags": ["country", "nordic", "eu"]
