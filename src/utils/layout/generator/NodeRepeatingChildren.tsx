@@ -9,11 +9,9 @@ import { WhenParentAdded } from 'src/utils/layout/generator/GeneratorStages';
 import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { ChildClaims, ChildIdMutator, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
-import type { RepeatingChildrenPlugin } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
 interface Props {
   claims: ChildClaims | undefined;
-  plugin: RepeatingChildrenPlugin;
 }
 
 export function NodeRepeatingChildren(props: Props) {
@@ -24,9 +22,10 @@ export function NodeRepeatingChildren(props: Props) {
   );
 }
 
-const emptyObject = {};
-function NodeRepeatingChildrenWorker({ claims, plugin }: Props) {
-  const { dataModelGroupBinding: binding, multiPageSupport } = plugin.settings;
+const emptySet: ChildClaims = new Set();
+function NodeRepeatingChildrenWorker({ claims }: Props) {
+  const binding = 'group'; // Hardcoded for RepeatingGroup
+  const multiPageSupport = 'edit.multiPage'; // Hardcoded for RepeatingGroup
   const item = GeneratorInternal.useIntermediateItem();
   const groupBinding = item?.dataModelBindings?.[binding];
   const numRows = FD.useFreshNumRows(groupBinding);
@@ -49,9 +48,8 @@ function NodeRepeatingChildrenWorker({ claims, plugin }: Props) {
           <GenerateRow
             rowIndex={index}
             groupBinding={groupBinding}
-            claims={claims ?? emptyObject}
+            claims={claims ?? emptySet}
             multiPageMapping={multiPageMapping}
-            plugin={plugin}
           />
         </Fragment>
       ))}
@@ -64,7 +62,6 @@ interface GenerateRowProps {
   claims: ChildClaims;
   groupBinding: IDataModelReference;
   multiPageMapping: MultiPageMapping | undefined;
-  plugin: RepeatingChildrenPlugin;
 }
 
 const GenerateRow = React.memo((props: GenerateRowProps) => (
@@ -77,7 +74,7 @@ const GenerateRow = React.memo((props: GenerateRowProps) => (
 ));
 GenerateRow.displayName = 'GenerateRow';
 
-function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping, plugin }: GenerateRowProps) {
+function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping }: GenerateRowProps) {
   const depth = GeneratorInternal.useDepth();
   const recursiveMutators = useMemo(
     () => [
@@ -96,10 +93,7 @@ function GenerateRowInner({ rowIndex, claims, groupBinding, multiPageMapping, pl
       idMutators={[mutateComponentIdPlain(rowIndex)]}
       recursiveMutators={recursiveMutators}
     >
-      <GenerateNodeChildren
-        claims={claims}
-        pluginKey={plugin.getKey()}
-      />
+      <GenerateNodeChildren claims={claims} />
     </GeneratorRowProvider>
   );
 }

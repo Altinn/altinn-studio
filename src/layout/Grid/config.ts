@@ -1,6 +1,5 @@
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
-import { GridRowsPlugin } from 'src/layout/Grid/GridRowsPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -30,6 +29,6 @@ export const Config = new CG.component({
       ),
     );
   })
-  .addPlugin(new GridRowsPlugin())
+  .addProperty(new CG.prop('rows', CG.common('GridRows')))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

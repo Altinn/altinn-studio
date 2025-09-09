@@ -70,14 +70,11 @@ const GenerateLikertRowInner = React.memo(function ({ rowIndex, questionsBinding
 
   const childId = makeLikertChildId(parentItem.id);
 
-  const childClaims = useMemo(
-    (): ChildClaims => ({
-      [childId]: {
-        pluginKey: 'LikertRowsPlugin',
-      },
-    }),
-    [childId],
-  );
+  const childClaims = useMemo((): ChildClaims => {
+    const out: ChildClaims = new Set();
+    out.add(childId);
+    return out;
+  }, [childId]);
 
   const recursiveMutators = useMemo(
     () => [
@@ -95,10 +92,7 @@ const GenerateLikertRowInner = React.memo(function ({ rowIndex, questionsBinding
       recursiveMutators={recursiveMutators}
       groupBinding={questionsBinding}
     >
-      <GenerateNodeChildren
-        claims={childClaims}
-        pluginKey={'LikertRowsPlugin' as const}
-      />
+      <GenerateNodeChildren claims={childClaims} />
     </GeneratorRowProvider>
   );
 });

@@ -1,7 +1,6 @@
 import { CG } from 'src/codegen/CG';
 import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
-import { LikertRowsPlugin } from 'src/layout/Likert/Generator/LikertRowsPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -23,7 +22,6 @@ export const Config = new CG.component({
   // Auto-generated LikertItem inside here is a form component, so this is a little bit of both a
   // container and a form component
   .extends(CG.common('FormComponentProps'))
-  .addPlugin(new LikertRowsPlugin())
   .addTextResource(
     new CG.trb({
       name: 'title',

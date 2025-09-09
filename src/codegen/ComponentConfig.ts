@@ -8,7 +8,7 @@ import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
 import { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
 import { CompCategory } from 'src/layout/common';
-import { isNodeDefChildrenPlugin, NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
+import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
@@ -475,29 +475,6 @@ export class ComponentConfig {
       implementsInterfaces.push(`${DisplayData}`);
     }
 
-    for (const plugin of this.plugins) {
-      const extraMethodsFromPlugin = plugin.extraMethodsInDef();
-      additionalMethods.push(...extraMethodsFromPlugin);
-    }
-
-    const childrenPlugins = this.plugins.filter((plugin) => isNodeDefChildrenPlugin(plugin));
-    if (childrenPlugins.length > 0) {
-      const ChildClaimerProps = new CG.import({ import: 'ChildClaimerProps', from: 'src/layout/LayoutComponent' });
-
-      const claimChildrenBody = childrenPlugins.map((plugin) =>
-        `${pluginRef(plugin)}.claimChildren({
-            ...props,
-            claimChild: (id: string) => props.claimChild('${plugin.getKey()}', id),
-         });`.trim(),
-      );
-
-      additionalMethods.push(
-        `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
-          ${claimChildrenBody.join('\n')}
-        }`,
-      );
-    }
-
     const implementing = implementsInterfaces.length ? ` implements ${implementsInterfaces.join(', ')}` : '';
     return `export abstract class ${symbol}Def extends ${categorySymbol}<'${this.type}'>${implementing} {
       protected readonly type = '${this.type}';
@@ -506,9 +483,11 @@ export class ComponentConfig {
       ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
 
       renderNodeGenerator(props: ${NodeGeneratorProps}): ${ReactJSX}.Element | null {
+        const others = this.extraNodeGeneratorChildren(props);
         return (
           <${NodeGenerator} {...props}>
             ${pluginGeneratorChildren}
+            {others}
           </${NodeGenerator}>
         );
       }

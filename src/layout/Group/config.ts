@@ -1,6 +1,5 @@
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
-import { NonRepeatingChildrenPlugin } from 'src/utils/layout/plugins/NonRepeatingChildrenPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -41,10 +40,13 @@ export const Config = new CG.component({
         .setDescription('Can visually group components together by indenting them or by putting them in a panel. '),
     ),
   )
-  .addPlugin(
-    new NonRepeatingChildrenPlugin({
-      description: 'Array of component IDs that should be displayed in the group',
-    }),
+  .addProperty(
+    new CG.prop(
+      'children',
+      new CG.arr(new CG.str())
+        .setTitle('Children')
+        .setDescription('Array of component IDs that should be displayed in the group'),
+    ),
   )
   .addProperty(
     new CG.prop(

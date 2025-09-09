@@ -1,5 +1,4 @@
 import { CG } from 'src/codegen/CG';
-import { CardsPlugin } from 'src/layout/Cards/CardsPlugin';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -17,7 +16,6 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
-  .addPlugin(new CardsPlugin())
   .addProperty(
     new CG.prop(
       'mediaPosition',

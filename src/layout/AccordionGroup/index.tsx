@@ -8,8 +8,9 @@ import {
   SummaryAccordionGroupComponent2,
 } from 'src/layout/AccordionGroup/SummaryAccordionGroupComponent';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
+import { claimNonRepeatingChildren } from 'src/utils/layout/plugins/claimNonRepeatingChildren';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ChildClaimerProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class AccordionGroup extends AccordionGroupDef {
@@ -33,5 +34,12 @@ export class AccordionGroup extends AccordionGroupDef {
 
   renderSummaryBoilerplate(): boolean {
     return false;
+  }
+
+  claimChildren(props: ChildClaimerProps<'AccordionGroup'>): void {
+    claimNonRepeatingChildren(props, props.item.children, {
+      onlyWithCapability: 'renderInAccordionGroup',
+      componentType: 'AccordionGroup',
+    });
   }
 }

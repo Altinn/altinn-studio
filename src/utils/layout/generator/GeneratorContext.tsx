@@ -12,13 +12,7 @@ import type { AddNodeRequest, RemoveNodeRequest, SetNodePropRequest } from 'src/
 export type ChildIdMutator = (id: string) => string;
 export type ChildMutator<T extends CompTypes = CompTypes> = (item: CompIntermediate<T>) => void;
 
-export interface ChildClaim {
-  pluginKey?: string;
-}
-
-export interface ChildClaims {
-  [childId: string]: ChildClaim;
-}
+export type ChildClaims = Set<string>;
 
 export interface ChildClaimsMap {
   [parentId: string]: ChildClaims;

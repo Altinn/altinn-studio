@@ -2,7 +2,6 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { SerializableSetting } from 'src/codegen/SerializableSetting';
 import type { CompTypes } from 'src/layout/layout';
-import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 
 interface DefPluginConfig {
@@ -17,19 +16,10 @@ interface DefPluginConfig {
   settings?: any;
 }
 
-type DefPluginCompType<Config extends DefPluginConfig> = Config['componentType'];
 export type DefPluginExtraState<Config extends DefPluginConfig> = Config['extraState'] extends undefined
   ? unknown
   : Config['extraState'];
 export type DefPluginStateFactoryProps = StateFactoryProps;
-export type DefPluginCompExternal<Config extends DefPluginConfig> = Config['expectedFromExternal'];
-export type DefPluginChildClaimerProps<Config extends DefPluginConfig> = Omit<
-  ChildClaimerProps<DefPluginCompType<Config>>,
-  'claimChild'
-> & {
-  item: DefPluginCompExternal<Config>;
-  claimChild(childId: string): void;
-};
 
 /**
  * A node state plugin work when generating code for a component. Adding such a plugin to your component
@@ -79,27 +69,6 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
       return this.serializeSettings(this.settings, asGenericArgs);
     }
     return '';
-  }
-
-  /**
-   * Useful tool when you have the concept of 'default' settings in your plugin. This will make the constructor
-   * arguments, but omits any settings that are the same as the default settings.
-   */
-  protected makeConstructorArgsWithoutDefaultSettings(defaults: unknown, asGenericArgs: boolean): string {
-    const settings = this.settings;
-    if (settings && typeof settings === 'object' && defaults && typeof defaults === 'object') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const nonDefaultSettings: any = Object.keys(settings)
-        .filter((key) => settings[key] !== defaults[key])
-        .reduce((acc, key) => {
-          acc[key] = settings[key];
-          return acc;
-        }, {});
-
-      return this.serializeSettings(nonDefaultSettings, asGenericArgs);
-    }
-
-    throw new Error('Settings must be an object');
   }
 
   protected serializeSettings(settings: unknown, asGenericArgs: boolean) {
@@ -167,26 +136,4 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
   extraNodeGeneratorChildren(): string {
     return '';
   }
-
-  /**
-   * Outputs any extra method definitions the component Def class needs to have. This can be used to add custom
-   * methods to the component, or force the component to implement certain methods (by making them abstract).
-   */
-  extraMethodsInDef(): string[] {
-    return [];
-  }
-}
-
-/**
- * Implement this interface if your plugin/component needs to support children in some form.
- */
-export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
-  claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isNodeDefChildrenPlugin(plugin: unknown): plugin is NodeDefChildrenPlugin<any> {
-  return (
-    !!plugin && typeof plugin === 'object' && 'claimChildren' in plugin && typeof plugin.claimChildren === 'function'
-  );
 }

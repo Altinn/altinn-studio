@@ -1,6 +1,5 @@
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
-import { TabsPlugin } from 'src/layout/Tabs/TabsPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -17,7 +16,6 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
-  .addPlugin(new TabsPlugin())
   .addProperty(new CG.prop('size', new CG.enum('small', 'medium', 'large').optional({ default: 'medium' })))
   .addProperty(new CG.prop('defaultTab', new CG.str().optional()))
   .addProperty(

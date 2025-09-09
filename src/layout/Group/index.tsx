@@ -7,8 +7,9 @@ import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import { GroupSummary } from 'src/layout/Group/GroupSummary';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
+import { claimNonRepeatingChildren } from 'src/utils/layout/plugins/claimNonRepeatingChildren';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ChildClaimerProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Group extends GroupDef {
@@ -42,5 +43,9 @@ export class Group extends GroupDef {
 
   renderSummaryBoilerplate(): boolean {
     return false;
+  }
+
+  claimChildren(props: ChildClaimerProps<'Group'>): void {
+    claimNonRepeatingChildren(props, props.item.children, { componentType: 'Group' });
   }
 }

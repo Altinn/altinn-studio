@@ -1,8 +1,6 @@
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
-import { GridRowsPlugin } from 'src/layout/Grid/GridRowsPlugin';
-import { RepeatingChildrenPlugin } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -21,19 +19,8 @@ export const Config = new CG.component({
     displayData: false,
   },
 })
-  .addPlugin(new RepeatingChildrenPlugin({ multiPageSupport: 'edit.multiPage' }))
-  .addPlugin(
-    new GridRowsPlugin({
-      externalProp: 'rowsBefore',
-      optional: true,
-    }),
-  )
-  .addPlugin(
-    new GridRowsPlugin({
-      externalProp: 'rowsAfter',
-      optional: true,
-    }),
-  )
+  .addProperty(new CG.prop('rowsBefore', CG.common('GridRows').optional()))
+  .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()))
   .addTextResource(
     new CG.trb({
       name: 'title',
@@ -334,6 +321,16 @@ export const Config = new CG.component({
   )
   .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()))
   .addProperty(new CG.prop('addButton', new CG.obj().extends(CG.common('IButtonProps')).optional()))
+  .addProperty(
+    new CG.prop(
+      'children',
+      new CG.arr(new CG.str())
+        .setTitle('Children')
+        .setDescription(
+          'List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)',
+        ),
+    ),
+  )
   .addSummaryOverrides((obj) => {
     obj.addProperty(
       new CG.prop(

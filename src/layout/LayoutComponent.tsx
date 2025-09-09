@@ -9,6 +9,7 @@ import { useEmptyFieldValidationAllBindings } from 'src/features/validation/node
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
+import { GenerateNodeChildren } from 'src/utils/layout/generator/LayoutSetGenerator';
 import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { SimpleEval } from 'src/features/expressions';
@@ -28,13 +29,12 @@ import type {
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
+import type { ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 
 export interface NodeGeneratorProps {
   externalItem: CompExternalExact<CompTypes>;
-  claim: ChildClaim;
   childClaims: ChildClaims | undefined;
 }
 
@@ -158,6 +158,13 @@ export abstract class AnyComponent<Type extends CompTypes> {
     const schemaPointer = '#/definitions/AnyComponent';
     return validate(schemaPointer, component);
   }
+
+  /**
+   * Extra components to render out in the node generator children
+   */
+  extraNodeGeneratorChildren(_props: NodeGeneratorProps): JSX.Element | null {
+    return null;
+  }
 }
 
 export abstract class PresentationComponent<Type extends CompTypes> extends AnyComponent<Type> {
@@ -233,7 +240,7 @@ export abstract class FormComponent<Type extends CompTypes> extends _FormCompone
 
 export interface ChildClaimerProps<Type extends CompTypes> {
   item: CompExternal<Type>;
-  claimChild: (pluginKey: string, id: string) => void;
+  claimChild: (id: string) => void;
   getType: (id: string) => CompTypes | undefined;
   getCapabilities: (type: CompTypes) => CompCapabilities;
 }
@@ -243,6 +250,10 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
 
   isDataModelBindingsRequired(_baseComponentId: string, _layoutLookups: LayoutLookups): boolean {
     return false;
+  }
+
+  extraNodeGeneratorChildren(props: NodeGeneratorProps): JSX.Element | null {
+    return <GenerateNodeChildren claims={props.childClaims} />;
   }
 
   abstract claimChildren(props: ChildClaimerProps<Type>): void;

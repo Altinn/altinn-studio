@@ -5,6 +5,8 @@ import type { PropsFromGenericComponent } from '..';
 
 import { ButtonGroupComponent } from 'src/layout/ButtonGroup/ButtonGroupComponent';
 import { ButtonGroupDef } from 'src/layout/ButtonGroup/config.def.generated';
+import { claimNonRepeatingChildren } from 'src/utils/layout/plugins/claimNonRepeatingChildren';
+import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 
 export class ButtonGroup extends ButtonGroupDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'ButtonGroup'>>(
@@ -19,5 +21,12 @@ export class ButtonGroup extends ButtonGroupDef {
 
   renderSummary(): JSX.Element | null {
     return null;
+  }
+
+  claimChildren(props: ChildClaimerProps<'ButtonGroup'>): void {
+    claimNonRepeatingChildren(props, props.item.children, {
+      onlyWithCapability: 'renderInButtonGroup',
+      componentType: 'ButtonGroup',
+    });
   }
 }
