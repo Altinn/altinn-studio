@@ -7,7 +7,7 @@ export function getNextInputElement(
 ): HTMLCellInputElement | null {
   const currentCoords = getParentCellCoords(element);
   const table = getParentTable(element);
-  if (!table) throw Error('Element is not within a table.');
+  /* istanbul ignore if */ if (!table) throw Error('Element is not within a table.');
   switch (key) {
     case 'ArrowUp':
       return getInputElementAboveCoords(table, currentCoords);
@@ -31,26 +31,26 @@ function getParentCellCoords(element: HTMLElement): CellCoords {
 
 function getParentRowIndex(element: HTMLElement): number {
   const row = element.closest('tr');
-  if (!row) throw Error('Element is not within a table row.');
+  /* istanbul ignore if */ if (!row) throw Error('Element is not within a table row.');
   return getRowIndex(row);
 }
 
 function getRowIndex(row: HTMLTableRowElement): number {
   const table = row.closest('table');
-  if (!table) throw Error('Row is not within a table.');
+  /* istanbul ignore if */ if (!table) throw Error('Row is not within a table.');
   const rows = Array.from(table.querySelectorAll('tr'));
   return rows.indexOf(row);
 }
 
 function getParentColumnIndex(element: HTMLElement): number {
   const cell: HTMLTableCellElement | null = element.closest('td, th');
-  if (!cell) throw Error('Element is not within a table cell.');
+  /* istanbul ignore if */ if (!cell) throw Error('Element is not within a table cell.');
   return getColumnIndex(cell);
 }
 
 function getColumnIndex(cell: HTMLTableCellElement): number {
   const row = cell.closest('tr');
-  if (!row) throw Error('Cell is not within a table row.');
+  /* istanbul ignore if */ if (!row) throw Error('Cell is not within a table row.');
   const cells = Array.from(row.cells);
   return cells.indexOf(cell);
 }

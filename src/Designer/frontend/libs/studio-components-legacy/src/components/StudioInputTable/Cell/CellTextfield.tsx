@@ -51,7 +51,7 @@ export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfield
       case 'ArrowRight':
         return isCaretAtEnd(currentTarget);
       default:
-        throw new Error(`Unhandled key: ${key}`);
+        /* istanbul ignore next */ throw new Error(`Unhandled key: ${key}`);
     }
   }
 

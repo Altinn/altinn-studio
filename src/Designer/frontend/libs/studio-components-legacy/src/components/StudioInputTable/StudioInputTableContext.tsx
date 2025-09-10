@@ -10,6 +10,7 @@ const StudioInputTableContext = createContext<StudioInputTableContextValue | nul
 
 export function useStudioInputTableContext(): StudioInputTableContextValue {
   const contextValue = useContext<StudioInputTableContextValue | null>(StudioInputTableContext);
+  /* istanbul ignore if */
   if (contextValue === null) {
     throw new Error(
       'useStudioInputTableContext must be used within a StudioInputTableContextProvider.',

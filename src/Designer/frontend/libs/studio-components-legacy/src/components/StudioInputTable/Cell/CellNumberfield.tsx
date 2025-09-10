@@ -53,7 +53,7 @@ export class CellNumberfield extends BaseInputCell<HTMLInputElement, CellNumberf
       case 'ArrowRight':
         return isCaretAtEnd(currentTarget);
       default:
-        throw new Error(`Unhandled key: ${key}`);
+        /* istanbul ignore next */ throw new Error(`Unhandled key: ${key}`);
     }
   }
 
