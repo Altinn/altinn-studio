@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -136,8 +137,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
-        Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository);
+        Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retuns list of the teams the user is memeber of.
