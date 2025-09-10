@@ -944,7 +944,7 @@
   "process_editor.configuration_panel_custom_receipt_info": "Hvis du heller vil lage din egen kvittering, kan du opprette den her. Kvitteringen du lager selv vil overstyre standardkvitteringen.",
   "process_editor.configuration_panel_custom_receipt_layout_set_name": "Navn på kvittering: ",
   "process_editor.configuration_panel_custom_receipt_layout_set_name_validation": "Navnet må ha minst 2 tegn",
-  "process_editor.configuration_panel_custom_receipt_navigate_to_design_button": "Gå til Utforming",
+  "process_editor.configuration_panel_custom_receipt_navigate_to_design_link": "Gå til Utforming",
   "process_editor.configuration_panel_custom_receipt_navigate_to_design_title": "Gå til Utforming for å utforme kvitteringen din",
   "process_editor.configuration_panel_custom_receipt_select_data_model_label": "Datamodellfelt",
   "process_editor.configuration_panel_custom_receipt_spinner_title": "Laster inn kvittering",

@@ -5,6 +5,7 @@ import classes from './ResourceAccessLists.module.css';
 import {
   StudioSpinner,
   StudioLink,
+  StudioButton,
   StudioCheckbox,
   StudioHeading,
 } from '@studio/components';

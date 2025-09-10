@@ -4,11 +4,10 @@ import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { StudioPageHeader, StudioPopover } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
+import { StudioLink } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
-import { useNavigate } from 'react-router-dom';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
@@ -18,7 +17,6 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
-  const navigate = useNavigate();
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
@@ -52,16 +50,13 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             </li>
           )}
           <li>
-            <StudioButton
-              className={classes.menuButton + ' ' + classes.link}
-              fullWidth
-              onClick={() => navigate(repositoryPath(owner, repoName))}
+            <StudioLink
+              href={repositoryPath(owner, repoName)}
               icon={<GiteaIcon />}
               rel='noopener noreferrer'
-              variant='tertiary'
             >
               {t('sync_header.repository')}
-            </StudioButton>
+            </StudioLink>
           </li>
           <li>
             <LocalChangesModal triggerClassName={classes.menuButton} />

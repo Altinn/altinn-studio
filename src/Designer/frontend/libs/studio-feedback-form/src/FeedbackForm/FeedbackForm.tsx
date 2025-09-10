@@ -1,8 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { StudioModal } from '@studio/components-legacy';
-import { StudioButton } from '@studio/components';
-import { StudioParagraph } from '@studio/components';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';

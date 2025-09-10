@@ -42,7 +42,6 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
             >
-              asdf
               {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </StudioButton>
