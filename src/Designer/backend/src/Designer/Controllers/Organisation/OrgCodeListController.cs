@@ -59,6 +59,24 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
+    /// Fetches the contents of all the code lists belonging to the organisation.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>List of <see cref="OptionListData" /> objects with all code lists belonging to the organisation with data
+    /// set if code list is valid, or hasError set if code list is invalid.</returns>
+    [HttpGet]
+    [Route("new")]
+    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
+        return Ok(codeLists);
+    }
+
+    /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>

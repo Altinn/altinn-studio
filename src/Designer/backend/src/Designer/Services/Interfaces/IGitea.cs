@@ -132,6 +132,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
 
         /// <summary>
+        /// Gets the files in the CodeLists directory of a given repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
+        Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository);
+
+        /// <summary>
         /// Retuns list of the teams the user is memeber of.
         /// </summary>
         /// <returns></returns>
