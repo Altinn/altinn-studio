@@ -482,7 +482,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return [];
         }
 
-
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {
