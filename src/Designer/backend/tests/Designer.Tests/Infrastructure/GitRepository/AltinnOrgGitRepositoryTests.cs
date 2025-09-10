@@ -387,6 +387,38 @@ public class AltinnOrgGitRepositoryTests : IDisposable
         Assert.True(JsonUtils.DeepEquals(expectedCodeList, fileContent));
     }
 
+    [Fact]
+    public async Task CodeListExists_WhenCodeListExists_ShouldReturnTrue()
+    {
+        // Arrange
+        const string Repository = "org-content-new";
+        const string CodeListId = "codeListString";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnAppGitRepository = await PrepareRepositoryForTest(Repository);
+
+        // Act
+        bool result = altinnAppGitRepository.CodeListExists(CodeListId);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task CodeListExists_InvalidCodeList_ShouldReturnFalse()
+    {
+        // Arrange
+        const string Repository = "org-content-new";
+        const string CodeListId = "non-existing-code-list";
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnAppGitRepository = await PrepareRepositoryForTest(Repository);
+
+        // Act
+        bool result = altinnAppGitRepository.CodeListExists(CodeListId);
+
+        // Assert
+        Assert.False(result);
+    }
+
     private static string RelativePathCodeList(string codeListId) => $"CodeLists/{codeListId}.json";
 
     private static string RelativePathText(string lang) => $"Texts/resource.{lang}.json";

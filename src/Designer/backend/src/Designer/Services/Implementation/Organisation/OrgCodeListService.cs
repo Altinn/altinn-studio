@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
-using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
@@ -130,19 +129,12 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public bool CodeListExists(string org, string developer, string codeListId)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        try
-        {
-            await GetCodeList(org, developer, codeListId, cancellationToken);
-            return true;
-        }
-        catch (NotFoundException)
-        {
-            return false;
-        }
+        return altinnOrgGitRepository.CodeListExists(codeListId);
     }
 
     public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
@@ -251,7 +243,7 @@ public class OrgCodeListService : IOrgCodeListService
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        bool codeListExists = await CodeListExists(org, developer, codeListId, cancellationToken);
+        bool codeListExists = CodeListExists(org, developer, codeListId);
         if (!codeListExists)
         {
             throw new FileNotFoundException($"Code list '{codeListId}' does not exist.");
@@ -269,7 +261,7 @@ public class OrgCodeListService : IOrgCodeListService
         string repo = GetStaticContentRepo(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
 
-        bool codeListExists = await CodeListExists(org, developer, codeListId, cancellationToken);
+        bool codeListExists = CodeListExists(org, developer, codeListId);
         if (!codeListExists)
         {
             throw new FileNotFoundException($"Code list '{codeListId}' does not exist.");

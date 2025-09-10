@@ -230,11 +230,11 @@ public class AltinnOrgGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string codeListFilePath = CodeListFilePath(codeListId);
-        if (!FileExistsByRelativePath(codeListFilePath))
+        if (!CodeListExists(codeListId))
         {
             throw new FileNotFoundException($"code list file {codeListId}.json was not found.");
         }
+        string codeListFilePath = CodeListFilePath(codeListId);
         string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
         CodeList codeList = JsonSerializer.Deserialize<CodeList>(fileContent, s_jsonOptions);
 
@@ -273,6 +273,12 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
     }
 
+
+    public bool CodeListExists(string codeListId)
+    {
+        string relativePath = CodeListFilePath(codeListId);
+        return FileExistsByRelativePath(relativePath);
+    }
     private static string TextResourceFilePath(string languageCode)
     {
         string fileName = TextResourceFileName(languageCode);

@@ -252,7 +252,7 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        bool codeListExists = await service.CodeListExists(TargetOrg, Developer, CodeListId);
+        bool codeListExists = service.CodeListExists(TargetOrg, Developer, CodeListId);
 
         // Assert
         Assert.True(codeListExists);
@@ -269,7 +269,7 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act
-        bool codeListExists = await service.CodeListExists(TargetOrg, Developer, CodeListId);
+        bool codeListExists = service.CodeListExists(TargetOrg, Developer, CodeListId);
 
         // Assert
         Assert.False(codeListExists);
@@ -388,7 +388,7 @@ public class OrgCodeListServiceTests : IDisposable
         await TestDataHelper.CopyOrgForTest(Developer, Org, RepoNew, TargetOrg);
         var service = GetOrgCodeListService();
 
-        const string CodeListId = "codeListTrailingComma";
+        const string CodeListId = "codeListString";
         CodeList codeList = SetupCodeList();
         CodeListWrapper expected = new()
         {
