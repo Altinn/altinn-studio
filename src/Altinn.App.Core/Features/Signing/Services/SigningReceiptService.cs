@@ -78,7 +78,7 @@ internal sealed class SigningReceiptService(
                     .WithContent(content)
                     .WithAttachments(attachments)
                     .Build(),
-                CorrespondenceAuthorisation.Maskinporten
+                CorrespondenceAuthenticationMethod.Default()
             ),
             ct
         );

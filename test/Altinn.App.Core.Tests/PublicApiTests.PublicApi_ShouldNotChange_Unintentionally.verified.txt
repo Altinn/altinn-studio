@@ -1044,7 +1044,12 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     }
     public sealed class GetCorrespondenceStatusPayload : Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase, System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusPayload>
     {
+        [System.Obsolete("Use GetCorrespondenceStatusPayload(Guid, CorrespondenceAuthenticationMethod) inst" +
+            "ead")]
         public GetCorrespondenceStatusPayload(System.Guid correspondenceId, Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation authorisation) { }
+        public GetCorrespondenceStatusPayload(System.Guid correspondenceId, Altinn.App.Core.Features.CorrespondenceAuthenticationMethod authenticationMethod) { }
+        [System.Obsolete("Use GetCorrespondenceStatusPayload(Guid, CorrespondenceAuthenticationMethod) inst" +
+            "ead")]
         public GetCorrespondenceStatusPayload(System.Guid correspondenceId, System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> accessTokenFactory) { }
     }
     public sealed class GetCorrespondenceStatusResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusResponse>
@@ -1107,7 +1112,12 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     }
     public sealed class SendCorrespondencePayload : Altinn.App.Core.Features.Correspondence.Models.CorrespondencePayloadBase, System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.SendCorrespondencePayload>
     {
+        [System.Obsolete("Use SendCorrespondencePayload(CorrespondenceRequest, CorrespondenceAuthentication" +
+            "Method) instead")]
         public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation authorisation) { }
+        public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, Altinn.App.Core.Features.CorrespondenceAuthenticationMethod authenticationMethod) { }
+        [System.Obsolete("Use SendCorrespondencePayload(CorrespondenceRequest, CorrespondenceAuthentication" +
+            "Method) instead")]
         public SendCorrespondencePayload(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest request, System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> accessTokenFactory) { }
     }
     public sealed class SendCorrespondenceResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.SendCorrespondenceResponse>
@@ -1119,84 +1129,13 @@ namespace Altinn.App.Core.Features.Correspondence.Models
         public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceDetailsResponse> Correspondences { get; init; }
     }
 }
-namespace Altinn.App.Core.Features.DataLists
-{
-    public class DataListsFactory
-    {
-        public DataListsFactory(System.IServiceProvider serviceProvider) { }
-        public Altinn.App.Core.Features.IDataListProvider GetDataListProvider(string listId) { }
-    }
-    public class DataListsService : Altinn.App.Core.Features.DataLists.IDataListsService
-    {
-        public DataListsService(Altinn.App.Core.Features.DataLists.DataListsFactory dataListsFactory, Altinn.App.Core.Features.DataLists.InstanceDataListsFactory instanceDataListsFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-    }
-    public interface IDataListsService
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
-    }
-    public class InstanceDataListsFactory
-    {
-        public InstanceDataListsFactory(System.IServiceProvider serviceProvider) { }
-        public Altinn.App.Core.Features.IInstanceDataListProvider GetDataListProvider(string listId) { }
-    }
-    public class NullDataListProvider : Altinn.App.Core.Features.IDataListProvider
-    {
-        public NullDataListProvider() { }
-        public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-    }
-    public class NullInstanceDataListProvider : Altinn.App.Core.Features.IInstanceDataListProvider
-    {
-        public NullInstanceDataListProvider() { }
-        public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-    }
-}
-namespace Altinn.App.Core.Features.DataProcessing
-{
-    public abstract class GenericDataProcessor<TModel> : Altinn.App.Core.Features.IDataProcessor
-        where TModel :  class
-    {
-        protected GenericDataProcessor() { }
-        public abstract System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, string? langauge);
-        public System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, string? language) { }
-        public abstract System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, TModel? previousModel, string? language);
-        public System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, object? previousData, string? language) { }
-    }
-    public class NullInstantiationProcessor : Altinn.App.Core.Features.IInstantiationProcessor
-    {
-        public NullInstantiationProcessor() { }
-        public System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill) { }
-    }
-}
-namespace Altinn.App.Core.Features.ExternalApi
-{
-    public sealed class ExternalApiDataResult : System.IEquatable<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult>
-    {
-        public ExternalApiDataResult(object? Data, bool WasExternalApiFound) { }
-        public object? Data { get; init; }
-        public bool WasExternalApiFound { get; init; }
-    }
-    public class ExternalApiService : Altinn.App.Core.Features.ExternalApi.IExternalApiService
-    {
-        public ExternalApiService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.ExternalApi.ExternalApiService> logger, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult> GetExternalApiData(string externalApiId, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams) { }
-    }
-    public interface IExternalApiClient
-    {
-        string Id { get; }
-        System.Threading.Tasks.Task<object?> GetExternalApiDataAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
-    }
-    public interface IExternalApiService
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult> GetExternalApiData(string externalApiId, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
-    }
-}
 namespace Altinn.App.Core.Features
 {
+    public sealed class CorrespondenceAuthenticationMethod : System.IEquatable<Altinn.App.Core.Features.CorrespondenceAuthenticationMethod>
+    {
+        public static Altinn.App.Core.Features.CorrespondenceAuthenticationMethod Custom(System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> tokenProvider) { }
+        public static Altinn.App.Core.Features.CorrespondenceAuthenticationMethod Default() { }
+    }
     public static class FeatureFlags
     {
         public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
@@ -1438,6 +1377,82 @@ namespace Altinn.App.Core.Features
         public static System.Diagnostics.Activity SetUserId(this System.Diagnostics.Activity activity, int? userId) { }
         public static System.Diagnostics.Activity SetUserPartyId(this System.Diagnostics.Activity activity, int? userPartyId) { }
         public static System.Diagnostics.Activity SetUsername(this System.Diagnostics.Activity activity, string? username) { }
+    }
+}
+namespace Altinn.App.Core.Features.DataLists
+{
+    public class DataListsFactory
+    {
+        public DataListsFactory(System.IServiceProvider serviceProvider) { }
+        public Altinn.App.Core.Features.IDataListProvider GetDataListProvider(string listId) { }
+    }
+    public class DataListsService : Altinn.App.Core.Features.DataLists.IDataListsService
+    {
+        public DataListsService(Altinn.App.Core.Features.DataLists.DataListsFactory dataListsFactory, Altinn.App.Core.Features.DataLists.InstanceDataListsFactory instanceDataListsFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+    }
+    public interface IDataListsService
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+        System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string dataListId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
+    }
+    public class InstanceDataListsFactory
+    {
+        public InstanceDataListsFactory(System.IServiceProvider serviceProvider) { }
+        public Altinn.App.Core.Features.IInstanceDataListProvider GetDataListProvider(string listId) { }
+    }
+    public class NullDataListProvider : Altinn.App.Core.Features.IDataListProvider
+    {
+        public NullDataListProvider() { }
+        public string Id { get; }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetDataListAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+    }
+    public class NullInstanceDataListProvider : Altinn.App.Core.Features.IInstanceDataListProvider
+    {
+        public NullInstanceDataListProvider() { }
+        public string Id { get; }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Models.DataList> GetInstanceDataListAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
+    }
+}
+namespace Altinn.App.Core.Features.DataProcessing
+{
+    public abstract class GenericDataProcessor<TModel> : Altinn.App.Core.Features.IDataProcessor
+        where TModel :  class
+    {
+        protected GenericDataProcessor() { }
+        public abstract System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, string? langauge);
+        public System.Threading.Tasks.Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, string? language) { }
+        public abstract System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, TModel model, TModel? previousModel, string? language);
+        public System.Threading.Tasks.Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Guid? dataId, object data, object? previousData, string? language) { }
+    }
+    public class NullInstantiationProcessor : Altinn.App.Core.Features.IInstantiationProcessor
+    {
+        public NullInstantiationProcessor() { }
+        public System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill) { }
+    }
+}
+namespace Altinn.App.Core.Features.ExternalApi
+{
+    public sealed class ExternalApiDataResult : System.IEquatable<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult>
+    {
+        public ExternalApiDataResult(object? Data, bool WasExternalApiFound) { }
+        public object? Data { get; init; }
+        public bool WasExternalApiFound { get; init; }
+    }
+    public class ExternalApiService : Altinn.App.Core.Features.ExternalApi.IExternalApiService
+    {
+        public ExternalApiService(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.ExternalApi.ExternalApiService> logger, System.IServiceProvider serviceProvider) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult> GetExternalApiData(string externalApiId, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams) { }
+    }
+    public interface IExternalApiClient
+    {
+        string Id { get; }
+        System.Threading.Tasks.Task<object?> GetExternalApiDataAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
+    }
+    public interface IExternalApiService
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.ExternalApi.ExternalApiDataResult> GetExternalApiData(string externalApiId, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Collections.Generic.Dictionary<string, string> queryParams);
     }
 }
 namespace Altinn.App.Core.Features.FileAnalysis

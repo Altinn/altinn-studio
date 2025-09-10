@@ -14,7 +14,7 @@ internal interface ISigningCallToActionService
     /// Sends correspondence to a signee to notify them of a signing call to action.
     /// </summary>
     Task<SendCorrespondenceResponse?> SendSignCallToAction(
-        CommunicationConfig? CommunicationConfig,
+        CommunicationConfig? communicationConfig,
         AppIdentifier appIdentifier,
         InstanceIdentifier instanceIdentifier,
         Party signingParty,

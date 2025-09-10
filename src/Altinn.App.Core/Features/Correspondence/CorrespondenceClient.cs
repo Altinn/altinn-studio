@@ -6,11 +6,13 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using CorrespondenceResult = Altinn.App.Core.Features.Telemetry.Correspondence.CorrespondenceResult;
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace Altinn.App.Core.Features.Correspondence;
 
@@ -21,14 +23,15 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly PlatformSettings _platformSettings;
     private readonly Telemetry? _telemetry;
-
     private readonly CorrespondenceAuthorisationFactory _authorisationFactory;
+    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
 
     public CorrespondenceClient(
         IHttpClientFactory httpClientFactory,
         IOptions<PlatformSettings> platformSettings,
         IServiceProvider serviceProvider,
         ILogger<CorrespondenceClient> logger,
+        IAuthenticationTokenResolver authenticationTokenResolver,
         Telemetry? telemetry = null
     )
     {
@@ -36,6 +39,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         _httpClientFactory = httpClientFactory;
         _platformSettings = platformSettings.Value;
         _telemetry = telemetry;
+        _authenticationTokenResolver = authenticationTokenResolver;
         _authorisationFactory = new CorrespondenceAuthorisationFactory(serviceProvider);
     }
 
@@ -138,7 +142,9 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     )
     {
         _logger.LogDebug("Fetching access token via factory");
-        JwtToken accessToken = await _authorisationFactory.Resolve(payload);
+        JwtToken accessToken = payload.AuthenticationMethod is not null
+            ? await _authenticationTokenResolver.GetAccessToken(payload.AuthenticationMethod)
+            : await _authorisationFactory.Resolve(payload);
 
         _logger.LogDebug("Constructing authorized http request for target uri {TargetEndpoint}", uri);
         HttpRequestMessage request = new(method, uri) { Content = content };

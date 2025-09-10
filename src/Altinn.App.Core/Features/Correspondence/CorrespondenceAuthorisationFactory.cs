@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features.Correspondence;
 
+[Obsolete("Replaced by CorrespondenceAuthenticationMethod")]
 internal sealed class CorrespondenceAuthorisationFactory
 {
     private IMaskinportenClient? _maskinportenClient;

@@ -6,14 +6,11 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal.Maskinporten;
-using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Time.Testing;
-using Microsoft.Identity.Client;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
@@ -121,6 +118,7 @@ public class MaskinportenClientTests
     [InlineData(new[] { "a", "b", "c" }, "a b c")]
     [InlineData(new[] { "a b", "c" }, "a b c")]
     [InlineData(new[] { "a b c" }, "a b c")]
+    [InlineData(new[] { "a", "a", "b", "b", "c", "c" }, "a b c")]
     public void FormattedScopes_FormatsCorrectly(IEnumerable<string> input, string expectedOutput)
     {
         var formattedScopes = MaskinportenClient.GetFormattedScopes(input);

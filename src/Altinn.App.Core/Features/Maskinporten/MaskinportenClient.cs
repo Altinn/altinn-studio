@@ -381,7 +381,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient
     /// </summary>
     /// <param name="scopes">A collection of scopes.</param>
     /// <returns>A single string containing the supplied scopes.</returns>
-    internal static string GetFormattedScopes(IEnumerable<string> scopes) => string.Join(" ", scopes);
+    internal static string GetFormattedScopes(IEnumerable<string> scopes) => string.Join(" ", scopes.Distinct());
 
     private TimeSpan GetTokenExpiryWithMargin(JwtToken token) =>
         token.ExpiresAt - _timeProvider.GetUtcNow() - TokenExpirationMargin;

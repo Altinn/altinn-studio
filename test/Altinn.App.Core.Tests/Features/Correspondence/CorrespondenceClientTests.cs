@@ -1,4 +1,7 @@
 using System.Net;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Correspondence;
 using Altinn.App.Core.Features.Correspondence.Builder;
 using Altinn.App.Core.Features.Correspondence.Exceptions;
@@ -16,88 +19,8 @@ namespace Altinn.App.Core.Tests.Features.Correspondence;
 
 public class CorrespondenceClientTests
 {
-    private sealed record Fixture(WebApplication App) : IAsyncDisposable
-    {
-        public Mock<IHttpClientFactory> HttpClientFactoryMock =>
-            Mock.Get(App.Services.GetRequiredService<IHttpClientFactory>());
-
-        public Mock<IMaskinportenClient> MaskinportenClientMock =>
-            Mock.Get(App.Services.GetRequiredService<IMaskinportenClient>());
-
-        public ICorrespondenceClient CorrespondenceClient => App.Services.GetRequiredService<ICorrespondenceClient>();
-
-        public static Fixture Create()
-        {
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
-            var mockMaskinportenClient = new Mock<IMaskinportenClient>();
-
-            var app = AppBuilder.Build(registerCustomAppServices: services =>
-            {
-                services.AddSingleton(mockHttpClientFactory.Object);
-                services.AddSingleton(mockMaskinportenClient.Object);
-                services.Configure<MaskinportenSettings>(options =>
-                {
-                    options.Authority = "https://maskinporten.dev/";
-                    options.ClientId = "test-client-id";
-                    options.JwkBase64 =
-                        "ewogICAgICAicCI6ICItU09GNmp3V0N3b19nSlByTnJhcVNkNnZRckFzRmxZd1VScHQ0NC1BNlRXUnBoaUo4b3czSTNDWGxxUG1LeG5VWDVDcnd6SF8yeldTNGtaaU9zQTMtajhiUE9hUjZ2a3pRSG14YmFkWmFmZjBUckdJajNQUlhxcVdMRHdsZjNfNklDV2gzOFhodXNBeDVZRE0tRm8zZzRLVWVHM2NxMUFvTkJ4NHV6Sy1IRHMiLAogICAgICAia3R5IjogIlJTQSIsCiAgICAgICJxIjogIndwWUlpOVZJLUJaRk9aYUNaUmVhYm4xWElQbW8tbEJIendnc1RCdHVfeUJma1FQeGI1Q1ZnZFFnaVQ4dTR3Tkl4NC0zb2ROdXhsWGZING1Hc25xOWFRaFlRNFEyc2NPUHc5V2dNM1dBNE1GMXNQQXgzUGJLRkItU01RZmZ4aXk2cVdJSmRQSUJ4OVdFdnlseW9XbEhDcGZsUWplT3U2dk43WExsZ3c5T2JhVSIsCiAgICAgICJkIjogIks3Y3pqRktyWUJfRjJYRWdoQ1RQY2JTbzZZdExxelFwTlZleF9HZUhpTmprWmNpcEVaZ3g4SFhYLXpNSi01ZWVjaTZhY1ZjSzhhZzVhQy01Mk84LTU5aEU3SEE2M0FoRzJkWFdmamdQTXhaVE9MbnBheWtZbzNWa0NGNF9FekpLYmw0d2ludnRuTjBPc2dXaVZiTDFNZlBjWEdqbHNTUFBIUlAyaThDajRqX21OM2JVcy1FbVM5UzktSXlia1luYV9oNUMxMEluXy1tWHpsQ2dCNU9FTXFzd2tNUWRZVTBWbHVuWHM3YXlPT0h2WWpQMWFpYml0MEpyay1iWVFHSy1mUVFFVWNZRkFSN1ZLMkxIaUJwU0NvbzBiSjlCQ1BZb196bTVNVnVId21xbzNtdml1Vy1lMnVhbW5xVHpZUEVWRE1lMGZBSkZtcVBGcGVwTzVfcXE2USIsCiAgICAgICJlIjogIkFRQUIiLAogICAgICAidXNlIjogInNpZyIsCiAgICAgICJraWQiOiAiYXNkZjEyMzQiLAogICAgICAicWkiOiAicXpFUUdXOHBPVUgtR2pCaFUwVXNhWWtEM2dWTVJvTF9CbGlRckp4ZTAwY29YeUtIZGVEX2M1bDFDNFFJZzRJSjZPMnFZZ2wyamRnWVNmVHA0S2NDNk1Obm8tSVFiSnlPRDU2Qmo4eVJUUjA5TkZvTGhDUjNhY0xmMkhwTXNKNUlqbTdBUHFPVWlCeW9hVkExRlR4bzYtZGNfZ1NiQjh1ZDI2bFlFRHdsYWMwIiwKICAgICAgImRwIjogInRnTU14N2FFQ0NiQmctY005Vmo0Q2FXbGR0d01LWGxvTFNoWTFlSTJOS3BOTVFKR2JhdWdjTVRHQ21qTk1fblgzTVZ0cHRvMWFPbTMySlhCRjlqc1RHZWtONWJmVGNJbmZsZ3Bsc21uR2pMckNqN0xYTG9wWUxiUnBabF9iNm1JaThuU2ZCQXVQR2hEUzc4UWZfUXhFR1Bxb2h6cEZVTW5UQUxzOVI0Nkk1YyIsCiAgICAgICJhbGciOiAiUlMyNTYiLAogICAgICAiZHEiOiAibE40cF9ha1lZVXpRZTBWdHp4LW1zNTlLLUZ4bzdkQmJqOFhGOWhnSzdENzlQam5SRGJTRTNVWEgtcGlQSzNpSXhyeHFGZkZuVDJfRS15REJIMjBOMmZ4YllwUVZNQnpZc1UtUGQ2OFBBV1Nnd05TU29XVmhwdEdjaTh4bFlfMDJkWDRlbEF6T1ZlOUIxdXBEMjc5cWJXMVdKVG5TQmp4am1LVU5lQjVPdDAwIiwKICAgICAgIm4iOiAidlY3dW5TclNnekV3ZHo0dk8wTnNmWDB0R1NwT2RITE16aDFseUVtU2RYbExmeVYtcUxtbW9qUFI3S2pUU2NDbDI1SFI4SThvWG1mcDhSZ19vbnA0LUlZWW5ZV0RTNngxVlViOVlOQ3lFRTNQQTUtVjlOYzd5ckxxWXpyMTlOSkJmdmhJVEd5QUFVTjFCeW5JeXJ5NFFMbHRYYTRKSTFiLTh2QXNJQ0xyU1dQZDdibWxrOWo3bU1jV3JiWlNIZHNTMGNpVFgzYTc2UXdMb0F2SW54RlhCU0ludXF3ZVhnVjNCZDFQaS1DZGpCR0lVdXVyeVkybEwybmRnVHZUY2tZUTBYeEtGR3lCdDNaMEhJMzRBRFBrVEZneWFMX1F4NFpIZ3d6ZjRhTHBXaHF3OGVWanpPMXlucjJ3OUd4b2dSN1pWUjY3VFI3eUxSS3VrMWdIdFlkUkJ3IgogICAgfQ==";
-                });
-            });
-
-            return new Fixture(app);
-        }
-
-        public async ValueTask DisposeAsync() => await App.DisposeAsync();
-    }
-
-    private static class PayloadFactory
-    {
-        private static readonly Func<Task<JwtToken>> _defaultTokenFactory = async () =>
-            await Task.FromResult(
-                JwtToken.Parse(
-                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpdHMtYS1tZSJ9.wLLw4Timcl9gnQvA93RgREz-6S5y1UfzI_GYVI_XVDA"
-                )
-            );
-
-        public static SendCorrespondencePayload Send(
-            Func<Task<JwtToken>>? tokenFactory = default,
-            CorrespondenceAuthorisation? authorisation = default
-        )
-        {
-            var request = CorrespondenceRequestBuilder
-                .Create()
-                .WithResourceId("resource-id")
-                .WithSender(OrganisationNumber.Parse("991825827"))
-                .WithSendersReference("senders-ref")
-                .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
-                .WithContent(
-                    CorrespondenceContentBuilder
-                        .Create()
-                        .WithLanguage(LanguageCode<Iso6391>.Parse("en"))
-                        .WithTitle("message-title")
-                        .WithSummary("message-summary")
-                        .WithBody("message-body")
-                )
-                .Build();
-
-            return authorisation is null
-                ? new SendCorrespondencePayload(request, tokenFactory ?? _defaultTokenFactory)
-                : new SendCorrespondencePayload(request, authorisation.Value);
-        }
-
-        public static GetCorrespondenceStatusPayload GetStatus(
-            Func<Task<JwtToken>>? tokenFactory = default,
-            CorrespondenceAuthorisation? authorisation = default
-        )
-        {
-            return authorisation is null
-                ? new GetCorrespondenceStatusPayload(Guid.NewGuid(), tokenFactory ?? _defaultTokenFactory)
-                : new GetCorrespondenceStatusPayload(Guid.NewGuid(), authorisation.Value);
-        }
-    }
-
     [Fact]
-    public async Task Send_SuccessfulResponse_ReturnsCorrectResponse()
+    public async Task Send_SuccessfulRequest_ReturnsCorrectResponse()
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -148,7 +71,7 @@ public class CorrespondenceClientTests
     }
 
     [Fact]
-    public async Task GetStatus_SuccessfulResponse_ReturnsCorrectResponse()
+    public async Task GetStatus_SuccessfulRequest_ReturnsCorrectResponse()
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -201,7 +124,7 @@ public class CorrespondenceClientTests
     [Theory]
     [InlineData(HttpStatusCode.BadRequest)]
     [InlineData(HttpStatusCode.InternalServerError)]
-    public async Task FailedResponse_ThrowsCorrespondenceRequestException(HttpStatusCode httpStatusCode)
+    public async Task FailedRequest_ThrowsCorrespondenceRequestException(HttpStatusCode httpStatusCode)
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -317,68 +240,197 @@ public class CorrespondenceClientTests
             .WithInnerExceptionExactly(typeof(HttpRequestException));
     }
 
+    // csharpier-ignore
+    public static TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> AuthenticationTestCases =>
+        [
+            (AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]),
+            (AuthenticationScenario.LegacyCustom, ["old:custom"]),
+            (AuthenticationScenario.Default, ["altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]),
+            (AuthenticationScenario.Custom, ["new:custom"]),
+        ];
+
     [Theory]
-    [InlineData(typeof(SendCorrespondencePayload), new[] { "altinn:correspondence.write", "altinn:serviceowner" })]
-    [InlineData(typeof(GetCorrespondenceStatusPayload), new[] { "altinn:correspondence.write", "altinn:serviceowner" })]
-    public async Task AuthorisationFactory_ImplementsMaskinportenCorrectly(
-        Type payloadType,
-        IEnumerable<string> expectedScopes
+    [MemberData(nameof(AuthenticationTestCases))]
+    public async Task Authentication_IsImplementedCorrectly(
+        (AuthenticationScenario scenario, IEnumerable<string> expectedScopes) testCase
     )
     {
         // Arrange
         await using var fixture = Fixture.Create();
-        IEnumerable<string>? capturedMaskinportenScopes = null;
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockMaskinportenClient = fixture.MaskinportenClientMock;
         var mockHttpClient = new Mock<HttpClient>();
-        var correspondencePayload = PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten);
-        var altinnTokenResponse = TestAuthentication.GetServiceOwnerToken(org: "ttd");
-        var altinnTokenWrapperResponse = JwtToken.Parse(altinnTokenResponse);
+        JwtToken? capturedToken = null;
 
-        Func<Task<object>> action = async () =>
-            payloadType == typeof(SendCorrespondencePayload)
-                ? await fixture.CorrespondenceClient.Send(
-                    PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten)
-                )
-                : await fixture.CorrespondenceClient.GetStatus(
-                    PayloadFactory.GetStatus(authorisation: CorrespondenceAuthorisation.Maskinporten)
-                );
+        SendCorrespondencePayload sendPayload;
+        GetCorrespondenceStatusPayload statusPayload;
+        // csharpier-ignore
+        switch (testCase.scenario)
+        {
+            case AuthenticationScenario.LegacyMaskinporten:
+                sendPayload = PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten);
+                statusPayload = PayloadFactory.GetStatus(authorisation: CorrespondenceAuthorisation.Maskinporten);
+                break;
+            case AuthenticationScenario.LegacyCustom:
+                sendPayload = PayloadFactory.Send(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
+                statusPayload = PayloadFactory.GetStatus(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
+                break;
+            case AuthenticationScenario.Default:
+                sendPayload = PayloadFactory.Send(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
+                statusPayload = PayloadFactory.GetStatus(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
+                break;
+            case AuthenticationScenario.Custom:
+                sendPayload = PayloadFactory.Send(authenticationMethod: CorrespondenceAuthenticationMethod.Custom(() => TestHelpers.OrgTokenFactory(["new:custom"])));
+                statusPayload = PayloadFactory.GetStatus(authenticationMethod: CorrespondenceAuthenticationMethod.Custom(() => TestHelpers.OrgTokenFactory(["new:custom"])));
+                break;
+            default:
+                throw new InvalidOperationException();
+        }
 
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
-        mockMaskinportenClient
-            .Setup(m => m.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .Callback<IEnumerable<string>, CancellationToken>(
-                (scopes, _) =>
-                {
-                    capturedMaskinportenScopes = scopes;
-                }
-            )
-            .ReturnsAsync(() => altinnTokenWrapperResponse)
-            .Verifiable(Times.Once);
         mockHttpClient
             .Setup(c => c.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+            .Callback(
+                (HttpRequestMessage request, CancellationToken _) =>
+                {
+                    capturedToken = JwtToken.Parse(request.Headers.Authorization!.Parameter!);
+                }
+            )
             .ReturnsAsync(
                 (HttpRequestMessage request, CancellationToken _) =>
                     request.RequestUri!.AbsolutePath switch
                     {
-                        var path when path.EndsWith("/exchange/maskinporten") => TestHelpers.ResponseMessageFactory(
-                            altinnTokenResponse
-                        ),
                         var path when path.EndsWith("/correspondence/upload") => TestHelpers.ResponseMessageFactory(
-                            "dummy response."
+                            TestHelpers.DummySendCorrespondenceResponse
                         ),
                         var path when path.EndsWith("/details") => TestHelpers.ResponseMessageFactory(
-                            "dummy response."
+                            TestHelpers.DummyGetCorrespondenceStatusResponse
                         ),
                         _ => throw FailException.ForFailure($"Unknown mock endpoint: {request.RequestUri}"),
                     }
-            );
+            )
+            .Verifiable(Times.Exactly(2));
 
         // Act
-        await action.Should().ThrowAsync<CorrespondenceRequestException>().WithMessage("Invalid response*");
+        await fixture.CorrespondenceClient.Send(sendPayload);
+        await fixture.CorrespondenceClient.GetStatus(statusPayload);
 
         // Assert
-        mockMaskinportenClient.Verify();
-        capturedMaskinportenScopes.Should().BeEquivalentTo(expectedScopes);
+        mockHttpClient.Verify();
+        Assert.Equivalent(testCase.expectedScopes, capturedToken!.Value.Scope!.Split(" "));
+
+        if (testCase.scenario is AuthenticationScenario.Default or AuthenticationScenario.LegacyMaskinporten)
+        {
+            mockMaskinportenClient.Verify();
+        }
+    }
+
+    private sealed record Fixture(WebApplication App) : IAsyncDisposable
+    {
+        public Mock<IHttpClientFactory> HttpClientFactoryMock =>
+            Mock.Get(App.Services.GetRequiredService<IHttpClientFactory>());
+
+        public Mock<IMaskinportenClient> MaskinportenClientMock =>
+            Mock.Get(App.Services.GetRequiredService<IMaskinportenClient>());
+
+        public ICorrespondenceClient CorrespondenceClient => App.Services.GetRequiredService<ICorrespondenceClient>();
+
+        public static Fixture Create()
+        {
+            var mockHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+            var mockMaskinportenClient = new Mock<IMaskinportenClient>(MockBehavior.Strict);
+            var authenticationContextMock = new Mock<IAuthenticationContext>(MockBehavior.Strict);
+
+            mockMaskinportenClient
+                .Setup(m => m.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+                .Returns((IEnumerable<string> scopes, CancellationToken _) => TestHelpers.OrgTokenFactory(scopes))
+                .Verifiable();
+
+            var app = AppBuilder.Build(registerCustomAppServices: services =>
+            {
+                services.AddSingleton(mockHttpClientFactory.Object);
+                services.AddSingleton(mockMaskinportenClient.Object);
+                services.AddSingleton(authenticationContextMock.Object);
+                services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new PlatformSettings()));
+                services.AddSingleton(
+                    // NOTE: This must be set to tt02/prod to avoid localhost token generation in AuthenticationTokenResolver
+                    Microsoft.Extensions.Options.Options.Create(new GeneralSettings { HostName = "tt02.altinn.no" })
+                );
+                services.Configure<MaskinportenSettings>(options =>
+                {
+                    options.Authority = "https://maskinporten.dev/";
+                    options.ClientId = "test-client-id";
+                    options.JwkBase64 =
+                        "ewogICAgICAicCI6ICItU09GNmp3V0N3b19nSlByTnJhcVNkNnZRckFzRmxZd1VScHQ0NC1BNlRXUnBoaUo4b3czSTNDWGxxUG1LeG5VWDVDcnd6SF8yeldTNGtaaU9zQTMtajhiUE9hUjZ2a3pRSG14YmFkWmFmZjBUckdJajNQUlhxcVdMRHdsZjNfNklDV2gzOFhodXNBeDVZRE0tRm8zZzRLVWVHM2NxMUFvTkJ4NHV6Sy1IRHMiLAogICAgICAia3R5IjogIlJTQSIsCiAgICAgICJxIjogIndwWUlpOVZJLUJaRk9aYUNaUmVhYm4xWElQbW8tbEJIendnc1RCdHVfeUJma1FQeGI1Q1ZnZFFnaVQ4dTR3Tkl4NC0zb2ROdXhsWGZING1Hc25xOWFRaFlRNFEyc2NPUHc5V2dNM1dBNE1GMXNQQXgzUGJLRkItU01RZmZ4aXk2cVdJSmRQSUJ4OVdFdnlseW9XbEhDcGZsUWplT3U2dk43WExsZ3c5T2JhVSIsCiAgICAgICJkIjogIks3Y3pqRktyWUJfRjJYRWdoQ1RQY2JTbzZZdExxelFwTlZleF9HZUhpTmprWmNpcEVaZ3g4SFhYLXpNSi01ZWVjaTZhY1ZjSzhhZzVhQy01Mk84LTU5aEU3SEE2M0FoRzJkWFdmamdQTXhaVE9MbnBheWtZbzNWa0NGNF9FekpLYmw0d2ludnRuTjBPc2dXaVZiTDFNZlBjWEdqbHNTUFBIUlAyaThDajRqX21OM2JVcy1FbVM5UzktSXlia1luYV9oNUMxMEluXy1tWHpsQ2dCNU9FTXFzd2tNUWRZVTBWbHVuWHM3YXlPT0h2WWpQMWFpYml0MEpyay1iWVFHSy1mUVFFVWNZRkFSN1ZLMkxIaUJwU0NvbzBiSjlCQ1BZb196bTVNVnVId21xbzNtdml1Vy1lMnVhbW5xVHpZUEVWRE1lMGZBSkZtcVBGcGVwTzVfcXE2USIsCiAgICAgICJlIjogIkFRQUIiLAogICAgICAidXNlIjogInNpZyIsCiAgICAgICJraWQiOiAiYXNkZjEyMzQiLAogICAgICAicWkiOiAicXpFUUdXOHBPVUgtR2pCaFUwVXNhWWtEM2dWTVJvTF9CbGlRckp4ZTAwY29YeUtIZGVEX2M1bDFDNFFJZzRJSjZPMnFZZ2wyamRnWVNmVHA0S2NDNk1Obm8tSVFiSnlPRDU2Qmo4eVJUUjA5TkZvTGhDUjNhY0xmMkhwTXNKNUlqbTdBUHFPVWlCeW9hVkExRlR4bzYtZGNfZ1NiQjh1ZDI2bFlFRHdsYWMwIiwKICAgICAgImRwIjogInRnTU14N2FFQ0NiQmctY005Vmo0Q2FXbGR0d01LWGxvTFNoWTFlSTJOS3BOTVFKR2JhdWdjTVRHQ21qTk1fblgzTVZ0cHRvMWFPbTMySlhCRjlqc1RHZWtONWJmVGNJbmZsZ3Bsc21uR2pMckNqN0xYTG9wWUxiUnBabF9iNm1JaThuU2ZCQXVQR2hEUzc4UWZfUXhFR1Bxb2h6cEZVTW5UQUxzOVI0Nkk1YyIsCiAgICAgICJhbGciOiAiUlMyNTYiLAogICAgICAiZHEiOiAibE40cF9ha1lZVXpRZTBWdHp4LW1zNTlLLUZ4bzdkQmJqOFhGOWhnSzdENzlQam5SRGJTRTNVWEgtcGlQSzNpSXhyeHFGZkZuVDJfRS15REJIMjBOMmZ4YllwUVZNQnpZc1UtUGQ2OFBBV1Nnd05TU29XVmhwdEdjaTh4bFlfMDJkWDRlbEF6T1ZlOUIxdXBEMjc5cWJXMVdKVG5TQmp4am1LVU5lQjVPdDAwIiwKICAgICAgIm4iOiAidlY3dW5TclNnekV3ZHo0dk8wTnNmWDB0R1NwT2RITE16aDFseUVtU2RYbExmeVYtcUxtbW9qUFI3S2pUU2NDbDI1SFI4SThvWG1mcDhSZ19vbnA0LUlZWW5ZV0RTNngxVlViOVlOQ3lFRTNQQTUtVjlOYzd5ckxxWXpyMTlOSkJmdmhJVEd5QUFVTjFCeW5JeXJ5NFFMbHRYYTRKSTFiLTh2QXNJQ0xyU1dQZDdibWxrOWo3bU1jV3JiWlNIZHNTMGNpVFgzYTc2UXdMb0F2SW54RlhCU0ludXF3ZVhnVjNCZDFQaS1DZGpCR0lVdXVyeVkybEwybmRnVHZUY2tZUTBYeEtGR3lCdDNaMEhJMzRBRFBrVEZneWFMX1F4NFpIZ3d6ZjRhTHBXaHF3OGVWanpPMXlucjJ3OUd4b2dSN1pWUjY3VFI3eUxSS3VrMWdIdFlkUkJ3IgogICAgfQ==";
+                });
+            });
+
+            return new Fixture(app);
+        }
+
+        public async ValueTask DisposeAsync() => await App.DisposeAsync();
+    }
+
+    private static class PayloadFactory
+    {
+        private static readonly CorrespondenceAuthenticationMethod _defaultAuthenticationMethod =
+            CorrespondenceAuthenticationMethod.Default();
+
+        public static SendCorrespondencePayload Send(
+            Func<Task<JwtToken>>? tokenFactory = null,
+            CorrespondenceAuthorisation? authorisation = null,
+            CorrespondenceAuthenticationMethod? authenticationMethod = null
+        )
+        {
+            var request = CorrespondenceRequestBuilder
+                .Create()
+                .WithResourceId("resource-id")
+                .WithSender(OrganisationNumber.Parse("991825827"))
+                .WithSendersReference("senders-ref")
+                .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
+                .WithContent(
+                    CorrespondenceContentBuilder
+                        .Create()
+                        .WithLanguage(LanguageCode<Iso6391>.Parse("en"))
+                        .WithTitle("message-title")
+                        .WithSummary("message-summary")
+                        .WithBody("message-body")
+                )
+                .Build();
+
+            if (tokenFactory is not null)
+                return new SendCorrespondencePayload(request, tokenFactory);
+
+            if (authorisation is not null)
+                return new SendCorrespondencePayload(request, authorisation.Value);
+
+            return new SendCorrespondencePayload(request, authenticationMethod ?? _defaultAuthenticationMethod);
+        }
+
+        public static GetCorrespondenceStatusPayload GetStatus(
+            Func<Task<JwtToken>>? tokenFactory = null,
+            CorrespondenceAuthorisation? authorisation = null,
+            CorrespondenceAuthenticationMethod? authenticationMethod = null
+        )
+        {
+            if (tokenFactory is not null)
+                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), tokenFactory);
+
+            if (authorisation is not null)
+                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), authorisation.Value);
+
+            return new GetCorrespondenceStatusPayload(
+                Guid.NewGuid(),
+                authenticationMethod ?? _defaultAuthenticationMethod
+            );
+        }
+    }
+
+    public enum AuthenticationScenario
+    {
+        LegacyMaskinporten,
+        LegacyCustom,
+        Default,
+        Custom,
     }
 }

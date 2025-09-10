@@ -108,7 +108,7 @@ internal sealed class SigningCallToActionService(
                 .WithContent(correspondenceContent)
                 .WithNotificationIfConfigured(SigningNotificationHelper.CreateNotification(contentWrapper))
                 .Build(),
-            CorrespondenceAuthorisation.Maskinporten
+            CorrespondenceAuthenticationMethod.Default()
         );
 
         SendCorrespondenceResponse response = await _correspondenceClient.Send(request, ct);

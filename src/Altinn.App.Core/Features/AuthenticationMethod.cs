@@ -70,6 +70,10 @@ internal abstract record AuthenticationMethod
 
     public static implicit operator AuthenticationMethod(StorageAuthenticationMethod storageAuthenticationMethod) =>
         storageAuthenticationMethod.Request;
+
+    public static implicit operator AuthenticationMethod(
+        CorrespondenceAuthenticationMethod storageAuthenticationMethod
+    ) => storageAuthenticationMethod.Request;
 }
 
 /// <summary>
@@ -94,6 +98,34 @@ public sealed record StorageAuthenticationMethod
     internal AuthenticationMethod Request { get; }
 
     private StorageAuthenticationMethod(AuthenticationMethod request)
+    {
+        Request = request;
+    }
+}
+
+/// <summary>
+/// Represents the method of authentication to be used for Correspondence requests.
+/// </summary>
+public sealed record CorrespondenceAuthenticationMethod
+{
+    private const string CorrespondenceWriteScope = "altinn:correspondence.write";
+
+    /// <summary>
+    /// Authenticates the request using a service owner token that includes the <c>altinn:correspondence.write</c> scope.
+    /// </summary>
+    public static CorrespondenceAuthenticationMethod Default() =>
+        new(AuthenticationMethod.ServiceOwner(CorrespondenceWriteScope));
+
+    /// <summary>
+    /// Authenticates the request using a custom token delegate. The delegate must return an Altinn-exchanged service owner
+    /// token that includes the <c>altinn:correspondence.write</c> scope.
+    /// </summary>
+    public static CorrespondenceAuthenticationMethod Custom(Func<Task<JwtToken>> tokenProvider) =>
+        new(AuthenticationMethod.Custom(tokenProvider));
+
+    internal AuthenticationMethod Request { get; }
+
+    private CorrespondenceAuthenticationMethod(AuthenticationMethod request)
     {
         Request = request;
     }
