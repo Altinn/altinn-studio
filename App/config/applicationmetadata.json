@@ -70,6 +70,18 @@
       "enabledFileValidators": []
     },
     {
+      "id": "ImageUploadPage-ImageUpload",
+      "taskId": "Task_1",
+      "maxSize": 250,
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
       "id": "FileUpload-N6frPq",
       "taskId": "Task_1",
       "maxSize": 250,

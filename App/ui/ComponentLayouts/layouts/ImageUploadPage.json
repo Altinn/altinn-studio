@@ -19,7 +19,7 @@
         "id": "ImageUploadPage-Header-Component",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Header.Component"
+          "title": "Last opp profilbilde"
         }
       },
       {
@@ -27,6 +27,9 @@
         "type": "ImageUpload",
         "textResourceBindings": {
           "title": "ImageUploadPage.ImageUpload.title"
+        },
+        "cropArea": {
+          "type": "circle"
         }
       },
       {
