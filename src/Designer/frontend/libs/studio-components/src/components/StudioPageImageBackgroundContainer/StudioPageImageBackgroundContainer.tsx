@@ -8,9 +8,11 @@ export type StudioPageImageBackgroundContainerProps = {
 export const StudioPageImageBackgroundContainer = ({
   children,
   image,
+  className,
+  ...rest
 }: StudioPageImageBackgroundContainerProps): ReactElement => {
   return (
-    <div className={classes.wrapper}>
+    <div className={`${classes.wrapper} ${className ?? ''}`} {...rest}>
       <div style={{ backgroundImage: `url(${image})` }} className={classes.pageContainer}>
         {children}
       </div>

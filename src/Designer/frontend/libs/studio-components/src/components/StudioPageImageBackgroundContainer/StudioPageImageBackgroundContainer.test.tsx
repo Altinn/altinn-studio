@@ -3,10 +3,11 @@ import { screen, render } from '@testing-library/react';
 import {
   StudioPageImageBackgroundContainer,
   type StudioPageImageBackgroundContainerProps,
-} from './StudioPageImageBackgroundContainer';
+} from './index';
 import type { RenderResult } from '@testing-library/react';
 
-const testImage = 'test-image-url';
+const customImage1 = 'https://example.com/custom-image1.jpg';
+const customImage2 = 'https://example.com/custom-image2.jpg';
 const testChildren = <div>Test Child</div>;
 
 describe('StudioPageImageBackgroundContainer', () => {
@@ -18,14 +19,39 @@ describe('StudioPageImageBackgroundContainer', () => {
   it('should apply the background image correctly', () => {
     renderStudioPageImageBackgroundContainer();
     const childElement = screen.getByText('Test Child');
-    // eslint-disable-next-line testing-library/no-node-access
-    const backgroundDiv = childElement.closest('[style*="background-image"]');
-    expect(backgroundDiv).toHaveStyle(`background-image: url(${testImage})`);
+    const backgroundDiv = getBackgroundElement(childElement);
+    expect(backgroundDiv).toHaveStyle(`background-image: url(${customImage1})`);
+  });
+
+  it('should apply custom className', () => {
+    const customClass = 'my-custom-class';
+    const { container } = renderStudioPageImageBackgroundContainer({ className: customClass });
+    const wrapperDiv = getWrapperElement(container);
+    expect(wrapperDiv).toHaveClass('wrapper');
+    expect(wrapperDiv).toHaveClass(customClass);
+  });
+
+  it('should handle different image URLs', () => {
+    renderStudioPageImageBackgroundContainer({ image: customImage2 });
+
+    const childElement = screen.getByText('Test Child');
+    const backgroundDiv = getBackgroundElement(childElement);
+    expect(backgroundDiv).toHaveStyle(`background-image: url(${customImage2})`);
   });
 });
 
+const getWrapperElement = (container: HTMLElement): HTMLElement => {
+  // eslint-disable-next-line testing-library/no-node-access
+  return container.querySelector('.wrapper') as HTMLElement;
+};
+
+const getBackgroundElement = (childElement: HTMLElement): HTMLElement => {
+  // eslint-disable-next-line testing-library/no-node-access
+  return childElement.closest('[style*="background-image"]') as HTMLElement;
+};
+
 const defaultProps: StudioPageImageBackgroundContainerProps = {
-  image: testImage,
+  image: customImage1,
   children: testChildren,
 };
 
