@@ -441,9 +441,9 @@ public class OrgCodeListServiceTests : IDisposable
 
     private static CodeList SetupCodeList()
     {
-        Dictionary<string, string> label = new() {{"nb", "tekst"}, {"en", "text"}};
-        Dictionary<string, string> description = new() {{"nb", "Dette er en tekst"}, {"en", "This is a text"}};
-        Dictionary<string, string> helpText = new() {{"nb", "Velg dette valget for å få en tekst"}, {"en", "Choose this option to get a text"}};
+        Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
+        Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
+        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
         List<Code> listOfCodes =
         [
             new()
