@@ -6,8 +6,7 @@ import {
 } from './index';
 import type { RenderResult } from '@testing-library/react';
 
-const customImage1 = 'https://example.com/custom-image1.jpg';
-const customImage2 = 'https://example.com/custom-image2.jpg';
+const customImage = 'https://example.com/custom-image.jpg';
 const testChildren = <div>Test Child</div>;
 
 describe('StudioPageImageBackgroundContainer', () => {
@@ -20,7 +19,7 @@ describe('StudioPageImageBackgroundContainer', () => {
     renderStudioPageImageBackgroundContainer();
     const childElement = screen.getByText('Test Child');
     const backgroundDiv = getBackgroundElement(childElement);
-    expect(backgroundDiv).toHaveStyle(`background-image: url(${customImage1})`);
+    expect(backgroundDiv).toHaveStyle(`background-image: url(${customImage})`);
   });
 
   it('should apply custom className', () => {
@@ -29,14 +28,6 @@ describe('StudioPageImageBackgroundContainer', () => {
     const wrapperDiv = getWrapperElement(container);
     expect(wrapperDiv).toHaveClass('wrapper');
     expect(wrapperDiv).toHaveClass(customClass);
-  });
-
-  it('should handle different image URLs', () => {
-    renderStudioPageImageBackgroundContainer({ image: customImage2 });
-
-    const childElement = screen.getByText('Test Child');
-    const backgroundDiv = getBackgroundElement(childElement);
-    expect(backgroundDiv).toHaveStyle(`background-image: url(${customImage2})`);
   });
 });
 
@@ -51,7 +42,7 @@ const getBackgroundElement = (childElement: HTMLElement): HTMLElement => {
 };
 
 const defaultProps: StudioPageImageBackgroundContainerProps = {
-  image: customImage1,
+  image: customImage,
   children: testChildren,
 };
 
