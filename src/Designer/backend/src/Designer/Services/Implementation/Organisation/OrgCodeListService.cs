@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
@@ -18,15 +19,18 @@ namespace Altinn.Studio.Designer.Services.Implementation.Organisation;
 public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IGitea _gitea;
     private const string Repo = "content";
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    /// <param name="gitea">IGitea</param>
+    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGitea gitea)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _gitea = gitea;
     }
 
     /// <inheritdoc />
@@ -65,6 +69,23 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
+    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
+    {
+        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, GetStaticContentRepo(org));
+
+        List<CodeListWrapper> codeListWrappers = [];
+        foreach (FileSystemObject file in files)
+        {
+            if (TryParseFile(file.Content, out CodeList? codeList))
+            {
+                codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
+            }
+            codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+        }
+        return codeListWrappers;
+    }
+
+    /// <inheritdoc />
     public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -93,24 +114,26 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
-        string codeListId = payload.FileName.Replace(".json", "");
+        await Task.Delay(0, cancellationToken);
+        throw new NotImplementedException();
+        // cancellationToken.ThrowIfCancellationRequested();
+        // string repo = GetStaticContentRepo(org);
+        // string codeListId = payload.FileName.Replace(".json", "");
 
-        List<Option> deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+        // List<Option> deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
+        //     new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
 
-        bool codeListHasInvalidNullFields = deserializedCodeList.Exists(codeListItem => codeListItem.Value == null || codeListItem.Label == null);
-        if (codeListHasInvalidNullFields)
-        {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
-        }
+        // bool codeListHasInvalidNullFields = deserializedCodeList.Exists(codeListItem => codeListItem.Value == null || codeListItem.Label == null);
+        // if (codeListHasInvalidNullFields)
+        // {
+        //     throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+        // }
 
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-        await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
+        // AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        // await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
 
-        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
-        return codeLists;
+        // List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
+        // return codeLists;
     }
 
     /// <inheritdoc />
@@ -184,6 +207,53 @@ public class OrgCodeListService : IOrgCodeListService
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
     }
 
+    /// <summary>
+    /// Converts a <see cref="CodeList"/> to a <see cref="CodeListWrapper"/>
+    /// </summary>
+    /// <param name="codeList"></param>
+    /// <param name="title"></param>
+    /// <param name="hasError"></param>
+    /// <returns><see cref="CodeListWrapper"/> </returns>
+    private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
+    {
+        var codeListWrapper = new CodeListWrapper
+        {
+            Title = title,
+            CodeList = codeList,
+            HasError = hasError
+        };
+        return codeListWrapper;
+    }
+
+    /// <summary>
+    /// Tries to parse file content string into a <see cref="CodeList"/> object.
+    /// </summary>
+    /// <param name="fileContent">The file content as a string.</param>
+    /// <param name="codeList">The parsed code list, or null if parsing failed.</param>
+    private static bool TryParseFile(string? fileContent, out CodeList? codeList)
+    {
+        if (string.IsNullOrEmpty(fileContent))
+        {
+            codeList = null;
+            return false;
+        }
+        try
+        {
+            codeList = JsonSerializer.Deserialize<CodeList>(fileContent);
+            return true;
+        }
+        catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException)
+        {
+            codeList = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Get the name of the static content repository for the given org.
+    /// </summary>
+    /// <param name="org"></param>
+    /// <returns>The full repository name.</returns>
     private static string GetStaticContentRepo(string org)
     {
         return $"{org}-{Repo}";
