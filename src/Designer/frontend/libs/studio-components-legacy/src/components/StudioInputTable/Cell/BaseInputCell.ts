@@ -3,10 +3,23 @@ import { forwardRef } from 'react';
 import type { InputCellComponent } from '../types/InputCellComponent';
 import type { HTMLCellInputElement } from '../types/HTMLCellInputElement';
 import { getNextInputElement } from '../dom-utils/getNextInputElement';
+import type { Override } from '../../../types/Override';
 
 type DefaultProps<Element extends HTMLCellInputElement> = {
   onKeyDown?: (event: KeyboardEvent<Element>) => void;
 };
+
+type RestrictedKeyboardEvent<Element, Keys extends KeyboardEvent<Element>['key']> = Override<
+  KeyboardEvent<Element>,
+  { key: Keys }
+>;
+
+type ArrowKeyEvent<Element> = RestrictedKeyboardEvent<
+  Element,
+  'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+>;
+
+type EnterKeyEvent<Element> = RestrictedKeyboardEvent<Element, 'Enter'>;
 
 export abstract class BaseInputCell<
   Element extends HTMLCellInputElement,
@@ -52,23 +65,23 @@ export abstract class BaseInputCell<
     }
   }
 
-  private handleArrowKeyDown(event: KeyboardEvent<Element>): void {
+  private handleArrowKeyDown(event: ArrowKeyEvent<Element>): void {
     if (this.shouldMoveFocusOnArrowKey(event)) {
       this.moveFocus(event);
     }
   }
 
-  private handleEnterKeyDown(event: KeyboardEvent<Element>): void {
+  private handleEnterKeyDown(event: EnterKeyEvent<Element>): void {
     if (this.shouldMoveFocusOnEnterKey(event)) {
       this.moveFocus(event);
     }
   }
 
-  protected abstract shouldMoveFocusOnArrowKey(event: KeyboardEvent<Element>): boolean;
+  protected abstract shouldMoveFocusOnArrowKey(event: ArrowKeyEvent<Element>): boolean;
 
-  protected abstract shouldMoveFocusOnEnterKey(event: KeyboardEvent<Element>): boolean;
+  protected abstract shouldMoveFocusOnEnterKey(event: EnterKeyEvent<Element>): boolean;
 
-  private moveFocus(event: KeyboardEvent<Element>) {
+  private moveFocus(event: KeyboardEvent<Element>): void {
     const nextElement = this.getNextElement(event);
     if (nextElement) {
       event.preventDefault();

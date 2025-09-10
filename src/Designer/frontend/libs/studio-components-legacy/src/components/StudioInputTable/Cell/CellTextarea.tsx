@@ -37,7 +37,7 @@ export class CellTextarea extends BaseInputCell<HTMLTextAreaElement, CellTextare
     );
   }
 
-  shouldMoveFocusOnArrowKey({ key, currentTarget }) {
+  shouldMoveFocusOnArrowKey({ key, currentTarget }): boolean {
     if (isSomethingSelected(currentTarget)) return false;
     switch (key) {
       case 'ArrowUp':
@@ -48,8 +48,10 @@ export class CellTextarea extends BaseInputCell<HTMLTextAreaElement, CellTextare
         return isCaretAtStart(currentTarget);
       case 'ArrowRight':
         return isCaretAtEnd(currentTarget);
+      default:
+        throw new Error(`Unhandled key: ${key}`);
     }
   }
 
-  shouldMoveFocusOnEnterKey = () => false;
+  shouldMoveFocusOnEnterKey = (): boolean => false;
 }

@@ -59,6 +59,8 @@ export class CellTextResource extends BaseInputCell<HTMLInputElement, CellTextRe
         return this.shouldMoveFocusOnArrowLeftKey(currentTarget);
       case 'ArrowRight':
         return this.shouldMoveFocusOnArrowRightKey(currentTarget);
+      default:
+        throw new Error(`Unhandled key: ${key}`);
     }
   }
 
