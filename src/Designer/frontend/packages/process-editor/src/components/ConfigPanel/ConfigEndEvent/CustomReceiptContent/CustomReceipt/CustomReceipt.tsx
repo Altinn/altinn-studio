@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
-import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/components-legacy';
+import { StudioToggleableTextfield } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
@@ -60,7 +61,6 @@ export const CustomReceipt = (): React.ReactElement => {
       </div>
       <div className={classes.buttonWrapper}>
         <StudioDeleteButton
-          size='small'
           onDelete={handleDeleteCustomReceipt}
           confirmMessage={t('process_editor.configuration_panel_custom_receipt_delete_receipt')}
         >
