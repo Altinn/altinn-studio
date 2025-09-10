@@ -81,11 +81,7 @@ export const SelectDataTypes = ({
           variant='secondary'
         />
         {!hideDeleteButton && (
-          <StudioDeleteButton
-            onDelete={handleChangeDataModel}
-            data-size='xs'
-            title={t('general.delete')}
-          />
+          <StudioDeleteButton onDelete={handleChangeDataModel} title={t('general.delete')} />
         )}
       </div>
     </div>
