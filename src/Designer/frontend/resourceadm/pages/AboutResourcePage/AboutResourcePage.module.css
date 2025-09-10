@@ -5,8 +5,8 @@
 
 .pageWrapper {
   margin: 0;
-  padding: var(--fds-spacing-10);
-  padding-bottom: var(--fds-spacing-26);
+  padding: var(--ds-size-10);
+  padding-bottom: var(--ds-size-26);
   flex: 1;
   position: relative;
 }
@@ -14,5 +14,5 @@
 .resourceFields {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-10);
+  gap: var(--ds-size-10);
 }

@@ -1,0 +1,42 @@
+name: CLI - build and test on windows, macos and ubuntu
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "src/cli/**"
+      - .github/workflows/cli-build-test.yaml
+  workflow_dispatch:
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os: [macos-latest,windows-latest,ubuntu-latest]
+    name: Run dotnet build and test
+    runs-on: ${{ matrix.os}}
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config --system core.longpaths true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Build
+        working-directory: src/cli
+        run: |
+          dotnet build -v m
+
+      - name: Test
+        working-directory: src/cli
+        run: |
+          dotnet test -v m
