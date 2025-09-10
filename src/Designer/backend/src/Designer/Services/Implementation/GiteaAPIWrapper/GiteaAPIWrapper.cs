@@ -471,9 +471,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string app)
+        public async Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository)
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{CodeListFolderPath}");
+            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/contents/{CodeListFolderPath}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>();
