@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Configuration;
@@ -471,9 +472,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository)
+        public async Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default)
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/contents/{CodeListFolderPath}");
+            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/contents/{CodeListFolderPath}", cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>();
