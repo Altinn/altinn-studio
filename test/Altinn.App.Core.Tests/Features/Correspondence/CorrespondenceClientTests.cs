@@ -351,11 +351,12 @@ public class CorrespondenceClientTests
                 services.AddSingleton(mockHttpClientFactory.Object);
                 services.AddSingleton(mockMaskinportenClient.Object);
                 services.AddSingleton(authenticationContextMock.Object);
-                services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new PlatformSettings()));
-                services.AddSingleton(
+                services.Configure<PlatformSettings>(_ => { });
+                services.Configure<GeneralSettings>(options =>
+                {
                     // NOTE: This must be set to tt02/prod to avoid localhost token generation in AuthenticationTokenResolver
-                    Microsoft.Extensions.Options.Options.Create(new GeneralSettings { HostName = "tt02.altinn.no" })
-                );
+                    options.HostName = "tt02.altinn.no";
+                });
                 services.Configure<MaskinportenSettings>(options =>
                 {
                     options.Authority = "https://maskinporten.dev/";

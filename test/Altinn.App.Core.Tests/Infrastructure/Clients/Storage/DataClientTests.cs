@@ -10,6 +10,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -22,7 +23,6 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
 
@@ -35,8 +35,6 @@ public class DataClientTests
 
     private const string ApiStorageEndpoint = "https://local.platform.altinn.no/api/storage/";
     private static readonly ApplicationMetadata _appMetadata = new("test-org/test-app");
-    private static readonly GeneralSettings _generalSettings = new() { HostName = "tt02.altinn.no" };
-    private static readonly PlatformSettings _platformSettings = new() { ApiStorageEndpoint = ApiStorageEndpoint };
     private static readonly Authenticated _defaultAuth = TestAuthentication.GetUserAuthentication();
 
     private static readonly TestTokens _testTokens = new(
@@ -1049,8 +1047,9 @@ public class DataClientTests
                 .ReturnsAsync(_testTokens.ServiceOwnerToken);
 
             var services = new ServiceCollection();
-            services.AddSingleton(Options.Create(_platformSettings));
-            services.AddSingleton(Options.Create(_generalSettings));
+            services.Configure<PlatformSettings>(options => options.ApiStorageEndpoint = ApiStorageEndpoint);
+            services.Configure<GeneralSettings>(options => options.HostName = "tt02.altinn.no");
+            services.AddRuntimeEnvironment();
             services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
             services.AddSingleton<ModelSerializationService>();
             services.AddSingleton(mocks.AppModelMock.Object);

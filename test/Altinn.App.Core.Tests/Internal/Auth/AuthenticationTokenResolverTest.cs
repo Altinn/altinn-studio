@@ -4,6 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -12,7 +13,6 @@ using Altinn.App.PlatformServices.Tests.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
 
@@ -183,8 +183,13 @@ public class AuthenticationTokenResolverTest
                 });
 
             var services = new ServiceCollection();
-            services.AddSingleton(Options.Create(_platformSettings));
-            services.AddSingleton(Options.Create(generalSettings ?? _generalSettingsLocal));
+            services.AddRuntimeEnvironment();
+            services.Configure<PlatformSettings>(options =>
+                options.ApiStorageEndpoint = _platformSettings.ApiStorageEndpoint
+            );
+            services.Configure<GeneralSettings>(options =>
+                options.HostName = generalSettings?.HostName ?? _generalSettingsLocal.HostName
+            );
             services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
             services.AddSingleton<ModelSerializationService>();
             services.AddSingleton(mocks.AppModelMock.Object);

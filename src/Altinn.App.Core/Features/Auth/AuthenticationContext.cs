@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Cache;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -21,6 +22,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IAuthorizationClient _authorizationClient;
     private readonly IAppConfigurationCache _appConfigurationCache;
+    private readonly RuntimeEnvironment _runtimeEnvironment;
 
     public AuthenticationContext(
         IHttpContextAccessor httpContextAccessor,
@@ -29,7 +31,8 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         IProfileClient profileClient,
         IAltinnPartyClient altinnPartyClient,
         IAuthorizationClient authorizationClient,
-        IAppConfigurationCache appConfigurationCache
+        IAppConfigurationCache appConfigurationCache,
+        RuntimeEnvironment runtimeEnvironment
     )
     {
         _httpContextAccessor = httpContextAccessor;
@@ -39,6 +42,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         _altinnPartyClient = altinnPartyClient;
         _authorizationClient = authorizationClient;
         _appConfigurationCache = appConfigurationCache;
+        _runtimeEnvironment = runtimeEnvironment;
     }
 
     // Currently we're coupling this to the HTTP context directly.
@@ -75,9 +79,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken.Payload.TryGetValue("actual_iss", out var actualIss) && actualIss is "localtest";
                 }
 
-                var isLocaltest =
-                    generalSettings.HostName.StartsWith("local.altinn.cloud", StringComparison.OrdinalIgnoreCase)
-                    && !generalSettings.IsTest;
+                var isLocaltest = _runtimeEnvironment.IsLocaltestPlatform() && !generalSettings.IsTest;
                 if (isLocaltest && !isNewLocaltestToken)
                 {
                     authInfo = Authenticated.FromOldLocalTest(

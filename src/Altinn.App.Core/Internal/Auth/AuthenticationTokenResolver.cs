@@ -1,11 +1,9 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.Auth;
 
@@ -25,16 +23,15 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         IMaskinportenClient maskinportenClient,
         IAppMetadata appMetadata,
         IAuthenticationContext authenticationContext,
-        IOptions<PlatformSettings> platformSettings,
-        IOptions<GeneralSettings> generalSettings
+        RuntimeEnvironment runtimeEnvironment
     )
     {
         _maskinportenClient = maskinportenClient;
         _appMetadata = appMetadata;
         _httpClientFactory = httpClientFactory;
         _authenticationContext = authenticationContext;
-        _isDev = LocaltestValidation.IsLocaltest(generalSettings.Value);
-        _localtestBaseUrl = LocaltestValidation.GetLocaltestBaseUrl(platformSettings.Value);
+        _isDev = runtimeEnvironment.IsLocaltestPlatform();
+        _localtestBaseUrl = runtimeEnvironment.GetPlatformBaseUrl();
     }
 
     /// <inheritdoc />

@@ -20,29 +20,21 @@ internal static class LocaltestValidationDI
 
 internal sealed class LocaltestValidation : BackgroundService
 {
-    private const string ExpectedHostname = "local.altinn.cloud";
-
     private readonly ILogger<LocaltestValidation> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<GeneralSettings> _generalSettings;
-    private readonly IOptionsMonitor<PlatformSettings> _platformSettings;
+    private readonly RuntimeEnvironment _runtimeEnvironment;
     private readonly IHostApplicationLifetime _lifetime;
     private readonly TimeProvider _timeProvider;
     private readonly Channel<VersionResult> _resultChannel;
 
     internal IAsyncEnumerable<VersionResult> Results => _resultChannel.Reader.ReadAllAsync();
 
-    internal static string GetLocaltestBaseUrl(PlatformSettings platformSettings) =>
-        new Uri(platformSettings.ApiStorageEndpoint).GetLeftPart(UriPartial.Authority);
-
-    internal static bool IsLocaltest(GeneralSettings generalSettings) =>
-        generalSettings.HostName.Equals(ExpectedHostname, StringComparison.OrdinalIgnoreCase);
-
     public LocaltestValidation(
         ILogger<LocaltestValidation> logger,
         IHttpClientFactory httpClientFactory,
         IOptionsMonitor<GeneralSettings> generalSettings,
-        IOptionsMonitor<PlatformSettings> platformSettings,
+        RuntimeEnvironment runtimeEnvironment,
         IHostApplicationLifetime lifetime,
         TimeProvider? timeProvider = null
     )
@@ -50,7 +42,7 @@ internal sealed class LocaltestValidation : BackgroundService
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _generalSettings = generalSettings;
-        _platformSettings = platformSettings;
+        _runtimeEnvironment = runtimeEnvironment;
         _lifetime = lifetime;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _resultChannel = Channel.CreateBounded<VersionResult>(
@@ -58,10 +50,7 @@ internal sealed class LocaltestValidation : BackgroundService
         );
     }
 
-    private void Exit()
-    {
-        _lifetime.StopApplication();
-    }
+    private void Exit() => _lifetime.StopApplication();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -71,9 +60,10 @@ internal sealed class LocaltestValidation : BackgroundService
             if (settings.DisableLocaltestValidation)
                 return;
 
-            if (!IsLocaltest(settings))
+            if (!_runtimeEnvironment.IsLocaltestPlatform())
                 return;
 
+            var baseUrl = _runtimeEnvironment.GetPlatformBaseUrl();
             while (!stoppingToken.IsCancellationRequested)
             {
                 var result = await Version();
@@ -99,7 +89,7 @@ internal sealed class LocaltestValidation : BackgroundService
                             _logger.LogError(
                                 "Localtest version may be outdated, as we failed to probe {HostName} API for version information."
                                     + " Is localtest running? Do you have a recent copy of localtest? Shutting down..",
-                                ExpectedHostname
+                                baseUrl
                             );
                             Exit();
                             return;
@@ -176,7 +166,7 @@ internal sealed class LocaltestValidation : BackgroundService
         {
             using var client = _httpClientFactory.CreateClient();
 
-            var baseUrl = GetLocaltestBaseUrl(_platformSettings.CurrentValue);
+            var baseUrl = _runtimeEnvironment.GetPlatformBaseUrl();
             var url = $"{baseUrl}/Home/Localtest/Version";
 
             using var response = await client.GetAsync(url, cancellationToken);
