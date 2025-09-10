@@ -14,6 +14,14 @@ describe('StudioPageImageBackgroundContainer', () => {
     renderStudioPageImageBackgroundContainer();
     expect(screen.getByText('Test Child')).toBeInTheDocument();
   });
+
+  it('should apply the background image correctly', () => {
+    renderStudioPageImageBackgroundContainer();
+    const childElement = screen.getByText('Test Child');
+    // eslint-disable-next-line testing-library/no-node-access
+    const backgroundDiv = childElement.closest('[style*="background-image"]');
+    expect(backgroundDiv).toHaveStyle(`background-image: url(${testImage})`);
+  });
 });
 
 const defaultProps: StudioPageImageBackgroundContainerProps = {
@@ -23,4 +31,6 @@ const defaultProps: StudioPageImageBackgroundContainerProps = {
 
 const renderStudioPageImageBackgroundContainer = (
   props?: Partial<StudioPageImageBackgroundContainerProps>,
-): RenderResult => render(<StudioPageImageBackgroundContainer {...defaultProps} {...props} />);
+): RenderResult => {
+  return render(<StudioPageImageBackgroundContainer {...defaultProps} {...props} />);
+};
