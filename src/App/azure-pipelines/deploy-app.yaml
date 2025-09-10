@@ -1,0 +1,255 @@
+
+variables:
+  # Variables that are dynamically set in the pipeline
+  ALTINN_HOST: ''
+  RELEASE_NAME: ''
+  RG_NAME: ''
+  SUBSCRIPTION_KEY: ''
+
+  # Variables that should be set as secret variables in the pipeline
+  APIM_RESOURCE_ID_PROD: ''
+  APIM_RESOURCE_ID_TT02: ''
+  AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING: ''
+  AZURE_SUBSCRIPTION_ID_PLATFORM_TEST: ''
+
+  # Variables to be passed when triggering the pipeline
+  ALTINN_STUDIO_HOSTNAME: ''
+  APP_COMMIT_ID: ''
+  APP_DEPLOY_TOKEN: ''
+  APP_ENVIRONMENT: ''
+  APP_OWNER: ''
+  APP_REPO: ''
+  GITEA_ENVIRONMENT: ''
+  HOSTNAME: ''
+  TAGNAME: ''
+
+  # Variables for generating yaml files. Paths are relative to the root of the apps repository
+  HELMRELEASE_FILE: 'helmrelease.yaml'
+  OVERRIDES_FILE: 'overrides.yaml'
+  VALUES_FILE: 'deployment/values.yaml'
+  NORMALIZED_VALUES: 'values.normalized.yaml'
+  MERGED_VALUES: 'values.merged.yaml'
+
+trigger: none
+pr: none
+
+steps:
+  - checkout: none
+
+  - task: Bash@3
+    name: RELEASE_NAME
+    displayName: 'Create lowercase release name '
+    inputs:
+      targetType: inline
+      script: >-
+        APP_OWNER_LOWERCASE=$(echo $APP_OWNER | tr '[:upper:]' '[:lower:]')
+
+        APP_REPO_LOWERCASE=$(echo $APP_REPO | tr '[:upper:]' '[:lower:]')
+
+        RELEASE_NAME_LOWERCASE="$APP_OWNER_LOWERCASE-$APP_REPO_LOWERCASE"
+
+        echo $RELEASE_NAME_LOWERCASE
+
+        echo "##vso[task.setvariable variable=RELEASE_NAME;]$RELEASE_NAME_LOWERCASE"
+      failOnStderr: true
+
+  - task: CmdLine@2
+    displayName: Pull Repo
+    inputs:
+      script: >-
+        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        cd $APP_COMMIT_ID
+
+  - task: Bash@3
+    displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
+    inputs:
+      script: |
+        # Define host values
+        AT_HOST="altinn.cloud"
+        TT_PR_HOST="altinn.no"
+
+        # Set ALTINN_HOST based on environment
+        if [ "$APP_ENVIRONMENT" == "tt02" ] || [ "$APP_ENVIRONMENT" == "production" ]; then
+            echo "##vso[task.setvariable variable=ALTINN_HOST;]$TT_PR_HOST"
+        else
+            echo "##vso[task.setvariable variable=ALTINN_HOST;]$AT_HOST"
+        fi
+
+        # Set RG_NAME based on environment
+        echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-$APP_ENVIRONMENT-rg"
+
+        if [ "$APP_ENVIRONMENT" == "production" ]; then
+            echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
+        fi
+      failOnStderr: true
+
+  - task: Bash@3
+    displayName: 'Generate helmrelease template file without values'
+    inputs:
+      script: |
+        # Generate HelmRelease template
+        cat << EOF > "${HELMRELEASE_FILE}"
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        metadata:
+          name: ${RELEASE_NAME}
+          namespace: default
+        spec:
+          releaseName: ${RELEASE_NAME}
+          targetNamespace: default
+          interval: 5m
+          install:
+            remediation:
+              retries: 1
+          upgrade:
+            remediation:
+              retries: 1
+          chart:
+            spec:
+              version: 3.2.0
+              chart: deployment
+              sourceRef:
+                kind: HelmRepository
+                name: altinn-charts
+                namespace: default
+          values: {}
+        EOF
+
+
+  - task: Bash@3
+    displayName: Generate overrides file.
+    inputs:
+      targetType: inline
+      script: |
+
+        # Determine base URL prefix and environment
+        if [ "$APP_ENVIRONMENT" = "production" ]; then
+          BASE_URL="https://platform.${ALTINN_HOST}"
+          HOST_NAME="${ALTINN_HOST}"
+          ENVIRONMENT="Production"
+        else
+          BASE_URL="https://platform.${APP_ENVIRONMENT}.${ALTINN_HOST}"
+          HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
+          ENVIRONMENT="Staging"
+        fi
+
+        # Start writing to overrides file
+        cat << EOF > "$OVERRIDES_FILE"
+        image:
+          repository: ${APP_OWNER}altinnregistry01.azurecr.io/${RELEASE_NAME}
+          tag: "${TAGNAME}"
+          environment:
+            - name: ServiceRepositorySettings__BaseResourceFolderContainer
+              value: /AltinnService/
+            - name: ServiceRepositorySettings__RepositoryLocation
+              value: /AltinnService/
+            - name: PlatformSettings__ApiStorageEndpoint
+              value: ${BASE_URL}/storage/api/v1/
+            - name: PlatformSettings__ApiRegisterEndpoint
+              value: ${BASE_URL}/register/api/v1/
+            - name: PlatformSettings__ApiProfileEndpoint
+              value: ${BASE_URL}/profile/api/v1/
+            - name: PlatformSettings__ApiAuthenticationEndpoint
+              value: ${BASE_URL}/authentication/api/v1/
+            - name: PlatformSettings__ApiAuthorizationEndpoint
+              value: ${BASE_URL}/authorization/api/v1/
+            - name: PlatformSettings__ApiEventsEndpoint
+              value: ${BASE_URL}/events/api/v1/
+            - name: PlatformSettings__ApiNotificationEndpoint
+              value: ${BASE_URL}/notifications/api/v1/
+            - name: GeneralSettings__HostName
+              value: ${HOST_NAME}
+            - name: PlatformSettings__ApiPdfEndpoint
+              value: ${BASE_URL}/pdf/api/v1/
+            - name: AppSettings__OpenIdWellKnownEndpoint
+              value: ${BASE_URL}/authentication/api/v1/openid/
+            - name: PlatformSettings__SubscriptionKey
+              value: ${SUBSCRIPTION_KEY}
+            - name: PlatformSettings__ApiAccessManagementEndpoint
+              value: ${BASE_URL}/accessmanagement/api/v1/
+            - name: PlatformSettings__ApiCorrespondenceEndpoint
+              value: ${BASE_URL}/correspondence/api/v1/
+            - name: AppSettings__AppInsightsRoleName
+              value: ${APP_REPO}
+            - name: ApplicationInsights__InstrumentationKey
+              value: __AI_INST_KEY__
+            - name: ASPNETCORE_ENVIRONMENT
+              value: ${ENVIRONMENT}
+            - name: AppSettings__AppVersion
+              value: "${TAGNAME}"
+            - name: PdfGeneratorSettings__ServiceEndpointUri
+              value: http://pdf-generator.pdf.svc.cluster.local/pdf
+            - name: PlatformSettings__ApiPdf2Endpoint
+              value: http://pdf-generator.pdf.svc.cluster.local/pdf
+            - name: GeneralSettings__ExternalAppBaseUrl
+              value: https://{org}.apps.{hostName}/{org}/{app}/
+        EOF
+
+        # Add tt02 and production-specific settings
+        if [ "$APP_ENVIRONMENT" = "tt02" ] || [ "$APP_ENVIRONMENT" = "production" ]; then
+          cat << EOF >> "$OVERRIDES_FILE"
+            - name: AppSettings__EFormidlingSender
+              value: "991825827"
+            - name: EFormidlingClientSettings__BaseUrl
+              value: ${BASE_URL}/eformidling/api/
+        EOF
+        fi
+
+        # Add service and ingressRoute
+        cat << EOF >> "$OVERRIDES_FILE"
+        service:
+          name: ${RELEASE_NAME}
+        ingressRoute:
+          name: ${APP_OWNER}-${APP_REPO}-ingress-route
+          routes:
+            - kind: Rule
+              match: Host(\`${APP_OWNER}.apps.${HOST_NAME}\`)&&PathPrefix(\`/${APP_OWNER}/${APP_REPO}/\`)||Host(\`${APP_OWNER}.apps.${HOST_NAME}\`)&&Path(\`/${APP_OWNER}/${APP_REPO}\`)
+              services:
+                - name: ${RELEASE_NAME}-deployment
+                  port: 80
+              middlewares:
+                - name: hsts-header
+        EOF
+
+
+  - task: Bash@3
+    displayName: 'Generate final helmrelease with merged values from values and overrides file'
+    inputs:
+      targetType: inline
+      script: |
+
+        # For backward compatibility we need to support two formats of values.yaml:
+        # 1) Flat structure where all keys are at root level
+        # 2) Nested structure where all keys are under "deployment" key
+        # We will normalize both formats to a flat structure for merging with overrides.yaml
+
+        if [[ -f "${VALUES_FILE}" ]]; then
+          if yq eval 'has("deployment")' "${VALUES_FILE}" | grep -q true; then
+            # .deployment exists → hoist its children to root
+            yq eval '(.deployment // {}) * (del(.deployment))' "${VALUES_FILE}" > "${NORMALIZED_VALUES}"
+          else
+            # .deployment does not exist → use file as-is
+            cp "${VALUES_FILE}" "${NORMALIZED_VALUES}"
+          fi
+        else
+          # No values.yaml present → start from empty
+          echo "{}" > "${NORMALIZED_VALUES}"
+        fi
+
+        # --- Merge normalized values + overrides. Overrides have precedence since those values we don't want to be overridden ---
+        yq ea '. as $item ireduce ({}; . * $item )' \
+          "${NORMALIZED_VALUES}" \
+          "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
+
+        # --- Inject merged values into helmrelease.yaml ---
+        yq eval '.spec.values = load("'"${MERGED_VALUES}"'")' --inplace "${HELMRELEASE_FILE}"
+
+        # --- Cleanup non used files---
+        rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
+
+  - task: Bash@3
+    displayName: Print helmrelease file
+    inputs:
+      script: |
+        cat "${HELMRELEASE_FILE}"
+
