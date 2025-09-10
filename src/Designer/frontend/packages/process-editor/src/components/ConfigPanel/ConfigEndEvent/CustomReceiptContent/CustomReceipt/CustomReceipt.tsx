@@ -61,7 +61,6 @@ export const CustomReceipt = (): React.ReactElement => {
       </div>
       <div className={classes.buttonWrapper}>
         <StudioDeleteButton
-          data-size='xs'
           onDelete={handleDeleteCustomReceipt}
           confirmMessage={t('process_editor.configuration_panel_custom_receipt_delete_receipt')}
         >
