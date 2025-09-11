@@ -100,7 +100,7 @@ export function FeedbackForm({
             {disclaimer}
           </StudioParagraph>
         )}
-        <StudioButton onClick={handleSubmit} color='success'>
+        <StudioButton onClick={handleSubmit} data-color='success'>
           {buttonTexts.submit}
         </StudioButton>
       </StudioModal.Dialog>
