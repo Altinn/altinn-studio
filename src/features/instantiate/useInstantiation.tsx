@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 import type { MutateOptions } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { instanceQueries } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -22,66 +23,56 @@ export interface Instantiation {
   prefill: Prefill;
 }
 
-function useInstantiateMutation() {
-  const { doInstantiate } = useAppMutations();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const currentLanguage = useCurrentLanguage();
-
-  return useMutation({
-    mutationKey: ['instantiate', 'simple'],
-    mutationFn: (instanceOwnerPartyId: number) => doInstantiate(instanceOwnerPartyId, currentLanguage),
-    onError: (error: HttpClientError) => {
-      window.logError('Instantiation failed:\n', error);
-    },
-    onSuccess: async (data) => {
-      navigate(`/instance/${data.id}`);
-      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
-    },
-  });
-}
-
-function useInstantiateWithPrefillMutation() {
-  const { doInstantiateWithPrefill } = useAppMutations();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const currentLanguage = useCurrentLanguage();
-
-  return useMutation({
-    mutationKey: ['instantiate', 'withPrefill'],
-    mutationFn: (instantiation: Instantiation) => doInstantiateWithPrefill(instantiation, currentLanguage),
-    onError: (error: HttpClientError) => {
-      window.logError('Instantiation with prefill failed:\n', error);
-    },
-    onSuccess: async (data) => {
-      navigate(`/instance/${data.id}`);
-      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
-    },
-  });
-}
-
+type InstantiationArgs = number | Instantiation;
 type Options<Vars> = MutateOptions<IInstance, AxiosError, Vars, unknown> & { force?: boolean };
 
-export const useInstantiation = () => {
+export function useInstantiation() {
+  const { doInstantiate, doInstantiateWithPrefill } = useAppMutations();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const instantiate = useInstantiateMutation();
-  const instantiateWithPrefill = useInstantiateWithPrefillMutation();
+  const currentLanguage = useCurrentLanguage();
 
-  const hasAlreadyInstantiated = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] }).length > 0;
+  const { mutateAsync } = useMutation({
+    mutationKey: ['instantiate'],
+    mutationFn: (args: InstantiationArgs) =>
+      typeof args === 'number' ? doInstantiate(args, currentLanguage) : doInstantiateWithPrefill(args, currentLanguage),
+    onError: (error: HttpClientError) => {
+      window.logError(`Instantiation failed:\n`, error);
+    },
+    onSuccess: async (data) => {
+      const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
+      const queryKey = instanceQueries.instanceData({
+        instanceOwnerPartyId,
+        instanceGuid,
+      }).queryKey;
+      queryClient.setQueryData(queryKey, data);
+
+      navigate(`/instance/${data.id}`);
+      await queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
+    },
+  });
+
+  // Instead of using the return value above, we look up in the mutation cache. Tanstack query will keep the last
+  // mutation as a local state, but that gets lost if our render context/order changes. Looking up from the cache
+  // directly will always give us any mutations, even when we're not rendering from that same hook that caused the
+  // last mutation.
+  const mutations = useMutationState({ filters: { mutationKey: ['instantiate'] } });
+  const hasAlreadyInstantiated = mutations.length > 0;
+  const lastMutation = mutations.at(-1);
 
   return {
     instantiate: async (instanceOwnerPartyId: number, { force = false, ...options }: Options<number> = {}) => {
       if (!hasAlreadyInstantiated || force) {
-        await instantiate.mutateAsync(instanceOwnerPartyId, options).catch(() => {});
+        await mutateAsync(instanceOwnerPartyId, options).catch(() => {});
       }
     },
     instantiateWithPrefill: async (value: Instantiation, { force = false, ...options }: Options<Instantiation>) => {
       if (!hasAlreadyInstantiated || force) {
-        await instantiateWithPrefill.mutateAsync(value, options).catch(() => {});
+        await mutateAsync(value, options).catch(() => {});
       }
     },
 
-    error: instantiate.error || instantiateWithPrefill.error,
-    lastResult: instantiate.data ?? instantiateWithPrefill.data,
+    error: lastMutation?.error,
+    lastResult: lastMutation?.data,
   };
-};
+}

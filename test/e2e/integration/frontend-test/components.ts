@@ -248,10 +248,15 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.summaryNameChanges).should('be.visible');
 
     cy.viewport('samsung-s10');
+    cy.get('html.viewport-is-mobile').should('be.visible');
+
     cy.get(appFrontend.navMenu).should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("form")').should('not.exist');
     cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');
+
     cy.viewport('macbook-16');
+    cy.get('html.viewport-is-mobile').should('not.exist');
+
     cy.changeLayout((component) => {
       if (component.type === 'NavigationBar') {
         component.compact = true;

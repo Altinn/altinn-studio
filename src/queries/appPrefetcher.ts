@@ -26,9 +26,7 @@ export function AppPrefetcher() {
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(instanceOwnerPartyId));
   usePrefetchQuery(useSelectedPartyQueryDef(true), Boolean(instanceOwnerPartyId));
 
-  usePrefetchQuery(
-    instanceQueries.instanceData({ hasResultFromInstantiation: false, instanceOwnerPartyId, instanceGuid }),
-  );
+  usePrefetchQuery(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }));
   usePrefetchQuery(processQueries.processState(instanceId));
 
   return null;

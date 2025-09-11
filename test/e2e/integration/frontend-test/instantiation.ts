@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses } from 'test/e2e/pageobjects/party-mocks';
 
@@ -103,6 +105,25 @@ describe('Instantiation', () => {
   });
 
   it('should show custom error message from instantiation validator from instance-selection', () => {
+    const instanceIdExamples = [`512345/${uuidv4()}`, `512345/${uuidv4()}`, `512345/${uuidv4()}`];
+    cy.intercept('**/active', [
+      {
+        id: instanceIdExamples[0],
+        lastChanged: '2021-04-06T14:11:02.6893987Z',
+        lastChangedBy: 'Ola Nordmann',
+      },
+      {
+        id: instanceIdExamples[1],
+        lastChanged: '2022-04-06T14:11:02.6893987Z',
+        lastChangedBy: 'Foo Bar',
+      },
+      {
+        id: instanceIdExamples[2],
+        lastChanged: '2020-04-06T14:11:02.6893987Z',
+        lastChangedBy: 'Bar Baz',
+      },
+    ]);
+
     cy.intercept('GET', '**/texts/nb', (req) => {
       req.on('response', (res) => {
         const body = res.body as ITextResourceResult;

@@ -1,4 +1,4 @@
-import type { RouteHandler } from 'cypress/types/net-stubbing';
+import type { CyHttpMessages, RouteHandler } from 'cypress/types/net-stubbing';
 
 import { reverseName } from 'test/e2e/support/utils';
 
@@ -117,33 +117,46 @@ export function cyUserLogin({ cyUser, authenticationLevel }: CyUserLoginParams) 
   const user = cyUserCredentials[cyUser];
 
   if (Cypress.env('type') === 'localtest') {
-    localLogin({ displayName: user.displayName, authenticationLevel });
-    return;
+    return localLogin({ partyId: user.localPartyId, authenticationLevel });
   }
 
   const { userName, userPassword } = user;
   if (userName === cyUserCredentials.selfIdentified.userName) {
-    loginSelfIdentifiedTt02Login(userName, userPassword);
-  } else {
-    cyUserTt02Login(userName, userPassword);
+    return loginSelfIdentifiedTt02Login(userName, userPassword);
   }
+
+  return cyUserTt02Login(userName, userPassword);
 }
 
-type LocalLoginParams = {
-  displayName: string;
-  authenticationLevel: string;
-};
+type LocalLoginParams =
+  | {
+      partyId: string;
+      authenticationLevel: string;
+    }
+  | {
+      displayName: string;
+      authenticationLevel: string;
+    };
 
-function localLogin({ displayName, authenticationLevel }: LocalLoginParams) {
-  cy.log(`Logging in as local user: ${displayName} with authentication level: ${authenticationLevel}`);
+function localLogin({ authenticationLevel, ...rest }: LocalLoginParams) {
   cy.visit(`${Cypress.config('baseUrl')}`);
-  cy.findByRole('combobox', { name: /select test users/i })
-    .should('exist')
-    .find('option')
-    .contains(new RegExp(displayName, 'i'))
-    .then(($option) => {
-      cy.get('select#UserSelect').select($option.val() as string);
-    });
+
+  if ('partyId' in rest) {
+    const partyId = rest.partyId;
+    cy.log(`Logging in as local user: ${partyId} with authentication level: ${authenticationLevel}`);
+    cy.get('select#UserSelect').select(partyId);
+    cy.get('select#UserSelect').should('have.value', partyId);
+  } else if ('displayName' in rest) {
+    const displayName = rest.displayName;
+    cy.log(`Logging in as local user: ${displayName} with authentication level: ${authenticationLevel}`);
+    cy.findByRole('combobox', { name: /select test users/i })
+      .find('option')
+      .contains(new RegExp(displayName, 'i'))
+      .then(($option) => {
+        cy.get('select#UserSelect').select($option.val() as string);
+        cy.get('select#UserSelect').should('have.value', $option.val() as string);
+      });
+  }
 
   cy.findByRole('combobox', { name: /authentication level/i })
     .should('exist')
@@ -151,20 +164,42 @@ function localLogin({ displayName, authenticationLevel }: LocalLoginParams) {
     .contains(new RegExp(authenticationLevel, 'i'))
     .then(($option) => {
       cy.get('select#AuthenticationLevel').select($option.val() as string);
+      cy.get('select#AuthenticationLevel').should('have.value', $option.val() as string);
     });
 
-  cy.findByRole('button', {
-    name: /proceed to app/i,
-  }).click();
+  cy.intercept({ method: 'POST', url: '/Home/LogInTestUser', times: 1 }, (req) => {
+    req.on('response', (res) => {
+      expect(res.statusCode).to.eq(302);
+      res.send(200, '');
+    });
+  }).as('login');
+
+  cy.findByRole('button', { name: 'Proceed to app' }).click();
+  waitForLogin();
 }
 
 function loginSelfIdentifiedTt02Login(user: string, pwd: string) {
   const loginUrl = 'https://tt02.altinn.no/ui/Authentication/SelfIdentified';
-  cy.intercept('POST', loginUrl).as('login');
   cy.visit(loginUrl);
   cy.findByRole('textbox', { name: /Brukernavn/i }).type(user);
   cy.get('input[type=password]').type(pwd);
+
+  cy.intercept(
+    {
+      method: 'POST',
+      url: '**/Authentication/SelfIdentified',
+      times: 1,
+    },
+    (req) => {
+      req.on('response', (res) => {
+        expect(res.statusCode).to.eq(302);
+        res.send(200, '');
+      });
+    },
+  ).as('login');
+
   cy.findByRole('button', { name: /Logg inn/i }).click();
+  waitForLogin();
 }
 
 function cyUserTt02Login(user: string, pwd: string) {
@@ -183,10 +218,9 @@ function cyUserTt02Login(user: string, pwd: string) {
 }
 
 function waitForLogin() {
-  cy.get('@login').should((response) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = response as unknown as Cypress.Response<any>;
-    expect(r.status).to.eq(200);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cy.get('@login').should((r: any) => {
+    expect(r?.response?.statusCode ?? r?.status).to.eq(200);
   });
 }
 
@@ -212,14 +246,16 @@ export type TenorUser = {
   orgs?: string[];
 };
 
+export type AppResponseRef = { current: ((res: CyHttpMessages.IncomingHttpResponse) => void) | undefined };
+
 type TenorLoginParams = {
   appName: string;
   tenorUser: TenorUser;
   authenticationLevel: string;
 };
 
-export function tenorUserLogin({ appName, tenorUser, authenticationLevel }: TenorLoginParams) {
-  cy.log(`Logging in as Tenor user: ${tenorUser.name}`);
+export function tenorUserLogin(props: TenorLoginParams) {
+  cy.log(`Logging in as Tenor user: ${props.tenorUser.name}`);
   cy.intercept<object, IncomingApplicationMetadata>('**/api/v1/applicationmetadata', (req) => {
     req.reply((res) => {
       const body = res.body as IncomingApplicationMetadata;
@@ -230,30 +266,30 @@ export function tenorUserLogin({ appName, tenorUser, authenticationLevel }: Teno
   });
 
   if (Cypress.env('type') === 'localtest') {
-    localLogin({ displayName: tenorUser.name, authenticationLevel });
-  } else {
-    tenorTt02Login(appName, tenorUser);
+    return localLogin({ displayName: props.tenorUser.name, ...props });
   }
 
-  cy.reloadAndWait();
+  return tenorTt02Login(props);
 }
 
-function tenorTt02Login(appName: string, user: TenorUser) {
+function tenorTt02Login({ appName, tenorUser }: Omit<TenorLoginParams, 'authenticationLevel'>) {
   cy.clearCookies();
   cy.visit(`https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`);
 
-  cy.findByRole('link', {
-    name: /testid lag din egen testbruker/i,
-  }).click();
+  cy.findByRole('link', { name: /testid lag din egen testbruker/i }).click();
+  cy.findByRole('textbox', { name: /personidentifikator \(syntetisk\)/i }).type(tenorUser.ssn);
+  cy.findByRole('button', { name: /autentiser/i }).click();
 
-  cy.findByRole('textbox', {
-    name: /personidentifikator \(syntetisk\)/i,
-  }).type(user.ssn);
+  cy.get<AppResponseRef>('@appResponse').then((ref) => {
+    ref.current = (res) => {
+      // Returning empty 200 OK here lets us call cy.visit() to open the app later, without ending up opening the
+      // app multiple times after logging in. Normally, a click on the party below would go straight to opening the
+      // app we're testing.
+      ref.current = undefined;
+      res.send(200, '');
+    };
+  });
 
-  cy.findByRole('button', {
-    name: /autentiser/i,
-  }).click();
-
-  cy.findByText(new RegExp(reverseName(user.name), 'i')).click();
-  cy.waitForLoad();
+  cy.findByText(new RegExp(reverseName(tenorUser.name), 'i')).click();
+  cy.wait('@app');
 }

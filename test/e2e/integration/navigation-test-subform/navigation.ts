@@ -20,7 +20,7 @@ describe('navigation', () => {
       const isUsingMobile = device === 'mobile';
       const isUsingTablet = device === 'tablet';
       cy.viewport(width, height);
-      cy.startAppInstance(appFrontend.apps.navigationTest);
+      cy.startAppInstance(appFrontend.apps.navigationTestSubform);
       cy.waitForLoad();
 
       // Check initial conditions
@@ -281,7 +281,7 @@ describe('navigation', () => {
       const isUsingMobile = device === 'mobile';
       const isUsingTablet = device === 'tablet';
       cy.viewport(width, height);
-      cy.startAppInstance(appFrontend.apps.navigationTest);
+      cy.startAppInstance(appFrontend.apps.navigationTestSubform);
       cy.waitForLoad();
 
       isUsingMobile && cy.showNavGroupsMobile();
@@ -477,7 +477,7 @@ describe('navigation', () => {
   );
 
   it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
-    cy.startAppInstance(appFrontend.apps.navigationTest);
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();
     cy.gotoNavGroup(/Utfylling/, 'desktop', /Fødselsdag/);
     // Typing invalid data into the date-picker and immediately clicking next

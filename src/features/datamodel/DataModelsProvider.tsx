@@ -161,12 +161,11 @@ function DataModelsLoader() {
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const queryClient = useQueryClient();
-  const { hasResultFromInstantiation, instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
 
   const dataElements =
-    queryClient.getQueryData(
-      instanceQueries.instanceData({ hasResultFromInstantiation, instanceOwnerPartyId, instanceGuid }).queryKey,
-    )?.data ?? emptyArray;
+    queryClient.getQueryData(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey)?.data ??
+    emptyArray;
 
   const layoutSetId = useCurrentLayoutSetId();
 

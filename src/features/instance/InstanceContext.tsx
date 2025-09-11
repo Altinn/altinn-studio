@@ -30,29 +30,18 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
 
   const hasPendingScans = useHasPendingScans();
-  const {
-    error: instanceDataError,
-    isError: isInstanceDataError,
-    status,
-    data,
-  } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
-
-  const instantiationError = instantiation.error ?? instanceDataError;
+  const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  if (isInstanceDataError) {
-    return <DisplayError error={instanceDataError} />;
-  }
-
-  const error = instantiationError ?? processError;
+  const error = instantiation.error ?? instanceDataError ?? processError;
   if (error) {
     return <DisplayError error={error} />;
   }
 
-  if (status === 'pending') {
+  if (!data) {
     return <Loader reason='loading-instance' />;
   }
   if (isLoadingProcess) {
@@ -84,36 +73,34 @@ export const useStrictInstanceId = () => {
 export type ChangeInstanceData = (callback: (instance: IInstance | undefined) => IInstance | undefined) => void;
 
 export function useInstanceDataQueryArgs() {
-  const hasResultFromInstantiation = !!useInstantiation().lastResult;
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
 
-  return { hasResultFromInstantiation, instanceOwnerPartyId, instanceGuid };
+  return { instanceOwnerPartyId, instanceGuid };
 }
 
 export const instanceQueries = {
   all: () => ['instanceData'] as const,
   instanceData: ({
-    hasResultFromInstantiation,
     instanceOwnerPartyId,
     instanceGuid,
   }: {
-    hasResultFromInstantiation: boolean;
     instanceOwnerPartyId: string | undefined;
     instanceGuid: string | undefined;
   }) =>
     queryOptions({
       queryKey: [...instanceQueries.all(), { instanceOwnerPartyId, instanceGuid }] as const,
-      queryFn: !(!!instanceOwnerPartyId && !!instanceGuid && !hasResultFromInstantiation)
-        ? skipToken
-        : async () => {
-            try {
-              return await fetchInstanceData(instanceOwnerPartyId, instanceGuid);
-            } catch (error) {
-              window.logError('Fetching instance data failed:\n', error);
-              throw error;
-            }
-          },
+      queryFn:
+        !instanceOwnerPartyId || !instanceGuid
+          ? skipToken
+          : async () => {
+              try {
+                return await fetchInstanceData(instanceOwnerPartyId, instanceGuid);
+              } catch (error) {
+                window.logError('Fetching instance data failed:\n', error);
+                throw error;
+              }
+            },
       refetchIntervalInBackground: false,
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -178,13 +165,12 @@ export function useInvalidateInstanceDataCache() {
 
 const useOptimisticInstanceUpdate = () => {
   const queryClient = useQueryClient();
-  const { hasResultFromInstantiation, instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
 
   const queryKey =
     !instanceOwnerPartyId || !instanceGuid
       ? undefined
       : instanceQueries.instanceData({
-          hasResultFromInstantiation,
           instanceOwnerPartyId,
           instanceGuid,
         }).queryKey;

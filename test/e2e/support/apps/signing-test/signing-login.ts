@@ -60,9 +60,11 @@ export function signingTestLogin(user: CyUser) {
 
     cy.startAppInstance(appFrontend.apps.signingTest, { cyUser: user, urlSuffix: instanceSuffix });
 
-    // We need to reload after re-logging in when we already had a session, because the startAppInstance command
-    // will not reload the page if we already are visiting the correct URL.
-    instanceSuffix && cy.reloadAndWait();
+    if (Cypress.env('type') === 'production-like' && instanceSuffix) {
+      // We need to reload after re-logging in on tt02 when we already had a session, because the startAppInstance
+      // command will not reload the page if we already are visiting the correct URL.
+      cy.reloadAndWait();
+    }
 
     cy.assertUser(user);
   });

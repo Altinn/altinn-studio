@@ -1,4 +1,3 @@
-import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, removeAllButOneOrg } from 'test/e2e/pageobjects/party-mocks';
 
@@ -18,16 +17,8 @@ describe('Stateless party selection', () => {
     });
 
     cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'accountant' });
-    cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
-
-    if (Cypress.env('type') === 'localtest') {
-      cy.get(appFrontend.reporteeSelection.error).contains(texts.selectNewReportee);
-      cy.findByText(
-        /Du har startet tjenesten som .*?. Denne tjenesten er kun tilgjengelig for privatperson. Velg ny aktør under./,
-      ).should('be.visible');
-    } else {
-      cy.findByText(/Jeg ønsker ikke å bli spurt om aktør hver gang/).should('be.visible');
-    }
+    cy.get(appFrontend.partySelection.appHeader).should('be.visible');
+    cy.findByText(/Jeg ønsker ikke å bli spurt om aktør hver gang/).should('be.visible');
 
     cy.findAllByText(/personnr\. \d+/)
       .first()
