@@ -13,15 +13,15 @@ variables:
   AZURE_SUBSCRIPTION_ID_PLATFORM_TEST: ''
 
   # Variables to be passed when triggering the pipeline
-  ALTINN_STUDIO_HOSTNAME: ''
-  APP_COMMIT_ID: ''
-  APP_DEPLOY_TOKEN: ''
-  APP_ENVIRONMENT: ''
-  APP_OWNER: ''
-  APP_REPO: ''
-  GITEA_ENVIRONMENT: ''
-  HOSTNAME: ''
-  TAGNAME: ''
+  # ALTINN_STUDIO_HOSTNAME: ''
+  # APP_COMMIT_ID: ''
+  # APP_DEPLOY_TOKEN: ''
+  # APP_ENVIRONMENT: ''
+  # APP_OWNER: ''
+  # APP_REPO: ''
+  # GITEA_ENVIRONMENT: ''
+  # HOSTNAME: ''
+  # TAGNAME: ''
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
   HELMRELEASE_FILE: 'helmrelease.yaml'
