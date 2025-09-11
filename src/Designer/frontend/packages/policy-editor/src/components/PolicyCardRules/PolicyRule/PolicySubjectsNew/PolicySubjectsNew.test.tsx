@@ -101,7 +101,7 @@ const subjects = [
   policySubjectOrg,
 ];
 
-describe('PolicyAccessPackages', () => {
+describe('PolicySubjectsNew', () => {
   afterEach(jest.clearAllMocks);
 
   it('should show subject checkbox checked when subject is added with urn', async () => {

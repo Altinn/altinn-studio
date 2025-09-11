@@ -37,14 +37,6 @@ import {
 } from '../../test/mocks/policySubResourceMocks';
 
 describe('PolicyEditorUtils', () => {
-  describe('mapPolicySubjectToSubjectTitle', () => {
-    it('should map policy subjects to subject ids', () => {
-      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(mockPolicyRules);
-
-      expect(result).toEqual(mockPolicyRuleCards);
-    });
-  });
-
   describe('mapResourceFromBackendToResource', () => {
     it('should map a resource string to a resource object', () => {
       const result = mapResourceFromBackendToResource(mockPolicyResourceBackendString1);

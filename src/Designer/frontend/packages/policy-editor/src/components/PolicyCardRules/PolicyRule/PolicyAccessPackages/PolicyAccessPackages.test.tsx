@@ -96,7 +96,7 @@ const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
 describe('PolicyAccessPackages', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should call add service when access package is checked', async () => {
+  it('checks access package and reflects selection state', async () => {
     const user = userEvent.setup();
     renderAccessPackages();
 

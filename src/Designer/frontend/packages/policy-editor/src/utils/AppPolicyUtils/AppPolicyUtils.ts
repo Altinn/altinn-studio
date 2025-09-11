@@ -142,16 +142,16 @@ export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[
 
 /**
  * Get the display text key for a subject category
- * @param subject The subject to get the category text key for
- * @param subjects The list of all subjects
+ * @param subjectUrn The subject to get the category text key for
  * @returns The text key for the subject category
  */
-export const getSubjectCategoryTextKey = (subject: string): string | undefined => {
-  if (subject.toLowerCase().startsWith('urn:altinn:accesspackage')) {
+export const getSubjectCategoryTextKey = (subjectUrn: string): string | undefined => {
+  const s = subjectUrn.toLowerCase();
+  if (subjectUrn.startsWith('urn:altinn:accesspackage')) {
     return `policy_editor.role_category.access_package`;
-  } else if (subject.toLowerCase().startsWith('urn:altinn:rolecode')) {
+  } else if (s.startsWith('urn:altinn:rolecode')) {
     return `policy_editor.role_category.altinn_rolecode`;
-  } else if (subject.toLowerCase().startsWith('urn:altinn:org')) {
+  } else if (s.startsWith('urn:altinn:org')) {
     return `policy_editor.role_category.altinn_org`;
   }
   return 'policy_editor.role_category.unknown';
