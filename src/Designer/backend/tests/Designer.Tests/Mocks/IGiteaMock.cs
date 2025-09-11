@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -213,5 +215,8 @@ namespace Designer.Tests.Mocks
         {
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
+
+        public Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

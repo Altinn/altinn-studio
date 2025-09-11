@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -162,5 +163,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository.</param>
         Task<bool> DeleteRepository(string org, string repository);
+
+        /// <summary>
+        /// Modifies multiple files in the given repository. If a file does not exist, it
+        /// will be created. If it exists, it will be updated.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="files">The list of files to modify.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default);
     }
 }
