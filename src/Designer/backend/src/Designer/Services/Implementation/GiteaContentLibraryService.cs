@@ -30,13 +30,6 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     }
 
     /// <inheritdoc />
-    public async Task<bool> OrgContentRepoExists(string orgName)
-    {
-        IList<RepositoryClient.Model.Repository> repositories = await _giteaApiWrapper.GetOrgRepos(orgName);
-        return repositories.Select(repository => repository.Name).Contains(GetContentRepoName(orgName));
-    }
-
-    /// <inheritdoc />
     public async Task<List<string>> GetCodeListIds(string orgName)
     {
         List<FileSystemObject> files = await GetDirectoryFromGitea(orgName, CodeListFolderPath);

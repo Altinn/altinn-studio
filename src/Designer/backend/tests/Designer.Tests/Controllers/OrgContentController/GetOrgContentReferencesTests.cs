@@ -230,7 +230,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
         _giteaContentLibraryServiceMock.Setup(service => service.GetCodeListIds(It.IsAny<string>())).ReturnsAsync([]);
         _giteaContentLibraryServiceMock.Setup(service => service.GetTextIds(It.IsAny<string>())).ReturnsAsync([]);
-        _giteaContentLibraryServiceMock.Setup(service => service.OrgContentRepoExists(It.IsAny<string>())).ReturnsAsync(true);
 
         OrgAndRepoName orgAndRepoName = GenerateOrgAndRepoNames();
         const string SourceRepoNameEmpty = "org-content-empty";
@@ -256,7 +255,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
         _giteaContentLibraryServiceMock.Verify(service => service.GetCodeListIds(orgAndRepoName.Org.Name), Times.Once);
         _giteaContentLibraryServiceMock.Verify(service => service.GetTextIds(orgAndRepoName.Org.Name), Times.Once);
-        _giteaContentLibraryServiceMock.Verify(service => service.OrgContentRepoExists(orgAndRepoName.Org.Name), Times.Once);
     }
 
     [Fact]
@@ -264,7 +262,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
     {
         // Arrange
         _orgServiceMock.Setup(service => service.IsOrg(It.IsAny<string>())).ReturnsAsync(true);
-        _giteaContentLibraryServiceMock.Setup(service => service.OrgContentRepoExists(It.IsAny<string>())).ReturnsAsync(true);
 
         OrgAndRepoName orgAndRepoName = await CreateOrgWithRepository();
         string apiBaseUrl = orgAndRepoName.Org.ApiBaseUrl;
@@ -278,7 +275,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         _orgServiceMock.Verify(service => service.IsOrg(orgAndRepoName.Org.Name), Times.Once);
-        _giteaContentLibraryServiceMock.Verify(service => service.OrgContentRepoExists(orgAndRepoName.Org.Name), Times.Once);
     }
 
     private async Task<OrgAndRepoName> CreateOrgWithRepository()
@@ -329,9 +325,6 @@ public class GetOrgContentReferencesTests : DesignerEndpointsTestsBase<GetOrgCon
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetTextIds(It.IsAny<string>()))
             .ReturnsAsync(textIds);
-        _giteaContentLibraryServiceMock
-            .Setup(service => service.OrgContentRepoExists(It.IsAny<string>()))
-            .ReturnsAsync(true);
     }
 
     private class OrgAndRepoName(string orgName, string repoName)
