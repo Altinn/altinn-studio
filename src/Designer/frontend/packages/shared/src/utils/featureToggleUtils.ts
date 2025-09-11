@@ -8,7 +8,6 @@ export enum FeatureFlag {
   ComponentConfigBeta = 'componentConfigBeta',
   Maskinporten = 'maskinporten',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
-  ConsentResource = 'consentResource',
   AppMetadata = 'appMetadata',
 }
 
