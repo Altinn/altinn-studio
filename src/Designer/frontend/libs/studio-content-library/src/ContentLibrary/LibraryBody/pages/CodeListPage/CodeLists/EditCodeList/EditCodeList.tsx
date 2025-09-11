@@ -1,11 +1,11 @@
 import type { CodeList, CodeListEditorTexts, TextResource } from '@studio/components-legacy';
 import {
-  StudioDeleteButton,
   StudioModal,
   StudioDisplayTile,
   StudioCodeListEditor,
   StudioToggleableTextfield,
 } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
@@ -158,7 +158,7 @@ function CodeListButtons({
   return (
     <div className={classes.buttons}>
       <StudioDeleteButton
-        onDelete={onDeleteCodeList}
+        onDelete={() => onDeleteCodeList(codeListTitle)}
         title={deleteButtonTitle}
         disabled={codeListHasUsages}
         confirmMessage={t('app_content_library.code_lists.code_list_delete_confirm', {

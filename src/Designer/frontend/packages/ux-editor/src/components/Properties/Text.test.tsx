@@ -145,6 +145,7 @@ describe('TextTab', () => {
       });
       await user.type(enterTextField, newText);
       await waitFor(() => enterTextField.blur());
+      await user.click(screen.getByRole('button', { name: textMock('general.save') }));
       await waitFor(() => {
         expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
       });

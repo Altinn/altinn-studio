@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage, StudioDeleteButton } from '@studio/components-legacy';
+import { StudioSpinner, StudioErrorMessage } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
