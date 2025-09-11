@@ -30,6 +30,13 @@ export const Config = new CG.component({
       description: 'Text on the next page button',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'backToPage',
+      title: 'Back to Page',
+      description: 'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
+    }),
+  )
   .addProperty(
     new CG.prop(
       'showBackButton',

@@ -12,8 +12,10 @@ type Props = LinkProps & { children?: React.ReactNode };
  * to navigate to does not exist or the page is hidden, the link will turn into pure text.
  */
 export const LinkToPotentialPage = (props: Props) => {
-  const parts = props.to.toString().split('/') ?? [];
-  const page = parts[parts.length - 1];
+  const toStr = typeof props.to === 'string' ? props.to : (props.to?.pathname ?? '');
+  const parts = toStr.replace(/\/+$/, '').split('/');
+  const lastPart = parts[parts.length - 1] ?? '';
+  const page = lastPart.split(/[?#]/)[0];
 
   const isHiddenPage = useIsHiddenPage(page);
   const { isValidPageId } = useNavigatePage();

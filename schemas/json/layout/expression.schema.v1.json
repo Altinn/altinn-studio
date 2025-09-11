@@ -397,7 +397,8 @@
       "items": [
         { "const":  "linkToComponent" },
         { "$ref": "#/definitions/string" },
-        { "$ref": "#/definitions/string" }
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": false
     },
@@ -408,7 +409,8 @@
       "items": [
         { "const": "linkToPage" },
         { "$ref": "#/definitions/string" },
-        { "$ref": "#/definitions/string" }
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": false
     },

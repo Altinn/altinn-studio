@@ -21,7 +21,12 @@ import {
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
-import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { AppQueries } from 'src/queries/types';
+import {
+  renderWithInstanceAndLayout,
+  renderWithoutInstanceAndLayout,
+  StatelessRouter,
+} from 'src/test/renderWithProviders';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
@@ -328,37 +333,50 @@ describe('Expressions shared function tests', () => {
         return instanceData;
       });
 
-      const renderFunc = stateless ? renderWithoutInstanceAndLayout : renderWithInstanceAndLayout;
-      const { rerender } = await renderFunc({
-        renderer: () => (
-          <ExpressionRunner
-            context={context}
-            expression={expression}
-            positionalArguments={positionalArguments}
-            valueArguments={valueArguments}
-          />
-        ),
-        queries: {
-          fetchLayoutSets: async () => ({
-            sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
-          }),
-          fetchLayouts: async () => layouts,
-          fetchFormData,
-          ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-          fetchTextResources: async () => ({
-            language: 'nb',
-            resources: textResources || [],
-          }),
-          fetchOptions: async (url: string) => {
-            const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
-            if (!codeLists || !codeListId || !codeLists[codeListId]) {
-              throw new Error(`No code lists found for ${url}`);
-            }
-            const data = codeLists[codeListId];
-            return { data } as AxiosResponse<IRawOption[], unknown>;
-          },
+      const toRender = (
+        <ExpressionRunner
+          context={context}
+          expression={expression}
+          positionalArguments={positionalArguments}
+          valueArguments={valueArguments}
+        />
+      );
+
+      const queries: Partial<AppQueries> = {
+        fetchLayoutSets: async () => ({
+          sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
+        }),
+        fetchLayouts: async () => layouts,
+        fetchFormData,
+        ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: textResources || [],
+        }),
+        fetchOptions: async (url: string) => {
+          const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
+          if (!codeLists || !codeListId || !codeLists[codeListId]) {
+            throw new Error(`No code lists found for ${url}`);
+          }
+          const data = codeLists[codeListId];
+          return { data } as AxiosResponse<IRawOption[], unknown>;
         },
-      });
+      };
+
+      const { rerender } = stateless
+        ? await renderWithoutInstanceAndLayout({
+            withFormProvider: true,
+            router: ({ children }) => (
+              <StatelessRouter initialPage={context?.currentLayout ?? 'FormLayout'}>{children}</StatelessRouter>
+            ),
+            renderer: () => toRender,
+            queries,
+          })
+        : await renderWithInstanceAndLayout({
+            initialPage: context?.currentLayout ?? 'FormLayout',
+            renderer: () => toRender,
+            queries,
+          });
 
       await assertExpr({ expression, expects, expectsFailure });
 

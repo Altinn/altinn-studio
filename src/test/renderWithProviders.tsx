@@ -279,6 +279,45 @@ export function InstanceRouter({
   );
 }
 
+export function StatelessRouter({
+  children,
+  routerRef,
+  initialPage = 'FormLayout',
+  alwaysRouteToChildren = false,
+  query,
+}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId'>>) {
+  const path = `/ttd/test/${initialPage}`;
+  const router = createMemoryRouter(
+    [
+      {
+        path: ':pageKey',
+        element: children,
+      },
+      {
+        path: '*',
+        element: alwaysRouteToChildren ? children : <NotFound />,
+      },
+    ],
+    {
+      basename: '/ttd/test',
+      initialEntries: [query ? `${path}?${query}` : path],
+      future: { v7_relativeSplatPath: true },
+    },
+  );
+
+  if (routerRef) {
+    // eslint-disable-next-line react-compiler/react-compiler
+    routerRef.current = router;
+  }
+
+  return (
+    <RouterProvider
+      router={router}
+      future={{ v7_startTransition: true }}
+    />
+  );
+}
+
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
   queryClient: QueryClient;

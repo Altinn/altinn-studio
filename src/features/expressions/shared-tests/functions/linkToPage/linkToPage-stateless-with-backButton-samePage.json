@@ -1,0 +1,9 @@
+{
+  "name": "Should create a link with reference to a page when no instance is provided, but no backToPage when page is the same",
+  "expression": ["linkToPage", "Klikk på meg", "Whatever", true],
+  "expects": "<a href=\"/Whatever\" data-link-type=\"LinkToPotentialPage\">Klikk på meg</a>",
+  "stateless": true,
+  "context": {
+    "currentLayout": "Whatever"
+  }
+}

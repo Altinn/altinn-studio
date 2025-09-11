@@ -16,6 +16,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
@@ -50,6 +51,7 @@ export interface ExpressionDataSources {
   layoutLookups: LayoutLookups;
   displayValues: Record<string, string | undefined>;
   hiddenComponents: Record<string, boolean | undefined>;
+  currentPage: string | undefined;
 }
 
 const multiSelectors = {
@@ -81,6 +83,7 @@ const directHooks = {
       isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
       FD.useDebouncedSelector(),
     ),
+  currentPage: (_isInGenerator) => useNavigationParam('pageKey'),
 } satisfies {
   [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: (
     isInGenerator: boolean,

@@ -57,6 +57,7 @@ export function nn() {
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',
     'form_filler.dropdown_alert': 'Er du sikker på at du vil endre til <b>{0}</b>?',
     'form_filler.back_to_summary': 'Attende til samandrag',
+    'form_filler.back_to_page': 'Attende til {0}',
     'form_filler.error_report_header': 'Du må retta desse feila før du kan gå vidare',
     'form_filler.error_required': 'Du må fylla ut {0}',
     'form_filler.file_upload_valid_file_format_all': 'alle',

@@ -53,6 +53,7 @@ export function nb() {
     'form_filler.error_validation_inside_subform': 'Det er feil i en eller flere {0} oppføringer',
     'form_filler.subform_default_header': 'Oppføringer',
     'form_filler.back_to_summary': 'Tilbake til oppsummering',
+    'form_filler.back_to_page': 'Tilbake til {0}',
     'form_filler.alert_confirm': 'Bekreft',
     'form_filler.checkbox_alert': 'Er du sikker på at du vil fjerne avkrysningen?',
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',

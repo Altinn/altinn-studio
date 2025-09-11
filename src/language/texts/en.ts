@@ -56,6 +56,7 @@ export function en() {
     'form_filler.multi_select_alert': 'Are you sure you want to delete <b>{0}</b>?',
     'form_filler.dropdown_alert': 'Are you sure you want to change to <b>{0}</b>?',
     'form_filler.back_to_summary': 'Return to summary',
+    'form_filler.back_to_page': 'Back to {0}',
     'form_filler.error_report_header': 'These need to be corrected before continuing',
     'form_filler.error_required': 'You have to fill out {0}',
     'form_filler.file_upload_valid_file_format_all': 'all',

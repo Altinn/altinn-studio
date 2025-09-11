@@ -219,14 +219,14 @@ export const ExprFunctionDefinitions = {
     needs: dataSources('langToolsSelector', 'currentDataModelPath'),
   },
   linkToComponent: {
-    args: args(required(ExprVal.String), required(ExprVal.String)),
+    args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
     returns: ExprVal.String,
-    needs: dataSources('layoutLookups', 'process', 'instanceDataSources', 'currentDataModelPath'),
+    needs: dataSources('layoutLookups', 'process', 'instanceDataSources', 'currentDataModelPath', 'currentPage'),
   },
   linkToPage: {
-    args: args(required(ExprVal.String), required(ExprVal.String)),
+    args: args(required(ExprVal.String), required(ExprVal.String), optional(ExprVal.Boolean)),
     returns: ExprVal.String,
-    needs: dataSources('process', 'instanceDataSources'),
+    needs: dataSources('process', 'instanceDataSources', 'currentPage'),
   },
   language: {
     args: args(),
@@ -597,7 +597,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
 
     return this.dataSources.langToolsSelector(this.dataSources.currentDataModelPath).langAsNonProcessedString(key);
   },
-  linkToComponent(linkText, id) {
+  linkToComponent(linkText, id, enableBackButton = false) {
     if (id == null) {
       window.logWarn('Component id was empty but must be set for linkToComponent to work');
       return null;
@@ -630,10 +630,14 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
 
     const searchParams = new URLSearchParams();
     searchParams.set(SearchParams.FocusComponentId, relativeId);
+    const backTo = this.dataSources.currentPage;
+    if (enableBackButton && backTo && backTo !== pageKey) {
+      searchParams.append(SearchParams.BackToPage, backTo);
+    }
     const newUrl = `${url}?${searchParams.toString()}`;
     return `<a href="${newUrl}" data-link-type="LinkToPotentialNode">${linkText}</a>`;
   },
-  linkToPage(linkText, pageId) {
+  linkToPage(linkText, pageId, enableBackButton = false) {
     if (pageId == null) {
       window.logWarn('Page id was empty but must be set for linkToPage to work');
       return null;
@@ -650,6 +654,13 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
       url = `/instance/${instanceId}/${taskId}/${pageId}`;
     } else {
       url = `/${pageId}`;
+    }
+
+    const backTo = this.dataSources.currentPage;
+    if (enableBackButton && backTo && backTo !== pageId) {
+      const searchParams = new URLSearchParams();
+      searchParams.set(SearchParams.BackToPage, backTo);
+      url = `${url}?${searchParams.toString()}`;
     }
     return `<a href="${url}" data-link-type="LinkToPotentialPage">${linkText}</a>`;
   },
