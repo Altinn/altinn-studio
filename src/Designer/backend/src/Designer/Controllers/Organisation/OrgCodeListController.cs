@@ -99,6 +99,25 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
+    /// Creates or overwrites the code lists.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="codeListWrappers">Contents of the code list.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> UpdateCodeLists(string org, [FromBody] List<CodeListWrapper> codeListWrappers, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        await _orgCodeListService.UpdateCodeLists(org, developer, codeListWrappers, cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
     /// Creates or overwrites a code list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
