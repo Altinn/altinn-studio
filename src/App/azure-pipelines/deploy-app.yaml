@@ -62,6 +62,7 @@ steps:
   - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
     inputs:
+      targetType: inline
       script: |
         # Define host values
         AT_HOST="altinn.cloud"
