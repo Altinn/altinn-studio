@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
@@ -11,18 +12,21 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <inheritdoc />
 public class OrgContentService : IOrgContentService
 {
-
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGiteaContentLibraryService _giteaContentLibraryService;
 
-    public OrgContentService(IGiteaContentLibraryService giteaContentLibraryService)
+    public OrgContentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IGiteaContentLibraryService giteaContentLibraryService)
     {
+        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _giteaContentLibraryService = giteaContentLibraryService;
     }
 
     /// <inheritdoc />
-    public async Task<bool> OrgContentRepoExists(AltinnOrgContext context)
+    public bool OrgContentRepoExists(AltinnOrgContext context)
     {
-        return await _giteaContentLibraryService.OrgContentRepoExists(context.Org);
+        string contentRepoName = GetContentRepoName(context.Org);
+        string repoPath = _altinnGitRepositoryFactory.GetRepositoryPath(context.Org, contentRepoName, context.DeveloperName);
+        return Directory.Exists(repoPath);
     }
 
     /// <inheritdoc />
@@ -78,4 +82,9 @@ public class OrgContentService : IOrgContentService
     }
 
     private static string FormatContentSource(string orgName) => $"org.{orgName}";
+
+    private static string GetContentRepoName(string org)
+    {
+        return $"{org}-content";
+    }
 }

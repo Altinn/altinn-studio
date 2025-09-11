@@ -24,5 +24,5 @@ public interface IOrgContentService
     /// </summary>
     /// <param name="context">The organisation context containing organisation and developer information.</param>
     /// <returns>True if the content repository exists; otherwise, false.</returns>
-    public Task<bool> OrgContentRepoExists(AltinnOrgContext context);
+    public bool OrgContentRepoExists(AltinnOrgContext context);
 }
