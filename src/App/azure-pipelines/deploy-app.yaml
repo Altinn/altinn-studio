@@ -56,8 +56,9 @@ steps:
   - task: CmdLine@2
     displayName: Pull Repo
     inputs:
-      script: >-
+      script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+
         cd $APP_COMMIT_ID
 
   - task: Bash@3
