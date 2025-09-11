@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
@@ -63,6 +65,31 @@ public class OrgCodeListServiceTests : IDisposable
             Assert.Equal(expectedCodeList[i].Description, fetchedCodeListData[i].Description);
             Assert.Equal(expectedCodeList[i].HelpText, fetchedCodeListData[i].HelpText);
         }
+    }
+
+    [Fact]
+    public void PrepareFileDeleteContexts()
+    {
+        // Arrange
+        const string Title = "irrelevant";
+        CodeList codeList = SetupCodeList();
+        List<CodeListWrapper> toDelete = [new()
+        {
+            Title = Title,
+            CodeList = codeList,
+            HasError = false,
+        }];
+        Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha"} };
+        var service = GetOrgCodeListService();
+
+        // Act
+        List<FileOperationContext> result = service.PrepareFileDeletions(toDelete, fileMetadata);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.Equal(FileOperation.Delete, result.FirstOrDefault()?.Operation);
+        Assert.Equal(fileMetadata[Title], result.FirstOrDefault()?.Sha);
+        Assert.Contains(Title, result.FirstOrDefault()?.Path);
     }
 
     [Fact]
@@ -303,6 +330,31 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         Assert.Empty(codeListIds);
+    }
+
+    private static CodeList SetupCodeList()
+    {
+        Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
+        Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
+        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+        List<Code> listOfCodes =
+        [
+            new()
+            {
+                Value = "value1",
+                Label = label,
+                Description = description,
+                HelpText = helpText,
+                Tags = ["test-data"]
+            }
+        ];
+        CodeList codeList = new()
+        {
+            SourceName = "test-data-files",
+            Codes = listOfCodes,
+            TagNames = ["test-data-category"]
+        };
+        return codeList;
     }
 
     private static OrgCodeListService GetOrgCodeListService()

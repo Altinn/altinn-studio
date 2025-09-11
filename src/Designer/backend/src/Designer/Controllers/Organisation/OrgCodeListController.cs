@@ -102,17 +102,20 @@ public class OrgCodeListController : ControllerBase
     /// Creates or overwrites the code lists.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="codeListWrappers">Contents of the code list.</param>
+    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> UpdateCodeLists(string org, [FromBody] List<CodeListWrapper> codeListWrappers, CancellationToken cancellationToken = default)
+    [Route("new")]
+    public async Task<ActionResult> UpdateCodeLists(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
+        string commitMessage = requestBody.CommitMessage;
 
-        await _orgCodeListService.UpdateCodeLists(org, developer, codeListWrappers, cancellationToken);
+        await _orgCodeListService.UpdateCodeLists(org, developer, codeListWrappers, commitMessage, cancellationToken);
 
         return Ok();
     }
