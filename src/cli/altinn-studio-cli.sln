@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{618A78E0-3711-453A-A92D-B59B4F3A955F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "altinn-studio-cli", "src\altinn-studio-cli\altinn-studio-cli.csproj", "{3BE8156A-6135-4992-A92B-8DC3891A0DC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3BE8156A-6135-4992-A92B-8DC3891A0DC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BE8156A-6135-4992-A92B-8DC3891A0DC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BE8156A-6135-4992-A92B-8DC3891A0DC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BE8156A-6135-4992-A92B-8DC3891A0DC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3BE8156A-6135-4992-A92B-8DC3891A0DC2} = {618A78E0-3711-453A-A92D-B59B4F3A955F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CE17B266-7DA2-4590-A664-6CA1A85A43C7}
+	EndGlobalSection
+EndGlobal
