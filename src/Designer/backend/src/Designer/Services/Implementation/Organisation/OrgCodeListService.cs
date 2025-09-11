@@ -112,6 +112,70 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
+    public async Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, CancellationToken cancellationToken = default)
+    {
+        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, GetStaticContentRepo(org), cancellationToken);
+
+        List<CodeListWrapper> remoteCodeListWrappers = [];
+        Dictionary<string, string> fileMetadata = [];
+        foreach (FileSystemObject file in files)
+        {
+            if (TryParseFile(file.Content, out CodeList? codeList))
+            {
+                remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
+                fileMetadata[file.Name] = file.Sha;
+            }
+            remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+        }
+
+        (List<CodeListWrapper> add, List<CodeListWrapper> update, List<CodeListWrapper> delete) = CompareCodeLists(remoteCodeListWrappers, codeListWrappers);
+
+        var fileChangeContexts = new List<FileChangeContext>();
+        foreach (CodeListWrapper codeListWrapper in add)
+        {
+            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, new JsonSerializerOptions { WriteIndented = true });
+            fileChangeContexts.Add(new FileChangeContext
+            {
+                Path = $"CodeLists/{codeListWrapper.Title}.json",
+                Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content)),
+                Operation = FileOperation.Create
+            });
+        }
+
+        foreach (CodeListWrapper codeListWrapper in update)
+        {
+            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, new JsonSerializerOptions { WriteIndented = true });
+            fileChangeContexts.Add(new FileChangeContext
+            {
+                Path = $"CodeLists/{codeListWrapper.Title}.json",
+                Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content)),
+                Operation = FileOperation.Update,
+                Sha = fileMetadata[codeListWrapper.Title]
+            });
+        }
+
+        foreach (CodeListWrapper codeListWrapper in delete)
+        {
+            fileChangeContexts.Add(new FileChangeContext
+            {
+                Path = $"CodeLists/{codeListWrapper.Title}.json",
+                Operation = FileOperation.Delete,
+                Sha = fileMetadata[codeListWrapper.Title]
+            });
+        }
+
+        GiteaMultipleFilesDto dto = new()
+        {
+            Committer = new Designer.Models.Dto.Identity { Name = developer },
+            Author = new Designer.Models.Dto.Identity { Name = developer },
+            Files = fileChangeContexts,
+            Message = "Update code lists" // TODO: get from user
+        };
+
+        await _gitea.ModifyMultipleFiles(org, GetStaticContentRepo(org), dto, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
         await Task.Delay(0, cancellationToken);
@@ -223,6 +287,38 @@ public class OrgCodeListService : IOrgCodeListService
             HasError = hasError
         };
         return codeListWrapper;
+    }
+
+    private static (List<CodeListWrapper> toAdd, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) CompareCodeLists(List<CodeListWrapper> remoteCodeListWrappers, List<CodeListWrapper> localCodeListWrappers)
+    {
+        List<CodeListWrapper> toAdd = [];
+        List<CodeListWrapper> toUpdate = [];
+        List<CodeListWrapper> toDelete = [];
+
+        foreach (CodeListWrapper localWrapper in localCodeListWrappers)
+        {
+            foreach (CodeListWrapper remoteWrapper in remoteCodeListWrappers)
+            {
+                if (localWrapper.Title == remoteWrapper.Title)
+                {
+                    if (localWrapper.CodeList is not null && !localWrapper.CodeList.Equals(remoteWrapper.CodeList))
+                    {
+                        toUpdate.Add(localWrapper); // UPDATE
+                    }
+                    break;
+                }
+                if (remoteWrapper.CodeList is null && localWrapper.CodeList is not null)
+                {
+                    toAdd.Add(localWrapper); // CREATE
+                }
+                if (remoteWrapper.CodeList is not null && localWrapper.CodeList is null)
+                {
+                    toDelete.Add(remoteWrapper); // DELETE
+                }
+            }
+        }
+
+        return (toAdd, toUpdate, toDelete);
     }
 
     /// <summary>
