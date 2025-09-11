@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -37,6 +36,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                response.EnsureSuccessStatusCode();
                 string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
                 accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, _serializerOptions);
                 return accessPackageOptions;
@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
+            string url = _platformSettings.RolesUrl;
 
             List<ActionOption> actionOptions;
 
@@ -79,10 +79,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                response.EnsureSuccessStatusCode();
                 string subjectOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-
                 subjectOptions = System.Text.Json.JsonSerializer.Deserialize<List<SubjectOption>>(subjectOptionsString, _serializerOptions);
-                return subjectOptions.ToList();
+                return subjectOptions;
             }
             catch (Exception ex)
             {

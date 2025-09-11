@@ -199,7 +199,7 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
     .filter(Boolean)
     .map((subjectUrn) => subjectUrn.toLowerCase());
 
-  const diff = allRuleSubjectUrns.filter((urn) => !allSubjectUrns.includes(urn));
+  const diff = [...new Set(allRuleSubjectUrns)].filter((urn) => !allSubjectUrns.includes(urn));
   const unknownSubjectsFromRules = [...diff].map((subjectUrn) =>
     createNewSubjectFromSubjectString(subjectUrn),
   );
@@ -275,7 +275,10 @@ export const hasSubject = (
  *
  * @returns the subject, or undefined if not found
  */
-export const findSubject = (subjectList: PolicySubject[], subjectUrn: string): PolicySubject => {
+export const findSubject = (
+  subjectList: PolicySubject[],
+  subjectUrn: string,
+): PolicySubject | undefined => {
   return subjectList.find(
     (s) =>
       s.urn.toLowerCase() === subjectUrn.toLowerCase() ||
