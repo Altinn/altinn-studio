@@ -218,7 +218,7 @@ steps:
     inputs:
       targetType: inline
       script: |
-
+        ls
         # For backward compatibility we need to support two formats of values.yaml:
         # 1) Flat structure where all keys are at root level
         # 2) Nested structure where all keys are under "deployment" key
