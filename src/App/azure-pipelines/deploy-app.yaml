@@ -86,6 +86,7 @@ steps:
   - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
     inputs:
+      targetType: inline
       script: |
         # Generate HelmRelease template
         cat << EOF > "${HELMRELEASE_FILE}"
@@ -250,6 +251,7 @@ steps:
   - task: Bash@3
     displayName: Print helmrelease file
     inputs:
+      targetType: inline
       script: |
         cat "${HELMRELEASE_FILE}"
 
