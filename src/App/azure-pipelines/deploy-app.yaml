@@ -24,6 +24,7 @@ variables:
   # TAGNAME: ''
 
   # Variables for generating yaml files. Paths are relative to the root of the apps repository
+  FLUX_ARTIFACT_DIR: 'flux-artifact'
   HELMRELEASE_FILE: 'helmrelease.yaml'
   OVERRIDES_FILE: 'overrides.yaml'
   VALUES_FILE: 'deployment/values.yaml'
@@ -58,7 +59,6 @@ steps:
     inputs:
       script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
-        cd $APP_COMMIT_ID
 
   - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
@@ -85,7 +85,15 @@ steps:
       failOnStderr: true
 
   - task: Bash@3
+    displayName: Create flux artifact directory
+    inputs:
+      targetType: inline
+      script: |
+        mkdir $(FLUX_ARTIFACT_DIR)
+
+  - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
+    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
       targetType: inline
       script: |
@@ -120,6 +128,7 @@ steps:
 
   - task: Bash@3
     displayName: Generate overrides file.
+    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
       targetType: inline
       script: |
@@ -216,22 +225,23 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate final helmrelease with merged values from values and overrides file'
+    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
       targetType: inline
       script: |
-        ls
+        values_file_path="../${APP_COMMIT_ID}/${VALUES_FILE}"
         # For backward compatibility we need to support two formats of values.yaml:
         # 1) Flat structure where all keys are at root level
         # 2) Nested structure where all keys are under "deployment" key
         # We will normalize both formats to a flat structure for merging with overrides.yaml
 
-        if [[ -f "${VALUES_FILE}" ]]; then
-          if yq eval 'has("deployment")' "${VALUES_FILE}" | grep -q true; then
+        if [[ -f "${values_file_path}" ]]; then
+          if yq eval 'has("deployment")' "${values_file_path}" | grep -q true; then
             # .deployment exists → hoist its children to root
-            yq eval '(.deployment // {}) * (del(.deployment))' "${VALUES_FILE}" > "${NORMALIZED_VALUES}"
+            yq eval '(.deployment // {}) * (del(.deployment))' "${values_file_path}" > "${NORMALIZED_VALUES}"
           else
             # .deployment does not exist → use file as-is
-            cp "${VALUES_FILE}" "${NORMALIZED_VALUES}"
+            cp "${values_file_path}" "${NORMALIZED_VALUES}"
           fi
         else
           # No values.yaml present → start from empty
@@ -251,8 +261,10 @@ steps:
 
   - task: Bash@3
     displayName: Print helmrelease file
+    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
       targetType: inline
       script: |
+        ls
         cat "${HELMRELEASE_FILE}"
 
