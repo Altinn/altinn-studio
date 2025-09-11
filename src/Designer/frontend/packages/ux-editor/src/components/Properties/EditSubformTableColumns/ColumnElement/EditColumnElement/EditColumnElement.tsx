@@ -2,13 +2,8 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioCard,
-  StudioCombobox,
-  StudioDeleteButton,
-  StudioDivider,
-} from '@studio/components-legacy';
-import { StudioParagraph, StudioActionCloseButton } from '@studio/components';
+import { StudioCard, StudioCombobox, StudioDivider } from '@studio/components-legacy';
+import { StudioParagraph, StudioActionCloseButton, StudioDeleteButton } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -118,7 +113,11 @@ export const EditColumnElement = ({
             title={t('general.save')}
             disabled={isSaveButtonDisabled}
           />
-          <StudioDeleteButton title={t('general.delete')} onDelete={onDeleteColumn} />
+          <StudioDeleteButton
+            data-size='2xs'
+            title={t('general.delete')}
+            onDelete={onDeleteColumn}
+          />
         </div>
       </StudioCard.Content>
     </StudioCard>

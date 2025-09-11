@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import type { Expression, DataLookupOptions } from '@studio/components-legacy';
-import { DataLookupFuncName, StudioDeleteButton } from '@studio/components-legacy';
+import { DataLookupFuncName } from '@studio/components-legacy';
+import { StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
@@ -53,7 +54,7 @@ export const ExpressionContent = ({
           className={classes.deleteButton}
           confirmMessage={t('right_menu.expressions_delete_confirm')}
           onDelete={onDelete}
-          size='small'
+          data-size='2xs'
           title={t('right_menu.expression_delete')}
         />
       )}
