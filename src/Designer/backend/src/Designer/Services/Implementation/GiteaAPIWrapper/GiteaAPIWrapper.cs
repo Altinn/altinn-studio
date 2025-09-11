@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -468,6 +470,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>();
             }
+            // TODO: Should we be this graceful?
 
             return [];
         }
@@ -484,13 +487,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return [];
         }
 
-        //TODO: Implement this method
         /// <inheritdoc/>
         public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
         {
-            await Task.Delay(0, cancellationToken);
-            throw new NotImplementedException();
+            string content = JsonSerializer.Serialize(files);
+            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
+            return response.IsSuccessStatusCode;
         }
+
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {

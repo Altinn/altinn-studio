@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces.Organisation;
 public interface IOrgCodeListService
 {
     /// <summary>
-    /// Get all code list ids from the org repository
+    /// Get all code list ids from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
@@ -65,8 +65,12 @@ public interface IOrgCodeListService
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListWrappers">The code list contents</param>
+    /// <param name="commitMessage">The commit message, optional. If not set the default will be used</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, CancellationToken cancellationToken = default);
+    public Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default);
+
+    public List<FileOperationContext> PrepareFileDeletions(List<CodeListWrapper> toDelete, Dictionary<string, string> fileMetadata);
+
 
     /// <summary>
     /// Creates a new code list in the org repository.

@@ -31,7 +31,7 @@ public class GiteaMultipleFilesDto
     /// List of file operations
     /// </summary>
     [JsonPropertyName("files")]
-    public List<FileChangeContext> Files { get; set; } = new();
+    public List<FileOperationContext> Files { get; set; } = new();
 
     /// <summary>
     /// Message (optional) for the commit of this file. If not supplied, a default message will be used
@@ -70,7 +70,7 @@ public enum FileOperation
 /// <summary>
 /// Represents a single file change operation
 /// </summary>
-public class FileChangeContext
+public class FileOperationContext
 {
     /// <summary>
     /// New or updated file content, must be base64 encoded
