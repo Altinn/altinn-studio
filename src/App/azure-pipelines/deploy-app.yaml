@@ -93,8 +93,8 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate helmrelease template file without values'
-    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
         # Generate HelmRelease template
@@ -128,8 +128,8 @@ steps:
 
   - task: Bash@3
     displayName: Generate overrides file.
-    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
 
@@ -225,8 +225,8 @@ steps:
 
   - task: Bash@3
     displayName: 'Generate final helmrelease with merged values from values and overrides file'
-    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
         values_file_path="../${APP_COMMIT_ID}/${VALUES_FILE}"
@@ -261,8 +261,8 @@ steps:
 
   - task: Bash@3
     displayName: Print helmrelease file
-    workingDirectory: '$(FLUX_ARTIFACT_DIR)'
     inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
         ls
