@@ -216,13 +216,10 @@ describe('StringRestrictions', () => {
     renderStringRestrictions({ restrictions: { format, formatMinimum } });
     await user.click(getMinimumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
-    expect(onChangeRestrictions).toHaveBeenCalledWith(
-      path,
-      expect.objectContaining({
-        formatMinimum: undefined,
-        formatExclusiveMinimum: formatMinimum,
-      }),
-    );
+    expect(onChangeRestrictions).toHaveBeenCalledWith(path, {
+      format,
+      formatExclusiveMinimum: formatMinimum,
+    });
   });
 
   test('onChangeRestrictions is called with correct arguments when the "inclusive" checkbox for the "latest" field is unchecked', async () => {
@@ -231,13 +228,10 @@ describe('StringRestrictions', () => {
     renderStringRestrictions({ restrictions: { format, formatMaximum } });
     await user.click(getMaximumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
-    expect(onChangeRestrictions).toHaveBeenCalledWith(
-      path,
-      expect.objectContaining({
-        formatMaximum: undefined,
-        formatExclusiveMaximum: formatMaximum,
-      }),
-    );
+    expect(onChangeRestrictions).toHaveBeenCalledWith(path, {
+      format,
+      formatExclusiveMaximum: formatMaximum,
+    });
   });
 
   test('onChangeRestrictions is called with correct arguments when the "inclusive" checkbox for the "earliest" field is checked', async () => {
@@ -246,13 +240,10 @@ describe('StringRestrictions', () => {
     renderStringRestrictions({ restrictions: { format, formatExclusiveMinimum } });
     await user.click(getMinimumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
-    expect(onChangeRestrictions).toHaveBeenCalledWith(
-      path,
-      expect.objectContaining({
-        formatMinimum: formatExclusiveMinimum,
-        formatExclusiveMinimum: undefined,
-      }),
-    );
+    expect(onChangeRestrictions).toHaveBeenCalledWith(path, {
+      format,
+      formatMinimum: formatExclusiveMinimum,
+    });
   });
 
   test('onChangeRestrictions is called with correct arguments when the "inclusive" checkbox for the "latest" field is checked', async () => {
@@ -261,13 +252,10 @@ describe('StringRestrictions', () => {
     renderStringRestrictions({ restrictions: { format, formatExclusiveMaximum } });
     await user.click(getMaximumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
-    expect(onChangeRestrictions).toHaveBeenCalledWith(
-      path,
-      expect.objectContaining({
-        formatMaximum: formatExclusiveMaximum,
-        formatExclusiveMaximum: undefined,
-      }),
-    );
+    expect(onChangeRestrictions).toHaveBeenCalledWith(path, {
+      format,
+      formatMaximum: formatExclusiveMaximum,
+    });
   });
 
   test('Minimum length field has given value', async () => {

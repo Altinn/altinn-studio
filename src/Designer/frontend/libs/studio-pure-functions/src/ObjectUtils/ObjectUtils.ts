@@ -44,4 +44,7 @@ export class ObjectUtils {
       })
       .flat();
   };
+
+  static deleteUndefined = <T>(obj: { [s: string]: T }): { [s: string]: T } =>
+    Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
 }
