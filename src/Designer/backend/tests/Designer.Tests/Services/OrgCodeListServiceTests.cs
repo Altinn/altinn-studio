@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
+using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -308,7 +309,7 @@ public class OrgCodeListServiceTests : IDisposable
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory =
             new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OrgCodeListService service = new(altinnGitRepositoryFactory);
+        OrgCodeListService service = new(altinnGitRepositoryFactory, new IGiteaMock());
 
         return service;
     }
