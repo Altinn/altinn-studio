@@ -12,6 +12,7 @@ using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -483,6 +484,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return [];
         }
 
+        //TODO: Implement this method
+        /// <inheritdoc/>
+        public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(0, cancellationToken);
+            throw new NotImplementedException();
+        }
         /// <inheritdoc/>
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {
