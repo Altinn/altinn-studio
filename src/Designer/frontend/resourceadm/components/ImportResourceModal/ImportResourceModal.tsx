@@ -109,12 +109,11 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
             <>
               <StudioButton
                 onClick={() => (hasValidValues ? handleImportResource() : undefined)}
-                color='first'
                 aria-disabled={!hasValidValues}
               >
                 {t('resourceadm.dashboard_import_modal_import_button')}
               </StudioButton>
-              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+              <StudioButton onClick={handleClose} variant='tertiary'>
                 {t('general.cancel')}
               </StudioButton>
             </>

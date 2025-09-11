@@ -111,7 +111,7 @@ export const ResourceNameAndId = ({
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='danger'
+                data-color='danger'
                 title={t('resourceadm.dashboard_resource_name_and_id_delete_icon', {
                   objectType: idLabel,
                 })}
@@ -130,7 +130,9 @@ export const ResourceNameAndId = ({
         ) : (
           <div className={classes.editFieldWrapper}>
             <div>
-              <p className={classes.idText}>id</p>
+              <p className={classes.idText} data-color='neutral'>
+                id
+              </p>
             </div>
             <StudioParagraph>
               <strong>{formatIdString(id)}</strong>
@@ -139,7 +141,6 @@ export const ResourceNameAndId = ({
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='first'
                 icon={<PencilWritingIcon />}
                 iconPlacement='right'
                 aria-label={t('resourceadm.dashboard_resource_name_and_id_change', {
