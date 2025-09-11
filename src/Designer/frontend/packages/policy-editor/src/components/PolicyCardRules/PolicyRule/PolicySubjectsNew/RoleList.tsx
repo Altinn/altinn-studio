@@ -17,9 +17,10 @@ export const RoleList = ({ subjects, selectedSubjects, heading, handleChange }: 
   const [search, setSearch] = useState<string>('');
 
   const filteredSubjects = subjects.filter((subject) => {
-    const isTitleMatch = subject.name.toLowerCase().includes(search.toLowerCase());
-    const isIdMatch = subject.legacyRoleCode?.toLowerCase().includes(search.toLowerCase());
-    const isDescriptionMatch = subject.description?.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase().trim();
+    const isTitleMatch = subject.name.toLowerCase().includes(q);
+    const isIdMatch = subject.legacyRoleCode?.toLowerCase().includes(q);
+    const isDescriptionMatch = subject.description?.toLowerCase().includes(q);
     return isTitleMatch || isIdMatch || isDescriptionMatch;
   });
 

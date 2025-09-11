@@ -13,7 +13,7 @@ import { accessListSubjectSource, emptyPolicyRule, organizationSubject } from '.
 const accessListSubject = {
   id: 'test-liste',
   description: 'Dette er en testliste',
-  legacyUrn: `${accessListSubjectSource}:tdd:test-liste`,
+  legacyUrn: `${accessListSubjectSource}:ttd:test-liste`,
   urn: `${accessListSubjectSource}:ttd:test-liste`,
   name: 'Testliste',
   legacyRoleCode: 'test-liste',
@@ -27,7 +27,7 @@ const accessListSubject = {
 const accessListSubject2 = {
   id: 'test-liste2',
   description: 'Dette er en testliste2',
-  legacyUrn: `${accessListSubjectSource}:tdd:test-liste2`,
+  legacyUrn: `${accessListSubjectSource}:ttd:test-liste2`,
   urn: `${accessListSubjectSource}:ttd:test-liste2`,
   name: 'Testliste2',
   legacyRoleCode: 'test-liste2',

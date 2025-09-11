@@ -93,9 +93,8 @@ const RequestConsentPolicyRule = ({ policyRule }: RequestConsentPolicyRuleProps)
       subjectsToSave = [organizationSubject.urn];
     } else if (currentValueHasOrganizationSubject && newSubjects.length > 1) {
       // If any other subject is added while the organization subject is selected, remove the organization subject
-      subjectsToSave = newSubjects.filter(
-        (subject) => subject.toLowerCase() !== organizationSubject.urn.toLowerCase(),
-      );
+      const orgUrn = organizationSubject.urn.toLowerCase();
+      subjectsToSave = newSubjects.filter((subject) => subject.toLowerCase() !== orgUrn);
     }
     setValue(subjectsToSave);
 

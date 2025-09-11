@@ -29,13 +29,13 @@ describe('SelectedSubjectsList', () => {
     expect(screen.getByText(items[1].title)).toBeInTheDocument();
   });
 
-  it('should not render if list it empty', async () => {
+  it('should not render if list is empty', async () => {
     renderSelectedSubjectsList([]);
 
     expect(screen.queryByText(title)).not.toBeInTheDocument();
   });
 
-  it('should call onChange when list item checkbox is clicked', async () => {
+  it('should call handleRemove when list item checkbox is clicked', async () => {
     const user = userEvent.setup();
     renderSelectedSubjectsList();
 

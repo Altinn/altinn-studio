@@ -91,11 +91,6 @@ describe('deepCompare', () => {
     expect(areEqual).toBeFalsy();
   });
 
-  it('should return false when objects are not equal', () => {
-    const areEqual = deepCompare({ a: 1 }, {});
-    expect(areEqual).toBeFalsy();
-  });
-
   it('should return false when comparing empty object with empty array', () => {
     const areEqual = deepCompare([], {});
     expect(areEqual).toBeFalsy();

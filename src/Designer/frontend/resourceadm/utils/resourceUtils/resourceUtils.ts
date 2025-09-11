@@ -552,7 +552,7 @@ export const getResourcePolicyRules = (
   return policyData;
 };
 
-export const createAccessListSubject = (accessList: AccessList, org: string) => {
+export const createAccessListSubject = (accessList: AccessList, org: string): PolicySubject => {
   const urn = `${accessListSubjectSource}:${org}:${accessList.identifier}`;
   return {
     id: accessList.identifier,

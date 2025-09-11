@@ -44,7 +44,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
     {
       ruleId: 'r1',
       description: '',
-      subject: ['s1'],
+      subject: [mockSubjects[0].urn],
       actions: [mockAction1.actionId, mockAction2.actionId],
       accessPackages: [],
       resources: [

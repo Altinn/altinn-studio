@@ -221,7 +221,7 @@ export const createNewSubjectFromSubjectString = (subjectString: string): Policy
     legacyUrn: subjectString,
     urn: subjectString,
     description: '',
-    id: '',
+    id: subjectString,
     provider: {
       code: 'sys-internal',
       id: '',
