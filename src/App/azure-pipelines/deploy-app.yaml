@@ -58,6 +58,7 @@ steps:
     inputs:
       script: |
         git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        cd $APP_COMMIT_ID
 
   - task: Bash@3
     displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
