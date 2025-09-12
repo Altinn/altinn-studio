@@ -30,6 +30,16 @@
   margin: 0;
 }
 
+.menuItems li a {
+  display: block;
+  padding: var(--ds-size-2) var(--ds-size-4);
+  width: 100%;
+}
+
+.menuItems li:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
 .icon {
   font-size: var(--fds-sizing-2);
 }

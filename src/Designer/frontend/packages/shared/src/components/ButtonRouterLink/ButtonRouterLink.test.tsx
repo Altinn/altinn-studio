@@ -15,7 +15,7 @@ describe('ButtonRouterLink', () => {
   it('Renders a link', () => {
     const name = 'Link name';
     renderButtonRouterLink({ children: name });
-    expect(screen.getByRole('link', { name })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name })).toBeInTheDocument();
   });
 
   it('Navigates to the given route when clicked', async () => {
@@ -33,31 +33,26 @@ describe('ButtonRouterLink', () => {
       </MemoryRouter>,
     );
     expect(screen.queryByText(testContent)).not.toBeInTheDocument();
-    await user.click(screen.getByRole('link'));
+    await user.click(screen.getByRole('button'));
     expect(screen.getByText(testContent)).toBeInTheDocument();
   });
 
-  it('Renders the path in the href attribute', () => {
-    renderButtonRouterLink();
-    expect(screen.getByRole('link')).toHaveAttribute('href', to);
-  });
-
   it('Forwards the ref to the link element if given', () => {
-    const ref = React.createRef<HTMLAnchorElement>();
+    const ref = React.createRef<HTMLButtonElement>();
     renderButtonRouterLink({}, ref);
-    expect(ref.current).toBe(screen.getByRole('link'));
+    expect(ref.current).toBe(screen.getByRole('button'));
   });
 
   it('Applies the given className to the link element', () => {
     const className = 'test-class';
     renderButtonRouterLink({ className });
-    expect(screen.getByRole('link')).toHaveClass(className);
+    expect(screen.getByRole('button')).toHaveClass(className);
   });
 
   it('Calls the onClick callback with the mouse event when the user clicks the link', async () => {
     const onClick = jest.fn();
     renderButtonRouterLink({ onClick });
-    const target: HTMLAnchorElement = screen.getByRole('link');
+    const target: HTMLAnchorElement = screen.getByRole('button');
     await userEvent.click(target);
     expect(onClick).toHaveBeenCalledTimes(1);
     const expectedEvent: MouseEvent<HTMLAnchorElement> = expect.objectContaining({ target });
@@ -67,7 +62,7 @@ describe('ButtonRouterLink', () => {
 
 function renderButtonRouterLink(
   props: Partial<ButtonRouterLinkProps> = {},
-  ref?: ForwardedRef<HTMLAnchorElement>,
+  ref?: ForwardedRef<HTMLButtonElement>,
 ): RenderResult {
   return render(<ButtonRouterLink {...defaultProps} {...props} ref={ref} />, {
     wrapper: MemoryRouter,
