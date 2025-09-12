@@ -1,0 +1,12 @@
+{
+    "sourceName": "someSourceName",
+    "codes": [
+        {
+            "value": "someValue",
+            "description": { "no": "someDescription" },
+            "helpText": { "no": "someHelpText" },
+            "tags": ["someTag"]
+        }
+    ],
+    "tagNames": ["someTag"]
+}

@@ -1,0 +1,54 @@
+{
+  "sourceName": "number-options",
+  "codes": [
+    {
+      "value": 1.05,
+      "label": {
+        "nb": "En",
+        "en": "One"
+      },
+      "description": {
+        "nb": "Det første alternativet",
+        "en": "The first option"
+      },
+      "helpText": {
+        "nb": "Brukes når du vil velge det første tallet",
+        "en": "Use when you want to select the first number"
+      },
+      "tags": ["odd", "low"]
+    },
+    {
+      "value": 2.01,
+      "label": {
+        "nb": "To",
+        "en": "Two"
+      },
+      "description": {
+        "nb": "Det andre alternativet",
+        "en": "The second option"
+      },
+      "helpText": {
+        "nb": "Brukes når du vil velge det andre tallet",
+        "en": "Use when you want to select the second number"
+      },
+      "tags": ["even", "medium"]
+    },
+    {
+      "value": 3.1,
+      "label": {
+        "nb": "Tre",
+        "en": "Three"
+      },
+      "description": {
+        "nb": "Det tredje alternativet",
+        "en": "The third option"
+      },
+      "helpText": {
+        "nb": "Brukes når du vil velge det tredje tallet",
+        "en": "Use when you want to select the third number"
+      },
+      "tags": ["odd", "high"]
+    }
+  ],
+  "tagNames": ["parity", "magnitude"]
+}

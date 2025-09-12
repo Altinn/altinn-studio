@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -11,7 +12,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
-
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
@@ -449,6 +450,17 @@ namespace Designer.Tests.Utils
 
             return targetOrgDirectory;
         }
+        public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg)
+        {
+            string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
+            string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
+            string targetRepoDirectory = GetRepositoryDirectory(developer, targetOrg, GetOrgContentRepoName(targetOrg));
+
+            CreateEmptyDirectory(targetOrgDirectory);
+            await CopyDirectory(sourceDirectory, targetRepoDirectory);
+
+            return targetOrgDirectory;
+        }
 
         public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
         {
@@ -465,6 +477,9 @@ namespace Designer.Tests.Utils
 
         public static string GetRepositoryDirectory(string developer, string org, string repository)
         {
+            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
+            Guard.AssertNotNullOrEmpty(org, nameof(org));
+            Guard.AssertNotNullOrEmpty(repository, nameof(repository));
             return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
         }
 
@@ -472,6 +487,13 @@ namespace Designer.Tests.Utils
         {
             return Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
         }
+
+        public static List<string> GetRepositoryFileNamesList(string developer, string org, string repository, string searchPattern)
+        {
+            string[] array = Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
+            return [.. array];
+        }
+
 
         public static void DeleteOrgDirectory(string developer, string org)
         {

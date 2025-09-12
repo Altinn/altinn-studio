@@ -74,8 +74,7 @@ public interface IOrgCodeListService
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListId">Name of the code list</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default);
+    public bool CodeListExists(string org, string developer, string codeListId);
 
     /// <summary>
     /// Updates the name of a code list from the org repository by changing the filename.
@@ -85,4 +84,44 @@ public interface IOrgCodeListService
     /// <param name="codeListId">Name of the code list</param>
     /// <param name="newCodeListId">The new name of the code list</param>
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId);
+
+    /// <summary>
+    /// Gets all code lists from the org repository.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The code list</returns>
+    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a new code list in the org repository.
+    /// If the file already exists, it will be overwritten.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="codeListId">Name of the new code list</param>
+    /// <param name="codeList">The code list contents</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<CodeListWrapper>> CreateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an existing code list with new contents.
+    /// If the file already exists, it will be overwritten.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="codeListId">Name of the new code list</param>
+    /// <param name="codeList">The code list contents</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<CodeListWrapper>> UpdateCodeListNew(string org, string developer, string codeListId, CodeList codeList, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a code list from the org repository.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="codeListId">Name of the code list</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<CodeListWrapper>> DeleteCodeListNew(string org, string developer, string codeListId, CancellationToken cancellationToken = default);
 }

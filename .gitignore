@@ -11,6 +11,9 @@ syntax: glob
 *.userosscache
 *.sln.docstates
 
+# Received snapshots
+*.received.json
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

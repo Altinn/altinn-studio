@@ -220,6 +220,65 @@ public class AltinnOrgGitRepository : AltinnGitRepository
         DeleteFileByRelativePath(codeListFilePath);
     }
 
+    /// <summary>
+    /// Gets a specific code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to fetch.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The code list as a string.</returns>
+    public async Task<CodeList> GetCodeListNew(string codeListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!CodeListExists(codeListId))
+        {
+            throw new FileNotFoundException($"code list file {codeListId}.json was not found.");
+        }
+        string codeListFilePath = CodeListFilePath(codeListId);
+        string fileContent = await ReadTextByRelativePathAsync(codeListFilePath, cancellationToken);
+        CodeList codeList = JsonSerializer.Deserialize<CodeList>(fileContent, s_jsonOptions);
+
+        return codeList;
+    }
+
+    /// <summary>
+    /// Creates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the code list to create.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task CreateCodeListNew(string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string payloadString = JsonSerializer.Serialize(codeList, s_jsonOptions);
+
+        string codeListFilePath = CodeListFilePath(codeListId);
+        await WriteTextByRelativePathAsync(codeListFilePath, payloadString, true, cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates a code list with the provided id.
+    /// </summary>
+    /// <param name="codeListId">The name of the cost list to update.</param>
+    /// <param name="codeList">The code list contents.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public async Task UpdateCodeListNew(string codeListId, CodeList codeList, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string codeListString = JsonSerializer.Serialize(codeList, s_jsonOptions);
+
+        string codeListFilePath = CodeListFilePath(codeListId);
+        await WriteTextByRelativePathAsync(codeListFilePath, codeListString, false, cancellationToken);
+    }
+
+
+    public bool CodeListExists(string codeListId)
+    {
+        string relativePath = CodeListFilePath(codeListId);
+        return FileExistsByRelativePath(relativePath);
+    }
     private static string TextResourceFilePath(string languageCode)
     {
         string fileName = TextResourceFileName(languageCode);
