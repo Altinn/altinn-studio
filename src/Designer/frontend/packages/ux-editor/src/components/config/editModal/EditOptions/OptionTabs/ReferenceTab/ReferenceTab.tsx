@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioAlert, StudioSpinner, StudioTextfield } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -59,7 +59,7 @@ export function ReferenceTab({
         value={referenceId}
       />
       {shouldDisplayAlert && (
-        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+        <StudioAlert className={classes.alert}>
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}

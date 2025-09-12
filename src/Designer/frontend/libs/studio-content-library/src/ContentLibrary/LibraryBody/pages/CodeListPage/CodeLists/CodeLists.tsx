@@ -1,14 +1,13 @@
 import React from 'react';
 import type { CodeListData } from '../CodeListPage';
 import type { CodeListWithMetadata } from '../types/CodeListWithMetadata';
-import { StudioAlert } from '@studio/components-legacy';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { Trans, useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 import classes from './CodeLists.module.css';
 import { getCodeListSourcesById, getCodeListUsageCount } from '../utils';
 import type { TextResource } from '@studio/components-legacy';
-import { StudioDetails, StudioCard } from '@studio/components';
+import { StudioDetails, StudioCard, StudioAlert } from '@studio/components';
 
 export type CodeListsProps = {
   codeListDataList: CodeListData[];
@@ -138,7 +137,7 @@ function CodeListDetailsContent({
 
 function InvalidCodeListAlert(): React.ReactElement {
   return (
-    <StudioAlert size='small' severity='danger'>
+    <StudioAlert data-color='danger'>
       <span>
         <Trans
           i18nKey='app_content_library.code_lists.format_error'
