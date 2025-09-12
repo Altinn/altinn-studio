@@ -9,21 +9,22 @@ export const numberfieldHeader = 'Numberfield';
 export const textareaHeader = 'Textarea';
 export const buttonHeader = 'Button';
 export const textResourceHeader = 'Text Resource';
-export const checkboxValue = (rowNumber: number) => `checkboxValue${rowNumber}`;
-export const checkboxName = (rowNumber: number) => `checkboxName${rowNumber}`;
-export const checkboxLabel = (rowNumber: number) => `Checkbox ${rowNumber}`;
-export const cleanText = (rowNumber: number) => `Text ${rowNumber}`;
-export const textfieldName = (rowNumber: number) => `textfield${rowNumber}`;
-export const textfieldLabel = (rowNumber: number) => `Textfield ${rowNumber}`;
-export const numberfieldName = (rowNumber: number) => `numberfield${rowNumber}`;
-export const numberfieldLabel = (rowNumber: number) => `Numberfield ${rowNumber}`;
-export const textareaName = (rowNumber: number) => `textarea${rowNumber}`;
-export const textareaLabel = (rowNumber: number) => `Textarea ${rowNumber}`;
-export const buttonLabel = (rowNumber: number) => `Button ${rowNumber}`;
-export const textResourcePickerLabel = (rowNumber: number) => `Text resource ${rowNumber}`;
-export const textResourceValueLabel = (rowNumber: number) => `Text value ${rowNumber}`;
-export const textResourceEditLabel = (rowNumber: number) => `Edit text ${rowNumber}`;
-export const textResourceSearchLabel = (rowNumber: number) => `Search for text ${rowNumber}`;
+export const checkboxValue = (rowNumber: number): string => `checkboxValue${rowNumber}`;
+export const checkboxName = (rowNumber: number): string => `checkboxName${rowNumber}`;
+export const checkboxLabel = (rowNumber: number): string => `Checkbox ${rowNumber}`;
+export const cleanText = (rowNumber: number): string => `Text ${rowNumber}`;
+export const textfieldName = (rowNumber: number): string => `textfield${rowNumber}`;
+export const textfieldLabel = (rowNumber: number): string => `Textfield ${rowNumber}`;
+export const numberfieldName = (rowNumber: number): string => `numberfield${rowNumber}`;
+export const numberfieldLabel = (rowNumber: number): string => `Numberfield ${rowNumber}`;
+export const textareaName = (rowNumber: number): string => `textarea${rowNumber}`;
+export const textareaLabel = (rowNumber: number): string => `Textarea ${rowNumber}`;
+export const buttonLabel = (rowNumber: number): string => `Button ${rowNumber}`;
+export const textResourcePickerLabel = (rowNumber: number): string => `Text resource ${rowNumber}`;
+export const textResourceValueLabel = (rowNumber: number): string => `Text value ${rowNumber}`;
+export const textResourceEditLabel = (rowNumber: number): string => `Edit text ${rowNumber}`;
+export const textResourceSearchLabel = (rowNumber: number): string =>
+  `Search for text ${rowNumber}`;
 
 export const textResourceProps = (rowNumber: number): CellTextResourceInputProps => ({
   textResources: textResourcesMock,

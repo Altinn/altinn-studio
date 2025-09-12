@@ -29,7 +29,7 @@ export class CellButton extends BaseInputCell<HTMLButtonElement, CellButtonProps
     );
   }
 
-  shouldMoveFocusOnArrowKey = () => true;
+  shouldMoveFocusOnArrowKey = (): boolean => true;
 
-  shouldMoveFocusOnEnterKey = () => false;
+  shouldMoveFocusOnEnterKey = (): boolean => false;
 }

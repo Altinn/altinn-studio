@@ -4,8 +4,8 @@ import { StudioTable } from '../StudioTable';
 import classes from './StudioInputTable.module.css';
 import cn from 'classnames';
 import { useForwardedRef } from '@studio/hooks';
+import { StudioInputTableContextProvider } from './StudioInputTableContext';
 import type { StudioInputTableContextValue } from './StudioInputTableContext';
-import { StudioInputTableContext } from './StudioInputTableContext';
 
 export type StudioInputTableProps = StudioTableProps & StudioInputTableContextValue;
 
@@ -20,11 +20,11 @@ export const StudioInputTable = forwardRef<HTMLTableElement, StudioInputTablePro
       [forwardedRef],
     );
     return (
-      <StudioInputTableContext.Provider value={{ onChangeAny, onBlurAny, onFocusAny }}>
+      <StudioInputTableContextProvider value={{ onChangeAny, onBlurAny, onFocusAny }}>
         <StudioTable ref={internalRef} className={className} {...rest}>
           {children}
         </StudioTable>
-      </StudioInputTableContext.Provider>
+      </StudioInputTableContextProvider>
     );
   },
 );
