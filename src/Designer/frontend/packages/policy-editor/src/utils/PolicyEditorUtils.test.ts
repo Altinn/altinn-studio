@@ -129,7 +129,7 @@ describe('PolicyEditorUtils', () => {
         legacyUrn: 'urn:altinn:rolecode:S4',
         urn: 'urn:altinn:rolecode:S4',
         description: '',
-        id: '',
+        id: 'urn:altinn:rolecode:S4',
         provider: {
           code: 'sys-internal',
           id: '',
