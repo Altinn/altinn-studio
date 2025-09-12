@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = _platformSettings.RolesUrl;
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
 
             List<ActionOption> actionOptions;
 
@@ -72,7 +72,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string url = "https://platform.tt02.altinn.no/accessmanagement/api/v1/meta/info/roles/";
+            string url = _platformSettings.RolesUrl;
 
             List<SubjectOption> subjectOptions;
 
