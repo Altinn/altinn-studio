@@ -21,6 +21,7 @@ public class OrgCodeListService : IOrgCodeListService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGitea _gitea;
     private const string Repo = "content";
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     /// <summary>
     /// Constructor
@@ -152,32 +153,34 @@ public class OrgCodeListService : IOrgCodeListService
         return (remoteCodeListWrappers, fileMetadata);
     }
 
-    public static List<FileOperationContext> PrepareFileCreations(List<CodeListWrapper> toCreate)
+    internal List<FileOperationContext> PrepareFileCreations(List<CodeListWrapper> toCreate)
     {
         List<FileOperationContext> fileChangeContexts = [];
         foreach (CodeListWrapper codeListWrapper in toCreate)
         {
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, new JsonSerializerOptions { WriteIndented = true });
+            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
+            string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
             fileChangeContexts.Add(new FileOperationContext
             {
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
-                Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content)),
+                Content = encodedContent,
                 Operation = FileOperation.Create
             });
         }
         return fileChangeContexts;
     }
 
-    public static List<FileOperationContext> PrepareFileUpdates(List<CodeListWrapper> toUpdate, Dictionary<string, string> fileMetadata)
+    internal List<FileOperationContext> PrepareFileUpdates(List<CodeListWrapper> toUpdate, Dictionary<string, string> fileMetadata)
     {
         List<FileOperationContext> fileChangeContexts = [];
         foreach (CodeListWrapper codeListWrapper in toUpdate)
         {
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, new JsonSerializerOptions { WriteIndented = true });
+            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
+            string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
             fileChangeContexts.Add(new FileOperationContext
             {
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
-                Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content)),
+                Content = encodedContent,
                 Operation = FileOperation.Update,
                 Sha = fileMetadata[codeListWrapper.Title]
             });
@@ -185,7 +188,7 @@ public class OrgCodeListService : IOrgCodeListService
         return fileChangeContexts;
     }
 
-    public List<FileOperationContext> PrepareFileDeletions(List<CodeListWrapper> toDelete, Dictionary<string, string> fileMetadata)
+    internal static List<FileOperationContext> PrepareFileDeletions(List<CodeListWrapper> toDelete, Dictionary<string, string> fileMetadata)
     {
         List<FileOperationContext> fileChangeContexts = [];
         foreach (CodeListWrapper codeListWrapper in toDelete)
