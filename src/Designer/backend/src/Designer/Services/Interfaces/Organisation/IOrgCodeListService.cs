@@ -69,9 +69,6 @@ public interface IOrgCodeListService
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default);
 
-    public List<FileOperationContext> PrepareFileDeletions(List<CodeListWrapper> toDelete, Dictionary<string, string> fileMetadata);
-
-
     /// <summary>
     /// Creates a new code list in the org repository.
     /// If the file already exists, it will be overwritten.
