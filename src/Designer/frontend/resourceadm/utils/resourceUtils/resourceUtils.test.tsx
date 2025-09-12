@@ -473,7 +473,7 @@ describe('getResourceSubjects', () => {
       ...subjectData,
       {
         subjectId: accessList.identifier,
-        subjectSource: 'altinn:accesslist:ttd',
+        subjectSource: 'altinn:access-list:ttd',
         subjectTitle: accessList.name,
         subjectDescription: undefined,
       },
