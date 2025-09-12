@@ -50,7 +50,7 @@ export const SmallHeaderMenu = (): ReactElement => {
           {t('top_menu.menu')}
         </StudioButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
+      <DropdownMenu.Content data-color-scheme='light'>
         <DropdownContentProfile profileText={userNameAndOrg} />
         <DropdownMenuGroups profileText={userNameAndOrg} onClickMenuItem={close} />
       </DropdownMenu.Content>
