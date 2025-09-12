@@ -379,7 +379,8 @@ public class AppResourcesSI : IAppResources
                 System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
                     pageBytes.RemoveBom(),
                     _jsonSerializerOptions
-                ) ?? throw new InvalidDataException(page + ".json is \"null\"")
+                )
+                ?? throw new InvalidDataException(page + ".json is \"null\"")
             );
         }
 

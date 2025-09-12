@@ -64,7 +64,8 @@ public abstract class BaseFixture : IDisposable
             var result =
                 results
                     .OrderByDescending(r => !string.IsNullOrWhiteSpace(r.TargetFramework))
-                    .FirstOrDefault(r => r.Succeeded) ?? results.First();
+                    .FirstOrDefault(r => r.Succeeded)
+                ?? results.First();
             Assert.True(result.Succeeded, log.ToString());
             Project = result.AddToWorkspace(Workspace);
 

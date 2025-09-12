@@ -11,13 +11,13 @@
     <PackageVersion Include="Altinn.Platform.Models" Version="1.6.1" />
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.0.13" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.14.2" />
+    <PackageVersion Include="Azure.Identity" Version="1.15.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.4.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.dotTrace" Version="0.15.2" />
     <PackageVersion Include="Buildalyzer.Workspaces" Version="7.1.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.0.3" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.1.2" />
     <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
     <PackageVersion Include="FluentAssertions" Version="7.2.0" />
     <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
@@ -29,10 +29,10 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.10.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="8.10.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.3.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.25" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.25" />
@@ -52,11 +52,11 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.4" />
     <PackageVersion Include="System.Formats.Asn1" Version="9.0.8" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
-    <PackageVersion Include="Testcontainers" Version="4.4.0" />
+    <PackageVersion Include="Testcontainers" Version="4.7.0" />
     <PackageVersion Include="Verify.AspNetCore" Version="4.0.0" />
-    <PackageVersion Include="Verify.Xunit" Version="30.4.0" />
+    <PackageVersion Include="Verify.Xunit" Version="30.11.0" />
     <PackageVersion Include="Verify.Http" Version="6.6.0" />
-    <PackageVersion Include="WireMock.Net" Version="1.8.18" />
+    <PackageVersion Include="WireMock.Net" Version="1.12.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
@@ -66,7 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Transitive dependecies for JWTCookieAuthentication -->
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.12.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.14.0" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime.Azure" Version="3.3.19" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
