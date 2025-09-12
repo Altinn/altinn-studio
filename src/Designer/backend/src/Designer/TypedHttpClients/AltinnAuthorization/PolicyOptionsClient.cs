@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             }
             catch (Exception ex)
             {
-                 _logger.LogError(ex, "Failed retrieving access package options from {Url}", url);
+                _logger.LogError(ex, "Failed retrieving access package options from {Url}", url);
                 throw new Exception($"Something went wrong when retrieving access package options", ex);
             }
         }
@@ -86,7 +86,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             }
             catch (Exception ex)
             {
-                 _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
+                _logger.LogError(ex, "Failed retrieving Subject options from {Url}", url);
                 throw new Exception($"Something went wrong when retrieving Subject options", ex);
             }
         }
