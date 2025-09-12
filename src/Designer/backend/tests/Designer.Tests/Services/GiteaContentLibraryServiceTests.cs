@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
@@ -12,6 +13,7 @@ using LibGit2Sharp;
 using Moq;
 using SharedResources.Tests;
 using Xunit;
+using Repository = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Designer.Tests.Services;
 
@@ -40,6 +42,27 @@ public class GiteaContentLibraryServiceTests
         _giteaContentLibraryService = new GiteaContentLibraryService(_giteaApiWrapperMock.Object);
     }
 
+    [Fact]
+    public async Task OrgContentRepoExists()
+    {
+        // Arrange
+        Repository repository = new() { Name = $"{OrgName}-content" };
+        List<Repository> temp = [repository];
+        SearchResults searchResults = new ()
+        {
+            Data = temp
+        };
+        _giteaApiWrapperMock
+            .Setup(service => service.SearchRepo(It.IsAny<SearchOptions>()))
+            .ReturnsAsync(searchResults);
+
+        // Act
+        bool result = await _giteaContentLibraryService.OrgContentRepoExists(OrgName);
+
+        // Assert
+        Assert.True(result);
+        _giteaApiWrapperMock.Verify(service => service.SearchRepo(It.IsAny<SearchOptions>()), Times.Once);
+    }
 
     [Fact]
     public async Task GetCodeListIds_ShouldReturnAllIds()
