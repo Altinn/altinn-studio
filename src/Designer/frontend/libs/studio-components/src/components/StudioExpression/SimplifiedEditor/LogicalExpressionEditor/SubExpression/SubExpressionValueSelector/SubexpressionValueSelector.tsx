@@ -1,0 +1,49 @@
+import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpressionValue';
+import React from 'react';
+import type { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
+import { SubexpressionValueContentInput } from './SubExpressionValueContentInput';
+import { SubexpressionValueTypeSelector } from './SubExpressionValueTypeSelector';
+import { SubexpressionValueReadonly } from './SubExpressionValueReadonly';
+import classes from './SubexpressionValueSelector.module.css';
+import { getDefaultValueOfType } from './getDefaultValueOfType';
+import { StudioFieldset } from '../../../../../StudioFieldset';
+
+export type SubexpressionValueSelectorProps = {
+  className?: string;
+  isInEditMode?: boolean;
+  legend: string;
+  onChange: (value: SimpleSubexpressionValue) => void;
+  value: SimpleSubexpressionValue;
+};
+
+export const SubexpressionValueSelector = ({
+  className,
+  isInEditMode,
+  legend,
+  onChange,
+  value,
+}: SubexpressionValueSelectorProps): React.ReactElement => (
+  <div className={`${className} ${classes.wrapper}`}>
+    {isInEditMode ? (
+      <EditMode value={value} onChange={onChange} legend={legend} />
+    ) : (
+      <SubexpressionValueReadonly value={value} />
+    )}
+  </div>
+);
+
+type EditModeProps = Omit<SubexpressionValueSelectorProps, 'isInEditMode' | 'className'>;
+
+const EditMode = ({ value, onChange, legend }: EditModeProps): React.ReactElement => {
+  const handleTypeChange = (type: SimpleSubexpressionValueType): void =>
+    onChange(getDefaultValueOfType(type));
+
+  return (
+    <StudioFieldset legend={legend} hideLegend>
+      <div className={classes.fieldsetContent}>
+        <SubexpressionValueTypeSelector onChange={handleTypeChange} value={value.type} />
+        <SubexpressionValueContentInput onChange={onChange} value={value} />
+      </div>
+    </StudioFieldset>
+  );
+};

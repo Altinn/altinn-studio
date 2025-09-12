@@ -1,0 +1,11 @@
+.fieldsetContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-expression-spacing);
+}
+
+.wrapper {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
