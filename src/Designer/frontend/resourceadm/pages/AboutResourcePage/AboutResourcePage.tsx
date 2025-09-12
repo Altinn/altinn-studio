@@ -33,7 +33,6 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConsentPreview } from '../../components/ConsentPreview';
 
 export type AboutResourcePageProps = {
@@ -70,14 +69,10 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.entries(resourceTypeMap)
-    .filter(([key]) =>
-      key === 'Consent' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
-    )
-    .map(([key, value]) => ({
-      value: key,
-      label: t(value),
-    }));
+  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
+    value: key,
+    label: t(value),
+  }));
 
   /**
    * Status options
