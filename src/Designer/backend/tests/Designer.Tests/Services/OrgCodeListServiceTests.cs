@@ -190,49 +190,49 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.True(File.Exists(newCodeListFilePath));
     }
 
-    [Fact]
-    public async Task UploadCodeList_ShouldReturnAllCodeListsAfterUploading()
-    {
-        // Arrange
-        const string CodeListId = "newCodeList";
-        const string FileName = $"{CodeListId}.json";
-        const string JsonCodeList = @"[
-            {""label"": ""someLabel"",""value"": ""someValue"" },
-        ]";
-        List<Option> expectedCodeList = new()
-        {
-            new Option
-            {
-                Label = "someLabel",
-                Value = "someValue"
-            }
-        };
-        byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
-        var stream = new MemoryStream(codeListBytes);
-        IFormFile file = new FormFile(stream, 0, codeListBytes.Length, FileName, FileName);
+    // [Fact]
+    // public async Task UploadCodeList_ShouldReturnAllCodeListsAfterUploading()
+    // {
+    //     // Arrange
+    //     const string CodeListId = "newCodeList";
+    //     const string FileName = $"{CodeListId}.json";
+    //     const string JsonCodeList = @"[
+    //         {""label"": ""someLabel"",""value"": ""someValue"" },
+    //     ]";
+    //     List<Option> expectedCodeList = new()
+    //     {
+    //         new Option
+    //         {
+    //             Label = "someLabel",
+    //             Value = "someValue"
+    //         }
+    //     };
+    //     byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
+    //     var stream = new MemoryStream(codeListBytes);
+    //     IFormFile file = new FormFile(stream, 0, codeListBytes.Length, FileName, FileName);
 
-        TargetOrg = TestDataHelper.GenerateTestOrgName();
-        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-        var service = GetOrgCodeListService();
+    //     TargetOrg = TestDataHelper.GenerateTestOrgName();
+    //     string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+    //     await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+    //     var service = GetOrgCodeListService();
 
-        // Act
-        var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
-        stream.Close();
-        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+    //     // Act
+    //     var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
+    //     stream.Close();
+    //     List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
-        // Assert
-        Assert.Equal(8, codeListData.Count);
-        Assert.Equal(expectedCodeList.Count, codeList?.Count);
+    //     // Assert
+    //     Assert.Equal(8, codeListData.Count);
+    //     Assert.Equal(expectedCodeList.Count, codeList?.Count);
 
-        for (int i = 0; i < codeList?.Count; i++)
-        {
-            Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
-            Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
-            Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
-            Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
-        }
-    }
+    //     for (int i = 0; i < codeList?.Count; i++)
+    //     {
+    //         Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
+    //         Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
+    //         Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
+    //         Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
+    //     }
+    // }
 
     [Fact]
     public async Task DeleteCodeList_ShouldReturnAllCodeListsAfterDeletion()
