@@ -1,0 +1,42 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioIconTextfieldStories from './StudioIconTextfield.stories';
+
+<Meta of={StudioIconTextfieldStories} />
+
+<Heading level={1} size='small'>
+  StudioIconTextfield
+</Heading>
+<Paragraph>
+  StudioIconTextfield is a textfield that supports icons on the left side of the label as prefix.
+</Paragraph>
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield with icon
+</Heading>
+<Canvas of={StudioIconTextfieldStories.WithIcon} />
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield without icon
+</Heading>
+<Canvas of={StudioIconTextfieldStories.WithoutIcon} />
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield with error message
+</Heading>
+<Canvas of={StudioIconTextfieldStories.WithErrorMessage} />
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield as read only
+</Heading>
+<Canvas of={StudioIconTextfieldStories.AsReadOnly} />
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield as read only with icon
+</Heading>
+<Canvas of={StudioIconTextfieldStories.AsReadOnlyWithIcon} />
+
+<Heading level={2} size='xxsmall'>
+  StudioIconTextfield as read only with icon and description
+</Heading>
+<Canvas of={StudioIconTextfieldStories.AsReadOnlyWithIconAndDescription} />
