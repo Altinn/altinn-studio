@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -113,7 +114,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage, CancellationToken cancellationToken = default)
+    public async Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
 
@@ -136,7 +137,8 @@ public class OrgCodeListService : IOrgCodeListService
         return fileOperationContexts;
     }
 
-    internal (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
+    //TODO: return object(s)?
+    internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
     {
         List<CodeListWrapper> remoteCodeListWrappers = [];
         Dictionary<string, string> fileMetadata = [];
@@ -335,25 +337,33 @@ public class OrgCodeListService : IOrgCodeListService
         List<CodeListWrapper> toUpdate = [];
         List<CodeListWrapper> toDelete = [];
 
+        IEnumerable<string> remoteWrapperTitles = remoteCodeListWrappers.Select(w => w.Title);
+
         foreach (CodeListWrapper localWrapper in localCodeListWrappers)
         {
+            if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
+            {
+                toCreate.Add(localWrapper); // CREATE
+                continue;
+            }
+
             foreach (CodeListWrapper remoteWrapper in remoteCodeListWrappers)
             {
-                if (localWrapper.Title == remoteWrapper.Title)
+                if (localWrapper.Title != remoteWrapper.Title)
                 {
-                    if (localWrapper.CodeList is not null && !localWrapper.CodeList.Equals(remoteWrapper.CodeList))
-                    {
-                        toUpdate.Add(localWrapper); // UPDATE
-                    }
-                    break;
+                    continue; // no match
                 }
-                if (remoteWrapper.CodeList is null && localWrapper.CodeList is not null)
-                {
-                    toCreate.Add(localWrapper); // CREATE
-                }
-                if (remoteWrapper.CodeList is not null && localWrapper.CodeList is null)
+
+                if (localWrapper.CodeList is null)
                 {
                     toDelete.Add(remoteWrapper); // DELETE
+                    break;
+                }
+
+                if (localWrapper.CodeList.Equals(remoteWrapper.CodeList) is false)
+                {
+                    toUpdate.Add(localWrapper); // UPDATE
+                    break;
                 }
             }
         }

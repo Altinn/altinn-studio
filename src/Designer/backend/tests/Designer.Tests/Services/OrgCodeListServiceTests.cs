@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using Microsoft.AspNetCore.Http;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -22,6 +24,14 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
+    private Mock<IGitea> _giteaApiWrapperMock;
+    private GiteaContentLibraryService _giteaContentLibraryService;
+
+    public OrgCodeListServiceTests()
+    {
+        _giteaApiWrapperMock = new Mock<IGitea>();
+        _giteaContentLibraryService = new GiteaContentLibraryService(_giteaApiWrapperMock.Object);
+    }
 
     [Fact]
     public async Task GetCodeLists_ShouldReturnAllCodeLists()
@@ -184,8 +194,7 @@ public class OrgCodeListServiceTests : IDisposable
         ];
 
         // Act
-        OrgCodeListService orgListService = GetOrgCodeListService();
-        (List<CodeListWrapper> result, Dictionary<string, string> fileMetadata) = orgListService.ExtractContentFromFiles(remoteFiles);
+        (List<CodeListWrapper> result, Dictionary<string, string> fileMetadata) = OrgCodeListService.ExtractContentFromFiles(remoteFiles);
 
         // Assert
         Assert.NotEmpty(result);
@@ -193,6 +202,162 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Single(fileMetadata);
         Assert.True(result.First(csw => csw.Title == fosWithoutContentName).HasError);
         Assert.False(result.First(csw => csw.Title == fosWithContentName).HasError);
+    }
+
+    [Fact]
+    public void CreateFileChangeContexts()
+    {
+        // Arrange
+        string shouldResolveToUpdateOperation = "shouldResolveToUpdateOperation";
+        string shouldResolveToDeleteOperation = "shouldResolveToDeleteOperation";
+        string shouldResolveToCreateOperation = "shouldResolveToCreateOperation";
+        var codeListWrappers = new List<CodeListWrapper>
+        {
+            new()
+            {
+                Title = shouldResolveToUpdateOperation,
+                CodeList = SetupCodeList(),
+                HasError = false
+            },
+            new()
+            {
+                Title = shouldResolveToDeleteOperation,
+                HasError = false
+            },
+            new()
+            {
+                Title = shouldResolveToCreateOperation,
+                CodeList = SetupCodeList(),
+                HasError = false
+            }
+        };
+        var existingFiles = new List<FileSystemObject>
+        {
+            new()
+            {
+                Name = shouldResolveToUpdateOperation,
+                Path = $"CodeLists/{shouldResolveToUpdateOperation}.json",
+                Encoding = "base64",
+                Content = System.Text.Json.JsonSerializer.Serialize(SetupCodeList()),
+                Sha = "non-descriptive-sha-1",
+                Type = "file"
+            },
+            new()
+            {
+                Name = shouldResolveToDeleteOperation,
+                Path = $"CodeLists/{shouldResolveToDeleteOperation}.json",
+                Encoding = "base64",
+                Content = System.Text.Json.JsonSerializer.Serialize(SetupCodeList()),
+                Sha = "non-descriptive-sha-2",
+                Type = "file"
+            }
+        };
+
+        // Act
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        List<FileOperationContext> result = orgListService.CreateFileChangeContexts(codeListWrappers, existingFiles);
+
+        FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToUpdateOperation}.json");
+        FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToDeleteOperation}.json");
+        FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToCreateOperation}.json");
+
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.NotNull(updateOperation);
+        Assert.NotNull(updateOperation.Sha);
+        Assert.NotNull(updateOperation.Content);
+        Assert.Equal(FileOperation.Update, updateOperation.Operation);
+
+        Assert.NotNull(deleteOperation);
+        Assert.NotNull(deleteOperation.Sha);
+        Assert.Null(deleteOperation.Content);
+        Assert.Equal(FileOperation.Delete, deleteOperation.Operation);
+
+        Assert.NotNull(createOperation);
+        Assert.Null(createOperation.Sha);
+        Assert.NotNull(createOperation.Content);
+        Assert.Equal(FileOperation.Create, createOperation.Operation);
+    }
+
+    [Fact]
+    public async Task UpdateCodeLists()
+    {
+        // Arrange
+        CodeList validCodeList = SetupCodeList();
+        List<CodeListWrapper> localCodeListWrappers = [
+            new()
+            {
+                Title = "codeListOne",
+                CodeList = validCodeList,
+                HasError = false,
+            },
+            new()
+            {
+                Title = "codeListTwo",
+                HasError = false,
+            }
+        ];
+        List<FileSystemObject> remoteCodeLists =
+        [
+            new FileSystemObject
+            {
+                Name = "codeListOne",
+                Path = "CodeLists/codeListOne.json",
+                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Sha = "non-descriptive-sha-1"
+            },
+            new FileSystemObject
+            {
+                Name = "codeListTwo",
+                Path = "CodeLists/codeListTwo.json",
+                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Sha = "non-descriptive-sha-2"
+            }
+        ];
+
+        var factory = new Mock<IAltinnGitRepositoryFactory>();
+
+        _giteaApiWrapperMock
+            .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteCodeLists);
+
+        // Act
+        OrgCodeListService orgListService = new(factory.Object, _giteaApiWrapperMock.Object);
+        await orgListService.UpdateCodeLists(Org, Developer, localCodeListWrappers);
+
+
+        List<FileOperationContext> files =
+        [
+            new FileOperationContext{
+                Operation = FileOperation.Delete,
+                Content = null,
+                FromPath = null,
+                Path = "CodeLists/codeListTwo.json",
+                Sha = "non-descriptive-sha-2"
+            }
+        ];
+
+        var expectedDto = new GiteaMultipleFilesDto
+        {
+            Author = new Identity()
+            {
+                Name = Developer,
+                Email = null
+            },
+            Committer = new Identity()
+            {
+                Name = Developer,
+                Email = null
+            },
+            Branch = null,
+            Files = files,
+            Message = "",
+        };
+
+        // Assert
+        _giteaApiWrapperMock.Verify(s => s.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaApiWrapperMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(o => o.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

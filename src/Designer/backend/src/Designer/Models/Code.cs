@@ -55,17 +55,17 @@ public sealed class Code
             return false;
         }
 
-        if (!Equals(other.Label, Label))
+        if (other.Label.SequenceEqual(Label) is false)
         {
             return false;
         }
 
-        if (!Equals(other.Description, Description))
+        if (other.HelpText is not null && HelpText is not null && other.HelpText?.SequenceEqual(HelpText) is false)
         {
             return false;
         }
 
-        if (!Equals(other.HelpText, HelpText))
+        if (other.Description is not null && Description is not null && other.Description?.SequenceEqual(Description) is false)
         {
             return false;
         }
