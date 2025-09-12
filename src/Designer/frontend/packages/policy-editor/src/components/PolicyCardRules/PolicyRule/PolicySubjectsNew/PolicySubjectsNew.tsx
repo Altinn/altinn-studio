@@ -85,11 +85,11 @@ export const PolicySubjectsNew = () => {
       <SelectedSubjectsList
         items={policyRule.subject.map((urn) => {
           const subject = findSubject(subjects, urn);
-          const legacyRoleCode = subject?.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
+          const legacyRoleCode = subject.legacyRoleCode ? ` (${subject.legacyRoleCode})` : '';
           return {
             urn: urn,
-            title: subject ? `${subject.name}${legacyRoleCode}` : urn,
-            legacyUrn: subject?.legacyUrn,
+            title: `${subject.name}${legacyRoleCode}`,
+            legacyUrn: subject.legacyUrn,
           };
         })}
         title={t('policy_editor.rule_card_subjects_chosen_roles')}
