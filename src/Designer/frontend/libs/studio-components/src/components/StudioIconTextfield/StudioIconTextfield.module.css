@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--studio-legacy-property-button-vertical-spacing) var(--fds-spacing-5);
+}
+
+.iconLabel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--fds-spacing-1);
+  font-weight: 500;
+  align-items: center;
+}
+
+.iconLabel p {
+  margin: var(--ds-size-2);
+}
+
+.iconLabel:has(:nth-child(3)) {
+  grid-template-columns: auto 1fr auto;
+}
+
+.padLockIcon {
+  justify-self: flex-end;
+}
+
+.textfield {
+  width: 100%;
+}
