@@ -19,10 +19,17 @@ export interface PolicyRuleResource {
 }
 
 export interface PolicySubject {
-  subjectId: string;
-  subjectSource: string;
-  subjectTitle: string;
-  subjectDescription: string;
+  id: string;
+  name: string;
+  description: string;
+  urn: string;
+  legacyRoleCode: string;
+  legacyUrn: string;
+  provider: {
+    id: string;
+    name: string;
+    code: string;
+  };
 }
 
 export interface PolicyAction {

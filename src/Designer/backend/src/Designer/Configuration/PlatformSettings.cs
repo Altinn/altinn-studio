@@ -95,5 +95,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Url used to load access packages
         /// </summary>
         public string AccessPackagesUrl { get; set; }
+
+        /// <summary>
+        /// Url used to load roles
+        /// </summary>
+        public string RolesUrl { get; set; }
     }
 }

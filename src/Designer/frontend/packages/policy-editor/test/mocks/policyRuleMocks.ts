@@ -5,12 +5,7 @@ import {
   mockPolicyRuleResources,
   mockPolicyRuleResourcesWithSingleNarrowingPolicy,
 } from './policySubResourceMocks';
-import {
-  mockSubjectBackendString1,
-  mockSubjectBackendString3,
-  mockSubjectId1,
-  mockSubjectId3,
-} from './policySubjectMocks';
+import { mockSubjectId1, mockSubjectId3 } from './policySubjectMocks';
 
 export const mockRuleId1: string = 'r1';
 export const mockRuleId2: string = 'r2';
@@ -45,7 +40,7 @@ export const mockPolicyRuleCards: PolicyRuleCard[] = [mockPolicyRuleCard1, mockP
 export const mockPolicyRule1: PolicyRule = {
   ruleId: mockRuleId1,
   description: '',
-  subject: [mockSubjectBackendString1, mockSubjectBackendString3],
+  subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
   accessPackages: [],
   resources: mockPolicyResources,
