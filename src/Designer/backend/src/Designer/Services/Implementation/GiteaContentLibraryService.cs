@@ -33,9 +33,10 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     /// <inheritdoc />
     public async Task<bool> OrgContentRepoExists(string orgName)
     {
-        SearchOptions searchOptions = new() { Keyword = GetContentRepoName(orgName) };
+        string contentRepositoryName = GetContentRepoName(orgName);
+        SearchOptions searchOptions = new() { Keyword = contentRepositoryName };
         SearchResults searchResults = await _giteaApiWrapper.SearchRepo(searchOptions);
-        return searchResults.Data.Select(repository => repository.Name).Contains(GetContentRepoName(orgName));
+        return searchResults.Data.Select(repository => repository.Name).Contains(contentRepositoryName);
     }
 
     /// <inheritdoc />
