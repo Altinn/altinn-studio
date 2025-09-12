@@ -146,6 +146,7 @@ public class OrgCodeListService : IOrgCodeListService
             {
                 remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
                 fileMetadata[file.Name] = file.Sha;
+                continue;
             }
             remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
         }
