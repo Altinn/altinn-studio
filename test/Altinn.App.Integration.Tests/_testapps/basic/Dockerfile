@@ -14,7 +14,7 @@ RUN dotnet publish App.csproj --configuration Release --output /app_output
 # Ensure that the config folder is copied to the output folder (policy.xml was missing)
 RUN cp -R config /app_output/
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:6faef52a037435524fcda33d94a23cada50eed3775849efa863bf0d45327403c AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:8f4ced906b6610a1835696f59d80e992008957d38317093258e0879f736d28ed AS final
 EXPOSE 5005
 EXPOSE 5006
 WORKDIR /App
