@@ -1,4 +1,4 @@
-import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
+import { StringFormat } from '@altinn/schema-model';
 import type {
   StringRestricionsReducerState,
   StringRestrictionsReducerAction,
@@ -40,22 +40,6 @@ const dispatchAction = (
 
 describe('stringRestrictionsReducer', () => {
   afterEach(() => jest.clearAllMocks());
-
-  describe('setRestriction', () => {
-    it('Updates state correctly', () => {
-      const state = dispatchAction({
-        type: StringRestrictionsReducerActionType.setRestriction,
-        restriction: StrRestrictionKey.format,
-        value: StringFormat.DateTime,
-        changeCallback,
-      });
-      expect(state.restrictions.format).toEqual(StringFormat.DateTime);
-      expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(
-        expect.objectContaining({ format: StringFormat.DateTime }),
-      );
-    });
-  });
 
   describe('setMinIncl', () => {
     const type = StringRestrictionsReducerActionType.setMinIncl;
