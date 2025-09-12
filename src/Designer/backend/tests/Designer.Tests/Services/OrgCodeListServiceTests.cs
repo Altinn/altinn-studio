@@ -80,16 +80,82 @@ public class OrgCodeListServiceTests : IDisposable
             HasError = false,
         }];
         Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha"} };
-        var service = GetOrgCodeListService();
 
         // Act
-        List<FileOperationContext> result = service.PrepareFileDeletions(toDelete, fileMetadata);
+        List<FileOperationContext> result = OrgCodeListService.PrepareFileDeletions(toDelete, fileMetadata);
+
+        FileOperation expectedOperation = FileOperation.Delete;
+        string expectedSha = fileMetadata[Title];
 
         // Assert
         Assert.NotEmpty(result);
-        Assert.Equal(FileOperation.Delete, result.FirstOrDefault()?.Operation);
-        Assert.Equal(fileMetadata[Title], result.FirstOrDefault()?.Sha);
+        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
+        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
         Assert.Contains(Title, result.FirstOrDefault()?.Path);
+    }
+
+    [Fact]
+    public void PrepareFileUpdateContexts()
+    {
+        // Arrange
+        const string Title = "irrelevant";
+        CodeList codeList = SetupCodeList();
+        List<CodeListWrapper> toUpdate = [new()
+        {
+            Title = Title,
+            CodeList = codeList,
+            HasError = false,
+        }];
+        Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
+
+        // Act
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        List<FileOperationContext> result = orgListService.PrepareFileUpdates(toUpdate, fileMetadata);
+
+        FileOperation expectedOperation = FileOperation.Update;
+        string expectedSha = fileMetadata[Title];
+
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content);
+        CodeList actualCodelist = System.Text.Json.JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
+        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
+        Assert.Contains(Title, result.FirstOrDefault()?.Path);
+        Assert.Equivalent(codeList, actualCodelist, strict: true);
+    }
+
+    [Fact]
+    public void PrepareFileCreations()
+    {
+        // Arrange
+        const string Title = "irrelevant";
+        CodeList codeList = SetupCodeList();
+        List<CodeListWrapper> toUpdate = [new()
+        {
+            Title = Title,
+            CodeList = codeList,
+            HasError = false,
+        }];
+
+        // Act
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        List<FileOperationContext> result = orgListService.PrepareFileCreations(toUpdate);
+
+        FileOperation expectedOperation = FileOperation.Create;
+        string expectedSha = null;
+
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content);
+        CodeList actualCodelist = System.Text.Json.JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
+        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
+        Assert.Contains(Title, result.FirstOrDefault()?.Path);
+        Assert.Equivalent(codeList, actualCodelist, strict: true);
+
     }
 
     [Fact]
