@@ -124,7 +124,7 @@ public class OrgCodeListService : IOrgCodeListService
         await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
     }
 
-    public List<FileOperationContext> CreateFileChangeContexts(List<CodeListWrapper> codeListWrappers, List<FileSystemObject> files)
+    internal List<FileOperationContext> CreateFileChangeContexts(List<CodeListWrapper> codeListWrappers, List<FileSystemObject> files)
     {
         (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(files);
         (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) = CompareCodeLists(remoteCodeListWrappers, codeListWrappers);
@@ -136,7 +136,7 @@ public class OrgCodeListService : IOrgCodeListService
         return fileOperationContexts;
     }
 
-    public (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
+    internal (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
     {
         List<CodeListWrapper> remoteCodeListWrappers = [];
         Dictionary<string, string> fileMetadata = [];
