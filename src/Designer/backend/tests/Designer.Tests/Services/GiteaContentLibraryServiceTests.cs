@@ -48,7 +48,7 @@ public class GiteaContentLibraryServiceTests
         // Arrange
         Repository repository = new() { Name = $"{OrgName}-content" };
         List<Repository> temp = [repository];
-        SearchResults searchResults = new ()
+        SearchResults searchResults = new()
         {
             Data = temp
         };
