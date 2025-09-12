@@ -148,10 +148,6 @@ public class TestAuthenticationService
     public static JwtPayload GetOrgPayload(string orgNumber, string scope)
     {
 
-        var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
-            throw new InvalidOperationException("Org token cannot have serviceowner scopes");
-
         var consumer = new OrgClaim(
             "iso6523-actorid-upis",
             $"0192:{orgNumber}"
@@ -205,10 +201,6 @@ public class TestAuthenticationService
         string org
     )
     {
-
-        var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (!scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
-            throw new InvalidOperationException("Service owner token must have serviceowner scopes");
 
         var consumer = new OrgClaim(
             "iso6523-actorid-upis",
@@ -278,11 +270,6 @@ public class TestAuthenticationService
         string scope
     )
     {
-
-        var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
-            throw new InvalidOperationException("System user tokens cannot have serviceowner scopes");
-
         var payload = new JwtPayload
         {
             { "iss", DefaultIssuer },
