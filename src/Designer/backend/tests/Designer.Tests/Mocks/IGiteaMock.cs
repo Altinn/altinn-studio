@@ -216,7 +216,10 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
 
-        public Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new List<FileSystemObject>());
+        }
         public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }
