@@ -155,7 +155,44 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
         Assert.Contains(Title, result.FirstOrDefault()?.Path);
         Assert.Equivalent(codeList, actualCodelist, strict: true);
+    }
 
+    [Fact]
+    public void ExtractContentFromFiles()
+    {
+        // Arrange
+        string fosWithContentName = "hascontent";
+        string fosWithoutContentName = "nocontent";
+
+        CodeList validCodeList = SetupCodeList();
+        List<FileSystemObject> remoteFiles =
+        [
+            new FileSystemObject
+            {
+                Name = fosWithContentName,
+                Path = $"CodeLists/{fosWithContentName}.json",
+                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Sha = "non-descriptive-sha-1"
+            },
+            new FileSystemObject
+            {
+                Name = fosWithoutContentName,
+                Path = $"CodeLists/{fosWithoutContentName}.json",
+                Content = null,
+                Sha = "non-descriptive-sha-2"
+            }
+        ];
+
+        // Act
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        (List<CodeListWrapper> result, Dictionary<string, string> fileMetadata) = orgListService.ExtractContentFromFiles(remoteFiles);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.Equal(2, result.Count);
+        Assert.Single(fileMetadata);
+        Assert.True(result.First(csw => csw.Title == fosWithoutContentName).HasError);
+        Assert.False(result.First(csw => csw.Title == fosWithContentName).HasError);
     }
 
     [Fact]
