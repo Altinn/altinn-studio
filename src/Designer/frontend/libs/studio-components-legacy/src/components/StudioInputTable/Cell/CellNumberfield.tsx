@@ -36,6 +36,7 @@ export class CellNumberfield extends BaseInputCell<HTMLInputElement, CellNumberf
 
     return (
       <StudioTable.Cell className={className}>
+        {/**No need to replace fieldStudioDecimalInput  here becuase the entire component CellNumberfield will be replaced */}
         <StudioDecimalInput hideLabel ref={ref} {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
