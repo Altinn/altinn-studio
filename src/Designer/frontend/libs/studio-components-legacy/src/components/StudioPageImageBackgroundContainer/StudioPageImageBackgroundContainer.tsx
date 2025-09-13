@@ -5,6 +5,9 @@ export type StudioPageImageBackgroundContainerProps = {
   image: string;
 } & HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @deprecated Use `StudioPageImageBackgroundContainer` from `@studio/components` instead.
+ */
 export const StudioPageImageBackgroundContainer = ({
   children,
   image,
