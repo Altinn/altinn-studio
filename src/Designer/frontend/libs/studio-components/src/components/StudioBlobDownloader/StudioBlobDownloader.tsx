@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { type ReactElement, useMemo } from 'react';
 import { BlobDownloader } from '@studio/pure-functions';
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
@@ -11,27 +11,22 @@ export type StudioBlobDownloaderProps = {
   linkText: string;
 } & StudioButtonProps;
 
-/**
- * @deprecated use `StudioBlobDownloader` from `@studio/components` instead
- */
-export const StudioBlobDownloader = ({
+export function StudioBlobDownloader({
   data,
   fileName,
   fileType = 'application/json',
   linkText,
   ...rest
-}: StudioBlobDownloaderProps) => {
+}: StudioBlobDownloaderProps): ReactElement {
   const blobDownloader = useMemo(
     () => new BlobDownloader(data, fileType, fileName),
     [data, fileType, fileName],
   );
-  const handleExportClick = () => {
-    blobDownloader.handleDownloadClick();
-  };
+  const handleExportClick = (): void => blobDownloader.handleDownloadClick();
 
   return (
     <StudioButton {...rest} onClick={handleExportClick} variant='tertiary' icon={<DownloadIcon />}>
       {linkText}
     </StudioButton>
   );
-};
+}
