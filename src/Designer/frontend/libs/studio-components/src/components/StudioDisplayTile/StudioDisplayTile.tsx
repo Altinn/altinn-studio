@@ -1,8 +1,9 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
 import { PadlockLockedFillIcon } from '@studio/icons';
-import cn from 'classnames';
-import { Label, Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '../StudioParagraph';
+import { StudioLabel } from '../StudioLabel';
 import classes from './StudioDisplayTile.module.css';
+import cn from 'classnames';
 
 export type StudioDisplayTileProps = {
   icon?: React.ReactNode;
@@ -11,9 +12,6 @@ export type StudioDisplayTileProps = {
   showPadlock?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
-/**
- * @deprecated Use `StudioDisplayTile` from `studio-components` instead.
- */
 const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
   (
     {
@@ -31,13 +29,13 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
     return (
       <div {...rest} aria-label={label} className={className} ref={ref}>
         <div className={classes.ellipsis}>
-          <Label size='small' className={classes.label}>
+          <StudioLabel data-size='sm' className={classes.label}>
             {icon}
             {label}
-          </Label>
-          <Paragraph size='small' className={classes.ellipsis}>
+          </StudioLabel>
+          <StudioParagraph data-size='sm' className={classes.ellipsis}>
             {value}
-          </Paragraph>
+          </StudioParagraph>
         </div>
         {showPadlock && <PadlockLockedFillIcon data-testid='padlockIconTestId' />}
       </div>
