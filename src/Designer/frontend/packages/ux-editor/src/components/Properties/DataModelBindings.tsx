@@ -41,7 +41,7 @@ export const DataModelBindings = (): React.JSX.Element => {
       ...formItem,
       itemType: 'COMPONENT',
       dataModelBindings: {
-        simpleBinding: { field: !updatedValue ? '' : undefined, dataType: '' },
+        simpleBinding: updatedValue ? undefined : { field: '', dataType: '' },
         list: updatedValue ? { field: '', dataType: '' } : undefined,
       },
     } as FormComponent;
