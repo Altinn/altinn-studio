@@ -1,11 +1,10 @@
 import React, { forwardRef, useId } from 'react';
-
-import cn from 'classnames';
 import classes from './StudioIconTextfield.module.css';
 import type { Override } from '../../types/Override';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
+import cn from 'classnames';
 
 export type StudioIconTextfieldProps = Override<
   { icon?: React.ReactNode; label: string },
@@ -18,25 +17,22 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
     ref,
   ): React.ReactElement => {
     const generatedId = useId();
-    const textFieldId = id ?? generatedId;
+    const inputId = id ?? generatedId;
+    const labelId = `${inputId}-label`;
     const className = cn(givenClassName, classes.container);
+    const { value, onChange, error, description } = rest;
+
     return (
       <div className={className} ref={ref}>
-        <IconLabel
-          htmlFor={textFieldId}
-          id={textFieldId}
-          icon={icon}
-          label={label}
-          readonly={readOnly}
-        />
+        <IconLabel htmlFor={inputId} id={labelId} icon={icon} label={label} readonly={readOnly} />
         <StudioTextfield
           disabled={readOnly}
           className={classes.textfield}
-          aria-labelledby={textFieldId}
-          value={rest.value}
-          onChange={rest.onChange as React.ChangeEventHandler<HTMLInputElement>}
-          error={rest.error}
-          description={rest.description}
+          aria-labelledby={labelId}
+          value={value}
+          onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+          error={error}
+          description={description}
         />
       </div>
     );
