@@ -135,32 +135,36 @@ export const ConsentPreview = ({
           data-testid='consentPreviewContainer'
           className={isMobileViewEnabled ? classes.mobileView : undefined}
         >
-          <div className={classes.consentBlock}>
+          <div className={cn(classes.consentBlock, classes.headerBlock)}>
             <StudioHeading level={1} data-size='md'>
               {texts.title}
             </StudioHeading>
           </div>
           <div className={classes.consentBlock}>
-            <StudioParagraph className={classes.boldText}>{texts.heading}</StudioParagraph>
-            <StudioParagraph>{texts.consentMessage}</StudioParagraph>
-            <StudioHeading level={2} data-size='2xs'>
-              {texts.serviceIntro}
-            </StudioHeading>
-            <div className={classes.consentRight}>
-              <CheckmarkIcon className={classes.consentRightIcon} />
-              <div className={classes.consentRightContent}>
-                <StudioHeading level={3} data-size='2xs'>
-                  {resourceName[language]}
-                </StudioHeading>
-                <div data-testid={resourceAdmConsentPreview}>
-                  {transformText(texts.resourceText)}
+            <div className={classes.consentContent}>
+              <StudioParagraph className={classes.heading}>{texts.heading}</StudioParagraph>
+              <StudioParagraph className={classes.consentMessage}>
+                {texts.consentMessage}
+              </StudioParagraph>
+              <StudioParagraph className={classes.serviceIntro}>
+                {texts.serviceIntro}
+              </StudioParagraph>
+              <div className={classes.consentRights}>
+                <div className={classes.consentRight}>
+                  <CheckmarkIcon className={classes.consentRightIcon} />
+                  <div className={classes.consentRightContent}>
+                    <StudioParagraph className={classes.consentRightTitle}>
+                      {resourceName[language]}
+                    </StudioParagraph>
+                    <div data-testid={resourceAdmConsentPreview}>
+                      {transformText(texts.resourceText)}
+                    </div>
+                  </div>
                 </div>
+                <StudioParagraph className={classes.expiration}>{texts.expiration}</StudioParagraph>
+                <StudioParagraph className={classes.handledBy}>{texts.handledBy}</StudioParagraph>
               </div>
             </div>
-            <StudioParagraph className={cn(classes.expiration, classes.boldText)}>
-              {texts.expiration}
-            </StudioParagraph>
-            <StudioParagraph>{texts.handledBy}</StudioParagraph>
             <div className={classes.buttonRow}>
               <StudioButton variant='primary' tabIndex={-1}>
                 {texts.approve}
