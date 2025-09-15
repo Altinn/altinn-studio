@@ -279,7 +279,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateCodeLists()
+    public async Task UpdateCodeListsNew()
     {
         // Arrange
         CodeList validCodeList = SetupCodeList();
@@ -322,7 +322,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = new(factory.Object, _giteaMock.Object);
-        await orgListService.UpdateCodeLists(Org, Developer, localCodeListWrappers);
+        await orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers);
 
 
         List<FileOperationContext> files =

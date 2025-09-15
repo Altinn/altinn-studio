@@ -108,14 +108,14 @@ public class OrgCodeListController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("new")]
-    public async Task<ActionResult> UpdateCodeLists(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
         string commitMessage = requestBody.CommitMessage;
 
-        await _orgCodeListService.UpdateCodeLists(org, developer, codeListWrappers, commitMessage, cancellationToken);
+        await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, cancellationToken);
 
         return Ok();
     }

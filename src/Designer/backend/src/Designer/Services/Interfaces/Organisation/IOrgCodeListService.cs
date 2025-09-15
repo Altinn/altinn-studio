@@ -67,7 +67,7 @@ public interface IOrgCodeListService
     /// <param name="codeListWrappers">The code list contents</param>
     /// <param name="commitMessage">The commit message, optional. If not set the default will be used</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default);
+    public Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.

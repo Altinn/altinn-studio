@@ -116,7 +116,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeLists(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
 
