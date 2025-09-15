@@ -34,6 +34,7 @@ import { ResourceContactPointFields } from '../../components/ResourceContactPoin
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { ConsentPreview } from '../../components/ConsentPreview';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -61,6 +62,7 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { org } = useUrlParams();
   const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
     resourceData.consentText,
   );
@@ -69,10 +71,18 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-  const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
-    value: key,
-    label: t(value),
-  }));
+
+  const resourceTypeOptions = Object.entries(resourceTypeMap)
+    .filter(([key]) => {
+      if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
+        return false;
+      }
+      return true;
+    })
+    .map(([key, value]) => ({
+      value: key,
+      label: t(value),
+    }));
 
   /**
    * Status options
