@@ -84,7 +84,7 @@ public class OrgCodeListServiceTests : IDisposable
             CodeList = codeList,
             HasError = false,
         }];
-        Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha"} };
+        Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
 
         // Act
         List<FileOperationContext> result = OrgCodeListService.PrepareFileDeletions(toDelete, fileMetadata);
