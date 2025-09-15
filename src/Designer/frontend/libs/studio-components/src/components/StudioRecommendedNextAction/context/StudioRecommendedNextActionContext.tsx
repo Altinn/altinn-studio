@@ -6,8 +6,9 @@ export type StudioRecommendedNextActionContext = {
   removeAction: (actionId: string) => void;
 };
 
-export const StudioRecommendedNextActionContext =
-  createContext<StudioRecommendedNextActionContext>(undefined);
+export const StudioRecommendedNextActionContext = createContext<
+  StudioRecommendedNextActionContext | undefined
+>(undefined);
 
 export type StudioRecommendedNextActionContextProviderProps = {
   children: React.ReactNode;
