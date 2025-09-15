@@ -55,17 +55,17 @@ public sealed class Code
             return false;
         }
 
-        if (other.Label.SequenceEqual(Label) is false)
+        if (DictionariesEqual(other.Label, Label) is false)
         {
             return false;
         }
 
-        if (other.HelpText is not null && HelpText is not null && other.HelpText?.SequenceEqual(HelpText) is false)
+        if (DictionariesEqual(other.HelpText, HelpText) is false)
         {
             return false;
         }
 
-        if (other.Description is not null && Description is not null && other.Description?.SequenceEqual(Description) is false)
+        if (DictionariesEqual(other.Description, Description) is false)
         {
             return false;
         }
@@ -78,6 +78,36 @@ public sealed class Code
         if (!other.Tags.SequenceEqual(Tags))
         {
             return false;
+        }
+
+        return true;
+    }
+
+    private static bool DictionariesEqual(
+        Dictionary<string, string>? first,
+        Dictionary<string, string>? second)
+    {
+        if (first is null || second is null)
+        {
+            return false;
+        }
+
+        if (first.Count != second.Count)
+        {
+            return false;
+        }
+
+        foreach (KeyValuePair<string, string> pair in first)
+        {
+            if (!second.TryGetValue(pair.Key, out string? value))
+            {
+                return false;
+            }
+
+            if (!StringComparer.Ordinal.Equals(pair.Value, value))
+            {
+                return false;
+            }
         }
 
         return true;

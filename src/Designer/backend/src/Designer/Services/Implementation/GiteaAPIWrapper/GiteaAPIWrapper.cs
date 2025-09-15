@@ -33,7 +33,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
-        private const string CodeListFolderPath = "CodeLists/";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
@@ -477,10 +476,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default)
         {
+            const string CodeListFolderPath = "/CodeLists";
             using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/contents/{CodeListFolderPath}", cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+                return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
             }
 
             return [];

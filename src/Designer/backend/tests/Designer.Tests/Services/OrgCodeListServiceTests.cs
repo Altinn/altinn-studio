@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
 
@@ -24,14 +26,7 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Org = "ttd";
     private const string Repo = "org-content";
     private const string Developer = "testUser";
-    private Mock<IGitea> _giteaApiWrapperMock;
-    private GiteaContentLibraryService _giteaContentLibraryService;
-
-    public OrgCodeListServiceTests()
-    {
-        _giteaApiWrapperMock = new Mock<IGitea>();
-        _giteaContentLibraryService = new GiteaContentLibraryService(_giteaApiWrapperMock.Object);
-    }
+    private readonly Mock<IGitea> _giteaMock = new();
 
     [Fact]
     public async Task GetCodeLists_ShouldReturnAllCodeLists()
@@ -125,8 +120,8 @@ public class OrgCodeListServiceTests : IDisposable
         FileOperation expectedOperation = FileOperation.Update;
         string expectedSha = fileMetadata[Title];
 
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content);
-        CodeList actualCodelist = System.Text.Json.JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);
+        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
 
         // Assert
         Assert.NotEmpty(result);
@@ -156,8 +151,8 @@ public class OrgCodeListServiceTests : IDisposable
         FileOperation expectedOperation = FileOperation.Create;
         string expectedSha = null;
 
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content);
-        CodeList actualCodelist = System.Text.Json.JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);
+        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
 
         // Assert
         Assert.NotEmpty(result);
@@ -171,23 +166,23 @@ public class OrgCodeListServiceTests : IDisposable
     public void ExtractContentFromFiles()
     {
         // Arrange
-        string fosWithContentName = "hascontent";
-        string fosWithoutContentName = "nocontent";
+        const string FosWithContentName = "hasContent";
+        const string FosWithoutContentName = "noContent";
 
         CodeList validCodeList = SetupCodeList();
         List<FileSystemObject> remoteFiles =
         [
-            new FileSystemObject
+            new()
             {
-                Name = fosWithContentName,
-                Path = $"CodeLists/{fosWithContentName}.json",
-                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Name = FosWithContentName,
+                Path = $"CodeLists/{FosWithContentName}.json",
+                Content = JsonSerializer.Serialize(validCodeList),
                 Sha = "non-descriptive-sha-1"
             },
-            new FileSystemObject
+            new()
             {
-                Name = fosWithoutContentName,
-                Path = $"CodeLists/{fosWithoutContentName}.json",
+                Name = FosWithoutContentName,
+                Path = $"CodeLists/{FosWithoutContentName}.json",
                 Content = null,
                 Sha = "non-descriptive-sha-2"
             }
@@ -200,34 +195,37 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.NotEmpty(result);
         Assert.Equal(2, result.Count);
         Assert.Single(fileMetadata);
-        Assert.True(result.First(csw => csw.Title == fosWithoutContentName).HasError);
-        Assert.False(result.First(csw => csw.Title == fosWithContentName).HasError);
+        Assert.True(result.First(csw => csw.Title == FosWithoutContentName).HasError);
+        Assert.False(result.First(csw => csw.Title == FosWithContentName).HasError);
     }
 
     [Fact]
-    public void CreateFileChangeContexts()
+    public void CreateFileOperationContexts()
     {
         // Arrange
-        string shouldResolveToUpdateOperation = "shouldResolveToUpdateOperation";
-        string shouldResolveToDeleteOperation = "shouldResolveToDeleteOperation";
-        string shouldResolveToCreateOperation = "shouldResolveToCreateOperation";
+        const string ShouldResolveToUpdateOperation = "shouldResolveToUpdateOperation";
+        const string ShouldResolveToDeleteOperation = "shouldResolveToDeleteOperation";
+        const string ShouldResolveToCreateOperation = "shouldResolveToCreateOperation";
+        CodeList codeList = SetupCodeList();
+        CodeList updatedCodeList = SetupCodeList();
+        updatedCodeList.Codes[0].Value = "updatedValue";
         var codeListWrappers = new List<CodeListWrapper>
         {
             new()
             {
-                Title = shouldResolveToUpdateOperation,
-                CodeList = SetupCodeList(),
+                Title = ShouldResolveToUpdateOperation,
+                CodeList = codeList,
                 HasError = false
             },
             new()
             {
-                Title = shouldResolveToDeleteOperation,
+                Title = ShouldResolveToDeleteOperation,
                 HasError = false
             },
             new()
             {
-                Title = shouldResolveToCreateOperation,
-                CodeList = SetupCodeList(),
+                Title = ShouldResolveToCreateOperation,
+                CodeList = codeList,
                 HasError = false
             }
         };
@@ -235,19 +233,19 @@ public class OrgCodeListServiceTests : IDisposable
         {
             new()
             {
-                Name = shouldResolveToUpdateOperation,
-                Path = $"CodeLists/{shouldResolveToUpdateOperation}.json",
+                Name = ShouldResolveToUpdateOperation,
+                Path = $"CodeLists/{ShouldResolveToUpdateOperation}.json",
                 Encoding = "base64",
-                Content = System.Text.Json.JsonSerializer.Serialize(SetupCodeList()),
+                Content = JsonSerializer.Serialize(updatedCodeList),
                 Sha = "non-descriptive-sha-1",
                 Type = "file"
             },
             new()
             {
-                Name = shouldResolveToDeleteOperation,
-                Path = $"CodeLists/{shouldResolveToDeleteOperation}.json",
+                Name = ShouldResolveToDeleteOperation,
+                Path = $"CodeLists/{ShouldResolveToDeleteOperation}.json",
                 Encoding = "base64",
-                Content = System.Text.Json.JsonSerializer.Serialize(SetupCodeList()),
+                Content = JsonSerializer.Serialize(codeList),
                 Sha = "non-descriptive-sha-2",
                 Type = "file"
             }
@@ -255,11 +253,11 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        List<FileOperationContext> result = orgListService.CreateFileChangeContexts(codeListWrappers, existingFiles);
+        List<FileOperationContext> result = orgListService.CreateFileOperationContexts(codeListWrappers, existingFiles);
 
-        FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToUpdateOperation}.json");
-        FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToDeleteOperation}.json");
-        FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{shouldResolveToCreateOperation}.json");
+        FileOperationContext updateOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToUpdateOperation}.json");
+        FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToDeleteOperation}.json");
+        FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToCreateOperation}.json");
 
 
         // Assert
@@ -300,36 +298,37 @@ public class OrgCodeListServiceTests : IDisposable
         ];
         List<FileSystemObject> remoteCodeLists =
         [
-            new FileSystemObject
+            new()
             {
                 Name = "codeListOne",
                 Path = "CodeLists/codeListOne.json",
-                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Content = JsonSerializer.Serialize(validCodeList),
                 Sha = "non-descriptive-sha-1"
             },
-            new FileSystemObject
+            new()
             {
                 Name = "codeListTwo",
                 Path = "CodeLists/codeListTwo.json",
-                Content = System.Text.Json.JsonSerializer.Serialize(validCodeList),
+                Content = JsonSerializer.Serialize(validCodeList),
                 Sha = "non-descriptive-sha-2"
             }
         ];
 
         var factory = new Mock<IAltinnGitRepositoryFactory>();
 
-        _giteaApiWrapperMock
+        _giteaMock
             .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteCodeLists);
 
         // Act
-        OrgCodeListService orgListService = new(factory.Object, _giteaApiWrapperMock.Object);
+        OrgCodeListService orgListService = new(factory.Object, _giteaMock.Object);
         await orgListService.UpdateCodeLists(Org, Developer, localCodeListWrappers);
 
 
         List<FileOperationContext> files =
         [
-            new FileOperationContext{
+            new()
+            {
                 Operation = FileOperation.Delete,
                 Content = null,
                 FromPath = null,
@@ -340,12 +339,12 @@ public class OrgCodeListServiceTests : IDisposable
 
         var expectedDto = new GiteaMultipleFilesDto
         {
-            Author = new Identity()
+            Author = new Identity
             {
                 Name = Developer,
                 Email = null
             },
-            Committer = new Identity()
+            Committer = new Identity
             {
                 Name = Developer,
                 Email = null
@@ -356,8 +355,8 @@ public class OrgCodeListServiceTests : IDisposable
         };
 
         // Assert
-        _giteaApiWrapperMock.Verify(s => s.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
-        _giteaApiWrapperMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(o => o.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(s => s.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => dto.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -378,7 +377,7 @@ public class OrgCodeListServiceTests : IDisposable
             }
         };
 
-        const string CodeListId = "newCoodeList";
+        const string CodeListId = "newCodeList";
         TargetOrg = TestDataHelper.GenerateTestOrgName();
         string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
         await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
@@ -458,49 +457,49 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.True(File.Exists(newCodeListFilePath));
     }
 
-    // [Fact]
-    // public async Task UploadCodeList_ShouldReturnAllCodeListsAfterUploading()
-    // {
-    //     // Arrange
-    //     const string CodeListId = "newCodeList";
-    //     const string FileName = $"{CodeListId}.json";
-    //     const string JsonCodeList = @"[
-    //         {""label"": ""someLabel"",""value"": ""someValue"" },
-    //     ]";
-    //     List<Option> expectedCodeList = new()
-    //     {
-    //         new Option
-    //         {
-    //             Label = "someLabel",
-    //             Value = "someValue"
-    //         }
-    //     };
-    //     byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
-    //     var stream = new MemoryStream(codeListBytes);
-    //     IFormFile file = new FormFile(stream, 0, codeListBytes.Length, FileName, FileName);
+    [Fact]
+    public async Task UploadCodeList_ShouldReturnAllCodeListsAfterUploading()
+    {
+        // Arrange
+        const string CodeListId = "newCodeList";
+        const string FileName = $"{CodeListId}.json";
+        const string JsonCodeList = @"[
+            {""label"": ""someLabel"",""value"": ""someValue"" },
+        ]";
+        List<Option> expectedCodeList = new()
+        {
+            new Option
+            {
+                Label = "someLabel",
+                Value = "someValue"
+            }
+        };
+        byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
+        var stream = new MemoryStream(codeListBytes);
+        IFormFile file = new FormFile(stream, 0, codeListBytes.Length, FileName, FileName);
 
-    //     TargetOrg = TestDataHelper.GenerateTestOrgName();
-    //     string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
-    //     await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
-    //     var service = GetOrgCodeListService();
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        string targetRepository = TestDataHelper.GetOrgContentRepoName(TargetOrg);
+        await TestDataHelper.CopyOrgForTest(Developer, Org, Repo, TargetOrg, targetRepository);
+        var service = GetOrgCodeListService();
 
-    //     // Act
-    //     var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
-    //     stream.Close();
-    //     List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
+        // Act
+        var codeListData = await service.UploadCodeList(TargetOrg, Developer, file);
+        stream.Close();
+        List<Option> codeList = codeListData.Find(e => e.Title == CodeListId).Data;
 
-    //     // Assert
-    //     Assert.Equal(8, codeListData.Count);
-    //     Assert.Equal(expectedCodeList.Count, codeList?.Count);
+        // Assert
+        Assert.Equal(8, codeListData.Count);
+        Assert.Equal(expectedCodeList.Count, codeList?.Count);
 
-    //     for (int i = 0; i < codeList?.Count; i++)
-    //     {
-    //         Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
-    //         Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
-    //         Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
-    //         Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
-    //     }
-    // }
+        for (int i = 0; i < codeList?.Count; i++)
+        {
+            Assert.Equal(expectedCodeList[i].Label, codeList[i].Label);
+            Assert.Equal(expectedCodeList[i].Value, codeList[i].Value);
+            Assert.Equal(expectedCodeList[i].Description, codeList[i].Description);
+            Assert.Equal(expectedCodeList[i].HelpText, codeList[i].HelpText);
+        }
+    }
 
     [Fact]
     public async Task DeleteCodeList_ShouldReturnAllCodeListsAfterDeletion()
@@ -627,11 +626,8 @@ public class OrgCodeListServiceTests : IDisposable
 
     private static OrgCodeListService GetOrgCodeListService()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-            new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        OrgCodeListService service = new(altinnGitRepositoryFactory, new IGiteaMock());
-
-        return service;
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        return new OrgCodeListService(altinnGitRepositoryFactory, new IGiteaMock());
     }
 
     public void Dispose()

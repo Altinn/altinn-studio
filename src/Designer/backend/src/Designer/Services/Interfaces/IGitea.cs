@@ -136,7 +136,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Gets the files in the CodeLists directory of a given repository.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of <see cref="FileSystemObject"/>.</returns>

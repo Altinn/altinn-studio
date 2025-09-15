@@ -33,7 +33,7 @@ public class GiteaMultipleFilesDto
     /// List of file operations
     /// </summary>
     [JsonPropertyName("files")]
-    public List<FileOperationContext> Files { get; set; } = new();
+    public List<FileOperationContext> Files { get; set; } = [];
 
     /// <summary>
     /// Message (optional) for the commit of this file. If not supplied, a default message will be used

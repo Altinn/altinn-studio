@@ -21,6 +21,7 @@ public class OrgCodeListService : IOrgCodeListService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IGitea _gitea;
+
     private const string Repo = "content";
     private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
@@ -73,7 +74,8 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
     {
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, GetStaticContentRepo(org), cancellationToken);
+        string repository = GetStaticContentRepo(org);
+        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, repository, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -119,13 +121,13 @@ public class OrgCodeListService : IOrgCodeListService
         string repository = GetStaticContentRepo(org);
 
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, repository, cancellationToken);
-        List<FileOperationContext> fileOperationContexts = CreateFileChangeContexts(codeListWrappers, files);
+        List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(codeListWrappers, files);
         GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
 
         await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
     }
 
-    internal List<FileOperationContext> CreateFileChangeContexts(List<CodeListWrapper> codeListWrappers, List<FileSystemObject> files)
+    internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> codeListWrappers, List<FileSystemObject> files)
     {
         (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(files);
         (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) = CompareCodeLists(remoteCodeListWrappers, codeListWrappers);
@@ -148,9 +150,11 @@ public class OrgCodeListService : IOrgCodeListService
             {
                 remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
                 fileMetadata[file.Name] = file.Sha;
-                continue;
             }
-            remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+            else
+            {
+                remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+            }
         }
 
         return (remoteCodeListWrappers, fileMetadata);
@@ -209,26 +213,24 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
     {
-        await Task.Delay(0, cancellationToken);
-        throw new NotImplementedException();
-    //     cancellationToken.ThrowIfCancellationRequested();
-    //     string repo = GetStaticContentRepo(org);
-    //     string codeListId = payload.FileName.Replace(".json", "");
-    //
-    //     List<Option> deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-    //         new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
-    //
-    //     bool codeListHasInvalidNullFields = deserializedCodeList.Exists(codeListItem => codeListItem.Value == null || codeListItem.Label == null);
-    //     if (codeListHasInvalidNullFields)
-    //     {
-    //         throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
-    //     }
-    //
-    //     AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
-    //     await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
-    //
-    //     List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
-    //     return codeLists;
+        cancellationToken.ThrowIfCancellationRequested();
+        string repo = GetStaticContentRepo(org);
+        string codeListId = payload.FileName.Replace(".json", "");
+
+        List<Option>? deserializedCodeList = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
+            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+
+        bool codeListHasInvalidNullFields = deserializedCodeList is not null && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
+        if (codeListHasInvalidNullFields)
+        {
+            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+        }
+
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
+
+        List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
+        return codeLists;
     }
 
     /// <inheritdoc />
@@ -320,13 +322,13 @@ public class OrgCodeListService : IOrgCodeListService
         return codeListWrapper;
     }
 
-    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileChangeContexts, string commitMessage)
+    private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string commitMessage)
     {
         return new GiteaMultipleFilesDto
         {
             Author = new Designer.Models.Dto.Identity { Name = developer },
             Committer = new Designer.Models.Dto.Identity { Name = developer },
-            Files = fileChangeContexts,
+            Files = fileOperationContexts,
             Message = commitMessage
         };
     }
@@ -337,7 +339,7 @@ public class OrgCodeListService : IOrgCodeListService
         List<CodeListWrapper> toUpdate = [];
         List<CodeListWrapper> toDelete = [];
 
-        IEnumerable<string> remoteWrapperTitles = remoteCodeListWrappers.Select(w => w.Title);
+        HashSet<string> remoteWrapperTitles = remoteCodeListWrappers.Select(w => w.Title).ToHashSet();
 
         foreach (CodeListWrapper localWrapper in localCodeListWrappers)
         {
@@ -347,13 +349,8 @@ public class OrgCodeListService : IOrgCodeListService
                 continue;
             }
 
-            foreach (CodeListWrapper remoteWrapper in remoteCodeListWrappers)
+            foreach (CodeListWrapper remoteWrapper in remoteCodeListWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
             {
-                if (localWrapper.Title != remoteWrapper.Title)
-                {
-                    continue; // no match
-                }
-
                 if (localWrapper.CodeList is null)
                 {
                     toDelete.Add(remoteWrapper); // DELETE

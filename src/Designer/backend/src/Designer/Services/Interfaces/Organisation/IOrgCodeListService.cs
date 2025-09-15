@@ -24,7 +24,7 @@ public interface IOrgCodeListService
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The code list</returns>
+    /// <returns>The code lists</returns>
     public Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default);
 
     /// <summary>

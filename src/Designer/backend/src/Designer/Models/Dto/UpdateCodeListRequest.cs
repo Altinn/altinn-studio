@@ -8,6 +8,7 @@ public class UpdateCodeListRequest
 {
     [JsonPropertyName("codeListWrappers")]
     public required List<CodeListWrapper> CodeListWrappers { get; set; }
+
     [JsonPropertyName("commitMessage")]
     public string? CommitMessage { get; set; }
 }
