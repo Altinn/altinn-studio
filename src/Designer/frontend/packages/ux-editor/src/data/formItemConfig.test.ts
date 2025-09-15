@@ -14,7 +14,12 @@ describe('formItemConfig', () => {
     confOnScreenComponents,
   ];
   const allAvailableComponents = allAvailableLists.flat();
-  const excludedComponents = [ComponentType.Custom, ComponentType.Payment, ComponentType.Summary];
+  const excludedComponents = [
+    ComponentType.Custom,
+    ComponentType.Payment,
+    ComponentType.Summary,
+    ComponentType.ImageUpload,
+  ];
 
   /**  Test that all components, except Custom, Payment, and Summary, are available in one of the visible lists */
   it.each(
