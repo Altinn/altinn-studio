@@ -1,4 +1,4 @@
-import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioParagraph, StudioTextfield } from '@studio/components';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -111,7 +111,7 @@ export const ResourceNameAndId = ({
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='danger'
+                data-color='danger'
                 title={t('resourceadm.dashboard_resource_name_and_id_delete_icon', {
                   objectType: idLabel,
                 })}
@@ -130,16 +130,17 @@ export const ResourceNameAndId = ({
         ) : (
           <div className={classes.editFieldWrapper}>
             <div>
-              <p className={classes.idText}>id</p>
+              <p className={classes.idText} data-color='neutral'>
+                id
+              </p>
             </div>
-            <StudioParagraph size='sm'>
+            <StudioParagraph>
               <strong>{formatIdString(id)}</strong>
             </StudioParagraph>
             <div className={classes.editButtonWrapper}>
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
-                color='first'
                 icon={<PencilWritingIcon />}
                 iconPlacement='right'
                 aria-label={t('resourceadm.dashboard_resource_name_and_id_change', {

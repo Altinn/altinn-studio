@@ -1,8 +1,12 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioCheckbox } from '@studio/components-legacy';
+import {
+  StudioCheckbox,
+  StudioCheckboxGroup,
+  StudioValidationMessage,
+  useStudioCheckboxGroup,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
@@ -70,31 +74,38 @@ export const ResourceCheckboxGroup = ({
 }: ResourceCheckboxGroupProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  const fieldErrors = errors.map((error, index) => (
+    <StudioValidationMessage key={index} data-color='danger'>
+      {error.error}
+    </StudioValidationMessage>
+  ));
+
+  const { getCheckboxProps } = useStudioCheckboxGroup({
+    error: fieldErrors.length > 0 && fieldErrors,
+    value: value,
+    onChange: onChange,
+  });
+
   const displayAvailableForCheckboxes = () => {
     return options.map((option) => (
-      <StudioCheckbox value={option.value} key={option.value} size='sm'>
-        {t(option.label)}
-      </StudioCheckbox>
+      <StudioCheckbox
+        {...getCheckboxProps(option.value)}
+        key={option.value}
+        label={t(option.label)}
+      />
     ));
   };
 
-  const fieldErrors = errors.map((error, index) => (
-    <InputFieldErrorMessage key={index} message={error.error} />
-  ));
-
   return (
     <div className={classes.inputWrapper}>
-      <StudioCheckbox.Group
+      <StudioCheckboxGroup
         id={id}
         legend={<ResourceFieldHeader label={legend} required={required} />}
         description={description}
-        size='sm'
-        error={fieldErrors.length > 0 ? fieldErrors : undefined}
-        onChange={onChange}
-        value={value}
       >
         {displayAvailableForCheckboxes()}
-      </StudioCheckbox.Group>
+        {fieldErrors.length > 0 && fieldErrors}
+      </StudioCheckboxGroup>
     </div>
   );
 };

@@ -8,8 +8,9 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioModal, StudioParagraph } from '@studio/components-legacy';
+import { StudioButton, StudioDialog, StudioParagraph } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -85,28 +86,24 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     };
 
     return (
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={ref}
-          onClose={handleClose}
-          closeButtonTitle={t('resourceadm.close_modal')}
+      <StudioDialog ref={ref} onClose={handleClose}>
+        <ResourceAdmDialogContent
           heading={t('resourceadm.dashboard_create_modal_title')}
           footer={
             <>
               <StudioButton
                 onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
-                color='first'
                 aria-disabled={!hasValidValues}
               >
                 {t('resourceadm.dashboard_create_modal_create_button')}
               </StudioButton>
-              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+              <StudioButton onClick={handleClose} variant='tertiary'>
                 {t('general.cancel')}
               </StudioButton>
             </>
           }
         >
-          <StudioParagraph size='sm'>
+          <StudioParagraph>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
           </StudioParagraph>
           <ResourceNameAndId
@@ -121,8 +118,8 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             onTitleChange={(newTitle: string) => setTitle(newTitle)}
             conflictErrorMessage={idErrorMessage ? t(idErrorMessage) : ''}
           />
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
     );
   },
 );

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { ErrorSummary } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components-legacy';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert, StudioHeading } from '@studio/components';
 import type {
   Resource,
   ResourceTypeOption,
@@ -36,6 +35,7 @@ import { ResourceReferenceFields } from '../../components/ResourceReferenceField
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConsentPreview } from '../../components/ConsentPreview';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -63,6 +63,7 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { org } = useUrlParams();
   const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
     resourceData.consentText,
   );
@@ -72,9 +73,15 @@ export const AboutResourcePage = ({
    * Resource type options
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
-    .filter(([key]) =>
-      key === 'Consent' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
-    )
+    .filter(([key]) => {
+      if (key === 'Consent' && !shouldDisplayFeature(FeatureFlag.ConsentResource)) {
+        return false;
+      }
+      if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
+        return false;
+      }
+      return true;
+    })
     .map(([key, value]) => ({
       value: key,
       label: t(value),
@@ -116,7 +123,7 @@ export const AboutResourcePage = ({
   const displayContent = () => {
     return (
       <div className={classes.resourceFields}>
-        <StudioHeading size='lg' level={1}>
+        <StudioHeading data-size='lg' level={1}>
           {t('resourceadm.about_resource_title')}
         </StudioHeading>
         {validationErrors.length > 0 && (

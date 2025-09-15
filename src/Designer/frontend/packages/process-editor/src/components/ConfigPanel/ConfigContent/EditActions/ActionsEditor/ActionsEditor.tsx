@@ -1,7 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs, StudioButton, StudioDeleteButton } from '@studio/components-legacy';
-import { StudioCard, StudioParagraph, StudioProperty } from '@studio/components';
+import { StudioTabs, StudioButton } from '@studio/components-legacy';
+import {
+  StudioCard,
+  StudioParagraph,
+  StudioProperty,
+  StudioDeleteButton,
+} from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CustomActions } from './CustomActions';
 import { PredefinedActions } from './PredefinedActions';
@@ -126,7 +131,6 @@ const ActionEditable = ({
           onClick={onClose}
         />
         <StudioDeleteButton
-          size='small'
           onDelete={onDelete}
           aria-label={t('general.delete_item', {
             item: actionElement.action,

@@ -13,16 +13,17 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import {
   StudioButton,
-  StudioCombobox,
-  StudioModal,
+  StudioSelect,
+  StudioDialog,
   StudioParagraph,
   StudioTextfield,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
 import {
   getAvailableEnvironments,
   getResourceIdentifierErrorMessage,
 } from '../../utils/resourceUtils';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export type ImportResourceModalProps = {
   onClose: () => void;
@@ -101,77 +102,75 @@ export const ImportResourceModal = forwardRef<HTMLDialogElement, ImportResourceM
     };
 
     return (
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={ref}
-          closeButtonTitle={t('resourceadm.close_modal')}
+      <StudioDialog ref={ref} onClose={handleClose}>
+        <ResourceAdmDialogContent
           heading={t('resourceadm.dashboard_import_modal_title')}
-          className={classes.importModal}
-          contentClassName={classes.importModalContent}
-          onClose={handleClose}
           footer={
             <>
               <StudioButton
                 onClick={() => (hasValidValues ? handleImportResource() : undefined)}
-                color='first'
                 aria-disabled={!hasValidValues}
               >
                 {t('resourceadm.dashboard_import_modal_import_button')}
               </StudioButton>
-              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+              <StudioButton onClick={handleClose} variant='tertiary'>
                 {t('general.cancel')}
               </StudioButton>
             </>
           }
         >
-          <StudioCombobox
-            portal={false}
-            value={selectedEnv ? [selectedEnv] : undefined}
-            label={t('resourceadm.dashboard_import_modal_select_env')}
-            onValueChange={(newValue: EnvironmentType[]) => {
-              setSelectedEnv(newValue[0]);
-              setSelectedService(undefined);
-              setId('');
-            }}
-          >
-            {environmentOptions.map((env) => (
-              <StudioCombobox.Option key={env.id} value={env.id}>
-                {t(env.label)}
-              </StudioCombobox.Option>
-            ))}
-          </StudioCombobox>
-          {selectedEnv && (
-            <div>
-              <ServiceContent
-                org={org}
-                env={selectedEnv}
-                selectedService={selectedService}
-                onSelectService={(altinn2LinkService: Altinn2LinkService) => {
-                  setSelectedService(altinn2LinkService);
-                  setId(altinn2LinkService ? formatIdString(altinn2LinkService.serviceName) : '');
-                }}
-              />
-              {selectedService && (
-                <div>
-                  <div className={classes.contentDivider} />
-                  <StudioParagraph size='sm' spacing>
-                    {t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
-                  </StudioParagraph>
-                  <StudioTextfield
-                    label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
-                    value={id}
-                    onChange={(event) => {
-                      setResourceIdExists(false);
-                      setId(formatIdString(event.target.value));
-                    }}
-                    error={idErrorMessage ? t(idErrorMessage) : ''}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+          <div className={classes.importModalContent}>
+            <StudioSelect
+              value={selectedEnv ? selectedEnv : ''}
+              label={t('resourceadm.dashboard_import_modal_select_env')}
+              onChange={(event) => {
+                setSelectedEnv(event.target.value as EnvironmentType);
+                setSelectedService(undefined);
+                setId('');
+              }}
+            >
+              <StudioSelect.Option value={''} disabled>
+                {t('resourceadm.dashboard_import_modal_select_env_option')}
+              </StudioSelect.Option>
+              {environmentOptions.map((env) => (
+                <StudioSelect.Option key={env.id} value={env.id}>
+                  {t(env.label)}
+                </StudioSelect.Option>
+              ))}
+            </StudioSelect>
+            {selectedEnv && (
+              <div>
+                <ServiceContent
+                  org={org}
+                  env={selectedEnv}
+                  selectedService={selectedService}
+                  onSelectService={(altinn2LinkService: Altinn2LinkService) => {
+                    setSelectedService(altinn2LinkService);
+                    setId(formatIdString(altinn2LinkService.serviceName));
+                  }}
+                />
+                {selectedService && (
+                  <div>
+                    <div className={classes.contentDivider} />
+                    <StudioParagraph spacing>
+                      {t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
+                    </StudioParagraph>
+                    <StudioTextfield
+                      label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+                      value={id}
+                      onChange={(event) => {
+                        setResourceIdExists(false);
+                        setId(formatIdString(event.target.value));
+                      }}
+                      error={idErrorMessage ? t(idErrorMessage) : ''}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
     );
   },
 );

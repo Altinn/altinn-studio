@@ -1,13 +1,11 @@
 name: App Template Build and Test on windows and macos
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - 'src/App/app-template-dotnet/**'
-      - '.github/workflows/app-template-dotnet-test.yml'
+      - 'src/App/template/**'
+      - '.github/workflows/app-template-test.yml'
   workflow_dispatch:
 jobs:
   analyze:
@@ -34,9 +32,9 @@ jobs:
       - name: Build
         run: |
            dotnet build src/App.sln -v m
-        working-directory: src/App/app-template-dotnet
+        working-directory: src/App/template
 
       - name: Test
         run: |
            dotnet test src/App.sln -v m --no-restore --no-build
-        working-directory: src/App/app-template-dotnet
+        working-directory: src/App/template

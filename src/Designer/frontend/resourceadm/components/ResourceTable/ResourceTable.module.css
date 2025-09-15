@@ -4,13 +4,12 @@
 }
 
 .editLink {
-  color: var(--fds-semantic-text-action-default);
-  font-size: var(--fds-sizing-7);
+  font-size: var(--ds-font-size-7);
 }
 
 .tagContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
 }

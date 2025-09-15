@@ -70,6 +70,8 @@ export const EditNameAction = ({
     setCurrentValue(getResolvedTaskName(id));
   };
 
+  const handleTextChange = (value: string) => setCurrentValue(value);
+
   return (
     <StudioDialog.TriggerContext>
       <StudioDialog.Trigger
@@ -89,7 +91,7 @@ export const EditNameAction = ({
           <TextResourceEditor
             textResourceId={textResourceId}
             onReferenceChange={handleReferenceChange}
-            onSetCurrentValue={setCurrentValue}
+            onTextChange={handleTextChange}
             textResourceValue={currentValue}
           />
           <div className={classes.buttonGroup}>

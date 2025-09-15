@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 
@@ -27,6 +28,15 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     public GiteaContentLibraryService(IGitea giteaApiWrapper)
     {
         _giteaApiWrapper = giteaApiWrapper;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> OrgContentRepoExists(string orgName)
+    {
+        string contentRepositoryName = GetContentRepoName(orgName);
+        SearchOptions searchOptions = new() { Keyword = contentRepositoryName };
+        SearchResults searchResults = await _giteaApiWrapper.SearchRepo(searchOptions);
+        return searchResults.Data.Select(repository => repository.Name).Contains(contentRepositoryName);
     }
 
     /// <inheritdoc />
