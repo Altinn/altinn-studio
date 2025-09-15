@@ -19,6 +19,7 @@ import GroupSchema from './schemas/json/component/Group.schema.v1.json';
 import HeaderSchema from './schemas/json/component/Header.schema.v1.json';
 import IFrameSchema from './schemas/json/component/IFrame.schema.v1.json';
 import ImageSchema from './schemas/json/component/Image.schema.v1.json';
+import ImageUploadSchema from './schemas/json/component/ImageUpload.schema.v1.json';
 import InputSchema from './schemas/json/component/Input.schema.v1.json';
 import InstanceInformationSchema from './schemas/json/component/InstanceInformation.schema.v1.json';
 import InstantiationButtonSchema from './schemas/json/component/InstantiationButton.schema.v1.json';
@@ -66,6 +67,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Header]: HeaderSchema,
   [ComponentType.IFrame]: IFrameSchema,
   [ComponentType.Image]: ImageSchema,
+  [ComponentType.ImageUpload]: ImageUploadSchema,
   [ComponentType.Input]: InputSchema,
   [ComponentType.InstanceInformation]: InstanceInformationSchema,
   [ComponentType.InstantiationButton]: InstantiationButtonSchema,
