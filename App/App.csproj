@@ -5,10 +5,8 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.6.4-pr.1348.reminder-sign.2e27feda">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </PackageReference>
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.6.4-pr.1348.reminder-sign.2e27feda" />
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.7.0-pr.2072.signing-sensitive-data.af6625c6" />
+    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.7.0-pr.2072.signing-sensitive-data.af6625c6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
