@@ -71,7 +71,6 @@ export const AboutResourcePage = ({
   /**
    * Resource type options
    */
-
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) => {
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
