@@ -182,7 +182,7 @@ export const ConsentPreview = ({
 
 const replaceMetadata = (consentText: string, metadata: { [key: string]: string }): string => {
   return Object.keys(metadata).reduce((acc, metadataKey) => {
-    return acc.replace(`{${metadataKey}}`, metadata[metadataKey]);
+    return acc.replaceAll(`{${metadataKey}}`, metadata[metadataKey]);
   }, consentText);
 };
 
@@ -201,7 +201,7 @@ const getDummyResourceMetadata = (consentMetadata: ConsentMetadata) => {
 };
 
 const getDummyDateString = (): string => {
-  return new Date().toLocaleDateString('no-NB', {
+  return new Date().toLocaleDateString('nb-NO', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
