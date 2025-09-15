@@ -1746,6 +1746,7 @@
   "ux_editor.component_title.Header": "Tittel",
   "ux_editor.component_title.IFrame": "IFrame",
   "ux_editor.component_title.Image": "Bilde",
+  "ux_editor.component_title.ImageUpload": "Bildeopplaster",
   "ux_editor.component_title.Input": "Lite tekstfelt",
   "ux_editor.component_title.InstanceInformation": "Informasjon om eksemplaret",
   "ux_editor.component_title.InstantiationButton": "Start eksemplar",
