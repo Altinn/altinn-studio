@@ -1,6 +1,6 @@
-import { type ComponentProps, type Context, createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 import type { EventPropName } from './types/EventPropName';
-import React from 'react';
+import type { ComponentProps, Context } from 'react';
 
 export type StudioInputTableContextValue = {
   [Key in EventPropName as `${Key}Any`]?: () => void;
