@@ -1768,6 +1768,7 @@
   "ux_editor.component_title.Subform": "Tabell for underskjema",
   "ux_editor.component_title.Summary": "Oppsummering",
   "ux_editor.component_title.Summary2": "Oppsummering",
+  "ux_editor.component_title.Text": "Tekst",
   "ux_editor.component_title.TextArea": "Stort tekstfelt",
   "ux_editor.component_unknown": "Ukjent komponent",
   "ux_editor.config.warning_duplicates.heading": "Du har den samme ID-en på flere komponenter",
