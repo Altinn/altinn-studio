@@ -1,21 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './PolicyActions.module.css';
-import { getActionOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
+import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
 import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
 import { StudioNativeSelect } from '@studio/components-legacy';
-
-const wellKnownActionsIds: string[] = [
-  'complete',
-  'confirm',
-  'delete',
-  'instantiate',
-  'read',
-  'sign',
-  'write',
-];
 
 export const PolicyActions = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -23,19 +13,12 @@ export const PolicyActions = (): React.ReactElement => {
   const { policyRule, uniqueId, showAllErrors, policyError, setPolicyError } =
     usePolicyRuleContext();
 
-  const [actionOptions, setActionOptions] = useState(getActionOptions(actions, policyRule));
-
   const getTranslationByActionId = (actionId: string): string => {
-    return wellKnownActionsIds.includes(actionId)
-      ? t(`policy_editor.action_${actionId}`)
-      : actionId;
+    return actions.find((a) => a.actionId === actionId)?.actionTitle ?? actionId;
   };
 
-  const handleRemoveAction = (index: number, actionTitle: string) => {
-    const updatedActions = [...policyRule.actions];
-    updatedActions.splice(index, 1);
-
-    setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
+  const handleRemoveAction = (actionId: string) => {
+    const updatedActions = policyRule.actions.filter((id) => id !== actionId);
 
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActions },
@@ -48,11 +31,7 @@ export const PolicyActions = (): React.ReactElement => {
   };
 
   const handleClickActionInList = (clickedOption: string) => {
-    const index = actionOptions.findIndex((o) => o.value === clickedOption);
-    const updatedOptions = [...actionOptions];
-    updatedOptions.splice(index, 1);
-    setActionOptions(updatedOptions);
-
+    console.log('Adding action with id:', clickedOption);
     const updatedActionTitles = [...policyRule.actions, clickedOption];
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActionTitles },
@@ -64,19 +43,21 @@ export const PolicyActions = (): React.ReactElement => {
     setPolicyError({ ...policyError, actionsError: false });
   };
 
-  const displayActions = policyRule.actions.map((actionId, i) => {
+  const displayActions = policyRule.actions.map((actionId) => {
     return (
       <Chip.Removable
         className={classes.chip}
         key={actionId}
         aria-label={`${t('general.delete')} ${getTranslationByActionId(actionId)}`}
         size='small'
-        onClick={() => handleRemoveAction(i, actionId)}
+        onClick={() => handleRemoveAction(actionId)}
       >
         {getTranslationByActionId(actionId)}
       </Chip.Removable>
     );
   });
+
+  const isAllActionsSelected = actions.length === policyRule.actions.length;
 
   return (
     <>
@@ -84,7 +65,7 @@ export const PolicyActions = (): React.ReactElement => {
         {t('policy_editor.rule_card_actions_title')}
       </Label>
       <Paragraph size='small' className={classes.inputParagraph}>
-        {actionOptions.length === 0
+        {isAllActionsSelected
           ? t('policy_editor.rule_card_actions_select_all_selected')
           : t('policy_editor.rule_card_actions_select_add')}
       </Paragraph>
@@ -93,18 +74,20 @@ export const PolicyActions = (): React.ReactElement => {
           onChange={(event) =>
             event.target.value !== null && handleClickActionInList(event.target.value)
           }
-          disabled={actionOptions.length === 0}
+          disabled={isAllActionsSelected}
           error={showAllErrors && policyError.actionsError}
           id={`selectAction-${uniqueId}`}
           size='sm'
           defaultValue=''
         >
           <option value='' hidden></option>
-          {actionOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {getTranslationByActionId(option.label)}
-            </option>
-          ))}
+          {actions
+            .filter((action) => policyRule.actions.indexOf(action.actionId) === -1)
+            .map((option) => (
+              <option key={option.actionId} value={option.actionId}>
+                {option.actionTitle}
+              </option>
+            ))}
         </StudioNativeSelect>
       </div>
       <div className={classes.chipWrapper}>{displayActions}</div>

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { mockActionId3 } from '../../../../test/mocks/policyActionMocks';
+import { mockAction3 } from '../../../../test/mocks/policyActionMocks';
 import { mockPolicyRuleCard1 } from '../../../../test/mocks/policyRuleMocks';
 import { mockSubjectTitle2 } from '../../../../test/mocks/policySubjectMocks';
 import {
@@ -71,7 +71,7 @@ describe('PolicyRule', () => {
     const [actionSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    const actionOption: string = textMock(`policy_editor.action_${mockActionId3}`);
+    const actionOption: string = mockAction3.actionTitle;
     await user.selectOptions(actionSelect, screen.getByRole('option', { name: actionOption }));
     await user.tab();
 

@@ -1,23 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyActions } from './PolicyActions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
-  mockActionId1,
-  mockActionId2,
-  mockActionId3,
-  mockActionId4,
+  mockAction1,
+  mockAction2,
+  mockAction3,
+  mockAction4,
 } from '../../../../../test/mocks/policyActionMocks';
 import { PolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 
-const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
-const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
-const mockActionOption3: string = textMock(`policy_editor.action_${mockActionId3}`);
-const mockActionOption4: string = mockActionId4;
+const mockActionOption1: string = mockAction1.actionTitle;
+const mockActionOption2: string = mockAction2.actionTitle;
+const mockActionOption3: string = mockAction3.actionTitle;
+const mockActionOption4: string = mockAction4.actionTitle;
 
 describe('PolicyActions', () => {
   afterEach(jest.clearAllMocks);
@@ -60,12 +60,7 @@ describe('PolicyActions', () => {
 
     await user.selectOptions(actionSelect, mockActionOption3);
 
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
-    expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionOption3}`),
-    ).not.toBeInTheDocument();
-
-    const [inputAllSelected] = screen.getAllByText(
+    const inputAllSelected = await screen.findByText(
       textMock('policy_editor.rule_card_actions_select_all_selected'),
     );
     expect(inputAllSelected).toBeInTheDocument();
@@ -86,30 +81,60 @@ describe('PolicyActions', () => {
       `${textMock('general.delete')} ${mockActionOption1}`,
     );
     await user.click(selectedSubject);
+    expect(selectedSubject).not.toBeInTheDocument();
 
     await user.click(actionSelect);
-    expect(screen.getByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
   });
 
-  it('calls the "setPolicyRules", "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
+  it('calls the "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyActions();
 
-    const chipElement = screen.getByText(textMock('policy_editor.action_write'));
+    const chipElement = screen.getByText(mockActionOption2);
     await user.click(chipElement);
 
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
     expect(mockPolicyRuleContextValue.setPolicyError).toHaveBeenCalledTimes(1);
   });
 });
 
 const renderPolicyActions = () => {
-  return render(
-    <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
-      <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+  return render(<ContextWrapper />);
+};
+
+const ContextWrapper = () => {
+  // Add local state for policyRule
+  const [policyRules, setPolicyRules] = useState([
+    {
+      ...mockPolicyRuleContextValue.policyRule,
+      actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
+    },
+  ]);
+
+  return (
+    <PolicyEditorContext.Provider
+      value={{
+        ...mockPolicyEditorContextValue,
+        actions: [mockAction1, mockAction2, mockAction3, mockAction4],
+        policyRules: policyRules,
+        setPolicyRules,
+      }}
+    >
+      <PolicyRuleContext.Provider
+        value={{
+          ...mockPolicyRuleContextValue,
+          policyError: {
+            resourceError: false,
+            actionsError: false,
+            subjectsError: false,
+          },
+          showAllErrors: false,
+          policyRule: { ...policyRules[0] },
+        }}
+      >
         <PolicyActions />
       </PolicyRuleContext.Provider>
-    </PolicyEditorContext.Provider>,
+    </PolicyEditorContext.Provider>
   );
 };

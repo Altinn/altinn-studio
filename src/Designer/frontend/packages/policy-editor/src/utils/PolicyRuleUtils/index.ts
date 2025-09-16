@@ -1,4 +1,4 @@
-import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
+import type { PolicyRuleCard, PolicySubject } from '../../types';
 
 /**
  * Function to update the fields inside the rule object in the rule array.
@@ -40,20 +40,6 @@ export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyR
   return subjects
     .filter((s) => !policyRule.subject.includes(s.subjectId))
     .map((s) => ({ value: s.subjectId, label: s.subjectTitle }));
-};
-
-/**
- * Maps the action objects to option objects for display in the select component
- *
- * @param actions the list of possible actions
- * @param policyRule the current policy rule
- *
- * @returns a list of select options with value and label
- */
-export const getActionOptions = (actions: PolicyAction[], policyRule: PolicyRuleCard) => {
-  return actions
-    .filter((a) => !policyRule.actions.includes(a.actionId))
-    .map((a) => ({ value: a.actionId, label: a.actionId }));
 };
 
 /**
