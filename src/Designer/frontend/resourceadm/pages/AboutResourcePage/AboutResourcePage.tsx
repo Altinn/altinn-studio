@@ -35,6 +35,7 @@ import { ResourceReferenceFields } from '../../components/ResourceReferenceField
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConsentPreview } from '../../components/ConsentPreview';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 export type AboutResourcePageProps = {
   resourceData: Resource;
@@ -62,6 +63,7 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { org } = useUrlParams();
   const [consentPreviewText, setConsentPreviewText] = useState<SupportedLanguage>(
     resourceData.consentText,
   );
@@ -71,9 +73,15 @@ export const AboutResourcePage = ({
    * Resource type options
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
-    .filter(([key]) =>
-      key === 'Consent' ? shouldDisplayFeature(FeatureFlag.ConsentResource) : true,
-    )
+    .filter(([key]) => {
+      if (key === 'Consent' && !shouldDisplayFeature(FeatureFlag.ConsentResource)) {
+        return false;
+      }
+      if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
+        return false;
+      }
+      return true;
+    })
     .map(([key, value]) => ({
       value: key,
       label: t(value),

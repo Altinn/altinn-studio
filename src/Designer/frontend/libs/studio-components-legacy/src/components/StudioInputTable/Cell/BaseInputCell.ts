@@ -10,8 +10,8 @@ type DefaultProps<Element extends HTMLCellInputElement> = {
 };
 
 type RestrictedKeyboardEvent<Element, Keys extends KeyboardEvent<Element>['key']> = Override<
-  KeyboardEvent<Element>,
-  { key: Keys }
+  { key: Keys },
+  KeyboardEvent<Element>
 >;
 
 type ArrowKeyEvent<Element> = RestrictedKeyboardEvent<
@@ -52,16 +52,10 @@ export abstract class BaseInputCell<
   };
 
   private handleKeyDown(event: KeyboardEvent<Element>): void {
-    switch (event.key) {
-      case 'ArrowUp':
-      case 'ArrowDown':
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        this.handleArrowKeyDown(event);
-        break;
-      case 'Enter':
-        this.handleEnterKeyDown(event);
-        break;
+    if (isArrowKeyEvent<Element>(event)) {
+      this.handleArrowKeyDown(event);
+    } else if (isEnterKeyEvent<Element>(event)) {
+      this.handleEnterKeyDown(event);
     }
   }
 
@@ -95,4 +89,12 @@ export abstract class BaseInputCell<
   }: KeyboardEvent<Element>): HTMLCellInputElement | null {
     return getNextInputElement(currentTarget, key);
   }
+}
+
+function isArrowKeyEvent<Element>(event: KeyboardEvent<Element>): event is ArrowKeyEvent<Element> {
+  return ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key);
+}
+
+function isEnterKeyEvent<Element>(event: KeyboardEvent<Element>): event is EnterKeyEvent<Element> {
+  return event.key === 'Enter';
 }
