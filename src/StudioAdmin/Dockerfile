@@ -4,7 +4,7 @@ COPY . .
 RUN dotnet publish StudioAdmin.csproj -c Release -o /release
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:d4bf3d8c8f0236341ddd93d15208152e26bc6dcc9d34c635351a3402c284137f AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:56cbdd25b168276871f8f4916efebde4d10e69250bb6b3e8a4f6f95db8d65ac2 AS final
 WORKDIR /app
 COPY --from=build /release .
 
