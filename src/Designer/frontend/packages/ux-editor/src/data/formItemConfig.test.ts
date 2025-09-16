@@ -33,4 +33,8 @@ describe('formItemConfig', () => {
   test('that payment component is not available in the visible lists', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
   });
+
+  it('should not include ImageUpload when feature flag is not enabled', () => {
+    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.ImageUpload);
+  });
 });
