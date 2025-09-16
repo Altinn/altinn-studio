@@ -13,10 +13,6 @@ export const PolicyActions = (): React.ReactElement => {
   const { policyRule, uniqueId, showAllErrors, policyError, setPolicyError } =
     usePolicyRuleContext();
 
-  const getTranslationByActionId = (actionId: string): string => {
-    return actions.find((a) => a.actionId === actionId)?.actionTitle ?? actionId;
-  };
-
   const handleRemoveAction = (actionId: string) => {
     const updatedActions = policyRule.actions.filter((id) => id !== actionId);
 
@@ -44,15 +40,16 @@ export const PolicyActions = (): React.ReactElement => {
   };
 
   const displayActions = policyRule.actions.map((actionId) => {
+    const actionTitle = actions.find((a) => a.actionId === actionId).actionTitle;
     return (
       <Chip.Removable
         className={classes.chip}
         key={actionId}
-        aria-label={`${t('general.delete')} ${getTranslationByActionId(actionId)}`}
+        aria-label={`${t('general.delete')} ${actionTitle}`}
         size='small'
         onClick={() => handleRemoveAction(actionId)}
       >
-        {getTranslationByActionId(actionId)}
+        {actionTitle}
       </Chip.Removable>
     );
   });

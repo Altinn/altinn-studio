@@ -60,7 +60,7 @@ describe('PolicyActions', () => {
 
     await user.selectOptions(actionSelect, mockActionOption3);
 
-    const inputAllSelected = await screen.findByText(
+    const inputAllSelected = screen.getByText(
       textMock('policy_editor.rule_card_actions_select_all_selected'),
     );
     expect(inputAllSelected).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('PolicyActions', () => {
     expect(selectedSubject).not.toBeInTheDocument();
 
     await user.click(actionSelect);
-    expect(await screen.findByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
   });
 
   it('calls the "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
@@ -96,6 +96,13 @@ describe('PolicyActions', () => {
 
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
     expect(mockPolicyRuleContextValue.setPolicyError).toHaveBeenCalledTimes(1);
+  });
+
+  it('should show actions error', () => {
+    renderPolicyActions();
+
+    const error = screen.getByText(textMock('policy_editor.rule_card_actions_error'));
+    expect(error).toBeInTheDocument();
   });
 });
 
@@ -126,10 +133,10 @@ const ContextWrapper = () => {
           ...mockPolicyRuleContextValue,
           policyError: {
             resourceError: false,
-            actionsError: false,
+            actionsError: true,
             subjectsError: false,
           },
-          showAllErrors: false,
+          showAllErrors: true,
           policyRule: { ...policyRules[0] },
         }}
       >
