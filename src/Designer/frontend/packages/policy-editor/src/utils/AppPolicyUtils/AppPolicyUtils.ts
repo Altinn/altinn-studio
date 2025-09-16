@@ -147,7 +147,7 @@ export const extractAllUniqueAccessPackages = (rules: PolicyRuleCard[]): string[
  */
 export const getSubjectCategoryTextKey = (subjectUrn: string): string | undefined => {
   const s = subjectUrn.toLowerCase();
-  if (subjectUrn.startsWith('urn:altinn:accesspackage')) {
+  if (s.startsWith('urn:altinn:accesspackage')) {
     return `policy_editor.role_category.access_package`;
   } else if (s.startsWith('urn:altinn:rolecode')) {
     return `policy_editor.role_category.altinn_rolecode`;
