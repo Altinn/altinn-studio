@@ -440,7 +440,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Data = res.Data,
                 NextPage = res.Links?.Next
             };
-
         }
 
         public async Task<PagedAccessListResponse> GetResourceAccessLists(

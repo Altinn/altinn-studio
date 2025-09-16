@@ -11,6 +11,35 @@ import {
   getSubjectDisplayName,
   mapActionsForRoleOrAccessPackage,
 } from './';
+import { policySubjectOrg } from '..';
+
+const subject1 = {
+  id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
+  name: 'Role 1',
+  description: 'Role 1 description',
+  urn: 'urn:altinn:rolecode:s1',
+  legacyRoleCode: 'VARA',
+  legacyUrn: 'urn:altinn:rolecode:s1',
+  provider: {
+    id: '0195ea92-2080-758b-89db-7735c4f68320',
+    name: 'Altinn 2',
+    code: 'sys-altinn2',
+  },
+};
+
+const subject2 = {
+  id: '1f8a2518-9494-468a-80a0-7405f0daf9e9',
+  name: 'Role 2',
+  description: 'Role 2 description',
+  urn: 'urn:altinn:rolecode:s2',
+  legacyRoleCode: 'OBS',
+  legacyUrn: 'urn:altinn:rolecode:s2',
+  provider: {
+    id: '0195ea92-2080-758b-89db-7735c4f68320',
+    name: 'Altinn 2',
+    code: 'sys-altinn2',
+  },
+};
 
 describe('AppPolicyUtils', () => {
   describe('filterRulesWithSubject', () => {
@@ -327,40 +356,17 @@ describe('AppPolicyUtils', () => {
 
   describe('getSubjectCategoryTextKey', () => {
     it('should return the text key for the subject category', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: 'subject2',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 2',
-          subjectDescription: 'Role 2 description',
-        },
-      ];
-      const textKey = getSubjectCategoryTextKey('subject1', subjects);
-      expect(textKey).toEqual('policy_editor.role_category.altinn_role');
+      const textKey = getSubjectCategoryTextKey(subject1.urn);
+      expect(textKey).toEqual('policy_editor.role_category.altinn_rolecode');
+    });
+
+    it('should return the text key for the access package category', () => {
+      const textKey = getSubjectCategoryTextKey('urn:altinn:accesspackage:ansvarlig-revisor');
+      expect(textKey).toEqual('policy_editor.role_category.access_package');
     });
 
     it('should return unknown key if the subject is not found', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'urn:altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: 'subject2',
-          subjectSource: 'urn:altinn:role',
-          subjectTitle: 'Role 2',
-          subjectDescription: 'Role 2 description',
-        },
-      ];
-      const textKey = getSubjectCategoryTextKey('subject3', subjects);
+      const textKey = getSubjectCategoryTextKey('subject3');
       expect(textKey).toEqual('policy_editor.role_category.unknown');
     });
   });
@@ -645,78 +651,26 @@ describe('AppPolicyUtils', () => {
 
   describe('getSubjectDisplayName', () => {
     it('should return the display name for a subject', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: 'subject2',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 2',
-          subjectDescription: 'Role 2 description',
-        },
-      ];
-      const displayName = getSubjectDisplayName('subject1', subjects);
+      const subjects = [subject1, subject2];
+      const displayName = getSubjectDisplayName(subject1.urn, subjects);
       expect(displayName).toEqual('Role 1');
     });
 
     it('should return the subject ID if the subject is not found', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'urn:altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: 'subject2',
-          subjectSource: 'urn:altinn:role',
-          subjectTitle: 'Role 2',
-          subjectDescription: 'Role 2 description',
-        },
-      ];
+      const subjects = [subject1, subject2];
       const displayName = getSubjectDisplayName('subject3', subjects);
       expect(displayName).toEqual('subject3');
     });
 
     it('should return the service owner display name for the service owner subject', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: '[org]',
-          subjectSource: 'altinn:org',
-          subjectTitle: 'Tjenesteeier',
-          subjectDescription: 'Tjenesteeier',
-        },
-      ];
-      const displayName = getSubjectDisplayName('[org]', subjects);
+      const subjects = [subject1, policySubjectOrg];
+      const displayName = getSubjectDisplayName(policySubjectOrg.urn, subjects);
       expect(displayName).toEqual('Tjenesteeier');
     });
 
     it('should return the service owner display name for the service owner subject regardless of case', () => {
-      const subjects = [
-        {
-          subjectId: 'subject1',
-          subjectSource: 'altinn:role',
-          subjectTitle: 'Role 1',
-          subjectDescription: 'Role 1 description',
-        },
-        {
-          subjectId: '[org]',
-          subjectSource: 'altinn:org',
-          subjectTitle: 'Tjenesteeier',
-          subjectDescription: 'Tjenesteeier',
-        },
-      ];
-      const displayName = getSubjectDisplayName('SUBJECT1', subjects);
+      const subjects = [subject1, policySubjectOrg];
+      const displayName = getSubjectDisplayName(subject1.urn.toUpperCase(), subjects);
       expect(displayName).toEqual('Role 1');
     });
   });
