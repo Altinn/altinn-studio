@@ -18,6 +18,7 @@ export * from './StudioCheckbox';
 export * from './StudioCheckboxGroup';
 export * from './StudioCheckboxTable';
 export * from './StudioCodeFragment';
+export * from './StudioCodeListEditor';
 export * from './StudioContentMenu';
 export * from './StudioDecimalInput';
 export * from './StudioDeleteButton';
