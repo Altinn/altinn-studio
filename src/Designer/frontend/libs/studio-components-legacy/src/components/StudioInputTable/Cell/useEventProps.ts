@@ -11,15 +11,15 @@ export function useEventProps<BlurInput, FocusInput, ChangeInput>({
 
   return useMemo<EventProps<BlurInput, FocusInput, ChangeInput>>(
     () => ({
-      onChange: (input) => {
+      onChange: (input): void => {
         onChange?.(input);
         onChangeAny?.();
       },
-      onFocus: (input) => {
+      onFocus: (input): void => {
         onFocus?.(input);
         onFocusAny?.();
       },
-      onBlur: (input) => {
+      onBlur: (input): void => {
         onBlur?.(input);
         onBlurAny?.();
       },
