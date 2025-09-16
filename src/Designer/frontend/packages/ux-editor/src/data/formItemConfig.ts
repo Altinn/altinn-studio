@@ -645,7 +645,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.AttachmentList,
     ComponentType.FileUpload,
     ComponentType.FileUploadWithTag,
-    shouldDisplayFeature(FeatureFlag.ImageUpload) && ComponentType.ImageUpload,
+    ...(shouldDisplayFeature(FeatureFlag.ImageUpload) ? [ComponentType.ImageUpload] : []),
   ],
   container: [
     ComponentType.Group,
