@@ -19,7 +19,8 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
       const updatedLayout = removeComponent(layout, id);
       if (
         component?.type === ComponentType.FileUpload ||
-        component?.type === ComponentType.FileUploadWithTag
+        component?.type === ComponentType.FileUploadWithTag ||
+        component?.type === ComponentType.ImageUpload
       ) {
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
         await updateBpmn(removeDataTypeIdsToSign([id]));
