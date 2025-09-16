@@ -145,6 +145,36 @@
         }
       }
     },
+    "cropArea": {
+      "title": "Crop Area",
+      "description": "Configuration of the cropping area",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Shape",
+          "description": "The shape of the cropping area",
+          "enum": ["square", "circle"],
+          "default": "circle"
+        },
+        "width": {
+          "title": "Width",
+          "description": "Optional width of the cropping area",
+          "type": "number",
+          "default": 300
+        },
+        "height": {
+          "title": "Height",
+          "description": "Optional height of the cropping area",
+          "type": "number",
+          "default": 300
+        }
+      },
+      "default": {
+        "type": "circle",
+        "width": 300,
+        "height": 300
+      }
+    },
     "dataModelBindings": {
       "title": "Data model binding",
       "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
