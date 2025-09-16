@@ -21,14 +21,6 @@
         }
       },
       {
-        "id": "signeeListSummary",
-        "type": "Summary2",
-        "target": {
-          "type": "component",
-          "id": "signee-list"
-        }
-      },
-      {
         "id": "signing-documents",
         "type": "SigningDocumentList",
         "textResourceBindings": {
