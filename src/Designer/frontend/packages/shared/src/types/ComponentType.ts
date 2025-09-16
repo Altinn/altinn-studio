@@ -19,6 +19,7 @@ export enum ComponentType {
   Header = 'Header',
   IFrame = 'IFrame',
   Image = 'Image',
+  ImageUpload = 'ImageUpload',
   Input = 'Input',
   InstanceInformation = 'InstanceInformation',
   InstantiationButton = 'InstantiationButton',
