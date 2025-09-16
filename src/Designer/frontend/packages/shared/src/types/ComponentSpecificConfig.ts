@@ -246,11 +246,9 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.ImageUpload]: {
-    cropArea?: {
-      type?: 'circle' | 'square';
-      width?: number;
-      height?: number;
-    };
+    cropShape?: 'circle' | 'square';
+    cropWidth?: number;
+    cropHeight?: number;
   };
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &
