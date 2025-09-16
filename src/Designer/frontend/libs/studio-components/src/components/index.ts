@@ -29,6 +29,7 @@ export * from './StudioField';
 export * from './StudioFieldset';
 export * from './StudioFileUploader';
 export * from './StudioFormGroup';
+export * from './StudioGridSelector';
 export * from './StudioHeading';
 export * from './StudioHelpText';
 export * from './StudioLabel';
