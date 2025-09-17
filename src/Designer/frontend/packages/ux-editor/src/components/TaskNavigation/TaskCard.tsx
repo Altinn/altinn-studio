@@ -4,8 +4,8 @@ import { StudioIconCard } from '@studio/components-legacy/src/components/StudioI
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioParagraph, StudioDeleteButton, StudioHeading } from '@studio/components';
 import { getLayoutSetIcon } from '../../utils/getLayoutSetIcon';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

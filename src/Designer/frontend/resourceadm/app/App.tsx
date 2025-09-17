@@ -5,7 +5,7 @@ import classes from './App.module.css';
 import './App.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioCenter, StudioSpinner } from '@studio/components';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { PageLayout } from '../pages/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
@@ -66,5 +66,9 @@ export const App = (): React.JSX.Element => {
       </div>
     );
   }
-  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('resourceadm.loading_app')} />;
+  return (
+    <StudioCenter className={classes.root}>
+      <StudioSpinner data-size='xl' aria-label={t('resourceadm.loading_app')} />
+    </StudioCenter>
+  );
 };

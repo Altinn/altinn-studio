@@ -4,8 +4,13 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import { StudioDeleteButton } from '@studio/components-legacy';
-import { StudioAlert, StudioButton, StudioPopover, StudioHeading } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioPopover,
+  StudioHeading,
+  StudioDeleteButton,
+} from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
@@ -156,6 +161,7 @@ export const PageGroupAccordion = ({
               icon={<TrashIcon />}
               onDelete={handleConfirmDelete}
               variant='tertiary'
+              data-size='2xs'
               disabled={isPending}
             />
           </div>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { StudioLabelAsParagraph, StudioParagraph, StudioSwitch } from '@studio/components-legacy';
+import { StudioParagraph, StudioSwitch, StudioFieldset } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
@@ -34,12 +34,12 @@ type ResourceSwitchInputProps = {
 
 /**
  * @component
- *    Displays tge switch component used on the about resource page
+ *    Displays the switch component used on the about resource page
  *
  * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the switch
  * @property {string}[description] - The description of the switch
- * @property {string}[value] - The value in the switch
+ * @property {boolean}[value] - The value in the switch
  * @property {function}[onChange] - Function to be executed on change
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
  *
@@ -55,41 +55,31 @@ export const ResourceSwitchInput = ({
 }: ResourceSwitchInputProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [isChecked, setIsChecked] = useState(value);
-
   return (
     <div className={classes.inputWrapper}>
-      <StudioLabelAsParagraph size='sm' spacing>
-        {label}
-      </StudioLabelAsParagraph>
-      {description && (
-        <StudioParagraph variant='short' size='sm' className={classes.description}>
-          {description}
-        </StudioParagraph>
-      )}
-      <div className={classes.toggleWrapper}>
-        <StudioSwitch
-          checked={isChecked}
-          onChange={(event) => {
-            const newValue = event.target.checked;
-            setIsChecked(newValue);
-            onChange(newValue);
-          }}
-          id={id}
-          aria-description={description}
-          aria-label={label}
-          size='sm'
-        >
-          <StudioParagraph
-            size='sm'
-            className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
-          >
-            {t(toggleTextTranslationKey, {
-              shouldText: !isChecked ? t('resourceadm.switch_should_not') : '',
-            })}
-          </StudioParagraph>
-        </StudioSwitch>
-      </div>
+      <StudioFieldset legend={label} description={description}>
+        <div className={classes.toggleWrapper}>
+          <StudioSwitch
+            checked={value}
+            onChange={(event) => {
+              const newValue = event.target.checked;
+              onChange(newValue);
+            }}
+            id={id}
+            aria-description={description}
+            label={
+              <StudioParagraph
+                className={value ? classes.toggleTextActive : classes.toggleTextInactive}
+              >
+                {t(toggleTextTranslationKey, {
+                  shouldText: !value ? t('resourceadm.switch_should_not') : '',
+                })}
+              </StudioParagraph>
+            }
+            data-color='success'
+          />
+        </div>
+      </StudioFieldset>
     </div>
   );
 };

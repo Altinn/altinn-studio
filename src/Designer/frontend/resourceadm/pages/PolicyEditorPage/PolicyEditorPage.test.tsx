@@ -88,21 +88,27 @@ describe('PolicyEditorPage', () => {
   it('displays the page spinner when loading policy, actions, or subjects', async () => {
     renderPolicyEditorPage();
 
-    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.policy_editor_spinner')),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
     getPolicy.mockImplementation(() => Promise.resolve<Policy>(mockPolicy));
 
-    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.policy_editor_spinner')),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
     getPolicyActions.mockImplementation(() => Promise.resolve<PolicyAction[]>(mockActions));
 
-    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.policy_editor_spinner')),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
@@ -110,7 +116,7 @@ describe('PolicyEditorPage', () => {
     getPolicySubjects.mockImplementation(() => Promise.resolve<PolicySubject[]>(mockSubjects));
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.policy_editor_spinner')),
     );
 
     expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();
@@ -131,10 +137,12 @@ describe('PolicyEditorPage', () => {
 
     renderPolicyEditorPage();
 
-    expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('resourceadm.policy_editor_spinner')),
+    ).toBeInTheDocument();
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
+      screen.queryByLabelText(textMock('resourceadm.policy_editor_spinner')),
     );
 
     expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();

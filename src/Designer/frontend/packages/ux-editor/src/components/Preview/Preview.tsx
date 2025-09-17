@@ -10,10 +10,10 @@ import { Paragraph } from '@digdir/designsystemet-react';
 import {
   StudioAlert,
   StudioButton,
-  StudioCenter,
   StudioErrorMessage,
   StudioSpinner,
 } from '@studio/components-legacy';
+import { StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';

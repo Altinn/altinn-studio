@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 
@@ -30,13 +31,18 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     }
 
     /// <inheritdoc />
+    public async Task<bool> OrgContentRepoExists(string orgName)
+    {
+        string contentRepositoryName = GetContentRepoName(orgName);
+        SearchOptions searchOptions = new() { Keyword = contentRepositoryName };
+        SearchResults searchResults = await _giteaApiWrapper.SearchRepo(searchOptions);
+        return searchResults.Data.Select(repository => repository.Name).Contains(contentRepositoryName);
+    }
+
+    /// <inheritdoc />
     public async Task<List<string>> GetCodeListIds(string orgName)
     {
-        List<FileSystemObject> files = await _giteaApiWrapper.GetDirectoryAsync(orgName, GetContentRepoName(orgName), CodeListFolderPath, string.Empty);
-        if (files is null)
-        {
-            return [];
-        }
+        List<FileSystemObject> files = await GetDirectoryFromGitea(orgName, CodeListFolderPath);
         IEnumerable<string> fileNames = files.Select(file => file.Name);
         return fileNames.Select(Path.GetFileNameWithoutExtension).ToList();
     }
@@ -94,14 +100,8 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
 
     public async Task<List<string>> GetLanguages(string orgName)
     {
-        List<FileSystemObject> files = await _giteaApiWrapper.GetDirectoryAsync(orgName, GetContentRepoName(orgName), TextResourceFolderPath, string.Empty);
-        if (files is null)
-        {
-            return [];
-        }
-
+        List<FileSystemObject> files = await GetDirectoryFromGitea(orgName, TextResourceFolderPath);
         List<string> languages = ExtractLanguagesFromResourceFiles(files);
-
         languages.Sort(StringComparer.Ordinal);
         return languages;
     }
@@ -115,6 +115,12 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
             .Where(match => match.Success)
             .Select(match => match.Groups["lang"].Value)
             .ToList();
+    }
+
+    private async Task<List<FileSystemObject>> GetDirectoryFromGitea(string orgName, string directoryPath)
+    {
+        string repoName = GetContentRepoName(orgName);
+        return await _giteaApiWrapper.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
     }
 
     private async Task<string> GetFileFromGitea(string orgName, string filePath)

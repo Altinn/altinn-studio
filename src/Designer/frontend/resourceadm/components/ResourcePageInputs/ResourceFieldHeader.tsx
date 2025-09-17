@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTag } from '@studio/components-legacy';
+import { StudioTag } from '@studio/components';
 import classes from './ResourcePageInputs.module.css';
 
 interface ResourceFieldHeaderProps {
@@ -17,7 +17,7 @@ export const ResourceFieldHeader = ({
     <div className={classes.resourceFieldHeader}>
       {label}
       {required && (
-        <StudioTag color='warning' size='sm' aria-hidden>
+        <StudioTag data-color='warning' className={classes.requiredTag} aria-hidden>
           {t('resourceadm.about_resource_required_field')}
         </StudioTag>
       )}
