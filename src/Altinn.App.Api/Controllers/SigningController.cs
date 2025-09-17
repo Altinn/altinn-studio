@@ -40,6 +40,7 @@ public class SigningController : ControllerBase
         IInstanceClient instanceClient,
         IProcessReader processReader,
         IAuthenticationContext authenticationContext,
+        IAppMetadata appMetadata,
         ILogger<SigningController> logger
     )
     {

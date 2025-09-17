@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -56,10 +57,10 @@ internal sealed class SigningProcessTask : IProcessTask
     {
         using var cts = new CancellationTokenSource();
 
-        AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
+        AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
-        ValidateSigningConfiguration(appMetadata, signatureConfiguration);
+        ValidateSigningConfiguration(appMetadata, signingConfiguration);
 
         InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
@@ -67,18 +68,33 @@ internal sealed class SigningProcessTask : IProcessTask
             null
         );
 
+        // Initialize delegated signing if configured
         if (
-            signatureConfiguration.SigneeProviderId is not null
-            && signatureConfiguration.SigneeStatesDataTypeId is not null
+            signingConfiguration.SigneeProviderId is not null
+            && signingConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await InitialiseRuntimeDelegatedSigning(cachedDataMutator, signatureConfiguration, cts.Token);
+            await InitialiseRuntimeDelegatedSigning(cachedDataMutator, signingConfiguration, cts.Token);
         }
 
         DataElementChanges changes = cachedDataMutator.GetDataElementChanges(false);
         await cachedDataMutator.UpdateInstanceData(changes);
         await cachedDataMutator.SaveChanges(changes);
     }
+
+    private static DataType? GetDataType(ApplicationMetadata appMetadata, string? dataTypeId) =>
+        dataTypeId is null
+            ? null
+            : appMetadata.DataTypes.FirstOrDefault(x => x.Id.Equals(dataTypeId, StringComparison.OrdinalIgnoreCase));
+
+    private static IEnumerable<DataType> GetDataTypes(
+        ApplicationMetadata appMetadata,
+        IEnumerable<string?> dataTypeIds
+    ) => dataTypeIds.Select(dataTypeId => GetDataType(appMetadata, dataTypeId)).OfType<DataType>();
+
+    private static bool IsRestrictedDataType([NotNullWhen(true)] DataType? dataType) =>
+        !string.IsNullOrWhiteSpace(dataType?.ActionRequiredToRead)
+        || !string.IsNullOrWhiteSpace(dataType?.ActionRequiredToWrite);
 
     /// <inheritdoc/>
     /// <remarks> Generates a PDF if the signature configuration specifies a signature data type. </remarks>

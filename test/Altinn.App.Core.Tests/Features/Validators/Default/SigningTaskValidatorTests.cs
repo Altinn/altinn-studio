@@ -148,22 +148,8 @@ public class SigningTaskValidatorTest
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ThrowsAsync(exception);
 
         // Act
-        var result = await _validator.Validate(dataAccessorMock.Object, taskId, null!);
-
-        // Assert
-        Assert.Empty(result);
-        _loggerMock.Verify(
-            logger =>
-                logger.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>(
-                        (value, _) => value.ToString()!.Contains("Error while fetching application metadata")
-                    ),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
+        await Assert.ThrowsAsync<Exception>(async () =>
+            await _validator.Validate(dataAccessorMock.Object, taskId, null!)
         );
     }
 
@@ -189,22 +175,8 @@ public class SigningTaskValidatorTest
             .ThrowsAsync(exception);
 
         // Act
-        var result = await _validator.Validate(dataAccessorMock.Object, taskId, null!);
-
-        // Assert
-        Assert.Empty(result);
-        _loggerMock.Verify(
-            logger =>
-                logger.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>(
-                        (value, _) => value.ToString()!.Contains("Error while fetching signee contexts")
-                    ),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
+        await Assert.ThrowsAsync<Exception>(async () =>
+            await _validator.Validate(dataAccessorMock.Object, taskId, null!)
         );
     }
 }

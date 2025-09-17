@@ -23,8 +23,11 @@ public sealed class SignDocumentManagerTests : IDisposable
 {
     private readonly Mock<IAltinnPartyClient> _altinnPartyClient = new(MockBehavior.Strict);
     private readonly Mock<ILogger<SigningService>> _logger = new();
+    private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly SignDocumentManager _signDocumentManager;
     private readonly ServiceProvider _serviceProvider;
+
+    private const string SignatureDataTypeId = "signature";
 
     public SignDocumentManagerTests()
     {
@@ -32,7 +35,16 @@ public sealed class SignDocumentManagerTests : IDisposable
         services.AddSingleton(_altinnPartyClient.Object);
         _serviceProvider = services.BuildServiceProvider();
 
-        _signDocumentManager = new SignDocumentManager(_altinnPartyClient.Object, _logger.Object);
+        _appMetadata
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(
+                new ApplicationMetadata("ttd/app")
+                {
+                    DataTypes = [new DataType { Id = SignatureDataTypeId, ActionRequiredToRead = "restricted-read" }],
+                }
+            );
+
+        _signDocumentManager = new SignDocumentManager(_altinnPartyClient.Object, _appMetadata.Object, _logger.Object);
 
         // Setup default party lookup behavior
         _altinnPartyClient
@@ -185,7 +197,7 @@ public sealed class SignDocumentManagerTests : IDisposable
     public async Task GetSignDocuments_WithValidDataElements_ReturnsSignDocuments()
     {
         // Arrange
-        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "signature" };
+        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = SignatureDataTypeId };
 
         var signDocumentDataElement1 = new DataElement
         {
@@ -235,6 +247,15 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.Equal(2, result.Count);
         Assert.Equal("12345678901", result[0].SigneeInfo.PersonNumber);
         Assert.Equal("10987654321", result[1].SigneeInfo.PersonNumber);
+
+        cachedInstanceMutator.Verify(
+            m =>
+                m.OverrideAuthenticationMethod(
+                    It.Is<DataType>(dt => dt.Id == signatureConfiguration.SignatureDataType),
+                    StorageAuthenticationMethod.ServiceOwner()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -260,7 +281,7 @@ public sealed class SignDocumentManagerTests : IDisposable
     public async Task GetSignDocuments_WithNoDataElements_ReturnsEmptyList()
     {
         // Arrange
-        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "signature" };
+        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = SignatureDataTypeId };
 
         var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
 
@@ -294,9 +315,13 @@ public sealed class SignDocumentManagerTests : IDisposable
     public async Task GetSignDocuments_WithInvalidJsonData_ThrowsException()
     {
         // Arrange
-        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "signature" };
+        var signatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = SignatureDataTypeId };
 
-        var signatureDataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "signature" };
+        var signatureDataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = signatureConfiguration.SignatureDataType,
+        };
 
         var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
         var instance = new Instance

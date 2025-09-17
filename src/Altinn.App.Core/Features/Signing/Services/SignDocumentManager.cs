@@ -3,10 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Extensions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -18,6 +20,7 @@ namespace Altinn.App.Core.Features.Signing.Services;
 
 internal sealed class SignDocumentManager(
     IAltinnPartyClient altinnPartyClient,
+    IAppMetadata appMetadata,
     ILogger<SigningService> logger,
     Telemetry? telemetry = null
 ) : ISignDocumentManager
@@ -44,6 +47,13 @@ internal sealed class SignDocumentManager(
         string signatureDataTypeId =
             signatureConfiguration.SignatureDataType
             ?? throw new ApplicationConfigException("SignatureDataType is not set in the signature configuration.");
+
+        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
+            applicationMetadata,
+            [signatureDataTypeId],
+            StorageAuthenticationMethod.ServiceOwner()
+        );
 
         IEnumerable<DataElement> signatureDataElements = instanceDataAccessor.GetDataElementsForType(
             signatureDataTypeId

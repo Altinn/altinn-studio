@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using Altinn.App.Core.Configuration;
@@ -21,6 +22,10 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 {
+    /// <inheritdoc />
+    public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides =>
+        _authenticationMethodOverrides.ToImmutableDictionary(DataTypeComparer.Instance);
+
     // DataClient needs a few arguments to fetch data
     private readonly Guid _instanceGuid;
     private readonly int _instanceOwnerPartyId;
@@ -46,6 +51,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // The update functions returns updated data elements.
     // We want to make sure that the data elements are updated in the instance object
     private readonly ConcurrentBag<DataElement> _savedDataElements = [];
+
+    private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
+        DataTypeComparer.Instance
+    );
+    private static readonly StorageAuthenticationMethod _defaultAuthenticationMethod =
+        StorageAuthenticationMethod.CurrentUser();
 
     public InstanceDataUnitOfWork(
         Instance instance,
@@ -74,6 +85,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     public Instance Instance { get; }
+
+    /// <inheritdoc />
+    public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method)
+    {
+        _authenticationMethodOverrides[dataType] = method;
+    }
 
     /// <inheritdoc />
     public async Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
@@ -106,7 +123,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     _appMetadata.AppIdentifier.App,
                     _instanceOwnerPartyId,
                     _instanceGuid,
-                    dataElementIdentifier.Guid
+                    dataElementIdentifier.Guid,
+                    authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
                 )
         );
     }
@@ -375,7 +393,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             change.DataType.Id,
             change.ContentType,
             (change as BinaryDataChange)?.FileName,
-            new MemoryAsStream(bytes)
+            new MemoryAsStream(bytes),
+            authenticationMethod: GetAuthenticationMethod(change.DataType)
         );
         _binaryCache.Set(dataElement, bytes);
         if (change is FormDataChange formDataChange)
@@ -397,7 +416,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             contentType,
             filename,
             dataElementIdentifier.Guid,
-            new MemoryAsStream(bytes)
+            new MemoryAsStream(bytes),
+            authenticationMethod: GetAuthenticationMethod(dataElementIdentifier)
         );
         _savedDataElements.Add(newDataElement);
     }
@@ -435,7 +455,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     change.DataElementIdentifier.Guid,
-                    false
+                    false,
+                    authenticationMethod: GetAuthenticationMethod(change.DataElementIdentifier)
                 );
             }
 
@@ -541,6 +562,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return dataType;
     }
 
+    private StorageAuthenticationMethod GetAuthenticationMethod(DataElementIdentifier dataElementIdentifier)
+    {
+        DataType dataType = this.GetDataType(dataElementIdentifier);
+
+        return GetAuthenticationMethod(dataType);
+    }
+
+    private StorageAuthenticationMethod GetAuthenticationMethod(DataType dataType) =>
+        _authenticationMethodOverrides.GetValueOrDefault(dataType, _defaultAuthenticationMethod);
+
     internal void VerifyDataElementsUnchangedSincePreviousChanges(DataElementChanges previousChanges)
     {
         var changes = GetDataElementChanges(initializeAltinnRowId: false);
@@ -612,4 +643,28 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             );
         }
     }
+}
+
+/// <summary>
+/// Equality comparer for DataType that compares by <c>Id</c>.
+/// </summary>
+internal class DataTypeComparer : IEqualityComparer<DataType>
+{
+    public static DataTypeComparer Instance { get; } = new();
+
+    public bool Equals(DataType? x, DataType? y)
+    {
+        if (ReferenceEquals(x, y))
+            return true;
+
+        if (x is null || y is null)
+            return false;
+
+        if (x.GetType() != y.GetType())
+            return false;
+
+        return x.Id == y.Id;
+    }
+
+    public int GetHashCode(DataType obj) => obj.Id != null ? obj.Id.GetHashCode() : 0;
 }

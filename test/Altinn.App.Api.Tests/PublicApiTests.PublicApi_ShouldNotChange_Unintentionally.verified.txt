@@ -572,7 +572,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/signing")]
     public class SigningController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public SigningController(System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.SigningController> logger) { }
+        public SigningController(System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.SigningController> logger) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("organizations")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SigningAuthorizedOrganizationsResponse), 200)]

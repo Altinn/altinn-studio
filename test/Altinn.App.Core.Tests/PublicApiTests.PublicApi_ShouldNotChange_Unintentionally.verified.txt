@@ -1190,11 +1190,13 @@ namespace Altinn.App.Core.Features
     }
     public interface IInstanceDataAccessor
     {
+        System.Collections.Generic.IReadOnlyDictionary<Altinn.Platform.Storage.Interface.Models.DataType, Altinn.App.Core.Features.StorageAuthenticationMethod> AuthenticationMethodOverrides { get; }
         Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
         System.Threading.Tasks.Task<System.ReadOnlyMemory<byte>> GetBinaryData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.Platform.Storage.Interface.Models.DataElement GetDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.Platform.Storage.Interface.Models.DataType? GetDataType(string dataTypeId);
         System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        void OverrideAuthenticationMethod(Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.StorageAuthenticationMethod method);
     }
     public static class IInstanceDataAccessorExtensions
     {

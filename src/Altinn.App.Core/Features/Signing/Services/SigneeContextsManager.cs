@@ -3,10 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Extensions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -15,26 +17,14 @@ using Signee = Altinn.App.Core.Features.Signing.Models.Signee;
 
 namespace Altinn.App.Core.Features.Signing.Services;
 
-internal sealed class SigneeContextsManager : ISigneeContextsManager
+internal sealed class SigneeContextsManager(
+    IAltinnPartyClient altinnPartyClient,
+    AppImplementationFactory appImplementationFactory,
+    IAppMetadata appMetadata,
+    ILogger<SigneeContextsManager> logger,
+    Telemetry? telemetry = null
+) : ISigneeContextsManager
 {
-    private readonly IAltinnPartyClient _altinnPartyClient;
-    private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly ILogger<SigneeContextsManager> _logger;
-    private readonly Telemetry? _telemetry;
-
-    public SigneeContextsManager(
-        IAltinnPartyClient altinnPartyClient,
-        AppImplementationFactory appImplementationFactory,
-        ILogger<SigneeContextsManager> logger,
-        Telemetry? telemetry = null
-    )
-    {
-        _altinnPartyClient = altinnPartyClient;
-        _appImplementationFactory = appImplementationFactory;
-        _logger = logger;
-        _telemetry = telemetry;
-    }
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(
         new JsonSerializerOptions
         {
@@ -53,7 +43,7 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
         CancellationToken ct
     )
     {
-        using Activity? activity = _telemetry?.StartGenerateSigneeContextsActivity();
+        using Activity? activity = telemetry?.StartGenerateSigneeContextsActivity();
 
         string taskId = instanceDataMutator.Instance.Process.CurrentTask.ElementId;
 
@@ -75,12 +65,12 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
             signeeContexts.Add(signeeContext);
         }
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Assigning {SigneeContextsCount} signees to task {TaskId}.",
             signeeContexts.Count,
             taskId
         );
-        _logger.LogDebug(
+        logger.LogDebug(
             "Signee context state: {SigneeContexts}",
             JsonSerializer.Serialize(signeeContexts, _jsonSerializerOptions)
         );
@@ -95,7 +85,7 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
         CancellationToken ct
     )
     {
-        using Activity? activity = _telemetry?.StartReadSigneesContextsActivity();
+        using Activity? activity = telemetry?.StartReadSigneesContextsActivity();
         // If no SigneeStatesDataTypeId is set, delegated signing is not enabled and there is nothing to download.
         List<SigneeContext> signeeContexts = !string.IsNullOrEmpty(signatureConfiguration.SigneeStatesDataTypeId)
             ? await DownloadSigneeContexts(instanceDataAccessor, signatureConfiguration)
@@ -117,7 +107,7 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
         if (string.IsNullOrEmpty(signeeProviderId))
             return null;
 
-        List<ISigneeProvider> matchingSigneeProviders = _appImplementationFactory
+        List<ISigneeProvider> matchingSigneeProviders = appImplementationFactory
             .GetAll<ISigneeProvider>()
             .Where(x => x.Id == signeeProviderId)
             .ToList();
@@ -150,7 +140,7 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
         CancellationToken ct
     )
     {
-        Signee signee = await From(providedSignee, _altinnPartyClient.LookupParty);
+        Signee signee = await From(providedSignee, altinnPartyClient.LookupParty);
         Party party = signee.GetParty();
 
         Notification? notification = providedSignee.CommunicationConfig?.Notification;
@@ -187,13 +177,20 @@ internal sealed class SigneeContextsManager : ISigneeContextsManager
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
+        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
+            applicationMetadata,
+            [signatureConfiguration.SigneeStatesDataTypeId],
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+
         IEnumerable<DataElement> dataElements = instanceDataAccessor.GetDataElementsForType(signeeStatesDataTypeId);
 
         DataElement? signeeStateDataElement = dataElements.SingleOrDefault();
 
         if (signeeStateDataElement is null)
         {
-            _logger.LogInformation("Didn't find any signee states for task.");
+            logger.LogInformation("Didn't find any signee states for task.");
             return [];
         }
 

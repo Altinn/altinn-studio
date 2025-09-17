@@ -90,6 +90,12 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         }
 
         public DataType? GetDataType(string dataTypeId) => _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
+
+        public void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method) =>
+            throw new NotImplementedException();
+
+        public IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides =>
+            throw new NotImplementedException();
     }
 
     /// <summary>

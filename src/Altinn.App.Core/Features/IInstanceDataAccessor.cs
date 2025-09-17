@@ -39,6 +39,21 @@ public interface IInstanceDataAccessor
     /// <param name="dataTypeId">DataType.Id (from applicationmetadata.json)</param>
     /// <returns>The data type (or null if it does not exist)</returns>
     DataType? GetDataType(string dataTypeId);
+
+    /// <summary>
+    /// <para>Set the authentication method used when reading and writing data of the given data type.</para>
+    /// <para>This method allows multiple calls to the same <see cref="DataType"/> key, but only the last
+    /// invocation will be used by the read/write process. If you need to obtain a list of currently registered
+    /// overrides, see the <see cref="AuthenticationMethodOverrides"/> property.</para>
+    /// </summary>
+    /// <param name="dataType">The <see cref="DataType"/> this configuration applies to.</param>
+    /// <param name="method">The <see cref="StorageAuthenticationMethod"/> to associate with the given data type.</param>
+    void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method);
+
+    /// <summary>
+    /// Gets the currently registered authentication method overrides.
+    /// </summary>
+    IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides { get; }
 }
 
 /// <summary>

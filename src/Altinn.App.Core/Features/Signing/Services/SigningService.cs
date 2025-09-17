@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Exceptions;
+using Altinn.App.Core.Features.Signing.Extensions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
@@ -138,6 +139,13 @@ internal sealed class SigningService(
                 }
             }
         }
+
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        instanceDataMutator.OverrideAuthenticationMethodForRestrictedDataTypes(
+            applicationMetadata,
+            [signeeStateDataTypeId],
+            StorageAuthenticationMethod.ServiceOwner()
+        );
 
         instanceDataMutator.AddBinaryDataElement(
             dataTypeId: signeeStateDataTypeId,
