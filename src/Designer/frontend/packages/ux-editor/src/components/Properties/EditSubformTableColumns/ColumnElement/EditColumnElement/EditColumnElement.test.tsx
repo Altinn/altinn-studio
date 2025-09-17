@@ -284,7 +284,7 @@ describe('EditColumnElementComponentSelect', () => {
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       ),
     });
-    expect(dataModelBindingsSelect).toBeInTheDocument();
+    await user.click(dataModelBindingsSelect);
     expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,

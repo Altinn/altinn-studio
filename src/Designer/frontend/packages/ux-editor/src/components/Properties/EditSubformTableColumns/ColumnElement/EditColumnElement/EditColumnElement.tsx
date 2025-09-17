@@ -4,7 +4,6 @@ import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import { StudioCombobox, StudioDivider } from '@studio/components-legacy';
 import {
-  StudioParagraph,
   StudioActionCloseButton,
   StudioCard,
   StudioHeading,
@@ -131,10 +130,8 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   const { t } = useTranslation();
   return (
     <>
-      <StudioHeading className={classes.header}>
-        <StudioParagraph data-size='md'>
-          {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
-        </StudioParagraph>
+      <StudioHeading data-size='2xs' className={classes.header}>
+        {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
       </StudioHeading>
       <StudioDivider className={classes.divider} color='subtle' />
     </>
