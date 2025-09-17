@@ -276,14 +276,14 @@ steps:
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01"
 
-        # Authenticate to ACR
-        az acr login --name $ACR_NAME \
-          --expose-token --output tsv \
-          --query accessToken \
-          --subscription Altinn-$APP_OWNER-Prod \
-          --only-show-errors |  docker login $ACR_NAME \
-                                --username 00000000-0000-0000-0000-000000000000 \
-                                --password-stdin
+        # # Authenticate to ACR
+        # az acr login --name $ACR_NAME" \
+        #   --expose-token --output tsv \
+        #   --query accessToken \
+        #   --subscription Altinn-$APP_OWNER-Prod \
+        #   --only-show-errors |  docker login $ACR_NAME.azurecr.io \
+        #                         --username 00000000-0000-0000-0000-000000000000 \
+        #                         --password-stdin
 
         # install flux cli
         curl -s https://fluxcd.io/install.sh | sudo bash
@@ -292,7 +292,8 @@ steps:
         flux push artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME \
           --path="./$FLUX_ARTIFACT_DIR" \
           --source="https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO/commit/$APP_COMMIT_ID" \
-          --revision="$APP_COMMIT_ID"
+          --revision="$APP_COMMIT_ID" \
+          --provider azure
 
         # Tag as environment
         flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME  \
