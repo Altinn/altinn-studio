@@ -24,7 +24,7 @@
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
-    "axios": "1.11.0",
+    "axios": "1.12.0",
     "classnames": "2.5.1",
     "i18next": "23.16.8",
     "react": "18.3.1",
