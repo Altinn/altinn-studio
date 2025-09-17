@@ -274,7 +274,7 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        ACR_NAME="${APP_OWNER}altinnregistry01
+        ACR_NAME="${APP_OWNER}altinnregistry01"
 
         # Authenticate to ACR
         az acr login --name $ACR_NAME \
