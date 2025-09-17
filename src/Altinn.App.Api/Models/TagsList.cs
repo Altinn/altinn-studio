@@ -9,7 +9,7 @@ namespace Altinn.App.Api.Models;
 public class TagsList
 {
     /// <summary>
-    /// A list of tags represented as sting values.
+    /// A list of tags represented as string values.
     /// </summary>
     [JsonPropertyName("tags")]
     public List<string> Tags { get; set; } = new List<string>();

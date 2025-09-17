@@ -1983,6 +1983,120 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "DataTags"
+        ],
+        "summary": "Sets a set of tags on a data element.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "The short name for the application owner.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "The name of the application.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "The party id of the owner of the instance.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "The id of the instance.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dataGuid",
+            "in": "path",
+            "description": "The id of the data element.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ignoredValidators",
+            "in": "query",
+            "description": "comma separated string of validators to ignore. If missing we don't run validation.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The currently active user language.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The request body.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTagsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetTagsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/tags/{tag}": {
@@ -9479,6 +9593,47 @@
         },
         "additionalProperties": false
       },
+      "SetTagsRequest": {
+        "required": [
+          "tags"
+        ],
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A list of tags to set on the data element represented as string values.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the request body for setting a set of tags on a data element."
+      },
+      "SetTagsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "A list of tags represented as string values.",
+            "nullable": true
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationSourcePair"
+            },
+            "description": "List of validation issues that changed as a result of updating tags.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents the response from the set tags API endpoint providing a list of tags and current validation issues."
+      },
       "ShadowFields": {
         "type": "object",
         "properties": {
@@ -9698,7 +9853,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags represented as sting values.",
+            "description": "A list of tags represented as string values.",
             "nullable": true
           }
         },

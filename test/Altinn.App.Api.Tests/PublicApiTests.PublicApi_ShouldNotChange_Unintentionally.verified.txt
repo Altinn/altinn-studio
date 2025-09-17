@@ -168,13 +168,14 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string id, [Microsoft.AspNetCore.Mvc.FromQuery] System.Collections.Generic.Dictionary<string, string> queryParams, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
+    [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.Consumes("application/json", new string[0])]
     [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
         "id:guid}/tags")]
     public class DataTagsController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public DataTagsController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient) { }
+        public DataTagsController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, System.IServiceProvider serviceProvider) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.TagsList), 201)]
@@ -187,6 +188,12 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.TagsList), 200)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.TagsList>> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
+        [Microsoft.AspNetCore.Mvc.HttpPut]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.SetTagsResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.SetTagsResponse>> SetTags([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.SetTagsRequest setTagsRequest, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method)]
     public class DisableFormValueModelBindingAttribute : System.Attribute, Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata, Microsoft.AspNetCore.Mvc.Filters.IResourceFilter
@@ -1097,6 +1104,21 @@ namespace Altinn.App.Api.Models
         public string? Action { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("actionOnBehalfOf")]
         public string? ActionOnBehalfOf { get; set; }
+    }
+    public sealed class SetTagsRequest
+    {
+        public SetTagsRequest() { }
+        [System.Text.Json.Serialization.JsonPropertyName("tags")]
+        public required System.Collections.Generic.List<string> Tags { get; init; }
+    }
+    public sealed class SetTagsResponse
+    {
+        public SetTagsResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("tags")]
+        public System.Collections.Generic.List<string> Tags { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair>? ValidationIssues { get; init; }
     }
     public class SigneeState
     {
