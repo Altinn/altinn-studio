@@ -7,12 +7,8 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import {
-  StudioButton,
-  StudioCenter,
-  StudioErrorMessage,
-  StudioSpinner,
-} from '@studio/components-legacy';
+import { StudioButton, StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
+import { StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';

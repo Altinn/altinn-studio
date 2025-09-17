@@ -12,7 +12,7 @@ import { ComponentMainConfig } from './ComponentMainConfig';
 import { HeaderMainConfig } from './HeaderMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
-import { TextMainConfig } from './TextMainConfig';
+import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
 import { StudioAlert } from '@studio/components';
 
@@ -65,7 +65,7 @@ export const PropertiesHeader = ({
               component={formItem}
               handleComponentUpdate={handleComponentUpdate}
             />
-            <TextMainConfig
+            <TextResourceMainConfig
               component={formItem}
               handleComponentChange={handleComponentUpdate}
               componentSchemaTextKeys={Object.keys(textResourceBindings?.properties || {})}

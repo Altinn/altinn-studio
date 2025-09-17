@@ -148,7 +148,7 @@ export class UiEditorPage extends BasePage {
   public async clickOnSaveNewLabelName(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('general.close'),
+        name: this.textMock('general.save'),
         exact: true,
       })
       .click();

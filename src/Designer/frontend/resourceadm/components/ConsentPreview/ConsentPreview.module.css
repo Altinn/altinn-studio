@@ -1,42 +1,3 @@
-.consentBlock {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-8);
-  background-color: var(--ds-color-accent-background-default);
-  padding: var(--ds-size-12);
-  margin-bottom: 3px;
-}
-
-.expiration {
-  margin-top: var(--ds-size-4);
-}
-
-.boldText {
-  font-weight: var(--ds-font-weight-medium);
-}
-
-.buttonRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--ds-size-4);
-  margin-top: var(--ds-size-15);
-  pointer-events: none;
-}
-
-.consentRight {
-  display: flex;
-  flex-direction: row;
-  gap: var(--ds-size-4);
-}
-.consentRightIcon {
-  font-size: var(--ds-size-7);
-}
-
-.consentRightContent {
-  flex: 1;
-}
-
 .previewControls {
   display: flex;
   flex-direction: column;
@@ -50,12 +11,12 @@
   display: flex;
   flex-direction: column;
   background-color: var(--ds-color-neutral-background-tinted);
+  font-family: 'Inter', sans-serif;
   position: sticky;
   height: 100vh;
   top: 0;
   right: 0;
-  border-left: 1px solid var(--fds-semantic-border-divider-default);
-  padding: var(--fds-spacing-5);
+  padding: var(--ds-size-5);
   overflow: auto;
 }
 
@@ -67,16 +28,84 @@
   width: 45%;
 }
 
+/* styling from ConsentRequestPage */
+
+.consentBlock {
+  background-color: var(--ds-color-accent-background-default);
+  padding: var(--ds-size-9) var(--ds-size-15);
+  margin-bottom: var(--ds-size-12);
+}
+.headerBlock {
+  padding-top: var(--ds-size-14);
+  margin-bottom: 3px;
+}
+
+.consentContent {
+  display: flex;
+  flex-direction: column;
+  max-width: 55rem;
+}
+
+.heading {
+  font-weight: var(--ds-font-weight-semibold);
+  font-size: var(--ds-body-md-font-size);
+  margin-bottom: var(--ds-size-8);
+}
+
+.consentMessage {
+  margin-bottom: var(--ds-size-13);
+}
+
+.serviceIntro {
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-body-md-font-size);
+  margin-bottom: var(--ds-size-8);
+}
+
+.handledBy {
+  margin-top: var(--ds-size-5);
+}
+
+.expiration {
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.consentRights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  margin-bottom: var(--ds-size-8);
+}
+
+.consentRight {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-size-3);
+}
+.consentRightTitle {
+  font-weight: var(--ds-font-weight-semibold);
+}
+.consentRightContent {
+  flex: 1;
+}
+.consentRightIcon {
+  font-size: var(--ds-size-7);
+}
+
+.buttonRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--ds-size-4);
+  margin-top: var(--ds-size-13);
+  margin-bottom: var(--ds-size-6);
+}
+
 .mobileView {
   max-width: 25rem;
 }
-.mobileView h1 {
-  font-size: var(--ds-heading-2xs-font-size);
-}
 .mobileView .consentBlock {
-  padding: var(--ds-size-5);
-}
-.mobileView .expiration,
-.mobileView .buttonRow {
-  margin-top: 0;
+  padding-left: var(--ds-size-6);
+  padding-right: var(--ds-size-6);
+  margin-bottom: 6px;
 }

@@ -63,6 +63,13 @@ describe('useAddItemToLayoutMutation', () => {
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
+  it('Adds attachment metadata when component type is imageUpload', async () => {
+    const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
+    result.current.mutate({ ...defaultArgs, componentType: ComponentType.ImageUpload });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+  });
+
   it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-1', async () => {
     const { result } = renderAddItemToLayoutMutation(layoutSet1NameMock);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });

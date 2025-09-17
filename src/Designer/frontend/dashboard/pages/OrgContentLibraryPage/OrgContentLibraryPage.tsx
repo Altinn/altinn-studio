@@ -7,13 +7,8 @@ import type {
   TextResourceWithLanguage,
 } from '@studio/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import {
-  StudioCenter,
-  StudioPageError,
-  StudioPageSpinner,
-  StudioSpinner,
-} from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioPageError, StudioPageSpinner, StudioSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioParagraph, StudioCenter } from '@studio/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';

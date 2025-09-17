@@ -63,7 +63,7 @@ __metadata:
   dependencies:
     jest: "npm:29.7.0"
   peerDependencies:
-    axios: 1.11.0
+    axios: 1.12.0
     classnames: 2.5.1
     react: 18.3.1
     react-dom: 18.3.1
@@ -4423,7 +4423,7 @@ __metadata:
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
-    axios: "npm:1.11.0"
+    axios: "npm:1.12.0"
     classnames: "npm:2.5.1"
     i18next: "npm:23.16.8"
     jest: "npm:29.7.0"
@@ -4640,7 +4640,7 @@ __metadata:
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
-    axios: "npm:1.11.0"
+    axios: "npm:1.12.0"
     classnames: "npm:2.5.1"
     i18next: "npm:23.16.8"
     jest: "npm:29.7.0"
@@ -4985,14 +4985,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.11.0":
-  version: 1.11.0
-  resolution: "axios@npm:1.11.0"
+"axios@npm:1.12.0":
+  version: 1.12.0
+  resolution: "axios@npm:1.12.0"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.4"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10/232df4af7a4e4e07baa84621b9cc4b0c518a757b4eacc7f635c0eb3642cb98dff347326739f24b891b3b4481b7b838c79a3a0c4819c9fbc1fc40232431b9c5dc
+  checksum: 10/6c45e294b6ee72f832dbee94cb3fe7331bf2961874fa6b656d909a93b3574c59281f0c62eb92baf7b3e4f39be71936c9f1fcbbe494c90f7ff4d7cc2d7932f06d
   languageName: node
   linkType: hard
 
@@ -5007,7 +5007,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-devops-mock@workspace:src/Designer/development/azure-devops-mock"
   dependencies:
-    axios: "npm:1.11.0"
+    axios: "npm:1.12.0"
     cors: "npm:2.8.5"
     express: "npm:4.21.2"
     morgan: "npm:1.10.1"
@@ -14985,8 +14985,8 @@ __metadata:
   linkType: hard
 
 "vite@npm:^6.3.2":
-  version: 6.3.5
-  resolution: "vite@npm:6.3.5"
+  version: 6.3.6
+  resolution: "vite@npm:6.3.6"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
@@ -15035,7 +15035,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/7bc3a1c5ef79413ad70daeeaf69b76cd1218d16aa18ed8ee08d74648ef17284f4a17c11f5cf42b573b6dc5e3d5f115110b67b1d23c2c699cfe404757764a634a
+  checksum: 10/8b8b6fe12318ca457396bf2053df7056cf4810f1d4a43b36b6afe59860e32b749c0685a290fe8a973b0d3da179ceec4c30cebbd3c91d0c47fbcf6436b17bdeef
   languageName: node
   linkType: hard
 

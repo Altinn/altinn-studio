@@ -3,10 +3,23 @@ import { forwardRef } from 'react';
 import type { InputCellComponent } from '../types/InputCellComponent';
 import type { HTMLCellInputElement } from '../types/HTMLCellInputElement';
 import { getNextInputElement } from '../dom-utils/getNextInputElement';
+import type { Override } from '../../../types/Override';
 
 type DefaultProps<Element extends HTMLCellInputElement> = {
   onKeyDown?: (event: KeyboardEvent<Element>) => void;
 };
+
+type RestrictedKeyboardEvent<Element, Keys extends KeyboardEvent<Element>['key']> = Override<
+  { key: Keys },
+  KeyboardEvent<Element>
+>;
+
+type ArrowKeyEvent<Element> = RestrictedKeyboardEvent<
+  Element,
+  'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+>;
+
+type EnterKeyEvent<Element> = RestrictedKeyboardEvent<Element, 'Enter'>;
 
 export abstract class BaseInputCell<
   Element extends HTMLCellInputElement,
@@ -39,36 +52,30 @@ export abstract class BaseInputCell<
   };
 
   private handleKeyDown(event: KeyboardEvent<Element>): void {
-    switch (event.key) {
-      case 'ArrowUp':
-      case 'ArrowDown':
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        this.handleArrowKeyDown(event);
-        break;
-      case 'Enter':
-        this.handleEnterKeyDown(event);
-        break;
+    if (isArrowKeyEvent<Element>(event)) {
+      this.handleArrowKeyDown(event);
+    } else if (isEnterKeyEvent<Element>(event)) {
+      this.handleEnterKeyDown(event);
     }
   }
 
-  private handleArrowKeyDown(event: KeyboardEvent<Element>): void {
+  private handleArrowKeyDown(event: ArrowKeyEvent<Element>): void {
     if (this.shouldMoveFocusOnArrowKey(event)) {
       this.moveFocus(event);
     }
   }
 
-  private handleEnterKeyDown(event: KeyboardEvent<Element>): void {
+  private handleEnterKeyDown(event: EnterKeyEvent<Element>): void {
     if (this.shouldMoveFocusOnEnterKey(event)) {
       this.moveFocus(event);
     }
   }
 
-  protected abstract shouldMoveFocusOnArrowKey(event: KeyboardEvent<Element>): boolean;
+  protected abstract shouldMoveFocusOnArrowKey(event: ArrowKeyEvent<Element>): boolean;
 
-  protected abstract shouldMoveFocusOnEnterKey(event: KeyboardEvent<Element>): boolean;
+  protected abstract shouldMoveFocusOnEnterKey(event: EnterKeyEvent<Element>): boolean;
 
-  private moveFocus(event: KeyboardEvent<Element>) {
+  private moveFocus(event: KeyboardEvent<Element>): void {
     const nextElement = this.getNextElement(event);
     if (nextElement) {
       event.preventDefault();
@@ -82,4 +89,12 @@ export abstract class BaseInputCell<
   }: KeyboardEvent<Element>): HTMLCellInputElement | null {
     return getNextInputElement(currentTarget, key);
   }
+}
+
+function isArrowKeyEvent<Element>(event: KeyboardEvent<Element>): event is ArrowKeyEvent<Element> {
+  return ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key);
+}
+
+function isEnterKeyEvent<Element>(event: KeyboardEvent<Element>): event is EnterKeyEvent<Element> {
+  return event.key === 'Enter';
 }

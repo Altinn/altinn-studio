@@ -30,10 +30,10 @@ export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProp
           heading={title}
           footer={
             <>
-              <StudioButton onClick={onNavigate} color='first'>
+              <StudioButton onClick={onNavigate}>
                 {t('resourceadm.resource_navigation_modal_button_move_on')}
               </StudioButton>
-              <StudioButton onClick={onClose} color='first' variant='tertiary'>
+              <StudioButton onClick={onClose} variant='tertiary'>
                 {t('resourceadm.resource_navigation_modal_button_stay')}
               </StudioButton>
             </>

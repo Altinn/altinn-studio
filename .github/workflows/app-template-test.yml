@@ -1,7 +1,5 @@
 name: App Template Build and Test on windows and macos
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]

@@ -2,15 +2,14 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: var(--fds-spacing-5);
-  background-color: var(--fds-semantic-surface-neutral-default);
-  border-radius: 12px;
-  gap: var(--fds-spacing-3);
-  border: solid 1px var(--fds-semantic-border-divider-default);
+  padding: var(--ds-size-5);
+  border-radius: var(--ds-border-radius-xl);
+  gap: var(--ds-size-3);
+  border: solid 1px var(--ds-color-border-subtle);
 }
 
 .envWrapper {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-3);
+  gap: var(--ds-size-3);
 }
