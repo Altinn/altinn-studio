@@ -1,6 +1,6 @@
 import { PencilIcon } from '@studio/icons';
-import { StudioAlert, StudioButton } from '@studio/components-legacy';
-import { StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioButton } from '@studio/components-legacy';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,8 +23,8 @@ export const SubformMissingContentWarning = ({
   };
 
   return (
-    <StudioAlert severity='warning'>
-      <StudioHeading level={2} spacing>
+    <StudioAlert data-color='warning'>
+      <StudioHeading level={2}>
         {t('ux_editor.component_properties.subform.layout_set_is_missing_content_heading')}
       </StudioHeading>
       <StudioParagraph>

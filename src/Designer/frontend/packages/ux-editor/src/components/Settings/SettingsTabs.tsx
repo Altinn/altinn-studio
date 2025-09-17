@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React from 'react';
-import { StudioAlert, StudioTabs } from '@studio/components-legacy';
-import { StudioHeading } from '@studio/components';
+import { StudioTabs } from '@studio/components-legacy';
+import { StudioHeading, StudioAlert } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
 import { CompassIcon, DatabaseIcon } from '@studio/icons';
@@ -35,7 +35,7 @@ export const SettingsTabs = (): ReactElement => {
           <SettingsNavigation />
         </StudioTabs.Content>
         <StudioTabs.Content value={Tabs.Database}>
-          <StudioAlert severity='info' className={classes.wipMessage}>
+          <StudioAlert className={classes.wipMessage}>
             {t('ux_editor.settings.wip_message')}
           </StudioAlert>
         </StudioTabs.Content>
