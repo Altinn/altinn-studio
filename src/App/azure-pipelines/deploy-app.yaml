@@ -133,7 +133,9 @@ steps:
 
         # export it as a pipeline variable
         Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
-    pwsh: true
+      azurePowerShellVersion: 'LatestVersion'
+      pwsh: true
+      TargetAzurePs: LatestVersion
 
   # output instrumentation key for debugging purposes
   - task: Bash@3
