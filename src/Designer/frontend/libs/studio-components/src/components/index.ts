@@ -23,6 +23,7 @@ export * from './StudioDecimalInput';
 export * from './StudioDeleteButton';
 export * from './StudioDetails';
 export * from './StudioDialog';
+export * from './StudioDisplayTile';
 export * from './StudioDropdown';
 export * from './StudioErrorSummary';
 export * from './StudioField';
