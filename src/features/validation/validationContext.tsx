@@ -166,7 +166,7 @@ export function ValidationProvider({ children }: PropsWithChildren) {
           <InvalidDataValidation dataType={dataType} />
         </Fragment>
       ))}
-      <BackendValidation dataTypes={writableDataTypes} />
+      <BackendValidation />
       <ManageShowAllErrors />
       {children}
     </Provider>
@@ -283,7 +283,7 @@ function UpdateShowAllErrors() {
     // Adding or deleting an attachment can lead to changes in both the data model and an update
     // in the attachments data elements, which can lead to two updates right after each other,
     // so debouncing a little so that we don't call validate too much as it can be heavy.
-    const timer = setTimeout(() => refetchInitialValidations, 1000);
+    const timer = setTimeout(() => refetchInitialValidations(), 1000);
     return () => clearTimeout(timer);
   }, [refetchInitialValidations, instanceDataChanges, lastSaved]);
 

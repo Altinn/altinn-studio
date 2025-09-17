@@ -67,7 +67,7 @@ export function EditButton({
   const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
 
   const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
-  const overriddenDataModelUuid = useTaskStore((state) => state.overriddenDataModelUuid);
+  const overriddenDataElementId = useTaskStore((state) => state.overriddenDataElementId);
   const indexedId = useIndexedId(targetBaseComponentId, skipLastIdMutator);
   const summary2Id = useSummaryProp('id');
 
@@ -75,7 +75,7 @@ export function EditButton({
     return null;
   }
 
-  if (overriddenDataModelUuid) {
+  if (overriddenDataElementId) {
     return null;
   }
 

@@ -29,19 +29,19 @@ export type AsSchema<T> = {
   [P in keyof T]: JSONSchema7 | null;
 };
 
-export function useCurrentDataModelGuid() {
+export function useCurrentDataModelDataElementId() {
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
 
-  const overriddenDataModelGuid = useTaskStore((s) => s.overriddenDataModelUuid);
+  const overriddenDataElementId = useTaskStore((s) => s.overriddenDataElementId);
 
   // Instance data elements will update often (after each save), so we have to use a selector to make
   // sure components don't re-render too often.
   return useInstanceDataQuery({
     select: (data) => {
-      if (overriddenDataModelGuid) {
-        return overriddenDataModelGuid;
+      if (overriddenDataElementId) {
+        return overriddenDataElementId;
       }
 
       return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });

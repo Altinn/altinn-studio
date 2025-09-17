@@ -150,15 +150,8 @@ export function getValidationIssueMessage(issue: BackendValidationIssue): TextRe
 
 export function mapValidatorGroupsToDataModelValidations(
   validators: BackendFieldValidatorGroups,
-  dataTypes: string[],
 ): DataModelValidations {
   const backendValidations: DataModelValidations = {};
-
-  // We need to clear all data types regardless if there are any validations or not
-  // Otherwise it would not update if there are no validations for a data type any more
-  for (const dataType of dataTypes) {
-    backendValidations[dataType] = {};
-  }
 
   // Map validator groups to validations per data type and field
   for (const group of Object.values(validators)) {

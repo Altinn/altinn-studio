@@ -40,12 +40,12 @@ export const getFileUploadUrl = (instanceId: string, attachmentDataType: string,
   return `${appPath}/instances/${instanceId}/data/${attachmentDataType}${queryString}`;
 };
 
-export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string | undefined) => {
+export const getFileTagUrl = (instanceId: string, dataElementId: string, tag: string | undefined) => {
   if (tag) {
-    return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags/${tag}`;
+    return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags/${tag}`;
   }
 
-  return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags`;
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags`;
 };
 
 export const getAnonymousStatelessDataModelUrl = (dataType: string) =>
@@ -57,19 +57,19 @@ export const getStatelessDataModelUrlWithPrefill = (dataType: string, prefillFro
 export const getStatelessDataModelUrl = (dataType: string) =>
   `${appPath}/v1/data?dataType=${dataType}&includeRowId=true`;
 
-export const getStatefulDataModelUrl = (instanceId: string, dataGuid: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}?includeRowId=true`;
+export const getStatefulDataModelUrl = (instanceId: string, dataElementId: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataElementId}?includeRowId=true`;
 
 export const getMultiPatchUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/data`;
 
-export const getDataModelGuidUrl = (instanceId: string, dataGuid: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}`;
+export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
 export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
   `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 
-export const getDataElementUrl = (instanceId: string, dataGuid: string, language: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}?language=${language}`;
+export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataElementId}?language=${language}`;
 
 export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 export const getActionsUrl = (partyId: string, instanceId: string, language?: string) => {
@@ -93,13 +93,13 @@ export const getValidationUrl = (instanceId: string, language: string, onlyIncre
 /**
  * @deprecated use getValidationUrl instead
  */
-export const getDataValidationUrl = (instanceId: string, dataGuid: string, language: string) => {
+export const getDataValidationUrl = (instanceId: string, dataElementId: string, language: string) => {
   const queryString = getQueryStringFromObject({ language });
-  return `${appPath}/instances/${instanceId}/data/${dataGuid}/validate${queryString}`;
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate${queryString}`;
 };
 
-export const getPdfFormatUrl = (instanceId: string, dataGuid: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}/pdf/format`;
+export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
 
 export const getPdfPreviewUrl = (instanceId: string, language: string) => {
   const queryString = getQueryStringFromObject({ language });

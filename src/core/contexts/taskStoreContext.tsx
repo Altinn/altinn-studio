@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 type TaskState = {
   overriddenTaskId?: string;
   overriddenDataModelType?: string;
-  overriddenDataModelUuid?: string;
+  overriddenDataElementId?: string;
   overriddenLayoutSetId?: string;
   depth?: number;
 };
@@ -11,7 +11,7 @@ type TaskState = {
 type TaskActions = {
   setOverriddenLayoutSetId: (layoutSetId: string) => void;
   setOverriddenDataModelType: (dataModelType: string) => void;
-  setOverriddenDataModelUuid: (dataModelUuid: string) => void;
+  setOverriddenDataModelDataElementId: (dataElementId: string) => void;
   setTaskId: (taskId: string) => void;
   setDepth: (depth: number) => void;
   clearTaskId: () => void;
@@ -23,7 +23,7 @@ export function TaskStoreProvider({ children }: React.PropsWithChildren) {
   const [state, setState] = useState<TaskState>({
     overriddenTaskId: undefined,
     overriddenDataModelType: undefined,
-    overriddenDataModelUuid: undefined,
+    overriddenDataElementId: undefined,
     overriddenLayoutSetId: undefined,
     depth: 1,
   });
@@ -33,8 +33,8 @@ export function TaskStoreProvider({ children }: React.PropsWithChildren) {
     setOverriddenLayoutSetId: (overriddenLayoutSetId: string) => setState((s) => ({ ...s, overriddenLayoutSetId })),
     setOverriddenDataModelType: (overriddenDataModelType: string) =>
       setState((s) => ({ ...s, overriddenDataModelType })),
-    setOverriddenDataModelUuid: (overriddenDataModelUuid: string) =>
-      setState((s) => ({ ...s, overriddenDataModelUuid })),
+    setOverriddenDataModelDataElementId: (overriddenDataElementId: string) =>
+      setState((s) => ({ ...s, overriddenDataElementId })),
     clearTaskId: () => setState((s) => ({ ...s, overriddenTaskId: '' })),
     setDepth: (depth: number) => setState((s) => ({ ...s, depth })),
   };

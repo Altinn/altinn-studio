@@ -24,8 +24,8 @@ interface IRender {
 }
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
-const exampleDataGuid = 'c21ebe7a-038d-4e8d-811c-0df1c16a1aa9';
-const exampleDataGuid2 = 'afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb';
+const exampleDataElementId = 'c21ebe7a-038d-4e8d-811c-0df1c16a1aa9';
+const exampleDataElementId2 = 'afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb';
 const exampleInstanceId = `512345/${exampleGuid}`;
 
 const buildInstance = (hasPdf = true) =>
@@ -46,15 +46,15 @@ const buildInstance = (hasPdf = true) =>
     };
     if (hasPdf) {
       i.data.push({
-        id: exampleDataGuid,
+        id: exampleDataElementId,
         instanceGuid: exampleGuid,
         dataType: 'ref-data-as-pdf',
         filename: 'UI komponents App.pdf',
         contentType: 'application/pdf',
-        blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid}`,
+        blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataElementId}`,
         selfLinks: {
-          apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
-          platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
+          apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataElementId}`,
+          platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataElementId}`,
         },
         size: 15366,
         locked: false,
@@ -67,14 +67,14 @@ const buildInstance = (hasPdf = true) =>
       });
     }
     i.data.push({
-      id: `${exampleDataGuid2}`,
+      id: `${exampleDataElementId2}`,
       instanceGuid: exampleGuid,
       dataType: 'test-data-model',
       contentType: 'application/xml',
-      blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid2}`,
+      blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataElementId2}`,
       selfLinks: {
-        apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
-        platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
+        apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataElementId2}`,
+        platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataElementId2}`,
       },
       size: 1254,
       locked: true,

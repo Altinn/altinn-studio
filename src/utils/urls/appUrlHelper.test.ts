@@ -60,8 +60,8 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
     it('should return the expected url for getDataValidationUrl', () => {
-      expect(getDataValidationUrl('12345/instanceId-1234', 'dataGuid', 'nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/data/dataGuid/validate?language=nb',
+      expect(getDataValidationUrl('12345/instanceId-1234', 'DataElementId', 'nb')).toBe(
+        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/data/DataElementId/validate?language=nb',
       );
     });
     it('should return the expected url for getRedirectUrl', () => {

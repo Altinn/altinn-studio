@@ -17,7 +17,7 @@ import { Validation } from 'src/features/validation/validationContext';
 const emptyObject = {};
 const emptyArray = [];
 
-export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
+export function BackendValidation() {
   const updateBackendValidations = Validation.useUpdateBackendValidations();
   const defaultDataElementId = DataModels.useDefaultDataElementId();
   const lastSaveValidations = FD.useLastSaveValidationIssues();
@@ -55,17 +55,10 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
   useEffect(() => {
     if (!isFetching) {
       validatorGroups.current = initialValidatorGroups;
-      const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups, dataTypes);
+      const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
       updateBackendValidations(backendValidations, { initial: initialValidations }, initialTaskValidations);
     }
-  }, [
-    dataTypes,
-    initialTaskValidations,
-    initialValidations,
-    initialValidatorGroups,
-    isFetching,
-    updateBackendValidations,
-  ]);
+  }, [initialTaskValidations, initialValidations, initialValidatorGroups, isFetching, updateBackendValidations]);
 
   // Incremental validation: Update validators and propagate changes to validationcontext
   useEffect(() => {
@@ -83,10 +76,10 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
       }
 
       validatorGroups.current = newValidatorGroups;
-      const backendValidations = mapValidatorGroupsToDataModelValidations(validatorGroups.current, dataTypes);
+      const backendValidations = mapValidatorGroupsToDataModelValidations(validatorGroups.current);
       updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
     }
-  }, [dataTypes, defaultDataElementId, lastSaveValidations, updateBackendValidations]);
+  }, [defaultDataElementId, lastSaveValidations, updateBackendValidations]);
 
   return null;
 }
