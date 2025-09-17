@@ -118,7 +118,7 @@ export const EditColumnElement = ({
           title={t('general.save')}
           disabled={isSaveButtonDisabled}
         />
-        <StudioDeleteButton title={t('general.delete')} onDelete={onDeleteColumn} />
+        <StudioDeleteButton data-size='2xs' title={t('general.delete')} onDelete={onDeleteColumn} />
       </div>
     </StudioCard>
   );

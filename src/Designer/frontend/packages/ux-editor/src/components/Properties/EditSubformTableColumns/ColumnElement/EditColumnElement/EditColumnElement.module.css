@@ -12,6 +12,7 @@
 .divider {
   margin-top: var(--fds-spacing-0);
 }
+
 .buttons {
   display: flex;
   gap: var(--fds-spacing-2);
