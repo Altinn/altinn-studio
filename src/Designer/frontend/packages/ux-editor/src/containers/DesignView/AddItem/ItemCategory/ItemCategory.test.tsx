@@ -7,7 +7,16 @@ import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
-const validCategories = ['advanced', 'attachment', 'button', 'container', 'form', 'info', 'select'];
+const validCategories = [
+  'advanced',
+  'attachment',
+  'button',
+  'container',
+  'form',
+  'info',
+  'select',
+  'text',
+];
 const MockInputIcon = () => <div data-testid='input-icon'>Input Icon</div>;
 const MockButtonIcon = () => <div data-testid='button-icon'>Button Icon</div>;
 

@@ -268,7 +268,7 @@ describe('EditColumnElementComponentSelect', () => {
     renderEditColumnElement({
       tableColumn: {
         headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: addressDataField },
+        cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
       },
       onChange: onChangeMock,
     });
@@ -285,10 +285,11 @@ describe('EditColumnElementComponentSelect', () => {
       ),
     );
     await user.click(dataModelBindingsSelect);
-    const addressOption = screen.getByRole('option', {
+    const addressOption = await screen.findByRole('option', {
       name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
     });
     await user.click(addressOption);
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,
       cellContent: { query: subformLayoutMock.component4.dataModelBindings.address.field },
