@@ -276,15 +276,6 @@ steps:
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01"
 
-        # # Authenticate to ACR
-        # az acr login --name $ACR_NAME" \
-        #   --expose-token --output tsv \
-        #   --query accessToken \
-        #   --subscription Altinn-$APP_OWNER-Prod \
-        #   --only-show-errors |  docker login $ACR_NAME.azurecr.io \
-        #                         --username 00000000-0000-0000-0000-000000000000 \
-        #                         --password-stdin
-
         # install flux cli
         curl -s https://fluxcd.io/install.sh | sudo bash
 
