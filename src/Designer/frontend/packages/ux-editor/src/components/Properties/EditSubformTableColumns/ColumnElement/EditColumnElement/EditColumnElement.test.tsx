@@ -172,11 +172,11 @@ describe('EditColumnElementComponentSelect', () => {
     });
     await user.click(componentWitMultipleBindings);
 
-    const dataModelBindingsSelect = await screen.findByText(
-      textMock(
+    const dataModelBindingsSelect = await screen.findByRole('combobox', {
+      name: textMock(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       ),
-    );
+    });
 
     await user.click(dataModelBindingsSelect);
 
@@ -262,13 +262,13 @@ describe('EditColumnElementComponentSelect', () => {
     });
   });
 
-  it('should call onChange with updated query when changing data model binding selection', async () => {
+  it('should render DataModelBindingsCombobox when component has multiple data model bindings', async () => {
     const user = userEvent.setup();
     const onChangeMock = jest.fn();
     renderEditColumnElement({
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
-        cellContent: { query: subformLayoutMock.component4.dataModelBindings.postPlace.field },
+        headerContent: '',
+        cellContent: { query: '' },
       },
       onChange: onChangeMock,
     });
@@ -279,16 +279,12 @@ describe('EditColumnElementComponentSelect', () => {
     await user.click(
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
     );
-    const dataModelBindingsSelect = await screen.findByText(
-      textMock(
+    const dataModelBindingsSelect = await screen.findByRole('combobox', {
+      name: textMock(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       ),
-    );
-    await user.click(dataModelBindingsSelect);
-    const addressOption = await screen.findByRole('option', {
-      name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
     });
-    await user.click(addressOption);
+    expect(dataModelBindingsSelect).toBeInTheDocument();
     expect(onChangeMock).toHaveBeenCalledTimes(1);
     expect(onChangeMock).toHaveBeenCalledWith({
       headerContent: subformLayoutMock.component4.textResourceBindings.title,

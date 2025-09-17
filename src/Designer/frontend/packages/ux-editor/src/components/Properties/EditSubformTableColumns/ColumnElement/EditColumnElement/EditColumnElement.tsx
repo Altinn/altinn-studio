@@ -52,11 +52,12 @@ export const EditColumnElement = ({
     setSelectedComponentId(componentId);
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
+    if (!selectedComponent?.dataModelBindings) return;
 
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
     const binding = convertDataBindingToInternalFormat(
-      selectedComponent?.dataModelBindings?.[bindingKey],
+      selectedComponent.dataModelBindings[bindingKey],
     );
 
     onChange({
@@ -70,6 +71,7 @@ export const EditColumnElement = ({
     dataModelBindings: IDataModelBindingsKeyValue,
     dataModelBindingKey: string,
   ) => {
+    if (!dataModelBindings || !dataModelBindingKey) return;
     const { field } = convertDataBindingToInternalFormat(dataModelBindings[dataModelBindingKey]);
     const updatedTableColumn = {
       ...tableColumn,
