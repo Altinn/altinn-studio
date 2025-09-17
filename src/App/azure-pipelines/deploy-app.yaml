@@ -172,7 +172,8 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Test
-    condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    # condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: false
     inputs:
       ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
       ScriptType: InlineScript
@@ -232,7 +233,8 @@ steps:
       pwsh: true
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Staging
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    # condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    condition: false
     inputs:
       ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
       ScriptType: InlineScript
@@ -294,7 +296,8 @@ steps:
 
   - task: AzurePowerShell@4
     displayName: Ensure API management subscription key - Production
-    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    # condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    condition: false
     inputs:
       ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
       ScriptType: InlineScript
@@ -429,7 +432,7 @@ steps:
             - name: AppSettings__AppInsightsRoleName
               value: ${APP_REPO}
             - name: ApplicationInsights__InstrumentationKey
-              value: __AI_INST_KEY__
+              value: ${AI_INSTR_KEY}
             - name: ASPNETCORE_ENVIRONMENT
               value: ${ENVIRONMENT}
             - name: AppSettings__AppVersion
@@ -511,7 +514,15 @@ steps:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
-        cat "${HELMRELEASE_FILE}"
+        awk '
+          /name: PlatformSettings__SubscriptionKey/ {
+            print;
+            getline;
+            print "  value: [REDACTED]";
+            next;
+          }
+          { print }
+        ' "${HELMRELEASE_FILE}"
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
