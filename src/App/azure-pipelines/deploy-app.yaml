@@ -270,19 +270,19 @@ steps:
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
     inputs:
-      azureSubscription: 'Altinn-$APP_OWNER-Prod'
-      addSpnToEnvironment: true
+      azureSubscription: 'altinn-studio-apps-deploy'
+      # addSpnToEnvironment: true
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01.azurecr.io"
 
-        # Login using federated credentials injected by Azure DevOps
-        az login --service-principal -u $servicePrincipalId \
-                  --tenant $tenantId \
-                  --allow-no-subscriptions \
-                  --federated-token \
-                  $idToken
+        # # Login using federated credentials injected by Azure DevOps
+        # az login --service-principal -u $servicePrincipalId \
+        #           --tenant $tenantId \
+        #           --allow-no-subscriptions \
+        #           --federated-token \
+        #           $idToken
 
         # Authenticate to ACR
         az acr login --name $ACR_NAME \
