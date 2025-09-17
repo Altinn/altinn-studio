@@ -81,4 +81,40 @@ describe('objectUtils', () => {
       expect(ObjectUtils.flattenObjectValues(object)).toEqual(['value1', 'value2', 'value3']);
     });
   });
+
+  describe('deleteUndefined', () => {
+    it('Returns an object without undefined properties', () => {
+      const object = {
+        a: 'value1',
+        b: undefined,
+        c: 'value3',
+        d: undefined,
+      };
+      const result = ObjectUtils.deleteUndefined(object);
+      expect(result).toEqual({
+        a: 'value1',
+        c: 'value3',
+      });
+      expect(result).not.toHaveProperty('b'); // This is necessary because toEqual ignores undefined properties
+      expect(result).not.toHaveProperty('d');
+    });
+
+    it('Does not modify the original object', () => {
+      const object = {
+        a: 'value1',
+        b: undefined,
+        c: 'value3',
+        d: undefined,
+      };
+      ObjectUtils.deleteUndefined(object);
+      expect(object).toEqual({
+        a: 'value1',
+        b: undefined,
+        c: 'value3',
+        d: undefined,
+      });
+      expect(object).toHaveProperty('b');
+      expect(object).toHaveProperty('d');
+    });
+  });
 });

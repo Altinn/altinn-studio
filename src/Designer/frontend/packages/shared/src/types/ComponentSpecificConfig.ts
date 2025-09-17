@@ -245,6 +245,13 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       width?: string;
     };
   };
+  [ComponentType.ImageUpload]: {
+    cropArea?: {
+      type?: 'circle' | 'square';
+      width?: number;
+      height?: number;
+    };
+  };
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
@@ -406,6 +413,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     hideEmptyFields?: boolean;
     overrides?: Summary2OverrideConfig[];
   };
+  [ComponentType.Text]: { value: string };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
