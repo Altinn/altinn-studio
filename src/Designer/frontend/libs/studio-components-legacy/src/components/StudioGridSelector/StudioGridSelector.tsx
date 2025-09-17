@@ -137,5 +137,4 @@ const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): Option
       };
     });
   }
-  return [];
 };
