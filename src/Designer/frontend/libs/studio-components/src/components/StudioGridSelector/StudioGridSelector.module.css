@@ -58,7 +58,7 @@
   width: var(--thumb-width);
 }
 
-datalist {
+.datalist {
   align-items: center;
   aspect-ratio: 12;
   border-radius: var(--border-radius);
