@@ -4,14 +4,11 @@ import type { ComponentType } from '../../../../../../shared/src/types/Component
 import type { properties } from '../../../../testing/schemas/json/component/ImageUpload.schema.v1.json';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
 import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
+import { ConfigNumberProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
 
 type ImageUploadMainProperties = (keyof typeof properties)[];
-const imageUploadMainProperties: ImageUploadMainProperties = [
-  'cropShape',
-  'cropHeight',
-  'cropWidth',
-];
-
+const imageUploadStringProperties: ImageUploadMainProperties = ['cropShape'];
+const imageUploadNumberProperties: ImageUploadMainProperties = ['cropHeight', 'cropWidth'];
 type FileUploadMainConfigProps = {
   component: FormItem<ComponentType.ImageUpload>;
   handleComponentChange: (component: FormItem) => void;
@@ -26,12 +23,21 @@ export const ImageUploadMainConfig = ({
   const { data: schema } = useComponentSchemaQuery(component.type);
 
   return (
-    <ConfigStringProperties
-      component={component}
-      handleComponentUpdate={handleComponentChange}
-      schema={schema}
-      stringPropertyKeys={imageUploadMainProperties}
-      className={className}
-    />
+    <>
+      <ConfigStringProperties
+        component={component}
+        handleComponentUpdate={handleComponentChange}
+        schema={schema}
+        stringPropertyKeys={imageUploadStringProperties}
+        className={className}
+      />
+      <ConfigNumberProperties
+        component={component}
+        handleComponentUpdate={handleComponentChange}
+        schema={schema}
+        numberPropertyKeys={imageUploadNumberProperties}
+        className={className}
+      />
+    </>
   );
 };
