@@ -277,13 +277,12 @@ steps:
       inlineScript: |
         ACR_NAME="${APP_OWNER}altinnregistry01.azurecr.io"
 
-        # Consider using federated credentials instead
-        # Login service principal
-        az login --service-principal `
-                      --username "$SP_USERNAME" `
-                      --password "$SP_PASSWORD" `
-                      --tenant "$SP_TENANT" `
-                      --output none
+        # Login using federated credentials injected by Azure DevOps
+        az login --service-principal -u $servicePrincipalId \
+                  --tenant $tenantId \
+                  --allow-no-subscriptions \
+                  --federated-token \
+                  $idToken
 
         # Authenticate to ACR
         az acr login --name $ACR_NAME \
