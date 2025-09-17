@@ -100,7 +100,7 @@ export function CodeListPage({
 
   return (
     <div className={classes.codeListsContainer}>
-      <StudioHeading level={3}>{t('app_content_library.code_lists.page_name')}</StudioHeading>
+      <StudioHeading level={1}>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeListDataList.length} />
       <CodeListsActionsBar
         onCreateCodeList={onCreateCodeList}
