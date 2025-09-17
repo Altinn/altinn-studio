@@ -124,7 +124,9 @@ const convertToGridSize = (value: string): GridSize => {
   return int as GridSize;
 };
 
-const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): OptionData[] => {
+const calculateOptionPositionsX = (
+  datalistElement: HTMLDataListElement | null | undefined,
+): OptionData[] => {
   if (datalistElement) {
     return Array.from(datalistElement.options).map((option: HTMLOptionElement): OptionData => {
       const optionRect = option.getBoundingClientRect();
