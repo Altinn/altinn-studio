@@ -42,11 +42,10 @@ export const StudioGridSelector = ({
     generateLinearGradient(sliderIsHovered ? hoverValue : selectedValue, sliderIsHovered) +
     ')';
 
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleHover = (event: MouseEvent<HTMLInputElement>): void => {
-    if (!inputRef?.current?.list) return;
-    const dataListElement = inputRef?.current?.list;
+    const dataListElement = inputRef.current?.list;
     const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
     const hoverOption = [...optionPositionsX]
       .reverse()

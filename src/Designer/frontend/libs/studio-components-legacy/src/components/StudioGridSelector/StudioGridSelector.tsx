@@ -45,10 +45,10 @@ export const StudioGridSelector = ({
     generateLinearGradient(sliderIsHovered ? hoverValue : selectedValue, sliderIsHovered) +
     ')';
 
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleHover = (event: MouseEvent<HTMLInputElement>) => {
-    const dataListElement = inputRef.current.list;
+    const dataListElement = inputRef.current?.list;
     const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
     const hoverOption = [...optionPositionsX]
       .reverse()
@@ -127,7 +127,9 @@ const convertToGridSize = (value: string): GridSize => {
   return int as GridSize;
 };
 
-const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): OptionData[] => {
+const calculateOptionPositionsX = (
+  datalistElement: HTMLDataListElement | undefined,
+): OptionData[] => {
   if (datalistElement) {
     return Array.from(datalistElement.options).map((option: HTMLOptionElement): OptionData => {
       const optionRect = option.getBoundingClientRect();
@@ -137,4 +139,5 @@ const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): Option
       };
     });
   }
+  return [];
 };
