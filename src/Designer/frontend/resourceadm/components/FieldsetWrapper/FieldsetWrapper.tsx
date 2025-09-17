@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './FieldsetWrapper.module.css';
-import { StudioButton, StudioModal } from '@studio/components-legacy';
+import { StudioButton, StudioDialog } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';
+import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 const DELETE_ID_NOT_SET = -1;
 
@@ -108,14 +109,14 @@ export const FieldsetWrapper = <T,>({
   const displayFields = listItems.map((listItem: T, pos: number) => (
     <div key={`${pos}/${listItems.length}`} className={classes.fieldset}>
       {pos > 0 && <div className={classes.divider} />}
-      <div className={classes.itemWrapper}>
+      <div data-color='neutral' className={classes.itemWrapper}>
         {renderItem(listItem, pos, (item: T) => {
           onChangeListItemField(item, pos);
         })}
         {listItems.length > 1 && (
           <div className={classes.buttonWrapper}>
             <StudioButton
-              color='danger'
+              data-color='danger'
               variant='secondary'
               icon={<TrashIcon />}
               iconPlacement='left'
@@ -134,15 +135,12 @@ export const FieldsetWrapper = <T,>({
 
   return (
     <div>
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={deleteModalRef}
-          onClose={onCloseDeleteModal}
+      <StudioDialog ref={deleteModalRef} onClose={onCloseDeleteModal}>
+        <ResourceAdmDialogContent
           heading={t(translations.deleteHeader)}
-          closeButtonTitle={t('resourceadm.close_modal')}
           footer={
             <>
-              <StudioButton color='danger' onClick={handleClickRemoveButton}>
+              <StudioButton data-color='danger' onClick={handleClickRemoveButton}>
                 {t(translations.deleteConfirmationButton)}
               </StudioButton>
               <StudioButton variant='tertiary' onClick={onCloseDeleteModal}>
@@ -152,8 +150,8 @@ export const FieldsetWrapper = <T,>({
           }
         >
           {t(translations.deleteConfirmation)}
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+        </ResourceAdmDialogContent>
+      </StudioDialog>
       {displayFields}
       <StudioButton
         variant='secondary'

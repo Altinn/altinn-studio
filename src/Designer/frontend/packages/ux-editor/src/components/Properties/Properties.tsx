@@ -22,9 +22,9 @@ const PropertiesSelectedConfig = () => {
   const { t } = useTranslation();
   switch (selectedItem?.type) {
     case ItemType.Component:
-      return <ComponentConfigPanel selectedItem={selectedItem} />;
+      return <ComponentConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
     case ItemType.Page:
-      return <PageConfigPanel selectedItem={selectedItem} />;
+      return <PageConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
     case ItemType.Group:
       return <GroupConfigPanel selectedItem={selectedItem} key={selectedItem.id} />;
     default:

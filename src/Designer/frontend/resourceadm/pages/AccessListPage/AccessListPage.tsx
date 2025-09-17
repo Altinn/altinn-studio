@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioSpinner } from '@studio/components-legacy';
+import { StudioAlert, StudioSpinner } from '@studio/components';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { getAccessListPageUrl } from '../../utils/urlUtils';
@@ -18,12 +18,12 @@ export const AccessListPage = (): React.JSX.Element => {
   } = useGetAccessListQuery(org, accessListId, env);
 
   if (isLoadingList) {
-    return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_access_list')} />;
+    return <StudioSpinner aria-label={t('resourceadm.loading_access_list')} />;
   }
 
   if (isLoadListError) {
     return (
-      <StudioAlert severity='danger'>{t('resourceadm.listadmin_list_load_error')}</StudioAlert>
+      <StudioAlert data-color='danger'>{t('resourceadm.listadmin_list_load_error')}</StudioAlert>
     );
   }
 

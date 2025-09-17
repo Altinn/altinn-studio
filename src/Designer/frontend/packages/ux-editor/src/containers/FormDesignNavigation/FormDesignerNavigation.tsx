@@ -4,7 +4,7 @@ import classes from './FormDesignerNavigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { TaskCardBar } from '../../components/TaskNavigation/TaskCardBar';
 import { SettingsTabs } from '../../components/Settings/SettingsTabs';
-import { StudioAlert } from '@studio/components-legacy';
+import { StudioAlert } from '@studio/components';
 import { LayoutPageOverviewFeedback } from '../../components/TaskNavigation/LayoutPageOverviewFeedback';
 
 export const FormDesignerNavigation = () => {
@@ -13,7 +13,7 @@ export const FormDesignerNavigation = () => {
   return (
     <div className={classes.wrapper}>
       <main className={classes.container}>
-        <StudioAlert size='md' className={classes.alert}>
+        <StudioAlert data-size='md' className={classes.alert}>
           {t('ux_editor.info.new_overview_page')}
         </StudioAlert>
         <div className={classes.panel}>

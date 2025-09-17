@@ -19,6 +19,7 @@ export enum ComponentType {
   Header = 'Header',
   IFrame = 'IFrame',
   Image = 'Image',
+  ImageUpload = 'ImageUpload',
   Input = 'Input',
   InstanceInformation = 'InstanceInformation',
   InstantiationButton = 'InstantiationButton',
@@ -41,6 +42,7 @@ export enum ComponentType {
   Subform = 'Subform',
   Summary = 'Summary',
   Summary2 = 'Summary2',
+  Text = 'Text',
   TextArea = 'TextArea',
   Divider = 'Divider',
 }

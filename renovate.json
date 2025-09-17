@@ -1,6 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>Altinn/renovate-config"],
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
   "packageRules": [
     {
       "groupName": "LibGit2Sharp dependency",
@@ -15,15 +17,55 @@
     {
       "matchFileNames": ["frontend/testing/cypress/**"],
       "ignoreDeps": ["yarn"]
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "additionalBranchPrefix": "app/",
+      "commitMessageSuffix": " (app)"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "@digdir/designsystemet-react",
+        "@digdir/designsystemet-css",
+        "@digdir/designsystemet-theme"
+      ],
+      "groupName": "Digdir design system",
+      "schedule": ["* 0-7 * * 1-5"],
+      "minimumReleaseAge": "0"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "/dotnet(-|\\/)sdk/",
+        "/^Microsoft\\.AspNetCore/",
+        "/^Microsoft\\.Extensions/",
+        "!Microsoft.Extensions.Caching.Hybrid"
+      ],
+      "allowedVersions": "<=8"
+    },
+    {
+      "matchFileNames": ["src/App/**"],
+      "matchPackageNames": [
+        "/^Microsoft\\.CodeAnalysis/",
+        "/^Microsoft\\.Build/"
+      ],
+      "enabled": false
+    },
+    {
+      "matchFileNames": ["src/App/codelists/**", "src/App/fileanalyzers/**", "src/App/Designer/**"],
+      "ignoreDeps": ["Altinn.App.Core"]
+    },
+    {
+      "matchFileNames": ["src/App/Designer/**"],
+      "ignoreDeps": [
+        "Moq",
+        "Basic.Reference.Assemblies",
+        "Microsoft.CodeAnalysis.CSharp",
+        "Microsoft.CodeAnalysis.Common"
+      ]
     }
   ],
   "ignorePaths": ["src/Altinn.Platform/**", "src/test/**"],
-  "ignoreDeps": [
-    "Moq",
-    "Altinn.App.Core",
-    "Basic.Reference.Assemblies",
-    "Microsoft.CodeAnalysis.CSharp",
-    "Microsoft.CodeAnalysis.Common"
-  ],
   "schedule": ["before 07:00 on Monday"]
 }

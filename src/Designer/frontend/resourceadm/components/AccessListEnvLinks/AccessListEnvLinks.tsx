@@ -4,7 +4,8 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { StudioSpinner, StudioAlert, StudioList, StudioParagraph } from '@studio/components-legacy';
+import { StudioSpinner, StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioList } from '@studio/components-legacy';
 import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
@@ -29,13 +30,13 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
   return (
     <div className={classes.envButtonsWrapper}>
       {isLoadingPublishStatus && (
-        <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_publish_status')} />
+        <StudioSpinner aria-label={t('resourceadm.loading_publish_status')} />
       )}
       {publishStatusData && (
         <>
           {envPublishStatus.some((env) => !env.isResourcePublished) && (
-            <StudioAlert severity='warning'>
-              <StudioParagraph size='sm' spacing>
+            <StudioAlert data-color='warning'>
+              <StudioParagraph spacing>
                 {t('resourceadm.about_resource_rrr_publish_warning')}
               </StudioParagraph>
               <StudioList.Root size='sm'>
