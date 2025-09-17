@@ -43,13 +43,6 @@ steps:
   - checkout: none
 
   - task: Bash@3
-    displayName: 'Output service connection id'
-    inputs:
-      targetType: inline
-      script: |
-        echo "Service connection id: $(SERVICE_CONNECTION_ID)"
-
-  - task: Bash@3
     name: RELEASE_NAME
     displayName: 'Create lowercase release name '
     inputs:
