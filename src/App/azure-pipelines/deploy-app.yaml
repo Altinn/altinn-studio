@@ -105,12 +105,19 @@ steps:
       Inline: |
         # Determine environment-specific values
         if ("$(APP_ENVIRONMENT)" -eq "production") {
+            $subscriptionName = "Altinn-$(APP_OWNER)-Prod"
             $monitorRG = "monitor-$(APP_OWNER)-prod-rg"
             $aiName = "$(APP_OWNER)-prod-ai"
         } else {
+            $subscriptionName = "Altinn-$(APP_OWNER)-Test"
             $monitorRG = "monitor-$(APP_OWNER)-$(APP_ENVIRONMENT)-rg"
             $aiName = "$(APP_OWNER)-$(APP_ENVIRONMENT)-ai"
         }
+
+
+        # Select the correct subscription
+        Write-Host "Selecting subscription: $subscriptionName"
+        Select-AzSubscription -Subscription $subscriptionName
 
         $altinnappsRG = "$(RG_NAME)"
 
