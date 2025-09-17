@@ -45,6 +45,7 @@ export const StudioGridSelector = ({
   const inputRef = useRef(null);
 
   const handleHover = (event: MouseEvent<HTMLInputElement>): void => {
+    if (!inputRef.current?.list) return;
     const dataListElement = inputRef.current.list;
     const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
     const hoverOption = [...optionPositionsX]
@@ -134,4 +135,5 @@ const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): Option
       };
     });
   }
+  return [];
 };
