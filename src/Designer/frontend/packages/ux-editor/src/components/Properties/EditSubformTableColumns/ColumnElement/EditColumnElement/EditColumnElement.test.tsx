@@ -261,6 +261,39 @@ describe('EditColumnElementComponentSelect', () => {
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding.field },
     });
   });
+
+  it('should call onChange with updated query when changing data model binding selection', async () => {
+    const user = userEvent.setup();
+    const onChangeMock = jest.fn();
+    renderEditColumnElement({
+      tableColumn: {
+        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        cellContent: { query: addressDataField },
+      },
+      onChange: onChangeMock,
+    });
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+    await user.click(componentSelect);
+    await user.click(
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component4Id}`) }),
+    );
+    const dataModelBindingsSelect = await screen.findByText(
+      textMock(
+        'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
+      ),
+    );
+    await user.click(dataModelBindingsSelect);
+    const addressOption = screen.getByRole('option', {
+      name: `${textMock('ux_editor.modal_properties_data_model_label.address')} ${subformLayoutMock.component4.dataModelBindings.address.field}`,
+    });
+    await user.click(addressOption);
+    expect(onChangeMock).toHaveBeenCalledWith({
+      headerContent: subformLayoutMock.component4.textResourceBindings.title,
+      cellContent: { query: subformLayoutMock.component4.dataModelBindings.address.field },
+    });
+  });
 });
 
 const renderEditColumnElement = (
