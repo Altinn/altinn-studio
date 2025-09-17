@@ -82,13 +82,13 @@ describe('ResourceAccessLists', () => {
   it('should show show spinner on loading', () => {
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     expect(spinnerTitle).toBeInTheDocument();
   });
   it('should show selected lists checked', async () => {
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
@@ -102,7 +102,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
@@ -121,7 +121,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
@@ -134,7 +134,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox2 = screen.getByLabelText(list2Name);
@@ -151,7 +151,7 @@ describe('ResourceAccessLists', () => {
       .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2));
     renderResourceAccessLists(getResourceAccessListsMock);
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     await waitFor(() =>
@@ -178,7 +178,7 @@ describe('ResourceAccessLists', () => {
       .mockImplementation(() => Promise.reject({ response: { status: 500 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     expect(screen.getByText(textMock('resourceadm.listadmin_load_list_error'))).toBeInTheDocument();
@@ -190,7 +190,7 @@ describe('ResourceAccessLists', () => {
       .mockImplementation(() => Promise.reject({ response: { status: 403 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     expect(
@@ -207,7 +207,7 @@ describe('ResourceAccessLists', () => {
 
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    const spinnerTitle = screen.queryByLabelText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const backLink = screen.getByRole('link', { name: textMock('general.back') });

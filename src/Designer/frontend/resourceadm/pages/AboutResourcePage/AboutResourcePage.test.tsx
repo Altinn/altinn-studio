@@ -18,6 +18,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -67,7 +68,7 @@ const mockConsentResource: Resource = {
 const consentTemplates = testConsentTemplates;
 
 const mockResourceType: ResourceTypeOption = textMock(
-  'resourceadm.about_resource_resource_type_system_resource',
+  'resourceadm.about_resource_resource_type_generic_access_resource',
 ) as ResourceTypeOption;
 const mockStatus: ResourceStatusOption = 'Deprecated';
 
@@ -79,14 +80,17 @@ const mockNewRightDescriptionInput: string = 'mock';
 const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    resourceId: mockResource1,
-  }),
+jest.mock('../../hooks/useUrlParams', () => ({
+  useUrlParams: jest.fn(),
 }));
 
 describe('AboutResourcePage', () => {
+  beforeEach(() => {
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
+      org: 'ttd',
+    });
+  });
   afterEach(jest.clearAllMocks);
 
   const mockOnSaveResource = jest.fn();
@@ -114,6 +118,30 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(mockResourceType);
+    await user.click(resourceTypeRadio);
+
+    expect(resourceTypeRadio).toBeChecked();
+  });
+
+  it('should not show resource type Systemresource for org ttd', () => {
+    render(<AboutResourcePage {...defaultProps} />);
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_resource_type_system_resource')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show resource type Systemresource for org digdir', async () => {
+    (useUrlParams as jest.Mock).mockReturnValue({
+      resourceId: mockResource1.identifier,
+      org: 'digdir',
+    });
+    const user = userEvent.setup();
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const resourceTypeRadio = screen.getByLabelText(
+      textMock('resourceadm.about_resource_resource_type_system_resource'),
+    );
     await user.click(resourceTypeRadio);
 
     expect(resourceTypeRadio).toBeChecked();
@@ -228,7 +256,9 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const delegableInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_delegable_label'),
+      textMock('resourceadm.about_resource_delegable_show_text', {
+        shouldText: '',
+      }),
     );
     expect(delegableInput).toBeChecked();
 
@@ -299,7 +329,9 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const input = screen.getByLabelText(
-      textMock('resourceadm.about_resource_self_identified_label'),
+      textMock('resourceadm.about_resource_self_identified_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
     );
     expect(input).not.toBeChecked();
 
@@ -315,7 +347,12 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const input = screen.getByLabelText(textMock('resourceadm.about_resource_enterprise_label'));
+    const input = screen.getByLabelText(
+      textMock('resourceadm.about_resource_enterprise_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
+    );
+
     expect(input).not.toBeChecked();
 
     await user.click(input);
@@ -330,7 +367,11 @@ describe('AboutResourcePage', () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const input = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));
+    const input = screen.getByLabelText(
+      textMock('resourceadm.about_resource_visible_show_text', {
+        shouldText: textMock('resourceadm.switch_should_not'),
+      }),
+    );
     expect(input).not.toBeChecked();
 
     await user.click(input);
@@ -516,7 +557,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} resourceData={mockConsentResource} />);
 
     const isOneTimeConsentInput = screen.getByLabelText(
-      textMock('resourceadm.about_resource_one_time_consent_label'),
+      textMock('resourceadm.about_resource_one_time_consent_show_text', { shouldText: '' }),
     );
     expect(isOneTimeConsentInput).toBeChecked();
 

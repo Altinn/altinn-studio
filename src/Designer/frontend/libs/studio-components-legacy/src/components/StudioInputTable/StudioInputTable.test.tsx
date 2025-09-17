@@ -1,4 +1,4 @@
-import type { ForwardedRef, ReactNode } from 'react';
+import type { FormEvent, ForwardedRef, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
 import type { RenderResult } from '@testing-library/react';
@@ -66,7 +66,7 @@ describe('StudioInputTable', () => {
   });
 
   it('Forwards the ref if provided', () => {
-    const renderTable = (ref: ForwardedRef<HTMLTableElement>) =>
+    const renderTable = (ref: ForwardedRef<HTMLTableElement>): RenderResult =>
       render(
         <StudioInputTable ref={ref}>
           <StudioInputTable.Body>
@@ -334,7 +334,8 @@ describe('StudioInputTable', () => {
           render: (onChange) =>
             renderSingleNumberfieldCell({
               label: 'test',
-              onChange: (value: number) => onChange({ target: { value } } as any),
+              onChange: (value: number) =>
+                onChange({ target: { value } } as unknown as FormEvent<HTMLInputElement>),
             }),
           action: (user) => user.type(screen.getByRole('textbox'), '1'),
         },
@@ -535,7 +536,7 @@ const getCheckbox = (name: string): HTMLInputElement =>
   screen.getByRole('checkbox', { name }) as HTMLInputElement;
 const getCheckboxInRow = (rowNumber: number): HTMLInputElement =>
   getCheckbox(checkboxLabel(rowNumber));
-const getTextbox = (name: string) => screen.getByRole('textbox', { name });
+const getTextbox = (name: string): HTMLElement => screen.getByRole('textbox', { name });
 const getTextfieldInRow = (rowNumber: number): HTMLInputElement =>
   getTextbox(textfieldLabel(rowNumber)) as HTMLInputElement;
 const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
@@ -580,7 +581,7 @@ const expectedNumberOfHeaderRows = 1;
 const expectedNumberOfBodyRows = 3;
 const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRows;
 
-function SingleRow({ children }: { children: ReactNode }) {
+function SingleRow({ children }: { children: ReactNode }): React.ReactElement {
   return (
     <StudioInputTable {...defaultProps}>
       <StudioInputTable.Body>

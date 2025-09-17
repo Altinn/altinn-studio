@@ -40,6 +40,7 @@ import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
   name: ComponentType | CustomComponentType;
@@ -293,6 +294,19 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/imageComponent',
     icon: ImageIcon,
   },
+  [ComponentType.ImageUpload]: {
+    name: ComponentType.ImageUpload,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      cropArea: {
+        type: 'circle',
+        width: 300,
+        height: 300,
+      },
+    },
+    propertyPath: 'definitions/imageUploadComponent',
+    icon: ImageIcon,
+  },
   [ComponentType.Input]: {
     name: ComponentType.Input,
     itemType: LayoutItemType.Component,
@@ -492,6 +506,15 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
+  [ComponentType.Text]: {
+    name: ComponentType.Text,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      value: '',
+    },
+    propertyPath: 'definitions/textComponent',
+    icon: TextIcon,
+  },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
     itemType: LayoutItemType.Component,
@@ -552,6 +575,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.InstantiationButton],
   formItemConfigs[ComponentType.ActionButton],
   formItemConfigs[ComponentType.Image],
+  shouldDisplayFeature(FeatureFlag.ImageUpload) && formItemConfigs[ComponentType.ImageUpload],
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
@@ -563,6 +587,7 @@ export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.Panel],
   formItemConfigs[ComponentType.Alert],
+  formItemConfigs[ComponentType.Text],
 ];
 
 export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
@@ -603,6 +628,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Panel,
     ComponentType.Alert,
     ComponentType.Divider,
+    ComponentType.Text,
   ],
   select: [
     ComponentType.Checkboxes,
@@ -630,6 +656,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.AttachmentList,
     ComponentType.FileUpload,
     ComponentType.FileUploadWithTag,
+    ...(shouldDisplayFeature(FeatureFlag.ImageUpload) ? [ComponentType.ImageUpload] : []),
   ],
   container: [
     ComponentType.Group,

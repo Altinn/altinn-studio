@@ -23,7 +23,7 @@ describe('EditPolicy', () => {
     renderEditPolicy(<EditPolicy />);
     expect(
       screen.getByText(
-        textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+        textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
       ),
     ).toBeInTheDocument();
   });
@@ -35,29 +35,26 @@ describe('EditPolicy', () => {
     ).toBeInTheDocument();
   });
 
-  it('adds the correct href to the button', () => {
+  it('adds the correct href to the link', () => {
     renderEditPolicy(<EditPolicy />);
-    const button = screen.getByRole('link', {
-      name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    const link = screen.getByRole('link', {
+      name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     });
-    expect(button).toHaveAttribute(
-      'href',
-      '/editor/testOrg/testApp/app-settings?currentTab=policy',
-    );
+    expect(link).toHaveAttribute('href', '/editor/testOrg/testApp/app-settings?currentTab=policy');
 
     typedLocalStorage.removeItem('featureFlags');
   });
 
-  it('sets the correct local storage item when the button is clicked', async () => {
+  it('sets the correct local storage item when the link is clicked', async () => {
     // As real navigations are not supported in jsdom, we need this mock to prevent errors
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     renderEditPolicy(<EditPolicy />);
     const user = userEvent.setup();
-    const button = screen.getByRole('link', {
-      name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    const link = screen.getByRole('link', {
+      name: textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_link'),
     });
-    await user.click(button);
+    await user.click(link);
     expect(typedLocalStorage.getItem(LocalStorageKey.PreviousRouteBeforeSettings)).toEqual(
       RoutePaths.ProcessEditor,
     );

@@ -2,12 +2,13 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioCombobox, StudioDeleteButton, StudioDivider } from '@studio/components-legacy';
+import { StudioCombobox, StudioDivider } from '@studio/components-legacy';
 import {
   StudioParagraph,
   StudioActionCloseButton,
   StudioCard,
   StudioHeading,
+  StudioDeleteButton,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';

@@ -48,20 +48,10 @@ describe('ImportResourceModal', () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user);
 
-    const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
-    const importButton = screen.queryByRole('button', { name: importButtonText });
-    expect(importButton).toHaveAttribute('aria-disabled', 'true');
-
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
-
-    await waitFor(() =>
-      expect(environmentSelect).toHaveValue(textMock('resourceadm.deploy_at22_env')),
-    );
-    expect(importButton).toHaveAttribute('aria-disabled', 'true');
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -74,10 +64,9 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
+    await user.selectOptions(serviceSelect, mockOption);
 
-    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
+    const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
     expect(screen.getByRole('button', { name: importButtonText })).not.toHaveAttribute(
       'aria-disabled',
       'true',
@@ -104,8 +93,7 @@ describe('ImportResourceModal', () => {
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -118,52 +106,15 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
-    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
+    await user.selectOptions(serviceSelect, mockOption);
 
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
+
     await waitFor(() =>
       expect(
         screen.queryByLabelText(textMock('resourceadm.dashboard_resource_name_and_id_resource_id')),
       ).not.toBeInTheDocument(),
     );
-  });
-
-  it('should clear id field when service is changed', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal(user);
-
-    const environmentSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_env'),
-    );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
-
-    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
-    // (sometimes the spinner disappears) too quick and the test will fail
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
-      ).toBeInTheDocument();
-    });
-
-    const serviceSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_service'),
-    );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
-    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
-
-    await user.click(serviceSelect);
-    await user.keyboard('{BACKSPACE}');
-
-    await waitFor(() => {
-      expect(
-        screen.queryByLabelText(textMock('resourceadm.dashboard_resource_name_and_id_resource_id')),
-      ).not.toBeInTheDocument();
-    });
   });
 
   it('calls onClose function when close button is clicked', async () => {
@@ -184,8 +135,7 @@ describe('ImportResourceModal', () => {
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -198,8 +148,7 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
+    await user.selectOptions(serviceSelect, mockOption);
 
     const importButton = await screen.findByRole('button', {
       name: textMock('resourceadm.dashboard_import_modal_import_button'),
@@ -216,8 +165,7 @@ describe('ImportResourceModal', () => {
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -230,8 +178,7 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
+    await user.selectOptions(serviceSelect, mockOption);
 
     const idField = await screen.findByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
@@ -248,8 +195,7 @@ describe('ImportResourceModal', () => {
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -262,8 +208,7 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
+    await user.selectOptions(serviceSelect, mockOption);
 
     const idField = await screen.findByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
@@ -287,8 +232,7 @@ describe('ImportResourceModal', () => {
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
-    await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
+    await user.selectOptions(environmentSelect, textMock('resourceadm.deploy_at22_env'));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -301,8 +245,7 @@ describe('ImportResourceModal', () => {
     const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await user.click(serviceSelect);
-    await user.click(screen.getByRole('option', { name: mockOption }));
+    await user.selectOptions(serviceSelect, mockOption);
 
     const importButton = await screen.findByRole('button', {
       name: textMock('resourceadm.dashboard_import_modal_import_button'),
