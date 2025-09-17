@@ -1,14 +1,3 @@
-.fileUploadWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.blueUnderLine {
-  border-bottom: 2px solid var(--colors-primary-blue) !important;
-}
-
 .fileUploadTextBoldSmall {
   font-weight: 500;
   font-size: 0.75rem;
@@ -19,6 +8,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--ds-size-7);
+  border-width: 2px;
+  border-color: var(--colors-primary-blue);
+  border-style: dotted;
+  cursor: pointer;
+  background: transparent;
 }
 
 .fileUploadInvalid:focus {
@@ -37,6 +32,11 @@
   outline-offset: var(--_ds--focus, var(--ds-border-width-focus));
 }
 
-.uploadIcon {
-  font-size: 2.5rem;
+.active {
+  border-style: solid;
+}
+
+.validationError {
+  border-style: dotted;
+  border-color: var(--colors-danger);
 }
