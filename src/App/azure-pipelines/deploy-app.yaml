@@ -31,9 +31,7 @@ variables:
   NORMALIZED_VALUES: 'values.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
 
-  # set service connection based on environment
-  # Pipeline is called from both Altinn Studio and passes APP_ENVIRONMENT as parameter
-  ${{ if eq( parameters['APP_ENVIRONMENT'], 'production' ) }}:
+  ${{ if eq( variables['APP_ENVIRONMENT'], 'production' ) }}:
     SERVICE_CONNECTION_ID: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
   ${{ else }}:
     SERVICE_CONNECTION_ID: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
