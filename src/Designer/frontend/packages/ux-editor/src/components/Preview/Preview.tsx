@@ -8,7 +8,7 @@ import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
-import { StudioCenter } from '@studio/components';
+import { StudioCenter, StudioAlert } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -16,7 +16,6 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { StudioAlert } from '@studio/components';
 
 export type PreviewProps = {
   collapsed: boolean;
