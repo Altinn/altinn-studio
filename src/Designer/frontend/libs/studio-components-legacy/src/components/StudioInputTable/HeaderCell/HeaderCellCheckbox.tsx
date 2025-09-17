@@ -25,7 +25,7 @@ function handleKeyDown(event: React.KeyboardEvent<HTMLCellInputElement>): void {
   moveFocus(event);
 }
 
-function moveFocus(event: React.KeyboardEvent<HTMLCellInputElement>) {
+function moveFocus(event: React.KeyboardEvent<HTMLCellInputElement>): void {
   const nextElement = getNextElement(event);
   if (nextElement) {
     event.preventDefault();

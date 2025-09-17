@@ -4,5 +4,5 @@ export interface ApplicationAttachmentMetadata {
   maxCount: number;
   minCount: number;
   maxSize: number;
-  fileType: string;
+  fileType?: string;
 }
