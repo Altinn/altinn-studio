@@ -1,5 +1,5 @@
 import type { ChangeEvent, ChangeEventHandler } from 'react';
-import React, { useCallback, useReducer, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
@@ -7,22 +7,20 @@ import { Fieldset, Label, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
-import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
-import {
-  stringRestrictionsReducer,
-  StringRestrictionsReducerActionType,
-} from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
 import { ItemWrapper } from '../ItemWrapper';
 import {
-  getLatest,
-  getEarliest,
   isDateOrTimeFormat,
-  isLatestInclusive,
-  isEarliestInclusive,
   updateRestriction,
+  retrieveDateTimeFormatState,
+  updateDateTimeRestrictions,
+  updateEarliest,
+  updateLatest,
+  updateEarliestInclusivity,
+  updateLatestInclusivity,
 } from './utils';
+import type { DateTimeFormatState } from './utils';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -43,18 +41,33 @@ export function StringRestrictions({
     }
   };
 
-  const changeCallback = (changedRestrictions: KeyValuePairs) => {
-    onChangeRestrictions(path, changedRestrictions);
-  };
+  const changeCallback = useCallback(
+    (changedRestrictions: KeyValuePairs) => {
+      onChangeRestrictions(path, changedRestrictions);
+    },
+    [onChangeRestrictions, path],
+  );
 
-  const setRestriction = (key: StrRestrictionKey, value: string): void => {
-    const updatedRestrictions = updateRestriction(restrictions, key, value);
-    changeCallback(updatedRestrictions);
-  };
+  const setRestriction = useCallback(
+    (key: StrRestrictionKey, value: string): void => {
+      const updatedRestrictions = updateRestriction(restrictions, key, value);
+      changeCallback(updatedRestrictions);
+    },
+    [restrictions, changeCallback],
+  );
 
-  const handleUpdateDateTimeRestrictions = (newRestrictions: KeyValuePairs) => {
-    changeCallback(newRestrictions);
-  };
+  const handleUpdateDateTimeRestrictions = useCallback(
+    (dateTimeFormatState: DateTimeFormatState): void => {
+      const newRestrictions = updateDateTimeRestrictions(restrictions, dateTimeFormatState);
+      changeCallback(newRestrictions);
+    },
+    [restrictions, changeCallback],
+  );
+
+  const dateTimeFormatState = useMemo(
+    () => retrieveDateTimeFormatState(restrictions),
+    [restrictions],
+  );
 
   const formatOptions = Object.values(StringFormat).map((f) => ({
     key: f,
@@ -80,8 +93,8 @@ export function StringRestrictions({
       </StudioNativeSelect>
       {isDateOrTimeFormat(restrictions) && (
         <DateOrTimeFormatRestrictions
-          onUpdateRestrictions={handleUpdateDateTimeRestrictions}
-          restrictions={restrictions}
+          formatState={dateTimeFormatState}
+          onUpdateFormatState={handleUpdateDateTimeRestrictions}
         />
       )}
       <div className={classes.lengthFields}>
@@ -152,71 +165,50 @@ export function StringRestrictions({
 }
 
 type DateOrTimeFormatRestrictionsProps = {
-  onUpdateRestrictions: (newRestrictions: KeyValuePairs) => void;
-  restrictions: KeyValuePairs;
+  formatState: DateTimeFormatState;
+  onUpdateFormatState: (formatState: DateTimeFormatState) => void;
 };
 
 function DateOrTimeFormatRestrictions({
-  onUpdateRestrictions,
-  restrictions,
+  formatState,
+  onUpdateFormatState,
 }: DateOrTimeFormatRestrictionsProps) {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
-
-  const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
-    earliestIsInclusive: isEarliestInclusive(restrictions),
-    latestIsInclusive: isLatestInclusive(restrictions),
-    earliest: getEarliest(restrictions),
-    latest: getLatest(restrictions),
-    restrictions,
-  });
-
-  const dispatchAction = useCallback(
-    (action: Omit<StringRestrictionsReducerAction, 'changeCallback'>) =>
-      dispatch({
-        ...action,
-        changeCallback: onUpdateRestrictions,
-      } as StringRestrictionsReducerAction),
-    [dispatch, onUpdateRestrictions],
-  );
 
   const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
   const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   const handleSetEarliest: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      dispatchAction({
-        type: StringRestrictionsReducerActionType.setEarliest,
-        value: e.target.value,
-      }),
-    [dispatchAction],
+    (e) => {
+      const newFormatState = updateEarliest(formatState, e.target.value);
+      onUpdateFormatState(newFormatState);
+    },
+    [onUpdateFormatState, formatState],
   );
 
   const handleSetLatest: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      dispatchAction({
-        type: StringRestrictionsReducerActionType.setLatest,
-        value: e.target.value,
-      }),
-    [dispatchAction],
+    (e) => {
+      const newFormatState = updateLatest(formatState, e.target.value);
+      onUpdateFormatState(newFormatState);
+    },
+    [onUpdateFormatState, formatState],
   );
 
   const handleSetMinIncl: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      dispatchAction({
-        type: StringRestrictionsReducerActionType.setMinIncl,
-        value: e.target.checked,
-      }),
-    [dispatchAction],
+    (e) => {
+      const newFormatState = updateEarliestInclusivity(formatState, e.target.checked);
+      onUpdateFormatState(newFormatState);
+    },
+    [onUpdateFormatState, formatState],
   );
 
   const handleSetMaxIncl: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      dispatchAction({
-        type: StringRestrictionsReducerActionType.setMaxIncl,
-        value: e.target.checked,
-      }),
-    [dispatchAction],
+    (e) => {
+      const newFormatState = updateLatestInclusivity(formatState, e.target.checked);
+      onUpdateFormatState(newFormatState);
+    },
+    [onUpdateFormatState, formatState],
   );
 
   return (
@@ -226,7 +218,7 @@ function DateOrTimeFormatRestrictions({
           <StudioTextfield
             label={t(formatMinLangKey)}
             onChange={handleSetEarliest}
-            value={formatState.earliest ?? ''}
+            value={formatState.earliest}
           />
           <Switch
             size='small'
@@ -242,7 +234,7 @@ function DateOrTimeFormatRestrictions({
           <StudioTextfield
             label={t(formatMaxLangKey)}
             onChange={handleSetLatest}
-            value={formatState.latest ?? ''}
+            value={formatState.latest}
           />
           <Switch size='small' checked={formatState.latestIsInclusive} onChange={handleSetMaxIncl}>
             {t('format_date_inclusive')}
