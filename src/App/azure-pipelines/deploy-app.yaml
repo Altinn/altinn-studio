@@ -31,11 +31,26 @@ variables:
   NORMALIZED_VALUES: 'values.normalized.yaml'
   MERGED_VALUES: 'values.merged.yaml'
 
+  # set service connection based on environment
+  # Pipeline is called from both Altinn Studio and passes APP_ENVIRONMENT as parameter
+  ${{ if eq( parameters['APP_ENVIRONMENT'], 'production' ) }}:
+    SERVICE_CONNECTION_ID: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
+  ${{ else }}:
+    SERVICE_CONNECTION_ID: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
+
+
 trigger: none
 pr: none
 
 steps:
   - checkout: none
+
+  - task: Bash@3
+    displayName: 'Output service connection id'
+    inputs:
+      targetType: inline
+      script: |
+        echo "Service connection id: $(SERVICE_CONNECTION_ID)"
 
   - task: Bash@3
     name: RELEASE_NAME
@@ -83,6 +98,52 @@ steps:
             echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
         fi
       failOnStderr: true
+
+  - task: AzurePowerShell@4
+    displayName: Get application Insights instrumentation key
+    inputs:
+      ConnectedServiceNameARM: $(SERVICE_CONNECTION_ID)
+      ScriptType: InlineScript
+      Inline: |
+        # Determine environment-specific values
+        if ("$(APP_ENVIRONMENT)" -eq "production") {
+            $monitorRG = "monitor-$(APP_OWNER)-prod-rg"
+            $aiName = "$(APP_OWNER)-prod-ai"
+        } else {
+            $monitorRG = "monitor-$(APP_OWNER)-$(APP_ENVIRONMENT)-rg"
+            $aiName = "$(APP_OWNER)-$(APP_ENVIRONMENT)-ai"
+        }
+
+        $altinnappsRG = "$(RG_NAME)"
+
+        # Check if the monitor resource group exists
+        $rgExists = Get-AzResourceGroup -Name $monitorRG -ErrorAction SilentlyContinue
+
+        # Determine which resource group to use
+        if ($rgExists) {
+            $resourceGroupName = $monitorRG
+        } else {
+            $resourceGroupName = $altinnappsRG
+        }
+
+        Write-Host "Using resource group for Application Insights: $resourceGroupName"
+
+        # Get the Application Insights Instrumentation Key
+        $ai_instr_key = (Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName).InstrumentationKey
+
+        # export it as a pipeline variable
+        Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
+    TargetAzurePs: LatestVersion
+
+  # output instrumentation key for debugging purposes
+  - task: Bash@3
+    displayName: 'Output instrumentation key for debugging purposes'
+    inputs:
+      targetType: inline
+      script: |
+        echo "Instrumentation key: $(AI_INSTR_KEY)"
 
   - task: Bash@3
     displayName: Create flux artifact directory
