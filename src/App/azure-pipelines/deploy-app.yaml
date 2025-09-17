@@ -297,7 +297,8 @@ steps:
 
         # Tag as environment
         flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME  \
-          --tag $APP_ENVIRONMENT
+          --tag $APP_ENVIRONMENT \
+          --provider azure
 
 
 
