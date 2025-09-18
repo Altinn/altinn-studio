@@ -72,7 +72,7 @@
     {
       "id": "ImageUploadPage-ImageUpload",
       "taskId": "Task_1",
-      "maxSize": 250,
+      "maxSize": 10,
       "maxCount": 1,
       "minCount": 0,
       "enablePdfCreation": true,
