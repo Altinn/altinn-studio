@@ -1,13 +1,8 @@
 import type { ChangeEvent, MouseEvent } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 import type { GridSize } from './types/GridSize';
-
-type OptionData = {
-  value: GridSize;
-  positionX: number;
-};
 
 export type StudioGridSelectorProps = {
   disabled?: boolean;
@@ -29,37 +24,65 @@ export const StudioGridSelector = ({
   }, [sliderValue]);
 
   const optionClassName = (gridValue: number): string => {
-    let variableClassName = gridValue > selectedValue ? classes.outside : classes.inside;
-    if (hoverValue > 0) {
-      variableClassName = gridValue > hoverValue ? classes.outside : classes.inside;
-    }
+    const currentValue = hoverValue > 0 ? hoverValue : selectedValue;
+    const variableClassName = gridValue > currentValue ? classes.outside : classes.inside;
     return cn(classes.option, variableClassName);
   };
 
-  const sliderIsHovered = hoverValue > 0;
-  const backgroundCss =
-    'linear-gradient(\n' +
-    generateLinearGradient(sliderIsHovered ? hoverValue : selectedValue, sliderIsHovered) +
-    ')';
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const handleHover = (event: MouseEvent<HTMLInputElement>): void => {
-    const dataListElement = inputRef.current?.list;
-    const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
-    const hoverOption = [...optionPositionsX]
-      .reverse()
-      .find((optionPosX) => optionPosX.positionX < event.clientX);
-    setHoverValue(hoverOption?.value || 0);
+    const slider = event.currentTarget;
+    const rect = slider.getBoundingClientRect();
+    const relativeX = event.clientX - rect.left;
+    const percentage = relativeX / rect.width;
+    const calculatedValue = Math.min(12, Math.max(1, Math.ceil(percentage * 12)));
+    setHoverValue(calculatedValue);
+  };
+
+  const generateBackgroundStyle = (value: number, isHover: boolean): string => {
+    const steps: string[] = [];
+    const stepWidth = 100 / 12;
+    const gapSize = 0.2;
+    const selectedColor = isHover ? 'var(--hover-square-color)' : 'var(--selected-square-colour)';
+    const unselectedColor = 'var(--unselected-square-colour)';
+    const gapColor = 'white';
+
+    for (let i = 1; i <= 12; i++) {
+      const start = (i - 1) * stepWidth;
+      const end = i * stepWidth - gapSize;
+      const gapEnd = i * stepWidth;
+
+      const color = i <= value ? selectedColor : unselectedColor;
+      steps.push(`${color} ${start}%`);
+      steps.push(`${color} ${end}%`);
+
+      if (i < 12) {
+        steps.push(`${gapColor} ${end}%`);
+        steps.push(`${gapColor} ${gapEnd}%`);
+      }
+    }
+    return `linear-gradient(to right, ${steps.join(', ')})`;
+  };
+
+  const currentValue = hoverValue > 0 ? hoverValue : selectedValue;
+  const isHovered = hoverValue > 0;
+  const backgroundStyle = generateBackgroundStyle(currentValue, isHovered);
+
+  const convertToGridSize = (value: string): GridSize => {
+    return parseInt(value) as GridSize;
+  };
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const newValue = parseInt(event.target.value);
+    setSelectedValue(newValue);
+    setHoverValue(0);
   };
 
   return (
     <div
       className={cn(classes.sliderContainer, disabled && classes.disabled)}
-      style={{ '--background': backgroundCss } as React.CSSProperties}
+      style={{ '--background': backgroundStyle } as React.CSSProperties}
     >
       <input
-        ref={inputRef}
         className={classes.range}
         type='range'
         min='1'
@@ -70,10 +93,7 @@ export const StudioGridSelector = ({
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
           handleSliderChange(convertToGridSize(event.target.value))
         }
-        onInput={(event: ChangeEvent<HTMLInputElement>) => {
-          setSelectedValue(parseInt(event.target.value));
-          setHoverValue(0);
-        }}
+        onInput={handleInputChange}
         disabled={disabled}
         onMouseMove={handleHover}
         onMouseLeave={() => setHoverValue(0)}
@@ -90,51 +110,4 @@ export const StudioGridSelector = ({
       </datalist>
     </div>
   );
-};
-
-const generateLinearGradient = (gridValue: number, hover: boolean): string => {
-  const gradientLines: string[] = ['to right'];
-  const gap = '1px';
-  const insideColour = hover ? 'var(--hover-square-color)' : 'var(--selected-square-colour)';
-  const outsideColour = 'var(--unselected-square-colour)';
-  const gapColour = 'white';
-  const totalBgWidth = `(100% + ${gap})`;
-
-  const createStep = (option: number): string => {
-    const startSquarePosition = `calc(${totalBgWidth} * ${option - 1} / 12)`;
-    const endSquarePosition = `calc(${totalBgWidth} * ${option} / 12 - ${gap})`;
-    const endGapPosition = `calc(${totalBgWidth} * ${option} / 12)`;
-    const squareColour = option <= gridValue ? insideColour : outsideColour;
-    const startSquareLine = `${squareColour} ${startSquarePosition}`;
-    const endSquareLine = `${squareColour} ${endSquarePosition}`;
-    const startGapLine = `${gapColour} ${endSquarePosition}`;
-    const endGapLine = `${gapColour} ${endGapPosition}`;
-    return [startSquareLine, endSquareLine, startGapLine, endGapLine].join(',\n');
-  };
-
-  for (let i = 1; i <= 12; i++) {
-    gradientLines.push(createStep(i));
-  }
-
-  return gradientLines.join(',\n');
-};
-
-const convertToGridSize = (value: string): GridSize => {
-  const int = parseInt(value);
-  return int as GridSize;
-};
-
-const calculateOptionPositionsX = (
-  datalistElement: HTMLDataListElement | null | undefined,
-): OptionData[] => {
-  if (datalistElement) {
-    return Array.from(datalistElement.options).map((option: HTMLOptionElement): OptionData => {
-      const optionRect = option.getBoundingClientRect();
-      return {
-        value: parseInt(option.value) as GridSize,
-        positionX: optionRect.x,
-      };
-    });
-  }
-  return [];
 };
