@@ -108,13 +108,19 @@ describe('StudioCodelistEditor utils', () => {
     it.each(Object.values(CodeListItemTextProperty))(
       'Returns updated codeList when the %s property is updated',
       (property: CodeListItemTextProperty) => {
-        const expectedCodeList = [...codeList];
-        expectedCodeList[codeItemIndex][property]![language] = newValue;
         const updateArgs: UpdateCodeTextArgs = { property, codeItemIndex, language, newValue };
-
         const result = updateCodeText(codeList, updateArgs);
-
-        expect(result).toEqual(expectedCodeList);
+        expect(result).toEqual([
+          codeList[0],
+          {
+            ...codeList[1],
+            [property]: {
+              ...codeList[1][property],
+              [language]: newValue,
+            },
+          },
+          codeList[2],
+        ]);
       },
     );
   });

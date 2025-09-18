@@ -1,3 +1,3 @@
 export type MultiLanguageText = {
-  [languageCode: string]: string;
+  readonly [languageCode: string]: string;
 };
