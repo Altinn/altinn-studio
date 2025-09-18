@@ -7,6 +7,7 @@ import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
@@ -24,9 +25,11 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
 
 export function SubformForm() {
   return (
-    <PresentationComponent type={ProcessTaskType.Data}>
-      <Form />
-    </PresentationComponent>
+    <PDFWrapper>
+      <PresentationComponent type={ProcessTaskType.Data}>
+        <Form />
+      </PresentationComponent>
+    </PDFWrapper>
   );
 }
 

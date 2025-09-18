@@ -36,6 +36,7 @@ export interface TestPdfOptions {
   callback: () => void;
   returnToForm?: boolean;
   enableResponseFuzzing?: boolean;
+  buildUrl?: (href: string) => string;
 }
 
 export type SnapshotViewport = 'desktop' | 'tablet' | 'mobile';
