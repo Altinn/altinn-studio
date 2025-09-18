@@ -1,7 +1,8 @@
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
 import type { StudioProfileMenuGroup } from '@studio/components-legacy';
-import { StudioAvatar, StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
+import { StudioAvatar } from '@studio/components';
 import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

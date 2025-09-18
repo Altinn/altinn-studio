@@ -1,10 +1,5 @@
 import React, { useRef } from 'react';
-import {
-  StudioAlert,
-  StudioButton,
-  StudioErrorMessage,
-  StudioSpinner,
-} from '@studio/components-legacy';
+import { StudioButton, StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
@@ -25,6 +20,7 @@ import { OptionListEditor } from './OptionListEditor';
 import classes from './EditTab.module.css';
 import type { ITextResources } from 'app-shared/types/global';
 import { ManualOptionsDialog } from './ManualOptionsDialog';
+import { StudioAlert } from '@studio/components';
 
 export type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -88,7 +84,7 @@ function EditTabWithData({
         textResources={textResources}
       />
       {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
-        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
+        <StudioAlert className={classes.alert}>
           {t('ux_editor.options.tab_option_list_alert_title')}
         </StudioAlert>
       )}
