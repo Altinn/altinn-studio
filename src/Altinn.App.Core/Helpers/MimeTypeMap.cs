@@ -575,6 +575,7 @@ public static class MimeTypeMap
             { ".wsdl", new("text/xml") },
             { ".wvx", new("video/x-ms-wvx") },
             { ".x", new("application/directx") },
+            { ".x3d", new("model/x3d+xml") },
             { ".xaf", new("x-world/x-vrml") },
             { ".xaml", new("application/xaml+xml") },
             { ".xap", new("application/x-silverlight-app") },
