@@ -17,6 +17,7 @@
       "AttachmentListPage",
       "MapPage",
       "ListPage",
+      "ImageUploadPage",
       "GridPage",
       "DividerPage",
       "CardsPage",
