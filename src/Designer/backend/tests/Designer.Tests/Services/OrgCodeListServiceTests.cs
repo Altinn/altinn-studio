@@ -142,7 +142,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Act
         List<FileOperationContext> result = OrgCodeListService.PrepareFileDeletions(toDelete, fileMetadata);
 
-        FileOperation expectedOperation = FileOperation.Delete;
+        string expectedOperation = FileOperation.Delete;
         string expectedSha = fileMetadata[Title];
 
         // Assert
@@ -170,7 +170,7 @@ public class OrgCodeListServiceTests : IDisposable
         OrgCodeListService orgListService = GetOrgCodeListService();
         List<FileOperationContext> result = orgListService.PrepareFileUpdates(toUpdate, fileMetadata);
 
-        FileOperation expectedOperation = FileOperation.Update;
+        string expectedOperation = FileOperation.Update;
         string expectedSha = fileMetadata[Title];
 
         byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);
@@ -201,7 +201,7 @@ public class OrgCodeListServiceTests : IDisposable
         OrgCodeListService orgListService = GetOrgCodeListService();
         List<FileOperationContext> result = orgListService.PrepareFileCreations(toUpdate);
 
-        FileOperation expectedOperation = FileOperation.Create;
+        string expectedOperation = FileOperation.Create;
         string expectedSha = null;
 
         byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);

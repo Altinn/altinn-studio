@@ -119,16 +119,11 @@ public class Identity
 /// <summary>
 /// File operation types
 /// </summary>
-public enum FileOperation
+public static class FileOperation
 {
-    [JsonPropertyName("create")]
-    Create,
-
-    [JsonPropertyName("update")]
-    Update,
-
-    [JsonPropertyName("delete")]
-    Delete
+    public const string Create = "create";
+    public const string Update = "update";
+    public const string Delete = "delete";
 }
 
 /// <summary>
@@ -152,7 +147,7 @@ public class FileOperationContext
     /// Indicates what to do with the file
     /// </summary>
     [JsonPropertyName("operation")]
-    public FileOperation Operation { get; set; }
+    public required string Operation { get; set; }
 
     /// <summary>
     /// Path to the existing or new file
