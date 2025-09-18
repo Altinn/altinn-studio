@@ -11,4 +11,11 @@ public class GeneralSettings
     [Required]
     [Url]
     public required string OrganizationsUrl { get; init; }
+
+    [Required]
+    public required string ApplicationLogAnalyticsWorkspaceId { get; init; }
+
+    [Required]
+    public required string OperationalLogAnalyticsWorkspaceId { get; init; }
+
 }

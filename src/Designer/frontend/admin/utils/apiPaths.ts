@@ -36,6 +36,9 @@ export const instanceDataElementPath = (
   dataElementId: string,
 ) => `${adminApiBasePath}/instances/${org}/${env}/${app}/${instanceId}/data/${dataElementId}`; // Get
 
+export const metricsPath = (org: string, env: string, names: string[], time: number, app: string) =>
+  `${adminApiBasePath}/metrics/${org}/${env}/?${names.map((name) => `names=${name}`).join('&')}&time=${time}&app=${app}`; // Get
+
 /**
  * Returns an encoded query string from a key-value object, or an empty string if the object is empty.
  * Also removes parameters that are empty, null, or undefined.
