@@ -60,4 +60,12 @@ describe('StudioGridSelector', () => {
     await user.unhover(slider);
     expect(mockGetBoundingClientRect).toHaveBeenCalled();
   });
+
+  it('Should call handleSliderChange on change', () => {
+    const onChange = jest.fn();
+    render(<StudioGridSelector handleSliderChange={onChange} />);
+    const input = screen.getByRole('slider');
+    fireEvent.input(input, { target: { value: '5' } });
+    expect(onChange).toHaveBeenCalledWith(5);
+  });
 });
