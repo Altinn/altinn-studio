@@ -8,10 +8,9 @@ variables:
   SUBSCRIPTION_KEY: ''
 
   # Variables that should be set as secret variables in the pipeline
-  APIM_RESOURCE_ID_PROD: ''
-  APIM_RESOURCE_ID_TT02: ''
-  AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING: ''
-  AZURE_SUBSCRIPTION_ID_PLATFORM_TEST: ''
+  # APIM_RESOURCE_ID_PROD: ''
+  # AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING: ''
+  # AZURE_SUBSCRIPTION_ID_PLATFORM_TEST: ''
 
   # Variables to be passed when triggering the pipeline
   # ALTINN_STUDIO_HOSTNAME: ''
@@ -156,166 +155,166 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  # - task: AzurePowerShell@4
-  #   displayName: Ensure API management subscription key - Test
-  #   condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
-  #   inputs:
-  #     ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
-  #     ScriptType: InlineScript
-  #     Inline: |
-  #       # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Test
+    condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    inputs:
+      ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
 
-  #       # Mapping pipeline variables to script variables.
-  #       $appEnvironment = "$(APP_ENVIRONMENT)"
-  #       $appOwner = "$(APP_OWNER)"
-  #       $appName = "$(APP_REPO)"
-  #       $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_TEST)"
+        # Mapping pipeline variables to script variables.
+        $appEnvironment = "$(APP_ENVIRONMENT)"
+        $appOwner = "$(APP_OWNER)"
+        $appName = "$(APP_REPO)"
+        $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_TEST)"
 
-  #       # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
+        # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
-  #       Write-Host "`nPowerShell script output START`n"
+        Write-Host "`nPowerShell script output START`n"
 
-  #       $apimSubscriptionId = "$appOwner-$appName"
+        $apimSubscriptionId = "$appOwner-$appName"
 
-  #       $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
-  #       $apimInstance = "altinn-$appEnvironment-api"
+        $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
+        $apimInstance = "altinn-$appEnvironment-api"
 
-  #       if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
-  #           Write-Host "Setting active Azure subscription."
-  #           Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
-  #       }
+        if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
+            Write-Host "Setting active Azure subscription."
+            Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
+        }
 
-  #       $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
+        $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
 
-  #       $subscription = $null
-  #       try {
-  #           Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
-  #           $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
-  #           Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
-  #       }
-  #       catch {
-  #           if (!$_.Exception.Message.Contains("ResourceNotFound")) {
-  #               throw
-  #           }
-  #       }
+        $subscription = $null
+        try {
+            Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
+            $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+            Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
+        }
+        catch {
+            if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                throw
+            }
+        }
 
-  #       if (!$subscription) {
-  #           Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
-  #           $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
-  #       }
+        if (!$subscription) {
+            Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
+            $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+        }
 
-  #       if (!$subscription) {
-  #           Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
-  #       }
+        if (!$subscription) {
+            Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
+        }
 
-  #       $subscriptionKey = $subscription.PrimaryKey
+        $subscriptionKey = $subscription.PrimaryKey
 
-  #       Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+        Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
 
-  #       Write-Host "`nPowerShell script output END`n"
-  #     FailOnStandardError: true
-  #     CustomTargetAzurePs: 12.1.0
-  #     pwsh: true
+        Write-Host "`nPowerShell script output END`n"
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
 
-  # - task: AzurePowerShell@4
-  #   displayName: Ensure API management subscription key - Staging
-  #   condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
-  #   inputs:
-  #     ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
-  #     ScriptType: InlineScript
-  #     Inline: |
-  #       # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Staging
+    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    inputs:
+      ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
 
 
-  #       # Mapping pipeline variables to script variables.
-  #       $appEnvironment = "$(APP_ENVIRONMENT)"
-  #       $appOwner = "$(APP_OWNER)"
-  #       $appName = "$(APP_REPO)"
-  #       $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING)"
+        # Mapping pipeline variables to script variables.
+        $appEnvironment = "$(APP_ENVIRONMENT)"
+        $appOwner = "$(APP_OWNER)"
+        $appName = "$(APP_REPO)"
+        $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING)"
 
-  #       # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
+        # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
-  #       Write-Host "`nPowerShell script output START`n"
+        Write-Host "`nPowerShell script output START`n"
 
-  #       $apimSubscriptionId = "$appOwner-$appName"
+        $apimSubscriptionId = "$appOwner-$appName"
 
-  #       $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
-  #       $apimInstance = "altinn-$appEnvironment-api"
+        $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
+        $apimInstance = "altinn-$appEnvironment-api"
 
-  #       if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
-  #           Write-Host "Setting active Azure subscription."
-  #           Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
-  #       }
+        if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
+            Write-Host "Setting active Azure subscription."
+            Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
+        }
 
-  #       $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
+        $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
 
-  #       $subscription = $null
-  #       try {
-  #           Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
-  #           $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
-  #           Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
-  #       }
-  #       catch {
-  #           if (!$_.Exception.Message.Contains("ResourceNotFound")) {
-  #               throw
-  #           }
-  #       }
+        $subscription = $null
+        try {
+            Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
+            $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+            Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
+        }
+        catch {
+            if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                throw
+            }
+        }
 
-  #       if (!$subscription) {
-  #           Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
-  #           $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
-  #       }
+        if (!$subscription) {
+            Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
+            $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+        }
 
-  #       if (!$subscription) {
-  #           Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
-  #       }
+        if (!$subscription) {
+            Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
+        }
 
-  #       $subscriptionKey = $subscription.PrimaryKey
+        $subscriptionKey = $subscription.PrimaryKey
 
-  #       Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+        Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
 
-  #       Write-Host "`nPowerShell script output END`n"
-  #     FailOnStandardError: true
-  #     CustomTargetAzurePs: 12.1.0
-  #     pwsh: true
+        Write-Host "`nPowerShell script output END`n"
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
 
-  # - task: AzurePowerShell@4
-  #   displayName: Ensure API management subscription key - Production
-  #   condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
-  #   inputs:
-  #     ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
-  #     ScriptType: InlineScript
-  #     Inline: |
-  #       # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Production
+    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    inputs:
+      ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
 
-  #       if ("$(APP_ENVIRONMENT)" -eq "production"){
+        if ("$(APP_ENVIRONMENT)" -eq "production"){
 
-  #           $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
+            $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
 
-  #           $subscriptionId = "$(APP_OWNER)-$(APP_REPO)"
+            $subscriptionId = "$(APP_OWNER)-$(APP_REPO)"
 
-  #           try {
-  #             Write-Host "Try Get subscription key for $subscriptionId"
-  #             $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $subscriptionId
-  #           }
-  #           catch {
-  #             if (!$_.Exception.Message.Contains("ResourceNotFound")) {
-  #                 throw
-  #             }
-  #           }
+            try {
+              Write-Host "Try Get subscription key for $subscriptionId"
+              $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $subscriptionId
+            }
+            catch {
+              if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                  throw
+              }
+            }
 
-  #           if (!$subscription) {
-  #             Write-Host "Found no subscription with id $subscriptionId. Creating..."
-  #             $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $subscriptionId -SubscriptionId $subscriptionId
-  #           }
+            if (!$subscription) {
+              Write-Host "Found no subscription with id $subscriptionId. Creating..."
+              $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $subscriptionId -SubscriptionId $subscriptionId
+            }
 
-  #           $subscriptionKey = $subscription.PrimaryKey
+            $subscriptionKey = $subscription.PrimaryKey
 
-  #           Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
-  #       }
-  #     FailOnStandardError: true
-  #     CustomTargetAzurePs: 12.1.0
-  #     pwsh: true
+            Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+        }
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
 
   - task: Bash@3
     displayName: Create flux artifact directory
@@ -380,6 +379,7 @@ steps:
         # Start writing to overrides file
         cat << EOF > "$OVERRIDES_FILE"
         image:
+          pullSecrets: []
           repository: ${APP_OWNER}altinnregistry01.azurecr.io/${RELEASE_NAME}
           tag: "${TAGNAME}"
           environment:
@@ -444,6 +444,7 @@ steps:
         service:
           name: ${RELEASE_NAME}
         ingressRoute:
+          tls: {}
           name: ${APP_OWNER}-${APP_REPO}-ingress-route
           routes:
             - kind: Rule
@@ -491,22 +492,6 @@ steps:
 
         # --- Cleanup non used files---
         rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
-
-  - task: Bash@3
-    displayName: Print helmrelease file
-    inputs:
-      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
-      targetType: inline
-      script: |
-        awk '
-          /name: PlatformSettings__SubscriptionKey/ {
-            print;
-            getline;
-            print "  value: [REDACTED]";
-            next;
-          }
-          { print }
-        ' "${HELMRELEASE_FILE}"
 
   - task: AzureCLI@2
     displayName: 'Push OCI artifact to ACR'
