@@ -39,14 +39,6 @@ describe('StudioGridSelector', () => {
     expect(onSliderChange).toHaveBeenCalledWith(newSliderValue);
   });
 
-  it('Should handleInput change on onInputChange', () => {
-    const onInputChange = jest.fn();
-    render(<StudioGridSelector handleSliderChange={onInputChange} />);
-    const input = screen.getByRole('slider');
-    fireEvent.input(input, { target: { value: '5' } });
-    expect(onInputChange).toHaveBeenCalledWith(5);
-  });
-
   it('should update hover value and background on mouse move', async () => {
     const user = userEvent.setup();
     render(<StudioGridSelector handleSliderChange={jest.fn()} />);
