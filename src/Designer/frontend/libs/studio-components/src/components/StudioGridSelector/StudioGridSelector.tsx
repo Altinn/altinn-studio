@@ -1,5 +1,5 @@
 import type { ChangeEvent, MouseEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useId } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 import type { GridSize } from './types/GridSize';
@@ -15,6 +15,8 @@ export const StudioGridSelector = ({
   sliderValue = 12,
   handleSliderChange,
 }: StudioGridSelectorProps): React.JSX.Element => {
+  const inputId = useId();
+  const listId = useId();
   const [hoverValue, setHoverValue] = useState<number>(0);
   const [selectedValue, setSelectedValue] = useState<number>(sliderValue);
   const gridValues: GridSize[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -87,9 +89,9 @@ export const StudioGridSelector = ({
         type='range'
         min='1'
         max='12'
-        id='range'
+        id={inputId}
         value={sliderValue}
-        list='gridValues'
+        list={listId}
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
           handleSliderChange(convertToGridSize(event.target.value))
         }
@@ -98,7 +100,7 @@ export const StudioGridSelector = ({
         onMouseMove={handleHover}
         onMouseLeave={() => setHoverValue(0)}
       />
-      <datalist id='gridValues'>
+      <datalist id={listId}>
         {gridValues.map((gridValue) => (
           <option
             key={gridValue}

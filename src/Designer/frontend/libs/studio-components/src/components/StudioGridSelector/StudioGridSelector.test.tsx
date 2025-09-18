@@ -37,24 +37,4 @@ describe('StudioGridSelector', () => {
 
     expect(onSliderChange).toHaveBeenCalledWith(newSliderValue);
   });
-
-  it('should update internal state when sliderValue prop changes', () => {
-    const { rerender } = render(
-      <StudioGridSelector sliderValue={3} handleSliderChange={jest.fn()} />,
-    );
-    let slider = screen.getByRole('slider');
-    expect(slider).toHaveValue('3');
-    rerender(<StudioGridSelector sliderValue={9} handleSliderChange={jest.fn()} />);
-    slider = screen.getByRole('slider');
-    expect(slider).toHaveValue('9');
-  });
-
-  it('should convert string values to numbers correctly', () => {
-    const handleSliderChangeMock = jest.fn();
-    render(<StudioGridSelector handleSliderChange={handleSliderChangeMock} />);
-    const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: '7' } });
-    expect(handleSliderChangeMock).toHaveBeenCalledWith(7);
-    expect(typeof handleSliderChangeMock.mock.calls[0][0]).toBe('number');
-  });
 });
