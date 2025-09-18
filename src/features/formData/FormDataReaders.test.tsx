@@ -100,7 +100,7 @@ async function render(props: TestProps) {
         return `https://local.altinn.cloud/ttd/test/instances/${instanceId}/data/${uuid}?includeRowId=true&language=nb`;
       }
     }
-    return false;
+    throw new Error(`Could not find URL for data model ${dataModelName}`);
   }
 
   const utils = await renderWithInstanceAndLayout({
