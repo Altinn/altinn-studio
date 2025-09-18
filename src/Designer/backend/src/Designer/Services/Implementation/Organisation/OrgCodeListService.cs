@@ -72,7 +72,7 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, repository, cancellationToken);

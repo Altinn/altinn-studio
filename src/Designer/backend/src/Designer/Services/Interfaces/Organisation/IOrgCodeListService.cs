@@ -31,10 +31,9 @@ public interface IOrgCodeListService
     /// Gets all code lists from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
-    /// <param name="developer">Username of developer</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code list</returns>
-    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, string developer, CancellationToken cancellationToken = default);
+    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.

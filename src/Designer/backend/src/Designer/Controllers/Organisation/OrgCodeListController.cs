@@ -71,8 +71,8 @@ public class OrgCodeListController : ControllerBase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, developer, cancellationToken);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, cancellationToken);
+
         return Ok(codeLists);
     }
 
