@@ -298,11 +298,9 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.ImageUpload,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      cropArea: {
-        type: 'circle',
-        width: 300,
-        height: 300,
-      },
+      cropShape: 'circle',
+      cropWidth: 250,
+      cropHeight: 250,
     },
     propertyPath: 'definitions/imageUploadComponent',
     icon: ImageIcon,
