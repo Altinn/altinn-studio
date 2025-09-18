@@ -27,9 +27,6 @@
         "type": "ImageUpload",
         "textResourceBindings": {
           "title": "ImageUploadPage.ImageUpload.title"
-        },
-        "cropArea": {
-          "type": "circle"
         }
       },
       {

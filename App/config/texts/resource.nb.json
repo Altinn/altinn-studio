@@ -66,6 +66,10 @@
       "value": "Langt svar"
     },
     {
+      "id": "ImageUploadPage",
+      "value": "Bildeopplasting"
+    },
+    {
       "id": "TextareaPage.Textarea.title",
       "value": "Eksempel på langt svar komponent."
     },
