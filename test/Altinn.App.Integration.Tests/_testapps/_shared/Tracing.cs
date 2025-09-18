@@ -96,7 +96,7 @@ public sealed class TracingActionFilter : IActionFilter
                 Authenticated.Org o => ($"{o.OrgNo}", o.AuthenticationLevel, o.AuthenticationMethod),
                 Authenticated.ServiceOwner so => ($"{so.OrgNo}", so.AuthenticationLevel, so.AuthenticationMethod),
                 Authenticated.SystemUser su => (
-                    $"{su.SystemUserOrgNr}/{su.SystemUserId}",
+                    $"{su.SystemUserOrgNr}/{su.SystemUserId[0]}",
                     su.AuthenticationLevel,
                     su.AuthenticationMethod
                 ),

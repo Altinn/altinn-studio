@@ -2,11 +2,11 @@ name: Build and Test on windows, macos and ubuntu
 
 on:
   push:
-    branches: 
+    branches:
       - "main"
       - "release/**"
   pull_request:
-    branches: 
+    branches:
       - "main"
       - "release/**"
   workflow_dispatch:
@@ -21,6 +21,9 @@ jobs:
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
+      - name: Enable long paths for git on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config --system core.longpaths true
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:

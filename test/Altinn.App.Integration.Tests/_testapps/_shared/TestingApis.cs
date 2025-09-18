@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features.Auth;
@@ -9,24 +10,28 @@ using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 #nullable enable
 
 namespace TestApp.Shared;
 
-/// <summary>
-/// Provides authentication introspection endpoints that expose authentication context as DTOs.
-/// This is useful for testing authentication flows and understanding token structure.
-/// </summary>
-public static class AuthenticationIntrospection
+public static class TestingApis
 {
-    /// <summary>
-    /// Maps token introspection endpoints.
-    /// </summary>
-    public static WebApplication UseAuthenticationIntrospection(this WebApplication app)
+    private static IServiceCollection? _services;
+
+    public static void CaptureServiceCollection(IServiceCollection services)
     {
+        _services = services;
+    }
+
+    public static WebApplication UseTestingApis(this WebApplication app)
+    {
+        // AUTH
         app.MapGet(
-            "/{org}/{app}/authentication/introspection",
+            "/{org}/{app}/api/testing/authentication/introspection",
             async ([FromServices] IAuthenticationContext authContext) =>
             {
                 var authenticated = authContext.Current;
@@ -35,13 +40,193 @@ public static class AuthenticationIntrospection
             }
         );
 
+        // CONNECTIVITY
+        app.MapGet(
+            "/{org}/{app}/api/testing/connectivity/pdf",
+            async ([FromServices] IHttpClientFactory httpClientFactory, [FromServices] IConfiguration configuration) =>
+            {
+                try
+                {
+                    using var httpClient = httpClientFactory.CreateClient();
+                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+
+                    // Get PDF service URL from configuration (as set in AppFixture.cs)
+                    var pdfServiceUrl =
+                        configuration["PlatformSettings:ApiPdf2Endpoint"]
+                        ?? throw new Exception("PlatformSettings.ApiPdf2Endpoint not configured");
+
+                    var activeEndpoint = pdfServiceUrl.Replace("/pdf", "/config");
+
+                    var response = await httpClient.GetAsync(activeEndpoint);
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    return Results.Json(
+                        new ConnectivityResult
+                        {
+                            Success = response.IsSuccessStatusCode,
+                            StatusCode = (int)response.StatusCode,
+                            Url = activeEndpoint,
+                            ResponseContent = content,
+                            Message = response.IsSuccessStatusCode
+                                ? "PDF service connectivity verified"
+                                : $"PDF service connectivity failed: {response.ReasonPhrase}",
+                        }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(
+                        new ConnectivityResult
+                        {
+                            Success = false,
+                            StatusCode = 0,
+                            Url = "unknown",
+                            ResponseContent = null,
+                            Message = $"PDF service connectivity error: {ex.Message}",
+                            Exception = ex.ToString(),
+                        }
+                    );
+                }
+            }
+        );
+
+        app.MapGet(
+            "/{org}/{app}/api/testing/connectivity/localtest",
+            async ([FromServices] IHttpClientFactory httpClientFactory, [FromServices] IConfiguration configuration) =>
+            {
+                try
+                {
+                    using var httpClient = httpClientFactory.CreateClient();
+                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+
+                    // Get localtest URL from configuration
+                    var localtestBaseUrl =
+                        configuration["PlatformSettings:ApiStorageEndpoint"]
+                        ?? throw new Exception("PlatformSettings.ApiStorageEndpoint not configured");
+
+                    // Extract base URL and construct health endpoint
+                    var baseUri = new Uri(localtestBaseUrl);
+                    var healthEndpoint = $"{baseUri.Scheme}://{baseUri.Authority}/health";
+
+                    var response = await httpClient.GetAsync(healthEndpoint);
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    return Results.Json(
+                        new ConnectivityResult
+                        {
+                            Success = response.IsSuccessStatusCode,
+                            StatusCode = (int)response.StatusCode,
+                            Url = healthEndpoint,
+                            ResponseContent = content,
+                            Message = response.IsSuccessStatusCode
+                                ? "Localtest health endpoint connectivity verified"
+                                : $"Localtest health endpoint connectivity failed: {response.ReasonPhrase}",
+                        }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(
+                        new ConnectivityResult
+                        {
+                            Success = false,
+                            StatusCode = 0,
+                            Url = "unknown",
+                            ResponseContent = null,
+                            Message = $"Localtest health endpoint connectivity error: {ex.Message}",
+                            Exception = ex.ToString(),
+                        }
+                    );
+                }
+            }
+        );
+
+        // HOSTEDSERVICES
+        if (_services is null)
+        {
+            throw new InvalidOperationException(
+                "Service collection not captured. Ensure CaptureServiceCollection is called during service registration"
+            );
+        }
+        app.MapGet(
+            "/{org}/{app}/api/testing/hostedservices",
+            async ([FromServices] IServiceProvider serviceProvider) =>
+            {
+                var hostedServices = serviceProvider.GetServices<IHostedService>().ToArray();
+                var hostedServicesDescriptors = _services!
+                    .Where(sd => sd.ServiceType == typeof(IHostedService))
+                    .Select(
+                        (sd, i) =>
+                            new
+                            {
+                                IsImplementationFactory = sd.ImplementationFactory is not null,
+                                IsImplementationType = sd.ImplementationType is not null,
+                                IsImplementationInstance = sd.ImplementationInstance is not null,
+                                Lifetime = sd.Lifetime,
+                                MaterializedType = hostedServices[i].GetType().FullName,
+                            }
+                    )
+                    .ToArray();
+                return Results.Json(hostedServicesDescriptors);
+            }
+        );
+
+        // AUTHZ
+        // Minimal API endpoints that should be protected by scopes
+        app.MapGet(
+                "/{org}/{app}/api/testing/authorization/metadata",
+                ([FromServices] IServiceProvider serviceProvider) =>
+                {
+                    var service =
+                        serviceProvider.GetRequiredService<Altinn.App.Api.Infrastructure.Middleware.ScopeAuthorizationService>();
+
+                    return Results.Ok(
+                        new { hasDefinedCustomScopes = service.HasDefinedCustomScopes, metadata = service.Metadata }
+                    );
+                }
+            )
+            .WithName("API testing - GET - metadata");
+
+        // GET endpoint with instanceGuid - should be protected with read scope
+        app.MapGet(
+                "/{org}/{app}/api/testing/authorization/{instanceGuid:guid}",
+                (Guid instanceGuid) => Results.Ok(new { instanceGuid })
+            )
+            .WithName("API testing - GET - instanceGuid");
+
+        // POST endpoint with instanceGuid - should be protected with write scope
+        app.MapPost(
+                "/{org}/{app}/api/testing/authorization/{instanceGuid:guid}",
+                (Guid instanceGuid, object data) => Results.Ok(new { instanceGuid })
+            )
+            .WithName("API testing - POST - instanceGuid");
+
+        // GET endpoint with instanceOwnerPartyId - should be protected with read scope
+        app.MapGet(
+                "/{org}/{app}/api/testing/authorization/{instanceOwnerPartyId:int}",
+                (int instanceOwnerPartyId) => Results.Ok(new { instanceOwnerPartyId })
+            )
+            .WithName("API testing - GET - instanceOwnerPartyId");
+
+        // POST endpoint with instanceOwnerPartyId - should be protected with write scope
+        app.MapPost(
+                "/{org}/{app}/api/testing/authorization/{instanceOwnerPartyId:int}",
+                (int instanceOwnerPartyId) => Results.Ok(new { instanceOwnerPartyId })
+            )
+            .WithName("API testing - POST - instanceOwnerPartyId");
+
+        // Anonymous endpoint - should NOT be protected
+        app.MapGet(
+                "/{org}/{app}/api/testing/authorization/public",
+                () => Results.Ok(new { message = "public endpoint" })
+            )
+            .AllowAnonymous()
+            .WithName("API testing - GET - public");
+
         return app;
     }
 }
 
-/// <summary>
-/// Extension methods to convert Authenticated types to DTOs
-/// </summary>
 public static class AuthenticatedDtoExtensions
 {
     public static async Task<AuthenticatedDto> ToDto(this Authenticated authenticated)

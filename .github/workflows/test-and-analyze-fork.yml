@@ -7,6 +7,9 @@ jobs:
     name: Build and Test
     runs-on: windows-latest
     steps:
+      - name: Enable long paths for git on Windows
+        run: git config --system core.longpaths true
+
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:

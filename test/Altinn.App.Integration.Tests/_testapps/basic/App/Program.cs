@@ -27,6 +27,12 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
+// ###########################################################################
+// Not part of app-template
+TestingApis.CaptureServiceCollection(builder.Services);
+
+// ###########################################################################
+
 WebApplication app = builder.Build();
 
 Configure();
@@ -82,7 +88,11 @@ void Configure()
     // #########################################################################
     // Custom middleware not included in app template
 
-    app.UseAuthenticationIntrospection();
-    app.UseConnectivityDiagnostics();
+    app.UseTestingApis();
+
+    // Configure scenario-specific endpoints
+    var endpointConfigurators = app.Services.GetServices<IEndpointConfigurator>();
+    foreach (var configurator in endpointConfigurators)
+        configurator.ConfigureEndpoints(app);
     // #########################################################################
 }

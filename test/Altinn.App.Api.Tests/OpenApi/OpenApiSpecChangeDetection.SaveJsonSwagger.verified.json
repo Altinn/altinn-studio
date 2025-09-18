@@ -6985,6 +6985,26 @@
           "write": {
             "type": "string",
             "nullable": true
+          },
+          "errorMessageTextResourceKey": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ApiScopesConfiguration": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "$ref": "#/components/schemas/ApiScopes"
+          },
+          "serviceOwners": {
+            "$ref": "#/components/schemas/ApiScopes"
+          },
+          "errorMessageTextResourceKey": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7240,7 +7260,7 @@
             "$ref": "#/components/schemas/CopyInstanceSettings"
           },
           "apiScopes": {
-            "$ref": "#/components/schemas/ApiScopes"
+            "$ref": "#/components/schemas/ApiScopesConfiguration"
           },
           "storageAccountNumber": {
             "type": "integer",

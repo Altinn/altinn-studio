@@ -27,6 +27,7 @@ public static class WebApplicationBuilderExtensions
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseTelemetryEnricher();
+        app.UseScopeAuthorization();
 
         app.UseEndpoints(endpoints =>
         {

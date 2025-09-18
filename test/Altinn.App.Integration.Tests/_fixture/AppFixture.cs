@@ -61,6 +61,8 @@ public sealed partial class AppFixture : IAsyncDisposable
     private long _currentFixtureInstance;
     private readonly string _app;
     private readonly string _scenario;
+
+    public string App => _app;
     private readonly INetwork _network;
     private readonly IContainer _localtestContainer;
     private readonly IContainer _appContainer;
@@ -291,6 +293,20 @@ public sealed partial class AppFixture : IAsyncDisposable
         AddLines(allLines, data, expectedPrefix);
 
         var result = string.Join('\n', data);
+        return result;
+    }
+
+    public string GetAppLogs()
+    {
+        var allLines = _appLogsConsumer.GetLines();
+        var result = string.Join('\n', allLines);
+        return result;
+    }
+
+    public string GetLocaltestLogs()
+    {
+        var allLines = _localtestLogsConsumer.GetLines();
+        var result = string.Join('\n', allLines);
         return result;
     }
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Altinn.Application</AssemblyName>
+    <AssemblyName>Altinn.Application.For.IntegrationTesting</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
     <!-- Required for the fixture - compilation of injected services -->
     <!-- Specifically to use Microsoft.Extensions.DependencyModel and do runtime codegen -->

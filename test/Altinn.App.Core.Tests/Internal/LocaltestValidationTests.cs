@@ -78,6 +78,12 @@ public class LocaltestValidationTests
         public async ValueTask DisposeAsync() => await App.DisposeAsync();
     }
 
+    // The version that the LocaltestValidation service expects to see from the API.
+    private static readonly int _okExpectedVersion = 2;
+
+    // Old version that the LocaltestValidation service will complain about.
+    private static readonly int _oldExpectedVersion = 0;
+
     [Fact]
     public async Task Test_Init()
     {
@@ -93,7 +99,7 @@ public class LocaltestValidationTests
     {
         await using var fixture = Fixture.Create();
 
-        var expectedVersion = 1;
+        var expectedVersion = _okExpectedVersion;
 
         var server = fixture.Server;
         server
@@ -126,7 +132,7 @@ public class LocaltestValidationTests
     {
         await using var fixture = Fixture.Create();
 
-        var expectedVersion = 0;
+        var expectedVersion = _oldExpectedVersion;
 
         var server = fixture.Server;
         server
@@ -206,7 +212,7 @@ public class LocaltestValidationTests
     {
         await using var fixture = Fixture.Create();
 
-        var expectedVersion = 1;
+        var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
 
         var server = fixture.Server;
@@ -239,7 +245,7 @@ public class LocaltestValidationTests
     {
         await using var fixture = Fixture.Create();
 
-        var expectedVersion = 1;
+        var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
 
         var server = fixture.Server;
@@ -280,7 +286,7 @@ public class LocaltestValidationTests
             )
         );
 
-        var expectedVersion = 1;
+        var expectedVersion = _okExpectedVersion;
 
         var server = fixture.Server;
         server
@@ -358,7 +364,7 @@ public class LocaltestValidationTests
     {
         var errorMessage = "Unhandled error";
         var failCount = 0;
-        var expectedVersion = 1;
+        var expectedVersion = _okExpectedVersion;
         await using var fixture = Fixture.Create(onRequest: () =>
         {
             if (failCount++ < 3)

@@ -159,7 +159,7 @@ public partial class AppFixture : IAsyncDisposable
             var client = _fixture.GetAppClient();
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"/ttd/{_fixture._app}/authentication/introspection"
+                $"/ttd/{_fixture._app}/api/testing/authentication/introspection"
             );
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             using var response = await client.SendAsync(request);

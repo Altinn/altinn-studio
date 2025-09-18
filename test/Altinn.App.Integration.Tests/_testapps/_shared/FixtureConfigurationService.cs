@@ -133,7 +133,7 @@ public sealed class FixtureConfigurationService : IDisposable
             }
             else
             {
-                SnapshotLogger.LogInitError(
+                SnapshotLogger.LogInitInfo(
                     $"Scenario '{scenario}' specified but no services directory found at {scenarioOverridePath}"
                 );
             }
@@ -233,7 +233,7 @@ public sealed class FixtureConfigurationService : IDisposable
             .ToArray();
 
         var compilation = CSharpCompilation.Create(
-            assemblyName: $"ScenarioServices_{Guid.NewGuid():N}",
+            assemblyName: $"Altinn.Application.For.IntegrationTesting.Scenario",
             syntaxTrees: sourceTexts.Select(source => CSharpSyntaxTree.ParseText(source)),
             references: references,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

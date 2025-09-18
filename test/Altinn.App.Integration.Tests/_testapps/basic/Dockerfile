@@ -40,4 +40,4 @@ RUN mkdir /tmp/logtelemetry
 HEALTHCHECK --interval=1s --timeout=1s --retries=20 \
     CMD wget -nv -t1 --spider 'http://localhost:5005/health' || exit 1
 
-ENTRYPOINT ["dotnet", "Altinn.Application.dll"]
+ENTRYPOINT ["dotnet", "Altinn.Application.For.IntegrationTesting.dll"]

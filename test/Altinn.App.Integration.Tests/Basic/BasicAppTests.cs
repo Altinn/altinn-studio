@@ -138,6 +138,17 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             await Verify(data).UseParameters(auth);
     }
 
+    [Fact]
+    public async Task HostedServices()
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+        var verifier = fixture.ScopedVerifier;
+
+        var hostedServices = await fixture.HostedServices.Get();
+        await VerifyJson(hostedServices);
+    }
+
     private static async Task<AppFixture.ApiResponse> CreateInstance(
         AppFixture fixture,
         string token,

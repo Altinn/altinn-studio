@@ -1,0 +1,18 @@
+﻿{
+  actual_iss: localtest,
+  client_id: Guid_1,
+  consumer: {
+    ValueKind: Object
+  },
+  exp: {Scrubbed},
+  iat: {Scrubbed},
+  iss: https://platform.tt02.altinn.no/authentication/api/v1/openid/,
+  jti: Guid_2,
+  nbf: {Scrubbed},
+  scope: custom:basic/serviceowner/instances.read custom:basic/serviceowner/instances.write,
+  token_type: Bearer,
+  urn:altinn:authenticatemethod: maskinporten,
+  urn:altinn:authlevel: 3,
+  urn:altinn:org: ttd,
+  urn:altinn:orgNumber: 405003309
+}

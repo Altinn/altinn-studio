@@ -82,6 +82,21 @@ internal sealed class ScopedVerifier
         }
     }
 
+    public async Task VerifyLogs([CallerFilePath] string sourceFile = "")
+    {
+        var snapshotLogs = _fixture.GetSnapshotAppLogs();
+        await Verify(snapshotLogs, snapshotName: "Logs", sourceFile: sourceFile);
+
+        var appLogs = _fixture.GetAppLogs();
+        var localtestLogs = _fixture.GetLocaltestLogs();
+        await Verify(appLogs, snapshotName: "AppLogs", sourceFile: sourceFile)
+            .UseDirectory("_snapshots/_local")
+            .AutoVerify(includeBuildServer: true);
+        await Verify(localtestLogs, snapshotName: "LocaltestLogs", sourceFile: sourceFile)
+            .UseDirectory("_snapshots/_local")
+            .AutoVerify(includeBuildServer: true);
+    }
+
     private string BuildParameterString(int index, object? parameters, string? snapshotName)
     {
         var parts = new List<string>(1);
