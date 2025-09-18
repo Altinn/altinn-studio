@@ -5634,7 +5634,7 @@ __metadata:
     style-loader: "npm:4.0.0"
     terraformer-wkt-parser: "npm:1.2.1"
     terser-webpack-plugin: "npm:5.3.14"
-    tinybench: "npm:4.1.0"
+    tinybench: "npm:5.0.1"
     ts-jest: "npm:29.4.1"
     ts-loader: "npm:9.5.4"
     ts-node: "npm:10.9.2"
@@ -16931,10 +16931,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinybench@npm:4.1.0":
-  version: 4.1.0
-  resolution: "tinybench@npm:4.1.0"
-  checksum: 10c0/0c30ec05303aface62c5e120d531be8efc725d171fef4cdd8bde7cb08b2e7a1125b6d23be559361b5747b50544bff582b5b3799d2ed49699b278ee83ad4f74cf
+"tinybench@npm:5.0.1":
+  version: 5.0.1
+  resolution: "tinybench@npm:5.0.1"
+  checksum: 10c0/727be52f4f50f2486548e0564f43669de2201282aba22c8ba3de3dc8a2c169f976e899f54d096f8c7fb0522e5a55d956549ba4ccd9223177ce2879e6228d2529
   languageName: node
   linkType: hard
 

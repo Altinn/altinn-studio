@@ -118,7 +118,7 @@
     "source-map-loader": "5.0.0",
     "style-loader": "4.0.0",
     "terser-webpack-plugin": "5.3.14",
-    "tinybench": "4.1.0",
+    "tinybench": "5.0.1",
     "ts-jest": "29.4.1",
     "ts-loader": "9.5.4",
     "ts-node": "10.9.2",
