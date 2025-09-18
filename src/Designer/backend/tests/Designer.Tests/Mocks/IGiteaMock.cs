@@ -79,7 +79,7 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new User());
         }
 
-        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference)
+        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference, CancellationToken cancellationToken)
         {
             List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
             string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
