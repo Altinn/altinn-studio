@@ -14,7 +14,9 @@ export function getCommaSeparatedOptionsToText(
   const out: { [key: string]: string } = {};
   split?.forEach((part) => {
     const textKey = optionList.find((option) => option.value === part)?.label || '';
-    out[part] = langAsString(textKey) || part;
+    if (textKey) {
+      out[part] = langAsString(textKey) || part;
+    }
   });
 
   return out;
