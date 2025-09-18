@@ -47,7 +47,7 @@ describe('StudioGridSelector', () => {
     expect(onInputChange).toHaveBeenCalledWith(5);
   });
 
-  it('should update hover value and background on mouse move', async (): Promise<void> => {
+  it('should update hover value and background on mouse move', async () => {
     const user = userEvent.setup();
     render(<StudioGridSelector handleSliderChange={jest.fn()} />);
     const slider = screen.getByRole('slider') as HTMLInputElement;
@@ -60,7 +60,7 @@ describe('StudioGridSelector', () => {
       height: 20,
       x: 0,
       y: 0,
-      toJSON: () => ({}),
+      toJSON: (): Record<string, unknown> => ({}),
     })) as jest.MockedFunction<() => DOMRect>;
     slider.getBoundingClientRect = mockGetBoundingClientRect;
     await user.hover(slider);
