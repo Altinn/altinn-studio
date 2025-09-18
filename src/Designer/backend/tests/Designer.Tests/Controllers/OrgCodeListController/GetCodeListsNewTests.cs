@@ -65,7 +65,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         ];
 
         _orgCodeListService
-            .Setup(service => service.GetCodeListsNew(Org, It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetCodeListsNew(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
 
         string apiUrl = ApiUrl();
@@ -80,7 +80,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(expected, result);
 
-        _orgCodeListService.Verify(service => service.GetCodeListsNew(Org, It.IsAny<CancellationToken>()), Times.Once);
+        _orgCodeListService.Verify(service => service.GetCodeListsNew(Org, string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static string ApiUrl() => $"designer/api/{Org}/code-lists/new/";

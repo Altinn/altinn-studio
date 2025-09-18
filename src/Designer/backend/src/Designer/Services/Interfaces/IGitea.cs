@@ -129,18 +129,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>
         /// <param name="directoryPath">Path to a directort, may start with full commit sha</param>
-        /// <param name="shortCommitId">The short hash of a commit id</param>
+        /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>a list of files in the given directory</returns>
-        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId);
+        Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the files in the CodeLists directory of a given repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
+        /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of <see cref="FileSystemObject"/>.</returns>
-        Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default);
+        Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = "", CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retuns list of the teams the user is memeber of.

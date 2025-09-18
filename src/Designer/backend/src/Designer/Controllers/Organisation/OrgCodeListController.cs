@@ -62,16 +62,17 @@ public class OrgCodeListController : ControllerBase
     /// Fetches the contents of all the code lists belonging to the organisation.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of <see cref="OptionListData" /> objects with all code lists belonging to the organisation with data
     /// set if code list is valid, or hasError set if code list is invalid.</returns>
     [HttpGet]
     [Route("new")]
-    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, cancellationToken);
+        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
 
         return Ok(codeLists);
     }
@@ -103,19 +104,20 @@ public class OrgCodeListController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("new")]
-    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
         string commitMessage = requestBody.CommitMessage;
 
-        await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, cancellationToken);
+        await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
 
         return Ok();
     }

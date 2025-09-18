@@ -31,9 +31,10 @@ public interface IOrgCodeListService
     /// Gets all code lists from the org repository.
     /// </summary>
     /// <param name="org">Organisation</param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The code list</returns>
-    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, CancellationToken cancellationToken = default);
+    public Task<List<CodeListWrapper>> GetCodeListsNew(string org, string reference = "", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.
@@ -65,8 +66,9 @@ public interface IOrgCodeListService
     /// <param name="developer">Username of developer</param>
     /// <param name="codeListWrappers">The code list contents</param>
     /// <param name="commitMessage">The commit message, optional. If not set the default will be used</param>
+    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    public Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default);
+    public Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", string reference = "", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new code list in the org repository.

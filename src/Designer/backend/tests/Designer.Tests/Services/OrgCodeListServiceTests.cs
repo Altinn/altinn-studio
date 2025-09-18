@@ -112,7 +112,7 @@ public class OrgCodeListServiceTests : IDisposable
             }
         ];
         _giteaMock
-            .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteFiles);
 
         // Act
@@ -122,7 +122,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotEmpty(result);
         Assert.Equal(expected, result);
-        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), string.Empty, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class OrgCodeListServiceTests : IDisposable
         ];
 
         _giteaMock
-            .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteCodeLists);
 
         // Act
@@ -406,7 +406,7 @@ public class OrgCodeListServiceTests : IDisposable
         };
 
         // Assert
-        _giteaMock.Verify(s => s.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), string.Empty, It.IsAny<CancellationToken>()), Times.Once);
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => dto.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 

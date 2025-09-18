@@ -79,10 +79,10 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new User());
         }
 
-        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference)
         {
             List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
-            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), shortCommitId, "directoryList.json");
+            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
 
             if (File.Exists(path))
             {
@@ -214,10 +214,11 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
 
-        public Task<List<FileSystemObject>> GetCodeListDirectoryAsync(string org, string repository, CancellationToken cancellationToken = default)
+        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new List<FileSystemObject>());
         }
+
         public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,10 +73,10 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, CancellationToken cancellationToken = default)
+    public async Task<List<CodeListWrapper>> GetCodeListsNew(string org, string reference = "", CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, repository, cancellationToken);
+        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
 
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
@@ -117,11 +118,11 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", CancellationToken cancellationToken = default)
+    public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", string reference = "", CancellationToken cancellationToken = default)
     {
         string repository = GetStaticContentRepo(org);
 
-        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryAsync(org, repository, cancellationToken);
+        List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
         List<FileOperationContext> fileOperationContexts = CreateFileOperationContexts(codeListWrappers, files);
         GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
 
@@ -383,10 +384,12 @@ public class OrgCodeListService : IOrgCodeListService
         }
         try
         {
-            codeList = JsonSerializer.Deserialize<CodeList>(fileContent);
+            byte[] contentAsBytes = Convert.FromBase64String(fileContent);
+            string decodedContent = Encoding.UTF8.GetString(contentAsBytes);
+            codeList = JsonSerializer.Deserialize<CodeList>(decodedContent);
             return true;
         }
-        catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException)
+        catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException or FormatException)
         {
             codeList = null;
             return false;
