@@ -8,10 +8,12 @@ public class CodeListWrapper
 {
     [JsonPropertyName("title")]
     public required string Title { get; set; }
+
     [JsonPropertyName("codeList")]
     public CodeList? CodeList { get; set; }
+
     [JsonPropertyName("hasError")]
-    public bool HasError { get; set; }
+    public required bool HasError { get; set; }
 
     public override bool Equals(object? obj)
     {

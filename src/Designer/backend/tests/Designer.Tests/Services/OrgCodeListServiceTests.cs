@@ -615,9 +615,10 @@ public class OrgCodeListServiceTests : IDisposable
                 Tags = ["test-data"]
             }
         ];
+        Source source = new() { Name = "test-data-files" };
         CodeList codeList = new()
         {
-            SourceName = "test-data-files",
+            Source = source,
             Codes = listOfCodes,
             TagNames = ["test-data-category"]
         };

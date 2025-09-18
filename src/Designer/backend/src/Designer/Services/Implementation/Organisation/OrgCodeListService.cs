@@ -83,6 +83,7 @@ public class OrgCodeListService : IOrgCodeListService
             if (TryParseFile(file.Content, out CodeList? codeList))
             {
                 codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
+                continue;
             }
             codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
         }

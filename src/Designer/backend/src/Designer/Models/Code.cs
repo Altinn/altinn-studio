@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
@@ -50,22 +51,22 @@ public sealed class Code
             return false;
         }
 
-        if (!Equals(other.Value, Value))
+        if (Equals(other.Value, Value) is false)
         {
             return false;
         }
 
-        if (DictionariesEqual(other.Label, Label) is false)
+        if (Label.IsEqualTo(other.Label) is false)
         {
             return false;
         }
 
-        if (DictionariesEqual(other.HelpText, HelpText) is false)
+        if (HelpText.IsEqualTo(other.HelpText) is false)
         {
             return false;
         }
 
-        if (DictionariesEqual(other.Description, Description) is false)
+        if (Description.IsEqualTo(other.Description) is false)
         {
             return false;
         }
@@ -75,41 +76,10 @@ public sealed class Code
             return false;
         }
 
-        if (!other.Tags.SequenceEqual(Tags))
+        if (other.Tags.SequenceEqual(Tags) is false)
         {
             return false;
         }
-
-        return true;
-    }
-
-    private static bool DictionariesEqual(
-        Dictionary<string, string>? first,
-        Dictionary<string, string>? second)
-    {
-        if (first is null || second is null)
-        {
-            return false;
-        }
-
-        if (first.Count != second.Count)
-        {
-            return false;
-        }
-
-        foreach (KeyValuePair<string, string> pair in first)
-        {
-            if (!second.TryGetValue(pair.Key, out string? value))
-            {
-                return false;
-            }
-
-            if (!StringComparer.Ordinal.Equals(pair.Value, value))
-            {
-                return false;
-            }
-        }
-
         return true;
     }
 

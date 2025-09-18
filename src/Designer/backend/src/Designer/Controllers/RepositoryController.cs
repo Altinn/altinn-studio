@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
+using Source = Altinn.Studio.Designer.Hubs.Sync.Source;
 
 namespace Altinn.Studio.Designer.Controllers
 {
