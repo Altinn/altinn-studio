@@ -32,17 +32,20 @@ export async function httpPost<T, D = unknown>(
   url: string,
   options?: AxiosRequestConfig,
   data?: D,
-): Promise<AxiosResponse> {
-  return await axios.post<T, AxiosResponse<T>, D>(url, data, options);
+): Promise<AxiosResponse<T>> {
+  return axios.post<T, AxiosResponse<T>, D>(url, data, options);
 }
 
-export async function httpPatch<T, D = unknown>(url: string, data: D, options?: AxiosRequestConfig) {
-  const response = await axios.patch<T, AxiosResponse<T>, D>(url, data, options);
-  return response.data;
+export async function httpPatch<T, D = unknown>(
+  url: string,
+  data: D,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<T>> {
+  return axios.patch<T, AxiosResponse<T>, D>(url, data, options);
 }
 
 export async function httpDelete(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse> {
-  return await axios.delete(url, options);
+  return axios.delete(url, options);
 }
 
 export async function putWithoutConfig<ReturnType>(url: string): Promise<ReturnType> {

@@ -1,7 +1,7 @@
 import type { AxiosError } from 'axios';
 
 import type { IDataModelPairResponse } from 'src/features/formData/types';
-import type { BackendValidationIssue, BackendValidationIssueGroupListItem } from 'src/features/validation';
+import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IData, IInstance, ProblemDetails } from 'src/types/shared';
 
 interface IAttachmentTemporary {
@@ -33,7 +33,7 @@ export function isAttachmentUploaded(attachment: IAttachment): attachment is Upl
 export type DataPostResponse = {
   newDataElementId: string;
   instance: IInstance;
-  validationIssues: BackendValidationIssueGroupListItem[];
+  validationIssues: BackendValidationIssuesWithSource[];
   newDataModels: IDataModelPairResponse[];
 };
 

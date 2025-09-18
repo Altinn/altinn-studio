@@ -150,7 +150,6 @@ const defaultQueryMocks: AppQueries = {
   fetchTextResources: async (language) => ({ language, resources: getTextResourcesMock() }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchAppLanguages: async () => [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  fetchProcessNextSteps: async () => [],
   fetchPostPlace: async () => ({ valid: true, result: 'OSLO' }),
   fetchLayoutSettings: async () => ({ pages: { order: [] } }),
   fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
@@ -460,17 +459,21 @@ function injectFormDataSavingSimulator(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (mutationMocks as any).doPatchFormData = jest
     .fn()
-    .mockImplementation(async (url: string, req: IDataModelPatchRequest): Promise<IDataModelPatchResponse> => {
-      const model = structuredClone(models[url] ?? {});
-      applyPatch(model, req.patch);
-      const afterProcessing = typeof mockBackend === 'function' ? mockBackend(model, url) : model;
-      models[url] = afterProcessing;
+    .mockImplementation(
+      async (url: string, req: IDataModelPatchRequest): Promise<{ data: IDataModelPatchResponse }> => {
+        const model = structuredClone(models[url] ?? {});
+        applyPatch(model, req.patch);
+        const afterProcessing = typeof mockBackend === 'function' ? mockBackend(model, url) : model;
+        models[url] = afterProcessing;
 
-      return {
-        newDataModel: afterProcessing as object,
-        validationIssues: {},
-      };
-    });
+        return {
+          data: {
+            newDataModel: afterProcessing as object,
+            validationIssues: {},
+          },
+        };
+      },
+    );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (mutationMocks as any).doPostStatelessFormData = jest.fn().mockImplementation(async (url: string, data: unknown) => {

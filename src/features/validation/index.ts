@@ -103,13 +103,13 @@ export type BackendValidationIssueGroups = {
 /**
  * Validation format returned by backend multi patch API
  */
-export type BackendValidationIssueGroupListItem = {
+export type BackendValidationIssuesWithSource = {
   source: string;
   issues: BackendValidationIssue[];
 };
 
 export function backendValidationIssueGroupListToObject(
-  groupList: BackendValidationIssueGroupListItem[],
+  groupList: BackendValidationIssuesWithSource[],
 ): BackendValidationIssueGroups {
   return Object.fromEntries(groupList.map(({ source, issues }) => [source, issues]));
 }

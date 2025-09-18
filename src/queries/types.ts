@@ -6,6 +6,7 @@ type IgnoredQueriesAndMutations = keyof Pick<
   | 'fetchExternalApi'
   | 'fetchProcessState'
   | 'doProcessNext'
+  | 'doUpdateAttachmentTags'
   | 'fetchUserProfile'
   | 'fetchInstanceData'
 >;

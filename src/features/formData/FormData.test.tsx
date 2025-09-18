@@ -513,7 +513,7 @@ describe('FormData', () => {
         },
         validationIssues: {},
       };
-      mutations.doPatchFormData.resolve(response);
+      mutations.doPatchFormData.resolve({ data: response });
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -575,7 +575,7 @@ describe('FormData', () => {
         },
         validationIssues: {},
       };
-      mutations.doPatchFormData.resolve(response);
+      mutations.doPatchFormData.resolve({ data: response });
 
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));

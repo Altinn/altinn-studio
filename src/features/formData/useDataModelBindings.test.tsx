@@ -159,7 +159,7 @@ describe('useDataModelBindings', () => {
       },
       validationIssues: {},
     };
-    mutations.doPatchFormData.resolve(response);
+    mutations.doPatchFormData.resolve({ data: response });
 
     const fullDecimal = '-1.53';
     await user.type(screen.getByTestId('input-decimal'), fullDecimal.slice(1));
@@ -203,7 +203,7 @@ describe('useDataModelBindings', () => {
       },
       validationIssues: {},
     };
-    mutations.doPatchFormData.resolve(response2);
+    mutations.doPatchFormData.resolve({ data: response2 });
 
     const fullInteger = '-15 3';
     await user.type(screen.getByTestId('input-integer'), fullInteger.slice(1));

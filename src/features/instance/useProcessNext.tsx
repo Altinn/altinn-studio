@@ -72,7 +72,7 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
       }
 
       return doProcessNext(instanceId, language, action)
-        .then((process) => [process, null] as const)
+        .then(({ data: process }) => [process, null] as const)
         .catch((error) => {
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
             // If process next failed due to validation, return validationIssues instead of throwing

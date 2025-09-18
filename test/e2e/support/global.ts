@@ -4,7 +4,7 @@ import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 
-import type { BackendValidationIssue, BackendValidationIssueGroupListItem } from 'src/features/validation';
+import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { LooseAutocomplete } from 'src/types';
@@ -277,7 +277,7 @@ declare global {
       expectValidationToExist(
         resultContainer: BackendValidationResult,
         validatorGroup: string,
-        predicate: BackendValdiationPredicate,
+        predicate: BackendValidationPredicate,
       ): Chainable<null>;
 
       /**
@@ -286,7 +286,7 @@ declare global {
       expectValidationNotToExist(
         resultContainer: BackendValidationResult,
         validatorGroup: string,
-        predicate: BackendValdiationPredicate,
+        predicate: BackendValidationPredicate,
       ): Chainable<null>;
 
       /**
@@ -335,6 +335,6 @@ export type ResponseFuzzing = { disable: () => void };
 export type Size = { width: number; height: number };
 
 export type BackendValidationResult = {
-  validations: BackendValidationIssueGroupListItem[] | null;
+  validations: BackendValidationIssuesWithSource[] | null;
 };
-export type BackendValdiationPredicate = (validationIssue: BackendValidationIssue) => boolean | null | undefined;
+export type BackendValidationPredicate = (validationIssue: BackendValidationIssue) => boolean | null | undefined;

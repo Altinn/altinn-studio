@@ -11,6 +11,7 @@ import { configure as testingLibraryConfigure } from '@testing-library/dom';
 import dotenv from 'dotenv';
 import { jestPreviewConfigure } from 'jest-preview';
 import { TextDecoder, TextEncoder } from 'util';
+import type { AxiosResponse } from 'axios';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 // Importing CSS for jest-preview to look nicer
@@ -25,6 +26,7 @@ import type {
   fetchUserProfile,
 } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
+import type { IProcess } from 'src/types/shared';
 
 import 'src/index.css';
 import 'src/styles/shared.css';
@@ -117,7 +119,7 @@ jest.mock('src/queries/queries', () => ({
     .fn<typeof fetchApplicationMetadata>()
     .mockImplementation(async () => getIncomingApplicationMetadataMock()),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
-  doProcessNext: jest.fn<typeof doProcessNext>(async () => getProcessDataMock()),
+  doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
   fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
   fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
 }));

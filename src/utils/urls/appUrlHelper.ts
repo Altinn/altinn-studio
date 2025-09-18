@@ -1,3 +1,4 @@
+import { IgnoredValidators } from 'src/features/validation';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 
 const { org, app } = window;
@@ -46,6 +47,12 @@ export const getFileTagUrl = (instanceId: string, dataElementId: string, tag: st
   }
 
   return `${appPath}/instances/${instanceId}/data/${dataElementId}/tags`;
+};
+
+export const getUpdateFileTagsUrl = (instanceId: string, dataGuid: string) => {
+  const searchParams = new URLSearchParams({ ignoredValidators: IgnoredValidators.join(',') });
+
+  return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags?${searchParams}`;
 };
 
 export const getAnonymousStatelessDataModelUrl = (dataType: string) =>

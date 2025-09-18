@@ -13,6 +13,7 @@ import { isAttachmentUploaded, isDataPostError } from 'src/features/attachments/
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { dataModelPairsToObject } from 'src/features/formData/types';
 import {
@@ -24,11 +25,18 @@ import {
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
+import {
+  mapBackendIssuesToTaskValidations,
+  mapBackendValidationsToValidatorGroups,
+  mapValidatorGroupsToDataModelValidations,
+} from 'src/features/validation/backendValidation/backendValidationUtils';
+import { Validation } from 'src/features/validation/validationContext';
 import { useWaitForState } from 'src/hooks/useWaitForState';
+import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import { appSupportsNewAttachmentAPI } from 'src/utils/versioning/versions';
+import { appSupportsNewAttachmentAPI, appSupportsSetTagsEndpoint } from 'src/utils/versioning/versions';
 import type {
   DataPostResponse,
   IAttachment,
@@ -40,10 +48,12 @@ import type {
 import type { AttachmentsSelector } from 'src/features/attachments/tools';
 import type { AttachmentStateInfo } from 'src/features/attachments/types';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
+import type { BackendFieldValidatorGroups, BackendValidationIssue } from 'src/features/validation';
 import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import type { CompWithBehavior } from 'src/layout/layout';
+import type { SetTagsRequest } from 'src/queries/queries';
 import type { IData } from 'src/types/shared';
 import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
@@ -384,47 +394,66 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
       useAttachmentsUpdate() {
         const { mutateAsync: removeTag } = useAttachmentsRemoveTagMutation();
         const { mutateAsync: addTag } = useAttachmentsAddTagMutation();
-        const mutateDataElement = useOptimisticallyUpdateDataElement();
+        const { mutateAsync: updateTags } = useAttachmentUpdateTagsMutation();
+        const optimisticallyUpdateDataElement = useOptimisticallyUpdateDataElement();
         const { lang } = useLanguage();
         const update = store.useSelector((state) => state.attachmentUpdate);
         const fulfill = store.useSelector((state) => state.attachmentUpdateFulfilled);
         const reject = store.useSelector((state) => state.attachmentUpdateRejected);
+        const backendVersion = useApplicationMetadata().altinnNugetVersion ?? '';
 
         return useCallback(
           async (action: AttachmentActionUpdate) => {
             const { tags, attachment } = action;
-            const tagToAdd = tags.filter((t) => !attachment.data.tags?.includes(t));
-            const tagToRemove = attachment.data.tags?.filter((t) => !tags.includes(t)) || [];
-            const areEqual = tagToAdd.length && tagToRemove.length && tagToAdd[0] === tagToRemove[0];
+            const tagsToAdd = tags.filter((t) => !attachment.data.tags?.includes(t));
+            const tagsToRemove = attachment.data.tags?.filter((t) => !tags.includes(t)) ?? [];
+            const areEqual = [...tagsToAdd].sort().join(',') === [...tagsToRemove].sort().join(',');
+            const dataElementId = attachment.data.id;
 
-            // If there are no tags to add or remove, or if the tags are the same, do nothing.
-            if ((!tagToAdd.length && !tagToRemove.length) || areEqual) {
+            // If the tags are the same, do nothing.
+            if (areEqual) {
               return;
             }
 
             update(action);
             try {
-              if (tagToAdd.length) {
-                await Promise.all(tagToAdd.map((tag) => addTag({ dataElementId: attachment.data.id, tagToAdd: tag })));
-              }
-              if (tagToRemove.length) {
+              if (appSupportsSetTagsEndpoint(backendVersion)) {
+                await updateTags({
+                  dataElementId,
+                  setTagsRequest: {
+                    tags,
+                  },
+                });
+              } else {
+                await Promise.all(tagsToAdd.map((tag) => addTag({ dataElementId: attachment.data.id, tagToAdd: tag })));
                 await Promise.all(
-                  tagToRemove.map((tag) => removeTag({ dataElementId: attachment.data.id, tagToRemove: tag })),
+                  tagsToRemove.map((tag) => removeTag({ dataElementId: attachment.data.id, tagToRemove: tag })),
                 );
               }
               fulfill(action);
-              mutateDataElement(attachment.data.id, (dataElement) => ({ ...dataElement, tags }));
+              optimisticallyUpdateDataElement(dataElementId, (dataElement) => ({ ...dataElement, tags }));
+
+              return;
             } catch (error) {
               reject(action, error);
               toast(lang('form_filler.file_uploader_validation_error_update'), { type: 'error' });
             }
           },
-          [addTag, mutateDataElement, fulfill, lang, reject, removeTag, update],
+          [
+            update,
+            backendVersion,
+            fulfill,
+            optimisticallyUpdateDataElement,
+            updateTags,
+            addTag,
+            removeTag,
+            reject,
+            lang,
+          ],
         );
       },
       useAttachmentsRemove() {
         const { mutateAsync: removeAttachment } = useAttachmentsRemoveMutation();
-        const removeDataElement = useOptimisticallyRemoveDataElement();
         const { lang } = useLanguage();
         const remove = store.useSelector((state) => state.attachmentRemove);
         const fulfill = store.useSelector((state) => state.attachmentRemoveFulfilled);
@@ -450,7 +479,6 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               }
 
               fulfill(action);
-              removeDataElement(action.attachment.data.id);
 
               return true;
             } catch (error) {
@@ -459,7 +487,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               return false;
             }
           },
-          [removeDataElement, fulfill, lang, reject, remove, removeAttachment, removeValueFromList, setLeafValue],
+          [remove, removeAttachment, fulfill, removeValueFromList, setLeafValue, reject, lang],
         );
       },
       useAttachments(nodeId) {
@@ -682,7 +710,7 @@ function useAttachmentsUploadMutationOld() {
   return useMutation(options);
 }
 
-export function useAttachmentsUploadMutation() {
+function useAttachmentsUploadMutation() {
   const { doAttachmentUpload } = useAppMutations();
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
@@ -705,6 +733,30 @@ export function useAttachmentsUploadMutation() {
   return useMutation(options);
 }
 
+function useAttachmentsRemoveMutation() {
+  const { doAttachmentRemove } = useAppMutations();
+  const instanceId = useLaxInstanceId();
+  const language = useCurrentLanguage();
+  const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
+
+  return useMutation({
+    mutationFn: (dataGuid: string) => {
+      if (!instanceId) {
+        throw new Error('Missing instanceId, cannot remove attachment');
+      }
+
+      return doAttachmentRemove(instanceId, dataGuid, language);
+    },
+    onError: (error: AxiosError) => {
+      window.logError('Failed to delete attachment:\n', error);
+    },
+    onSuccess: (_data, dataGuid) => {
+      optimisticallyRemoveDataElement(dataGuid);
+    },
+  });
+}
+
+// FIXME: remove this in future release, when all backends support updateTags endpoint
 function useAttachmentsAddTagMutation() {
   const { doAttachmentAddTag } = useAppMutations();
   const instanceId = useLaxInstanceId();
@@ -723,6 +775,7 @@ function useAttachmentsAddTagMutation() {
   });
 }
 
+// FIXME: remove this in future release, when all backends support updateTags endpoint
 function useAttachmentsRemoveTagMutation() {
   const { doAttachmentRemoveTag } = useAppMutations();
   const instanceId = useLaxInstanceId();
@@ -741,21 +794,40 @@ function useAttachmentsRemoveTagMutation() {
   });
 }
 
-function useAttachmentsRemoveMutation() {
-  const { doAttachmentRemove } = useAppMutations();
+function useAttachmentUpdateTagsMutation() {
   const instanceId = useLaxInstanceId();
-  const language = useCurrentLanguage();
+  const defaultDataElementId = DataModels.useDefaultDataElementId();
+  const updateBackendValidations = Validation.useUpdateBackendValidations();
 
-  return useMutation<void, AxiosError, string>({
-    mutationFn: (dataElementId: string) => {
+  return useMutation({
+    mutationFn: ({ dataElementId, setTagsRequest }: { dataElementId: string; setTagsRequest: SetTagsRequest }) => {
       if (!instanceId) {
-        throw new Error('Missing instanceId, cannot remove attachment');
+        throw new Error('Missing instanceId, cannot add attachment');
       }
 
-      return doAttachmentRemove(instanceId, dataElementId, language);
+      return doUpdateAttachmentTags({ instanceId, dataElementId, setTagsRequest });
     },
     onError: (error: AxiosError) => {
-      window.logError('Failed to delete attachment:\n', error);
+      window.logError('Failed to add tag to attachment:\n', error);
+    },
+    onSuccess: (data) => {
+      if (!data.validationIssues) {
+        return;
+      }
+
+      const backendValidations: BackendValidationIssue[] = data.validationIssues.reduce(
+        (prev, curr) => [...prev, ...curr.issues],
+        [],
+      );
+      const initialTaskValidations = mapBackendIssuesToTaskValidations(backendValidations);
+      const initialValidatorGroups: BackendFieldValidatorGroups = mapBackendValidationsToValidatorGroups(
+        backendValidations,
+        defaultDataElementId,
+      );
+
+      const dataModelValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
+
+      updateBackendValidations(dataModelValidations, { initial: backendValidations }, initialTaskValidations);
     },
   });
 }

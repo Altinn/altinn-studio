@@ -104,7 +104,13 @@ export function mapBackendIssuesToFieldValidations(
   return fieldValidations;
 }
 
-export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue[]): BaseValidation[] {
+const emptyObject = {};
+const emptyArray = [];
+
+export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue[] | undefined): BaseValidation[] {
+  if (!issues) {
+    return emptyArray;
+  }
   const taskValidations: BaseValidation[] = [];
   for (const issue of issues) {
     const { field, source, noIncrementalUpdates } = issue;
@@ -118,6 +124,26 @@ export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue
     taskValidations.push({ severity, message, category: 0, source, noIncrementalUpdates });
   }
   return taskValidations;
+}
+
+export function mapBackendValidationsToValidatorGroups(
+  validations: BackendValidationIssue[] | undefined,
+  defaultDataElementId: string | null,
+): BackendFieldValidatorGroups {
+  if (!validations) {
+    return emptyObject;
+  }
+  // Note that we completely ignore task validations (validations not related to form data) on initial validations,
+  // this is because validations like minimum number of attachments in application metadata is not really useful to show initially
+  const fieldValidations = mapBackendIssuesToFieldValidations(validations, defaultDataElementId);
+  const validatorGroups: BackendFieldValidatorGroups = {};
+  for (const validation of fieldValidations) {
+    if (!validatorGroups[validation.source]) {
+      validatorGroups[validation.source] = [];
+    }
+    validatorGroups[validation.source].push(validation);
+  }
+  return validatorGroups;
 }
 
 /**

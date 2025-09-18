@@ -142,8 +142,10 @@ describe('openByDefault', () => {
         expectedPatch ? expect.objectContaining({ patch: expectedPatch }) : expect.anything(),
       );
       mutations.doPatchFormData.resolve({
-        validationIssues: {},
-        newDataModel: newModelAfterSave,
+        data: {
+          validationIssues: {},
+          newDataModel: newModelAfterSave,
+        },
       });
       (mutations.doPatchFormData.mock as jest.Mock).mockClear();
     }

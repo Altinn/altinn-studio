@@ -1,7 +1,7 @@
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type {
-  BackendValidationIssueGroupListItem,
   BackendValidationIssueGroups,
+  BackendValidationIssuesWithSource,
   BuiltInValidationIssueSources,
 } from 'src/features/validation';
 import type { IInstance } from 'src/types/shared';
@@ -60,7 +60,7 @@ export interface IPatchListItem {
 }
 
 export interface IDataModelMultiPatchResponse {
-  validationIssues: BackendValidationIssueGroupListItem[];
+  validationIssues: BackendValidationIssuesWithSource[];
   newDataModels: IDataModelPairResponse[];
   instance: IInstance;
 }
