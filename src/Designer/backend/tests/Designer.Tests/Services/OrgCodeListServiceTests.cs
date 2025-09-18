@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -73,7 +72,61 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public void PrepareFileDeleteContexts()
+    public async Task GetCodeListsNew()
+    {
+        // Arrange
+        const string FosWithContentName = "hasContent";
+        const string FosWithoutContentName = "noContent";
+
+        CodeList validCodeList = SetupCodeList();
+        List<FileSystemObject> remoteFiles =
+        [
+            new()
+            {
+                Name = FosWithContentName,
+                Path = $"CodeLists/{FosWithContentName}.json",
+                Content = JsonSerializer.Serialize(validCodeList),
+                Sha = "non-descriptive-sha-1"
+            },
+            new()
+            {
+                Name = FosWithoutContentName,
+                Path = $"CodeLists/{FosWithoutContentName}.json",
+                Content = null,
+                Sha = "non-descriptive-sha-2"
+            }
+        ];
+        List<CodeListWrapper> expected =
+        [
+            new()
+            {
+                Title = FosWithContentName,
+                CodeList = validCodeList,
+                HasError = false
+            },
+            new()
+            {
+                Title = FosWithoutContentName,
+                CodeList = null,
+                HasError = true
+            }
+        ];
+        _giteaMock
+            .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(remoteFiles);
+
+        // Act
+        OrgCodeListService service = GetOrgCodeListService();
+        List<CodeListWrapper> result = await service.GetCodeListsNew(Org);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.Equal(expected, result);
+        _giteaMock.Verify(gitea => gitea.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void PrepareFileDeletions()
     {
         // Arrange
         const string Title = "irrelevant";
@@ -100,7 +153,7 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public void PrepareFileUpdateContexts()
+    public void PrepareFileUpdates()
     {
         // Arrange
         const string Title = "irrelevant";
@@ -314,14 +367,12 @@ public class OrgCodeListServiceTests : IDisposable
             }
         ];
 
-        var factory = new Mock<IAltinnGitRepositoryFactory>();
-
         _giteaMock
             .Setup(service => service.GetCodeListDirectoryAsync(Org, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remoteCodeLists);
 
         // Act
-        OrgCodeListService orgListService = new(factory.Object, _giteaMock.Object);
+        OrgCodeListService orgListService = GetOrgCodeListService();
         await orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers);
 
 
@@ -351,7 +402,7 @@ public class OrgCodeListServiceTests : IDisposable
             },
             Branch = null,
             Files = files,
-            Message = "",
+            Message = ""
         };
 
         // Assert
@@ -625,10 +676,10 @@ public class OrgCodeListServiceTests : IDisposable
         return codeList;
     }
 
-    private static OrgCodeListService GetOrgCodeListService()
+    private OrgCodeListService GetOrgCodeListService()
     {
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        return new OrgCodeListService(altinnGitRepositoryFactory, new IGiteaMock());
+        return new OrgCodeListService(altinnGitRepositoryFactory, _giteaMock.Object);
     }
 
     public void Dispose()
