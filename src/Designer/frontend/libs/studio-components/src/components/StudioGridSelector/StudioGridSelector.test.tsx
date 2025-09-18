@@ -47,7 +47,7 @@ describe('StudioGridSelector', () => {
     expect(onInputChange).toHaveBeenCalledWith(5);
   });
 
-  it('should update hover value and background on mouse move', async () => {
+  it('should update hover value and background on mouse move', async (): Promise<void> => {
     const user = userEvent.setup();
     render(<StudioGridSelector handleSliderChange={jest.fn()} />);
     const slider = screen.getByRole('slider') as HTMLInputElement;
