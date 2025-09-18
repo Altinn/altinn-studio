@@ -85,7 +85,7 @@ public class OrgCodeListServiceTests : IDisposable
             {
                 Name = FosWithContentName,
                 Path = $"CodeLists/{FosWithContentName}.json",
-                Content = JsonSerializer.Serialize(validCodeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
@@ -229,7 +229,7 @@ public class OrgCodeListServiceTests : IDisposable
             {
                 Name = FosWithContentName,
                 Path = $"CodeLists/{FosWithContentName}.json",
-                Content = JsonSerializer.Serialize(validCodeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
@@ -289,7 +289,7 @@ public class OrgCodeListServiceTests : IDisposable
                 Name = ShouldResolveToUpdateOperation,
                 Path = $"CodeLists/{ShouldResolveToUpdateOperation}.json",
                 Encoding = "base64",
-                Content = JsonSerializer.Serialize(updatedCodeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(updatedCodeList)),
                 Sha = "non-descriptive-sha-1",
                 Type = "file"
             },
@@ -298,7 +298,7 @@ public class OrgCodeListServiceTests : IDisposable
                 Name = ShouldResolveToDeleteOperation,
                 Path = $"CodeLists/{ShouldResolveToDeleteOperation}.json",
                 Encoding = "base64",
-                Content = JsonSerializer.Serialize(codeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(codeList)),
                 Sha = "non-descriptive-sha-2",
                 Type = "file"
             }
@@ -355,14 +355,14 @@ public class OrgCodeListServiceTests : IDisposable
             {
                 Name = "codeListOne",
                 Path = "CodeLists/codeListOne.json",
-                Content = JsonSerializer.Serialize(validCodeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-1"
             },
             new()
             {
                 Name = "codeListTwo",
                 Path = "CodeLists/codeListTwo.json",
-                Content = JsonSerializer.Serialize(validCodeList),
+                Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
                 Sha = "non-descriptive-sha-2"
             }
         ];
@@ -674,6 +674,12 @@ public class OrgCodeListServiceTests : IDisposable
             TagNames = ["test-data-category"]
         };
         return codeList;
+    }
+
+    private string FromStringToBase64String(string content)
+    {
+        byte[] contentAsBytes = Encoding.UTF8.GetBytes(content);
+        return Convert.ToBase64String(contentAsBytes);
     }
 
     private OrgCodeListService GetOrgCodeListService()
