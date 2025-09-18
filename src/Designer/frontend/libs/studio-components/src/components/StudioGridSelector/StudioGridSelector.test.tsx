@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioGridSelector } from './StudioGridSelector';
+import userEvent from '@testing-library/user-event';
 
 describe('StudioGridSelector', () => {
   it('should render slider with value 12 and it is enabled by default', () => {
@@ -36,5 +37,35 @@ describe('StudioGridSelector', () => {
     fireEvent.change(slider, { target: { value: newSliderValue } });
 
     expect(onSliderChange).toHaveBeenCalledWith(newSliderValue);
+  });
+
+  it('Should handleInput change on onInputChange', () => {
+    const onInputChange = jest.fn();
+    render(<StudioGridSelector handleSliderChange={onInputChange} />);
+    const input = screen.getByRole('slider');
+    fireEvent.input(input, { target: { value: '5' } });
+    expect(onInputChange).toHaveBeenCalledWith(5);
+  });
+
+  it('should update hover value and background on mouse move', async () => {
+    const user = userEvent.setup();
+    render(<StudioGridSelector handleSliderChange={jest.fn()} />);
+    const slider = screen.getByRole('slider') as HTMLInputElement;
+    const mockGetBoundingClientRect = jest.fn(() => ({
+      left: 0,
+      width: 120,
+      top: 0,
+      right: 120,
+      bottom: 20,
+      height: 20,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })) as jest.MockedFunction<() => DOMRect>;
+    slider.getBoundingClientRect = mockGetBoundingClientRect;
+    await user.hover(slider);
+    await user.pointer([{ target: slider, coords: { clientX: 60 } }]);
+    await user.unhover(slider);
+    expect(mockGetBoundingClientRect).toHaveBeenCalled();
   });
 });
