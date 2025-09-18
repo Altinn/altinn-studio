@@ -128,10 +128,10 @@ public class OrgCodeListService : IOrgCodeListService
         await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
     }
 
-    internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> codeListWrappers, List<FileSystemObject> files)
+    internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
     {
-        (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(files);
-        (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) = CompareCodeLists(remoteCodeListWrappers, codeListWrappers);
+        (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
+        (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) = CompareCodeLists(remoteWrappers, localWrappers);
 
         var fileOperationContexts = new List<FileOperationContext>();
         fileOperationContexts.AddRange(PrepareFileCreations(toCreate));
@@ -299,7 +299,7 @@ public class OrgCodeListService : IOrgCodeListService
         }
     }
 
-    private void ValidateOption(Option option)
+    private static void ValidateOption(Option option)
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
@@ -334,15 +334,15 @@ public class OrgCodeListService : IOrgCodeListService
         };
     }
 
-    private static (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) CompareCodeLists(List<CodeListWrapper> remoteCodeListWrappers, List<CodeListWrapper> localCodeListWrappers)
+    private static (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) CompareCodeLists(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers)
     {
         List<CodeListWrapper> toCreate = [];
         List<CodeListWrapper> toUpdate = [];
         List<CodeListWrapper> toDelete = [];
 
-        HashSet<string> remoteWrapperTitles = remoteCodeListWrappers.Select(w => w.Title).ToHashSet();
+        HashSet<string> remoteWrapperTitles = remoteWrappers.Select(wrapper => wrapper.Title).ToHashSet();
 
-        foreach (CodeListWrapper localWrapper in localCodeListWrappers)
+        foreach (CodeListWrapper localWrapper in localWrappers)
         {
             if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
             {
@@ -350,7 +350,7 @@ public class OrgCodeListService : IOrgCodeListService
                 continue;
             }
 
-            foreach (CodeListWrapper remoteWrapper in remoteCodeListWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
+            foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
             {
                 if (localWrapper.CodeList is null)
                 {
