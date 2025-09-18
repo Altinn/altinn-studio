@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextMainConfig } from './TextMainConfig';
+import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { screen } from '@testing-library/react';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -19,7 +19,7 @@ const textResources: ITextResource[] = [
   { id: '3', value: 'Text 3' },
 ];
 
-describe('TextMainConfig', () => {
+describe('TextBindingMainConfig', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('return null if the schema of component does not have a title prop', () => {
@@ -99,7 +99,7 @@ const renderTextMainConfig = ({
 
   return renderWithProviders(
     <div data-testid='component-wrapper'>
-      <TextMainConfig
+      <TextResourceMainConfig
         component={component}
         componentSchemaTextKeys={componentSchemaTextKeys || []}
         handleComponentChange={mockHandleComponentUpdate}

@@ -11,6 +11,9 @@ export type StudioBlobDownloaderProps = {
   linkText: string;
 } & StudioButtonProps;
 
+/**
+ * @deprecated use `StudioBlobDownloader` from `@studio/components` instead
+ */
 export const StudioBlobDownloader = ({
   data,
   fileName,

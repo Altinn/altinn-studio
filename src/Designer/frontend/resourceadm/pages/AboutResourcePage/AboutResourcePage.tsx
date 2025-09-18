@@ -33,7 +33,6 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConsentPreview } from '../../components/ConsentPreview';
 import { useUrlParams } from '../../hooks/useUrlParams';
 
@@ -74,9 +73,6 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap)
     .filter(([key]) => {
-      if (key === 'Consent' && !shouldDisplayFeature(FeatureFlag.ConsentResource)) {
-        return false;
-      }
       if (key === 'Systemresource' && org.toLowerCase() !== 'digdir') {
         return false;
       }
