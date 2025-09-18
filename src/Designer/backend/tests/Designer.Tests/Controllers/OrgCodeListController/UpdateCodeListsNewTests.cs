@@ -43,7 +43,7 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         const string DeleteCodeListId = "municipalities";
         const string CommitMessage = "My commit message";
         Dictionary<string, string> queryParameters = new() { { "key", "value" } };
-        Source source = new() { Name = "Klass",  Version = "1.0", QueryParameters = queryParameters };
+        Source source = new() { Name = "Klass", Version = "1.0", QueryParameters = queryParameters };
         CodeList newCodeList = new()
         {
             Codes =

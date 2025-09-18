@@ -92,6 +92,6 @@ public class Source
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Name, Version,  QueryParameters);
+        return HashCode.Combine(Name, Version, QueryParameters);
     }
 }
