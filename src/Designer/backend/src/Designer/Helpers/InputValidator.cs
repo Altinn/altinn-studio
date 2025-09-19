@@ -5,11 +5,14 @@ namespace Designer.Helpers;
 
 public static partial class InputValidator
 {
-    public static bool IsValidFileName(string fileName)
-    {
-        Regex fileNameRegex = LatinCharacterAndNumbers_AllowUnderscores();
 
-        return fileNameRegex.IsMatch(fileName);
+    public static bool IsInvalidCodeListTitle(string title)
+    {
+        if (title is null)
+        {
+            return true;
+        }
+        return LatinCharacterAndNumbers_AllowUnderscores().Match(title).Success is false;
     }
 
     public static bool IsValidGiteaCommitMessage(string commitMessage)

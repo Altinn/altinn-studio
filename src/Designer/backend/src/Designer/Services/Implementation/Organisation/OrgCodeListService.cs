@@ -136,7 +136,7 @@ public class OrgCodeListService : IOrgCodeListService
 
     internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
     {
-        if (codeListWrappers.Exists(clw => InputValidator.IsValidFileName(clw.Title)))
+        if (codeListWrappers.Exists(clw => InputValidator.IsInvalidCodeListTitle(clw.Title)))
         {
             throw new IllegalFileNameException("One or more of the code list titles contains invalid characters. Latin characters, numbers and underscores are allowed.");
         }
@@ -144,7 +144,7 @@ public class OrgCodeListService : IOrgCodeListService
 
     internal static void ValidateCommitMessage(string commitMessage)
     {
-        if (string.IsNullOrEmpty(commitMessage))
+        if (string.IsNullOrWhiteSpace(commitMessage))
         {
             return;
         }

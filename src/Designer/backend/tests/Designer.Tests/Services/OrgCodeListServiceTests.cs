@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -648,6 +649,51 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Assert
         Assert.Empty(codeListIds);
+    }
+
+    [Theory]
+    [InlineData("_invalidTitle")]
+    [InlineData("-invalidTitle")]
+    [InlineData("invalid-title")]
+    [InlineData("invalid.title")]
+    [InlineData("invalid title")]
+    [InlineData("invalid/title")]
+
+    public void ValidateCodeListTitles_ShouldThrowException_WhenTitleIsInvalid(string invalidTitle)
+    {
+        // Arrange
+        var codeListWrappers = new List<CodeListWrapper>
+        {
+            new()
+            {
+                Title = invalidTitle,
+                CodeList = null,
+                HasError = true
+            }
+        };
+
+        // Act and Assert
+        Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(codeListWrappers));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public void ValidateCommitMessage_Allows_MissingCommitMessage(string invalidCommitMessage)
+    {
+        // Arrange, Act and Assert
+        OrgCodeListService.ValidateCommitMessage(invalidCommitMessage); // Should not throw exception
+    }
+
+    [Fact]
+    public void ValidateCommitMessage_ShouldThrowException_WhenCommitMessageIsTooLong()
+    {
+        // Arrange
+        string invalidCommitMessage = new('a', 5121);
+
+        // Act and Assert
+        Assert.Throws<IllegalCommitMessageException>(() => OrgCodeListService.ValidateCommitMessage(invalidCommitMessage));
     }
 
     private static CodeList SetupCodeList()
