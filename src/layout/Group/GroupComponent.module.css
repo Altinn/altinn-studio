@@ -3,9 +3,13 @@
   padding-bottom: var(--ds-size-9);
   width: 100%;
 
-  .legend,
+  .legend {
+    padding: 0 12px;
+  }
+
   .description {
     padding: 0 var(--ds-size-3);
+    display: inline-block;
   }
 }
 
