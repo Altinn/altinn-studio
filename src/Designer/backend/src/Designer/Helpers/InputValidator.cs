@@ -1,0 +1,30 @@
+#nullable enable
+using System.Text.RegularExpressions;
+
+namespace Designer.Helpers;
+
+public static partial class InputValidator
+{
+    public static bool IsValidFileName(string fileName)
+    {
+        Regex fileNameRegex = LatinCharacterAndNumbers_AllowUnderscores();
+
+        return fileNameRegex.IsMatch(fileName);
+    }
+
+    public static bool IsValidGiteaCommitMessage(string commitMessage)
+    {
+        // Commit message must be between 1 and 5120 characters and not contain null characters
+        // https://docs.gitea.com/administration/config-cheat-sheet
+        char nullChar = '\0';
+        if (commitMessage.Contains(nullChar))
+        {
+            return false;
+        }
+
+        return string.IsNullOrEmpty(commitMessage) is false && commitMessage.Length <= 5120;
+    }
+
+    [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_]*$")]
+    private static partial Regex LatinCharacterAndNumbers_AllowUnderscores();
+}

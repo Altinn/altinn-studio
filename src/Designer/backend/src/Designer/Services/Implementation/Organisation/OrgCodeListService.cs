@@ -7,12 +7,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
+using Designer.Helpers;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 
@@ -120,6 +122,9 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public async Task UpdateCodeListsNew(string org, string developer, List<CodeListWrapper> codeListWrappers, string commitMessage = "", string reference = "", CancellationToken cancellationToken = default)
     {
+        ValidateCodeListTitles(codeListWrappers);
+        ValidateCommitMessage(commitMessage);
+
         string repository = GetStaticContentRepo(org);
 
         List<FileSystemObject> files = await _gitea.GetCodeListDirectoryContentAsync(org, repository, reference, cancellationToken);
@@ -127,6 +132,26 @@ public class OrgCodeListService : IOrgCodeListService
         GiteaMultipleFilesDto dto = CreateGiteaMultipleFilesDto(developer, fileOperationContexts, commitMessage);
 
         await _gitea.ModifyMultipleFiles(org, repository, dto, cancellationToken);
+    }
+
+    internal static void ValidateCodeListTitles(List<CodeListWrapper> codeListWrappers)
+    {
+        if (codeListWrappers.Exists(clw => InputValidator.IsValidFileName(clw.Title)))
+        {
+            throw new IllegalFileNameException("One or more of the code list titles contains invalid characters. Latin characters, numbers and underscores are allowed.");
+        }
+    }
+
+    internal static void ValidateCommitMessage(string commitMessage)
+    {
+        if (string.IsNullOrEmpty(commitMessage))
+        {
+            return;
+        }
+        if (InputValidator.IsValidGiteaCommitMessage(commitMessage) is false)
+        {
+            throw new IllegalCommitMessageException("The commit message is invalid. It must be between 1 and 5120 characters and not contain null characters.");
+        }
     }
 
     internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -117,7 +118,14 @@ public class OrgCodeListController : ControllerBase
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
         string commitMessage = requestBody.CommitMessage;
 
-        await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
+        try
+        {
+            await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
+        }
+        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
+        {
+            return BadRequest(ex.Message);
+        }
 
         return Ok();
     }
