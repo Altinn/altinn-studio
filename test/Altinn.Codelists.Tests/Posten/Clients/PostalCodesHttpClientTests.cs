@@ -1,23 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Altinn.Codelists.Posten.Clients;
-using Altinn.Codelists.SSB.Clients;
-using Altinn.Codelists.SSB.Models;
+﻿using Altinn.Codelists.Posten;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.Tests.Posten.Clients;
 
 public class PostalCodesHttpClientTests
 {
-    //[Fact(Skip = "Disabled. This actually calls out to the api and is primarily used to test during development.")]
-    public async Task GetPostalCodes_ShouldReturnAllCurrentCodes()
+    [Fact]
+    public async Task Get()
     {
-        var client = new PostalCodesHttpClient(new HttpClient());
+        await using var fixture = await PostenFixture.Create(proxy: false);
+        var server = fixture.Server;
+        var baseUrl = server.Url;
+        Assert.NotNull(baseUrl);
+        var baseUri = new Uri(baseUrl);
+        var uri = new Uri(baseUri, PostenSettings.DefaultPath);
+
+        var services = new ServiceCollection();
+        services.AddPostenClient();
+        services.Configure<PostenSettings>(s => s.Url = uri.ToString());
+        await using var serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
+        );
+
+        var client = serviceProvider.GetRequiredService<IPostalCodesClient>();
 
         var postalCodes = await client.GetPostalCodes();
 
-        Assert.True(postalCodes.Count > 3);
+        await Verify(postalCodes);
     }
 }

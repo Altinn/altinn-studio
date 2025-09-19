@@ -26,6 +26,7 @@ namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Extensions
     public static class ServiceCollectionExtensions
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddKartverketAdministrativeUnits(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddKartverketAdministrativeUnitsClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
 }
 namespace Altinn.Codelists.Kartverket.AdministrativeUnits.Models
@@ -69,6 +70,16 @@ namespace Altinn.Codelists.Posten
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Codelists.Posten.Clients.PostalCodeRecord>> GetPostalCodes();
     }
+    public class PostenSettings
+    {
+        public PostenSettings() { }
+        public string Url { get; set; }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPosten(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPostenClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+    }
 }
 namespace Altinn.Codelists.RestCountries
 {
@@ -76,6 +87,10 @@ namespace Altinn.Codelists.RestCountries
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Codelists.RestCountries.Models.Country>> GetCountries();
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Codelists.RestCountries.Models.Country>> GetCountries(System.Collections.Generic.IEnumerable<Altinn.Codelists.RestCountries.Models.Filter> filters);
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddRestCountriesClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
 }
 namespace Altinn.Codelists.RestCountries.Models

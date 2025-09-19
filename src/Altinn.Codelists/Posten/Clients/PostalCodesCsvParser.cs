@@ -6,18 +6,8 @@
 /// File used: https://www.bring.no/postnummerregister-ansi.txt
 /// Examample record: 6863	LEIKANGER	4640	SOGNDAL	G
 /// </summary>
-internal sealed class PostalCodesCsvParser
+internal sealed class PostalCodesCsvParser(Stream _csvStream)
 {
-    private Stream _csvStream { get; set; }
-
-    /// <summary>
-    /// Creates an instance of <see cref="PostalCodesCsvParser"/>
-    /// </summary>
-    public PostalCodesCsvParser(Stream stream)
-    {
-        _csvStream = stream;
-    }
-
     /// <summary>
     /// Parses the stream provided in the constructor.
     /// </summary>
@@ -25,18 +15,17 @@ internal sealed class PostalCodesCsvParser
     {
         List<PostalCodeRecord> postalCodes = new();
 
-        using (StreamReader reader = new StreamReader(_csvStream, Encoding.Latin1))
-        {
-            while (!reader.EndOfStream)
-            {
-                string? line = await reader.ReadLineAsync();
+        using StreamReader reader = new StreamReader(_csvStream, Encoding.Latin1, leaveOpen: true);
 
-                if (line != null)
-                {
-                    string[] columns = line.Split('\t');
-                    PostalCodeRecord postalCode = new(columns[0], columns[1], columns[2], columns[3], columns[4]);
-                    postalCodes.Add(postalCode);
-                }
+        while (!reader.EndOfStream)
+        {
+            string? line = await reader.ReadLineAsync();
+
+            if (line != null)
+            {
+                string[] columns = line.Split('\t');
+                PostalCodeRecord postalCode = new(columns[0], columns[1], columns[2], columns[3], columns[4]);
+                postalCodes.Add(postalCode);
             }
         }
 

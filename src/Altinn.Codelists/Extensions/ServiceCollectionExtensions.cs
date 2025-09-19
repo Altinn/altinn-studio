@@ -1,4 +1,5 @@
 ﻿using Altinn.Codelists.Kartverket.AdministrativeUnits.Extensions;
+using Altinn.Codelists.Posten;
 using Altinn.Codelists.SSB.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +17,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddKartverketAdministrativeUnits();
         services.AddSSBClassifications();
+        services.AddPosten();
 
         return services;
     }
