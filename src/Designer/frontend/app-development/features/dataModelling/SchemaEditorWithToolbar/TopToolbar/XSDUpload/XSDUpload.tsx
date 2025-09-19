@@ -1,6 +1,7 @@
 import React from 'react';
 import type { StudioButtonProps } from '@studio/components-legacy';
-import { StudioFileUploader, StudioSpinner } from '@studio/components-legacy';
+import { StudioFileUploader } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import type { FileNameErrorResult } from '@studio/pure-functions';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
@@ -87,7 +88,7 @@ export const XSDUpload = ({
   return (
     <span ref={uploadButton}>
       {uploading ? (
-        <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} showSpinnerTitle />
+        <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} aria-hidden />
       ) : (
         <StudioFileUploader
           onSubmit={handleSubmit}
