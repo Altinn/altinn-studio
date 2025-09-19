@@ -601,12 +601,14 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
             </style>
           </head>
           <body>
-            <img src="${imageData.dataUrl}">
+            <img src="${imageData.dataUrl}" id="direct-snapshot">
           </body>
        </html>`,
     ),
   );
+
   cy.visit(getTargetUrl('screenshot'));
+  cy.get('#direct-snapshot').should('exist');
 
   cy.percySnapshot(snapshotName, { widths: [width], minHeight });
 
@@ -616,6 +618,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
     cy.get<Size>('@directSnapshotViewportSize').then(({ width, height }) => {
       cy.viewport(width, height);
     });
+    cy.findByTestId('presentation').should('exist');
   }
 });
 
@@ -869,7 +872,7 @@ Cypress.Commands.add('enableResponseFuzzing', function (options) {
       req.on('response', (res) => {
         res.setDelay(rand());
       });
-    });
+    }).as('responseFuzzing');
   }
 
   return cy.wrap({ disable: () => (responseFuzzingEnabled = false) }, { log: false });

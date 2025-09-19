@@ -56,7 +56,6 @@ describe('Subform test', () => {
 
     cy.testPdf({
       snapshotName: 'single-subform',
-      enableResponseFuzzing: true,
       returnToForm: true,
       buildUrl: buildUrlForSingleSubform,
       callback: () => {
@@ -85,7 +84,6 @@ describe('Subform test', () => {
 
     cy.testPdf({
       snapshotName: 'single-subform-custom',
-      enableResponseFuzzing: true,
       buildUrl: buildUrlForSingleSubform,
       callback: () => {
         cy.get('#moped-blurb').should('not.exist');

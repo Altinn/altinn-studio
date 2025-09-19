@@ -367,5 +367,5 @@ module.exports = {
       }
     }
   },
-  "__version": "14.5.4"
+  "__version": "15.2.0"
 }

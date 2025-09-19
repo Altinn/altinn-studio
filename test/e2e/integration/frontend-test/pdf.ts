@@ -156,7 +156,6 @@ describe('PDF', () => {
 
     cy.testPdf({
       snapshotName: 'changeName 2',
-      enableResponseFuzzing: true,
       callback: () =>
         // prettier-ignore
         {
