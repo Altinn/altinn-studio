@@ -7,8 +7,8 @@ import {
   SimpleSubexpressionValueType,
   StudioButton,
   StudioExpression,
-  StudioSectionHeader,
 } from '@studio/components-legacy';
+import { StudioSectionHeader } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';
