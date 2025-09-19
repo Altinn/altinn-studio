@@ -53,6 +53,8 @@ services:
     extra_hosts:
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
       - "host.containers.internal:host-gateway"
+    environment:
+      - TZ=Europe/Oslo
 
   altinn_localtest:
     container_name: localtest

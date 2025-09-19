@@ -50,6 +50,8 @@ services:
       - altinntestlocal_network
     ports:
       - "5300:3000"
+    environment:
+      - TZ=Europe/Oslo
 
   altinn_localtest:
     container_name: localtest
