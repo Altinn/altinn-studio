@@ -27,7 +27,6 @@ export const PolicyActions = (): React.ReactElement => {
   };
 
   const handleClickActionInList = (clickedOption: string) => {
-    console.log('Adding action with id:', clickedOption);
     const updatedActionTitles = [...policyRule.actions, clickedOption];
     const updatedRules = getUpdatedRules(
       { ...policyRule, actions: updatedActionTitles },
