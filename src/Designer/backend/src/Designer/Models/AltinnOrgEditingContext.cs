@@ -2,12 +2,12 @@ using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models;
 
-public class AltinnOrgContext
+public class AltinnOrgEditingContext
 {
     public string Org { get; }
     public string DeveloperName { get; }
 
-    private AltinnOrgContext(string org, string developerName)
+    private AltinnOrgEditingContext(string org, string developerName)
     {
         Guard.AssertValidateOrganization(org);
         Org = org;
@@ -16,8 +16,8 @@ public class AltinnOrgContext
         DeveloperName = developerName;
     }
 
-    public static AltinnOrgContext FromOrg(string org, string developerName)
+    public static AltinnOrgEditingContext FromOrgDeveloper(string org, string developerName)
     {
-        return new AltinnOrgContext(org, developerName);
+        return new AltinnOrgEditingContext(org, developerName);
     }
 }
