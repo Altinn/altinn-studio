@@ -126,6 +126,11 @@
     },
     "logo": {
       "$ref": "#/definitions/logo"
+    },
+    "preventInstanceDeletionForDays": {
+      "type": "integer",
+      "title": "Prevent instance deletion for days",
+      "description": "Prevents the deletion of an instance for the specified number of days. This property takes precedence over the autoDeleteOnProcessEnd property."
     }
   },
   "definitions": {
@@ -399,6 +404,16 @@
           "items": {
             "type": "string"
           }
+        },
+        "actionRequiredToRead": {
+          "type": "string",
+          "title": "Action required to read",
+          "description": "When this is set, it overrides what action is required to read the blob of data elements of this data type."
+        },
+        "actionRequiredToWrite": {
+          "type": "string",
+          "title": "Action required to write",
+          "description": "When this is set, it overrides what action is required to write to the blob of data elements of this data type."
         }
       }
     },
@@ -489,6 +504,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "includeAttachments": {
+          "type": "boolean",
+          "title": "Include attachments",
+          "description": "Gets or sets a boolean indicating if copying of attachments is enabled."
         }
       }
     },
