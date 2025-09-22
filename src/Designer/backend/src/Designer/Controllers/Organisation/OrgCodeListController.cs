@@ -70,8 +70,6 @@ public class OrgCodeListController : ControllerBase
     [Route("new")]
     public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
 
         return Ok(codeLists);
@@ -112,7 +110,6 @@ public class OrgCodeListController : ControllerBase
     [Route("new")]
     public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
         string commitMessage = requestBody.CommitMessage;
