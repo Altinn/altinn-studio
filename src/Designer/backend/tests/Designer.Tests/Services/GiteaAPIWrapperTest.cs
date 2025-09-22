@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Microsoft.AspNetCore.Http;
@@ -791,7 +792,197 @@ namespace Designer.Tests.Services
             handlerMock.VerifyAll();
         }
 
-        private static GiteaAPIWrapper GetServiceForTest(HttpClient client)
+        [Fact]
+        public async Task ModifyMultipleFiles_WithMultipleFiles_ReturnsSuccess()
+        {
+            // Arrange
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+            const string UpdateTitle = "updated_file";
+            const string CreateTitle = "created_file";
+
+
+            List<CodeListWrapper> toUpdate = [new()
+            {
+                Title = UpdateTitle,
+                CodeList = SetupCodeList(),
+                HasError = false,
+            }];
+            List<CodeListWrapper> toCreate = [new()
+            {
+                Title = CreateTitle,
+                CodeList = SetupCodeList(),
+                HasError = false,
+            }];
+
+            string ser = JsonSerializer.Serialize(toUpdate);
+            byte[] bytes = Encoding.UTF8.GetBytes(ser);
+            string base64 = Convert.ToBase64String(bytes);
+            string updateContent = base64;
+
+            ser = JsonSerializer.Serialize(toCreate);
+            bytes = Encoding.UTF8.GetBytes(ser);
+            base64 = Convert.ToBase64String(bytes);
+            string createContent = base64;
+
+            var dto = new GiteaMultipleFilesDto
+            {
+                Author = new Identity { Name = "testuser" },
+                Committer = new Identity { Name = "testuser" },
+                Message = "Updating multiple files",
+                Files = [
+                    new FileOperationContext
+                    {
+                        Path = $"{UpdateTitle}.txt",
+                        Content = updateContent,
+                        Operation = FileOperation.Update,
+                        Sha = "existing-file-sha"
+                    },
+                    new FileOperationContext
+                    {
+                        Path = $"{CreateTitle}.txt",
+                        Content = createContent,
+                        Operation = FileOperation.Create
+                    },
+                    new FileOperationContext
+                    {
+                        Path = "file2.txt",
+                        Operation = FileOperation.Delete,
+                        Sha = "to-delete-file-sha"
+                    }
+                ]
+            };
+
+            handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                   "SendAsync",
+                   ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post && req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents")),
+                   ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = HttpStatusCode.OK,
+                })
+                .Verifiable();
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            // Act
+            bool result = await sut.ModifyMultipleFiles("ttd", "apps-test-2021", dto);
+
+            // Assert
+            Assert.True(result);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task ModifyMultipleFiles_WithFailedRequest_ReturnsFalse_AndLogsError()
+        {
+            // Arrange
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+            const string UpdateTitle = "updated_file";
+
+            List<CodeListWrapper> toUpdate = [new()
+            {
+                Title = UpdateTitle,
+                CodeList = null,
+                HasError = true,
+            }];
+
+            string ser = JsonSerializer.Serialize(toUpdate);
+            byte[] bytes = Encoding.UTF8.GetBytes(ser);
+            string base64 = Convert.ToBase64String(bytes);
+            string updateContent = base64;
+
+            var dto = new GiteaMultipleFilesDto
+            {
+                Author = new Identity { Name = "testuser" },
+                Committer = new Identity { Name = "testuser" },
+                Files = [
+                    new FileOperationContext
+                    {
+                        Path = $"{UpdateTitle}.txt",
+                        Content = updateContent,
+                        Operation = FileOperation.Update,
+                        Sha = "existing-file-sha"
+                    },
+                ]
+            };
+
+            var response = new { message = "this went wrong", url = "someurl" };
+            string responseAsJson = JsonSerializer.Serialize(response);
+
+            handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                   "SendAsync",
+                   ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Post && req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents")),
+                   ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage()
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Content = new StringContent(responseAsJson, Encoding.UTF8, "application/json"),
+                })
+                .Verifiable();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            var loggerMock = new Mock<ILogger<GiteaAPIWrapper>>();
+            loggerMock.Setup(
+                l => l.Log(
+                It.Is<LogLevel>(ll => ll == LogLevel.Error),
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("ModifyMultipleFiles failed with statuscode BadRequest for ttd/apps-test-2021. Url: someurl, Message: this went wrong")),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true))
+            );
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient, loggerMock.Object);
+
+            // Act
+            bool result = await sut.ModifyMultipleFiles("ttd", "apps-test-2021", dto);
+
+            // Assert
+            Assert.False(result);
+            handlerMock.VerifyAll();
+            loggerMock.VerifyAll();
+        }
+
+        private static CodeList SetupCodeList()
+        {
+            Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
+            Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
+            Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+            List<Code> listOfCodes =
+            [
+                new()
+                {
+                    Value = "value1",
+                    Label = label,
+                    Description = description,
+                    HelpText = helpText,
+                    Tags = ["test-data"]
+                }
+            ];
+            CodeListSource source = new() { Name = "test-data-files" };
+            CodeList codeList = new()
+            {
+                Source = source,
+                Codes = listOfCodes,
+                TagNames = ["test-data-category"]
+            };
+            return codeList;
+        }
+
+        private static GiteaAPIWrapper GetServiceForTest(HttpClient client, ILogger<GiteaAPIWrapper> logger = null)
         {
             HttpContext context = new DefaultHttpContext();
 
@@ -808,7 +999,7 @@ namespace Designer.Tests.Services
                 repoSettings,
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),
-                new Mock<ILogger<GiteaAPIWrapper>>().Object,
+                logger ?? new Mock<ILogger<GiteaAPIWrapper>>().Object,
                 client);
 
             return service;
