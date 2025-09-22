@@ -92,8 +92,8 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> HasAccessToCreateRepository(string org)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnOrgContext editingContext = AltinnOrgContext.FromOrg(org, developer);
-            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(editingContext);
+            AltinnOrgEditingContext editingEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, developer);
+            UserOrgPermission userOrg = await _userService.GetUserOrgPermission(editingEditingContext);
             return Ok(userOrg);
         }
 

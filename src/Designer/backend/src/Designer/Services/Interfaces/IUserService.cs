@@ -6,5 +6,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IUserService
 {
-    public Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgContext altinnOrgContext);
+    public Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext);
 }

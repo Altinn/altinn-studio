@@ -36,8 +36,8 @@ namespace Designer.Tests.Services
 
             var userService = new UserService(_giteaApi.Object);
 
-            AltinnOrgContext altinnOrgContext = AltinnOrgContext.FromOrg(org, "developer");
-            var result = await userService.GetUserOrgPermission(altinnOrgContext);
+            AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, "developer");
+            var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);
 
             Assert.NotNull(result);
             Assert.Equal(expectedCanCreate, result.CanCreateOrgRepo);

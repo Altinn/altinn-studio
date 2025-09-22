@@ -17,9 +17,9 @@ public class UserService : IUserService
         _giteaApi = giteaApi;
     }
 
-    public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgContext altinnOrgContext)
+    public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(altinnOrgContext);
+        bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(altinnOrgEditingContext);
         return new UserOrgPermission() { CanCreateOrgRepo = canCreateOrgRepo };
     }
 
@@ -28,11 +28,11 @@ public class UserService : IUserService
         return developerName == org;
     }
 
-    private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgContext altinnOrgContext)
+    private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgEditingContext altinnOrgEditingContext)
     {
         List<Team> teams = await _giteaApi.GetTeams();
-        return IsUserSelfOrg(altinnOrgContext.DeveloperName, altinnOrgContext.Org) ||
-               teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgContext.Org));
+        return IsUserSelfOrg(altinnOrgEditingContext.DeveloperName, altinnOrgEditingContext.Org) ||
+               teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)
