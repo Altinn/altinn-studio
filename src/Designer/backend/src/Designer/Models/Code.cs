@@ -8,7 +8,7 @@ using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed class Code
+public class Code
 {
     /// <summary>
     /// Value that connects the option to the data model.
