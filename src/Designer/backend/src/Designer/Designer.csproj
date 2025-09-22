@@ -33,7 +33,6 @@
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
-    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" />
@@ -62,6 +61,7 @@
     <PackageReference Include="Quartz.Extensions.DependencyInjection" />
     <PackageReference Include="Quartz.Extensions.Hosting" />
     <PackageReference Include="Quartz.Serialization.SystemTextJson" />
+    <PackageReference Include="Scriban" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
 
