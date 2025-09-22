@@ -26,6 +26,7 @@ import {
 } from 'chart.js';
 
 import { Line } from 'react-chartjs-2';
+import type { Metric } from 'admin/types/Metric';
 
 ChartJS.register(
   CategoryScale,
@@ -66,6 +67,7 @@ const getChartOptions = (time: number) => ({
       },
     },
     y: {
+      beginAtZero: true,
       // border: {
       //   display: false,
       // },
@@ -88,6 +90,13 @@ const getChartData = (dataPoints: MetricDataPoint[], options) => {
     labels: dataPoints?.map((dataPoint) => dataPoint.dateTimeOffset),
     datasets: [
       {
+        /*
+        fill: {
+          target: { value: 70 },
+          above: 'rgba(206, 77, 77, 0.7)', // Green color with transparency
+          below: 'rgba(16, 140, 34, 0.7)', // No fill below
+        },
+        */
         fill: true,
         data: dataPoints?.map((dataPoint) => dataPoint.count),
         // tension: 0.4,
@@ -119,9 +128,28 @@ const getRandomColor = () => {
   };
 };
 
+const formatCount = (metric: Metric) => {
+  switch (metric.name) {
+    case 'up':
+      return metric.count === 1 ? 'UP' : 'DOWN';
+    case 'slow_requests':
+      return `${metric.count} ms`;
+    case 'requests_rps':
+      return `${metric.count} req/s`; // requests / second
+    case 'error_ratio':
+      return `${metric.count} %`; // of total requests
+    case 'cpu_usage':
+      return `${metric.count} %`; // of requested CPU
+    case 'memory_usage':
+      return `${metric.count} %`; // of requested memory
+    default:
+      return metric.count;
+  }
+};
+
 export const Metrics = () => {
   const { org, env, app } = useParams();
-  const [time, setTime] = useState(60);
+  const [time, setTime] = useState(1440);
   const { t } = useTranslation();
   const options = getChartOptions(time);
 
@@ -153,13 +181,19 @@ export const Metrics = () => {
           </StudioBreadcrumbs.Item>
           <StudioBreadcrumbs.Item>
             <StudioBreadcrumbs.Link asChild>
+              <Link to=''>{env}</Link>
+            </StudioBreadcrumbs.Link>
+          </StudioBreadcrumbs.Item>
+          <StudioBreadcrumbs.Item>
+            <StudioBreadcrumbs.Link asChild>
               <Link to=''>{app}</Link>
             </StudioBreadcrumbs.Link>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
-      <StudioHeading className={classes.heading}>
-        {env} / {app} / Metrics
+      {/* <StudioHeading className={classes.heading}> */}
+      <h1 className={classes.heading}>
+        METRICS
         <StudioSelect
           label={null}
           // description={'Time'}
@@ -178,11 +212,32 @@ export const Metrics = () => {
           <StudioSelect.Option value='10080'>7d</StudioSelect.Option>
           <StudioSelect.Option value='43200'>30d</StudioSelect.Option>
         </StudioSelect>
-      </StudioHeading>
-      <StudioHeading className={classes.h2}>{t('Helse')}</StudioHeading>
+        {/* </StudioHeading> */}
+      </h1>
+      <StudioHeading className={classes.h2}>{t('Application health')}</StudioHeading>
       {getChart(options, t, systemMetrics)}
-      <StudioHeading className={classes.h2}>{t('App')}</StudioHeading>
-      {getChart(options, t, appMetrics)}
+      <StudioHeading className={classes.h2}>{t('Application metrics')}</StudioHeading>
+      <div className={classes.appMetrics}>
+        {getChart(
+          options,
+          t,
+          appMetrics?.filter((appM) => appM.name.startsWith('altinn_app_lib_instances')),
+        )}
+        {getChart(
+          options,
+          t,
+          appMetrics?.filter((appM) => appM.name.startsWith('altinn_app_lib_processes')),
+        )}
+        {getChart(
+          options,
+          t,
+          appMetrics?.filter(
+            (appM) =>
+              !appM.name.startsWith('altinn_app_lib_instances') &&
+              !appM.name.startsWith('altinn_app_lib_processes'),
+          ),
+        )}
+      </div>
     </>
   );
 };
@@ -204,6 +259,21 @@ const getChart = (options, t, metrics) => {
               },
         );
 
+        var customOptions =
+          metric.name === 'up'
+            ? {
+                ...options,
+                scales: {
+                  ...options.scales,
+                  y: {
+                    ...options.scales.y,
+                    min: metric.name === 'up' && 0,
+                    max: metric.name === 'up' && 1,
+                  },
+                },
+              }
+            : options;
+
         return (
           <StudioCard key={metric.name} data-color='neutral' className={classes.metric}>
             <div className={classes.title}>
@@ -219,14 +289,14 @@ const getChart = (options, t, metrics) => {
                     opacity: isAppMetric && 1,
                   }}
                 >
-                  {metric.count}
+                  {formatCount(metric)}
                 </div>
               ) : (
                 <StudioSpinner aria-label={t('general.loading')} />
               )}
             </div>
             <div className={classes.chart}>
-              <Line options={options} data={metricsChartData} />
+              <Line options={customOptions} data={metricsChartData} />
             </div>
           </StudioCard>
         );

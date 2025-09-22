@@ -5,17 +5,14 @@
 
 .heading {
   display: flex;
-  font-weight: normal;
-  font-size: 0.9rem;
   align-items: center;
   gap: var(--ds-size-4);
 }
 
 .h2 {
-  font-size: 2.4rem;
+  font-size: 2rem;
   margin-top: var(--ds-size-6);
   margin-bottom: var(--ds-size-6);
-  text-transform: uppercase;
 }
 
 .h3 {
@@ -70,4 +67,10 @@
   background-color: #f5f6f6;
   border: 1px solid #efefef;
   padding: var(--ds-size-8);
+}
+
+.appMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-22);
 }

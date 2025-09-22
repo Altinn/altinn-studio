@@ -29,12 +29,13 @@ public class MetricsController(
     {
         var step = time >= 1140 ? "1h" : "5m";
 
-        var upQuery = Regex.Replace($@"(
-                kube_deployment_status_replicas_available{{deployment='{org}-{app}-deployment-v2'}}
-                >= bool kube_deployment_spec_replicas{{deployment='{org}-{app}-deployment-v2'}}
+        var upQuery = $@"
+            (
+                kube_deployment_status_replicas_available{{namespace='default', deployment='{org}-{app}-deployment-v2'}}
+                >= bool kube_deployment_spec_replicas{{namespace='default', deployment='{org}-{app}-deployment-v2'}}
             )
             OR on(namespace, deployment)
-            absent(kube_deployment_spec_replicas{{deployment='{org}-{app}-deployment-v2'}}) * 0", @"[\t\r\n]", "").Replace("    ", "");
+            (absent(kube_deployment_spec_replicas{{namespace='default', deployment='{org}-{app}-deployment-v2'}}) * 0)";
 
         var upMetrics = await _prometheusClientService.GetSeriesAsync(upQuery, time, app, "up", (dataPoints) => dataPoints.LastOrDefault()?.Count ?? 0, (count) => count == 0, step, cancellationToken);
 
@@ -48,7 +49,8 @@ public class MetricsController(
         ), 1e-12
         )";
         */
-        var slowRequestQuery = $@"histogram_quantile(
+        var slowRequestQuery = $@"
+            histogram_quantile(
                 0.95,
                 clamp_min(
                     sum by (le, service) (
@@ -72,13 +74,13 @@ public class MetricsController(
         // 3 - ERRORS
 
         var failedRequestsQuery = $@"
-                (
-                sum by (service) (rate(traefik_service_requests_total{{service=~'^default-{org}-{app}-ingress-route-[0-9a-f]+@kubernetescrd$', code=~'5..'}}[{step}]))
-                /
-                clamp_min(
-                    sum by (service) (rate(traefik_service_requests_total{{service=~'^default-{org}-{app}-ingress-route-[0-9a-f]+@kubernetescrd$'}}[{step}]))
-                , 1e-9)
-                ) * 100";
+            (
+            sum by (service) (rate(traefik_service_requests_total{{service=~'^default-{org}-{app}-ingress-route-[0-9a-f]+@kubernetescrd$', code=~'5..'}}[{step}]))
+            /
+            clamp_min(
+                sum by (service) (rate(traefik_service_requests_total{{service=~'^default-{org}-{app}-ingress-route-[0-9a-f]+@kubernetescrd$'}}[{step}]))
+            , 1e-9)
+            ) * 100";
 
         var failedRequestsMetrics = await _prometheusClientService.GetSeriesAsync(failedRequestsQuery, time, app, "error_ratio", (dataPoints) => Math.Ceiling(dataPoints.Average(dataPoint => dataPoint.Count)), (count) => count >= 1, step, cancellationToken);
 
@@ -94,56 +96,56 @@ public class MetricsController(
         */
 
         string cpuQuery = $@"
-                sum(
-                    sum by (namespace, pod, container) (
-                        rate(container_cpu_usage_seconds_total{{namespace='default', container!=''}}[{step}])
-                    )
-                    * on(namespace,pod)
-                    group_left(workload, workload_type)
-                    namespace_workload_pod:kube_pod_owner:relabel{{
-                        namespace='default',
-                        workload_type='deployment',
-                        workload='{org}-{app}-deployment-v2'
-                    }}
-                ) by (workload)
-                /
-                sum(
-                    kube_pod_container_resource_requests{{namespace='default', container!='', resource='cpu'}}
-                    * on(namespace,pod)
-                    group_left(workload, workload_type)
-                    namespace_workload_pod:kube_pod_owner:relabel{{
-                        namespace='default',
-                        workload_type='deployment',
-                        workload='{org}-{app}-deployment-v2'
-                    }}
-                ) by (workload)
-                * 100";
+            sum(
+                sum by (namespace, pod, container) (
+                    rate(container_cpu_usage_seconds_total{{namespace='default', container!=''}}[{step}])
+                )
+                * on(namespace,pod)
+                group_left(workload, workload_type)
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    namespace='default',
+                    workload_type='deployment',
+                    workload='{org}-{app}-deployment-v2'
+                }}
+            ) by (workload)
+            /
+            sum(
+                kube_pod_container_resource_requests{{namespace='default', container!='', resource='cpu'}}
+                * on(namespace,pod)
+                group_left(workload, workload_type)
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    namespace='default',
+                    workload_type='deployment',
+                    workload='{org}-{app}-deployment-v2'
+                }}
+            ) by (workload)
+            * 100";
 
         var cpuMetrics = await _prometheusClientService.GetSeriesAsync(cpuQuery, time, app, "cpu_usage", (dataPoint) => Math.Ceiling(dataPoint.LastOrDefault()?.Count ?? 0), (count) => count >= 80, step, cancellationToken);
 
         string memoryQuery = $@"
-                sum(
-                    container_memory_working_set_bytes{{namespace='default', container!='', image!=''}}
-                    * on(namespace,pod)
-                    group_left(workload, workload_type)
-                    namespace_workload_pod:kube_pod_owner:relabel{{
-                        namespace='default',
-                        workload_type='deployment',
-                        workload='{org}-{app}-deployment-v2'
-                    }}
-                ) by (workload)
-                /
-                sum(
-                    kube_pod_container_resource_requests{{namespace='default', container!='', resource='memory'}}
-                    * on(namespace,pod)
-                    group_left(workload, workload_type)
-                    namespace_workload_pod:kube_pod_owner:relabel{{
-                        namespace='default',
-                        workload_type='deployment',
-                        workload='{org}-{app}-deployment-v2'
-                    }}
-                ) by (workload)
-                * 100";
+            sum(
+                container_memory_working_set_bytes{{namespace='default', container!='', image!=''}}
+                * on(namespace,pod)
+                group_left(workload, workload_type)
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    namespace='default',
+                    workload_type='deployment',
+                    workload='{org}-{app}-deployment-v2'
+                }}
+            ) by (workload)
+            /
+            sum(
+                kube_pod_container_resource_requests{{namespace='default', container!='', resource='memory'}}
+                * on(namespace,pod)
+                group_left(workload, workload_type)
+                namespace_workload_pod:kube_pod_owner:relabel{{
+                    namespace='default',
+                    workload_type='deployment',
+                    workload='{org}-{app}-deployment-v2'
+                }}
+            ) by (workload)
+            * 100";
 
         var memoryMetrics = await _prometheusClientService.GetSeriesAsync(memoryQuery, time, app, "memory_usage", (dataPoint) => Math.Ceiling(dataPoint.LastOrDefault()?.Count ?? 0), (count) => count >= 80, step, cancellationToken);
 
