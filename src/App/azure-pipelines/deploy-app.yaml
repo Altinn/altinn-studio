@@ -1,0 +1,521 @@
+
+variables:
+  # Variables that are dynamically set in the pipeline
+  ALTINN_HOST: ''
+  RELEASE_NAME: ''
+  RG_NAME: ''
+  AI_INSTR_KEY: ''
+  SUBSCRIPTION_KEY: ''
+
+  # Variables that should be set as secret variables in the pipeline
+  # APIM_RESOURCE_ID_PROD: ''
+  # AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING: ''
+  # AZURE_SUBSCRIPTION_ID_PLATFORM_TEST: ''
+
+  # Variables to be passed when triggering the pipeline
+  # ALTINN_STUDIO_HOSTNAME: ''
+  # APP_COMMIT_ID: ''
+  # APP_DEPLOY_TOKEN: ''
+  # APP_ENVIRONMENT: ''
+  # APP_OWNER: ''
+  # APP_REPO: ''
+  # GITEA_ENVIRONMENT: ''
+  # HOSTNAME: ''
+  # TAGNAME: ''
+
+  # Variables for generating yaml files. Paths are relative to the root of the apps repository
+  FLUX_ARTIFACT_DIR: 'flux-artifact'
+  HELMRELEASE_FILE: 'helmrelease.yaml'
+  OVERRIDES_FILE: 'overrides.yaml'
+  VALUES_FILE: 'deployment/values.yaml'
+  NORMALIZED_VALUES: 'values.normalized.yaml'
+  MERGED_VALUES: 'values.merged.yaml'
+
+  AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
+  AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
+
+
+trigger: none
+pr: none
+
+steps:
+  - checkout: none
+
+  - task: Bash@3
+    name: RELEASE_NAME
+    displayName: 'Create lowercase release name '
+    inputs:
+      targetType: inline
+      script: |
+        APP_OWNER_LOWERCASE=$(echo $APP_OWNER | tr '[:upper:]' '[:lower:]')
+
+        APP_REPO_LOWERCASE=$(echo $APP_REPO | tr '[:upper:]' '[:lower:]')
+
+        RELEASE_NAME_LOWERCASE="$APP_OWNER_LOWERCASE-$APP_REPO_LOWERCASE"
+
+        echo $RELEASE_NAME_LOWERCASE
+
+        echo "##vso[task.setvariable variable=RELEASE_NAME;]$RELEASE_NAME_LOWERCASE"
+      failOnStderr: true
+
+  - task: CmdLine@2
+    displayName: Pull Repo
+    inputs:
+      script: |
+        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+
+  - task: Bash@3
+    displayName: Set environment variables (ALTINN_HOST and RG_NAME) based on APP_ENVIRONMENT
+    inputs:
+      targetType: inline
+      script: |
+        # Define host values
+        AT_HOST="altinn.cloud"
+        TT_PR_HOST="altinn.no"
+
+        # Set ALTINN_HOST based on environment
+        if [ "$APP_ENVIRONMENT" == "tt02" ] || [ "$APP_ENVIRONMENT" == "production" ]; then
+            echo "##vso[task.setvariable variable=ALTINN_HOST;]$TT_PR_HOST"
+        else
+            echo "##vso[task.setvariable variable=ALTINN_HOST;]$AT_HOST"
+        fi
+
+        # Set RG_NAME based on environment
+        echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-$APP_ENVIRONMENT-rg"
+
+        if [ "$APP_ENVIRONMENT" == "production" ]; then
+            echo "##vso[task.setvariable variable=RG_NAME;]altinnapps-$APP_OWNER-prod-rg"
+        fi
+      failOnStderr: true
+
+  - task: Bash@3
+    displayName: Generate PowerShell script for Application Insights
+    inputs:
+      targetType: inline
+      script: |
+        # Create the PowerShell script in the agent's working directory
+        cat << 'EOF' > $(Agent.BuildDirectory)/get-app-insights.ps1
+        # Determine environment-specific values
+        if ("$(APP_ENVIRONMENT)" -eq "production") {
+            $subscriptionName = "Altinn-$(APP_OWNER)-Prod"
+            $monitorRG = "monitor-$(APP_OWNER)-prod-rg"
+            $aiName = "$(APP_OWNER)-prod-ai"
+        } else {
+            $subscriptionName = "Altinn-$(APP_OWNER)-Test"
+            $monitorRG = "monitor-$(APP_OWNER)-$(APP_ENVIRONMENT)-rg"
+            $aiName = "$(APP_OWNER)-$(APP_ENVIRONMENT)-ai"
+        }
+
+        # Select the correct subscription
+        Write-Host "Selecting subscription: $subscriptionName"
+        Select-AzSubscription -Subscription $subscriptionName
+
+        $altinnappsRG = "$(RG_NAME)"
+
+        # Check if the monitor resource group exists
+        $rgExists = Get-AzResourceGroup -Name $monitorRG -ErrorAction SilentlyContinue
+
+        # Determine which resource group to use
+        if ($rgExists) {
+            $resourceGroupName = $monitorRG
+        } else {
+            $resourceGroupName = $altinnappsRG
+        }
+
+        Write-Host "Using resource group for Application Insights: $resourceGroupName"
+
+        # Get the Application Insights Instrumentation Key
+        $ai_instr_key = (Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName).InstrumentationKey
+
+        # export it as a pipeline variable
+        Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
+        EOF
+
+        echo "PowerShell script generated successfully"
+
+  - task: AzurePowerShell@4
+    displayName: Get application Insights instrumentation key (Production)
+    condition: eq(variables['APP_ENVIRONMENT'], 'production')
+    inputs:
+      ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
+      ScriptType: FilePath
+      ScriptPath: '$(Agent.BuildDirectory)/get-app-insights.ps1'
+      azurePowerShellVersion: 'LatestVersion'
+      pwsh: true
+      TargetAzurePs: LatestVersion
+
+  - task: AzurePowerShell@4
+    displayName: Get application Insights instrumentation key (Non-Production)
+    condition: ne(variables['APP_ENVIRONMENT'], 'production')
+    inputs:
+      ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
+      ScriptType: FilePath
+      ScriptPath: '$(Agent.BuildDirectory)/get-app-insights.ps1'
+      azurePowerShellVersion: 'LatestVersion'
+      pwsh: true
+      TargetAzurePs: LatestVersion
+
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Test
+    condition: "and(succeeded(), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02')) "
+    inputs:
+      ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
+
+        # Mapping pipeline variables to script variables.
+        $appEnvironment = "$(APP_ENVIRONMENT)"
+        $appOwner = "$(APP_OWNER)"
+        $appName = "$(APP_REPO)"
+        $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_TEST)"
+
+        # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
+
+        Write-Host "`nPowerShell script output START`n"
+
+        $apimSubscriptionId = "$appOwner-$appName"
+
+        $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
+        $apimInstance = "altinn-$appEnvironment-api"
+
+        if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
+            Write-Host "Setting active Azure subscription."
+            Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
+        }
+
+        $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
+
+        $subscription = $null
+        try {
+            Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
+            $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+            Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
+        }
+        catch {
+            if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                throw
+            }
+        }
+
+        if (!$subscription) {
+            Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
+            $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+        }
+
+        if (!$subscription) {
+            Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
+        }
+
+        $subscriptionKey = $subscription.PrimaryKey
+
+        Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+
+        Write-Host "`nPowerShell script output END`n"
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
+
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Staging
+    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'tt02')) "
+    inputs:
+      ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
+
+
+        # Mapping pipeline variables to script variables.
+        $appEnvironment = "$(APP_ENVIRONMENT)"
+        $appOwner = "$(APP_OWNER)"
+        $appName = "$(APP_REPO)"
+        $azureSubscriptionId = "$(AZURE_SUBSCRIPTION_ID_PLATFORM_STAGING)"
+
+        # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
+
+        Write-Host "`nPowerShell script output START`n"
+
+        $apimSubscriptionId = "$appOwner-$appName"
+
+        $apimResourceGroup = "altinnplatform-$appEnvironment-rg"
+        $apimInstance = "altinn-$appEnvironment-api"
+
+        if ((Get-AzContext).Subscription.Id -ne $azureSubscriptionId) {
+            Write-Host "Setting active Azure subscription."
+            Select-AzSubscription -SubscriptionId $azureSubscriptionId | Out-Null
+        }
+
+        $apimContext = New-AzApiManagementContext -ResourceGroupName $apimResourceGroup -ServiceName $apimInstance  -ErrorAction Stop
+
+        $subscription = $null
+        try {
+            Write-Host "Trying to get the APIM subscription for $apimSubscriptionId in $apimInstance."
+            $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+            Write-Host "Found the APIM subscription for $apimSubscriptionId in $apimInstance"
+        }
+        catch {
+            if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                throw
+            }
+        }
+
+        if (!$subscription) {
+            Write-Host "Found no APIM subscription for $apimSubscriptionId in $apimInstance. Creating..."
+            $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $apimSubscriptionId -SubscriptionId $apimSubscriptionId -ErrorAction Stop
+        }
+
+        if (!$subscription) {
+            Throw "Unable to create APIM subscription for $apimSubscriptionId in $apimInstance."
+        }
+
+        $subscriptionKey = $subscription.PrimaryKey
+
+        Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+
+        Write-Host "`nPowerShell script output END`n"
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
+
+  - task: AzurePowerShell@4
+    displayName: Ensure API management subscription key - Production
+    condition: "and(succeeded(), eq(variables['APP_ENVIRONMENT'], 'production')) "
+    inputs:
+      ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
+      ScriptType: InlineScript
+      Inline: |
+        # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
+
+        if ("$(APP_ENVIRONMENT)" -eq "production"){
+
+            $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
+
+            $subscriptionId = "$(APP_OWNER)-$(APP_REPO)"
+
+            try {
+              Write-Host "Try Get subscription key for $subscriptionId"
+              $subscription = Get-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId $subscriptionId
+            }
+            catch {
+              if (!$_.Exception.Message.Contains("ResourceNotFound")) {
+                  throw
+              }
+            }
+
+            if (!$subscription) {
+              Write-Host "Found no subscription with id $subscriptionId. Creating..."
+              $subscription = New-AzApiManagementSubscription -Context $apimContext -Scope "/products/apps-access" -Name $subscriptionId -SubscriptionId $subscriptionId
+            }
+
+            $subscriptionKey = $subscription.PrimaryKey
+
+            Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
+        }
+      FailOnStandardError: true
+      CustomTargetAzurePs: 12.1.0
+      pwsh: true
+
+  - task: Bash@3
+    displayName: Create flux artifact directory
+    inputs:
+      targetType: inline
+      script: |
+        mkdir $(FLUX_ARTIFACT_DIR)
+
+  - task: Bash@3
+    displayName: 'Generate helmrelease template file without values'
+    inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
+      targetType: inline
+      script: |
+        # Generate HelmRelease template
+        cat << EOF > "${HELMRELEASE_FILE}"
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        metadata:
+          name: ${RELEASE_NAME}
+          namespace: default
+        spec:
+          releaseName: ${RELEASE_NAME}
+          targetNamespace: default
+          interval: 5m
+          install:
+            remediation:
+              retries: 1
+          upgrade:
+            remediation:
+              retries: 1
+          chart:
+            spec:
+              version: 3.2.0
+              chart: deployment
+              sourceRef:
+                kind: HelmRepository
+                name: altinn-charts
+                namespace: default
+          values: {}
+        EOF
+
+
+  - task: Bash@3
+    displayName: Generate overrides file.
+    inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
+      targetType: inline
+      script: |
+
+        # Determine base URL prefix and environment
+        if [ "$APP_ENVIRONMENT" = "production" ]; then
+          BASE_URL="https://platform.${ALTINN_HOST}"
+          HOST_NAME="${ALTINN_HOST}"
+          ENVIRONMENT="Production"
+        else
+          BASE_URL="https://platform.${APP_ENVIRONMENT}.${ALTINN_HOST}"
+          HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
+          ENVIRONMENT="Staging"
+        fi
+
+        # Start writing to overrides file
+        cat << EOF > "$OVERRIDES_FILE"
+        image:
+          pullSecrets: []
+          repository: ${APP_OWNER}altinnregistry01.azurecr.io/${RELEASE_NAME}
+          tag: "${TAGNAME}"
+          environment:
+            - name: ServiceRepositorySettings__BaseResourceFolderContainer
+              value: /AltinnService/
+            - name: ServiceRepositorySettings__RepositoryLocation
+              value: /AltinnService/
+            - name: PlatformSettings__ApiStorageEndpoint
+              value: ${BASE_URL}/storage/api/v1/
+            - name: PlatformSettings__ApiRegisterEndpoint
+              value: ${BASE_URL}/register/api/v1/
+            - name: PlatformSettings__ApiProfileEndpoint
+              value: ${BASE_URL}/profile/api/v1/
+            - name: PlatformSettings__ApiAuthenticationEndpoint
+              value: ${BASE_URL}/authentication/api/v1/
+            - name: PlatformSettings__ApiAuthorizationEndpoint
+              value: ${BASE_URL}/authorization/api/v1/
+            - name: PlatformSettings__ApiEventsEndpoint
+              value: ${BASE_URL}/events/api/v1/
+            - name: PlatformSettings__ApiNotificationEndpoint
+              value: ${BASE_URL}/notifications/api/v1/
+            - name: GeneralSettings__HostName
+              value: ${HOST_NAME}
+            - name: PlatformSettings__ApiPdfEndpoint
+              value: ${BASE_URL}/pdf/api/v1/
+            - name: AppSettings__OpenIdWellKnownEndpoint
+              value: ${BASE_URL}/authentication/api/v1/openid/
+            - name: PlatformSettings__SubscriptionKey
+              value: ${SUBSCRIPTION_KEY}
+            - name: PlatformSettings__ApiAccessManagementEndpoint
+              value: ${BASE_URL}/accessmanagement/api/v1/
+            - name: PlatformSettings__ApiCorrespondenceEndpoint
+              value: ${BASE_URL}/correspondence/api/v1/
+            - name: AppSettings__AppInsightsRoleName
+              value: ${APP_REPO}
+            - name: ApplicationInsights__InstrumentationKey
+              value: ${AI_INSTR_KEY}
+            - name: ASPNETCORE_ENVIRONMENT
+              value: ${ENVIRONMENT}
+            - name: AppSettings__AppVersion
+              value: "${TAGNAME}"
+            - name: PdfGeneratorSettings__ServiceEndpointUri
+              value: http://pdf-generator.pdf.svc.cluster.local/pdf
+            - name: PlatformSettings__ApiPdf2Endpoint
+              value: http://pdf-generator.pdf.svc.cluster.local/pdf
+            - name: GeneralSettings__ExternalAppBaseUrl
+              value: https://{org}.apps.{hostName}/{org}/{app}/
+        EOF
+
+        # Add tt02 and production-specific settings
+        if [ "$APP_ENVIRONMENT" = "tt02" ] || [ "$APP_ENVIRONMENT" = "production" ]; then
+          cat << EOF >> "$OVERRIDES_FILE"
+            - name: AppSettings__EFormidlingSender
+              value: "991825827"
+            - name: EFormidlingClientSettings__BaseUrl
+              value: ${BASE_URL}/eformidling/api/
+        EOF
+        fi
+
+        # Add service and ingressRoute
+        cat << EOF >> "$OVERRIDES_FILE"
+        service:
+          name: ${RELEASE_NAME}
+        ingressRoute:
+          tls: {}
+          name: ${APP_OWNER}-${APP_REPO}-ingress-route
+          routes:
+            - kind: Rule
+              match: Host(\`${APP_OWNER}.apps.${HOST_NAME}\`)&&PathPrefix(\`/${APP_OWNER}/${APP_REPO}/\`)||Host(\`${APP_OWNER}.apps.${HOST_NAME}\`)&&Path(\`/${APP_OWNER}/${APP_REPO}\`)
+              services:
+                - name: ${RELEASE_NAME}-deployment
+                  port: 80
+              middlewares:
+                - name: hsts-header
+        EOF
+
+
+  - task: Bash@3
+    displayName: 'Generate final helmrelease with merged values from values and overrides file'
+    inputs:
+      workingDirectory: '$(FLUX_ARTIFACT_DIR)'
+      targetType: inline
+      script: |
+        values_file_path="../${APP_COMMIT_ID}/${VALUES_FILE}"
+        # For backward compatibility we need to support two formats of values.yaml:
+        # 1) Flat structure where all keys are at root level
+        # 2) Nested structure where all keys are under "deployment" key
+        # We will normalize both formats to a flat structure for merging with overrides.yaml
+
+        if [[ -f "${values_file_path}" ]]; then
+          if yq eval 'has("deployment")' "${values_file_path}" | grep -q true; then
+            # .deployment exists → hoist its children to root
+            yq eval '(.deployment // {}) * (del(.deployment))' "${values_file_path}" > "${NORMALIZED_VALUES}"
+          else
+            # .deployment does not exist → use file as-is
+            cp "${values_file_path}" "${NORMALIZED_VALUES}"
+          fi
+        else
+          # No values.yaml present → start from empty
+          echo "{}" > "${NORMALIZED_VALUES}"
+        fi
+
+        # --- Merge normalized values + overrides. Overrides have precedence since those values we don't want to be overridden ---
+        yq ea '. as $item ireduce ({}; . * $item )' \
+          "${NORMALIZED_VALUES}" \
+          "${OVERRIDES_FILE}" > "${MERGED_VALUES}"
+
+        # --- Inject merged values into helmrelease.yaml ---
+        yq eval '.spec.values = load("'"${MERGED_VALUES}"'")' --inplace "${HELMRELEASE_FILE}"
+
+        # --- Cleanup non used files---
+        rm -f "${OVERRIDES_FILE}" "${NORMALIZED_VALUES}" "${MERGED_VALUES}"
+
+  - task: AzureCLI@2
+    displayName: 'Push OCI artifact to ACR'
+    inputs:
+      azureSubscription: 'altinn-studio-apps-deploy'
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        ACR_NAME="${APP_OWNER}altinnregistry01"
+
+        # install flux cli
+        curl -s https://fluxcd.io/install.sh | sudo bash
+
+        # Use Flux to push and tag the artifact
+        flux push artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME \
+          --path="./$FLUX_ARTIFACT_DIR" \
+          --source="https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO/commit/$APP_COMMIT_ID" \
+          --revision="$APP_COMMIT_ID" \
+          --provider azure
+
+        # Tag as environment
+        flux tag artifact oci://$ACR_NAME.azurecr.io/configs/$APP_ENVIRONMENT/$RELEASE_NAME:$TAGNAME  \
+          --tag $APP_ENVIRONMENT \
+          --provider azure
+
+
+

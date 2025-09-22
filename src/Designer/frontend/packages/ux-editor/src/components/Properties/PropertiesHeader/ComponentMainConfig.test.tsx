@@ -114,6 +114,14 @@ describe('ComponentMainConfig', () => {
     expect(textConfigValue).toBeInTheDocument();
   });
 
+  it('should render image upload config when the component type matches', () => {
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ImageUpload), true);
+    const imageUploadConfigCropShape = screen.getByText(
+      textMock('ux_editor.component_properties.cropShape'),
+    );
+    expect(imageUploadConfigCropShape).toBeInTheDocument();
+  });
+
   it('should not render any config when the component type does not match', () => {
     renderComponentMainConfig(component1Mock);
     const wrapper = screen.getByTestId('component-wrapper');
