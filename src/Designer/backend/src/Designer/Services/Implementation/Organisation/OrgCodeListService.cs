@@ -166,7 +166,6 @@ public class OrgCodeListService : IOrgCodeListService
         return fileOperationContexts;
     }
 
-    //TODO: return object(s)?
     internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
     {
         List<CodeListWrapper> remoteCodeListWrappers = [];
