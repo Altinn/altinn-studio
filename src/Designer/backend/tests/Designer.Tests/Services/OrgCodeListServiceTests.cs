@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -712,7 +712,7 @@ public class OrgCodeListServiceTests : IDisposable
                 Tags = ["test-data"]
             }
         ];
-        Source source = new() { Name = "test-data-files" };
+        CodeListSource source = new() { Name = "test-data-files" };
         CodeList codeList = new()
         {
             Source = source,
