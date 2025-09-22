@@ -65,8 +65,7 @@ public class OrgCodeListController : ControllerBase
     /// <param name="org">Unique identifier of the organisation.</param>
     /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of <see cref="OptionListData" /> objects with all code lists belonging to the organisation with data
-    /// set if code list is valid, or hasError set if code list is invalid.</returns>
+    /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
     [HttpGet]
     [Route("new")]
     public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
