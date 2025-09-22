@@ -480,7 +480,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
             }
-            // TODO: Should we be this graceful?
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new DirectoryNotFoundException($"Directory {directoryPath} not found in repository {org}/{app} at reference {reference}");
+            }
 
             return [];
         }
@@ -488,13 +492,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = "", CancellationToken cancellationToken = default)
         {
-            List<FileSystemObject> directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderPath, reference, cancellationToken);
+            List<FileSystemObject> directoryFiles;
+            try
+            {
+                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderPath, reference, cancellationToken);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // Return empty list if CodeList folder does not exist
+                return [];
+            }
+
             List<Task<FileSystemObject>> tasks = [];
 
             foreach (FileSystemObject directoryFile in directoryFiles)
             {
                 string filePath = $"{CodeListFolderPath}/{directoryFile.Name}";
-                var task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
+                Task<FileSystemObject> task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
                 tasks.Add(task);
             }
             FileSystemObject[] files = await Task.WhenAll(tasks);
