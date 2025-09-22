@@ -37,7 +37,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
     {
         // Arrange
         Dictionary<string, string> queryParameters = new() { { "key", "value" } };
-        Source source = new() { Name = "sourceName", Version = "1.0", QueryParameters = queryParameters };
+        CodeListSource source = new() { Name = "sourceName", Version = "1.0", QueryParameters = queryParameters };
         CodeList codeList = new()
         {
             Codes =

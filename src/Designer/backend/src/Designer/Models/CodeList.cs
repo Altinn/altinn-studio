@@ -14,7 +14,7 @@ public class CodeList
 
     [JsonPropertyName("source")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Source? Source { get; set; }
+    public CodeListSource? Source { get; set; }
 
     [JsonPropertyName("tagNames")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -52,7 +52,7 @@ public class CodeList
     }
 }
 
-public class Source
+public class CodeListSource
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
@@ -67,7 +67,7 @@ public class Source
 
     public override bool Equals(object? obj)
     {
-        Source? other = obj as Source;
+        CodeListSource? other = obj as CodeListSource;
         if (other is null)
         {
             return false;
