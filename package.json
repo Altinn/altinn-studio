@@ -10,7 +10,7 @@
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
   },
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.9.4",
   "private": true,
   "scripts": {
     "lint": "yarn workspace studio-designer-frontend lint",
