@@ -54,6 +54,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.NotNull(actual);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -83,6 +84,7 @@ namespace Designer.Tests.Services
 
             // Act
             await Assert.ThrowsAsync<GiteaApiWrapperException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -119,8 +121,10 @@ namespace Designer.Tests.Services
             GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
+
             Assert.Equal(searchResult.Data.Count, result.TotalCount);
             Assert.Equal(1, result.TotalPages);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -164,6 +168,7 @@ namespace Designer.Tests.Services
             SearchResults result = await giteaApi.SearchRepo(searchOptions);
             Assert.Equal(searchResult.Data.Count, result.TotalCount);
             Assert.Equal(27, result.TotalPages);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -196,6 +201,7 @@ namespace Designer.Tests.Services
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
 
             Assert.Null(result);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -229,6 +235,7 @@ namespace Designer.Tests.Services
 
             await giteaApi.GetStarred();
             Assert.Equal(10, repositories.Count);
+            handlerMock.VerifyAll();
         }
 
         [Theory]
@@ -262,6 +269,7 @@ namespace Designer.Tests.Services
             bool result = await giteaApi.PutStarred("org", "repository");
 
             Assert.Equal(expectedResult, result);
+            handlerMock.VerifyAll();
         }
 
         [Theory]
@@ -295,6 +303,7 @@ namespace Designer.Tests.Services
             bool result = await giteaApi.DeleteStarred("org", "repository");
 
             Assert.Equal(expectedResult, result);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -333,7 +342,7 @@ namespace Designer.Tests.Services
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(request => request.Method == HttpMethod.Get && request.RequestUri.AbsolutePath.Contains("/orgs/org_ttd")),
+                    ItExpr.Is<HttpRequestMessage>(request => request.Method == HttpMethod.Get && request.RequestUri.AbsolutePath.Contains("/orgs/ttd")),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpOrganizationResponseMessage)
                 .Verifiable();
@@ -352,6 +361,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(1769, result.Id);
+            handlerMock.VerifyAll();
         }
 
 
@@ -396,6 +406,7 @@ namespace Designer.Tests.Services
             Assert.Equal("file1.txt", actual[0].Name);
             Assert.Equal("subdirectory", actual[1].Name);
             Assert.Equal("file2.cs", actual[2].Name);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -435,6 +446,7 @@ namespace Designer.Tests.Services
             Assert.NotNull(actual);
             Assert.Single(actual);
             Assert.Equal("config.json", actual[0].Name);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -466,6 +478,7 @@ namespace Designer.Tests.Services
                 () => sut.GetDirectoryAsync("ttd", "apps-test-2021", "nonexistent/directory"));
 
             Assert.Contains("Directory nonexistent/directory not found in repository ttd/apps-test-2021", exception.Message);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -497,6 +510,7 @@ namespace Designer.Tests.Services
                 () => sut.GetDirectoryAsync("ttd", "apps-test-2021", "missing/path", "main"));
 
             Assert.Contains("Directory missing/path not found in repository ttd/apps-test-2021 at reference main", exception.Message);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -529,6 +543,7 @@ namespace Designer.Tests.Services
             // Assert
             Assert.NotNull(actual);
             Assert.Empty(actual);
+            handlerMock.VerifyAll();
         }
 
         [Fact]
@@ -564,6 +579,216 @@ namespace Designer.Tests.Services
             // Assert
             Assert.NotNull(actual);
             Assert.Empty(actual);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetCodeListDirectoryContentAsync_Successful_ReturnsFileContents()
+        {
+            // Arrange
+            List<FileSystemObject> directoryFiles =
+            [
+                new FileSystemObject { Name = "countries.json", Type = "file" },
+                new FileSystemObject { Name = "currencies.json", Type = "file" }
+            ];
+
+            var fileContent1 = new FileSystemObject { Name = "countries.json", Type = "file", Content = "country data" };
+            var fileContent2 = new FileSystemObject { Name = "currencies.json", Type = "file", Content = "currency data" };
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+            // Mock GetDirectoryAsync call - note the correct path structure
+            handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents/CodeLists")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(directoryFiles), Encoding.UTF8, "application/json"),
+            });
+
+            // Mock GetFileAsync calls for each file
+            handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents/CodeLists/countries.json")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(fileContent1), Encoding.UTF8, "application/json"),
+            });
+
+            handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents/CodeLists/currencies.json")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(fileContent2), Encoding.UTF8, "application/json"),
+            });
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            // Act
+            List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(2, actual.Count);
+            Assert.Contains(actual, f => f.Name == "countries.json");
+            Assert.Contains(actual, f => f.Name == "currencies.json");
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetCodeListDirectoryContentAsync_DirectoryNotFound_ReturnsEmptyList()
+        {
+            // Arrange
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("/repos/ttd/apps-test-2021/contents/CodeLists")),
+                  ItExpr.IsAny<CancellationToken>())
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.NotFound
+               })
+               .Verifiable();
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            // Act
+            List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Empty(actual);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetCodeListDirectoryContentAsync_EmptyDirectory_ReturnsEmptyList()
+        {
+            // Arrange
+            var emptyDirectoryFiles = new List<FileSystemObject>();
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("repos/ttd/apps-test-2021/contents/CodeLists")),
+                  ItExpr.IsAny<CancellationToken>())
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.OK,
+                   Content = new StringContent(JsonSerializer.Serialize(emptyDirectoryFiles), Encoding.UTF8, "application/json"),
+               })
+               .Verifiable();
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            // Act
+            List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Empty(actual);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetCodeListDirectoryContentAsync_SomeFilesNull_FiltersOutNullFiles()
+        {
+            // Arrange
+            List<FileSystemObject> directoryFiles =
+            [
+                new FileSystemObject { Name = "valid-file.json", Type = "file" },
+                new FileSystemObject { Name = "invalid-file.json", Type = "file" }
+            ];
+
+            var validFileContent = new FileSystemObject { Name = "valid-file.json", Type = "file", Content = "valid data" };
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("repos/ttd/apps-test-2021/contents/CodeLists") && !req.RequestUri.AbsolutePath.Contains(".json")),
+                  ItExpr.IsAny<CancellationToken>())
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.OK,
+                   Content = new StringContent(JsonSerializer.Serialize(directoryFiles), Encoding.UTF8, "application/json"),
+               })
+               .Verifiable();
+
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("repos/ttd/apps-test-2021/contents/CodeLists/valid-file.json")),
+                  ItExpr.IsAny<CancellationToken>())
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.OK,
+                   Content = new StringContent(JsonSerializer.Serialize(validFileContent), Encoding.UTF8, "application/json"),
+               })
+               .Verifiable();
+
+            handlerMock
+               .Protected()
+               .Setup<Task<HttpResponseMessage>>(
+                  "SendAsync",
+                  ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.AbsolutePath.Contains("repos/ttd/apps-test-2021/contents/CodeLists/invalid-file.json")),
+                  ItExpr.IsAny<CancellationToken>())
+               .ReturnsAsync(new HttpResponseMessage()
+               {
+                   StatusCode = HttpStatusCode.InternalServerError
+               })
+               .Verifiable();
+
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
+            };
+
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
+
+            // Act
+            List<FileSystemObject> actual = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Single(actual); // Only the valid file should be returned
+            Assert.Equal("valid-file.json", actual[0].Name);
+            handlerMock.VerifyAll();
         }
 
         private static GiteaAPIWrapper GetServiceForTest(HttpClient client)

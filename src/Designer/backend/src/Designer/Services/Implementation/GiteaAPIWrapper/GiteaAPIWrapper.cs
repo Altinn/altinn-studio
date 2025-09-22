@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
-        private const string CodeListFolderPath = "/CodeLists";
+        private const string CodeListFolderName = "CodeLists";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
@@ -495,7 +495,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> directoryFiles;
             try
             {
-                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderPath, reference, cancellationToken);
+                directoryFiles = await GetDirectoryAsync(org, repository, CodeListFolderName, reference, cancellationToken);
             }
             catch (DirectoryNotFoundException)
             {
@@ -507,7 +507,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach (FileSystemObject directoryFile in directoryFiles)
             {
-                string filePath = $"{CodeListFolderPath}/{directoryFile.Name}";
+                string filePath = $"{CodeListFolderName}/{directoryFile.Name}";
                 Task<FileSystemObject> task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
                 tasks.Add(task);
             }
