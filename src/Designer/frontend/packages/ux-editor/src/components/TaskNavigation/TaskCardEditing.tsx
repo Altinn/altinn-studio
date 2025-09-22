@@ -2,10 +2,9 @@ import {
   StudioButton,
   StudioCard,
   StudioNativeSelect,
-  StudioSpinner,
   StudioTextfield,
 } from '@studio/components-legacy';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
@@ -119,7 +118,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
           onClick={() => saveChanges()}
           variant='primary'
         >
-          {pendingMutation ? <StudioSpinner size='xs' spinnerTitle='' /> : t('general.save')}
+          {pendingMutation ? <StudioSpinner aria-hidden /> : t('general.save')}
         </StudioButton>
         <StudioButton
           disabled={pendingMutation}
