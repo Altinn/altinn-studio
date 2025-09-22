@@ -19,6 +19,7 @@ import GroupSchema from './schemas/json/component/Group.schema.v1.json';
 import HeaderSchema from './schemas/json/component/Header.schema.v1.json';
 import IFrameSchema from './schemas/json/component/IFrame.schema.v1.json';
 import ImageSchema from './schemas/json/component/Image.schema.v1.json';
+import ImageUploadSchema from './schemas/json/component/ImageUpload.schema.v1.json';
 import InputSchema from './schemas/json/component/Input.schema.v1.json';
 import InstanceInformationSchema from './schemas/json/component/InstanceInformation.schema.v1.json';
 import InstantiationButtonSchema from './schemas/json/component/InstantiationButton.schema.v1.json';
@@ -41,6 +42,7 @@ import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema
 import SubformSchema from './schemas/json/component/Subform.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import Summary2Schema from './schemas/json/component/Summary2.schema.v1.json';
+import TextSchema from './schemas/json/component/Text.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -66,6 +68,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Header]: HeaderSchema,
   [ComponentType.IFrame]: IFrameSchema,
   [ComponentType.Image]: ImageSchema,
+  [ComponentType.ImageUpload]: ImageUploadSchema,
   [ComponentType.Input]: InputSchema,
   [ComponentType.InstanceInformation]: InstanceInformationSchema,
   [ComponentType.InstantiationButton]: InstantiationButtonSchema,
@@ -88,6 +91,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Subform]: SubformSchema,
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.Summary2]: Summary2Schema,
+  [ComponentType.Text]: TextSchema,
   [ComponentType.TextArea]: TextAreaSchema,
   [ComponentType.Divider]: Divider,
 };

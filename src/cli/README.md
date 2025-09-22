@@ -9,6 +9,7 @@ Command line tool for app development
 ## Local installation
 
 ### Install from NuGet
+
 To install the tool from NuGet, run the following command:
 
 ```
@@ -22,6 +23,7 @@ dotnet tool update --global Altinn.Studio.Cli
 ```
 
 ### Install from source
+
 To install the tool from source, run the following command:
 
 ```
