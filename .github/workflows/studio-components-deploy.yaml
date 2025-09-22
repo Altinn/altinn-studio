@@ -25,7 +25,7 @@ jobs:
 
       - name: Build Storybook
         run: |
-          cd src/Designer/frontend
+          cd src/Designer/frontend/libs/studio-components
           yarn build-storybook
 
       - name: Deploy to Azure Static Web Apps
