@@ -73,7 +73,11 @@ public class Code
 
         if (other.Tags is null || Tags is null)
         {
-            return false;
+            if (other.Tags != Tags)
+            {
+                return false;
+            }
+            return true;
         }
 
         if (other.Tags.SequenceEqual(Tags) is false)
