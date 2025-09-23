@@ -1,3 +1,4 @@
+#nullable enable
 using Altinn.Studio.Designer.Helpers;
 using Xunit;
 
@@ -16,7 +17,7 @@ public class InputValidatorTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData(null)]
-    public void IsInvalidCodeListTitle_InvalidTitles_ReturnsTrue(string title)
+    public void IsInvalidCodeListTitle_InvalidTitles_ReturnsTrue(string? title)
     {
         // Arrange & Act
         bool result = InputValidator.IsInvalidCodeListTitle(title);
