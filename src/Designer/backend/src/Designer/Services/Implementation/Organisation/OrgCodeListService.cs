@@ -159,13 +159,7 @@ public class OrgCodeListService : IOrgCodeListService
     internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
     {
         (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
-        (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) = CompareCodeLists(remoteWrappers, localWrappers);
-
-        var fileOperationContexts = new List<FileOperationContext>();
-        fileOperationContexts.AddRange(PrepareFileCreations(toCreate));
-        fileOperationContexts.AddRange(PrepareFileUpdates(toUpdate, fileMetadata));
-        fileOperationContexts.AddRange(PrepareFileDeletions(toDelete, fileMetadata));
-        return fileOperationContexts;
+        return CompareCodeLists(remoteWrappers, localWrappers, fileMetadata);
     }
 
     internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
@@ -189,62 +183,31 @@ public class OrgCodeListService : IOrgCodeListService
         return (remoteCodeListWrappers, fileMetadata);
     }
 
-    internal List<FileOperationContext> PrepareFileCreations(List<CodeListWrapper> toCreate)
+    internal FileOperationContext PrepareFile(string operation, CodeListWrapper codeListWrapper, string? sha = null)
     {
-        List<FileOperationContext> fileChangeContexts = [];
-        foreach (CodeListWrapper codeListWrapper in toCreate.Where(w => w.CodeList is not null))
+        switch (operation)
+        {
+            case FileOperation.Create when sha is not null:
+                throw new ArgumentException("Create file operation requires sha to be null as file should not exist in Gitea.");
+            case FileOperation.Update when sha is null:
+                throw new ArgumentException("Update file operation requires sha.");
+            case FileOperation.Delete when sha is null || codeListWrapper.CodeList is not null:
+                throw new ArgumentException("Delete file operation requires sha, and empty code list.");
+        }
+
+        string? encodedContent = null;
+        if (codeListWrapper.CodeList is not null)
         {
             string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
-            string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
-            fileChangeContexts.Add(new FileOperationContext
-            {
-                Path = $"CodeLists/{codeListWrapper.Title}.json",
-                Content = encodedContent,
-                Operation = FileOperation.Create
-            });
+            encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
         }
-        return fileChangeContexts;
-    }
-
-    internal List<FileOperationContext> PrepareFileUpdates(List<CodeListWrapper> toUpdate, Dictionary<string, string> fileMetadata)
-    {
-        List<FileOperationContext> fileChangeContexts = [];
-        foreach (CodeListWrapper codeListWrapper in toUpdate)
+        return new FileOperationContext
         {
-            if (fileMetadata.TryGetValue(codeListWrapper.Title, out string? sha) is false)
-            {
-                throw new InvalidOperationException($"Missing SHA for '{codeListWrapper.Title}'. Cannot update file.");
-            }
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
-            string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
-            fileChangeContexts.Add(new FileOperationContext
-            {
-                Path = $"CodeLists/{codeListWrapper.Title}.json",
-                Content = encodedContent,
-                Operation = FileOperation.Update,
-                Sha = sha
-            });
-        }
-        return fileChangeContexts;
-    }
-
-    internal static List<FileOperationContext> PrepareFileDeletions(List<CodeListWrapper> toDelete, Dictionary<string, string> fileMetadata)
-    {
-        List<FileOperationContext> fileChangeContexts = [];
-        foreach (CodeListWrapper codeListWrapper in toDelete)
-        {
-            if (fileMetadata.TryGetValue(codeListWrapper.Title, out string? sha) is false)
-            {
-                throw new InvalidOperationException($"Missing SHA for '{codeListWrapper.Title}'. Cannot delete file.");
-            }
-            fileChangeContexts.Add(new FileOperationContext
-            {
-                Path = $"CodeLists/{codeListWrapper.Title}.json",
-                Operation = FileOperation.Delete,
-                Sha = fileMetadata[codeListWrapper.Title]
-            });
-        }
-        return fileChangeContexts;
+            Path = $"CodeLists/{codeListWrapper.Title}.json",
+            Content = encodedContent,
+            Operation = operation,
+            Sha = sha
+        };
     }
 
     /// <inheritdoc />
@@ -363,19 +326,17 @@ public class OrgCodeListService : IOrgCodeListService
     {
         return new GiteaMultipleFilesDto
         {
-            Author = new Designer.Models.Dto.GiteaIdentity { Name = developer },
-            Committer = new Designer.Models.Dto.GiteaIdentity { Name = developer },
+            Author = new GiteaIdentity { Name = developer },
+            Committer = new GiteaIdentity { Name = developer },
             Files = fileOperationContexts,
             Message = commitMessage,
             Branch = string.Empty // Default branch
         };
     }
 
-    private static (List<CodeListWrapper> toCreate, List<CodeListWrapper> toUpdate, List<CodeListWrapper> toDelete) CompareCodeLists(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers)
+    private List<FileOperationContext> CompareCodeLists(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
     {
-        List<CodeListWrapper> toCreate = [];
-        List<CodeListWrapper> toUpdate = [];
-        List<CodeListWrapper> toDelete = [];
+        List<FileOperationContext> fileOperationContexts = [];
 
         HashSet<string> remoteWrapperTitles = remoteWrappers.Select(wrapper => wrapper.Title).ToHashSet();
 
@@ -383,27 +344,28 @@ public class OrgCodeListService : IOrgCodeListService
         {
             if (remoteWrapperTitles.Contains(localWrapper.Title) is false)
             {
-                toCreate.Add(localWrapper); // CREATE
+                fileOperationContexts.Add(PrepareFile(FileOperation.Create, localWrapper));
                 continue;
             }
 
             foreach (CodeListWrapper remoteWrapper in remoteWrappers.Where(remoteWrapper => localWrapper.Title == remoteWrapper.Title))
             {
+                string sha = fileMetadata[remoteWrapper.Title];
                 if (localWrapper.CodeList is null)
                 {
-                    toDelete.Add(remoteWrapper); // DELETE
+                    fileOperationContexts.Add(PrepareFile(FileOperation.Delete, localWrapper, sha));
                     break;
                 }
 
                 if (localWrapper.CodeList.Equals(remoteWrapper.CodeList) is false)
                 {
-                    toUpdate.Add(localWrapper); // UPDATE
+                    fileOperationContexts.Add(PrepareFile(FileOperation.Update, localWrapper, sha));
                     break;
                 }
             }
         }
 
-        return (toCreate, toUpdate, toDelete);
+        return fileOperationContexts;
     }
 
     /// <summary>

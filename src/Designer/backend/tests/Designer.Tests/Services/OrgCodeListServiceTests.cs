@@ -14,8 +14,8 @@ using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
-using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -128,96 +128,125 @@ public class OrgCodeListServiceTests : IDisposable
     }
 
     [Fact]
-    public void PrepareFileDeletions()
+    public void PrepareFile_Deletion()
     {
         // Arrange
         const string Title = "irrelevant";
-        CodeList codeList = SetupCodeList();
-        List<CodeListWrapper> toDelete = [new()
+        CodeListWrapper codeListWrapper = new()
         {
             Title = Title,
-            CodeList = codeList,
-            HasError = false,
-        }];
+            CodeList = null,
+            HasError = null,
+        };
         Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
+        string sha = fileMetadata[Title];
 
         // Act
-        List<FileOperationContext> result = OrgCodeListService.PrepareFileDeletions(toDelete, fileMetadata);
-
-        string expectedOperation = FileOperation.Delete;
-        string expectedSha = fileMetadata[Title];
+        OrgCodeListService service = GetOrgCodeListService();
+        FileOperationContext result = service.PrepareFile(FileOperation.Delete, codeListWrapper, sha);
 
         // Assert
-        Assert.NotEmpty(result);
-        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
-        Assert.Null(result.FirstOrDefault()?.Content);
-        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
-        Assert.Contains(Title, result.FirstOrDefault()?.Path);
+        Assert.Equal(FileOperation.Delete, result.Operation);
+        Assert.Null(result.Content);
+        Assert.Equal(fileMetadata[Title], result.Sha);
+        Assert.Contains(Title, result.Path);
     }
 
     [Fact]
-    public void PrepareFileUpdates()
+    public void PrepareFile_Update()
     {
         // Arrange
         const string Title = "irrelevant";
         CodeList codeList = SetupCodeList();
-        List<CodeListWrapper> toUpdate = [new()
+        CodeListWrapper codeListWrapper = new()
         {
             Title = Title,
             CodeList = codeList,
             HasError = false,
-        }];
+        };
         Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
+        string sha = fileMetadata[Title];
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        List<FileOperationContext> result = orgListService.PrepareFileUpdates(toUpdate, fileMetadata);
-
-        string expectedOperation = FileOperation.Update;
-        string expectedSha = fileMetadata[Title];
+        FileOperationContext result = orgListService.PrepareFile(FileOperation.Update, codeListWrapper, sha);
 
         // Assert
-        Assert.NotNull(result.FirstOrDefault()?.Content);
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content!);
+        Assert.NotNull(result.Content);
+        byte[] resultAsBytes = Convert.FromBase64String(result.Content!);
         CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        Assert.Equal(codeList, actualCodelist);
 
-        Assert.NotEmpty(result);
-        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
-        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
-        Assert.Contains(Title, result.FirstOrDefault()?.Path);
-        Assert.Equivalent(codeList, actualCodelist, strict: true);
+        Assert.Equal(FileOperation.Update, result.Operation);
+        Assert.Equal(fileMetadata[Title], result.Sha);
+        Assert.Contains(Title, result.Path);
     }
 
     [Fact]
-    public void PrepareFileCreations()
+    public void PrepareFile_Creation()
     {
         // Arrange
         const string Title = "irrelevant";
         CodeList codeList = SetupCodeList();
-        List<CodeListWrapper> toUpdate = [new()
+        CodeListWrapper codeListWrapper = new()
         {
             Title = Title,
             CodeList = codeList,
             HasError = false,
-        }];
+        };
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        List<FileOperationContext> result = orgListService.PrepareFileCreations(toUpdate);
-
-        string expectedOperation = FileOperation.Create;
-        string expectedSha = null;
+        FileOperationContext result = orgListService.PrepareFile(FileOperation.Create, codeListWrapper);
 
         // Assert
-        Assert.NotNull(result.FirstOrDefault()?.Content);
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content!);
+        Assert.NotNull(result.Content);
+        byte[] resultAsBytes = Convert.FromBase64String(result.Content!);
         CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        Assert.Equal(codeList, actualCodelist);
 
-        Assert.NotEmpty(result);
-        Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
-        Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
-        Assert.Contains(Title, result.FirstOrDefault()?.Path);
-        Assert.Equivalent(codeList, actualCodelist, strict: true);
+        Assert.Equal(FileOperation.Create, result.Operation);
+        Assert.Null(result.Sha);
+        Assert.Contains(Title, result.Path);
+    }
+
+    [Theory]
+    [InlineData(FileOperation.Update, false)]
+    [InlineData(FileOperation.Delete, true)]
+    public void PrepareFile_UpdateAndDeleteWithoutSha_ThrowsArgumentException(string operation, bool setCodeListToNull)
+    {
+        // Arrange
+        const string Title = "irrelevant";
+        CodeList codeList = SetupCodeList();
+        CodeListWrapper codeListWrapper = new()
+        {
+            Title = Title,
+            CodeList = setCodeListToNull ? null : codeList,
+            HasError = null
+        };
+
+        // Act and Assert
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        Assert.Throws<ArgumentException>(() => orgListService.PrepareFile(operation, codeListWrapper, null));
+    }
+
+    [Fact]
+    public void PrepareFile_CreateWithSha_ThrowsArgumentException()
+    {
+        // Arrange
+        const string Title = "irrelevant";
+        const string Sha = "should-not-exist";
+        CodeList codeList = SetupCodeList();
+        CodeListWrapper codeListWrapper = new()
+        {
+            Title = Title,
+            CodeList = codeList,
+            HasError = null
+        };
+
+        // Act and Assert
+        OrgCodeListService orgListService = GetOrgCodeListService();
+        Assert.Throws<ArgumentException>(() => orgListService.PrepareFile(FileOperation.Create, codeListWrapper, Sha));
     }
 
     [Fact]
@@ -355,12 +384,13 @@ public class OrgCodeListServiceTests : IDisposable
             {
                 Title = "codeListOne",
                 CodeList = validCodeList,
-                HasError = false,
+                HasError = null
             },
             new()
             {
                 Title = "codeListTwo",
-                HasError = false,
+                CodeList = null,
+                HasError = null
             }
         ];
         List<FileSystemObject> remoteCodeLists =
@@ -417,12 +447,11 @@ public class OrgCodeListServiceTests : IDisposable
             Branch = string.Empty,
             Files = files,
             Message = GiteaCommitMessage
-
         };
 
         // Assert
         _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
-        _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => dto.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => expectedDto.Equals(dto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
