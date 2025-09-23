@@ -270,6 +270,9 @@ Session.vim
 # TSLint report
 tslint_report.json
 
+# Eslint cache
+.eslintcache
+
 
 
 ## -- Repositories --
