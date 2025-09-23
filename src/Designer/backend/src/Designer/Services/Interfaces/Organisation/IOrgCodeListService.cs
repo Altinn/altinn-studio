@@ -59,8 +59,7 @@ public interface IOrgCodeListService
     public Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an existing code list with new contents.
-    /// If the file already exists, it will be overwritten.
+    /// Applies batched create/update/delete to the org repo. For deletions, pass a wrapper with CodeList = null.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="developer">Username of developer</param>
