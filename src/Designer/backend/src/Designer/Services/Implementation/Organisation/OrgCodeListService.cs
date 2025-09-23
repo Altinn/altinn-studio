@@ -195,7 +195,7 @@ public class OrgCodeListService : IOrgCodeListService
         foreach (CodeListWrapper codeListWrapper in toCreate.Where(w => w.CodeList is not null))
         {
             string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
-            string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
+            string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
             fileChangeContexts.Add(new FileOperationContext
             {
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
@@ -216,7 +216,7 @@ public class OrgCodeListService : IOrgCodeListService
                 throw new InvalidOperationException($"Missing SHA for '{codeListWrapper.Title}'. Cannot update file.");
             }
             string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
-            string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
+            string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
             fileChangeContexts.Add(new FileOperationContext
             {
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
