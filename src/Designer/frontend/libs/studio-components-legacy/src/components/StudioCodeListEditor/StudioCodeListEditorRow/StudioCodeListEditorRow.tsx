@@ -138,8 +138,8 @@ export function StudioCodeListEditorRow({
   );
 }
 
-function makeKey(property: CodeListItemTextProperty, textKey: string): string {
-  return `${property}-${textKey}`;
+function makeKey(property: CodeListItemTextProperty, textKey?: string): string {
+  return `${property}-${textKey ?? ''}`;
 }
 
 type TypedInputCellProps<T extends CodeListItemValue> = {
