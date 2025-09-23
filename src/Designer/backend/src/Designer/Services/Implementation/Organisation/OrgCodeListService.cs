@@ -233,6 +233,10 @@ public class OrgCodeListService : IOrgCodeListService
         List<FileOperationContext> fileChangeContexts = [];
         foreach (CodeListWrapper codeListWrapper in toDelete)
         {
+            if (fileMetadata.TryGetValue(codeListWrapper.Title, out string? sha) is false)
+            {
+                throw new InvalidOperationException($"Missing SHA for '{codeListWrapper.Title}'. Cannot delete file.");
+            }
             fileChangeContexts.Add(new FileOperationContext
             {
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
