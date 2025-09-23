@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Helpers;
 public static partial class InputValidator
 {
 
-    public static bool IsInvalidCodeListTitle(string title)
+    public static bool IsInvalidCodeListTitle(string? title)
     {
         if (title is null)
         {
