@@ -7,8 +7,8 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useLaxGlobalUISettings } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
@@ -23,7 +23,7 @@ export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition
 }
 
 function useLayoutSettingsQuery() {
-  const layoutSetId = useLayoutSetId();
+  const layoutSetId = useLayoutSetIdFromUrl();
   const query = useQuery(useLayoutSettingsQueryDef(layoutSetId));
 
   useEffect(() => {

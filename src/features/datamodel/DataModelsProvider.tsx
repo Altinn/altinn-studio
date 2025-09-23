@@ -6,7 +6,7 @@ import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import type { JSONSchema7 } from 'json-schema';
 
-import { useTaskStore } from 'src/core/contexts/taskStoreContext';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -170,8 +170,9 @@ function DataModelsLoader() {
   const layoutSetId = useCurrentLayoutSetId();
 
   // Subform
-  const overriddenDataElementId = useTaskStore((state) => state.overriddenDataElementId);
-  const overriddenDataType = useTaskStore((state) => state.overriddenDataModelType);
+  const overrides = useTaskOverrides();
+  const overriddenDataElementId = overrides?.dataModelElementId;
+  const overriddenDataType = overrides?.dataModelType;
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {

@@ -1,7 +1,8 @@
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId, useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useDynamicsQueryDef } from 'src/features/form/dynamics/DynamicsContext';
-import { useLayoutQueryDef, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutQueryDef } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useLayoutSettingsQueryDef } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useRulesQueryDef } from 'src/features/form/rules/RulesContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -15,7 +16,7 @@ import { useIsPdf } from 'src/hooks/useIsPdf';
  * Prefetches requests happening in the FormProvider
  */
 export function FormPrefetcher() {
-  const layoutSetId = useLayoutSetId();
+  const layoutSetId = useLayoutSetIdFromUrl();
   const isPDF = useIsPdf();
   const dataTypeId = useCurrentDataModelName() ?? 'unknown';
   const instanceId = useLaxInstanceId();

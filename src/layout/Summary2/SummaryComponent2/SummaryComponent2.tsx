@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
@@ -29,13 +28,11 @@ function SummaryBody({ target }: SummaryBodyProps) {
 function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericComponent<'Summary2'>, 'baseComponentId'>) {
   const target = useExternalItem(baseComponentId, 'Summary2').target;
   return (
-    <TaskStoreProvider>
-      <Summary2StoreProvider baseComponentId={baseComponentId}>
-        <TaskSummaryWrapper taskId={target?.taskId}>
-          <SummaryBody target={target} />
-        </TaskSummaryWrapper>
-      </Summary2StoreProvider>
-    </TaskStoreProvider>
+    <Summary2StoreProvider baseComponentId={baseComponentId}>
+      <TaskSummaryWrapper taskId={target?.taskId}>
+        <SummaryBody target={target} />
+      </TaskSummaryWrapper>
+    </Summary2StoreProvider>
   );
 }
 

@@ -9,7 +9,6 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { quirks } from 'src/features/form/layout/quirks';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
@@ -80,11 +79,7 @@ function RenderAllComponents() {
  * Makes sure we go one level deeper into the subform context when testing subforms
  */
 function SubformTestWrapper({ baseId, children }: PropsWithChildren<{ baseId: string }>) {
-  return (
-    <TaskStoreProvider>
-      <SubformWrapper baseComponentId={baseId}>{children}</SubformWrapper>
-    </TaskStoreProvider>
-  );
+  return <SubformWrapper baseComponentId={baseId}>{children}</SubformWrapper>;
 }
 
 const windowLoggers = ['logError', 'logErrorOnce', 'logWarn', 'logWarnOnce', 'logInfo', 'logInfoOnce'];

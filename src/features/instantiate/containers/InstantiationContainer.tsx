@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import classes from 'src/features/instantiate/containers/InstantiationContainer.module.css';
@@ -19,15 +18,13 @@ export function InstantiationContainer({ children }: IInstantiateContainerProps)
   const profile = useProfile();
 
   return (
-    <TaskStoreProvider>
-      <RenderStart>
-        <div className={classes.container}>
-          <InstantiateHeader profile={profile} />
-          <main id='main-content'>{children}</main>
-          <Footer />
-          <ReadyForPrint type='load' />
-        </div>
-      </RenderStart>
-    </TaskStoreProvider>
+    <RenderStart>
+      <div className={classes.container}>
+        <InstantiateHeader profile={profile} />
+        <main id='main-content'>{children}</main>
+        <Footer />
+        <ReadyForPrint type='load' />
+      </div>
+    </RenderStart>
   );
 }

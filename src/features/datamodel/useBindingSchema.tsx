@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import type { JSONSchema7 } from 'json-schema';
 
-import { useTaskStore } from 'src/core/contexts/taskStoreContext';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import {
   getCurrentDataTypeForApplication,
@@ -34,7 +34,7 @@ export function useCurrentDataModelDataElementId() {
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
 
-  const overriddenDataElementId = useTaskStore((s) => s.overriddenDataElementId);
+  const overriddenDataElementId = useTaskOverrides()?.dataModelElementId;
 
   // Instance data elements will update often (after each save), so we have to use a selector to make
   // sure components don't re-render too often.
@@ -130,7 +130,7 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 }
 
 export function useCurrentDataModelName() {
-  const overriddenDataModelType = useTaskStore((state) => state.overriddenDataModelType);
+  const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();

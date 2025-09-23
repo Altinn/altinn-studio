@@ -3,7 +3,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { useTaskStore } from 'src/core/contexts/taskStoreContext';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { FileScanResults } from 'src/features/attachments/types';
 import { Lang } from 'src/features/language/Lang';
@@ -40,9 +40,7 @@ export function FileTableRow({
   const pdfModeActive = usePdfModeActive();
   const readableSize = getSizeWithUnit(attachment.data.size, 2);
 
-  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
-
-  const hasOverridenTaskId = !!overriddenTaskId;
+  const hasOverriddenTaskId = Boolean(useTaskOverrides()?.taskId);
 
   const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
@@ -78,7 +76,7 @@ export function FileTableRow({
       className={rowStyle}
       id={`altinn-file-list-row-${uniqueId}`}
       tabIndex={0}
-      style={hasOverridenTaskId ? { padding: '8px 0' } : {}}
+      style={hasOverriddenTaskId ? { padding: '8px 0' } : {}}
     >
       <NameCell
         attachment={attachment}

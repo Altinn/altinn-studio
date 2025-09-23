@@ -6,16 +6,14 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { useNavigationParam } from 'src/hooks/navigation';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
@@ -45,7 +43,7 @@ export function useLayoutQueryDef(
 
 function useLayoutQuery() {
   const { data: process } = useProcessQuery();
-  const currentLayoutSetId = useLayoutSetId();
+  const currentLayoutSetId = useLayoutSetIdFromUrl();
   const defaultDataModel = useCurrentDataModelName() ?? 'unknown';
   const hasInstance = !!useInstanceDataQuery().data;
 
@@ -77,30 +75,6 @@ const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
     query: useLayoutQuery,
   }),
 );
-
-export function useLayoutSetId() {
-  const layoutSets = useLayoutSets();
-  const currentProcessLayoutSetId = useCurrentLayoutSetId();
-  const taskId = useNavigationParam('taskId');
-
-  const overriddenLayoutSetId = useTaskStore((state) => state.overriddenLayoutSetId);
-
-  if (overriddenLayoutSetId) {
-    return overriddenLayoutSetId;
-  }
-
-  const layoutSetId =
-    taskId != null
-      ? layoutSets.find((set) => {
-          if (set.tasks?.length) {
-            return set.tasks.includes(taskId);
-          }
-          return false;
-        })?.id
-      : undefined;
-
-  return layoutSetId ?? currentProcessLayoutSetId;
-}
 
 export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
   const layoutSets = useLayoutSets();

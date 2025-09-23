@@ -2,7 +2,6 @@ import React, { forwardRef } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import type { JSX, ReactNode } from 'react';
 
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { type ComponentValidation } from 'src/features/validation';
 import { type SummaryRendererProps } from 'src/layout/LayoutComponent';
 import { SubformDef } from 'src/layout/Subform/config.def.generated';
@@ -25,22 +24,20 @@ export class Subform extends SubformDef implements ValidateComponent, SubRouting
 
   subRouting({ baseComponentId }: { baseComponentId: string }): ReactNode {
     return (
-      <TaskStoreProvider>
-        <Routes>
-          <Route
-            path=':dataElementId/:subformPage?'
-            element={
-              <SubformWrapper baseComponentId={baseComponentId}>
-                <SubformForm />
-              </SubformWrapper>
-            }
-          />
-          <Route
-            path='*'
-            element={<RedirectBackToMainForm />}
-          />
-        </Routes>
-      </TaskStoreProvider>
+      <Routes>
+        <Route
+          path=':dataElementId/:subformPage?'
+          element={
+            <SubformWrapper baseComponentId={baseComponentId}>
+              <SubformForm />
+            </SubformWrapper>
+          }
+        />
+        <Route
+          path='*'
+          element={<RedirectBackToMainForm />}
+        />
+      </Routes>
     );
   }
 

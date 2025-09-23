@@ -20,7 +20,6 @@ import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -330,34 +329,32 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <LanguageProvider>
-        <TaskStoreProvider>
-          <LangToolsStoreProvider>
-            <UiConfigProvider>
-              <PageNavigationProvider>
-                <Router>
-                  <NavigationEffectProvider>
-                    <ApplicationMetadataProvider>
-                      <GlobalFormDataReadersProvider>
-                        <OrgsProvider>
-                          <ApplicationSettingsProvider>
-                            <LayoutSetsProvider>
-                              <SetShouldFetchAppLanguages />
-                              <ProfileProvider>
-                                <PartyProvider>
-                                  <TextResourcesProvider>{children}</TextResourcesProvider>
-                                </PartyProvider>
-                              </ProfileProvider>
-                            </LayoutSetsProvider>
-                          </ApplicationSettingsProvider>
-                        </OrgsProvider>
-                      </GlobalFormDataReadersProvider>
-                    </ApplicationMetadataProvider>
-                  </NavigationEffectProvider>
-                </Router>
-              </PageNavigationProvider>
-            </UiConfigProvider>
-          </LangToolsStoreProvider>
-        </TaskStoreProvider>
+        <LangToolsStoreProvider>
+          <UiConfigProvider>
+            <PageNavigationProvider>
+              <Router>
+                <NavigationEffectProvider>
+                  <ApplicationMetadataProvider>
+                    <GlobalFormDataReadersProvider>
+                      <OrgsProvider>
+                        <ApplicationSettingsProvider>
+                          <LayoutSetsProvider>
+                            <SetShouldFetchAppLanguages />
+                            <ProfileProvider>
+                              <PartyProvider>
+                                <TextResourcesProvider>{children}</TextResourcesProvider>
+                              </PartyProvider>
+                            </ProfileProvider>
+                          </LayoutSetsProvider>
+                        </ApplicationSettingsProvider>
+                      </OrgsProvider>
+                    </GlobalFormDataReadersProvider>
+                  </ApplicationMetadataProvider>
+                </NavigationEffectProvider>
+              </Router>
+            </PageNavigationProvider>
+          </UiConfigProvider>
+        </LangToolsStoreProvider>
       </LanguageProvider>
     </AppQueriesProvider>
   );
@@ -383,13 +380,11 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <TaskStoreProvider>
-        <LangToolsStoreProvider>
-          <Router>
-            <NavigationEffectProvider>{children}</NavigationEffectProvider>
-          </Router>
-        </LangToolsStoreProvider>
-      </TaskStoreProvider>
+      <LangToolsStoreProvider>
+        <Router>
+          <NavigationEffectProvider>{children}</NavigationEffectProvider>
+        </Router>
+      </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
 }

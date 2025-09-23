@@ -1,16 +1,15 @@
-import React, { type PropsWithChildren } from 'react';
+import React, { Fragment, type PropsWithChildren } from 'react';
 
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label, LabelInner } from 'src/components/label/Label';
-import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
+import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
-import { useDoOverrideSummary } from 'src/layout/Subform/SubformWrapper';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { SubformSummaryTable } from 'src/layout/Subform/Summary/SubformSummaryTable';
 import {
@@ -56,7 +55,7 @@ const SummarySubformWrapperInner = ({
         </>
       )}
       {dataElements?.map((element, idx) => (
-        <TaskStoreProvider key={element.id + idx}>
+        <Fragment key={idx}>
           <div className={classes.pageBreak} />
           <DoSummaryWrapper
             dataElement={element}
@@ -65,7 +64,7 @@ const SummarySubformWrapperInner = ({
             entryDisplayName={entryDisplayName}
             title={textResourceBindings?.title}
           />
-        </TaskStoreProvider>
+        </Fragment>
       ))}
     </>
   );
@@ -88,12 +87,11 @@ const DoSummaryWrapper = ({
   baseComponentId: string;
 }>) => {
   const item = useItemWhenType(baseComponentId, 'Subform');
-  const isDone = useDoOverrideSummary(dataElement.id, layoutSet, dataElement.dataType);
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);
 
-  if (!isDone || isSubformDataFetching) {
+  if (isSubformDataFetching) {
     return null;
   }
 
@@ -104,36 +102,42 @@ const DoSummaryWrapper = ({
 
   return (
     <div className={classes.summaryWrapperMargin}>
-      <FormProvider readOnly={true}>
-        <Flex
-          container
-          spacing={6}
-          alignItems='flex-start'
-        >
-          <Flex item>
-            <div className={classes_singlevaluesummary.labelValueWrapper}>
-              <LabelInner
-                item={item}
-                baseComponentId={baseComponentId}
-                id={`subform-summary2-${dataElement.id}`}
-                renderLabelAs='span'
-                weight='regular'
-                textResourceBindings={{ title }}
-              />
-              {subformEntryName && (
-                <Heading
-                  className='no-visual-testing'
-                  data-size='sm'
-                  level={2}
-                >
-                  {subformEntryName}
-                </Heading>
-              )}
-            </div>
+      <TaskOverrides
+        dataModelElementId={dataElement.id}
+        dataModelType={dataElement.dataType}
+        layoutSetId={layoutSet}
+      >
+        <FormProvider readOnly={true}>
+          <Flex
+            container
+            spacing={6}
+            alignItems='flex-start'
+          >
+            <Flex item>
+              <div className={classes_singlevaluesummary.labelValueWrapper}>
+                <LabelInner
+                  item={item}
+                  baseComponentId={baseComponentId}
+                  id={`subform-summary2-${dataElement.id}`}
+                  renderLabelAs='span'
+                  weight='regular'
+                  textResourceBindings={{ title }}
+                />
+                {subformEntryName && (
+                  <Heading
+                    className='no-visual-testing'
+                    data-size='sm'
+                    level={2}
+                  >
+                    {subformEntryName}
+                  </Heading>
+                )}
+              </div>
+            </Flex>
+            <LayoutSetSummary />
           </Flex>
-          <LayoutSetSummary />
-        </Flex>
-      </FormProvider>
+        </FormProvider>
+      </TaskOverrides>
     </div>
   );
 };
