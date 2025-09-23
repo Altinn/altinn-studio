@@ -13,7 +13,7 @@ public class CodeListWrapper
     public CodeList? CodeList { get; set; }
 
     [JsonPropertyName("hasError")]
-    public required bool HasError { get; set; }
+    public bool? HasError { get; set; }
 
     public override bool Equals(object? obj)
     {
