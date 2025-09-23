@@ -60,22 +60,6 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
             Source = source,
             TagNames = ["tagName"]
         };
-        CodeList deleteCodeList = new()
-        {
-            Codes =
-            [
-                new Code
-                {
-                    Value = "en",
-                    Label = new Dictionary<string, string> { { "nb", "Meløy" } },
-                    Description = new Dictionary<string, string> { { "nb", "En kommune i sør Salten." } },
-                    HelpText = new Dictionary<string, string> { { "nb", "en hjelpe tekst." } },
-                    Tags = ["tag"]
-                }
-            ],
-            Source = source,
-            TagNames = ["tagName"]
-        };
         UpdateCodeListRequest requestBody = new()
         {
             CodeListWrappers =
@@ -89,8 +73,8 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
                 new CodeListWrapper
                 {
                     Title = DeleteCodeListId,
-                    CodeList = deleteCodeList,
-                    HasError = false
+                    CodeList = null,
+                    HasError = null
                 }
             ],
             CommitMessage = CommitMessage

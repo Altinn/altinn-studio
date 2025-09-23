@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
 
-public class CodeList
+public sealed class CodeList
 {
     [JsonPropertyName("codes")]
     public required List<Code> Codes { get; set; }

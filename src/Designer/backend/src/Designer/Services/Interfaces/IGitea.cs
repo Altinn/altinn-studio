@@ -115,6 +115,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId);
 
         /// <summary>
+        /// Gets a file from a filepath at a specific reference (commit/branch/tag).
+        /// </summary>
+        Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
         /// </summary>
         /// <param name="org">The org</param>
@@ -128,7 +133,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>
-        /// <param name="directoryPath">Path to a directort, may start with full commit sha</param>
+        /// <param name="directoryPath">Path to a directory, may start with full commit sha</param>
         /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>a list of files in the given directory</returns>
@@ -145,7 +150,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = "", CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retuns list of the teams the user is memeber of.
+        /// Returns list of the teams the user is member of.
         /// </summary>
         /// <returns></returns>
         Task<List<Team>> GetTeams();

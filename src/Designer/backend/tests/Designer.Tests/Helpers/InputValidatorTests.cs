@@ -27,7 +27,7 @@ public class InputValidatorTests
     }
 
     [Fact]
-    public void IsInvalidCommitMessage_InvalidMessages_ReturnsFalse()
+    public void IsValidGiteaCommitMessage_InvalidMessages_ReturnsFalse()
     {
         // Arrange
         string nullChar = "\0";

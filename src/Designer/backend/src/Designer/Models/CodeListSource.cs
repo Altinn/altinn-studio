@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.Extensions;
 
 namespace Altinn.Studio.Designer.Models;
-public class CodeListSource
+public sealed class CodeListSource
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

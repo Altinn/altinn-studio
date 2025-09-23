@@ -9,13 +9,13 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <summary>
 /// Main request model for Git file operations
 /// </summary>
-public class GiteaMultipleFilesDto
+public sealed class GiteaMultipleFilesDto
 {
     /// <summary>
     /// Identity for the author
     /// </summary>
     [JsonPropertyName("author")]
-    public Identity? Author { get; set; }
+    public GiteaIdentity? Author { get; set; }
 
     /// <summary>
     /// Branch (optional) to base this file from. If not given, the default branch is used
@@ -27,7 +27,7 @@ public class GiteaMultipleFilesDto
     /// Identity for the committer
     /// </summary>
     [JsonPropertyName("committer")]
-    public Identity? Committer { get; set; }
+    public GiteaIdentity? Committer { get; set; }
 
     /// <summary>
     /// List of file operations
@@ -88,39 +88,5 @@ public class GiteaMultipleFilesDto
             hash.Add(file);
         }
         return hash.ToHashCode();
-    }
-}
-
-/// <summary>
-/// Identity for a person's identity like an author or committer
-/// </summary>
-public class Identity
-{
-    [JsonPropertyName("name")]
-    public string? Name { get; set; }
-
-    [JsonPropertyName("email")]
-    public string? Email { get; set; }
-
-    public override bool Equals(object? obj)
-    {
-        Identity? other = obj as Identity;
-        if (other is null)
-        {
-            return false;
-        }
-        if (Equals(other.Name, Name) is false)
-        {
-            return false;
-        }
-        if (Equals(other.Email, Email) is false)
-        {
-            return false;
-        }
-        return true;
-    }
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Name, Email);
     }
 }

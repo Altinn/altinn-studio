@@ -115,6 +115,11 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(fileSystemObject);
         }
 
+        public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
+        {
+            return GetFileAsync(org, app, filePath, reference);
+        }
+
         public Task<Repository> GetRepository(string org, string repository)
         {
             Repository returnRepository = null;
@@ -219,6 +224,9 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new List<FileSystemObject>());
         }
 
-        public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(true);
+        }
     }
 }

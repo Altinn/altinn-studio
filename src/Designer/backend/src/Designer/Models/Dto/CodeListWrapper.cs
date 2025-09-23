@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class CodeListWrapper
+public sealed class CodeListWrapper
 {
     [JsonPropertyName("title")]
     public required string Title { get; set; }
@@ -23,12 +23,12 @@ public class CodeListWrapper
             return false;
         }
 
-        if (!Equals(other.Title, Title))
+        if (string.Equals(other.Title, Title) is false)
         {
             return false;
         }
 
-        if (!Equals(other.HasError, HasError))
+        if (Equals(other.HasError, HasError) is false)
         {
             return false;
         }

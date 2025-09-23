@@ -8,7 +8,7 @@ using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
 
-public class Code
+public sealed class Code
 {
     /// <summary>
     /// Value that connects the option to the data model.
@@ -89,6 +89,44 @@ public class Code
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Value, Label, Description, HelpText);
+        var hash = new HashCode();
+
+        hash.Add(Value);
+
+        if (Label is not null)
+        {
+            foreach (KeyValuePair<string, string> kvp in Label.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                hash.Add(kvp.Key, StringComparer.Ordinal);
+                hash.Add(kvp.Value, StringComparer.Ordinal);
+            }
+        }
+
+        if (Description is not null)
+        {
+            foreach (KeyValuePair<string, string> kvp in Description.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                hash.Add(kvp.Key, StringComparer.Ordinal);
+                hash.Add(kvp.Value, StringComparer.Ordinal);
+            }
+        }
+
+        if (HelpText is not null)
+        {
+            foreach (KeyValuePair<string, string> kvp in HelpText.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                hash.Add(kvp.Key, StringComparer.Ordinal);
+                hash.Add(kvp.Value, StringComparer.Ordinal);
+            }
+        }
+
+        if (Tags is not null)
+        {
+            foreach (string tag in Tags)
+            {
+                hash.Add(tag);
+            }
+        }
+        return hash.ToHashCode();
     }
 }

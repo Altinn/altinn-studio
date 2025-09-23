@@ -8,7 +8,7 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <summary>
 /// Represents a single file change operation
 /// </summary>
-public class FileOperationContext
+public sealed class FileOperationContext
 {
     /// <summary>
     /// New or updated file content, must be base64 encoded
@@ -32,7 +32,7 @@ public class FileOperationContext
     /// Path to the existing or new file
     /// </summary>
     [JsonPropertyName("path")]
-    public string Path { get; set; } = string.Empty;
+    public required string Path { get; set; }
 
     /// <summary>
     /// SHA for the file that already exists, required for update or delete

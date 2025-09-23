@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Services;
@@ -149,6 +150,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotEmpty(result);
         Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
+        Assert.Null(result.FirstOrDefault()?.Content);
         Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
         Assert.Contains(Title, result.FirstOrDefault()?.Path);
     }
@@ -174,10 +176,11 @@ public class OrgCodeListServiceTests : IDisposable
         string expectedOperation = FileOperation.Update;
         string expectedSha = fileMetadata[Title];
 
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);
+        // Assert
+        Assert.NotNull(result.FirstOrDefault()?.Content);
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content!);
         CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
 
-        // Assert
         Assert.NotEmpty(result);
         Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
         Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
@@ -205,10 +208,11 @@ public class OrgCodeListServiceTests : IDisposable
         string expectedOperation = FileOperation.Create;
         string expectedSha = null;
 
-        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content ?? string.Empty);
+        // Assert
+        Assert.NotNull(result.FirstOrDefault()?.Content);
+        byte[] resultAsBytes = Convert.FromBase64String(result.FirstOrDefault()?.Content!);
         CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
 
-        // Assert
         Assert.NotEmpty(result);
         Assert.Equal(expectedOperation, result.FirstOrDefault()?.Operation);
         Assert.Equal(expectedSha, result.FirstOrDefault()?.Sha);
@@ -222,6 +226,8 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string FosWithContentName = "hasContent";
         const string FosWithoutContentName = "noContent";
+        const string FosWithContentSha = "non-descriptive-sha-1";
+        const string FosWithoutContentSha = "non-descriptive-sha-2";
 
         CodeList validCodeList = SetupCodeList();
         List<FileSystemObject> remoteFiles =
@@ -231,14 +237,14 @@ public class OrgCodeListServiceTests : IDisposable
                 Name = FosWithContentName,
                 Path = $"CodeLists/{FosWithContentName}.json",
                 Content = FromStringToBase64String(JsonSerializer.Serialize(validCodeList)),
-                Sha = "non-descriptive-sha-1"
+                Sha = FosWithContentSha
             },
             new()
             {
                 Name = FosWithoutContentName,
                 Path = $"CodeLists/{FosWithoutContentName}.json",
                 Content = null,
-                Sha = "non-descriptive-sha-2"
+                Sha = FosWithoutContentSha
             }
         ];
 
@@ -251,6 +257,8 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Equal(2, fileMetadata.Count);
         Assert.True(result.First(csw => csw.Title == FosWithoutContentName).HasError);
         Assert.False(result.First(csw => csw.Title == FosWithContentName).HasError);
+        Assert.Equal(FosWithContentSha, fileMetadata[FosWithContentName]);
+        Assert.Equal(FosWithoutContentSha, fileMetadata[FosWithoutContentName]);
     }
 
     [Fact]
@@ -274,7 +282,7 @@ public class OrgCodeListServiceTests : IDisposable
             new()
             {
                 Title = ShouldResolveToDeleteOperation,
-                HasError = false
+                HasError = null
             },
             new()
             {
@@ -313,13 +321,14 @@ public class OrgCodeListServiceTests : IDisposable
         FileOperationContext deleteOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToDeleteOperation}.json");
         FileOperationContext createOperation = result.FirstOrDefault(fo => fo.Path == $"CodeLists/{ShouldResolveToCreateOperation}.json");
 
-
         // Assert
         Assert.Equal(3, result.Count);
         Assert.NotNull(updateOperation);
         Assert.NotNull(updateOperation.Sha);
         Assert.NotNull(updateOperation.Content);
         Assert.Equal(FileOperation.Update, updateOperation.Operation);
+        var updateDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(updateOperation.Content));
+        Assert.Equal(codeList, updateDecoded);
 
         Assert.NotNull(deleteOperation);
         Assert.NotNull(deleteOperation.Sha);
@@ -330,12 +339,16 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Null(createOperation.Sha);
         Assert.NotNull(createOperation.Content);
         Assert.Equal(FileOperation.Create, createOperation.Operation);
+        var createDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(createOperation.Content));
+        Assert.Equal(codeList, createDecoded);
     }
 
     [Fact]
     public async Task UpdateCodeListsNew()
     {
         // Arrange
+        const string GiteaCommitMessage = "some message";
+        const string Reference = "some reference";
         CodeList validCodeList = SetupCodeList();
         List<CodeListWrapper> localCodeListWrappers = [
             new()
@@ -374,7 +387,7 @@ public class OrgCodeListServiceTests : IDisposable
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
-        await orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers);
+        await orgListService.UpdateCodeListsNew(Org, Developer, localCodeListWrappers, GiteaCommitMessage, Reference);
 
 
         List<FileOperationContext> files =
@@ -391,23 +404,24 @@ public class OrgCodeListServiceTests : IDisposable
 
         var expectedDto = new GiteaMultipleFilesDto
         {
-            Author = new Identity
+            Author = new GiteaIdentity
             {
                 Name = Developer,
                 Email = null
             },
-            Committer = new Identity
+            Committer = new GiteaIdentity
             {
                 Name = Developer,
                 Email = null
             },
             Branch = string.Empty,
             Files = files,
-            Message = ""
+            Message = GiteaCommitMessage
+
         };
 
         // Assert
-        _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), string.Empty, It.IsAny<CancellationToken>()), Times.Once);
+        _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => dto.Equals(expectedDto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -363,8 +363,8 @@ public class OrgCodeListService : IOrgCodeListService
     {
         return new GiteaMultipleFilesDto
         {
-            Author = new Designer.Models.Dto.Identity { Name = developer },
-            Committer = new Designer.Models.Dto.Identity { Name = developer },
+            Author = new Designer.Models.Dto.GiteaIdentity { Name = developer },
+            Committer = new Designer.Models.Dto.GiteaIdentity { Name = developer },
             Files = fileOperationContexts,
             Message = commitMessage,
             Branch = string.Empty // Default branch

@@ -36,7 +36,7 @@ public class DictionaryExtensionsTests
     }
 
     [Fact]
-    public void IfHashEquals_ReturnTrue()
+    public void IfSameReference_ReturnTrue()
     {
         // Arrange
         Dictionary<string, string> first = new() { { "key", "value" } };
@@ -84,8 +84,8 @@ public class DictionaryExtensionsTests
     public void IsEqualTo_ReturnTrue()
     {
         // Arrange
-        Dictionary<string, string> first = new() { { "key", "value" } };
-        Dictionary<string, string> second = new() { { "key", "value" } };
+        Dictionary<string, string> first = new() { { "a", "1" }, { "b", "2" } };
+        Dictionary<string, string> second = new() { { "b", "2" }, { "a", "1" } };
 
         // Act
         bool result = first.IsEqualTo(second);

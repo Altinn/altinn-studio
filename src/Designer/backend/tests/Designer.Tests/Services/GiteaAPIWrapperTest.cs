@@ -589,8 +589,8 @@ namespace Designer.Tests.Services
             // Arrange
             List<FileSystemObject> directoryFiles =
             [
-                new FileSystemObject { Name = "countries.json", Type = "file" },
-                new FileSystemObject { Name = "currencies.json", Type = "file" }
+                new() { Name = "countries.json", Type = "file" },
+                new() { Name = "currencies.json", Type = "file" }
             ];
 
             var fileContent1 = new FileSystemObject { Name = "countries.json", Type = "file", Content = "country data" };
@@ -651,6 +651,37 @@ namespace Designer.Tests.Services
             Assert.Equal(2, actual.Count);
             Assert.Contains(actual, f => f.Name == "countries.json");
             Assert.Contains(actual, f => f.Name == "currencies.json");
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetCodeListDirectoryContentAsync_WithReference_FetchesFromRef()
+        {
+            // Arrange
+            var dir = new List<FileSystemObject> { new() { Name = "countries.json", Type = "file" } };
+            var file = new FileSystemObject { Name = "countries.json", Type = "file", Content = "data" };
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock.Protected().Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.Query.Contains("ref=feature-branch") && req.RequestUri.AbsolutePath.Contains("/contents/CodeLists")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(JsonSerializer.Serialize(dir), Encoding.UTF8, "application/json") });
+
+            handlerMock.Protected().Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.Query.Contains("ref=feature-branch") && req.RequestUri.AbsolutePath.Contains("/contents/CodeLists/countries.json")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(JsonSerializer.Serialize(file), Encoding.UTF8, "application/json") });
+
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri("http://studio.localhost/repos/api/v1") };
+            var sut = GetServiceForTest(httpClient);
+
+            // Act
+            var result = await sut.GetCodeListDirectoryContentAsync("ttd", "apps-test-2021", "feature-branch");
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("countries.json", result[0].Name);
             handlerMock.VerifyAll();
         }
 
@@ -827,8 +858,8 @@ namespace Designer.Tests.Services
 
             var dto = new GiteaMultipleFilesDto
             {
-                Author = new Identity { Name = "testuser" },
-                Committer = new Identity { Name = "testuser" },
+                Author = new GiteaIdentity { Name = "testuser" },
+                Committer = new GiteaIdentity { Name = "testuser" },
                 Message = "Updating multiple files",
                 Files = [
                     new FileOperationContext
@@ -902,8 +933,8 @@ namespace Designer.Tests.Services
 
             var dto = new GiteaMultipleFilesDto
             {
-                Author = new Identity { Name = "testuser" },
-                Committer = new Identity { Name = "testuser" },
+                Author = new GiteaIdentity { Name = "testuser" },
+                Committer = new GiteaIdentity { Name = "testuser" },
                 Files = [
                     new FileOperationContext
                     {
@@ -940,7 +971,7 @@ namespace Designer.Tests.Services
                 l => l.Log(
                 It.Is<LogLevel>(ll => ll == LogLevel.Error),
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("ModifyMultipleFiles failed with statuscode BadRequest for ttd/apps-test-2021. Url: someurl, Message: this went wrong")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("ModifyMultipleFiles failed with status code BadRequest for ttd/apps-test-2021. Url: someurl, Message: this went wrong")),
                 It.IsAny<Exception>(),
                 It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true))
             );
@@ -990,12 +1021,12 @@ namespace Designer.Tests.Services
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            var repoSettings = new ServiceRepositorySettings()
+            var repoSettings = new ServiceRepositorySettings
             {
                 RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
             };
 
-            GiteaAPIWrapper service = new GiteaAPIWrapper(
+            GiteaAPIWrapper service = new(
                 repoSettings,
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),

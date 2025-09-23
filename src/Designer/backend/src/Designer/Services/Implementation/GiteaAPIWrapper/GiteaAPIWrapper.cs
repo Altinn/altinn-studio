@@ -457,13 +457,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfNotNull(path, shortCommitId);
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
             return await response.Content.ReadAsAsync<FileSystemObject>();
         }
 
         public async Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string shortCommitId, CancellationToken cancellationToken)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}", cancellationToken);
+            string path = $"repos/{org}/{app}/contents/{filePath}";
+            string url = AddRefIfNotNull(path, shortCommitId);
+            HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsAsync<FileSystemObject>(cancellationToken);
@@ -475,7 +479,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = "", CancellationToken cancellationToken = default)
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={reference}", cancellationToken);
+            string path = $"repos/{org}/{app}/contents/{directoryPath}";
+            string url = AddRefIfNotNull(path, reference);
+
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsAsync<List<FileSystemObject>>(cancellationToken);
@@ -522,9 +529,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                GiteaBadRequestDto failureResponse = JsonSerializer.Deserialize<GiteaBadRequestDto>(await response.Content.ReadAsStringAsync(cancellationToken));
+                string body = await response.Content.ReadAsStringAsync(cancellationToken);
+                GiteaBadRequestDto failureResponse = JsonSerializer.Deserialize<GiteaBadRequestDto>(body);
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                _logger.LogError("User {developer} - ModifyMultipleFiles failed with statuscode {response.StatusCode} for {org}/{repository}. Url: {failureResponse.Url}, Message: {failureResponse.Message}", developer, response.StatusCode, org, repository, failureResponse.Url, failureResponse.Message);
+                _logger.LogError("User {developer} - ModifyMultipleFiles failed with status code {statusCode} for {org}/{repository}. Url: {url}, Message: {message}",
+                    developer,
+                    response.StatusCode,
+                    org,
+                    repository,
+                    failureResponse?.Url,
+                    failureResponse?.Message ?? body
+                );
             }
             return response.IsSuccessStatusCode;
         }
@@ -631,6 +646,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return organisation;
+        }
+
+        private static string AddRefIfNotNull(string path, string reference)
+        {
+            return reference is not null ? $"{path}?ref={reference}" : $"{path}";
         }
     }
 }

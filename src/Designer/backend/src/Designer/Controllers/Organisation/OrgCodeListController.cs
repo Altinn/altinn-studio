@@ -69,6 +69,8 @@ public class OrgCodeListController : ControllerBase
     /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
     [HttpGet]
     [Route("new")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
         List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
