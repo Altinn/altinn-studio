@@ -48,6 +48,15 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
             maxSize: maxFileSizeInMB,
           });
         }
+        if (componentType === ComponentType.ImageUpload) {
+          appAttachmentMetadataMutation.mutate({
+            id: newId,
+            taskId: taskId,
+            maxCount: 1,
+            minCount: 0,
+            maxSize: 10,
+          });
+        }
         return newId; // Returns created id
       });
     },
