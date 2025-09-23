@@ -423,7 +423,7 @@ public class OrgCodeListService : IOrgCodeListService
             byte[] contentAsBytes = Convert.FromBase64String(fileContent);
             string decodedContent = Encoding.UTF8.GetString(contentAsBytes);
             codeList = JsonSerializer.Deserialize<CodeList>(decodedContent);
-            return true;
+            return codeList is not null;
         }
         catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException or FormatException)
         {
