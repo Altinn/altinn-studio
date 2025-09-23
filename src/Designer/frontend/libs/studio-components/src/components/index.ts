@@ -50,6 +50,7 @@ export * from './StudioSelect';
 export * from './StudioSpinner';
 export * from './StudioSwitch';
 export * from './StudioTable';
+export * from './StudioTableRemotePagination';
 export * from './StudioTabs';
 export * from './StudioTag';
 export * from './StudioTextfield';

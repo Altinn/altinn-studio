@@ -1,0 +1,41 @@
+.componentContainer {
+  margin-bottom: var(--fds-spacing-10);
+}
+
+.table {
+  width: 100%;
+}
+
+.emptyTableFallbackContainer {
+  padding: var(--fds-spacing-4);
+  text-align: center;
+}
+
+.paginationContainer {
+  margin-top: var(--fds-spacing-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectContainer {
+  display: flex;
+  gap: var(--fds-spacing-3);
+  align-items: center;
+}
+
+.select {
+  margin-block: auto;
+}
+
+.selectLabel {
+  margin-block: auto;
+  font-weight: normal !important;
+  white-space: nowrap;
+}
+
+.rowCounter {
+  margin-block: auto;
+  margin-left: var(--fds-spacing-6);
+  white-space: nowrap;
+}
