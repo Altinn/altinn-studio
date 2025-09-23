@@ -59,14 +59,15 @@ jobs:
         working-directory: app-frontend
         run: yarn test --coverage
 
-      - name: SonarCloud Scan
-        if: |
-          github.repository_owner == 'Altinn' &&
-          (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
-          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
-        with:
-          projectBaseDir: app-frontend
-        uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25 # v5.3.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # TODO: consider for removal?
+      # - name: SonarCloud Scan
+      #   if: |
+      #     github.repository_owner == 'Altinn' &&
+      #     (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+      #     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+      #   with:
+      #     projectBaseDir: app-frontend
+      #   uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25 # v5.3.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

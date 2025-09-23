@@ -83,8 +83,8 @@ jobs:
 
       - name: Cypress run
         env:
-          CYPRESS_PROJECT_ID: y2jhp6
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          CYPRESS_PROJECT_ID: o7mikf
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
           PERCY_PARALLEL_TOTAL: 6
