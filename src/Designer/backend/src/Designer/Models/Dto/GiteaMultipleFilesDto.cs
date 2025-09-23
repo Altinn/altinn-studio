@@ -78,7 +78,16 @@ public class GiteaMultipleFilesDto
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Author, Branch, Committer, Files.GetHashCode(), Message);
+        var hash = new HashCode();
+        hash.Add(Author);
+        hash.Add(Committer);
+        hash.Add(Branch, StringComparer.Ordinal);
+        hash.Add(Message, StringComparer.Ordinal);
+        foreach (FileOperationContext file in Files)
+        {
+            hash.Add(file);
+        }
+        return hash.ToHashCode();
     }
 }
 
