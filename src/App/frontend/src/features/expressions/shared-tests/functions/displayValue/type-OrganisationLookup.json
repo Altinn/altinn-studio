@@ -1,0 +1,33 @@
+{
+  "name": "Display value of Organisation Lookup component",
+  "expression": [
+    "displayValue",
+    "organisationlookup"
+  ],
+  "context": {
+    "component": "organisationlookup",
+    "currentLayout": "Page"
+  },
+  "expects": "043871668",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "organisationlookup",
+            "type": "OrganisationLookup",
+            "dataModelBindings": {
+              "organisation_lookup_orgnr": "OrganisationLookup.OrgNr"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "OrganisationLookup": {
+      "OrgNr": "043871668"
+    }
+  }
+}

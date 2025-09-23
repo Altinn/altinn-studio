@@ -1,0 +1,13 @@
+.card {
+  height: 100%;
+}
+
+.cardMedia img,
+audio,
+video {
+  object-fit: cover;
+}
+
+.cardMedia:last-of-type {
+  margin-top: auto;
+}

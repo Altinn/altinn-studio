@@ -1,0 +1,56 @@
+name: Roll back release
+run-name: Roll back to ${{ inputs.tag }}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag (e.g. `v4.5.3`)'
+        required: true
+        type: string
+
+jobs:
+  revert:
+    name: Roll back and deploy
+    runs-on: ubuntu-latest
+    environment: |-
+      ${{
+         contains(github.event.inputs.tag, 'preview') && 'test'
+      || contains(github.event.inputs.tag, 'rc')      && 'staging'
+      ||                                                 'prod'
+      }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Validate tag
+        run: |
+          echo "Validating that the tag is in the correct format"
+          echo "${{ github.event.inputs.tag }}" | grep -P '^v(\d+)\.(\d+)\.(\d+)(-(preview|rc)\.\d+$|$)'
+
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          path: app-frontend
+          sparse-checkout: |
+            .github
+
+      - name: Azure login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
+
+      - name: Run roll back script
+        working-directory: app-frontend
+        env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+          FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
+          FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
+          FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
+          FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
+        run: |
+          bash .github/scripts/revert.sh \
+           --tag "${{ inputs.tag }}" \
+           --azure-sync-cdn \
+           --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \

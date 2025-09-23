@@ -1,0 +1,45 @@
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.buttonLink {
+  color: white;
+  text-decoration: none;
+}
+
+.signingPanel {
+  padding-top: var(--ds-size-8);
+  display: flex;
+  flex-direction: column;
+
+  .contentContainer {
+    padding: var(--ds-size-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+  }
+
+  .buttonContainer {
+    padding: var(--ds-size-4) 0;
+    display: flex;
+    flex-direction: row-reverse; /* reversed for correct tab order */
+    justify-content: start;
+    gap: var(--ds-size-4);
+    flex-wrap: wrap;
+  }
+}
+
+/* TODO: Remove this when we upgrade Designsystemet to @next */
+.checkbox {
+  > * {
+    align-self: start;
+  }
+
+  label {
+    display: flex;
+    justify-content: start;
+    align-items: start;
+  }
+}

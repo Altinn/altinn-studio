@@ -1,0 +1,35 @@
+{
+  "name": "Display value of Person Lookup component",
+  "expression": [
+    "displayValue",
+    "personlookup"
+  ],
+  "context": {
+    "component": "personlookup",
+    "currentLayout": "Page"
+  },
+  "expects": "44829800753, Løve",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "personlookup",
+            "type": "PersonLookup",
+            "dataModelBindings": {
+              "person_lookup_ssn": "PersonLookup.Ssn",
+              "person_lookup_name": "PersonLookup.Name"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "PersonLookup": {
+      "Ssn": "44829800753",
+      "Name": "Løve"
+    }
+  }
+}

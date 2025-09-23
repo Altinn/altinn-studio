@@ -1,0 +1,31 @@
+{
+  "name": "Simple layout with single component",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        }
+      ]
+    }
+  ],
+  "dataModel": {}
+}

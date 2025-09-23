@@ -1,0 +1,160 @@
+.rowReadOnly,
+.rowReadOnly td,
+.rowReadOnly th {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+tr > .fullWidthCellFirst {
+  padding-left: var(--modal-padding-x);
+}
+
+tr > .fullWidthCellLast {
+  padding-right: var(--modal-padding-x);
+}
+
+.table {
+  width: 100%;
+}
+
+.table th {
+  font-weight: 500;
+  border-bottom: 2px solid var(--ds-color-neutral-base-default);
+}
+
+.table td {
+  border-bottom: 1px dashed var(--ds-color-neutral-border-strong);
+}
+
+.table tr:hover td {
+  background-color: unset;
+}
+
+.contentFormatting {
+  --cell-max-number-of-lines: 2;
+  --cell-text-alignment: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--cell-max-number-of-lines);
+  line-clamp: var(--cell-max-number-of-lines);
+  text-align: var(--cell-text-alignment);
+}
+
+.tableCellFormatting {
+  --cell-width: auto;
+  width: var(--cell-width);
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+
+/* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin));
+   Adding 8.15% is a workaround for calc not working with both percentages and pixels inside a cell element.
+*/
+.tableCellFormatting:first-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.tableCellFormatting:last-child {
+  width: calc(var(--cell-width) + 8.15%);
+}
+
+.textCell,
+.textLabel,
+.textLabel div {
+  display: flex;
+}
+
+.textLabel {
+  margin-top: 12px;
+}
+
+.textLabel div {
+  flex-wrap: nowrap;
+}
+
+.textLabel button {
+  align-self: flex-start;
+}
+
+.captionFullWidth {
+  padding-left: var(--modal-padding-x);
+  padding-right: var(--modal-padding-x);
+}
+
+.gridSummaryTitle {
+  font-weight: 500;
+}
+
+.tableCaption {
+  text-align: left;
+}
+
+.validationError {
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
+}
+
+.errorMessage {
+  padding-bottom: var(--ds-size-2);
+}
+
+.mobileFieldset {
+  display: flex;
+  gap: 24px;
+  flex-direction: column;
+}
+
+.mobileEditButton {
+  margin-left: auto;
+}
+
+.responsiveTable {
+  display: block;
+}
+
+.responsiveTable thead {
+  display: none;
+}
+
+.responsiveTable th {
+  display: block;
+  border: none;
+}
+
+.responsiveTable tbody,
+.responsiveTable tr {
+  display: block;
+}
+
+.responsiveTable td {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  padding: var(--ds-size-2) 0;
+}
+
+.responsiveTable td .contentWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.responsiveTable tbody:last-child tr:last-child {
+  border-bottom: none;
+}
+
+.responsiveTable tr {
+  border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
+}
+
+.responsiveTable td[data-header-title]:not([data-header-title=''])::before,
+.responsiveTable th[data-header-title]:not([data-header-title=''])::before {
+  content: attr(data-header-title);
+  display: block;
+  text-align: left;
+  font-weight: 500;
+}

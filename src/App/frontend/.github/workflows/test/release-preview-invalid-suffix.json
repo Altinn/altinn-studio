@@ -1,0 +1,6 @@
+{
+  "release": {
+    "tag_name": "v1.0.0-preview1",
+    "prerelease": true
+  }
+}

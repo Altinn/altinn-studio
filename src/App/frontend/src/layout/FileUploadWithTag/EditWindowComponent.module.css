@@ -1,0 +1,45 @@
+.iconButtonWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.checkMark {
+  margin-left: 0.2rem;
+  font-size: 1.3rem;
+}
+
+.gap {
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.textContainer {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--colors-primary-black);
+  font-weight: 500;
+  font-size: 0.875rem;
+  min-width: 0px;
+}
+
+.editContainer {
+  display: inline-block;
+  border: var(--dotted-border-primary);
+  padding: 12px;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.select {
+  font-size: 1rem;
+}
+
+.select:focus {
+  outline: 2px solid var(--colors-primary-blueDark);
+}

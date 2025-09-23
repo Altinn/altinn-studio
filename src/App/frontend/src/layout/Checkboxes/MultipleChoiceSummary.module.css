@@ -1,0 +1,35 @@
+.list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.listItem {
+  padding: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-decoration: none;
+}
+
+.data {
+  overflow-wrap: break-word;
+  font-weight: 500;
+  font-size: 1.125rem;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  line-height: 1.5;
+  flex: 1 1 auto;
+}
+
+.data p {
+  font-weight: 500;
+  font-size: 1.125rem;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.6875;
+}

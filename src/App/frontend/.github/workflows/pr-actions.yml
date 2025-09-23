@@ -1,0 +1,143 @@
+name: PR actions
+on:
+  issue_comment:
+    types: [created, edited]
+jobs:
+  publish:
+    name: Publish PR packages
+    runs-on: ubuntu-latest
+    environment: test
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
+    permissions:
+      id-token: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Check if comment author is a contributor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          comment_author="${{ github.event.comment.user.login }}"
+
+          # Check if user has write access using a different approach
+          permission=$(gh api repos/${{ github.repository }}/collaborators/$comment_author/permission 2>/dev/null | jq -r '.permission // "none"')
+          if [[ "$permission" == "admin" || "$permission" == "write" ]]; then
+            echo "Comment author ($comment_author) has $permission access, continuing"
+          else
+            echo "Comment author ($comment_author) has $permission access, skipping job"
+            exit 1
+          fi
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          ref: ${{ format('refs/pull/{0}/head', github.event.issue.number) }}
+          path: app-frontend
+          fetch-depth: 0
+
+      - name: install node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+
+      - name: Git author config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Build PR release version
+        id: build-version
+        working-directory: app-frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid' | cut -c1-8)
+          branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
+          version=$(git describe --abbrev=0 --tags 2>/dev/null)
+          version=$(echo $version | cut -d '-' -f 1)
+          version="$version-pr.${{ github.run_number }}.$branch.$sha"
+          versionWithoutPrefix=$(echo $version | sed 's/^v//')
+          git tag -a $version -m "PR release $version"
+          echo "PR_RELEASE_VERSION=$version" >> $GITHUB_ENV
+          echo "PR_RELEASE_VERSION=$versionWithoutPrefix" >> $GITHUB_OUTPUT
+          echo $version
+
+      - name: Create PR comment
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        id: pr-comment
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            ## PR release:
+
+            * `<link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/${{ steps.build-version.outputs.PR_RELEASE_VERSION }}/altinn-app-frontend.css">`
+            * `<script src="https://altinncdn.no/toolkits/altinn-app-frontend/${{ steps.build-version.outputs.PR_RELEASE_VERSION }}/altinn-app-frontend.js"></script>`
+
+            > ⚙️ Building...
+
+      - name: install dependencies
+        working-directory: app-frontend
+        run: yarn --immutable
+
+      - name: run build
+        working-directory: app-frontend
+        run: yarn build
+
+      - name: Azure login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        if: '!env.ACT'
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
+
+      - name: Run release script (pre-release)
+        working-directory: app-frontend
+        if: '!env.ACT'
+        env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+          FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
+          FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
+          FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
+          FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
+        run: |
+          bash .github/scripts/release.sh \
+            --pre-release \
+            --azure-sync-cdn \
+            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+
+      - name: Run sync-index script
+        working-directory: app-frontend
+        if: '!env.ACT'
+        env:
+          AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+          AZCOPY_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+          FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
+          FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
+          FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
+          FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
+        run: |
+          bash .github/scripts/sync-index.sh \
+           --azure-sync-cdn \
+           --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+
+      - name: Update PR comment - failure
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        if: failure()
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ steps.pr-comment.outputs.comment-id }}
+          edit-mode: append
+          body: |
+            > ❌ Failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Update PR comment - success
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4
+        if: success()
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment-id: ${{ steps.pr-comment.outputs.comment-id }}
+          edit-mode: append
+          body: |
+            > ✅ Done!
+          reactions: rocket
