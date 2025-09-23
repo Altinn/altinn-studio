@@ -2,26 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed class CodeList
+public sealed record CodeList(List<Code> Codes, CodeListSource? Source, List<string>? TagNames)
 {
-    [JsonPropertyName("codes")]
-    public required List<Code> Codes { get; set; }
-
-    [JsonPropertyName("source")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public CodeListSource? Source { get; set; }
-
-    [JsonPropertyName("tagNames")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? TagNames { get; set; }
-
-    public override bool Equals(object? obj)
+    public bool Equals(CodeList? other)
     {
-        CodeList? other = obj as CodeList;
         if (other is null)
         {
             return false;

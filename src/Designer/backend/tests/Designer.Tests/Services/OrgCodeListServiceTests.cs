@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
@@ -14,7 +15,6 @@ using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
 using Xunit;
 
@@ -28,6 +28,14 @@ public class OrgCodeListServiceTests : IDisposable
     private const string Repo = "org-content";
     private const string Developer = "testUser";
     private readonly Mock<IGitea> _giteaMock = new();
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
 
     [Fact]
     public async Task GetCodeLists_ShouldReturnAllCodeLists()
@@ -100,18 +108,16 @@ public class OrgCodeListServiceTests : IDisposable
         ];
         List<CodeListWrapper> expected =
         [
-            new()
-            {
-                Title = FosWithContentName,
-                CodeList = validCodeList,
-                HasError = false
-            },
-            new()
-            {
-                Title = FosWithoutContentName,
-                CodeList = null,
-                HasError = true
-            }
+            new(
+                Title: FosWithContentName,
+                CodeList: validCodeList,
+                HasError: false
+            ),
+            new(
+                Title: FosWithoutContentName,
+                CodeList: null,
+                HasError: true
+            )
         ];
         _giteaMock
             .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -132,12 +138,11 @@ public class OrgCodeListServiceTests : IDisposable
     {
         // Arrange
         const string Title = "irrelevant";
-        CodeListWrapper codeListWrapper = new()
-        {
-            Title = Title,
-            CodeList = null,
-            HasError = null,
-        };
+        CodeListWrapper codeListWrapper = new(
+            Title: Title,
+            CodeList: null,
+            HasError: null
+        );
         Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
         string sha = fileMetadata[Title];
 
@@ -158,12 +163,11 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string Title = "irrelevant";
         CodeList codeList = SetupCodeList();
-        CodeListWrapper codeListWrapper = new()
-        {
-            Title = Title,
-            CodeList = codeList,
-            HasError = false,
-        };
+        CodeListWrapper codeListWrapper = new(
+            Title: Title,
+            CodeList: codeList,
+            HasError: false
+        );
         Dictionary<string, string> fileMetadata = new() { { Title, "non-descriptive-sha" } };
         string sha = fileMetadata[Title];
 
@@ -174,7 +178,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotNull(result.Content);
         byte[] resultAsBytes = Convert.FromBase64String(result.Content!);
-        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes, s_jsonOptions);
         Assert.Equal(codeList, actualCodelist);
 
         Assert.Equal(FileOperation.Update, result.Operation);
@@ -188,12 +192,11 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string Title = "irrelevant";
         CodeList codeList = SetupCodeList();
-        CodeListWrapper codeListWrapper = new()
-        {
-            Title = Title,
-            CodeList = codeList,
-            HasError = false,
-        };
+        CodeListWrapper codeListWrapper = new(
+            Title: Title,
+            CodeList: codeList,
+            HasError: false
+        );
 
         // Act
         OrgCodeListService orgListService = GetOrgCodeListService();
@@ -202,7 +205,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotNull(result.Content);
         byte[] resultAsBytes = Convert.FromBase64String(result.Content!);
-        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes);
+        CodeList actualCodelist = JsonSerializer.Deserialize<CodeList>(resultAsBytes, s_jsonOptions);
         Assert.Equal(codeList, actualCodelist);
 
         Assert.Equal(FileOperation.Create, result.Operation);
@@ -218,12 +221,11 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string Title = "irrelevant";
         CodeList codeList = SetupCodeList();
-        CodeListWrapper codeListWrapper = new()
-        {
-            Title = Title,
-            CodeList = setCodeListToNull ? null : codeList,
-            HasError = null
-        };
+        CodeListWrapper codeListWrapper = new(
+            Title: Title,
+            CodeList: setCodeListToNull ? null : codeList,
+            HasError: null
+        );
 
         // Act and Assert
         OrgCodeListService orgListService = GetOrgCodeListService();
@@ -237,12 +239,11 @@ public class OrgCodeListServiceTests : IDisposable
         const string Title = "irrelevant";
         const string Sha = "should-not-exist";
         CodeList codeList = SetupCodeList();
-        CodeListWrapper codeListWrapper = new()
-        {
-            Title = Title,
-            CodeList = codeList,
-            HasError = null
-        };
+        CodeListWrapper codeListWrapper = new(
+            Title: Title,
+            CodeList: codeList,
+            HasError: null
+        );
 
         // Act and Assert
         OrgCodeListService orgListService = GetOrgCodeListService();
@@ -298,27 +299,38 @@ public class OrgCodeListServiceTests : IDisposable
         const string ShouldResolveToDeleteOperation = "shouldResolveToDeleteOperation";
         const string ShouldResolveToCreateOperation = "shouldResolveToCreateOperation";
         CodeList codeList = SetupCodeList();
-        CodeList updatedCodeList = SetupCodeList();
-        updatedCodeList.Codes[0].Value = "updatedValue";
+        Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
+        Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
+        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+        List<Code> listOfCodes =
+        [
+            new(
+                value: "updatedValue",
+                label: label,
+                description: description,
+                helpText: helpText,
+                tags: ["test-data"]
+            )
+        ];
+        CodeListSource source = new(Name: "test-data-files");
+        CodeList updatedCodeList = new(
+            Source: source,
+            Codes: listOfCodes,
+            TagNames: ["test-data-category"]
+        );
         var codeListWrappers = new List<CodeListWrapper>
         {
-            new()
-            {
-                Title = ShouldResolveToUpdateOperation,
-                CodeList = codeList,
-                HasError = false
-            },
-            new()
-            {
-                Title = ShouldResolveToDeleteOperation,
-                HasError = null
-            },
-            new()
-            {
-                Title = ShouldResolveToCreateOperation,
-                CodeList = codeList,
-                HasError = false
-            }
+            new(
+                Title: ShouldResolveToUpdateOperation,
+                CodeList: codeList
+            ),
+            new(
+                Title: ShouldResolveToDeleteOperation
+            ),
+            new(
+                Title: ShouldResolveToCreateOperation,
+                CodeList: codeList
+            )
         };
         var existingFiles = new List<FileSystemObject>
         {
@@ -356,7 +368,7 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.NotNull(updateOperation.Sha);
         Assert.NotNull(updateOperation.Content);
         Assert.Equal(FileOperation.Update, updateOperation.Operation);
-        var updateDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(updateOperation.Content));
+        var updateDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(updateOperation.Content), s_jsonOptions);
         Assert.Equal(codeList, updateDecoded);
 
         Assert.NotNull(deleteOperation);
@@ -368,7 +380,7 @@ public class OrgCodeListServiceTests : IDisposable
         Assert.Null(createOperation.Sha);
         Assert.NotNull(createOperation.Content);
         Assert.Equal(FileOperation.Create, createOperation.Operation);
-        var createDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(createOperation.Content));
+        var createDecoded = JsonSerializer.Deserialize<CodeList>(Convert.FromBase64String(createOperation.Content), s_jsonOptions);
         Assert.Equal(codeList, createDecoded);
     }
 
@@ -380,18 +392,8 @@ public class OrgCodeListServiceTests : IDisposable
         const string Reference = "some reference";
         CodeList validCodeList = SetupCodeList();
         List<CodeListWrapper> localCodeListWrappers = [
-            new()
-            {
-                Title = "codeListOne",
-                CodeList = validCodeList,
-                HasError = null
-            },
-            new()
-            {
-                Title = "codeListTwo",
-                CodeList = null,
-                HasError = null
-            }
+            new(Title: "codeListOne", CodeList: validCodeList),
+            new(Title: "codeListTwo")
         ];
         List<FileSystemObject> remoteCodeLists =
         [
@@ -422,32 +424,20 @@ public class OrgCodeListServiceTests : IDisposable
 
         List<FileOperationContext> files =
         [
-            new()
-            {
-                Operation = FileOperation.Delete,
-                Content = null,
-                FromPath = null,
-                Path = "CodeLists/codeListTwo.json",
-                Sha = "non-descriptive-sha-2"
-            }
+            new(
+                Operation: FileOperation.Delete,
+                Path: "CodeLists/codeListTwo.json",
+                Sha: "non-descriptive-sha-2"
+            )
         ];
 
-        var expectedDto = new GiteaMultipleFilesDto
-        {
-            Author = new GiteaIdentity
-            {
-                Name = Developer,
-                Email = null
-            },
-            Committer = new GiteaIdentity
-            {
-                Name = Developer,
-                Email = null
-            },
-            Branch = string.Empty,
-            Files = files,
-            Message = GiteaCommitMessage
-        };
+        var expectedDto = new GiteaMultipleFilesDto(
+            Author: new GiteaIdentity(Name: Developer),
+            Branch: string.Empty,
+            Committer: new GiteaIdentity(Name: Developer),
+            Files: files,
+            Message: GiteaCommitMessage
+        );
 
         // Assert
         _giteaMock.Verify(s => s.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), Reference, It.IsAny<CancellationToken>()), Times.Once);
@@ -705,15 +695,12 @@ public class OrgCodeListServiceTests : IDisposable
     public void ValidateCodeListTitles_ShouldThrowException_WhenTitleIsInvalid(string invalidTitle)
     {
         // Arrange
-        var codeListWrappers = new List<CodeListWrapper>
-        {
-            new()
-            {
-                Title = invalidTitle,
-                CodeList = null,
-                HasError = true
-            }
-        };
+        List<CodeListWrapper> codeListWrappers = [
+            new(
+                Title: invalidTitle,
+                HasError: true
+            )
+        ];
 
         // Act and Assert
         Assert.Throws<IllegalFileNameException>(() => OrgCodeListService.ValidateCodeListTitles(codeListWrappers));
@@ -746,22 +733,20 @@ public class OrgCodeListServiceTests : IDisposable
         Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
         List<Code> listOfCodes =
         [
-            new()
-            {
-                Value = "value1",
-                Label = label,
-                Description = description,
-                HelpText = helpText,
-                Tags = ["test-data"]
-            }
+            new(
+                value: "value1",
+                label: label,
+                description: description,
+                helpText: helpText,
+                tags: ["test-data"]
+            )
         ];
-        CodeListSource source = new() { Name = "test-data-files" };
-        CodeList codeList = new()
-        {
-            Source = source,
-            Codes = listOfCodes,
-            TagNames = ["test-data-category"]
-        };
+        CodeListSource source = new(Name: "test-data-files");
+        CodeList codeList = new(
+            Source: source,
+            Codes: listOfCodes,
+            TagNames: ["test-data-category"]
+        );
         return codeList;
     }
 

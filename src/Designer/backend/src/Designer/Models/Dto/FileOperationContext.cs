@@ -1,48 +1,12 @@
 #nullable enable
 using System;
-using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-
-/// <summary>
-/// Represents a single file change operation
-/// </summary>
-public sealed class FileOperationContext
+public sealed record FileOperationContext(string Operation, string Path, string? Content = null, string? FromPath = null, string? Sha = null)
 {
-    /// <summary>
-    /// New or updated file content, must be base64 encoded
-    /// </summary>
-    [JsonPropertyName("content")]
-    public string? Content { get; set; }
-
-    /// <summary>
-    /// Old path of the file to move
-    /// </summary>
-    [JsonPropertyName("from_path")]
-    public string? FromPath { get; set; }
-
-    /// <summary>
-    /// Indicates what to do with the file
-    /// </summary>
-    [JsonPropertyName("operation")]
-    public required string Operation { get; set; }
-
-    /// <summary>
-    /// Path to the existing or new file
-    /// </summary>
-    [JsonPropertyName("path")]
-    public required string Path { get; set; }
-
-    /// <summary>
-    /// SHA for the file that already exists, required for update or delete
-    /// </summary>
-    [JsonPropertyName("sha")]
-    public string? Sha { get; set; }
-
-    public override bool Equals(object? obj)
+    public bool Equals(FileOperationContext? other)
     {
-        FileOperationContext? other = obj as FileOperationContext;
         if (other is null)
         {
             return false;

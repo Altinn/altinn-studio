@@ -833,18 +833,22 @@ namespace Designer.Tests.Services
             const string CreateTitle = "created_file";
 
 
-            List<CodeListWrapper> toUpdate = [new()
-            {
-                Title = UpdateTitle,
-                CodeList = SetupCodeList(),
-                HasError = false,
-            }];
-            List<CodeListWrapper> toCreate = [new()
-            {
-                Title = CreateTitle,
-                CodeList = SetupCodeList(),
-                HasError = false,
-            }];
+            List<CodeListWrapper> toUpdate =
+            [
+                new(
+                    Title: UpdateTitle,
+                    CodeList: SetupCodeList(),
+                    HasError: false
+                )
+            ];
+            List<CodeListWrapper> toCreate =
+            [
+                new(
+                    Title: CreateTitle,
+                    CodeList: SetupCodeList(),
+                    HasError: false
+                )
+            ];
 
             string ser = JsonSerializer.Serialize(toUpdate);
             byte[] bytes = Encoding.UTF8.GetBytes(ser);
@@ -856,33 +860,31 @@ namespace Designer.Tests.Services
             base64 = Convert.ToBase64String(bytes);
             string createContent = base64;
 
-            var dto = new GiteaMultipleFilesDto
-            {
-                Author = new GiteaIdentity { Name = "testuser" },
-                Committer = new GiteaIdentity { Name = "testuser" },
-                Message = "Updating multiple files",
-                Files = [
-                    new FileOperationContext
-                    {
-                        Path = $"{UpdateTitle}.txt",
-                        Content = updateContent,
-                        Operation = FileOperation.Update,
-                        Sha = "existing-file-sha"
-                    },
-                    new FileOperationContext
-                    {
-                        Path = $"{CreateTitle}.txt",
-                        Content = createContent,
-                        Operation = FileOperation.Create
-                    },
-                    new FileOperationContext
-                    {
-                        Path = "file2.txt",
-                        Operation = FileOperation.Delete,
-                        Sha = "to-delete-file-sha"
-                    }
-                ]
-            };
+            List<FileOperationContext> fileOperationContexts =
+            [
+                new(
+                    Path: $"{UpdateTitle}.json",
+                    Content: updateContent,
+                    Operation: FileOperation.Update,
+                    Sha: "existing-file-sha"
+                ),
+                new(
+                    Path: $"{CreateTitle}.json",
+                    Content: createContent,
+                    Operation: FileOperation.Create
+                ),
+                new(
+                    Path: "file2.json",
+                    Operation: FileOperation.Delete,
+                    Sha: "to-delete-file-sha"
+                )
+            ];
+            var dto = new GiteaMultipleFilesDto(
+                Author: new GiteaIdentity(Name: "testUser"),
+                Committer: new GiteaIdentity(Name: "testUser"),
+                Message: "Updating multiple files",
+                Files: fileOperationContexts
+            );
 
             handlerMock
                 .Protected()
@@ -919,32 +921,30 @@ namespace Designer.Tests.Services
 
             const string UpdateTitle = "updated_file";
 
-            List<CodeListWrapper> toUpdate = [new()
-            {
-                Title = UpdateTitle,
-                CodeList = null,
-                HasError = true,
-            }];
+            List<CodeListWrapper> toUpdate =
+            [
+                new(
+                    Title: UpdateTitle,
+                    HasError: true
+                )
+            ];
 
             string ser = JsonSerializer.Serialize(toUpdate);
             byte[] bytes = Encoding.UTF8.GetBytes(ser);
-            string base64 = Convert.ToBase64String(bytes);
-            string updateContent = base64;
+            string updateContent = Convert.ToBase64String(bytes);
 
-            var dto = new GiteaMultipleFilesDto
-            {
-                Author = new GiteaIdentity { Name = "testuser" },
-                Committer = new GiteaIdentity { Name = "testuser" },
-                Files = [
-                    new FileOperationContext
-                    {
-                        Path = $"{UpdateTitle}.txt",
-                        Content = updateContent,
-                        Operation = FileOperation.Update,
-                        Sha = "existing-file-sha"
-                    },
+            var dto = new GiteaMultipleFilesDto(
+                Author: new GiteaIdentity(Name: "testUser"),
+                Committer: new GiteaIdentity(Name: "testUser"),
+                Files: [
+                    new FileOperationContext(
+                        Path: $"{UpdateTitle}.txt",
+                        Content: updateContent,
+                        Operation: FileOperation.Update,
+                        Sha: "existing-file-sha"
+                    )
                 ]
-            };
+            );
 
             var response = new { message = "this went wrong", url = "someurl" };
             string responseAsJson = JsonSerializer.Serialize(response);
@@ -994,22 +994,20 @@ namespace Designer.Tests.Services
             Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
             List<Code> listOfCodes =
             [
-                new()
-                {
-                    Value = "value1",
-                    Label = label,
-                    Description = description,
-                    HelpText = helpText,
-                    Tags = ["test-data"]
-                }
+                new(
+                    value: "value1",
+                    label: label,
+                    description: description,
+                    helpText: helpText,
+                    tags: ["test-data"]
+                )
             ];
-            CodeListSource source = new() { Name = "test-data-files" };
-            CodeList codeList = new()
-            {
-                Source = source,
-                Codes = listOfCodes,
-                TagNames = ["test-data-category"]
-            };
+            CodeListSource source = new(Name: "test-data-files");
+            CodeList codeList = new(
+                Source: source,
+                Codes: listOfCodes,
+                TagNames: ["test-data-category"]
+            );
             return codeList;
         }
 

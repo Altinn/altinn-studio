@@ -2,26 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.Extensions;
 
 namespace Altinn.Studio.Designer.Models;
-public sealed class CodeListSource
+
+public sealed record CodeListSource(string Name, string? Version = null, Dictionary<string, string>? QueryParameters = null)
 {
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("version")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Version { get; set; }
-
-    [JsonPropertyName("queryParameters")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? QueryParameters { get; set; }
-
-    public override bool Equals(object? obj)
+    public bool Equals(CodeListSource? other)
     {
-        CodeListSource? other = obj as CodeListSource;
         if (other is null)
         {
             return false;

@@ -29,33 +29,32 @@ public class CodeTests
         Dictionary<string, string> label,
         Dictionary<string, string>? description,
         Dictionary<string, string>? helpText,
-        List<string>? tags)
-
+        List<string>? tags
+    )
     {
-        return new Code
-        {
-            Value = value,
-            Label = label,
-            Description = description,
-            HelpText = helpText,
-            Tags = tags
-        };
+        return new Code(value, label, description, helpText, tags);
     }
 
-    private Code MakeBaseline()
+    private Code MakeCustomCode(
+        object? value = null,
+        Dictionary<string, string>? label = null,
+        Dictionary<string, string>? description = null,
+        Dictionary<string, string>? helpText = null,
+        List<string>? tags = null
+    )
     {
         return MakeCode(
-            value: _valueA,
-            label: new Dictionary<string, string>(_labelEnOnly),
-            description: new Dictionary<string, string>(_descriptionA),
-            helpText: new Dictionary<string, string>(_helpA),
-            tags: [.. _tagsAbc]);
+            value: value ?? _valueA,
+            label: label ?? _labelEnOnly,
+            description: description,
+            helpText: helpText,
+            tags: tags);
     }
 
     [Fact]
     public void Equals_WhenOtherIsNull_ReturnsFalse()
     {
-        Code left = MakeBaseline();
+        Code left = MakeCustomCode();
         Code? right = null;
 
         Assert.False(left.Equals(right));
@@ -64,7 +63,7 @@ public class CodeTests
     [Fact]
     public void Equals_WhenOtherIsDifferentType_ReturnsFalse()
     {
-        Code left = MakeBaseline();
+        Code left = MakeCustomCode();
         object right = new { value = _valueA };
 
         Assert.False(left.Equals(right));
@@ -73,9 +72,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenValuesDiffer_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Value = _valueB;
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(value: _valueB);
 
         Assert.False(left.Equals(right));
     }
@@ -83,9 +81,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenLabelsDiffer_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Label = new Dictionary<string, string>(_labelMixedDifferent);
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(label: _labelMixedDifferent);
 
         Assert.False(left.Equals(right));
     }
@@ -93,29 +90,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenLabelLanguagesDiffer_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Label = new Dictionary<string, string>(_labelNbOnly);
-
-        Assert.False(left.Equals(right));
-    }
-
-    [Fact]
-    public void Equals_WhenHelpTextIsNullOnOneSide_ReturnsFalse()
-    {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.HelpText = null;
-
-        Assert.False(left.Equals(right));
-    }
-
-    [Fact]
-    public void Equals_WhenHelpTextDiffers_ReturnsFalse()
-    {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.HelpText = new Dictionary<string, string>(_helpB);
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(label: _labelNbOnly);
 
         Assert.False(left.Equals(right));
     }
@@ -123,9 +99,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenDescriptionIsNullOnOneSide_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Description = null;
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(description: _descriptionA);
 
         Assert.False(left.Equals(right));
     }
@@ -133,29 +108,35 @@ public class CodeTests
     [Fact]
     public void Equals_WhenDescriptionDiffers_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Description = new Dictionary<string, string>(_descriptionB);
+        Code left = MakeCustomCode(description: _descriptionA);
+        Code right = MakeCustomCode(description: _descriptionB);
 
         Assert.False(left.Equals(right));
     }
 
     [Fact]
-    public void Equals_WhenTagsNullOnLeft_ReturnsFalse()
+    public void Equals_WhenHelpTextIsNullOnOneSide_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        left.Tags = null;
-        Code right = MakeBaseline();
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(helpText: _helpA);
 
         Assert.False(left.Equals(right));
     }
 
     [Fact]
-    public void Equals_WhenTagsNullOnRight_ReturnsFalse()
+    public void Equals_WhenHelpTextDiffers_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Tags = null;
+        Code left = MakeCustomCode(helpText: _helpB);
+        Code right = MakeCustomCode(helpText: _helpA);
+
+        Assert.False(left.Equals(right));
+    }
+
+    [Fact]
+    public void Equals_WhenOneTagsNull_ReturnsFalse()
+    {
+        Code left = MakeCustomCode();
+        Code right = MakeCustomCode(tags: _tagsAb);
 
         Assert.False(left.Equals(right));
     }
@@ -163,9 +144,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenTagsHaveDifferentOrder_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Tags = new List<string>(_tagsAcb); // order differs
+        Code left = MakeCustomCode(tags: _tagsAbc);
+        Code right = MakeCustomCode(tags: _tagsAcb);
 
         Assert.False(left.Equals(right));
     }
@@ -173,9 +153,8 @@ public class CodeTests
     [Fact]
     public void Equals_WhenTagsHaveDifferentLengths_ReturnsFalse()
     {
-        Code left = MakeBaseline();
-        Code right = MakeBaseline();
-        right.Tags = new List<string>(_tagsAb); // one missing
+        Code left = MakeCustomCode(tags: _tagsAb);
+        Code right = MakeCustomCode(tags: _tagsAbc);
 
         Assert.False(left.Equals(right));
     }

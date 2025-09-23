@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -20,6 +21,14 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
 {
     private readonly Mock<IOrgCodeListService> _orgCodeListService;
     private const string Org = "ttd";
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
 
     public GetCodeListsNewTests(WebApplicationFactory<Program> factory) : base(factory)
     {
@@ -37,31 +46,30 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
     {
         // Arrange
         Dictionary<string, string> queryParameters = new() { { "key", "value" } };
-        CodeListSource source = new() { Name = "sourceName", Version = "1.0", QueryParameters = queryParameters };
-        CodeList codeList = new()
-        {
-            Codes =
-            [
-                new Code
-                {
-                    Value = "no",
-                    Label = new Dictionary<string, string> { { "nb", "Norge" } },
-                    Description = new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
-                    HelpText = new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
-                    Tags = ["tag"]
-                }
-            ],
-            Source = source,
-            TagNames = ["tagName"]
-        };
+        CodeListSource source = new(Name: "sourceName", Version: "1.0", QueryParameters: queryParameters);
+        List<Code> codes =
+        [
+            new(
+                value: "no",
+                label: new Dictionary<string, string> { { "nb", "Norge" } },
+                description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
+                helpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
+                tags: ["tag"]
+            )
+
+        ];
+        CodeList codeList = new(
+            Codes: codes,
+            Source: source,
+            TagNames: ["tagName"]
+        );
         List<CodeListWrapper> expected =
         [
-            new()
-            {
-                Title = "",
-                CodeList = codeList,
-                HasError = false
-            }
+            new(
+                Title: "CodeListId",
+                CodeList: codeList,
+                HasError: false
+            )
         ];
 
         _orgCodeListService
@@ -74,7 +82,7 @@ public class GetCodeListsNewTests : DesignerEndpointsTestsBase<GetCodeListsNewTe
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         string responseBody = await response.Content.ReadAsStringAsync();
-        List<CodeListWrapper>? result = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody);
+        List<CodeListWrapper>? result = JsonSerializer.Deserialize<List<CodeListWrapper>>(responseBody, s_jsonOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -1,23 +1,12 @@
 #nullable enable
 using System;
-using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public sealed class CodeListWrapper
+public sealed record CodeListWrapper(string Title, CodeList? CodeList = null, bool? HasError = null)
 {
-    [JsonPropertyName("title")]
-    public required string Title { get; set; }
-
-    [JsonPropertyName("codeList")]
-    public CodeList? CodeList { get; set; }
-
-    [JsonPropertyName("hasError")]
-    public bool? HasError { get; set; }
-
-    public override bool Equals(object? obj)
+    public bool Equals(CodeListWrapper? other)
     {
-        CodeListWrapper? other = obj as CodeListWrapper;
         if (other is null)
         {
             return false;

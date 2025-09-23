@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
@@ -27,7 +28,14 @@ public class OrgCodeListService : IOrgCodeListService
     private readonly IGitea _gitea;
 
     private const string Repo = "content";
-    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
 
     /// <summary>
     /// Constructor
@@ -198,16 +206,16 @@ public class OrgCodeListService : IOrgCodeListService
         string? encodedContent = null;
         if (codeListWrapper.CodeList is not null)
         {
-            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
+            string content = JsonSerializer.Serialize(codeListWrapper.CodeList, s_jsonOptions);
             encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
         }
-        return new FileOperationContext
-        {
-            Path = $"CodeLists/{codeListWrapper.Title}.json",
-            Content = encodedContent,
-            Operation = operation,
-            Sha = sha
-        };
+
+        return new FileOperationContext(
+            Content: encodedContent,
+            Operation: operation,
+            Path: $"CodeLists/{codeListWrapper.Title}.json",
+            Sha: sha
+        );
     }
 
     /// <inheritdoc />
@@ -313,25 +321,23 @@ public class OrgCodeListService : IOrgCodeListService
     /// <returns><see cref="CodeListWrapper"/> </returns>
     private static CodeListWrapper WrapCodeList(CodeList? codeList, string title, bool hasError)
     {
-        var codeListWrapper = new CodeListWrapper
-        {
-            Title = title,
-            CodeList = codeList,
-            HasError = hasError
-        };
-        return codeListWrapper;
+        return new CodeListWrapper(
+            Title: title,
+            CodeList: codeList,
+            HasError: hasError
+        );
     }
 
     private static GiteaMultipleFilesDto CreateGiteaMultipleFilesDto(string developer, List<FileOperationContext> fileOperationContexts, string commitMessage)
     {
-        return new GiteaMultipleFilesDto
-        {
-            Author = new GiteaIdentity { Name = developer },
-            Committer = new GiteaIdentity { Name = developer },
-            Files = fileOperationContexts,
-            Message = commitMessage,
-            Branch = string.Empty // Default branch
-        };
+        return new GiteaMultipleFilesDto(
+            Author: new GiteaIdentity(Name: developer),
+            Branch: string.Empty,
+            Committer: new GiteaIdentity(Name: developer),
+            Files: fileOperationContexts,
+            Message: commitMessage
+        );
+
     }
 
     private List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
@@ -384,7 +390,7 @@ public class OrgCodeListService : IOrgCodeListService
         {
             byte[] contentAsBytes = Convert.FromBase64String(fileContent);
             string decodedContent = Encoding.UTF8.GetString(contentAsBytes);
-            codeList = JsonSerializer.Deserialize<CodeList>(decodedContent);
+            codeList = JsonSerializer.Deserialize<CodeList>(decodedContent, s_jsonOptions);
             return codeList is not null;
         }
         catch (Exception ex) when (ex is ValidationException or JsonException or ArgumentNullException or FormatException)

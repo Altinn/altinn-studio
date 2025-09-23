@@ -43,42 +43,39 @@ public class UpdateCodeListsNewTests : DesignerEndpointsTestsBase<UpdateCodeList
         const string DeleteCodeListId = "municipalities";
         const string CommitMessage = "My commit message";
         Dictionary<string, string> queryParameters = new() { { "key", "value" } };
-        CodeListSource source = new() { Name = "Klass", Version = "1.0", QueryParameters = queryParameters };
-        CodeList newCodeList = new()
-        {
-            Codes =
-            [
-                new Code
-                {
-                    Value = "no",
-                    Label = new Dictionary<string, string> { { "nb", "Norge" } },
-                    Description = new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
-                    HelpText = new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
-                    Tags = ["tag"]
-                }
-            ],
-            Source = source,
-            TagNames = ["tagName"]
-        };
-        UpdateCodeListRequest requestBody = new()
-        {
-            CodeListWrappers =
-            [
-                new CodeListWrapper
-                {
-                    Title = NewCodeListId,
-                    CodeList = newCodeList,
-                    HasError = false
-                },
-                new CodeListWrapper
-                {
-                    Title = DeleteCodeListId,
-                    CodeList = null,
-                    HasError = null
-                }
-            ],
-            CommitMessage = CommitMessage
-        };
+        CodeListSource source = new(Name: "Klass", Version: "1.0", QueryParameters: queryParameters);
+        List<Code> codes =
+        [
+            new(
+                value: "no",
+                label: new Dictionary<string, string> { { "nb", "Norge" } },
+                description: new Dictionary<string, string> { { "nb", "Et land i nord europa." } },
+                helpText: new Dictionary<string, string> { { "nb", "En hjelpe tekst." } },
+                tags: ["tag"]
+            )
+        ];
+        CodeList newCodeList = new(
+            Codes: codes,
+            Source: source,
+            TagNames: ["tagName"]
+        );
+        List<CodeListWrapper> wrappers =
+        [
+            new(
+                Title: NewCodeListId,
+                CodeList: newCodeList,
+                HasError: false
+            ),
+            new(
+                Title: DeleteCodeListId,
+                CodeList: null,
+                HasError: null
+            )
+        ];
+        UpdateCodeListRequest requestBody = new(
+            CodeListWrappers: wrappers,
+            CommitMessage: CommitMessage
+        );
 
         string apiUrl = ApiUrl();
         using HttpRequestMessage request = new(HttpMethod.Put, apiUrl);

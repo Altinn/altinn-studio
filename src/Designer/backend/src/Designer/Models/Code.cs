@@ -8,44 +8,29 @@ using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
 
-public sealed class Code
+public sealed record Code
 {
-    /// <summary>
-    /// Value that connects the option to the data model.
-    /// </summary>
-    [NotNullable]
-    [JsonPropertyName("value")]
-    [JsonConverter(typeof(OptionValueConverter))]
-    public required object Value { get; set; }
-
-    /// <summary>
-    /// Label to present to the user.
-    /// </summary>
-    [NotNullable]
-    [JsonPropertyName("label")]
-    public required Dictionary<string, string> Label { get; set; }
-
-    /// <summary>
-    /// Description, typically displayed below the label.
-    /// </summary>
-    [JsonPropertyName("description")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? Description { get; set; }
-
-    /// <summary>
-    /// Help text, typically wrapped inside a popover.
-    /// </summary>
-    [JsonPropertyName("helpText")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Dictionary<string, string>? HelpText { get; set; }
-
-    [JsonPropertyName("tags")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? Tags { get; set; }
-
-    public override bool Equals(object? obj)
+    public Code(object value,
+        Dictionary<string, string> label,
+        Dictionary<string, string>? description,
+        Dictionary<string, string>? helpText,
+        List<string>? tags)
     {
-        Code? other = obj as Code;
+        Value = value;
+        Label = label;
+        Description = description;
+        HelpText = helpText;
+        Tags = tags;
+    }
+    [JsonConverter(typeof(OptionValueConverter))]
+    public object Value { get; init; }
+    public Dictionary<string, string> Label { get; init; }
+    public Dictionary<string, string>? Description { get; init; }
+    public Dictionary<string, string>? HelpText { get; init; }
+    public List<string>? Tags { get; init; }
+
+    public bool Equals(Code? other)
+    {
         if (other is null)
         {
             return false;
