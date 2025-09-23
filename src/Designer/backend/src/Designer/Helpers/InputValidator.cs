@@ -14,8 +14,12 @@ public static partial class InputValidator
         return LatinCharacterAndNumbers_AllowUnderscores().Match(title).Success is false;
     }
 
-    public static bool IsValidGiteaCommitMessage(string commitMessage)
+    public static bool IsValidGiteaCommitMessage(string? commitMessage)
     {
+        if (string.IsNullOrWhiteSpace(commitMessage))
+        {
+            return false;
+        }
         // Commit message must be between 1 and 5120 characters and not contain null characters
         // https://docs.gitea.com/administration/config-cheat-sheet
         char nullChar = '\0';
@@ -24,7 +28,7 @@ public static partial class InputValidator
             return false;
         }
 
-        return string.IsNullOrEmpty(commitMessage) is false && commitMessage.Length <= 5120;
+        return commitMessage.Length <= 5120;
     }
 
     [GeneratedRegex("^[a-zA-Z0-9][a-zA-Z0-9_]*$")]
