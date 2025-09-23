@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -107,12 +108,14 @@ public class OrgCodeListController : ControllerBase
     [HttpPut]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("new")]
     public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string reference = "", CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
-        string commitMessage = requestBody.CommitMessage;
+        string commitMessage = requestBody.CommitMessage ?? string.Empty;
 
         try
         {
