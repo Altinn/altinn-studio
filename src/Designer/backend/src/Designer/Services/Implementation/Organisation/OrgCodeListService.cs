@@ -174,15 +174,16 @@ public class OrgCodeListService : IOrgCodeListService
         Dictionary<string, string> fileMetadata = [];
         foreach (FileSystemObject file in remoteFiles)
         {
+            string title = Path.GetFileNameWithoutExtension(file.Name);
             if (TryParseFile(file.Content, out CodeList? codeList))
             {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
-                fileMetadata[file.Name] = file.Sha;
+                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
             }
             else
             {
-                remoteCodeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+                remoteCodeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
             }
+            fileMetadata[title] = file.Sha;
         }
 
         return (remoteCodeListWrappers, fileMetadata);
@@ -191,7 +192,7 @@ public class OrgCodeListService : IOrgCodeListService
     internal List<FileOperationContext> PrepareFileCreations(List<CodeListWrapper> toCreate)
     {
         List<FileOperationContext> fileChangeContexts = [];
-        foreach (CodeListWrapper codeListWrapper in toCreate)
+        foreach (CodeListWrapper codeListWrapper in toCreate.Where(w => w.CodeList is not null))
         {
             string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
             string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
@@ -210,6 +211,10 @@ public class OrgCodeListService : IOrgCodeListService
         List<FileOperationContext> fileChangeContexts = [];
         foreach (CodeListWrapper codeListWrapper in toUpdate)
         {
+            if (fileMetadata.TryGetValue(codeListWrapper.Title, out string? sha) is false)
+            {
+                throw new InvalidOperationException($"Missing SHA for '{codeListWrapper.Title}'. Cannot update file.");
+            }
             string content = JsonSerializer.Serialize(codeListWrapper.CodeList, _jsonOptions);
             string encodedContent = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(content));
             fileChangeContexts.Add(new FileOperationContext
@@ -217,7 +222,7 @@ public class OrgCodeListService : IOrgCodeListService
                 Path = $"CodeLists/{codeListWrapper.Title}.json",
                 Content = encodedContent,
                 Operation = FileOperation.Update,
-                Sha = fileMetadata[codeListWrapper.Title]
+                Sha = sha
             });
         }
         return fileChangeContexts;
