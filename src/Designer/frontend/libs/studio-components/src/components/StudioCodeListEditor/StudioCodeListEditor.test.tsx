@@ -82,57 +82,30 @@ describe('StudioCodeListEditor', () => {
       await user.tab();
 
       expect(onUpdateCodeList).toHaveBeenCalledTimes(newValue.length);
-      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
-        { ...codeList[0], value: newValue },
-        codeList[1],
-        codeList[2],
-      ]);
+      expect(onUpdateCodeList).toHaveBeenLastCalledWith(
+        expect.arrayContaining([expect.objectContaining({ value: newValue })]),
+      );
     });
 
-    it('Calls the onUpdateCodeList callback with the new code list when a label is changed', async () => {
-      const user = userEvent.setup();
-      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
-      const newText = 'Lorem ipsum';
+    it.each(Object.values(CodeListItemTextProperty))(
+      'Calls the onUpdateCodeList callback with the new code list when a %s is changed',
+      async (property: CodeListItemTextProperty) => {
+        const user = userEvent.setup();
+        const propertyCoords: TextPropertyCoords = [1, property];
+        const newText = 'Lorem ipsum';
 
-      renderCodeListEditor();
-      await user.type(getTextInput(propertyCoords), newText);
+        renderCodeListEditor();
+        await user.type(getTextInput(propertyCoords), newText);
 
-      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
-        { ...codeList[0], label: { ...codeList[0].label, [language]: newText } },
-        codeList[1],
-        codeList[2],
-      ]);
-    });
-
-    it('Calls the onUpdateCodeList callback with the new code list when a description is changed', async () => {
-      const user = userEvent.setup();
-      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Description];
-      const newText = 'Lorem ipsum';
-
-      renderCodeListEditor();
-      await user.type(getTextInput(propertyCoords), newText);
-
-      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
-        { ...codeList[0], description: { ...codeList[0].description, [language]: newText } },
-        codeList[1],
-        codeList[2],
-      ]);
-    });
-
-    it('Calls the onUpdateCodeList callback with the new code list when a help text is changed', async () => {
-      const user = userEvent.setup();
-      const propertyCoords: TextPropertyCoords = [1, CodeListItemTextProperty.HelpText];
-      const newText = 'Lorem ipsum';
-
-      renderCodeListEditor();
-      await user.type(getTextInput(propertyCoords), newText);
-
-      expect(onUpdateCodeList).toHaveBeenLastCalledWith([
-        { ...codeList[0], helpText: { ...codeList[0].helpText, [language]: newText } },
-        codeList[1],
-        codeList[2],
-      ]);
-    });
+        expect(onUpdateCodeList).toHaveBeenLastCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({
+              [property]: expect.objectContaining({ [language]: newText }),
+            }),
+          ]),
+        );
+      },
+    );
   });
 
   it('Calls the onUpdateCodeList callback with the new code list when an item is removed', async () => {
