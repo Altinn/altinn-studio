@@ -1,7 +1,7 @@
 import React from 'react';
 import { useText } from '../../../../hooks';
 import type { GridSize } from '@studio/components-legacy';
-import { StudioGridSelector } from '@studio/components-legacy';
+import { StudioGridSelector } from '@studio/components';
 import { Paragraph, Switch } from '@digdir/designsystemet-react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
