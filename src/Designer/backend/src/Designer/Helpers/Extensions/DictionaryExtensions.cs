@@ -20,7 +20,7 @@ public static class DictionaryExtensions
             return false;
         }
 
-        if (first.GetHashCode() == second.GetHashCode())
+        if (ReferenceEquals(first, second))
         {
             return true;
         }
