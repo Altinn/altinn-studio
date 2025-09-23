@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Helpers.Extensions;
 
@@ -45,6 +46,17 @@ public class CodeListSource
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Name, Version, QueryParameters);
+        var hash = new HashCode();
+        hash.Add(Name, StringComparer.Ordinal);
+        hash.Add(Version, StringComparer.Ordinal);
+        if (QueryParameters is not null)
+        {
+            foreach (KeyValuePair<string, string> kvp in QueryParameters.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                hash.Add(kvp.Key, StringComparer.Ordinal);
+                hash.Add(kvp.Value, StringComparer.Ordinal);
+            }
+        }
+        return hash.ToHashCode();
     }
 }
