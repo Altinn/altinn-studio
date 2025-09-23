@@ -9,12 +9,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Exceptions.Options;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
-using Designer.Helpers;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 

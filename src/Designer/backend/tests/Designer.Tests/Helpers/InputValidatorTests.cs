@@ -1,4 +1,4 @@
-using Designer.Helpers;
+using Altinn.Studio.Designer.Helpers;
 using Xunit;
 
 namespace Designer.Tests.Helpers;

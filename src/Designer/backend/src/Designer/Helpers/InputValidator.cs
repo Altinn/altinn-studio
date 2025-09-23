@@ -1,8 +1,7 @@
 #nullable enable
 using System.Text.RegularExpressions;
 
-namespace Designer.Helpers;
-
+namespace Altinn.Studio.Designer.Helpers;
 public static partial class InputValidator
 {
 
