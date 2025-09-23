@@ -159,7 +159,7 @@ public class OrgCodeListService : IOrgCodeListService
     internal List<FileOperationContext> CreateFileOperationContexts(List<CodeListWrapper> localWrappers, List<FileSystemObject> remoteFiles)
     {
         (List<CodeListWrapper> remoteWrappers, Dictionary<string, string> fileMetadata) = ExtractContentFromFiles(remoteFiles);
-        return CompareCodeLists(remoteWrappers, localWrappers, fileMetadata);
+        return GenerateFileOperationContexts(remoteWrappers, localWrappers, fileMetadata);
     }
 
     internal static (List<CodeListWrapper> remoteCodeListWrappers, Dictionary<string, string> fileMetadata) ExtractContentFromFiles(List<FileSystemObject> remoteFiles)
@@ -334,7 +334,7 @@ public class OrgCodeListService : IOrgCodeListService
         };
     }
 
-    private List<FileOperationContext> CompareCodeLists(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
+    private List<FileOperationContext> GenerateFileOperationContexts(List<CodeListWrapper> remoteWrappers, List<CodeListWrapper> localWrappers, Dictionary<string, string> fileMetadata)
     {
         List<FileOperationContext> fileOperationContexts = [];
 
