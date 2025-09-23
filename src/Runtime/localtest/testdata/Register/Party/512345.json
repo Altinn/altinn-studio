@@ -1,0 +1,14 @@
+{
+  "partyId": "512345",
+  "partyUuid": "48153af4-265f-4b35-8ed9-232fafbc716e",
+  "partyTypeName": 1,
+  "orgNumber": "",
+  "ssn": "01017512345",
+  "unitType": null,
+  "name": "Ola Nordmann",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

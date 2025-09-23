@@ -1,0 +1,46 @@
+{
+  "identifier": "nav_tiltakAvtaleOmArbeidstrening",
+  "title": {
+    "nb": "Avtale om arbeidstrening",
+    "en": "Agreement on work training"
+  },
+  "description": {
+    "nb-NO": "Avtalen skal bidra til at personer med behov for bistand fra NAV skal få eller beholde en jobb, samtidig som den støtter arbeidsgivere som inkluderer deg som har nedsatt arbeidsevne. Avtalen inngås mellom arbeidsgiver, arbeidssøker og NAV.",
+    "EN": "The agreement will help people who need assistance from NAV to get or keep a job, while supporting employers who include those who have reduced working capacity. The agreement is entered into between the employer, the jobseeker and NAV."
+  },
+  "rightDescription": {
+    "nb-NO": "Med denne fullmakten kan man inngå en avtale om arbeidstreing med NAV og kommune.",
+    "EN": "With this authorisation, you can enter into an agreement on work training with NAV and the municipality"
+  },
+  "hasCompetentAuthority": {
+    "organization": "889640782",
+    "orgcode": "NAV"
+  },
+  "contactpoint": [
+    {
+      "phone": "55 55 33 36 ",
+      "email": "postmottak@nav.no"
+    }
+  ],
+  "homepage": "https://www.nav.no/",
+  "status": "Active",
+  "validFrom": "2019-05-08T14:00:00",
+  "validTo": "2049-05-08T14:00:00",
+  "isPartOf": "nav_RapporteringOmArbeidstrening",
+  "isPublicService": true,
+  "usedBy": [ "urn:citizen", "urn:enterprise", "urn:selfidentifeduser" ],  
+  "thematicArea": "http://publications.europa.eu/resource/authority/eurovoc/2468",
+  "type": [],
+  "sector": [],
+  "keywords": [
+    {
+      "word" : "Dødsbo",
+      "language" : "nb"
+    }
+  ],
+  "resourceReference": {
+    "referenceSource": "Altinn2",
+    "referenceType": "ServiceCodeVersion",
+    "reference": "5332/2"
+  }
+}
