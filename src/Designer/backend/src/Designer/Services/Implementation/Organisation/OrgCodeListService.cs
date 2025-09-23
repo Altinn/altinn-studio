@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -83,12 +84,13 @@ public class OrgCodeListService : IOrgCodeListService
         List<CodeListWrapper> codeListWrappers = [];
         foreach (FileSystemObject file in files)
         {
+            string title = Path.GetFileNameWithoutExtension(file.Name);
             if (TryParseFile(file.Content, out CodeList? codeList))
             {
-                codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: false));
+                codeListWrappers.Add(WrapCodeList(codeList, title, hasError: false));
                 continue;
             }
-            codeListWrappers.Add(WrapCodeList(codeList, file.Name, hasError: true));
+            codeListWrappers.Add(WrapCodeList(codeList, title, hasError: true));
         }
         return codeListWrappers;
     }
@@ -355,7 +357,8 @@ public class OrgCodeListService : IOrgCodeListService
             Author = new Designer.Models.Dto.Identity { Name = developer },
             Committer = new Designer.Models.Dto.Identity { Name = developer },
             Files = fileOperationContexts,
-            Message = commitMessage
+            Message = commitMessage,
+            Branch = string.Empty // Default branch
         };
     }
 
