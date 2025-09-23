@@ -32,17 +32,26 @@ public class CodeList
             return false;
         }
 
+        if (other.Codes.SequenceEqual(Codes) is false)
+        {
+            return false;
+        }
+
         if (other.TagNames is null || TagNames is null)
         {
             return false;
         }
 
-        if (other.TagNames.SequenceEqual(TagNames) is false)
+        if (other.TagNames is null || TagNames is null)
         {
-            return false;
+            if (other.TagNames != TagNames)
+            {
+                return false;
+            }
+            return true;
         }
 
-        return other.Codes.SequenceEqual(Codes);
+        return other.TagNames.SequenceEqual(TagNames);
     }
 
     public override int GetHashCode()
