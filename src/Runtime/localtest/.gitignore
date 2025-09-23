@@ -1,0 +1,23 @@
+.env
+.idea
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+AltinnPlatformLocal/
+
+# Visual Studio
+.vs/
+*.user
+
+.mono/
+
+node_modules/
+k6/*
+!k6/*.sample.js
