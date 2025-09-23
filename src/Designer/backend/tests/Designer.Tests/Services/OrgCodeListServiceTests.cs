@@ -248,7 +248,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Assert
         Assert.NotEmpty(result);
         Assert.Equal(2, result.Count);
-        Assert.Single(fileMetadata);
+        Assert.Equal(2, fileMetadata.Count);
         Assert.True(result.First(csw => csw.Title == FosWithoutContentName).HasError);
         Assert.False(result.First(csw => csw.Title == FosWithContentName).HasError);
     }
@@ -401,7 +401,7 @@ public class OrgCodeListServiceTests : IDisposable
                 Name = Developer,
                 Email = null
             },
-            Branch = null,
+            Branch = string.Empty,
             Files = files,
             Message = ""
         };
