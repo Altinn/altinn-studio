@@ -1,3 +1,6 @@
+
+root = true
+
 [*]
 # Non-configurable behaviors
 charset = utf-8
@@ -170,13 +173,13 @@ dotnet_diagnostic.S1118.severity = none
 indent_size = 2
 end_of_line = lf
 
- # Verify settings
- # https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
- [*.{received,verified}.{json,txt,xml}]
- charset = "utf-8-bom"
- end_of_line = lf
- indent_size = unset
- indent_style = unset
- insert_final_newline = false
- tab_width = unset
- trim_trailing_whitespace = false
+# Verify settings
+# https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
+[*.{received,verified}.{json,txt,xml}]
+charset = "utf-8-bom"
+end_of_line = lf
+indent_size = unset
+indent_style = unset
+insert_final_newline = false
+tab_width = unset
+trim_trailing_whitespace = false

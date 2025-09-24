@@ -1,14 +1,18 @@
-name: Build and Test on windows, macos and ubuntu
+name: App Backend - Build and Test on windows, macos and ubuntu
 
 on:
   push:
     branches:
       - "main"
-      - "release/**"
+    paths:
+      - 'src/App/backend/**'
+      - '.github/workflows/app-backend*.yml'
   pull_request:
     branches:
       - "main"
-      - "release/**"
+    paths:
+      - 'src/App/backend/**'
+      - '.github/workflows/app-backend*.yml'
   workflow_dispatch:
 
 jobs:
@@ -18,6 +22,9 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
+    defaults:
+      run:
+        working-directory: src/App/backend/
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:

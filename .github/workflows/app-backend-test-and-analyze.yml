@@ -1,6 +1,9 @@
-name: Code test and analysis
+name: App Backend - Code test and analysis
 on:
   pull_request:
+    paths:
+      - 'src/App/backend/**'
+      - '.github/workflows/app-backend*.yml'
   workflow_dispatch:
 jobs:
   analyze:
@@ -11,6 +14,9 @@ jobs:
      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     name: Static code analysis
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src\App\backend\
     steps:
       - name: Enable long paths for git on Windows
         run: git config --system core.longpaths true
@@ -31,15 +37,15 @@ jobs:
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
           path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          key: ${{ runner.os }}-app-backend-sonar
+          restore-keys: ${{ runner.os }}-app-backend-sonar
       - name: Cache SonarCloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
-          path: .\.sonar\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
+          path: .\src\App\backend\.sonar\scanner
+          key: ${{ runner.os }}-app-backend-sonar-scanner
+          restore-keys: ${{ runner.os }}-app-backend-sonar-scanner
       - name: Install SonarCloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
