@@ -521,7 +521,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Task<FileSystemObject> task = GetFileAsync(org, repository, filePath, reference, cancellationToken);
                 tasks.Add(task);
             }
-            FileSystemObject[] files = await Task.WhenAll(tasks);
+
+            SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
+            List<Task<FileSystemObject>> limitedTasks = [.. tasks.Select(async task =>
+            {
+                await semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    return await task;
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            })];
+
+            FileSystemObject[] files = await Task.WhenAll(limitedTasks);
             return [.. files.Where(file => file is not null)];
         }
 
