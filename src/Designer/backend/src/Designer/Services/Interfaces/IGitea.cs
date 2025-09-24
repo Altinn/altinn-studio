@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
         /// <returns>List of repos</returns>
-        Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
+        Task<IList<RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
         /// List an organization's repos
@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
+        Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
 
         /// <summary>
         /// Search the repository for the given searchOptions
@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the repository</param>
         /// <returns>Information about the repository of the given org.</returns>
-        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository);
+        Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository);
 
         /// <summary>
         /// Returns organisation that user has access to
