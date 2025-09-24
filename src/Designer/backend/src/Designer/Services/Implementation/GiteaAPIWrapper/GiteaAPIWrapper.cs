@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpClient _httpClient;
         private const string CodeListFolderName = "CodeLists";
 
-        private static readonly JsonSerializerOptions s_jsonOptions = new(){ PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+        private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
