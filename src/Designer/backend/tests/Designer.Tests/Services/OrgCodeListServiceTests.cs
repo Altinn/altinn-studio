@@ -448,7 +448,7 @@ public class OrgCodeListServiceTests : IDisposable
         _giteaMock.Verify(s => s.ModifyMultipleFiles(Org, It.IsAny<string>(), It.Is<GiteaMultipleFilesDto>(dto => expectedDto.Equals(dto)), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-        [Fact]
+    [Fact]
     public async Task UpdateCodeListsNew_ModifyMultipleReturnsFalse_ThrowsInvalidOperationException()
     {
         // Arrange
@@ -458,7 +458,7 @@ public class OrgCodeListServiceTests : IDisposable
             new(Title: "codeListOne", CodeList: SetupCodeList()),
             new(Title: "codeListTwo")
         ];
-        List<FileSystemObject> remoteCodeLists =[];
+        List<FileSystemObject> remoteCodeLists = [];
 
         _giteaMock
             .Setup(service => service.GetCodeListDirectoryContentAsync(Org, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
