@@ -79,7 +79,7 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new User());
         }
 
-        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference, CancellationToken cancellationToken)
+        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
         {
             List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
             string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
@@ -115,7 +115,7 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(fileSystemObject);
         }
 
-        public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken)
+        public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference = null, CancellationToken cancellationToken = default)
         {
             return GetFileAsync(org, app, filePath, reference);
         }
@@ -219,7 +219,7 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
         }
 
-        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference, CancellationToken cancellationToken = default)
+        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new List<FileSystemObject>());
         }
