@@ -141,6 +141,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 
         /// <summary>
         /// Gets the files in the CodeLists directory of a given repository.
+        /// If the directory is missing, returns an empty list.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of repository</param>
