@@ -7,6 +7,7 @@ import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioErrorMessage, StudioSpinner } from '@studio/components-legacy';
 import { StudioButton, StudioCenter, StudioAlert } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
