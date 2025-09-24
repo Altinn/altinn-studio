@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import {
-  StudioCard,
   StudioTextfield,
   StudioTabs,
   StudioNativeSelect,
 } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioCard, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
 import { CheckmarkIcon, XMarkIcon } from '@studio/icons';

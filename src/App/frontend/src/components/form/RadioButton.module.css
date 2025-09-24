@@ -1,0 +1,46 @@
+.radioLabelContainer {
+  display: flex;
+  gap: var(--ds-size-1);
+  align-items: center;
+}
+
+.radioButton {
+  box-sizing: border-box;
+}
+
+.card {
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-tinted);
+  width: 100%;
+  padding: var(--ds-size-3);
+  margin-bottom: var(--ds-size-3);
+  cursor: pointer;
+}
+
+.card label {
+  width: 100%;
+}
+
+.card:hover {
+  background: var(--ds-color-accent-surface-hover);
+}
+
+.card:active {
+  background: var(--ds-color-neutral-border-subtle);
+}
+
+.card:is(:checked, :has(:checked)) {
+  background: var(--ds-color-accent-surface-tinted);
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-accent-border-strong);
+}
+
+.card:has(:focus-visible) {
+  box-shadow: 0 0 0 var(--ds-border-width-focus) var(--ds-color-focus-inner);
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: var(--ds-border-width-focus);
+}
+
+.card > div:has(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}

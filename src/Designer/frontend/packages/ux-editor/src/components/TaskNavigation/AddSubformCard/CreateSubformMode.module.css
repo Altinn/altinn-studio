@@ -1,5 +1,4 @@
 .subformCardEditMode {
-  display: flex;
   width: 300px;
   gap: var(--fds-spacing-3);
   background-color: var(--fds-semantic-background-default);

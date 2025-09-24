@@ -1,0 +1,12 @@
+version: '3.6'
+
+services:
+  webpack:
+    container_name: app-frontend-react
+    image: node:22
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    command: bash -c "yarn --immutable && yarn docker"
+    ports:
+      - "8080:8080"

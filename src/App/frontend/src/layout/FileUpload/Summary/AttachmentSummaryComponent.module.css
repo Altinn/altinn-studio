@@ -1,0 +1,45 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.containerWithTag {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.emptyField {
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.6875;
+}
+
+.row:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+.rowWithTag {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
+  column-gap: 2rem;
+  row-gap: 1rem;
+  border-top: 1px dashed var(--colors-primary-blueMedium);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.tag {
+  text-align: right;
+}
+
+/* Mobile layout */
+@media screen and (max-width: 768px) {
+  .rowWithTag {
+    grid-template-columns: 1fr;
+  }
+
+  .tag {
+    text-align: left;
+  }
+}

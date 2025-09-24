@@ -1,0 +1,49 @@
+{
+  "name": "Should look up an option label and return the translated value",
+  "expression": ["optionLabel", "foods", "s"],
+  "expects": "Squash",
+  "testCases":[
+    {
+      "expression": ["optionLabel", "foods", "p"],
+      "expects": "Pumpkin"
+    },
+    {
+      "expression": ["optionLabel", "foods", "z"],
+      "expects": "Zucchini, it's the best!"
+    },
+    {
+      "expression": ["optionLabel", "foods", "x"],
+      "expects": null
+    }
+  ],
+  "codeLists": {
+    "foods": [
+      { "label": "foods.squash", "value": "s" },
+      { "label": "foods.pumpkin", "value": "p" },
+      { "label": "foods.zucchini", "value": "z" }
+    ]
+  },
+  "textResources": [
+    {
+      "id": "foods.squash",
+      "value": "Squash"
+    },
+    {
+      "id": "foods.pumpkin",
+      "value": "Pumpkin"
+    },
+    {
+      "id": "foods.zucchini",
+      "value": "Zucchini{0}",
+      "variables": [
+        {
+          "key": "WhatIsZucchini",
+          "dataSource": "dataModel.default"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "WhatIsZucchini": ", it's the best!"
+  }
+}

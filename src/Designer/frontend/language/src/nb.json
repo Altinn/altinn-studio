@@ -441,6 +441,7 @@
   "expression.error.invalidDataModelPath": "Det finnes ikke noe datamodellfelt med denne pekeren. Velg en peker fra listen.",
   "expression.error.invalidFirstOperand": "Den første verdien er ikke gyldig.",
   "expression.error.invalidSecondOperand": "Den andre verdien er ikke gyldig.",
+  "expression.error.missingDataModel": "Det er ikke knyttet en datamodell til dette utfyllingssteget.",
   "expression.error.numericRelationOperatorWithWrongType": "Den operatoren du har valgt kan ikke brukes sammen med de valgte verdiene. Den kan kun brukes med tall.",
   "expression.errorListFooter": "Rett opp feilene og prøv igjen.",
   "expression.errorListHeader": "Kan ikke lagre uttrykket på grunn av disse feilene:",

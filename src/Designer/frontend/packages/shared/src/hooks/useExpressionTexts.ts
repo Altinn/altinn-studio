@@ -80,6 +80,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     logicalOperator: t('expression.logicalOperator'),
     logicalTupleOperators,
     manual: t('expression.manual'),
+    missingDataModelLabel: t('expression.error.missingDataModel'),
     numberValidationError: t('validation_errors.numbers_only'),
     or: t('expression.or'),
     predefinedGatewayActions,

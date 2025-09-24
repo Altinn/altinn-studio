@@ -1,0 +1,7 @@
+.logicalOperatorToggle {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--studio-expression-spacing);
+  width: 100%;
+}

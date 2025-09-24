@@ -1,0 +1,20 @@
+.formValue {
+  font-weight: 500;
+}
+
+.labelValueWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.checkboxSummaryItem {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}
