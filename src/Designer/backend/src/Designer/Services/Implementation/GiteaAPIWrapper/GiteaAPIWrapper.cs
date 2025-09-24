@@ -35,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpClient _httpClient;
         private const string CodeListFolderName = "CodeLists";
 
+        private static readonly JsonSerializerOptions s_jsonOptions = new(){ PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
         /// </summary>
@@ -83,12 +85,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
-                var deserializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                };
-
-                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, deserializeOptions) ?? new List<Team>();
+                teams = JsonSerializer.Deserialize<List<Team>>(jsonString, s_jsonOptions) ?? [];
             }
             else
             {
@@ -525,7 +522,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> ModifyMultipleFiles(string org, string repository, GiteaMultipleFilesDto files, CancellationToken cancellationToken = default)
         {
-            string content = JsonSerializer.Serialize(files);
+            string content = JsonSerializer.Serialize(files, s_jsonOptions);
             using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/contents", new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json), cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
