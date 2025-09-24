@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.GitOpsManager;
-using Designer.Tests.Utils;
 using SharedResources.Tests;
 using Xunit;
 
