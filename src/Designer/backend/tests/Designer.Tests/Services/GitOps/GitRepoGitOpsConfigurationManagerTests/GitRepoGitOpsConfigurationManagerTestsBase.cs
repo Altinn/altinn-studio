@@ -72,7 +72,7 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected async Task EnvironmentManifestsContainApps(string environment, params string[] apps)
     {
-        var appsSet = apps.Select(app => AltinnRepoName.FromName(app)).ToHashSet();
+        var appsSet = apps.Select(AltinnRepoName.FromName).ToHashSet();
         var manifests =
             ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(AltinnEnvironment.FromName(environment),
                 appsSet);

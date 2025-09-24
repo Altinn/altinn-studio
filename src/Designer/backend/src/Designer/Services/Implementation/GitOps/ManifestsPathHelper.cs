@@ -13,6 +13,8 @@ public static class ManifestsPathHelper
     {
         public static string DirectoryPath(string environment) => $"./{environment}";
         public static string KustomizationPath(string environment) => $"{DirectoryPath(environment)}/kustomization.yaml";
+        public static string KustomizationResourcesSection = "resources";
+        public static string AppResourcePrefix = "../apps/";
         public static string KustomizationAppResource(string app) => $"../apps/{app}";
     }
 
@@ -20,7 +22,7 @@ public static class ManifestsPathHelper
     {
         public static string DirectoryPath => "./apps";
         public static string AppDirectoryPath(string app) => $"{DirectoryPath}/{app}";
-        public static string KustomizationPath(string app) => $".{AppDirectoryPath(app)}/kustomization.yaml";
+        public static string KustomizationPath(string app) => $"{AppDirectoryPath(app)}/kustomization.yaml";
     }
 
 }
