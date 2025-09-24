@@ -63,6 +63,7 @@
     <PackageReference Include="Quartz.Serialization.SystemTextJson" />
     <PackageReference Include="Scriban" />
     <PackageReference Include="Scrutor" />
+    <PackageReference Include="YamlDotNet" />
   </ItemGroup>
 
   <ItemGroup>

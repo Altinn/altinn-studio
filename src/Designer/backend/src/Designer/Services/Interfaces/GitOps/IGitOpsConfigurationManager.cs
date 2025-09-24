@@ -12,7 +12,8 @@ public interface IGitOpsConfigurationManager
     /// Ensures that the GitOps configuration exists for the specified organization.
     /// </summary>
     /// <param name="context">The <see cref="AltinnOrgEditingContext"/> representing the organization editing context.</param>
-    public Task EnsureGitOpsConfigurationExists(AltinnOrgEditingContext context);
+    /// <param name="environment">The <see cref="AltinnEnvironment"/> to ensure configuration exists for.</param>
+    public Task EnsureGitOpsConfigurationExists(AltinnOrgEditingContext context, AltinnEnvironment environment);
 
     /// <summary>
     /// Checks if the application exists in the GitOps configuration for the given environment.
@@ -34,7 +35,7 @@ public interface IGitOpsConfigurationManager
     /// </summary>
     /// <param name="context">The <see cref="AltinnRepoEditingContext"/> representing the repository editing context.</param>
     /// <param name="environment">The <see cref="AltinnEnvironment"/> to remove the application from.</param>
-    public Task RemoveAppFromGitOpsConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment);
+    public Task RemoveAppFromGitOpsEnvironmentConfiguration(AltinnRepoEditingContext context, AltinnEnvironment environment);
 
     /// <summary>
     /// Persists the GitOps configuration for the organization and environment.

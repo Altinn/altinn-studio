@@ -4,12 +4,12 @@ namespace Altinn.Studio.Designer.Models;
 
 public record AltinnOrgEditingContext : AltinnOrgContext
 {
-    public string DeveloperName { get; }
+    public string Developer { get; }
 
-    private AltinnOrgEditingContext(string org, string developerName): base(org)
+    private AltinnOrgEditingContext(string org, string developer): base(org)
     {
-        Guard.AssertArgumentNotNullOrWhiteSpace(developerName, nameof(developerName));
-        DeveloperName = developerName;
+        Guard.AssertArgumentNotNullOrWhiteSpace(developer, nameof(developer));
+        Developer = developer;
     }
 
     public static AltinnOrgEditingContext FromOrgDeveloper(string org, string developerName)
