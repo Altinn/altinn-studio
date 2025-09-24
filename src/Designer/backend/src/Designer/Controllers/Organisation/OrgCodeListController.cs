@@ -117,7 +117,7 @@ public class OrgCodeListController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
-        string commitMessage = requestBody.CommitMessage;
+        string? commitMessage = requestBody.CommitMessage;
 
         try
         {
