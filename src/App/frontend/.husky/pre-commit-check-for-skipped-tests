@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-
-grep --quiet -E 'it.only\(|describe.only\(' "$@"
-if [ $? -eq 0 ]; then
-  echo "Found skipped tests in: $@"
-  exit 1
-fi
