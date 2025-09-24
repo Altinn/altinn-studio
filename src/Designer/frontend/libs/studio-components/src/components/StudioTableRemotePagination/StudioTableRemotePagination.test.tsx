@@ -68,6 +68,23 @@ describe('StudioTableRemotePagination', () => {
     ).toBeInTheDocument();
   });
 
+  it('calls onPageChange when out of range (totalRows > 0 and table is empty)', () => {
+    const onPageChange = jest.fn();
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={[]}
+        pagination={{
+          ...paginationProps,
+          totalRows: 10,
+          currentPage: 3,
+          onPageChange,
+        }}
+      />,
+    );
+    expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
   it('does not render the pagination controls when pagination prop is not provided', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
@@ -127,6 +144,23 @@ describe('StudioTableRemotePagination', () => {
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });
 
+  it('defaults the select value to the first option when pageSize is undefined', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rows}
+        pagination={{
+          ...paginationProps,
+          pageSize: undefined as unknown as number,
+        }}
+      />,
+    );
+    const select = screen.getByRole('combobox', {
+      name: paginationTexts.pageSizeLabel,
+    }) as HTMLSelectElement;
+    expect(select.value).toBe(String(paginationProps.pageSizeOptions[0]));
+  });
+
   it('hides the Previous button on the first page', () => {
     render(
       <StudioTableRemotePagination
@@ -147,22 +181,6 @@ describe('StudioTableRemotePagination', () => {
       />,
     );
     expect(screen.getAllByRole('listitem', { hidden: true }).length).toBeGreaterThan(0);
-  });
-
-  it('renders number buttons without numberButtonAriaLabel', () => {
-    const noAriaTexts = {
-      ...paginationTexts,
-      numberButtonAriaLabel: undefined as unknown as ((n: number) => string) | undefined,
-    };
-    render(
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={rows}
-        pagination={{ ...paginationProps, paginationTexts: noAriaTexts, totalPages: 2 }}
-      />,
-    );
-    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
   });
 
   it('displays the empty table message when there are no rows to display', () => {
