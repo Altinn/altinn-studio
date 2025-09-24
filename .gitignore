@@ -369,12 +369,12 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 src/Designer/backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo-*/**
 src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo-*/**
 src/Designer/backend/tests/Designer.Tests/_TestData/Repositories/**/**/test-repo_*/**
-backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
+src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 
 **/.env
 src/studio/.devcontainer/**
 
-backend/srcaccesstoken/
+src/Designer/backend/srcaccesstoken/
 
 ## Yarn
 /.pnp.*

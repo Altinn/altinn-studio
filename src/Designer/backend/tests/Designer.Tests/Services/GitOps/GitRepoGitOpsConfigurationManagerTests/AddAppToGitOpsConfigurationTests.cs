@@ -17,7 +17,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryDoesNotExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
@@ -42,7 +42,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
@@ -67,7 +67,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryDoesNotExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, []);
 
         await And
             .When
@@ -88,7 +88,7 @@ public class AddAppToGitOpsConfigurationTests : GitRepoGitOpsConfigurationManage
             .AppDirectoryExists(app);
 
         await And
-            .EnvironmentManifestsContainApps(environment, existingAppsInEnvironment);
+            .EnvironmentManifestsExistsWithResourceApps(environment, existingAppsInEnvironment);
 
         await And
             .When
