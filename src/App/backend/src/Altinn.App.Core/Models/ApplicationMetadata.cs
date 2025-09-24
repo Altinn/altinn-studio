@@ -68,7 +68,8 @@ public class ApplicationMetadata : Application
 
     static ApplicationMetadata()
     {
-        LibVersion = typeof(ApplicationMetadata).Assembly.GetName().Version?.ToString();
+        // TODO: fix this, before going to next major after v8
+        LibVersion = "8.0.0.0";
     }
 
     /// <summary>
